@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 from collections import deque
@@ -31,7 +32,7 @@ def queue() -> Queue:
 
 @pytest.fixture()
 def mock_event() -> Event:
-    websocket = MagicMock()
+    websocket = AsyncMock()
     event = Event(websocket=websocket, session_hash="test", fn_index=0)
     yield event
 
@@ -53,8 +54,19 @@ class TestQueueMethods:
 
     @pytest.mark.asyncio
     async def test_receive(self, queue: Queue, mock_event: Event):
+        mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
         await queue.get_message(mock_event)
         assert mock_event.websocket.receive_json.called
+
+    @pytest.mark.asyncio
+    async def test_receive_timeout(self, queue: Queue, mock_event: Event):
+        async def take_too_long():
+            await asyncio.sleep(1)
+
+        mock_event.websocket.receive_json = take_too_long
+        data, is_awake = await queue.get_message(mock_event, timeout=0.5)
+        assert data is None
+        assert not is_awake
 
     @pytest.mark.asyncio
     async def test_send(self, queue: Queue, mock_event: Event):
@@ -85,7 +97,7 @@ class TestQueueMethods:
         queue.send_message = AsyncMock()
         queue.get_message = AsyncMock()
         queue.send_message.return_value = True
-        queue.get_message.return_value = {"data": ["test"], "fn": 0}
+        queue.get_message.return_value = {"data": ["test"], "fn": 0}, True
 
         assert await queue.gather_event_data(mock_event)
         assert queue.send_message.called
@@ -193,6 +205,8 @@ class TestQueueProcessEvents:
         self, queue: Queue, mock_event: Event
     ):
         mock_event.websocket.send_json = AsyncMock()
+        mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
+
         mock_event.websocket.send_json.side_effect = ["2", ValueError("Can't connect")]
         queue.call_prediction = AsyncMock()
         mock_event.disconnect = AsyncMock()
@@ -260,6 +274,7 @@ class TestQueueProcessEvents:
     async def test_process_event_handles_error_sending_process_completed_msg(
         self, queue: Queue, mock_event: Event
     ):
+        mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
         mock_event.websocket.send_json = AsyncMock()
         mock_event.websocket.send_json.side_effect = [
             "2",
@@ -289,6 +304,7 @@ class TestQueueProcessEvents:
     async def test_process_event_handles_exception_during_disconnect(
         self, mock_request, queue: Queue, mock_event: Event
     ):
+        mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
         mock_event.websocket.send_json = AsyncMock()
         queue.call_prediction = AsyncMock(
             return_value=MagicMock(has_exception=False, json=dict(is_generating=False))

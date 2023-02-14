@@ -469,8 +469,22 @@ class App(FastAPI):
             await websocket.accept()
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
-            await websocket.send_json({"msg": "send_hash"})
-            session_info = await websocket.receive_json()
+            try:
+                await asyncio.wait_for(
+                    websocket.send_json({"msg": "send_hash"}), timeout=5
+                )
+            except asyncio.TimeoutError:
+                print("timeout send_hash")
+                return
+
+            try:
+                session_info = await asyncio.wait_for(
+                    websocket.receive_json(), timeout=5
+                )
+            except asyncio.TimeoutError:
+                print("timeout receiving hash")
+                return
+
             event = Event(
                 websocket, session_info["session_hash"], session_info["fn_index"]
             )

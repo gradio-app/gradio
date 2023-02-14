@@ -213,10 +213,17 @@ class Queue:
             event:
         """
         if not event.data:
+            print("sending send_data")
             client_awake = await self.send_message(event, {"msg": "send_data"})
+            print("sent send_data")
             if not client_awake:
                 return False
-            event.data = await self.get_message(event)
+            print("getting data")
+            data, client_awake = await self.get_message(event)
+            if not client_awake:
+                return False
+            event.data = data
+            print("got data")
         return True
 
     async def notify_clients(self) -> None:
@@ -259,9 +266,13 @@ class Queue:
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += self.avg_concurrent_process_time
+        print("about to send estimation")
         client_awake = await self.send_message(event, estimation.dict())
+        print("Sent estimation")
         if not client_awake:
+            print("Cleaning event")
             await self.clean_event(event)
+            print("Cleaned event")
         return estimation
 
     def update_estimation(self, duration: float) -> None:
@@ -330,7 +341,9 @@ class Queue:
         awake_events: List[Event] = []
         try:
             for event in events:
+                print("gathering data")
                 client_awake = await self.gather_event_data(event)
+                print("gathered data")
                 if client_awake:
                     client_awake = await self.send_message(
                         event, {"msg": "process_starts"}
@@ -410,12 +423,20 @@ class Queue:
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
         finally:
+            print("cleaning up")
+            print(f"awake events: {awake_events}")
+            print(f"Events: {events}")
+            print(f"Active jobs: {self.active_jobs}")
+            print(f"Active jobs index: {self.active_jobs.index(events)}")
+            print("disconnecting")
             for event in awake_events:
                 try:
                     await event.disconnect()
                 except Exception:
                     pass
+            print("resetting active jobs")
             self.active_jobs[self.active_jobs.index(events)] = None
+            print("cleaning")
             for event in awake_events:
                 await self.clean_event(event)
                 # Always reset the state of the iterator
@@ -424,21 +445,26 @@ class Queue:
                 # to start "from scratch"
                 await self.reset_iterators(event.session_hash, event.fn_index)
 
-    async def send_message(self, event, data: Dict) -> bool:
+    async def send_message(self, event, data: Dict, timeout=5) -> bool:
         try:
-            await event.websocket.send_json(data=data)
+            await asyncio.wait_for(
+                event.websocket.send_json(data=data), timeout=timeout
+            )
             return True
         except:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> PredictBody | None:
+    async def get_message(self, event, timeout=5) -> Tuple[PredictBody | None, bool]:
         try:
-            data = await event.websocket.receive_json()
-            return PredictBody(**data)
-        except:
+            data = await asyncio.wait_for(
+                event.websocket.receive_json(), timeout=timeout
+            )
+            return PredictBody(**data), True
+        except asyncio.exceptions.TimeoutError:
+            print("Time out!")
             await self.clean_event(event)
-            return None
+            return None, False
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
         await AsyncRequest(
