@@ -3,9 +3,6 @@ export interface FileData {
 	orig_name?: string;
 	size?: number;
 	data: string;
+	blob?: File;
 	is_file?: boolean;
-}
-
-export interface BinaryFileData extends FileData {
-	blob: File;
 }

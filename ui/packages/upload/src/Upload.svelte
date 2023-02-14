@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { FileData, BinaryFileData } from "./types";
+	import type { FileData } from "./types";
 
 	export let filetype: string | null = null;
 	export let include_file_metadata = true;

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { BinaryFileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
 	import FilePreview from "./FilePreview.svelte";
 
-	export let value: null | BinaryFileData | Array<BinaryFileData>;
+	export let value: null | FileData | Array<FileData>;
 
 	export let label: string;
 	export let show_label: boolean = true;
@@ -16,7 +16,7 @@
 
 	async function handle_upload({
 		detail
-	}: CustomEvent<BinaryFileData | Array<BinaryFileData>>) {
+	}: CustomEvent<FileData | Array<FileData>>) {
 		value = detail;
 		await tick();
 		dispatch("change", value);
@@ -30,10 +30,10 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: Array<BinaryFileData> | BinaryFileData | null;
+		change: Array<FileData> | FileData | null;
 		clear: undefined;
 		drag: boolean;
-		upload: Array<BinaryFileData> | BinaryFileData;
+		upload: Array<FileData> | FileData;
 		error: string;
 	}>();
 

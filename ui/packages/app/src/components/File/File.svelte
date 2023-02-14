@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { File as FileComponent, FileUpload } from "@gradio/file";
-	import type { BinaryFileData } from "@gradio/upload";
+	import type { FileData } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
 	import { upload_files } from "../../api";
@@ -13,8 +14,8 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: null | BinaryFileData | Array<BinaryFileData>;
-	let old_value: null | BinaryFileData | Array<BinaryFileData>;
+	export let value: null | FileData | Array<FileData>;
+	let old_value: null | FileData | Array<FileData>;
 
 	export let mode: "static" | "dynamic";
 	export let root: string;
@@ -22,8 +23,11 @@
 	export let show_label: boolean;
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
+	export let root_url: null | string;		
 
 	export let loading_status: LoadingStatus;
+
+	$: _value = normalise_file(value, root, root_url);	
 
 	let dragging = false;
 	let pending_upload = false;
@@ -41,7 +45,7 @@
 				pending_upload = false;
 			} else {
 				let files = (Array.isArray(value) ? value : [value]).map(
-					(file_data) => file_data.blob
+					(file_data) => file_data.blob!
 				);
 				let upload_value = value;
 				pending_upload = true;
@@ -86,7 +90,7 @@
 		<FileUpload
 			{label}
 			{show_label}
-			{value}
+			value={_value}
 			{file_count}
 			{file_types}
 			on:change={({ detail }) => (value = detail)}
@@ -97,6 +101,6 @@
 			<UploadText type="file" />
 		</FileUpload>
 	{:else}
-		<FileComponent {value} {label} {show_label} />
+		<FileComponent value={_value} {label} {show_label} />
 	{/if}
 </Block>
