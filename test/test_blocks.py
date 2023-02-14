@@ -414,6 +414,8 @@ class TestComponentsInBlocks:
                 components.append(component(value=lambda: None, every=1))
         assert [comp.load_event for comp in components] == demo.dependencies
 
+
+class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
             c()
@@ -530,6 +532,18 @@ class TestComponentsInBlocks:
                 "mode": "dynamic",
             }
             assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+
+    def test_error_raised_if_num_outputs_mismatch(self):
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(lambda x: x, textbox1, [textbox1, textbox2])
+        with pytest.raises(
+            ValueError,
+            match="Number of output components does not match number of values returned from from function <lambda>",
+        ):
+            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
 
 
 class TestCallFunction:
