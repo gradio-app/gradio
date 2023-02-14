@@ -539,7 +539,10 @@ class TestBlocksPostprocessing:
             textbox2 = gr.Textbox()
             button = gr.Button()
             button.click(lambda x: x, textbox1, [textbox1, textbox2])
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="Number of output components does not match number of values returned from from function <lambda>",
+        ):
             demo.postprocess_data(fn_index=0, predictions=["test"], state={})
 
 
