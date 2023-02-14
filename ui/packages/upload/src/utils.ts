@@ -1,4 +1,4 @@
-import type { BinaryFileData, FileData } from "./types";
+import type { FileData } from "./types";
 
 export function normalise_file(
 	file: string | FileData | null,
@@ -6,21 +6,16 @@ export function normalise_file(
 	root_url: string | null
 ): FileData | null;
 export function normalise_file(
-	file: Array<BinaryFileData> | BinaryFileData | null,
-	root: string,
-	root_url: string | null
-): BinaryFileData | null;
-export function normalise_file(
 	file: Array<FileData> | FileData | null,
 	root: string,
 	root_url: string | null
 ): Array<FileData> | FileData | null;
 
 export function normalise_file(
-	file: string | FileData | Array<FileData> | BinaryFileData | Array<BinaryFileData> | null,
+	file: string | FileData | Array<FileData> | null,
 	root: string,
 	root_url: string | null
-): FileData | Array<FileData> | BinaryFileData | Array<BinaryFileData> | null {
+): FileData | Array<FileData> | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {

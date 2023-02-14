@@ -2325,6 +2325,7 @@ class File(
         Returns:
             File objects in requested format
         """
+        print(x)
         if x is None:
             return None
 

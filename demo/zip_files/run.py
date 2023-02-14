@@ -5,7 +5,6 @@ import gradio as gr
 
 
 def zip_files(files):
-    print([f.name for f in files])
     with ZipFile("tmp.zip", "w") as zipObj:
         for idx, file in enumerate(files):
             zipObj.write(file.name, "file" + str(idx))

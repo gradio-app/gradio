@@ -16,12 +16,14 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
+import aiofiles
 import fastapi
 import httpx
 import markupsafe
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
+import tempfile
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -508,6 +510,20 @@ class App(FastAPI):
         )
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
+
+        @app.post("/upload", dependencies=[Depends(login_check)])
+        async def upload_file(
+            files: List[UploadFile] = File(...),
+        ):
+            output_files = []
+            for input_file in files:
+                output_file_obj = tempfile.NamedTemporaryFile(delete=False)
+                async with aiofiles.open(output_file_obj.name, "wb") as output_file:
+                    while content := await input_file.read(1024):
+                        await output_file.write(content)
+                output_files.append(output_file_obj.name)
+            return output_files
+            
 
         @app.on_event("startup")
         @app.get("/startup-events")

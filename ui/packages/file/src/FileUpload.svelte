@@ -14,7 +14,9 @@
 	export let file_count: string = "single";
 	export let file_types: string[] | null = null;
 
-	async function handle_upload({ detail }: CustomEvent<BinaryFileData | Array<BinaryFileData>>) {
+	async function handle_upload({
+		detail
+	}: CustomEvent<BinaryFileData | Array<BinaryFileData>>) {
 		value = detail;
 		await tick();
 		dispatch("change", value);
@@ -55,7 +57,10 @@
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
-{#if value === null}
+{#if value}
+	<ModifyUpload on:clear={handle_clear} absolute />
+	<FilePreview {value} />
+{:else}
 	<Upload
 		on:load={handle_upload}
 		filetype={accept_file_types}
@@ -65,7 +70,4 @@
 	>
 		<slot />
 	</Upload>
-{:else}
-	<ModifyUpload on:clear={handle_clear} absolute />
-	<FilePreview {value} />
 {/if}

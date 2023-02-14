@@ -7,5 +7,5 @@ export interface FileData {
 }
 
 export interface BinaryFileData extends FileData {
-	blob: Blob;
+	blob: File;
 }

@@ -52,7 +52,7 @@
 		margin-bottom: var(--size-7);
 		width: var(--size-full);
 		max-height: var(--size-60);
-		overflow-y: scroll;
+		overflow-y: auto;
 		color: var(--color-text-body);
 	}
 	.file {
