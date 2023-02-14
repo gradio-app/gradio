@@ -371,9 +371,11 @@ importers:
   packages/upload-button:
     specifiers:
       '@gradio/button': workspace:^0.0.1
+      '@gradio/upload': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/button': link:../button
+      '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
 
   packages/utils:

@@ -18,6 +18,7 @@
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
+		console.log(detail);
 		await tick();
 		upload_files(root, [detail.blob!]).then(async (response) => {
 			if (response.error) {

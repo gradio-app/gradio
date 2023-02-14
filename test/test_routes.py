@@ -55,7 +55,9 @@ class TestRoutes:
         assert response.status_code == 200
 
     def test_upload_route(self, test_client):
-        response = test_client.post("/upload", files={"files": open("test/test_files/alphabet.txt", "r")})
+        response = test_client.post(
+            "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
+        )
         assert response.status_code == 200
         files = response.json()
         with open(files[0]) as saved_file:
