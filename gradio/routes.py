@@ -10,6 +10,7 @@ import mimetypes
 import os
 import posixpath
 import secrets
+import tempfile
 import traceback
 from collections import defaultdict
 from copy import deepcopy
@@ -22,8 +23,7 @@ import httpx
 import markupsafe
 import orjson
 import pkg_resources
-import tempfile
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, status, UploadFile, File
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -523,7 +523,6 @@ class App(FastAPI):
                         await output_file.write(content)
                 output_files.append(output_file_obj.name)
             return output_files
-            
 
         @app.on_event("startup")
         @app.get("/startup-events")

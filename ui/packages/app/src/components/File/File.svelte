@@ -23,11 +23,11 @@
 	export let show_label: boolean;
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
-	export let root_url: null | string;		
+	export let root_url: null | string;
 
 	export let loading_status: LoadingStatus;
 
-	$: _value = normalise_file(value, root, root_url);	
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
 	let pending_upload = false;
@@ -83,7 +83,9 @@
 >
 	<StatusTracker
 		{...loading_status}
-		status={pending_upload ? "generating" : (loading_status?.status || "complete")}
+		status={pending_upload
+			? "generating"
+			: loading_status?.status || "complete"}
 	/>
 
 	{#if mode === "dynamic"}
