@@ -28,7 +28,7 @@ export function normalise_file(
 		}
 	} else if (file.is_file) {
 		if (root_url == null) {
-			file.data = "file=" + file.name;
+			file.data = root + "file=" + file.name;
 		} else {
 			file.data = "proxy=" + root_url + "file=" + file.name;
 		}
