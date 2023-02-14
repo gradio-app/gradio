@@ -54,6 +54,13 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_upload_route(self, test_client):
+        response = test_client.post("/upload", files={"files": open("test/test_files/alphabet.txt", "r")})
+        assert response.status_code == 200
+        files = response.json()
+        with open(files[0]) as saved_file:
+            assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+
     def test_predict_route(self, test_client):
         response = test_client.post(
             "/api/predict/", json={"data": ["test"], "fn_index": 0}
