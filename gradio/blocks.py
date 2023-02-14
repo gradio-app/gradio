@@ -334,13 +334,12 @@ class BlockFunction:
         self.total_runtime = 0
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
+        self.name = getattr(fn, "__name__", "fn") if fn is not None else None
 
     def __str__(self):
         return str(
             {
-                "fn": getattr(self.fn, "__name__", "fn")
-                if self.fn is not None
-                else None,
+                "fn": self.name,
                 "preprocess": self.preprocess,
                 "postprocess": self.postprocess,
             }
@@ -934,9 +933,12 @@ class Blocks(BlockContext):
 
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
-            if predictions[i] is components._Keywords.FINISHED_ITERATING:
-                output.append(None)
-                continue
+            try:
+                if predictions[i] is components._Keywords.FINISHED_ITERATING:
+                    output.append(None)
+                    continue
+            except (IndexError, KeyError):
+                raise ValueError(f"Number of output components does not match number of values returned from from function {block_fn.name}")
             block = self.blocks[output_id]
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
@@ -957,6 +959,7 @@ class Blocks(BlockContext):
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
+        
         return output
 
     async def process_api(

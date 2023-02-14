@@ -15,7 +15,7 @@ import requests
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.exceptions import TooManyRequestsError
+from gradio.exceptions import TooManyRequestsError, Error
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
@@ -328,7 +328,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
                 errors = f", Error: {errors_json.get('error')}"
             if errors_json.get("warnings"):
                 warns = f", Warnings: {errors_json.get('warnings')}"
-            raise ValueError(
+            raise Error(
                 f"Could not complete request to HuggingFace API, Status Code: {response.status_code}"
                 + errors
                 + warns
