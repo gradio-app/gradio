@@ -12,6 +12,7 @@
 		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/utils": "workspace:^0.0.1",
+		"@gradio/upload": "workspace:^0.0.1",
 		"@rollup/plugin-json": "^5.0.2",
 		"plotly.js-dist-min": "^2.10.1",
 		"svelte-vega": "^1.2.0",

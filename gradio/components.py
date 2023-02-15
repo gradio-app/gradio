@@ -4085,7 +4085,7 @@ class Model3D(
 
 
 @document("change", "clear")
-class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
+class Plot(Changeable, Clearable, IOComponent, JSONSerializable, TempFileManager):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -4125,6 +4125,8 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             value=value,
             **kwargs,
         )
+        TempFileManager.__init__(self)
+
 
     def get_config(self):
         return {"value": self.value, **IOComponent.get_config(self)}
@@ -4157,9 +4159,16 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
-        elif isinstance(y, dict):
+        elif "bokeh" in y.__module__:
             dtype = "bokeh"
-            out_y = json.dumps(y)
+            from bokeh.embed import file_html, json_item
+            from bokeh.resources import CDN
+            html_file = file_html(y, CDN)
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".html") as f:
+                f.write(html_file)
+            out_y = self.make_temp_copy_if_needed(f.name)
+
+            #open("/home/freddy/sources/scratch/bokeh.html", "w").write(out_y)
         else:
             is_altair = "altair" in y.__module__
             if is_altair:

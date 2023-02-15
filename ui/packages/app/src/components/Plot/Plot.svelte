@@ -20,6 +20,8 @@
 	export let style: Styles = {};
 	export let theme: string;
 	export let caption: string;
+	export let root: string;
+	export let root_url: null | string;
 </script>
 
 <Block
@@ -32,5 +34,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} {target} {theme} {caption} on:change />
+	<Plot {value} {target} {theme} {caption} {root} {root_url} on:change />
 </Block>

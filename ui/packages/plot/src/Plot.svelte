@@ -1,6 +1,7 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
+	import type { FileData } from "@gradio/upload";
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
@@ -8,6 +9,7 @@
 	import { afterUpdate, onDestroy } from "svelte";
 	import { create_config } from "./utils";
 	import { Empty } from "@gradio/atoms";
+	import { normalise_file } from "@gradio/upload";
 
 	export let value;
 	export let target;
@@ -15,6 +17,8 @@
 	export let colors: Array<string> = [];
 	export let theme: string;
 	export let caption: string;
+	export let root: string;
+	export let root_url: string | null;
 
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
@@ -69,40 +73,46 @@
 			default:
 				break;
 		}
+	} else if (value && value.type == "bokeh") {
+		let data = <FileData>({is_file: true, name: value.plot});
+		console.log(data);
+		data = normalise_file(data, root, root_url);
+		value.plot = data.data;
+		console.log(value.plot);
 	}
 
 	// Plotly
 	let plotDiv;
 	let plotlyGlobalStyle;
 
-	const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
+	// const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
 
-	const plugins_src = [
-		"https://cdn.pydata.org/bokeh/release/bokeh-widgets-2.4.2.min.js",
-		"https://cdn.pydata.org/bokeh/release/bokeh-tables-2.4.2.min.js",
-		"https://cdn.pydata.org/bokeh/release/bokeh-gl-2.4.2.min.js",
-		"https://cdn.pydata.org/bokeh/release/bokeh-api-2.4.2.min.js"
-	];
+	// const plugins_src = [
+	// 	"https://cdn.pydata.org/bokeh/release/bokeh-widgets-2.4.2.min.js",
+	// 	"https://cdn.pydata.org/bokeh/release/bokeh-tables-2.4.2.min.js",
+	// 	"https://cdn.pydata.org/bokeh/release/bokeh-gl-2.4.2.min.js",
+	// 	"https://cdn.pydata.org/bokeh/release/bokeh-api-2.4.2.min.js"
+	// ];
 
-	function load_plugins() {
-		return plugins_src.map((src, i) => {
-			const script = document.createElement("script");
-			script.onload = () => initializeBokeh(i + 1);
-			script.src = src;
-			document.head.appendChild(script);
+	// function load_plugins() {
+	// 	return plugins_src.map((src, i) => {
+	// 		const script = document.createElement("script");
+	// 		script.onload = () => initializeBokeh(i + 1);
+	// 		script.src = src;
+	// 		document.head.appendChild(script);
 
-			return script;
-		});
-	}
+	// 		return script;
+	// 	});
+	// }
 
-	function load_bokeh() {
-		const script = document.createElement("script");
-		script.onload = handleBokehLoaded;
-		script.src = main_src;
-		document.head.appendChild(script);
+	// function load_bokeh() {
+	// 	const script = document.createElement("script");
+	// 	script.onload = handleBokehLoaded;
+	// 	script.src = main_src;
+	// 	document.head.appendChild(script);
 
-		return script;
-	}
+	// 	return script;
+	// }
 
 	function load_plotly_css() {
 		if (!plotlyGlobalStyle) {
@@ -115,37 +125,37 @@
 		}
 	}
 
-	const main_script = load_bokeh();
+//	const main_script = load_bokeh();
 
-	let plugin_scripts = [];
+//	let plugin_scripts = [];
 	// Bokeh
 
-	const resolves = [];
-	const bokehPromises = Array(5)
-		.fill(0)
-		.map((_, i) => createPromise(i));
+	// const resolves = [];
+	// const bokehPromises = Array(5)
+	// 	.fill(0)
+	// 	.map((_, i) => createPromise(i));
 
-	const initializeBokeh = (index) => {
-		if (value && value["type"] == "bokeh") {
-			resolves[index]();
-		}
-	};
+	// const initializeBokeh = (index) => {
+	// 	if (value && value["type"] == "bokeh") {
+	// 		resolves[index]();
+	// 	}
+	// };
 
-	function createPromise(index) {
-		return new Promise((resolve, reject) => {
-			resolves[index] = resolve;
-		});
-	}
+	// function createPromise(index) {
+	// 	return new Promise((resolve, reject) => {
+	// 		resolves[index] = resolve;
+	// 	});
+	// }
 
-	function handleBokehLoaded() {
-		initializeBokeh(0);
-		plugin_scripts = load_plugins();
-	}
+	// function handleBokehLoaded() {
+	// 	initializeBokeh(0);
+	// 	plugin_scripts = load_plugins();
+	// }
 
-	Promise.all(bokehPromises).then(() => {
-		let plotObj = JSON.parse(value["plot"]);
-		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
-	});
+	// Promise.all(bokehPromises).then(() => {
+	// 	let plotObj = JSON.parse(value["plot"]);
+	// 	window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+	// });
 
 	afterUpdate(() => {
 		if (value && value["type"] == "plotly") {
@@ -155,25 +165,27 @@
 				? (plotObj.layout.margin = { autoexpand: true })
 				: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
 			Plotly.react(plotDiv, plotObj);
-		} else if (value && value["type"] == "bokeh") {
-			document.getElementById("bokehDiv").innerHTML = "";
-			let plotObj = JSON.parse(value["plot"]);
-			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
-		}
+		} //else if (value && value["type"] == "bokeh") {
+		// 	document.getElementById("bokehDiv").innerHTML = "";
+		// 	let plotObj = JSON.parse(value["plot"]);
+		// 	window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+		// }
 	});
 
-	onDestroy(() => {
-		if (main_script in document.children) {
-			document.removeChild(main_script);
-			plugin_scripts.forEach((child) => document.removeChild(child));
-		}
-	});
+	// onDestroy(() => {
+	// 	if (main_script in document.children) {
+	// 		document.removeChild(main_script);
+	// 		plugin_scripts.forEach((child) => document.removeChild(child));
+	// 	}
+	// });
 </script>
 
 {#if value && value["type"] == "plotly"}
 	<div bind:this={plotDiv} />
 {:else if value && value["type"] == "bokeh"}
-	<div id="bokehDiv" />
+	<div id="bokehDiv">
+		<iframe class='bokeh' src={value['plot']} title='Bokeh Plot'></iframe>
+	</div>
 {:else if value && value["type"] == "altair"}
 	<div class="altair layout">
 		<Vega {spec} />
@@ -193,6 +205,14 @@
 {/if}
 
 <style>
+
+	.bokeh {
+		width: 100%;
+		overflow: hidden;
+		height: 100vh;
+
+	}
+
 	.layout {
 		display: flex;
 		flex-direction: column;

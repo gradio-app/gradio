@@ -315,6 +315,7 @@ importers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
+      '@gradio/upload': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
       '@rollup/plugin-json': ^5.0.2
       plotly.js-dist-min: ^2.10.1
@@ -325,6 +326,7 @@ importers:
       '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
       '@gradio/theme': link:../theme
+      '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
       '@rollup/plugin-json': 5.0.2
       plotly.js-dist-min: 2.11.1
@@ -3392,6 +3394,7 @@ packages:
   /svelte/3.49.0:
     resolution: {integrity: sha512-+lmjic1pApJWDfPCpUUTc1m8azDqYCG1JN9YEngrx/hUyIcFJo6VZhj0A1Ai0wqoHcEIuQy+e9tk+4uDgdtsFA==}
     engines: {node: '>= 8'}
+    dev: false
 
   /sync-request/6.1.0:
     resolution: {integrity: sha512-8fjNkrNlNCrVc/av+Jn+xxqfCjYaBoHqCsDz6mt030UMxJGr+GSfCV1dQt2gRtlL63+VPidwDVLr7V2OcTSdRw==}
