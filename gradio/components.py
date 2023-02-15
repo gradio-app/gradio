@@ -3928,7 +3928,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str | None, str | None]]) -> List[Tuple[str | None, str | None]]:
+    def postprocess(
+        self, y: List[Tuple[str | None, str | None]]
+    ) -> List[Tuple[str | None, str | None]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3938,7 +3940,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (None if message == None else self.md.renderInline(message), None if response == None else self.md.renderInline(response))
+            y[i] = (
+                None if message == None else self.md.renderInline(message),
+                None if response == None else self.md.renderInline(response),
+            )
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
