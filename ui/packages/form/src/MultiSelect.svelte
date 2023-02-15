@@ -72,6 +72,7 @@
 		value = [];
 		inputValue = "";
 		e.preventDefault();
+		dispatch("change", value);
 	}
 
 	function handleOptionMousedown(e: any) {
