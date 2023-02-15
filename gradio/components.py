@@ -1808,13 +1808,9 @@ class Video(
             x.get("is_file", False),
         )
         if is_file:
-            file = self.make_temp_copy_if_needed(file_name)
-            file_name = Path(file)
+            file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
-            file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            file_name = Path(file.name)
+            file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
         modify_format = self.format is not None and uploaded_format != self.format
@@ -2041,20 +2037,26 @@ class Audio(
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            temp_file_obj = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            temp_file_path = temp_file_obj.name
+            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         sample_rate, data = processing_utils.audio_from_file(
             temp_file_path, crop_min=crop_min, crop_max=crop_max
         )
 
+        # Need a unique name for the file to avoid re-using the same audio file if
+        # a user submits the same audio file twice, but with different crop min/max.
+        temp_file_path = Path(temp_file_path)
+        output_file_name = str(
+            temp_file_path.with_name(
+                f"{temp_file_path.stem}-{crop_min}-{crop_max}{temp_file_path.suffix}"
+            )
+        )
+
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, temp_file_path)
-            return temp_file_path
+            processing_utils.audio_to_file(sample_rate, data, output_file_name)
+            return output_file_name
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2075,8 +2077,8 @@ class Audio(
         if x.get("is_file"):
             sample_rate, data = processing_utils.audio_from_file(x["name"])
         else:
-            file_obj = processing_utils.decode_base64_to_file(x["data"])
-            sample_rate, data = processing_utils.audio_from_file(file_obj.name)
+            file_name = self.base64_to_temp_file_if_needed(x["data"])
+            sample_rate, data = processing_utils.audio_from_file(file_name)
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -2117,14 +2119,14 @@ class Audio(
     def get_masked_inputs(self, tokens, binary_mask_matrix):
         # create a "zero input" vector and get sample rate
         x = tokens[0]["data"]
-        file_obj = processing_utils.decode_base64_to_file(x)
-        sample_rate, data = processing_utils.audio_from_file(file_obj.name)
+        file_name = self.base64_to_temp_file_if_needed(x)
+        sample_rate, data = processing_utils.audio_from_file(file_name)
         zero_input = np.zeros_like(data, dtype="int16")
         # decode all of the tokens
         token_data = []
         for token in tokens:
-            file_obj = processing_utils.decode_base64_to_file(token["data"])
-            _, data = processing_utils.audio_from_file(file_obj.name)
+            file_name = self.base64_to_temp_file_if_needed(token["data"])
+            _, data = processing_utils.audio_from_file(file_name)
             token_data.append(data)
         # construct the masked version
         masked_inputs = []
@@ -4046,10 +4048,7 @@ class Model3D(
         if is_file:
             temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            temp_file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            temp_file_path = temp_file.name
+            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         return temp_file_path
 
