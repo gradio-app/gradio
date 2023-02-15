@@ -11,6 +11,7 @@ import os
 import posixpath
 import secrets
 import traceback
+from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Type
@@ -473,7 +474,7 @@ class App(FastAPI):
                 await asyncio.wait_for(
                     websocket.send_json({"msg": "send_hash"}), timeout=5
                 )
-            except asyncio.TimeoutError:
+            except AsyncTimeOutError:
                 print("timeout send_hash")
                 return
 
@@ -481,7 +482,7 @@ class App(FastAPI):
                 session_info = await asyncio.wait_for(
                     websocket.receive_json(), timeout=5
                 )
-            except asyncio.TimeoutError:
+            except AsyncTimeOutError:
                 print("timeout receiving hash")
                 return
 
