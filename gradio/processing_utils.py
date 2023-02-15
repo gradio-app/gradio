@@ -422,21 +422,22 @@ class TempFileManager:
         return full_temp_file_path
 
     def base64_to_temp_file_if_needed(
-        self, base64_encoding: str, prefix: str | None = None
+        self, base64_encoding: str, file_name: str | None = None
     ) -> str:
         """Converts a base64 encoding to a file and returns the path to the file if
         the file doesn't already exist. Otherwise returns the path to the existing file."""
-        f = tempfile.NamedTemporaryFile()
+        f = tempfile.NamedTemporaryFile(delete=False)
         temp_dir = Path(f.name).parent
+        prefix = self.get_prefix_and_extension(file_name)[0] if file_name else ""
 
-        temp_file_path = self.get_temp_base64_path(base64_encoding, prefix=prefix or "")
+        temp_file_path = self.get_temp_base64_path(base64_encoding, prefix=prefix)
         f.name = str(temp_dir / temp_file_path)
         full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
             data, _ = decode_base64_to_binary(base64_encoding)
-            f.write(data)
-            f.flush()
+            with open(full_temp_file_path, "wb") as fb:
+                fb.write(data)
 
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
