@@ -261,6 +261,7 @@
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
+		<slot name="error" />
 		{#if message_visible}
 			<div class="toast">
 				<div
@@ -308,7 +309,6 @@
 		background-color: var(--color-background-tertiary);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
-		pointer-events: none;
 	}
 
 	.wrap.center {
@@ -326,6 +326,7 @@
 
 	.hide {
 		opacity: 0;
+		pointer-events: none;
 	}
 
 	.generating {

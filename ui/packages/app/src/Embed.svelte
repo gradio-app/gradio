@@ -3,28 +3,29 @@
 
 	export let wrapper: HTMLDivElement;
 	export let version: string;
-	export let is_embed: boolean;
 	export let initial_height: string = "300px";
-	let app_mode: boolean = false;
-	export let title: string = "gradio/question-answering";
+
+	export let space: string | null;
 	export let display: boolean = true;
+
+	$: console.log({ display });
 </script>
 
 <div
 	bind:this={wrapper}
-	class:app={app_mode}
+	class:app={!display}
 	class:embed-container={display}
 	class="gradio-container gradio-container-{version}"
 	style:min-height={initial_height}
-	style:flex-grow={app_mode ? "1" : "auto"}
+	style:flex-grow={!display ? "1" : "auto"}
 >
-	<div class="app">
+	<div class="main">
 		<slot />
 	</div>
-	{#if display}
+	{#if display && space}
 		<div class="info">
 			<span>
-				<a href="https://huggingface.co/spaces/{title}" class="title">{title}</a
+				<a href="https://huggingface.co/spaces/{space}" class="title">{space}</a
 				>
 			</span>
 			<span>
@@ -48,19 +49,28 @@
 		background: var(--button-secondary-background-base);
 		background: var(--color-background-primary);
 		padding: 0;
-		width: 100%;
+		width: calc(100% - 40px);
+		min-height: 1px;
 		overflow: hidden;
 		color: var(--button-secondary-text-color-base);
 	}
 
 	.embed-container {
-		margin: var(--size-4) auto;
+		margin: var(--size-4) 20px;
 		border: 1px solid var(--button-secondary-border-color-base);
 		border-radius: var(--radius-lg);
+		padding-bottom: var(--size-4);
+	}
+
+	.embed-container > .main {
+		padding: var(--size-4);
 	}
 
 	.app {
+		position: relative;
+		margin: auto;
 		padding: var(--size-4);
+		height: 100%;
 	}
 
 	@media (--screen-sm) {
@@ -96,7 +106,6 @@
 		justify-content: flex-start;
 		z-index: var(--layer-top);
 		border-top: 1px solid var(--button-secondary-border-color-base);
-		background: var(--button-secondary-background-base);
 		padding: var(--size-1) var(--size-5);
 		width: 100%;
 		color: var(--color-text-subdued);
@@ -112,9 +121,6 @@
 	}
 
 	.info > span:nth-child(1) {
-		/* flex-shrink: 9; */
-		/* width: 0; */
-		/* flex: 0 1; */
 		margin-right: 4px;
 		min-width: 0px;
 		max-width: max-content;

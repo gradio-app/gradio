@@ -3,6 +3,7 @@ function cheap_clone(obj: object) {
 }
 
 export const RUNNING = {
+	_test: true,
 	_id: "63d2d66613d86bc148071e75",
 	id: "pngwn/music-visualizer",
 	author: "pngwn",
@@ -54,6 +55,7 @@ export const RUNNING = {
 };
 
 export const BUILDING = {
+	_test: true,
 	_id: "621ffddf36468d709f184f2b",
 	id: "pngwn/test",
 	author: "pngwn",
@@ -117,6 +119,7 @@ export const BUILDING = {
 };
 
 export const RUNNING_BUILDING = {
+	_test: true,
 	_id: "621ffddf36468d709f184f2b",
 	id: "pngwn/test",
 	author: "pngwn",
@@ -182,6 +185,7 @@ export const RUNNING_BUILDING = {
 };
 
 export const NO_APP_FILE = {
+	_test: true,
 	_id: "627a52a6f652717251c6f238",
 	id: "pngwn/AnimeGANv2_v3",
 	author: "pngwn",
@@ -227,6 +231,7 @@ export const NO_APP_FILE = {
 };
 
 export const CONFIG_ERROR = {
+	_test: true,
 	_id: "627d3fd94918f2e0b4333354",
 	id: "pngwn/clear-inputs",
 	author: "pngwn",
@@ -272,6 +277,7 @@ export const CONFIG_ERROR = {
 };
 
 export const RUNTIME_ERROR = {
+	_test: true,
 	_id: "634825a6c241cb6791d3472f",
 	id: "pngwn/altair-charts",
 	author: "pngwn",
@@ -297,6 +303,59 @@ export const RUNTIME_ERROR = {
 	runtime: {
 		stage: "RUNTIME_ERROR",
 		errorMessage: "launch timed out, space was not healthy after 30 min",
+		hardware: {
+			current: null,
+			requested: "cpu-basic"
+		},
+		resources: {
+			replicas: 1,
+			ports: []
+		},
+		gcTimeout: null
+	},
+	siblings: [
+		{
+			rfilename: ".gitattributes"
+		},
+		{
+			rfilename: "README.md"
+		},
+		{
+			rfilename: "app.py"
+		},
+		{
+			rfilename: "requirements.txt"
+		}
+	]
+};
+
+export const BUILD_ERROR = {
+	_test: true,
+	_id: "63ec0a88a86bb0294d3fbe41",
+	id: "Gaborandi/PubMed_Downloader",
+	author: "Gaborandi",
+	sha: "3f2a988756800e4f39e96cabda6ccbf2c9c25783",
+	lastModified: "2023-02-15T02:26:49.000Z",
+	private: false,
+	cardData: {
+		title: "PubMed Downloader",
+		emoji: "🌖",
+		colorFrom: "gray",
+		colorTo: "indigo",
+		sdk: "gradio",
+		sdk_version: "3.18.0",
+		app_file: "app.py",
+		pinned: false
+	},
+	gated: false,
+	disabled: false,
+	subdomain: "gaborandi-pubmed-downloader",
+	tags: ["gradio"],
+	likes: 0,
+	sdk: "gradio",
+	runtime: {
+		stage: "BUILD_ERROR",
+		errorMessage: "build failed with exit code: 1, message: None",
 		hardware: {
 			current: null,
 			requested: "cpu-basic"

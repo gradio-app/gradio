@@ -18,73 +18,68 @@ declare let GRADIO_VERSION: string;
 const ENTRY_CSS = "__ENTRY_CSS__";
 const FONTS = "__FONTS_CSS__";
 
-// interface Config {
-// 	auth_required: boolean | undefined;
-// 	auth_message: string;
-// 	components: ComponentMeta[];
-// 	css: string | null;
-// 	dependencies: Dependency[];
-// 	dev_mode: boolean;
-// 	enable_queue: boolean;
-// 	fn: ReturnType<typeof fn>;
-// 	layout: LayoutNode;
-// 	mode: "blocks" | "interface";
-// 	root: string;
-// 	target: HTMLElement;
-// 	theme: string;
-// 	title: string;
-// 	version: string;
-// 	is_space: boolean;
-// 	is_colab: boolean;
-// 	show_api: boolean;
-// }
+// import { setupWorker, rest } from "msw";
+// import {
+// 	RUNNING,
+// 	RUNNING_BUILDING,
+// 	BUILDING,
+// 	RUNTIME_ERROR,
+// 	CONFIG_ERROR,
+// 	NO_APP_FILE,
+// 	BUILD_ERROR
+// } from "../test/mocks/embed";
 
-// let app_id: string | null = null;
-
-// async function reload_check(root: string) {
-// 	const result = await (await fetch(root + "app_id")).text();
-
-// 	if (app_id === null) {
-// 		app_id = result;
-// 	} else if (app_id != result) {
-// 		location.reload();
-// 	}
-
-// 	setTimeout(() => reload_check(root), 250);
-// }
-
-// async function get_source_config(source: string): Promise<Config> {
-// 	let config = await (await fetch(source + "config")).json();
-// 	config.root = source;
-// 	return config;
-// }
-
-// async function get_config(source: string | null) {
-// 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
-// 		let config = await fetch(BACKEND_URL + "config");
-// 		const result = await config.json();
-// 		return result;
-// 	} else if (source) {
-// 		if (!source.endsWith("/")) {
-// 			source += "/";
-// 		}
-// 		const config = await get_source_config(source);
-// 		return config;
-// 	} else {
-// 		return window.gradio_config;
-// 	}
-// }
-
-function mount_custom_css(target: HTMLElement, css_string?: string) {
-	if (css_string) {
-		let style = document.createElement("style");
-		style.innerHTML = css_string;
-		target.appendChild(style);
-	}
-}
+// const BASE_URL = "https://huggingface.co/api/spaces";
+// const spaces = [
+// 	["pngwn/music-visualizer", RUNNING],
+// 	["pngwn/test", BUILDING],
+// 	["pngwn/test_two", RUNNING_BUILDING],
+// 	["pngwn/AnimeGANv2_v3", NO_APP_FILE],
+// 	["pngwn/clear-inputs", CONFIG_ERROR],
+// 	["pngwn/altair-charts", RUNTIME_ERROR],
+// 	["Gaborandi/PubMed_Downloader", BUILD_ERROR]
+// ];
+// const worker = setupWorker(
+// 	...spaces
+// 		.map(([endpoint, mock]) => {
+// 			console.log("ENDPOINT: ", `${BASE_URL}/${endpoint}`);
+// 			return rest.get(`${BASE_URL}/${endpoint}`, async (req, res, ctx) => {
+// 				return res(ctx.json(mock));
+// 			});
+// 		})
+// 		.concat([
+// 			rest.get(
+// 				`https://huggingface.co/api/spaces/pngwn/test_two/host`,
+// 				async (req, res, ctx) => {
+// 					return res(
+// 						ctx.json({
+// 							subdomain: "pngwn-test",
+// 							host: "https://pngwn-test.hf.space"
+// 						})
+// 					);
+// 				}
+// 			)
+// 			// rest.get(
+// 			// 	`https://huggingface.co/api/spaces/pngwn/test_two/host`,
+// 			// 	async (req, res, ctx) => {
+// 			// 		return res(
+// 			// 			ctx.json({
+// 			// 				subdomain: "pngwn-test",
+// 			// 				host: "https://pngwn-test.hf.space"
+// 			// 			})
+// 			// 		);
+// 			// 	}
+// 			// )
+// 		])
+// );
+// worker.start();
 
 function mount_css(url: string, target: HTMLElement): Promise<void> {
-	if (BUILD_MODE === "dev") Promise.resolve();
+	if (BUILD_MODE === "dev") return Promise.resolve();
+
+	const existing_link = document.querySelector(`link[href='${url}']`);
+	console.log(existing_link);
+	if (existing_link) return Promise.resolve();
 
 	const link = document.createElement("link");
 	link.rel = "stylesheet";
@@ -100,167 +95,21 @@ function mount_css(url: string, target: HTMLElement): Promise<void> {
 	});
 }
 
-// async function handle_config(target: HTMLElement, source: string | null) {
-// 	let config;
-
-// 	try {
-// 		let _config = await get_config(source);
-// 		config = _config;
-// 	} catch (e) {
-// 		console.error(e);
-// 		return null;
-// 	}
-
-// 	mount_custom_css(target, config.css);
-// 	window.__is_colab__ = config.is_colab;
-
-// 	if (config.root === undefined) {
-// 		config.root = BACKEND_URL;
-// 	}
-// 	if (config.dev_mode) {
-// 		reload_check(config.root);
-// 	}
-
-// 	config.target = target;
-
-// 	return config;
-// }
-
-// function mount_app(
-// 	config: Config,
-// 	target: HTMLElement | ShadowRoot | false,
-// 	wrapper: HTMLDivElement,
-// 	// id: number,
-// 	autoscroll?: boolean,
-// 	is_embed = false
-// ) {
-// 	//@ts-ignore
-// 	if (config.detail === "Not authenticated" || config.auth_required) {
-// 		new Login({
-// 			target: wrapper,
-// 			//@ts-ignore
-// 			props: {
-// 				auth_message: config.auth_message,
-// 				root: config.root,
-// 				is_space: config.is_space,
-// 				// id,
-// 				app_mode
-// 			}
-// 		});
-// 	} else {
-// 		let session_hash = Math.random().toString(36).substring(2);
-// 		config.fn = fn(
-// 			session_hash,
-// 			config.root + "run/",
-// 			config.is_space,
-// 			is_embed
-// 		);
-
-// 		new Blocks({
-// 			target: wrapper,
-// 			//@ts-ignore
-// 			props: {
-// 				...config,
-// 				target: wrapper,
-// 				// id,
-// 				autoscroll: autoscroll,
-// 				app_mode
-// 			}
-// 		});
-// 	}
-
-// 	if (target) {
-// 		target.append(wrapper);
-// 	}
-// }
-
-async function check_space_status(space_id: string) {
-	let response;
-	try {
-		response = await (
-			await fetch(`https://huggingface.co/api/spaces/${space_id}`)
-		).json();
-	} catch {}
-
-	const {
-		runtime: { stage }
-	} = response;
-
-	switch (stage) {
-		case "STOPPED":
-		case "SLEEPING":
-			console.log("space is sleeping, waking up");
-		// poll for status
-		case "RUNNING":
-			console.log("Space is running");
-			//  launch
-			break;
-		case "RUNNING_BUILDING":
-		case "BUILDING":
-			console.log("space is building");
-			// poll for status
-			break;
-		case "NO_APP_FILE":
-		case "CONFIG_ERROR":
-		case "BUILD_ERROR":
-		case "RUNTIME_ERROR":
-			console.log("space is broken, contact author");
-			// launch error screen
-			break;
-	}
-
-	// (NO_APP_FILE = "NO_APP_FILE"),
-	// 	(CONFIG_ERROR = "CONFIG_ERROR"),
-	// 	(BUILDING = "BUILDING"),
-	// 	(BUILD_ERROR = "BUILD_ERROR"),
-	// 	// RUNNING = "RUNNING",
-	// 	// RUNNING_BUILDING = "RUNNING_BUILDING",
-	// 	(RUNTIME_ERROR = "RUNTIME_ERROR"),
-	// 	(DELETING = "DELETING"),
-	// 	(STOPPED = "STOPPED"),
-	console.log({ response });
-}
-
 function create_custom_element() {
 	//@ts-ignore
 	typeof FONTS !== "string" && FONTS.map((f) => mount_css(f, document.head));
 
 	class GradioApp extends HTMLElement {
-		// wrapper: HTMLDivElement;
-		// _id: number;
 		theme: "light" | "dark";
 
 		constructor() {
 			super();
 
-			// this._id = ++id;
-
-			// this.wrapper = document.createElement("div");
-			// this.wrapper.classList.add("gradio-container");
-			// this.wrapper.classList.add(`gradio-container-${GRADIO_VERSION}`);
-			// this.wrapper.style.position = "relative";
-			// this.wrapper.style.width = "100%";
-			// this.wrapper.style.minHeight = "100vh";
 			this.theme = "light";
-
-			// window.__gradio_loader__[this._id] = new Loader({
-			// 	target: this.wrapper,
-			// 	props: {
-			// 		status: "pending",
-			// 		timer: false,
-			// 		queue_position: null,
-			// 		queue_size: null
-			// 	}
-			// });
-
-			// if (window.__gradio_mode__ !== "website") {
-			// 	this.theme = handle_darkmode(this.wrapper);
-			// }
 		}
 
 		async connectedCallback() {
 			await mount_css(ENTRY_CSS, document.head);
-			// this.append(this.wrapper);
 
 			const event = new CustomEvent("domchange", {
 				bubbles: true,
@@ -277,41 +126,14 @@ function create_custom_element() {
 			const host = this.getAttribute("host");
 			const space = this.getAttribute("space");
 			const src = this.getAttribute("src");
-			// const space = "pngwn/Stable-Diffusion-prompt-generator";
-			if (space) {
-			}
-
-			// const x = await (
-			// 	await fetch(`https://huggingface.co/api/spaces/${space}`)
-			// ).json();
-
-			// console.log({ SPACE_DETAILS: x });
 
 			const control_page_title = this.getAttribute("control_page_title");
 			const initial_height = this.getAttribute("initial_height");
 			const is_embed = this.getAttribute("embed") ?? true;
+			const minimal = this.getAttribute("minimal") ? true : false;
 
 			console.log(is_embed);
 			let autoscroll = this.getAttribute("autoscroll");
-
-			// const source = host
-			// 	? `https://${host}`
-			// 	: space
-			// 	? (
-			// 			await (
-			// 				await fetch(`https://huggingface.co/api/spaces/${space}/host`)
-			// 			).json()
-			// 	  ).host
-			// 	: src;
-
-			// const is_embed =
-			// 	!!space || (source && new URL(source).host.endsWith("hf.space"));
-
-			// const _autoscroll = autoscroll === "true" ? true : false;
-
-			// this.wrapper.style.minHeight = initial_height || "300px";
-
-			// const config = await handle_config(this, source);
 
 			const app = new Index({
 				target: this,
@@ -320,6 +142,7 @@ function create_custom_element() {
 					src,
 					host,
 					is_embed: !!is_embed,
+					minimal,
 					autoscroll: autoscroll === "true" ? true : false,
 					version: GRADIO_VERSION,
 					app_mode: window.__gradio_mode__ === "app",
@@ -330,78 +153,10 @@ function create_custom_element() {
 						control_page_title && control_page_title === "true" ? true : false
 				}
 			});
-
-			// if (config === null) {
-			// 	this.wrapper.remove();
-			// } else {
-			// 	mount_app(
-			// 		{
-			// 			...config,
-			// 			theme: this.theme,
-			// 			control_page_title:
-			// 				control_page_title && control_page_title === "true" ? true : false
-			// 		},
-			// 		this,
-			// 		this.wrapper,
-			// 		this._id,
-			// 		_autoscroll,
-			// 		is_embed
-			// 	);
-			// }
 		}
 	}
 
 	customElements.define("gradio-app", GradioApp);
 }
-
-// function handle_darkmode(target: HTMLDivElement): string {
-// 	let url = new URL(window.location.toString());
-// 	let theme = "light";
-
-// 	const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
-// 		"__theme"
-// 	) as "light" | "dark" | "system" | null;
-
-// 	if (color_mode !== null) {
-// 		if (color_mode === "dark") {
-// 			theme = darkmode(target);
-// 		} else if (color_mode === "system") {
-// 			theme = use_system_theme(target);
-// 		}
-// 		// light is default, so we don't need to do anything else
-// 	} else if (url.searchParams.get("__dark-theme") === "true") {
-// 		theme = darkmode(target);
-// 	} else {
-// 		theme = use_system_theme(target);
-// 	}
-// 	return theme;
-// }
-
-// function use_system_theme(target: HTMLDivElement): string {
-// 	const theme = update_scheme();
-// 	window
-// 		?.matchMedia("(prefers-color-scheme: dark)")
-// 		?.addEventListener("change", update_scheme);
-
-// 	function update_scheme() {
-// 		let theme = "light";
-// 		const is_dark =
-// 			window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
-
-// 		if (is_dark) {
-// 			theme = darkmode(target);
-// 		}
-// 		return theme;
-// 	}
-// 	return theme;
-// }
-
-// function darkmode(target: HTMLDivElement): string {
-// 	target.classList.add("dark");
-// 	if (app_mode) {
-// 		document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
-// 	}
-// 	return "dark";
-// }
 
 create_custom_element();

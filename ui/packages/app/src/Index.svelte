@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+	import { writable } from "svelte/store";
 	import { fn } from "./api";
 
 	import type {
@@ -32,18 +33,50 @@
 	}
 
 	let id = -1;
-	let css_mounted = false;
+
+	function create_intersection_store() {
+		const intersecting = writable<Record<string, boolean>>({});
+
+		const els = new Map<HTMLDivElement, number>();
+
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				console.log({ entry });
+				if (entry.isIntersecting) {
+					// els.forEach((v, k) => {
+					let _el: number | undefined = els.get(entry.target as HTMLDivElement);
+					console.log({ _el, els });
+					if (_el !== undefined)
+						intersecting.update((s) => ({ ...s, [_el as number]: true }));
+					// });
+				}
+			});
+		});
+
+		function register(id: number, el: HTMLDivElement) {
+			els.set(el, id);
+			observer.observe(el);
+		}
+
+		return { register, subscribe: intersecting.subscribe };
+	}
+
+	const intersecting = create_intersection_store();
 </script>
 
 <script lang="ts">
 	import { onMount } from "svelte";
 
 	import Embed from "./Embed.svelte";
-	import Login from "./Login.svelte";
+	// import Login from "./Login.svelte";
 	// import Blocks from "./Blocks.svelte";
 	import { Component as Loader } from "./components/StatusTracker";
+	import type {
+		SvelteComponent,
+		SvelteComponentDev,
+		SvelteComponentTyped
+	} from "svelte/internal";
 
-	export let config: any;
 	export let autoscroll: boolean;
 	export let version: string;
 	export let initial_height: string = "300px";
@@ -51,6 +84,7 @@
 	export let is_embed: boolean;
 	export let theme: "light" | "dark" = "light";
 	export let control_page_title: boolean;
+	export let minimal = false;
 
 	export let space: string | null;
 	export let host: string | null;
@@ -64,9 +98,11 @@
 	let wrapper: HTMLDivElement;
 	let ready: boolean = false;
 	let root: string;
+	let config: Config;
 
 	async function handle_config(target: HTMLElement, source: string | null) {
 		let config;
+		console.log({ source });
 
 		try {
 			let _config = await get_config(source);
@@ -184,49 +220,98 @@
 
 	async function check_space_status(space_id: string) {
 		let response;
+		let status;
 		try {
-			response = await (
-				await fetch(`https://huggingface.co/api/spaces/${space_id}`)
-			).json();
-		} catch {}
+			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
+			status = response.status;
+			console.log(response);
+			if (status !== 200) {
+				throw new Error();
+			}
+			response = await response.json();
+		} catch {
+			status = "error";
+			error_detail = {
+				type: "space_error",
+				detail: {
+					description: "This space is experiencing issues",
+					discussions_enabled: await discussions_enabled(space_id)
+				}
+			};
 
+			return;
+		}
+		console.log(response);
+
+		if (!response || status !== 200) return;
 		const {
 			runtime: { stage }
 		} = response;
+
+		console.log(stage);
 
 		switch (stage) {
 			case "STOPPED":
 			case "SLEEPING":
 				console.log("space is sleeping, waking up");
+				setTimeout(() => {
+					check_space_status(space_id);
+				}, 500);
 			// poll for status
 			case "RUNNING":
+			case "RUNNING_BUILDING":
+				status = "success";
 				console.log("Space is running");
 				//  launch
 				break;
-			case "RUNNING_BUILDING":
 			case "BUILDING":
 				console.log("space is building");
+				setTimeout(() => {
+					check_space_status(space_id);
+				}, 500);
+				return;
 				// poll for status
 				break;
 			case "NO_APP_FILE":
 			case "CONFIG_ERROR":
 			case "BUILD_ERROR":
 			case "RUNTIME_ERROR":
-				console.log("space is broken, contact author");
+				status = "error";
+				error_detail = {
+					type: "space_error",
+					detail: {
+						description: "This space is experiencing issues",
+						discussions_enabled: await discussions_enabled(space_id),
+						stage
+					}
+				};
+				console.log("space is broken, contact author", error_detail);
+				return;
 				// launch error screen
 				break;
 		}
 
-		// (NO_APP_FILE = "NO_APP_FILE"),
-		// 	(CONFIG_ERROR = "CONFIG_ERROR"),
-		// 	(BUILDING = "BUILDING"),
-		// 	(BUILD_ERROR = "BUILD_ERROR"),
-		// 	// RUNNING = "RUNNING",
-		// 	// RUNNING_BUILDING = "RUNNING_BUILDING",
-		// 	(RUNTIME_ERROR = "RUNTIME_ERROR"),
-		// 	(DELETING = "DELETING"),
-		// 	(STOPPED = "STOPPED"),
 		console.log({ response });
+	}
+
+	async function discussions_enabled(space_id: string) {
+		// return true;
+		let r;
+		try {
+			const r = await fetch(
+				`https://huggingface.co/api/spaces/${space_id}/discussions`,
+				{
+					method: "HEAD",
+					mode: "cors"
+				}
+			);
+
+			console.log("HEAD", r);
+			r.headers.forEach(console.log);
+			const x = r.headers.get("x-error-message");
+		} catch (e) {
+			console.log(e);
+		}
 	}
 
 	const session_hash = Math.random().toString(36).substring(2);
@@ -244,9 +329,11 @@
 		const source = host
 			? `https://${host}`
 			: space
-			? await (
-					await fetch(`https://huggingface.co/api/spaces/${space}/host`)
-			  ).json().host
+			? (
+					await (
+						await fetch(`https://huggingface.co/api/spaces/${space}/host`)
+					).json()
+			  ).host
 			: src;
 
 		const _config: Config | null = await handle_config(wrapper, source);
@@ -267,47 +354,106 @@
 				type: "not_found"
 			};
 		}
-		// check_space_status(space);
 
-		// if (space) -> get metadata + update status
-		// get config -> render
+		if (space && !config) {
+			console.log(space);
+			check_space_status(space);
+		}
 	});
 
 	$: status = ready ? "success" : status;
 
-  let Blocks;
-  let Login;
+	$: config && $intersecting[id] && load_demo();
 
-  async function get_blocks() {
+	let Blocks: typeof SvelteComponentTyped;
+	let Login: typeof SvelteComponentTyped;
 
-    Blocks = (await import('./Blocks.svelte')).default
-    console.log(Blocks)
-  }
-  async function get_login() {
+	async function get_blocks() {
+		Blocks = (await import("./Blocks.svelte")).default;
+		console.log(Blocks);
+	}
+	async function get_login() {
+		Login = (await import("./Login.svelte")).default;
+		console.log(Login);
+	}
 
-Login = (await import('./Login.svelte')).default
-console.log(Login)
-}
-  // get_blocks()
+	function load_demo() {
+		if (config.auth_required) get_login();
+		else get_blocks();
+	}
+
+	$: console.log(space);
+
+	type error_types =
+		| "NO_APP_FILE"
+		| "CONFIG_ERROR"
+		| "BUILD_ERROR"
+		| "RUNTIME_ERROR";
+
+	const discussion_message = {
+		readable_error: {
+			NO_APP_FILE: "no app file",
+			CONFIG_ERROR: "a config error",
+			BUILD_ERROR: "a build error",
+			RUNTIME_ERROR: "a runtime error"
+		} as const,
+		title(error: error_types) {
+			console.log(error);
+			return encodeURIComponent(
+				`Space isn't working because there is ${
+					this.readable_error[error] || "an error"
+				}`
+			);
+		},
+		description(error: error_types, site: string) {
+			return encodeURIComponent(
+				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
+					this.readable_error[error] || "an error"
+				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
+			);
+		}
+	};
+
+	onMount(() => {
+		intersecting.register(id, wrapper);
+	});
+
+	$: console.log($intersecting);
 </script>
 
-<!-- this.wrapper = document.createElement("div");
-			this.wrapper.classList.add("gradio-container");
-			this.wrapper.classList.add(`gradio-container-${GRADIO_VERSION}`);
-			this.wrapper.style.position = "relative";
-			this.wrapper.style.width = "100%";
-			this.wrapper.style.minHeight = "100vh"; -->
-<Embed display={true} {version} bind:wrapper>
-	{#if status === "pending"}
+<Embed
+	display={!minimal && is_embed && !!space}
+	{version}
+	{initial_height}
+	{space}
+	bind:wrapper
+>
+	{#if status === "pending" || status === "error"}
 		<Loader
-			status={"pending"}
+			{status}
 			timer={false}
 			queue_position={null}
 			queue_size={null}
 			status_text={"loading"}
-		/>
-	{:else if status === "error"}
-		<p>problems...</p>
+		>
+			<div class="error" slot="error">
+				<p><strong>{error_detail?.detail?.description || ""}.</strong></p>
+				{#if error_detail?.detail?.discussions_enabled}
+					<p>
+						Please <a
+							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
+								error_detail.detail.stage
+							)}&description={discussion_message.description(
+								error_detail.detail.stage,
+								location.origin
+							)}"
+						>
+							contact the author of the space</a
+						> to let them know.
+					</p>
+				{/if}
+			</div>
+		</Loader>
 	{:else if status === "login" && Login}
 		<Login
 			auth_message={config.auth_message}
@@ -334,5 +480,34 @@ console.log(Login)
 	div {
 		position: relative;
 		width: 100%;
+	}
+
+	.error {
+		position: relative;
+		z-index: var(--layer-top);
+		padding: var(--size-4);
+		color: var(--color-text-body);
+		text-align: center;
+	}
+
+	.error > * {
+		margin: var(--size-2) 0;
+	}
+
+	a {
+		color: var(--color-text-link-base);
+	}
+
+	a:hover {
+		color: var(--color-text-link-hover);
+		text-decoration: underline;
+	}
+
+	a:visited {
+		color: var(--color-text-link-visited);
+	}
+
+	a:active {
+		color: var(--color-text-link-active);
 	}
 </style>
