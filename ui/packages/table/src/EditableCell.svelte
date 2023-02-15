@@ -16,11 +16,13 @@
 	<input
 		class:header
 		tabindex="-1"
-		bind:value
+		{value}
 		bind:this={el}
 		on:keydown
-		on:blur={({ currentTarget }) =>
-			currentTarget.setAttribute("tabindex", "-1")}
+		on:blur={({ currentTarget }) => {
+			value = currentTarget.value;
+			currentTarget.setAttribute("tabindex", "-1");
+		}}
 	/>
 {/if}
 <span on:dblclick tabindex="-1" role="button" class:edit>
