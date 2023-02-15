@@ -475,7 +475,6 @@ class App(FastAPI):
                     websocket.send_json({"msg": "send_hash"}), timeout=5
                 )
             except AsyncTimeOutError:
-                print("timeout send_hash")
                 return
 
             try:
@@ -483,7 +482,6 @@ class App(FastAPI):
                     websocket.receive_json(), timeout=5
                 )
             except AsyncTimeOutError:
-                print("timeout receiving hash")
                 return
 
             event = Event(
