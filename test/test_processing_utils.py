@@ -194,11 +194,7 @@ class TestTempFileManager:
         )
         assert len(temp_file_manager.temp_files) == 2
 
-    @patch(
-        "gradio.processing_utils.decode_base64_to_binary",
-        return_value=(b"test", ".png"),
-    )
-    def test_base64_to_temp_file_if_needed(self, mock_decode):
+    def test_base64_to_temp_file_if_needed(self):
         temp_file_manager = processing_utils.TempFileManager()
 
         base64_file_1 = media_data.BASE64_IMAGE
@@ -211,7 +207,6 @@ class TestTempFileManager:
             pass
 
         f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
-        assert mock_decode.called
         assert len(temp_file_manager.temp_files) == 1
 
         f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
@@ -219,6 +214,9 @@ class TestTempFileManager:
 
         f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
         assert len(temp_file_manager.temp_files) == 2
+
+        for file in temp_file_manager.temp_files:
+            os.remove(file)
 
     @pytest.mark.flaky
     @patch("shutil.copyfileobj")
