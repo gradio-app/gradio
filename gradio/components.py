@@ -2047,8 +2047,8 @@ class Audio(
         # a user submits the same audio file twice, but with different crop min/max.
         temp_file_path = Path(temp_file_path)
         output_file_name = str(
-            Path.with_stem(
-                temp_file_path, f"{temp_file_path.stem}-{crop_min}-{crop_max}"
+            temp_file_path.with_name(
+                f"{temp_file_path.stem}-{crop_min}-{crop_max}{temp_file_path.suffix}"
             )
         )
 
