@@ -2043,11 +2043,20 @@ class Audio(
             temp_file_path, crop_min=crop_min, crop_max=crop_max
         )
 
+        # Need a unique name for the file to avoid re-using the same audio file if
+        # a user submits the same audio file twice, but with different crop min/max.
+        temp_file_path = Path(temp_file_path)
+        output_file_name = str(
+            Path.with_stem(
+                temp_file_path, f"{temp_file_path.stem}-{crop_min}-{crop_max}"
+            )
+        )
+
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, temp_file_path)
-            return temp_file_path
+            processing_utils.audio_to_file(sample_rate, data, output_file_name)
+            return output_file_name
         else:
             raise ValueError(
                 "Unknown type: "
