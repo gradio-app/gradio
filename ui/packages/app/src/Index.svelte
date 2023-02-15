@@ -117,6 +117,7 @@
 
 		if (root === undefined) {
 			root = BACKEND_URL;
+			config.root = BACKEND_URL;
 		}
 
 		if (config.dev_mode) {
@@ -125,6 +126,8 @@
 
 		return config;
 	}
+
+	console.log({ x: BACKEND_URL });
 
 	async function get_config(source: string | null) {
 		if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
@@ -145,6 +148,7 @@
 	async function get_source_config(source: string): Promise<Config> {
 		let config = await (await fetch(source + "config")).json();
 		root = source;
+		config.root = source;
 		return config;
 	}
 

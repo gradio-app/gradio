@@ -49,7 +49,7 @@
 		background: var(--button-secondary-background-base);
 		background: var(--color-background-primary);
 		padding: 0;
-		width: calc(100% - 40px);
+		width: 100%;
 		min-height: 1px;
 		overflow: hidden;
 		color: var(--button-secondary-text-color-base);
@@ -70,7 +70,6 @@
 		position: relative;
 		margin: auto;
 		padding: var(--size-4);
-		height: 100%;
 	}
 
 	@media (--screen-sm) {
