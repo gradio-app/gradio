@@ -46,13 +46,14 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://git
 * Fixed typos in gradio events function documentation by [@vidalmaxime](https://github.com/vidalmaxime) in [PR 3168](https://github.com/gradio-app/gradio/pull/3168)
 
 ## Testing and Infrastructure Changes:
-* Adds a GitHub action to benchmark the queue by [@abidlabs](https://github.com/abidlabs) in [PR 3164](https://github.com/gradio-app/gradio/pull/3164) 
+No changes to highlight.
 
 ## Breaking Changes:
 No changes to highlight.
 
 ## Full Changelog:
 * Fix demos page css and add close demos button by [@aliabd](https://github.com/aliabd) in [PR 3151](https://github.com/gradio-app/gradio/pull/3151)
+* Cahces temp files from base64 input data by giving them a deterministic path based on the contents of data by [@abidlabs](https://github.com/abidlabs) in [PR 3197](https://github.com/gradio-app/gradio/pull/3197) 
 
 ## Contributors Shoutout:
 No changes to highlight.
