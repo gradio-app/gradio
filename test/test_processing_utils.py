@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
+import gradio
 from gradio import media_data, processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -192,6 +193,32 @@ class TestTempFileManager:
         f = temp_file_manager.make_temp_copy_if_needed(
             "gradio/test_data/cheetah1-copy.jpg"
         )
+        assert len(temp_file_manager.temp_files) == 2
+
+    @patch(
+        "gradio.processing_utils.decode_base64_to_binary",
+        return_value=(b"test", ".png"),
+    )
+    def test_base64_to_temp_file_if_needed(self, mock_decode):
+        temp_file_manager = processing_utils.TempFileManager()
+
+        base64_file_1 = media_data.BASE64_IMAGE
+        base64_file_2 = media_data.BASE64_AUDIO["data"]
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert mock_decode.called
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
         assert len(temp_file_manager.temp_files) == 2
 
     @pytest.mark.flaky
