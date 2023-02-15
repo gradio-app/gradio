@@ -96,7 +96,7 @@
 
 <style>
 	.wrap {
-		height: var(--size-80);
+		height: 100%;
 		overflow-y: auto;
 	}
 
