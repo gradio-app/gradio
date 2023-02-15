@@ -11,7 +11,8 @@ from fastapi.testclient import TestClient
 
 import gradio
 import gradio as gr
-from gradio import media_data, utils
+from gradio import media_data
+from gradio.context import Context
 from gradio.exceptions import InvalidApiName
 from gradio.external import (
     TooManyRequestsError,
@@ -298,6 +299,40 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+    def test_private_space_audio(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        io = gr.Interface.load(
+            "spaces/gradio-tests/not-actually-private-space-audio", api_key=api_key
+        )
+        try:
+            output = io(media_data.BASE64_AUDIO["name"])
+            assert output.endswith(".wav")
+        except TooManyRequestsError:
+            pass
+
+    def test_multiple_spaces_one_private(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        with gr.Blocks():
+            gr.Interface.load(
+                "spaces/gradio-tests/not-actually-private-space", api_key=api_key
+            )
+            gr.Interface.load(
+                "spaces/gradio/test-loading-examples",
+            )
+        assert Context.access_token == api_key
+
+    def test_loading_files_via_proxy_works(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        io = gr.Interface.load(
+            "spaces/gradio-tests/test-loading-examples-private", api_key=api_key
+        )
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+        r = test_client.get(
+            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=/tmp/tmpdd31pyri/Bunnyp0c5zw__.obj"
+        )
+        assert r.status_code == 200
+
 
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
@@ -406,9 +441,7 @@ def check_dataset(config, readme_examples):
         assert not any([c for c in config["components"] if c["type"] == "dataset"])
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
-        assert dataset["props"]["samples"] == [
-            [utils.delete_none(cols_to_rows(readme_examples)[1])]
-        ]
+        assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]
 
 
 def test_load_blocks_with_default_values():

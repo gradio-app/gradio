@@ -14,7 +14,8 @@ import requests
 
 import gradio
 from gradio import components, utils
-from gradio.exceptions import TooManyRequestsError
+from gradio.context import Context
+from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
@@ -58,6 +59,13 @@ def load_blocks_from_repo(
     assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
         factory_methods.keys()
     )
+
+    if api_key is not None:
+        if Context.access_token is not None and Context.access_token != api_key:
+            warnings.warn(
+                """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
+            )
+        Context.access_token = api_key
 
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
@@ -320,7 +328,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
                 errors = f", Error: {errors_json.get('error')}"
             if errors_json.get("warnings"):
                 warns = f", Warnings: {errors_json.get('warnings')}"
-            raise ValueError(
+            raise Error(
                 f"Could not complete request to HuggingFace API, Status Code: {response.status_code}"
                 + errors
                 + warns

@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { File, FileUpload } from "@gradio/file";
 	import type { FileData } from "@gradio/upload";
-	import { normalise_files } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
 
@@ -27,7 +27,7 @@
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData | Array<FileData>;
-	$: _value = normalise_files(value, root_url ?? root);
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
 

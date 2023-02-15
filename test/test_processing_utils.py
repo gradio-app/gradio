@@ -63,6 +63,16 @@ class TestImagePreprocessing:
         output_base64 = processing_utils.encode_pil_to_base64(img)
         assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
 
+    def test_save_pil_to_file_keeps_pnginfo(self):
+        input_img = Image.open("gradio/test_data/test_image.png")
+        input_img = input_img.convert("RGB")
+        input_img.info = {"key1": "value1", "key2": "value2"}
+
+        file_obj = processing_utils.save_pil_to_file(input_img)
+        output_img = Image.open(file_obj)
+
+        assert output_img.info == input_img.info
+
     def test_encode_pil_to_base64_keeps_pnginfo(self):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
@@ -319,3 +329,12 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert pathlib.Path(playable_vid).suffix == ".avi"
+
+
+def test_download_private_file():
+    url_path = "https://gradio-tests-not-actually-private-space.hf.space/file=lion.jpg"
+    access_token = "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"  # Intentionally revealing this key for testing purposes
+    file = processing_utils.download_tmp_copy_of_file(
+        url_path=url_path, access_token=access_token
+    )
+    assert file.name.endswith(".jpg")

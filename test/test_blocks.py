@@ -414,11 +414,13 @@ class TestComponentsInBlocks:
                 components.append(component(value=lambda: None, every=1))
         assert [comp.load_event for comp in components] == demo.dependencies
 
+
+class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
             c()
             for c in io_components
-            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot]
+            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot, gr.BarPlot]
         ]
         with gr.Blocks() as demo:
             for component in io_components:
@@ -530,6 +532,18 @@ class TestComponentsInBlocks:
                 "mode": "dynamic",
             }
             assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+
+    def test_error_raised_if_num_outputs_mismatch(self):
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(lambda x: x, textbox1, [textbox1, textbox2])
+        with pytest.raises(
+            ValueError,
+            match="Number of output components does not match number of values returned from from function <lambda>",
+        ):
+            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
 
 
 class TestCallFunction:
@@ -1038,6 +1052,51 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
+
+    @pytest.mark.asyncio
+    async def test_cancel_button_for_interfaces(self):
+        def generate(x):
+            for i in range(4):
+                yield i
+                time.sleep(0.2)
+
+        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
+        stop_btn_id = next(
+            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
+        )
+        assert not io.blocks[stop_btn_id].visible
+
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            checked_iteration = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_generating" and isinstance(
+                    msg["output"]["data"][0], str
+                ):
+                    checked_iteration = True
+                    assert msg["output"]["data"][1:] == [
+                        {"visible": False, "__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                    ]
+                if msg["msg"] == "process_completed":
+                    assert msg["output"]["data"] == [
+                        {"__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                        {"visible": False, "__type__": "update"},
+                    ]
+                    completed = True
+            assert checked_iteration
+
+        io.close()
 
 
 class TestEvery:

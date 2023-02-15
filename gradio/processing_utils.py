@@ -128,26 +128,25 @@ def save_array_to_file(image_array, dir=None):
     return file_obj
 
 
+def get_pil_metadata(pil_image):
+    # Copy any text-only metadata
+    metadata = PngImagePlugin.PngInfo()
+    for key, value in pil_image.info.items():
+        if isinstance(key, str) and isinstance(value, str):
+            metadata.add_text(key, value)
+
+    return metadata
+
+
 def save_pil_to_file(pil_image, dir=None):
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj)
+    pil_image.save(file_obj, pnginfo=get_pil_metadata(pil_image))
     return file_obj
 
 
 def encode_pil_to_base64(pil_image):
     with BytesIO() as output_bytes:
-
-        # Copy any text-only metadata
-        use_metadata = False
-        metadata = PngImagePlugin.PngInfo()
-        for key, value in pil_image.info.items():
-            if isinstance(key, str) and isinstance(value, str):
-                metadata.add_text(key, value)
-                use_metadata = True
-
-        pil_image.save(
-            output_bytes, "PNG", pnginfo=(metadata if use_metadata else None)
-        )
+        pil_image.save(output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image))
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
@@ -410,24 +409,39 @@ class TempFileManager:
         return full_temp_file_path
 
 
-def create_tmp_copy_of_file(file_path, dir=None):
+def download_tmp_copy_of_file(
+    url_path: str, access_token: str | None = None, dir: str | None = None
+) -> tempfile._TemporaryFileWrapper:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    file_name = Path(file_path).name
-    prefix, extension = file_name, None
-    if "." in file_name:
-        prefix = file_name[0 : file_name.index(".")]
-        extension = file_name[file_name.index(".") + 1 :]
-    prefix = utils.strip_invalid_filename_characters(prefix)
-    if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
-    else:
-        file_obj = tempfile.NamedTemporaryFile(
-            delete=False,
-            prefix=prefix,
-            suffix="." + extension,
-            dir=dir,
-        )
+    headers = {"Authorization": "Bearer " + access_token} if access_token else {}
+    prefix = Path(url_path).stem
+    suffix = Path(url_path).suffix
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        prefix=prefix,
+        suffix=suffix,
+        dir=dir,
+    )
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        with open(file_obj.name, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    return file_obj
+
+
+def create_tmp_copy_of_file(
+    file_path: str, dir: str | None = None
+) -> tempfile._TemporaryFileWrapper:
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+    prefix = Path(file_path).stem
+    suffix = Path(file_path).suffix
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        prefix=prefix,
+        suffix=suffix,
+        dir=dir,
+    )
     shutil.copy2(file_path, file_obj.name)
     return file_obj
 
