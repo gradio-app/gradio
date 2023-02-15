@@ -517,7 +517,12 @@ class App(FastAPI):
         ):
             output_files = []
             for input_file in files:
-                output_file_obj = tempfile.NamedTemporaryFile(delete=False)
+                if "." in input_file.filename:
+                    prefix, suffix = input_file.filename.rsplit(".", 1)
+                else:
+                    prefix = input_file.filename
+                    suffix = ""
+                output_file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=f".{suffix}", prefix=f"{prefix}_")
                 async with aiofiles.open(output_file_obj.name, "wb") as output_file:
                     while True:
                         content = await input_file.read(1024)
