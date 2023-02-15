@@ -35,7 +35,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://git
 
 
 ## Bug Fixes:
-- Adds ability to add a single message from the bot or user side.
+- Adds ability to add a single message from the bot or user side. Ex: specify `None` as the second value in the tuple, to add a single message in the chatbot from the "bot" side.
 
 ```python
 gr.Chatbot([("Hi, I'm DialoGPT. Try asking me a question.", None)])
