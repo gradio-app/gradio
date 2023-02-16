@@ -15,8 +15,10 @@ from io import BytesIO
 from pathlib import Path
 from typing import Dict, Set, Tuple
 
+import aiofiles
 import numpy as np
 import requests
+from fastapi import UploadFile
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -402,6 +404,19 @@ class TempFileManager:
 
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
+
+    async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(file.filename)
+        output_file_obj = tempfile.NamedTemporaryFile(
+            delete=False, dir=upload_dir, suffix=f"{extension}", prefix=f"{prefix}_"
+        )
+        async with aiofiles.open(output_file_obj.name, "wb") as output_file:
+            while True:
+                content = await file.read(1024 * 1024 * 1024)
+                if not content:
+                    break
+                await output_file.write(content)
+        return str(utils.abspath(output_file_obj.name))
 
     def download_temp_copy_if_needed(self, url: str) -> str:
         """Downloads a file and makes a temporary file path for a copy if does not already
