@@ -1,15 +1,13 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import type { FileData } from "@gradio/upload";
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 	import { Vega } from "svelte-vega";
-	import { afterUpdate, onDestroy } from "svelte";
+	import { afterUpdate, beforeUpdate, onDestroy } from "svelte";
 	import { create_config } from "./utils";
 	import { Empty } from "@gradio/atoms";
-	import { normalise_file } from "@gradio/upload";
 
 	export let value;
 	export let target;
@@ -35,8 +33,21 @@
 
 	$: darkmode = theme == "dark";
 
-	$: if (value && value.type == "altair") {
-		spec = JSON.parse(value["plot"]);
+	$: plot = value?.plot;
+	$: type = value?.type;
+
+	function embed_bokeh(plot, type){
+		if (type == "bokeh") {
+			console.log("here");
+			let plotObj = JSON.parse(plot);
+			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+		}
+	}
+
+	$: embed_bokeh(plot, type);
+
+	$: if (type == "altair") {
+		spec = JSON.parse(plot);
 		const config = create_config(darkmode);
 		spec.config = config;
 		switch (value.chart || "") {
@@ -72,12 +83,6 @@
 			default:
 				break;
 		}
-	} else if (false) {
-		let data = <FileData>({is_file: true, name: value.plot});
-		console.log(data);
-		data = normalise_file(data, root, root_url);
-		value.plot = data.data;
-		console.log(value.plot);
 	}
 
 	// Plotly
@@ -155,18 +160,24 @@
 		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 	});
 
+	beforeUpdate(() => {
+		console.log("Before");
+		if (document && type == "bokeh"){
+			console.log("reseting");
+			if (document.getElementById("bokehDiv")) {
+				document.getElementById("bokehDiv").innerHTML = "";
+			}
+		} 
+	})
+
 	afterUpdate(() => {
-		if (value && value["type"] == "plotly") {
+		if (type == "plotly") {
 			load_plotly_css();
 			let plotObj = JSON.parse(value["plot"]);
 			plotObj.layout.title
 				? (plotObj.layout.margin = { autoexpand: true })
 				: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
 			Plotly.react(plotDiv, plotObj);
-		} else if (value && value["type"] == "bokeh") {
-			document.getElementById("bokehDiv").innerHTML = "";
-			let plotObj = JSON.parse(value["plot"]);
-			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 		}
 	});
 
@@ -180,10 +191,8 @@
 
 {#if value && value["type"] == "plotly"}
 	<div bind:this={plotDiv} />
-{:else if value && value["type"] == "bokeh"}
+{:else if type == "bokeh"}
 	<div id="bokehDiv" />
-		<!-- <iframe class='bokeh' src={value['plot']} title='Bokeh Plot'></iframe>
-	</div> -->
 {:else if value && value["type"] == "altair"}
 	<div class="altair layout">
 		<Vega {spec} />
@@ -203,13 +212,6 @@
 {/if}
 
 <style>
-
-	/* .bokeh {
-		width: 100%;
-		overflow: hidden;
-		height: 100vh;
-
-	} */
 
 	.layout {
 		display: flex;

@@ -4085,7 +4085,7 @@ class Model3D(
 
 
 @document("change", "clear")
-class Plot(Changeable, Clearable, IOComponent, JSONSerializable, TempFileManager):
+class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -4125,7 +4125,6 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable, TempFileManager
             value=value,
             **kwargs,
         )
-        TempFileManager.__init__(self)
 
     def get_config(self):
         try:
