@@ -4,7 +4,6 @@
 	import { IconButton } from "@gradio/atoms";
 	import {
 		display_file_name,
-		download_files,
 		display_file_size
 	} from "./utils";
 
@@ -24,13 +23,17 @@
 				</td>
 
 				<td class="download">
-					<a
-						href={download_files(file)}
-						target={window.__is_colab__ ? "_blank" : null}
-						download={window.__is_colab__ ? null : file.orig_name || file.name}
-					>
-						Download
-					</a>
+					{#if file.data}
+						<a
+							href={file.data}
+							target={window.__is_colab__ ? "_blank" : null}
+							download={window.__is_colab__ ? null : file.orig_name || file.name}
+						>
+							Download
+						</a>
+					{:else}
+						Uploading...
+					{/if}
 				</td>
 			</tr>
 		{/each}

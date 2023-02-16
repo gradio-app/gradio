@@ -43,7 +43,7 @@
 			if (_value === null) {
 				dispatch("change");
 				pending_upload = false;
-			} else {
+			} else if (mode === "dynamic") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!
 				);
@@ -72,6 +72,7 @@
 								}
 							}
 						);
+						_value = normalise_file(value, root, root_url);
 					}
 					dispatch("change");
 				});

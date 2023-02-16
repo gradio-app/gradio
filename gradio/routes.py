@@ -525,7 +525,7 @@ class App(FastAPI):
                 output_file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=f".{suffix}", prefix=f"{prefix}_")
                 async with aiofiles.open(output_file_obj.name, "wb") as output_file:
                     while True:
-                        content = await input_file.read(1024)
+                        content = await input_file.read(1024 * 1024 * 1024)
                         if not content:
                             break
                         await output_file.write(content)
