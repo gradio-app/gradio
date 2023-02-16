@@ -15,7 +15,7 @@
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script type="module" src="http://localhost:4321/gradio.js"></script>
+		<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.1b1/gradio.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.min.js"></script>
 
 		<title>Vite App</title>
@@ -143,10 +143,7 @@
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
 			Hello text. Hello text.
 		</p>
-		<gradio-app
-			src="https://fabiochiu-sentiment-analysis-demo.hf.space"
-			initial_height="800px"
-		></gradio-app>
+		
 		<h2>hello subtitle</h2>
 		<p>
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
@@ -164,13 +161,86 @@
 			Hello text. Hello text.
 		</p>
 
+		<gradio-app
+			src="https://fabiochiu-sentiment-analysis-demo.hf.space"
+			initial_height="800px"
+		></gradio-app>
 		
 		<gradio-app
 			space="awacke1/GradioAutoPlotFromCSV"
 			initial_height="400px"
 			control_page_title="true"
 		></gradio-app>
+		<gradio-app
+			space="gradio/plot_component_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		
 
+		<gradio-app
+			space="gradio/colorpicker_component_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/live_with_vars_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/outbreak_forecast_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/titanic_survival_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/text_analysis_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/neon-tts-plugin-coqui_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/scatterplot_component_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/image_classifier_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			space="gradio/reverse_audio_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<gradio-app
+			space="gradio/ner_pipeline_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<gradio-app
+			space="gradio/longest_word_main"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
 		<gradio-app
 			space="pngwn/clear-inputs"
 			initial_height="400px"

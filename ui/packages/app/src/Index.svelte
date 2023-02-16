@@ -91,7 +91,7 @@
 	export let src: string | null;
 	// export let;
 
-	id = id + 1;
+	let _id = id++;
 
 	let status: "pending" | "error" | "success" | "login" = "pending";
 	let app_id: string | null = null;
@@ -367,7 +367,7 @@
 
 	$: status = ready ? "success" : status;
 
-	$: config && $intersecting[id] && load_demo();
+	$: config && $intersecting[_id] && load_demo();
 
 	let Blocks: typeof SvelteComponentTyped;
 	let Login: typeof SvelteComponentTyped;
@@ -419,7 +419,7 @@
 	};
 
 	onMount(() => {
-		intersecting.register(id, wrapper);
+		intersecting.register(_id, wrapper);
 	});
 
 	$: console.log($intersecting);
@@ -463,7 +463,7 @@
 			auth_message={config.auth_message}
 			root={config.root}
 			is_space={config.is_space}
-			{id}
+			id={_id}
 			{app_mode}
 		/>
 	{/if}
