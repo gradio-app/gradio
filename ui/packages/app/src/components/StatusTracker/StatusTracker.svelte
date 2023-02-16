@@ -62,7 +62,7 @@
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
-	export let status_text: string;
+	export let loading_text: string;
 	export let absolute: boolean = true;
 
 	let el: HTMLDivElement;
@@ -260,7 +260,7 @@
 		{/if}
 
 		{#if !timer}
-			<p class="loading">{status_text || "Loading..."}</p>
+			<p class="loading">{loading_text || "Loading..."}</p>
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>

@@ -3,26 +3,25 @@
 	<head>
 		<style>
 			html {
-				background: #111;
-				color: #eee;
+				/* background: #111; */
+				/* color: #eee; */
 				font-family: Source Sans Pro;
 			}
 
-			p {
-				font-size: 18px;
-			}
+		
 		</style>
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script type="module" src="http://localhost:4321/gradio.js"></script>	
-		<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.1b3/gradio.js"></script> -->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.min.js"></script>
+		<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.1b4/gradio.js"></script> -->
+			<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.0/gradio.js"></script> -->
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.min.js"></script> -->
 
 		<title>Vite App</title>
 	</head>
 	<body>
-		<h1>Hello title</h1>
+		<!-- <h1>Hello title</h1>
 		<h2>hello subtitle</h2>
 		<p>
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
@@ -159,10 +158,10 @@
 		<p>
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
-			Hello text. Hello text.
-		</p>
+			Hello text. Hello text. -->
+		<!-- </p> -->
 
-		
+<!-- 		
 		
 		<gradio-app
 			space="awacke1/GradioAutoPlotFromCSV"
@@ -251,13 +250,25 @@
 			control_page_title="true"
 		></gradio-app>
 
-		<iframe
+		<gradio-app
+			space="pngwn/Stable-Diffusion-prompt-generator"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app> -->
+
+		<!-- https://huggingface.co/spaces/ -->
+		<gradio-app
+		space="gradio/live_with_vars"
+		initial_height="400px"
+		control_page_title="true"
+	></gradio-app>
+		<!-- <iframe
 			id="myIframe"
 			allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
 			src="http://127.0.0.1:7860/"
 			frameborder="0"
-		></iframe>
-		<script>
+		></iframe> -->
+		<!-- <script>
 			iFrameResize(
 				{
 					log: false,
@@ -266,6 +277,6 @@
 				},
 				"#myIframe"
 			);
-		</script>
+		</script> -->
 	</body>
 </html>

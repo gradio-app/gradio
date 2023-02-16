@@ -95,6 +95,7 @@
 	let ready: boolean = false;
 	let root: string;
 	let config: Config;
+	let loading_text: string = "Loading...";
 
 	async function handle_config(target: HTMLElement, source: string | null) {
 		let config;
@@ -249,6 +250,7 @@
 		switch (stage) {
 			case "STOPPED":
 			case "SLEEPING":
+				loading_text = "Space is asleep. Waking it up...";
 				setTimeout(() => {
 					check_space_status(space_id);
 				}, 500);
@@ -260,6 +262,7 @@
 				//  launch
 				break;
 			case "BUILDING":
+				loading_text = "Space is building...";
 				setTimeout(() => {
 					check_space_status(space_id);
 				}, 500);
@@ -335,7 +338,7 @@
 				is_embed
 			);
 			config = _config;
-		} else {
+		} else if (!space) {
 			status = "error";
 			error_detail = {
 				type: "not_found",
@@ -417,7 +420,7 @@
 			timer={false}
 			queue_position={null}
 			queue_size={null}
-			status_text={"loading"}
+			{loading_text}
 		>
 			<div class="error" slot="error">
 				<p><strong>{error_detail?.detail?.description || ""}.</strong></p>
