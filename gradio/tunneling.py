@@ -73,7 +73,7 @@ class Tunnel:
             binary,
             "http",
             "-n",
-            "random",
+            self.share_token,
             "-l",
             str(self.local_port),
             "-i",
@@ -85,8 +85,6 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
-            "--token",
-            self.share_token,
         ]
         print("Command:", " ".join(command))
         self.proc = subprocess.Popen(
