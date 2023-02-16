@@ -42,6 +42,11 @@
 	$: bokeh_loaded = window.Bokeh === undefined
 
 	function embed_bokeh(plot, type, bokeh_loaded){
+		if (document){
+			if (document.getElementById("bokehDiv")) {
+				document.getElementById("bokehDiv").innerHTML = "";
+			}
+		}
 		if (type == "bokeh" && window.Bokeh) {
 			if (!bokeh_loaded) {
 				load_bokeh();
@@ -167,14 +172,6 @@
 		let plotObj = JSON.parse(plot);
 		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 	});
-
-	beforeUpdate(() => {
-		if (document && type == "bokeh"){
-			if (document.getElementById("bokehDiv")) {
-				document.getElementById("bokehDiv").innerHTML = "";
-			}
-		} 
-	})
 
 	afterUpdate(() => {
 		if (type == "plotly") {
