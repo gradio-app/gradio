@@ -412,7 +412,7 @@ class TempFileManager:
         )
         async with aiofiles.open(output_file_obj.name, "wb") as output_file:
             while True:
-                content = await file.read(1024 * 1024 * 1024)
+                content = await file.read(100 * 1024 * 1024)
                 if not content:
                     break
                 await output_file.write(content)
