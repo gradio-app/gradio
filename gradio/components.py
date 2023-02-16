@@ -4128,7 +4128,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
     def get_config(self):
         try:
-            import bokeh
+            import bokeh # type: ignore
 
             bokeh_version = bokeh.__version__
         except ImportError:
@@ -4169,7 +4169,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             out_y = processing_utils.encode_plot_to_base64(y)
         elif "bokeh" in y.__module__:
             dtype = "bokeh"
-            from bokeh.embed import json_item
+            from bokeh.embed import json_item # type: ignore
 
             out_y = json.dumps(json_item(y))
         else:
