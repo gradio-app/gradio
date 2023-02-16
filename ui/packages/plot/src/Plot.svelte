@@ -139,7 +139,7 @@
 		.map((_, i) => createPromise(i));
 
 	const initializeBokeh = (index) => {
-		if (value && value["type"] == "bokeh") {
+		if (type == "bokeh") {
 			resolves[index]();
 		}
 	};
@@ -156,12 +156,11 @@
 	}
 
 	Promise.all(bokehPromises).then(() => {
-		let plotObj = JSON.parse(value["plot"]);
+		let plotObj = JSON.parse(plot);
 		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 	});
 
 	beforeUpdate(() => {
-		console.log("Before");
 		if (document && type == "bokeh"){
 			console.log("reseting");
 			if (document.getElementById("bokehDiv")) {
@@ -173,7 +172,7 @@
 	afterUpdate(() => {
 		if (type == "plotly") {
 			load_plotly_css();
-			let plotObj = JSON.parse(value["plot"]);
+			let plotObj = JSON.parse(plot);
 			plotObj.layout.title
 				? (plotObj.layout.margin = { autoexpand: true })
 				: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
@@ -189,11 +188,11 @@
 	});
 </script>
 
-{#if value && value["type"] == "plotly"}
+{#if value && type == "plotly"}
 	<div bind:this={plotDiv} />
 {:else if type == "bokeh"}
 	<div id="bokehDiv" />
-{:else if value && value["type"] == "altair"}
+{:else if type == "altair"}
 	<div class="altair layout">
 		<Vega {spec} />
 		{#if caption}
@@ -202,10 +201,10 @@
 			</div>
 		{/if}
 	</div>
-{:else if value && value["type"] == "matplotlib"}
+{:else if type == "matplotlib"}
 	<div class="matplotlib layout">
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img src={value["plot"]} />
+		<img src={plot} />
 	</div>
 {:else}
 	<Empty size="large" unpadded_box={true}><PlotIcon /></Empty>

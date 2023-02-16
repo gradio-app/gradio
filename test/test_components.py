@@ -2029,6 +2029,7 @@ class TestScatterPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2211,6 +2212,7 @@ class TestLinePlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2372,6 +2374,7 @@ class TestBarPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
