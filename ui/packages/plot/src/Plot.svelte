@@ -36,15 +36,23 @@
 	$: plot = value?.plot;
 	$: type = value?.type;
 
-	function embed_bokeh(plot, type){
-		if (type == "bokeh") {
-			console.log("here");
+	// Need to keep track of this because
+	// otherwise embed_bokeh may try to embed before
+	// bokeh is loaded
+	$: bokeh_loaded = window.Bokeh === undefined
+
+	function embed_bokeh(plot, type, bokeh_loaded){
+		if (type == "bokeh" && window.Bokeh) {
+			if (!bokeh_loaded) {
+				load_bokeh();
+				bokeh_loaded = true;
+			}
 			let plotObj = JSON.parse(plot);
 			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 		}
 	}
 
-	$: embed_bokeh(plot, type);
+	$: embed_bokeh(plot, type, bokeh_loaded);
 
 	$: if (type == "altair") {
 		spec = JSON.parse(plot);
@@ -114,7 +122,7 @@
 		script.onload = handleBokehLoaded;
 		script.src = main_src;
 		document.head.appendChild(script);
-
+		bokeh_loaded = true;
 		return script;
 	}
 
@@ -162,7 +170,6 @@
 
 	beforeUpdate(() => {
 		if (document && type == "bokeh"){
-			console.log("reseting");
 			if (document.getElementById("bokehDiv")) {
 				document.getElementById("bokehDiv").innerHTML = "";
 			}
