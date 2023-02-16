@@ -70,5 +70,6 @@ if __name__ == "__main__":
     torch==1.12.1
     altair
     vega_datasets
+    xyzservices
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))
