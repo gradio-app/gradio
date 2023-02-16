@@ -770,9 +770,9 @@ class TestAudio:
         """
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
-        output = audio_input.preprocess(x_wav)
-        assert output[0] == 8000
-        assert output[1].shape == (8046,)
+        output1 = audio_input.preprocess(x_wav)
+        assert output1[0] == 8000
+        assert output1[1].shape == (8046,)
         assert filecmp.cmp(
             "test/test_files/audio_sample.wav",
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
@@ -796,7 +796,9 @@ class TestAudio:
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
-        assert audio_input.preprocess(x_wav) is not None
+        output2 = audio_input.preprocess(x_wav)
+        assert output2 is not None
+        assert output1 != output2
 
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
@@ -2005,6 +2007,13 @@ def test_dataset_calls_as_example(*mocks):
 
 cars = vega_datasets.data.cars()
 stocks = vega_datasets.data.stocks()
+barley = vega_datasets.data.barley()
+simple = pd.DataFrame(
+    {
+        "a": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        "b": [28, 55, 43, 91, 81, 53, 19, 87, 52],
+    }
+)
 
 
 class TestScatterPlot:
@@ -2345,6 +2354,149 @@ class TestLinePlot:
             x="date",
             y="price",
             color="symbol",
+        )
+        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value["plot"], str)
+
+
+class TestBarPlot:
+    def test_get_config(self):
+        assert gr.BarPlot().get_config() == {
+            "caption": None,
+            "elem_id": None,
+            "interactive": None,
+            "label": None,
+            "name": "plot",
+            "root_url": None,
+            "show_label": True,
+            "style": {},
+            "value": None,
+            "visible": True,
+        }
+
+    def test_no_color(self):
+        plot = gr.BarPlot(
+            x="a",
+            y="b",
+            tooltip=["a", "b"],
+            title="Made Up Bar Plot",
+            x_title="Variable A",
+        )
+        output = plot.postprocess(simple)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert output["chart"] == "bar"
+        config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["field"] == "a"
+        assert config["encoding"]["x"]["title"] == "Variable A"
+        assert config["encoding"]["y"]["field"] == "b"
+        assert config["encoding"]["y"]["title"] == "b"
+
+        assert config["title"] == "Made Up Bar Plot"
+        assert "height" not in config
+        assert "width" not in config
+
+    def test_height_width(self):
+        plot = gr.BarPlot(x="a", y="b", height=100, width=200)
+        output = plot.postprocess(simple)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
+        config = json.loads(output["value"]["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+    def test_ylim(self):
+        plot = gr.BarPlot(x="a", y="b", y_lim=[15, 100])
+        output = plot.postprocess(simple)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["y"]["scale"] == {"domain": [15, 100]}
+
+    def test_horizontal(self):
+        output = gr.BarPlot.update(
+            simple,
+            x="a",
+            y="b",
+            x_title="Variable A",
+            y_title="Variable B",
+            title="Simple Bar Plot with made up data",
+            tooltip=["a", "b"],
+            vertical=False,
+            y_lim=[20, 100],
+        )
+        assert output["value"]["chart"] == "bar"
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["x"]["field"] == "b"
+        assert config["encoding"]["x"]["scale"] == {"domain": [20, 100]}
+        assert config["encoding"]["x"]["title"] == "Variable B"
+
+        assert config["encoding"]["y"]["field"] == "a"
+        assert config["encoding"]["y"]["title"] == "Variable A"
+
+    def test_stack_via_color(self):
+        output = gr.BarPlot.update(
+            barley,
+            x="variety",
+            y="yield",
+            color="site",
+            title="Barley Yield Data",
+            color_legend_title="Site",
+            color_legend_position="bottom",
+        )
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["color"]["field"] == "site"
+        assert config["encoding"]["color"]["legend"] == {
+            "title": "Site",
+            "orient": "bottom",
+        }
+        assert config["encoding"]["color"]["scale"] == {
+            "domain": [
+                "University Farm",
+                "Waseca",
+                "Morris",
+                "Crookston",
+                "Grand Rapids",
+                "Duluth",
+            ],
+            "range": [0, 1, 2, 3, 4, 5],
+        }
+
+    def test_group(self):
+        output = gr.BarPlot.update(
+            barley,
+            x="year",
+            y="yield",
+            color="year",
+            group="site",
+            title="Barley Yield by Year and Site",
+            group_title="",
+            tooltip=["yield", "site", "year"],
+        )
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["column"] == {"field": "site", "title": ""}
+
+    def test_group_horizontal(self):
+        output = gr.BarPlot.update(
+            barley,
+            x="year",
+            y="yield",
+            color="year",
+            group="site",
+            title="Barley Yield by Year and Site",
+            group_title="Site Title",
+            tooltip=["yield", "site", "year"],
+            vertical=False,
+        )
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["row"] == {"field": "site", "title": "Site Title"}
+
+    def test_barplot_accepts_fn_as_value(self):
+        plot = gr.BarPlot(
+            value=lambda: barley.sample(frac=0.1, replace=False),
+            x="year",
+            y="yield",
         )
         assert isinstance(plot.value, dict)
         assert isinstance(plot.value["plot"], str)

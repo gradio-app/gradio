@@ -63,6 +63,16 @@ class TestImagePreprocessing:
         output_base64 = processing_utils.encode_pil_to_base64(img)
         assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
 
+    def test_save_pil_to_file_keeps_pnginfo(self):
+        input_img = Image.open("gradio/test_data/test_image.png")
+        input_img = input_img.convert("RGB")
+        input_img.info = {"key1": "value1", "key2": "value2"}
+
+        file_obj = processing_utils.save_pil_to_file(input_img)
+        output_img = Image.open(file_obj)
+
+        assert output_img.info == input_img.info
+
     def test_encode_pil_to_base64_keeps_pnginfo(self):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
@@ -183,6 +193,30 @@ class TestTempFileManager:
             "gradio/test_data/cheetah1-copy.jpg"
         )
         assert len(temp_file_manager.temp_files) == 2
+
+    def test_base64_to_temp_file_if_needed(self):
+        temp_file_manager = processing_utils.TempFileManager()
+
+        base64_file_1 = media_data.BASE64_IMAGE
+        base64_file_2 = media_data.BASE64_AUDIO["data"]
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
+        assert len(temp_file_manager.temp_files) == 2
+
+        for file in temp_file_manager.temp_files:
+            os.remove(file)
 
     @pytest.mark.flaky
     @patch("shutil.copyfileobj")

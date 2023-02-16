@@ -128,26 +128,25 @@ def save_array_to_file(image_array, dir=None):
     return file_obj
 
 
+def get_pil_metadata(pil_image):
+    # Copy any text-only metadata
+    metadata = PngImagePlugin.PngInfo()
+    for key, value in pil_image.info.items():
+        if isinstance(key, str) and isinstance(value, str):
+            metadata.add_text(key, value)
+
+    return metadata
+
+
 def save_pil_to_file(pil_image, dir=None):
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj)
+    pil_image.save(file_obj, pnginfo=get_pil_metadata(pil_image))
     return file_obj
 
 
 def encode_pil_to_base64(pil_image):
     with BytesIO() as output_bytes:
-
-        # Copy any text-only metadata
-        use_metadata = False
-        metadata = PngImagePlugin.PngInfo()
-        for key, value in pil_image.info.items():
-            if isinstance(key, str) and isinstance(value, str):
-                metadata.add_text(key, value)
-                use_metadata = True
-
-        pil_image.save(
-            output_bytes, "PNG", pnginfo=(metadata if use_metadata else None)
-        )
+        pil_image.save(output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image))
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
@@ -354,6 +353,13 @@ class TempFileManager:
             sha1.update(data)
         return sha1.hexdigest()
 
+    def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
+            data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
+            sha1.update(data.encode("utf-8"))
+        return sha1.hexdigest()
+
     def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
         file_name = Path(file_path_or_url).name
         prefix, extension = file_name, None
@@ -374,6 +380,12 @@ class TempFileManager:
         prefix, extension = self.get_prefix_and_extension(url)
         file_hash = self.hash_url(url)
         return prefix + file_hash + extension
+
+    def get_temp_base64_path(self, base64_encoding: str, prefix: str) -> str:
+        extension = get_extension(base64_encoding)
+        extension = "." + extension if extension else ""
+        base64_hash = self.hash_base64(base64_encoding)
+        return prefix + base64_hash + extension
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
@@ -405,6 +417,27 @@ class TempFileManager:
             with requests.get(url, stream=True) as r:
                 with open(full_temp_file_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    def base64_to_temp_file_if_needed(
+        self, base64_encoding: str, file_name: str | None = None
+    ) -> str:
+        """Converts a base64 encoding to a file and returns the path to the file if
+        the file doesn't already exist. Otherwise returns the path to the existing file."""
+        f = tempfile.NamedTemporaryFile(delete=False)
+        temp_dir = Path(f.name).parent
+        prefix = self.get_prefix_and_extension(file_name)[0] if file_name else ""
+
+        temp_file_path = self.get_temp_base64_path(base64_encoding, prefix=prefix)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(utils.abspath(f.name))
+
+        if not Path(full_temp_file_path).exists():
+            data, _ = decode_base64_to_binary(base64_encoding)
+            with open(full_temp_file_path, "wb") as fb:
+                fb.write(data)
 
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path

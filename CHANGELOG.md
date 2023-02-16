@@ -1,13 +1,51 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### New `gr.BarPlot` component! 📊
+
+Create interactive bar plots from a high-level interface with `gr.BarPlot`. 
+No need to remember matplotlib syntax anymore!
+
+Example usage:
+
+```python
+import gradio as gr
+import pandas as pd
+
+simple = pd.DataFrame({
+    'a': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
+    'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]
+})
+
+with gr.Blocks() as demo:
+    gr.BarPlot(
+        simple,
+        x="a",
+        y="b",
+        title="Simple Bar Plot with made up data",
+        tooltip=['a', 'b'],
+    )
+
+demo.launch()
+```
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://github.com/gradio-app/gradio/pull/3157)
+
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixes `gr.utils.delete_none` to only remove props whose values are `None` from the config by [@abidlabs](https://github.com/abidlabs) in [PR 3188](https://github.com/gradio-app/gradio/pull/3188) 
+* Fix bug where embedded demos were not loading files properly by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3177](https://github.com/gradio-app/gradio/pull/3177)
+* The `change` event is now triggered when users click the 'Clear All' button of the multiselect DropDown component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3195](https://github.com/gradio-app/gradio/pull/3195)
+* Support Chinese pinyin in Dataframe by [@aliabid94](https://github.com/aliabid94) in [PR 3206](https://github.com/gradio-app/gradio/pull/3206)
 
 ## Documentation Changes:
+* Sort components in docs by alphabetic order by [@aliabd](https://github.com/aliabd) in [PR 3152](https://github.com/gradio-app/gradio/pull/3152)
 * Changes to W&B guide by [@scottire](https://github.com/scottire) in  [PR 3153](https://github.com/gradio-app/gradio/pull/3153)
+* Keep pnginfo metadata for gallery by [@wfng92](https://github.com/wfng92) in [PR 3150](https://github.com/gradio-app/gradio/pull/3150)
+* Add a section on how to run a Gradio app locally [@osanseviero](https://github.com/osanseviero) in [PR 3170](https://github.com/gradio-app/gradio/pull/3170)
+* Fixed typos in gradio events function documentation by [@vidalmaxime](https://github.com/vidalmaxime) in [PR 3168](https://github.com/gradio-app/gradio/pull/3168)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -16,7 +54,10 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Fix demos page css and add close demos button by [@aliabd](https://github.com/aliabd) in [PR 3151](https://github.com/gradio-app/gradio/pull/3151)
+* Caches temp files from base64 input data by giving them a deterministic path based on the contents of data by [@abidlabs](https://github.com/abidlabs) in [PR 3197](https://github.com/gradio-app/gradio/pull/3197) 
+* Better warnings (when there is a mismatch between the number of output components and values returned by a function, or when the `File` component or `UploadButton` component includes a `file_types` parameter along with `file_count=="dir"`) by [@abidlabs](https://github.com/abidlabs) in [PR 3194](https://github.com/gradio-app/gradio/pull/3194) 
+* Raises a `gr.Error` instead of a regular Python error when you use `gr.Interface.load()` to load a model and there's an error querying the HF API by [@abidlabs](https://github.com/abidlabs) in [PR 3194](https://github.com/gradio-app/gradio/pull/3194)
 
 ## Contributors Shoutout:
 No changes to highlight.
