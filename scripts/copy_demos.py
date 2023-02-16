@@ -71,5 +71,6 @@ if __name__ == "__main__":
     altair
     vega_datasets
     xyzservices
+    bokeh
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))
