@@ -4127,9 +4127,18 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable, TempFileManager
         )
         TempFileManager.__init__(self)
 
-
     def get_config(self):
-        return {"value": self.value, **IOComponent.get_config(self)}
+        try:
+            import bokeh
+
+            bokeh_version = bokeh.__version__
+        except ImportError:
+            bokeh_version = "3.0.3"
+        return {
+            "value": self.value,
+            "bokeh_version": bokeh_version,
+            **IOComponent.get_config(self),
+        }
 
     @staticmethod
     def update(
@@ -4161,14 +4170,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable, TempFileManager
             out_y = processing_utils.encode_plot_to_base64(y)
         elif "bokeh" in y.__module__:
             dtype = "bokeh"
-            from bokeh.embed import file_html, json_item
-            from bokeh.resources import CDN
-            html_file = file_html(y, CDN)
-            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".html") as f:
-                f.write(html_file)
-            out_y = self.make_temp_copy_if_needed(f.name)
+            from bokeh.embed import json_item
 
-            #open("/home/freddy/sources/scratch/bokeh.html", "w").write(out_y)
+            out_y = json.dumps(json_item(y))
         else:
             is_altair = "altair" in y.__module__
             if is_altair:
