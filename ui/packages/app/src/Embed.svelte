@@ -7,8 +7,6 @@
 
 	export let space: string | null;
 	export let display: boolean = true;
-
-	$: console.log({ display });
 </script>
 
 <div
@@ -49,7 +47,6 @@
 		background: var(--button-secondary-background-base);
 		background: var(--color-background-primary);
 		padding: 0;
-		width: 100%;
 		min-height: 1px;
 		overflow: hidden;
 		color: var(--button-secondary-text-color-base);
@@ -59,17 +56,18 @@
 		margin: var(--size-4) 20px;
 		border: 1px solid var(--button-secondary-border-color-base);
 		border-radius: var(--radius-lg);
-		padding-bottom: var(--size-4);
+		padding-bottom: var(--size-7);
 	}
 
 	.embed-container > .main {
-		padding: var(--size-4);
+		padding: var(--size-2);
 	}
 
 	.app {
 		position: relative;
 		margin: auto;
 		padding: var(--size-4);
+		width: 100%;
 	}
 
 	@media (--screen-sm) {
@@ -172,18 +170,10 @@
 		font-family: var(--font-mono);
 	}
 
-	.gradio {
-		/* color: var(--color-accent-base); */
-		/* font-weight: var(--weight-semibold); */
-	}
 	a img {
 		display: inline;
 		margin-left: 3px;
 		width: 12px;
-	}
-
-	.hf {
-		/* color: #fed703 !important; */
 	}
 
 	.emoji {

@@ -63,6 +63,7 @@
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
 	export let status_text: string;
+	export let absolute: boolean = true;
 
 	let el: HTMLDivElement;
 
@@ -186,6 +187,8 @@
 	class:translucent={variant === "center" &&
 		(status === "pending" || status === "error")}
 	class:generating={status === "generating"}
+	style:position={absolute ? "absolute" : "static"}
+	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
@@ -300,13 +303,13 @@
 <style>
 	.wrap {
 		display: flex;
-		position: absolute;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
 		border-radius: var(--radius-lg);
 		background-color: var(--color-background-tertiary);
+		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
 	}

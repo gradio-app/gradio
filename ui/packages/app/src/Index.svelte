@@ -41,14 +41,10 @@
 
 		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
-				console.log({ entry });
 				if (entry.isIntersecting) {
-					// els.forEach((v, k) => {
 					let _el: number | undefined = els.get(entry.target as HTMLDivElement);
-					console.log({ _el, els });
 					if (_el !== undefined)
 						intersecting.update((s) => ({ ...s, [_el as number]: true }));
-					// });
 				}
 			});
 		});
@@ -102,13 +98,15 @@
 
 	async function handle_config(target: HTMLElement, source: string | null) {
 		let config;
-		console.log({ source });
 
 		try {
 			let _config = await get_config(source);
 			config = _config;
 		} catch (e) {
-			console.error(e);
+			if (BUILD_MODE === "dev") {
+				console.error(e);
+			}
+
 			return null;
 		}
 
@@ -126,8 +124,6 @@
 
 		return config;
 	}
-
-	console.log({ x: BACKEND_URL });
 
 	async function get_config(source: string | null) {
 		if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
@@ -228,7 +224,6 @@
 		try {
 			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
 			status = response.status;
-			console.log(response);
 			if (status !== 200) {
 				throw new Error();
 			}
@@ -245,37 +240,31 @@
 
 			return;
 		}
-		console.log(response);
 
 		if (!response || status !== 200) return;
 		const {
 			runtime: { stage }
 		} = response;
 
-		console.log(stage);
-
 		switch (stage) {
 			case "STOPPED":
 			case "SLEEPING":
-				console.log("space is sleeping, waking up");
 				setTimeout(() => {
 					check_space_status(space_id);
 				}, 500);
+				break;
 			// poll for status
 			case "RUNNING":
 			case "RUNNING_BUILDING":
 				status = "success";
-				console.log("Space is running");
 				//  launch
 				break;
 			case "BUILDING":
-				console.log("space is building");
 				setTimeout(() => {
 					check_space_status(space_id);
 				}, 500);
 				return;
-				// poll for status
-				break;
+
 			case "NO_APP_FILE":
 			case "CONFIG_ERROR":
 			case "BUILD_ERROR":
@@ -284,37 +273,32 @@
 				error_detail = {
 					type: "space_error",
 					detail: {
-						description: "This space is experiencing issues",
+						description: "This space is experiencing an issue.",
 						discussions_enabled: await discussions_enabled(space_id),
 						stage
 					}
 				};
-				console.log("space is broken, contact author", error_detail);
 				return;
-				// launch error screen
-				break;
 		}
-
-		console.log({ response });
 	}
 
+	const RE_DISABLED_DISCUSSION =
+		/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
+
 	async function discussions_enabled(space_id: string) {
-		// return true;
-		let r;
 		try {
 			const r = await fetch(
 				`https://huggingface.co/api/spaces/${space_id}/discussions`,
 				{
-					method: "HEAD",
-					mode: "cors"
+					method: "HEAD"
 				}
 			);
+			const error = r.headers.get("x-error-message");
 
-			console.log("HEAD", r);
-			r.headers.forEach(console.log);
-			const x = r.headers.get("x-error-message");
+			if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
+			else return true;
 		} catch (e) {
-			console.log(e);
+			return false;
 		}
 	}
 
@@ -344,7 +328,6 @@
 
 		if (_config) {
 			status = _config.auth_required ? "login" : "pending";
-			console.log(session_hash, root + "run/", _config.is_space, is_embed);
 			_config.fn = _config.fn = fn(
 				session_hash,
 				root + "run/",
@@ -355,12 +338,14 @@
 		} else {
 			status = "error";
 			error_detail = {
-				type: "not_found"
+				type: "not_found",
+				detail: {
+					description: "This space is experiencing an issue."
+				}
 			};
 		}
 
 		if (space && !config) {
-			console.log(space);
 			check_space_status(space);
 		}
 	});
@@ -374,19 +359,15 @@
 
 	async function get_blocks() {
 		Blocks = (await import("./Blocks.svelte")).default;
-		console.log(Blocks);
 	}
 	async function get_login() {
 		Login = (await import("./Login.svelte")).default;
-		console.log(Login);
 	}
 
 	function load_demo() {
 		if (config.auth_required) get_login();
 		else get_blocks();
 	}
-
-	$: console.log(space);
 
 	type error_types =
 		| "NO_APP_FILE"
@@ -402,7 +383,6 @@
 			RUNTIME_ERROR: "a runtime error"
 		} as const,
 		title(error: error_types) {
-			console.log(error);
 			return encodeURIComponent(
 				`Space isn't working because there is ${
 					this.readable_error[error] || "an error"
@@ -421,8 +401,6 @@
 	onMount(() => {
 		intersecting.register(_id, wrapper);
 	});
-
-	$: console.log($intersecting);
 </script>
 
 <Embed
@@ -434,6 +412,7 @@
 >
 	{#if status === "pending" || status === "error"}
 		<Loader
+			absolute={!is_embed}
 			{status}
 			timer={false}
 			queue_position={null}
@@ -455,6 +434,8 @@
 							contact the author of the space</a
 						> to let them know.
 					</p>
+				{:else}
+					<p>Please contact the author of the page to let them know</p>
 				{/if}
 			</div>
 		</Loader>
@@ -481,10 +462,10 @@
 </Embed>
 
 <style>
-	div {
+	/* div {
 		position: relative;
 		width: 100%;
-	}
+	} */
 
 	.error {
 		position: relative;
@@ -495,7 +476,7 @@
 	}
 
 	.error > * {
-		margin: var(--size-2) 0;
+		margin-top: var(--size-4);
 	}
 
 	a {

@@ -35,15 +35,12 @@
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	export let show_api: boolean = true;
 	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme: string;
-
-	console.log(components, layout, dependencies);
 
 	let loading_status = create_loading_status_store();
 

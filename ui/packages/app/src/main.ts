@@ -1,84 +1,20 @@
-// import Blocks from "./Blocks.svelte";
-// import Login from "./Login.svelte";
-// import { Component as Loader } from "./components/StatusTracker";
-// import { fn } from "./api";
-
-// import type { ComponentMeta, Dependency, LayoutNode } from "./components/types";
-
 import "@gradio/theme";
 import Index from "./Index.svelte";
 
-// let id = -1;
-window.__gradio_loader__ = [];
-
-declare let BACKEND_URL: string;
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
 
 const ENTRY_CSS = "__ENTRY_CSS__";
-const FONTS = "__FONTS_CSS__";
 
-// import { setupWorker, rest } from "msw";
-// import {
-// 	RUNNING,
-// 	RUNNING_BUILDING,
-// 	BUILDING,
-// 	RUNTIME_ERROR,
-// 	CONFIG_ERROR,
-// 	NO_APP_FILE,
-// 	BUILD_ERROR
-// } from "../test/mocks/embed";
+let FONTS: string | [];
 
-// const BASE_URL = "https://huggingface.co/api/spaces";
-// const spaces = [
-// 	["pngwn/music-visualizer", RUNNING],
-// 	["pngwn/test", BUILDING],
-// 	["pngwn/test_two", RUNNING_BUILDING],
-// 	["pngwn/AnimeGANv2_v3", NO_APP_FILE],
-// 	["pngwn/clear-inputs", CONFIG_ERROR],
-// 	["pngwn/altair-charts", RUNTIME_ERROR],
-// 	["Gaborandi/PubMed_Downloader", BUILD_ERROR]
-// ];
-// const worker = setupWorker(
-// 	...spaces
-// 		.map(([endpoint, mock]) => {
-// 			console.log("ENDPOINT: ", `${BASE_URL}/${endpoint}`);
-// 			return rest.get(`${BASE_URL}/${endpoint}`, async (req, res, ctx) => {
-// 				return res(ctx.json(mock));
-// 			});
-// 		})
-// 		.concat([
-// 			rest.get(
-// 				`https://huggingface.co/api/spaces/pngwn/test_two/host`,
-// 				async (req, res, ctx) => {
-// 					return res(
-// 						ctx.json({
-// 							subdomain: "pngwn-test",
-// 							host: "https://pngwn-test.hf.space"
-// 						})
-// 					);
-// 				}
-// 			)
-// 			// rest.get(
-// 			// 	`https://huggingface.co/api/spaces/pngwn/test_two/host`,
-// 			// 	async (req, res, ctx) => {
-// 			// 		return res(
-// 			// 			ctx.json({
-// 			// 				subdomain: "pngwn-test",
-// 			// 				host: "https://pngwn-test.hf.space"
-// 			// 			})
-// 			// 		);
-// 			// 	}
-// 			// )
-// 		])
-// );
-// worker.start();
+FONTS = "__FONTS_CSS__";
 
 function mount_css(url: string, target: HTMLElement): Promise<void> {
 	if (BUILD_MODE === "dev") return Promise.resolve();
 
 	const existing_link = document.querySelector(`link[href='${url}']`);
-	console.log(existing_link);
+
 	if (existing_link) return Promise.resolve();
 
 	const link = document.createElement("link");
@@ -96,9 +32,6 @@ function mount_css(url: string, target: HTMLElement): Promise<void> {
 }
 
 function create_custom_element() {
-	//@ts-ignore
-	typeof FONTS !== "string" && FONTS.map((f) => mount_css(f, document.head));
-
 	class GradioApp extends HTMLElement {
 		theme: "light" | "dark";
 
@@ -109,6 +42,10 @@ function create_custom_element() {
 		}
 
 		async connectedCallback() {
+			if (typeof FONTS !== "string") {
+				FONTS.forEach((f) => mount_css(f, document.head));
+			}
+
 			await mount_css(ENTRY_CSS, document.head);
 
 			const event = new CustomEvent("domchange", {
@@ -131,8 +68,6 @@ function create_custom_element() {
 			const initial_height = this.getAttribute("initial_height");
 			const is_embed = this.getAttribute("embed") ?? true;
 			const minimal = this.getAttribute("minimal") ? true : false;
-
-			console.log(is_embed);
 			let autoscroll = this.getAttribute("autoscroll");
 
 			const app = new Index({
