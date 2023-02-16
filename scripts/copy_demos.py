@@ -15,7 +15,6 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_mask",
         "blocks_multiple_event_triggers",
         "blocks_update",
-        "bokeh_plot",
         "calculator",
         "cancel_events",
         "fake_gan",
@@ -70,7 +69,5 @@ if __name__ == "__main__":
     torch==1.12.1
     altair
     vega_datasets
-    xyzservices
-    bokeh
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))
