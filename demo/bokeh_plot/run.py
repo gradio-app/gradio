@@ -133,10 +133,9 @@ def get_plot(plot_type):
 
 with gr.Blocks() as demo:
     with gr.Row():
-        plot_type = gr.Radio(value="scatter", choices=["scatter", "whisker", "map"])
+        plot_type = gr.Radio(value="scatter", choices=["scatter", "lorenz", "whisker", "map"])
         plot = gr.Plot()
     plot_type.change(get_plot, inputs=[plot_type], outputs=[plot])
-    demo.load(lambda: get_plot("scatter"), input=[plot_type], outputs=[plot])
 
 
 if __name__ == "__main__":
