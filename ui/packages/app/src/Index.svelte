@@ -219,17 +219,18 @@
 		return "dark";
 	}
 
-	async function check_space_status(space_id: string) {
+	async function check_space_status(space_id: string, source: string) {
 		let response;
-		let status;
+		let _status;
 		try {
+			console.log("CHECK_STATUS_API_REQUEST");
 			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
-			status = response.status;
-			if (status !== 200) {
+			_status = response.status;
+			if (_status !== 200) {
 				throw new Error();
 			}
 			response = await response.json();
-		} catch {
+		} catch (e) {
 			status = "error";
 			error_detail = {
 				type: "space_error",
@@ -242,7 +243,7 @@
 			return;
 		}
 
-		if (!response || status !== 200) return;
+		if (!response || _status !== 200) return;
 		const {
 			runtime: { stage }
 		} = response;
@@ -250,23 +251,27 @@
 		switch (stage) {
 			case "STOPPED":
 			case "SLEEPING":
+				status = "pending";
 				loading_text = "Space is asleep. Waking it up...";
 				setTimeout(() => {
-					check_space_status(space_id);
+					check_space_status(space_id, source);
 				}, 500);
 				break;
 			// poll for status
 			case "RUNNING":
 			case "RUNNING_BUILDING":
 				status = "success";
+				load_config(source);
+
 				//  launch
 				break;
 			case "BUILDING":
+				status = "pending";
 				loading_text = "Space is building...";
 				setTimeout(() => {
-					check_space_status(space_id);
+					check_space_status(space_id, source);
 				}, 500);
-				return;
+				break;
 
 			case "NO_APP_FILE":
 			case "CONFIG_ERROR":
@@ -281,7 +286,7 @@
 						stage
 					}
 				};
-				return;
+				break;
 		}
 	}
 
@@ -318,15 +323,24 @@
 		}
 
 		const source = host
-			? `https://${host}`
+			? `https://${host.trim()}`
 			: space
 			? (
 					await (
-						await fetch(`https://huggingface.co/api/spaces/${space}/host`)
+						await fetch(
+							`https://huggingface.co/api/spaces/${space.trim()}/host`
+						)
 					).json()
 			  ).host
-			: src;
+			: src?.trim();
 
+		if (space) {
+			check_space_status(space.trim(), source);
+		}
+		load_config(source);
+	});
+
+	async function load_config(source: string) {
 		const _config: Config | null = await handle_config(wrapper, source);
 
 		if (_config) {
@@ -347,11 +361,7 @@
 				}
 			};
 		}
-
-		if (space && !config) {
-			check_space_status(space);
-		}
-	});
+	}
 
 	$: status = ready ? "success" : status;
 
