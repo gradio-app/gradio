@@ -191,7 +191,7 @@
 {#if value && type == "plotly"}
 	<div bind:this={plotDiv} />
 {:else if type == "bokeh"}
-	<div id="bokehDiv" />
+	<div id="bokehDiv" class="gradio-bokeh"/>
 {:else if type == "altair"}
 	<div class="altair layout">
 		<Vega {spec} />
@@ -211,6 +211,11 @@
 {/if}
 
 <style>
+
+	.gradio-bokeh {
+		display: flex;
+		justify-content: center;
+	}
 
 	.layout {
 		display: flex;
