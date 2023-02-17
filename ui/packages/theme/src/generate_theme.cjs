@@ -229,9 +229,9 @@ const theme_light = {
 			},
 			text: {
 				color: {
-					base: "var(--border-grey-700)",
-					hover: "var(--border-grey-700)",
-					focus: "var(--border-grey-700)"
+					base: "var(--color-grey-700)",
+					hover: "var(--color-grey-700)",
+					focus: "var(--color-grey-700)"
 				}
 			},
 			background: {

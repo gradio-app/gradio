@@ -46,5 +46,8 @@
 		"postcss-prefix-selector": "^1.16.0",
 		"svelte": "^3.25.1",
 		"svelte-i18n": "^3.3.13"
+	},
+	"msw": {
+		"workerDirectory": "public"
 	}
 }

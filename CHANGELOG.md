@@ -2,6 +2,24 @@
 
 ## New Features:
 
+### Improved embedding experience
+
+When embedding a spaces-hosted gradio app as a web component, you now get an improved UI linking back to the original space, better error handling and more intelligent load performance. No changes are required to your code to benefit from this enhanced experience; simply upgrade your gradio SDK to the latest version.
+
+![](https://user-images.githubusercontent.com/12937446/219653294-86937632-72c1-4e93-a77c-af705d49382a.png)
+
+This behaviour is configurable. You can disable the info panel at the bottom by passing `info="false"`. You can disable the container entirely by passing `container="false"`.
+
+Error statuses are reported in the UI with an easy way for end-users to report problems to the original space author via the community tab of that Hugginface space:
+
+![](https://user-images.githubusercontent.com/12937446/219655499-88019443-d694-44e7-9e6d-242e19d10a5c.png)
+
+By default, gradio apps are lazy loaded, vastly improving performance when there are several demos on the page. Metadata is loaded ahead of time, but the space will only be loaded and rendered when it is in view.
+
+This behaviour is configurable. You can pass `eager="true"` to load and render the space regardless of whether or not it is currently on the screen.
+
+by [@pngwn](https://github.com/pngwn) in [PR 3205](https://github.com/gradio-app/gradio/pull/3205)
+
 ### New `gr.BarPlot` component! 📊
 
 Create interactive bar plots from a high-level interface with `gr.BarPlot`. 
