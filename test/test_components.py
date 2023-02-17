@@ -2015,10 +2015,10 @@ simple = pd.DataFrame(
     }
 )
 
-class TestScatterPlot:
 
+class TestScatterPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
-    def test_get_config(self,):
+    def test_get_config(self):
 
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
