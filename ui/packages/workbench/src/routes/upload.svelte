@@ -6,10 +6,10 @@
 <Block>
 	<Upload
 		on:load={({ detail }) => console.log("change", detail)}
-		filetype="image/x-png,image/gif,image/jpeg"
+		filetype="image/*"
 	>
 		<div>
-			<pre>filetype="image/x-png,image/gif,image/jpeg"</pre>
+			<pre>filetype="image/*</pre>
 			<br />
 			drag or click
 		</div>
