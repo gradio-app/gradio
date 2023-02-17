@@ -10,7 +10,6 @@
 
 	declare let BACKEND_URL: string;
 	declare let BUILD_MODE: string;
-	// declare let GRADIO_VERSION: string;
 	interface Config {
 		auth_required: boolean | undefined;
 		auth_message: string;
@@ -77,12 +76,9 @@
 	export let info: boolean;
 	export let eager: boolean;
 
-	$: console.log(eager);
-
 	export let space: string | null;
 	export let host: string | null;
 	export let src: string | null;
-	// export let;
 
 	let _id = id++;
 
@@ -258,7 +254,6 @@
 			case "RUNNING_BUILDING":
 				status = "success";
 				load_config(source);
-
 				//  launch
 				break;
 			case "BUILDING":
@@ -283,6 +278,15 @@
 					}
 				};
 				break;
+			default:
+				status = "error";
+				error_detail = {
+					type: "space_error",
+					detail: {
+						description: "This space is experiencing an issue.",
+						discussions_enabled: await discussions_enabled(space_id)
+					}
+				};
 		}
 	}
 
@@ -362,7 +366,7 @@
 	$: status = ready ? "success" : status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
-	$: console.log($intersecting, _id);
+
 	let Blocks: typeof import("./Blocks.svelte").default;
 	let Login: typeof import("./Login.svelte").default;
 
@@ -474,11 +478,6 @@
 </Embed>
 
 <style>
-	/* div {
-		position: relative;
-		width: 100%;
-	} */
-
 	.error {
 		position: relative;
 		z-index: var(--layer-top);

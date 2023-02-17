@@ -1,6 +1,4 @@
 <script lang="ts">
-	import logo from "./images/logo.svg";
-
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -139,10 +137,7 @@
 
 	.info > span:nth-child(2),
 	.info > span:nth-child(3) {
-		/* flex-shrink: 0; */
 		width: max-content;
-
-		/* width: 0; */
 	}
 
 	.info > span:nth-child(3) {
@@ -154,10 +149,7 @@
 
 	.info > span:nth-child(1) {
 		flex-shrink: 9;
-		/* width: 0; */
 	}
-
-	/* span:n */
 
 	.hidden-title {
 		position: absolute;
@@ -174,12 +166,6 @@
 	.title {
 		font-size: var(--scale-000);
 		font-family: var(--font-mono);
-	}
-
-	a img {
-		display: inline;
-		margin-left: 3px;
-		width: 12px;
 	}
 
 	.emoji {
