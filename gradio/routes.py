@@ -11,7 +11,6 @@ import os
 import posixpath
 import secrets
 import traceback
-from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Type
@@ -475,20 +474,8 @@ class App(FastAPI):
             await websocket.accept()
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
-            try:
-                await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=1
-                )
-            except AsyncTimeOutError:
-                return
-
-            try:
-                session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=1
-                )
-            except AsyncTimeOutError:
-                return
-
+            await websocket.send_json({"msg": "send_hash"})
+            session_info = await websocket.receive_json()
             event = Event(
                 websocket, session_info["session_hash"], session_info["fn_index"]
             )
