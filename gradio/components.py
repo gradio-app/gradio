@@ -1488,11 +1488,15 @@ class Image(
         mask = ""
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             assert isinstance(x, dict)
+            assert isinstance(x['image'], str)
+            assert isinstance(x['mask'], str)
             x, mask = x["image"], x["mask"]
 
         boxes = []
         if self.tool == "boxes" and self.source in ["upload", "webcam"]:
             assert isinstance(x, dict)
+            assert isinstance(x['image'], str)
+            assert isinstance(x['boxes'], list)
             x, boxes = x["image"], x["boxes"]
 
         assert isinstance(x, str)
