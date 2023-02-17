@@ -7,7 +7,7 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Array<[string, string]> = [];
+	export let value: Array<[string | null, string | null]> = [];
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
@@ -20,7 +20,7 @@
 	export let loading_status: LoadingStatus | undefined;
 </script>
 
-<Block padding={false} {elem_id} {visible}>
+<Block {elem_id} {visible}>
 	{#if show_label}
 		<BlockLabel
 			{show_label}
