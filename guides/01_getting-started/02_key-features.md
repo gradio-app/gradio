@@ -258,6 +258,8 @@ demo.launch()
 
 In the example above, 16 requests could be processed in parallel (for a total inference
 time of 5 seconds), instead of each request being processed separately (for a total
-inference time of 80 seconds).
+inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` models
+work very naturally with Gradio's batch mode: here's [an example demo using diffusers to
+generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/diffusers_with_batching/run.py)
 
-Supplying a generator into Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
+Note: using batch functions with Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
