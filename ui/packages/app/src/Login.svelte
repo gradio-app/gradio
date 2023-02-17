@@ -8,7 +8,6 @@
 	export let app_mode: boolean;
 	export let is_space: boolean;
 
-	window.__gradio_loader__[id].$set({ status: "complete" });
 	let username = "";
 	let password = "";
 	let incorrect_credentials = false;
