@@ -3,8 +3,8 @@
 	import { colors } from "@gradio/theme";
 	import type { Styles } from "@gradio/utils";
 
-	export let value: Array<[string, string]> | null;
-	let old_value: Array<[string, string]> | null;
+	export let value: Array<[string | null, string | null]> | null;
+	let old_value: Array<[string | null, string | null]> | null;
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
 
@@ -63,6 +63,7 @@
 				data-testid="user"
 				class:latest={i === _value.length - 1}
 				class="message user"
+				class:hide={message[0] === null}
 				style={"background-color:" + _colors[0]}
 			>
 				{@html message[0]}
@@ -71,6 +72,7 @@
 				data-testid="bot"
 				class:latest={i === _value.length - 1}
 				class="message bot"
+				class:hide={message[1] === null}
 				style={"background-color:" + _colors[1]}
 			>
 				{@html message[1]}
@@ -94,7 +96,7 @@
 
 <style>
 	.wrap {
-		height: var(--size-80);
+		height: 100%;
 		overflow-y: auto;
 	}
 
@@ -182,5 +184,9 @@
 		100% {
 			opacity: 0.8;
 		}
+	}
+
+	.hide {
+		display: none;
 	}
 </style>
