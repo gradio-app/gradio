@@ -107,6 +107,23 @@ class TestQueueMethods:
         assert await queue.gather_event_data(mock_event)
         assert not (queue.send_message.called)
 
+    @pytest.mark.asyncio
+    async def test_gather_event_data_timeout(self, queue: Queue, mock_event: Event):
+        async def take_too_long():
+            await asyncio.sleep(1)
+
+        queue.send_message = AsyncMock()
+        queue.send_message.return_value = True
+
+        mock_event.websocket.receive_json = take_too_long
+        is_awake = await queue.gather_event_data(mock_event, receive_timeout=0.5)
+        assert not is_awake
+        assert queue.send_message.call_args_list[1].args[1] == {
+            "msg": "process_completed",
+            "output": {"error": "Time out uploading data to server"},
+            "success": False,
+        }
+
 
 class TestQueueEstimation:
     def test_get_update_estimation(self, queue: Queue):

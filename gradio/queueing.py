@@ -206,7 +206,7 @@ class Queue:
         if self.live_updates:
             await self.broadcast_estimations()
 
-    async def gather_event_data(self, event: Event) -> bool:
+    async def gather_event_data(self, event: Event, receive_timeout=60) -> bool:
         """
         Gather data for the event
 
@@ -217,8 +217,18 @@ class Queue:
             client_awake = await self.send_message(event, {"msg": "send_data"})
             if not client_awake:
                 return False
-            data, client_awake = await self.get_message(event)
+            data, client_awake = await self.get_message(event, timeout=receive_timeout)
             if not client_awake:
+                # In the event, we timeout due to large data size
+                # Let the client know, otherwise will hang
+                await self.send_message(
+                    event,
+                    {
+                        "msg": "process_completed",
+                        "output": {"error": "Time out uploading data to server"},
+                        "success": False,
+                    },
+                )
                 return False
             event.data = data
         return True
@@ -428,7 +438,7 @@ class Queue:
                 # to start "from scratch"
                 await self.reset_iterators(event.session_hash, event.fn_index)
 
-    async def send_message(self, event, data: Dict, timeout=5) -> bool:
+    async def send_message(self, event, data: Dict, timeout: float | int = 1) -> bool:
         try:
             await asyncio.wait_for(
                 event.websocket.send_json(data=data), timeout=timeout
