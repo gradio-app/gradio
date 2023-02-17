@@ -87,6 +87,7 @@ with gr.Blocks() as demo:
         plot_type = gr.Radio(value="scatter", choices=["scatter", "whisker", "map"])
         plot = gr.Plot()
     plot_type.change(get_plot, inputs=[plot_type], outputs=[plot])
+    demo.load(get_plot, inputs=[plot_type], outputs=[plot])
 
 
 if __name__ == "__main__":
