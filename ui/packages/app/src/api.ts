@@ -36,6 +36,10 @@ interface PostResponse {
 	error?: string;
 	[x: string]: any;
 }
+export interface UploadResponse {
+	error?: string;
+	files?: Array<string>;
+}
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
@@ -55,6 +59,27 @@ export async function post_data(
 	const output: PostResponse = await response.json();
 	return [output, response.status];
 }
+
+export async function upload_files(
+	root: string,
+	files: Array<File>
+): Promise<UploadResponse> {
+	const formData = new FormData();
+	files.forEach((file) => {
+		formData.append("files", file);
+	});
+	try {
+		var response = await fetch(`${root}upload`, {
+			method: "POST",
+			body: formData
+		});
+	} catch (e) {
+		return { error: BROKEN_CONNECTION_MSG };
+	}
+	const output: UploadResponse["files"] = await response.json();
+	return { files: output };
+}
+
 interface UpdateOutput {
 	__type__: string;
 	[key: string]: unknown;
