@@ -1,0 +1,1 @@
+Simple example to show how to use the bounding boxes tool for Image Input.
