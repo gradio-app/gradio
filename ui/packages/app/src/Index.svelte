@@ -247,7 +247,7 @@
 				loading_text = "Space is asleep. Waking it up...";
 				setTimeout(() => {
 					check_space_status(space_id, source);
-				}, 500);
+				}, 1000);
 				break;
 			// poll for status
 			case "RUNNING":
@@ -261,7 +261,7 @@
 				loading_text = "Space is building...";
 				setTimeout(() => {
 					check_space_status(space_id, source);
-				}, 500);
+				}, 1000);
 				break;
 
 			case "NO_APP_FILE":
