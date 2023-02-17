@@ -7,7 +7,7 @@ import gradio as gr
 def zip_files(files):
     with ZipFile("tmp.zip", "w") as zipObj:
         for idx, file in enumerate(files):
-            zipObj.write(file.name, "file" + str(idx))
+            zipObj.write(file.name, file.name.split("/")[-1])
     return "tmp.zip"
 
 demo = gr.Interface(

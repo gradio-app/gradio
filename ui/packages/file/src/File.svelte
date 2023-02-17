@@ -21,6 +21,6 @@
 
 <style>
 	.file-preview {
-		overflow-x: scroll;
+		overflow-x: auto;
 	}
 </style>

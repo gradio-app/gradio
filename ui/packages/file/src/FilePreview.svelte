@@ -2,11 +2,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { Download } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
-	import {
-		display_file_name,
-		download_files,
-		display_file_size
-	} from "./utils";
+	import { display_file_name, display_file_size } from "./utils";
 
 	export let value: FileData | FileData[];
 </script>
@@ -24,13 +20,19 @@
 				</td>
 
 				<td class="download">
-					<a
-						href={download_files(file)}
-						target={window.__is_colab__ ? "_blank" : null}
-						download={window.__is_colab__ ? null : file.orig_name || file.name}
-					>
-						Download
-					</a>
+					{#if file.data}
+						<a
+							href={file.data}
+							target="_blank"
+							download={window.__is_colab__
+								? null
+								: file.orig_name || file.name}
+						>
+							Download
+						</a>
+					{:else}
+						Uploading...
+					{/if}
 				</td>
 			</tr>
 		{/each}
@@ -52,7 +54,7 @@
 		margin-bottom: var(--size-7);
 		width: var(--size-full);
 		max-height: var(--size-60);
-		overflow-y: scroll;
+		overflow-y: auto;
 		color: var(--color-text-body);
 	}
 	.file {

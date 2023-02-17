@@ -2,7 +2,7 @@
 	import { Button } from "@gradio/button";
 	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "./types";
+	import type { FileData } from "@gradio/upload";
 	import { type } from "@testing-library/user-event/dist/type";
 
 	export let style: Styles = {};
@@ -35,33 +35,30 @@
 
 	const loadFiles = (files: FileList) => {
 		let _files: Array<File> = Array.from(files);
-		if (!files.length || !window.FileReader) {
+		if (!files.length) {
 			return;
 		}
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: Array<FileData | string> = [];
+		var all_file_data: Array<FileData | File> = [];
 		_files.forEach((f, i) => {
-			let ReaderObj = new FileReader();
-			ReaderObj.readAsDataURL(f);
-			ReaderObj.onloadend = function () {
-				all_file_data[i] = include_file_metadata
-					? {
-							name: f.name,
-							size: f.size,
-							data: this.result as string
-					  }
-					: (this.result as string);
-				if (
-					all_file_data.filter((x) => x !== undefined).length === files.length
-				) {
-					dispatch(
-						"load",
-						file_count == "single" ? all_file_data[0] : all_file_data
-					);
-				}
-			};
+			all_file_data[i] = include_file_metadata
+				? {
+						name: f.name,
+						size: f.size,
+						data: "",
+						blob: f
+				  }
+				: f;
+			if (
+				all_file_data.filter((x) => x !== undefined).length === files.length
+			) {
+				dispatch(
+					"load",
+					file_count == "single" ? all_file_data[0] : all_file_data
+				);
+			}
 		});
 	};
 

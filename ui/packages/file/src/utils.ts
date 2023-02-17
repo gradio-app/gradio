@@ -19,10 +19,6 @@ export const display_file_name = (value: FileData): string => {
 	} else return str;
 };
 
-export const download_files = (value: FileData): string => {
-	return value.data;
-};
-
 export const display_file_size = (
 	value: FileData | Array<FileData>
 ): string => {
