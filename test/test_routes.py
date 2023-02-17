@@ -59,8 +59,10 @@ class TestRoutes:
             "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
         )
         assert response.status_code == 200
-        files = response.json()
-        with open(files[0]) as saved_file:
+        file = response.json()[0]
+        assert file.startswith("alphabet")
+        assert file.endswith(".txt")
+        with open(file) as saved_file:
             assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
 
     def test_predict_route(self, test_client):

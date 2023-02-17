@@ -23,7 +23,7 @@
 					{#if file.data}
 						<a
 							href={file.data}
-							target={window.__is_colab__ ? "_blank" : null}
+							target="_blank"
 							download={window.__is_colab__
 								? null
 								: file.orig_name || file.name}

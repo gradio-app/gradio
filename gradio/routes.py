@@ -302,7 +302,10 @@ class App(FastAPI):
                     for dir in blocks.file_directories
                 )
             )
-            was_uploaded = abs_path.startswith(app.uploaded_file_dir)
+            was_uploaded = (
+                utils.abspath(app.uploaded_file_dir)
+                in utils.abspath(path_or_url).parents
+            )
 
             if in_app_dir or created_by_app or in_file_dir or was_uploaded:
                 range_val = request.headers.get("Range", "").strip()
