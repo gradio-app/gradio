@@ -148,7 +148,9 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
-            token = request.cookies.get("access-token")
+            token = request.cookies.get("access-token") or request.cookies.get(
+                "access-token-unsecure"
+            )
             return app.tokens.get(token)
 
         @app.get("/login_check")
@@ -195,6 +197,9 @@ class App(FastAPI):
                     httponly=True,
                     samesite="none",
                     secure=True,
+                )
+                response.set_cookie(
+                    key="access-token-unsecure", value=token, httponly=True
                 )
                 return response
             else:
