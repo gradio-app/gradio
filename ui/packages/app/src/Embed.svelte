@@ -67,11 +67,16 @@
 		padding: var(--size-4);
 	}
 
+	.app > .main {
+		height: 100%;
+	}
+
 	.app {
 		position: relative;
 		margin: auto;
 		padding: var(--size-4);
 		width: 100%;
+		height: 100%;
 	}
 
 	@media (--screen-sm) {

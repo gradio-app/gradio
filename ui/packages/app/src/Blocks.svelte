@@ -396,11 +396,12 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
-<div class="wrap" style:min-height={app_mode ? "var(--size-screen-h)" : "auto"}>
+<div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
@@ -477,7 +478,6 @@
 	footer {
 		display: flex;
 		justify-content: center;
-		padding-bottom: var(--size-6);
 		color: var(--color-text-subdued);
 		font-size: var(--scale-00);
 	}
@@ -519,6 +519,7 @@
 		display: flex;
 		position: fixed;
 		top: 0;
+		right: 0;
 		z-index: var(--layer-5);
 		background: rgba(0, 0, 0, 0.5);
 		width: var(--size-screen);
