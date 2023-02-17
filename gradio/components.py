@@ -1364,7 +1364,7 @@ class Image(
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
+            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "boxes" provides a box-selection tool to create boudning boxes, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -1472,11 +1472,13 @@ class Image(
         return deepcopy(media_data.BASE64_IMAGE)
 
     def preprocess(
-        self, x: str | Dict[str, str]
+        self, x: str | Dict[str, str] | Dict[str, str | List[List[float]]]
     ) -> np.ndarray | _Image.Image | str | Dict | None:
         """
         Parameters:
-            x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
+            x: base64 url data
+                (if tool == "sketch") a dict of image and mask base64 url data
+                (if tool == "boxes") a dict of image and bounding boxes
         Returns:
             image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
         """
@@ -1487,6 +1489,11 @@ class Image(
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
+
+        boxes = []
+        if self.tool == "boxes" and self.source in ["upload", "webcam"]:
+            assert isinstance(x, dict)
+            x, boxes = x["image"], x["boxes"]
 
         assert isinstance(x, str)
         im = processing_utils.decode_base64_to_image(x)
@@ -1510,6 +1517,9 @@ class Image(
                 "image": self._format_image(im),
                 "mask": self._format_image(mask_im),
             }
+
+        if self.tool == "boxes" and self.source in ["upload", "webcam"]:
+            return {"image": self._format_image(im), "boxes": boxes}
 
         return self._format_image(im)
 
