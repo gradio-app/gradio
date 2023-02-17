@@ -15,7 +15,7 @@
 	export let colors: Array<string> = [];
 	export let theme: string;
 	export let caption: string;
-	export let bokeh_version: string;
+	export let bokeh_version: string  | null;
 
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
@@ -142,7 +142,7 @@
 		}
 	}
 
-	const main_script = load_bokeh();
+	const main_script = bokeh_version ? load_bokeh() : null
 
 	let plugin_scripts = [];
 
@@ -167,11 +167,6 @@
 		initializeBokeh(0);
 		plugin_scripts = load_plugins();
 	}
-
-	Promise.all(bokehPromises).then(() => {
-		let plotObj = JSON.parse(plot);
-		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
-	});
 
 	afterUpdate(() => {
 		if (type == "plotly") {

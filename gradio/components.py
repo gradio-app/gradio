@@ -4132,7 +4132,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
             bokeh_version = bokeh.__version__
         except ImportError:
-            bokeh_version = "3.0.3"
+            bokeh_version = None
         return {
             "value": self.value,
             "bokeh_version": bokeh_version,

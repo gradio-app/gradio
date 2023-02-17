@@ -20,7 +20,7 @@
 	export let style: Styles = {};
 	export let theme: string;
 	export let caption: string;
-	export let bokeh_version: string;
+	export let bokeh_version: string | null;
 </script>
 
 <Block
