@@ -2,7 +2,6 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
-	import { download_files } from "./utils";
 
 	export let value: FileData | null;
 	export let clearColor: Array<number> = [0, 0, 0, 0];
@@ -81,7 +80,7 @@
 	<div class="model3D">
 		<div class="download">
 			<a
-				href={download_files(value)}
+				href={value.data}
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.name}
 			>
