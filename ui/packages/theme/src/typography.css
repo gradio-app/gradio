@@ -26,6 +26,10 @@
 	font-family: -var(--font-sans);
 }
 
+.prose > *:first-child {
+	margin-top: 0;
+}
+
 .prose h1 {
 	margin-top: 0;
 	font-size: 1.802rem;
