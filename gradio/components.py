@@ -3871,14 +3871,14 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
+    Postprocessing: expects function to return a {List[Tuple[str | None, str | None]]}, a list of tuples with user inputs and responses as strings of HTML or Nones. Messages that are `None` are not displayed.
 
-    Demos: chatbot_demo
+    Demos: chatbot_demo, chatbot_multimodal
     """
 
     def __init__(
         self,
-        value: List[Tuple[str, str]] | Callable | None = None,
+        value: List[Tuple[str | None, str | None]] | Callable | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
         *,
         label: str | None = None,
@@ -3940,7 +3940,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def postprocess(
+        self, y: List[Tuple[str | None, str | None]]
+    ) -> List[Tuple[str | None, str | None]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3950,7 +3952,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
+            y[i] = (
+                None if message is None else self.md.renderInline(message),
+                None if response is None else self.md.renderInline(response),
+            )
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
