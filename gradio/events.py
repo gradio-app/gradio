@@ -336,7 +336,7 @@ class Clearable(EventListener):
             )
 
         dep = self.set_event_trigger(
-            "submit",
+            "clear",
             fn,
             inputs,
             outputs,
@@ -351,7 +351,7 @@ class Clearable(EventListener):
             max_batch_size=max_batch_size,
             every=every,
         )
-        set_cancel_events(self, "submit", cancels)
+        set_cancel_events(self, "clear", cancels)
         return dep
 
 
