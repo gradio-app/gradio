@@ -118,7 +118,9 @@ class TestQueueMethods:
         mock_event.websocket.receive_json = take_too_long
         is_awake = await queue.gather_event_data(mock_event, receive_timeout=0.5)
         assert not is_awake
-        assert queue.send_message.call_args_list[1].args[1] == {
+
+        # Have to use awful [1][0][1] syntax cause of python 3.7
+        assert queue.send_message.call_args_list[1][0][1] == {
             "msg": "process_completed",
             "output": {"error": "Time out uploading data to server"},
             "success": False,
