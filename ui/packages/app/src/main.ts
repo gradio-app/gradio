@@ -70,7 +70,8 @@ function create_custom_element() {
 			const container = this.getAttribute("container");
 			const info = this.getAttribute("info") ?? true; // default: true
 			const autoscroll = this.getAttribute("autoscroll");
-			console.log(is_embed);
+			const eager = this.getAttribute("eager");
+
 			const app = new Index({
 				target: this,
 				props: {
@@ -78,12 +79,12 @@ function create_custom_element() {
 					space: space ? space.trim() : space,
 					src: src ? src.trim() : src,
 					host: host ? host.trim() : host,
-					// embed display info
+					// embed info
 					info: info === "false" ? false : true,
 					container: !!container,
 					is_embed: is_embed === "false" ? false : true,
 					initial_height: initial_height ?? undefined,
-
+					eager: eager === "true" ? true : false,
 					// gradio meta info
 					version: GRADIO_VERSION,
 					theme: this.theme,

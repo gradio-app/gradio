@@ -64,15 +64,7 @@
 	import { onMount } from "svelte";
 
 	import Embed from "./Embed.svelte";
-	// import Login from "./Login.svelte";
-	// import Blocks from "./Blocks.svelte";
 	import { Component as Loader } from "./components/StatusTracker";
-	import type {
-		ComponentType,
-		SvelteComponent,
-		SvelteComponentDev,
-		SvelteComponentTyped
-	} from "svelte/internal";
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -83,6 +75,9 @@
 	export let control_page_title: boolean;
 	export let container: boolean;
 	export let info: boolean;
+	export let eager: boolean;
+
+	$: console.log(eager);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -236,7 +231,7 @@
 			error_detail = {
 				type: "space_error",
 				detail: {
-					description: "This space is experiencing issues",
+					description: "This space is experiencing an issue.",
 					discussions_enabled: await discussions_enabled(space_id)
 				}
 			};
@@ -366,8 +361,8 @@
 
 	$: status = ready ? "success" : status;
 
-	$: config && $intersecting[_id] && load_demo();
-
+	$: config && (eager || $intersecting[_id]) && load_demo();
+	$: console.log($intersecting, _id);
 	let Blocks: typeof import("./Blocks.svelte").default;
 	let Login: typeof import("./Login.svelte").default;
 
@@ -436,7 +431,7 @@
 			{loading_text}
 		>
 			<div class="error" slot="error">
-				<p><strong>{error_detail?.detail?.description || ""}.</strong></p>
+				<p><strong>{error_detail?.detail?.description || ""}</strong></p>
 				{#if error_detail?.detail?.discussions_enabled}
 					<p>
 						Please <a
