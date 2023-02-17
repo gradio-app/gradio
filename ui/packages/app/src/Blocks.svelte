@@ -35,7 +35,7 @@
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let autoscroll: boolean = false;
+	export let autoscroll: boolean;
 	export let show_api: boolean = true;
 	export let show_footer: boolean = true;
 	export let control_page_title = false;
@@ -396,8 +396,7 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
 

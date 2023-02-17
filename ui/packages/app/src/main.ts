@@ -65,27 +65,34 @@ function create_custom_element() {
 			const src = this.getAttribute("src");
 
 			const control_page_title = this.getAttribute("control_page_title");
-			const initial_height = this.getAttribute("initial_height");
-			const is_embed = this.getAttribute("embed") ?? true;
-			const minimal = this.getAttribute("minimal") ? true : false;
-			let autoscroll = this.getAttribute("autoscroll");
-
+			const initial_height = this.getAttribute("initial_height") ?? "300px"; // default: 300px
+			const is_embed = this.getAttribute("embed") ?? "true"; // default: true
+			const container = this.getAttribute("container");
+			const info = this.getAttribute("info") ?? true; // default: true
+			const autoscroll = this.getAttribute("autoscroll");
+			console.log(is_embed);
 			const app = new Index({
 				target: this,
 				props: {
-					space,
-					src,
-					host,
-					is_embed: !!is_embed,
-					minimal,
-					autoscroll: autoscroll === "true" ? true : false,
-					version: GRADIO_VERSION,
-					app_mode: window.__gradio_mode__ === "app",
+					// embed source
+					space: space ? space.trim() : space,
+					src: src ? src.trim() : src,
+					host: host ? host.trim() : host,
+					// embed display info
+					info: info === "false" ? false : true,
+					container: !!container,
+					is_embed: is_embed === "false" ? false : true,
 					initial_height: initial_height ?? undefined,
 
+					// gradio meta info
+					version: GRADIO_VERSION,
 					theme: this.theme,
-					control_page_title:
-						control_page_title && control_page_title === "true" ? true : false
+					// misc global behaviour
+					autoscroll: autoscroll === "true" ? true : false,
+					control_page_title: control_page_title === "true" ? true : false,
+					// for gradio docs
+					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
+					app_mode: window.__gradio_mode__ === "app"
 				}
 			});
 		}

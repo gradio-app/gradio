@@ -3,16 +3,19 @@
 
 	export let wrapper: HTMLDivElement;
 	export let version: string;
-	export let initial_height: string = "300px";
+	export let initial_height: string;
+	export let is_embed: boolean;
 
 	export let space: string | null;
-	export let display: boolean = true;
+	export let display: boolean;
+	export let info: boolean;
 </script>
 
 <div
 	bind:this={wrapper}
-	class:app={!display}
+	class:app={!display && !is_embed}
 	class:embed-container={display}
+	class:with-info={info}
 	class="gradio-container gradio-container-{version}"
 	style:min-height={initial_height}
 	style:flex-grow={!display ? "1" : "auto"}
@@ -20,7 +23,7 @@
 	<div class="main">
 		<slot />
 	</div>
-	{#if display && space}
+	{#if display && space && info}
 		<div class="info">
 			<span>
 				<a href="https://huggingface.co/spaces/{space}" class="title">{space}</a
@@ -53,14 +56,17 @@
 	}
 
 	.embed-container {
-		margin: var(--size-4) 20px;
+		margin: var(--size-4) 0px;
 		border: 1px solid var(--button-secondary-border-color-base);
 		border-radius: var(--radius-lg);
+	}
+
+	.with-info {
 		padding-bottom: var(--size-7);
 	}
 
 	.embed-container > .main {
-		padding: var(--size-2);
+		padding: var(--size-4);
 	}
 
 	.app {

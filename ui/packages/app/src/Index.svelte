@@ -68,6 +68,7 @@
 	// import Blocks from "./Blocks.svelte";
 	import { Component as Loader } from "./components/StatusTracker";
 	import type {
+		ComponentType,
 		SvelteComponent,
 		SvelteComponentDev,
 		SvelteComponentTyped
@@ -75,12 +76,13 @@
 
 	export let autoscroll: boolean;
 	export let version: string;
-	export let initial_height: string = "300px";
+	export let initial_height: string;
 	export let app_mode: boolean;
 	export let is_embed: boolean;
 	export let theme: "light" | "dark" = "light";
 	export let control_page_title: boolean;
-	export let minimal = false;
+	export let container: boolean;
+	export let info: boolean;
 
 	export let space: string | null;
 	export let host: string | null;
@@ -223,7 +225,6 @@
 		let response;
 		let _status;
 		try {
-			console.log("CHECK_STATUS_API_REQUEST");
 			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
 			_status = response.status;
 			if (_status !== 200) {
@@ -367,8 +368,8 @@
 
 	$: config && $intersecting[_id] && load_demo();
 
-	let Blocks: typeof SvelteComponentTyped;
-	let Login: typeof SvelteComponentTyped;
+	let Blocks: typeof import("./Blocks.svelte").default;
+	let Login: typeof import("./Login.svelte").default;
 
 	async function get_blocks() {
 		Blocks = (await import("./Blocks.svelte")).default;
@@ -417,7 +418,9 @@
 </script>
 
 <Embed
-	display={!minimal && is_embed && !!space}
+	display={!container && is_embed && !!space}
+	{is_embed}
+	{info}
 	{version}
 	{initial_height}
 	{space}
@@ -469,7 +472,8 @@
 			target={wrapper}
 			{autoscroll}
 			bind:ready
-			show_footer={false}
+			show_footer={!is_embed}
+			{app_mode}
 		/>
 	{/if}
 </Embed>
