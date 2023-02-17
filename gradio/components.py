@@ -4146,7 +4146,17 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         )
 
     def get_config(self):
-        return {"value": self.value, **IOComponent.get_config(self)}
+        try:
+            import bokeh  # type: ignore
+
+            bokeh_version = bokeh.__version__
+        except ImportError:
+            bokeh_version = None
+        return {
+            "value": self.value,
+            "bokeh_version": bokeh_version,
+            **IOComponent.get_config(self),
+        }
 
     @staticmethod
     def update(
@@ -4176,9 +4186,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
-        elif isinstance(y, dict):
+        elif "bokeh" in y.__module__:
             dtype = "bokeh"
-            out_y = json.dumps(y)
+            from bokeh.embed import json_item  # type: ignore
+
+            out_y = json.dumps(json_item(y))
         else:
             is_altair = "altair" in y.__module__
             if is_altair:
