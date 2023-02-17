@@ -2017,7 +2017,9 @@ simple = pd.DataFrame(
 
 
 class TestScatterPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
+
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
@@ -2029,6 +2031,7 @@ class TestScatterPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2199,6 +2202,7 @@ class TestScatterPlot:
 
 
 class TestLinePlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.LinePlot().get_config() == {
             "caption": None,
@@ -2211,6 +2215,7 @@ class TestLinePlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2360,6 +2365,7 @@ class TestLinePlot:
 
 
 class TestBarPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.BarPlot().get_config() == {
             "caption": None,
@@ -2372,6 +2378,7 @@ class TestBarPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):

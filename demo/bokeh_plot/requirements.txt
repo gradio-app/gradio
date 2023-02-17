@@ -1,0 +1,2 @@
+bokeh>=3.0
+xyzservices

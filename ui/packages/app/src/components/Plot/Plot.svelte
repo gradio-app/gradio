@@ -20,6 +20,7 @@
 	export let style: Styles = {};
 	export let theme: string;
 	export let caption: string;
+	export let bokeh_version: string | null;
 </script>
 
 <Block
@@ -32,5 +33,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} {target} {theme} {caption} on:change />
+	<Plot {value} {target} {theme} {caption} {bokeh_version} on:change />
 </Block>
