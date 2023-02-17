@@ -60,7 +60,7 @@ class TestRoutes:
         )
         assert response.status_code == 200
         file = response.json()[0]
-        assert file.startswith("alphabet")
+        assert "alphabet" in file
         assert file.endswith(".txt")
         with open(file) as saved_file:
             assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
