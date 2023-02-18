@@ -5235,6 +5235,12 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
 
+        # Add target="_blank" to all links. Taken from MarkdownIt docs.
+        def render_blank_link(self, tokens, idx, options, env):
+            tokens[idx].attrSet("target", "_blank")
+            return self.renderToken(tokens, idx, options, env)
+        self.md.add_render_rule("link_open", render_blank_link)
+
     def postprocess(self, y: str | None) -> str | None:
         """
         Parameters:
