@@ -5,6 +5,7 @@
 	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
 	export let multiselect: boolean = false;
+	export let max_choices: number;
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
@@ -30,12 +31,12 @@
 	)
 		activeOption = filtered[0];
 
-	$: readonly = !multiselect && typeof value === 'string';
+	$: readonly = !multiselect && typeof value === "string";
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
 	function add(option: string) {
-		if (Array.isArray(value)) {
+		if (Array.isArray(value) && value.length < max_choices) {
 			value.push(option);
 			dispatch("change", value);
 		}
@@ -77,6 +78,9 @@
 					? filtered[0]
 					: filtered[calcIndex];
 		}
+		if (e.key === "Escape") {
+			optionsVisibility(false);
+		}
 	}
 
 	function remove_all(e: any) {
@@ -116,7 +120,11 @@
 				{#each value as s}
 					<div on:click|preventDefault={() => remove(s)} class="token">
 						<span>{s}</span>
-						<div class:hidden={disabled} class="token-remove" title="Remove {s}">
+						<div
+							class:hidden={disabled}
+							class="token-remove"
+							title="Remove {s}"
+						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								width="16"
@@ -169,21 +177,24 @@
 				</svg>
 			</div>
 		</div>
-	
+
 		{#if showOptions && !disabled}
 			<ul
 				class="options"
+				aria-expanded={showOptions}
 				transition:fly={{ duration: 200, y: 5 }}
 				on:mousedown|preventDefault={handleOptionMousedown}
 			>
 				{#each filtered as choice}
 					<li
 						class="item"
+						role="button"
 						class:selected={value?.includes(choice)}
 						class:active={activeOption === choice}
 						class:bg-gray-100={activeOption === choice}
 						class:dark:bg-gray-600={activeOption === choice}
 						data-value={choice}
+						aria-label={choice}
 					>
 						<span class:hide={!value?.includes(choice)} class="inner-item pr-1">
 							✓
@@ -194,7 +205,6 @@
 			</ul>
 		{/if}
 	</div>
-
 </label>
 
 <style>

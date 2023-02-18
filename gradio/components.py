@@ -1183,6 +1183,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         value: str | List[str] | Callable | None = None,
         type: str = "value",
         multiselect: bool | None = None,
+        max_choices: int | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
@@ -1197,6 +1198,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
+            max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -1215,6 +1217,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if multiselect:
             if isinstance(value, str):
                 value = [value]
+        self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1235,6 +1238,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             "choices": self.choices,
             "value": self.value,
             "multiselect": self.multiselect,
+            "max_choices": self.max_choices,
             **IOComponent.get_config(self),
         }
 
