@@ -480,7 +480,6 @@
 <style>
 	.error {
 		position: relative;
-		z-index: var(--layer-top);
 		padding: var(--size-4);
 		color: var(--color-text-body);
 		text-align: center;
