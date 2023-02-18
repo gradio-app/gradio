@@ -303,6 +303,7 @@ def decode_base64_to_file(
         data = encryptor.encrypt(encryption_key, data)
     file_obj.write(data)
     file_obj.flush()
+    file_obj.seek(0)
     return file_obj
 
 
