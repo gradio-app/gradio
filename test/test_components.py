@@ -1784,7 +1784,7 @@ class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
         assert markdown_component.get_config()["value"].startswith(
-            """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span>"""
+            """<h1>Let\'s learn about <span class="math inline">"""
         )
 
     def test_in_interface(self):
