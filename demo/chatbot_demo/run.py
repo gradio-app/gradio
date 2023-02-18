@@ -26,7 +26,7 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter").style(container=False)
-            
+
     txt.submit(predict, [txt, state], [chatbot, state])
             
 if __name__ == "__main__":

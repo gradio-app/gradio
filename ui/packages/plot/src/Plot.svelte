@@ -5,7 +5,7 @@
 	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 	import { Vega } from "svelte-vega";
-	import { afterUpdate, onDestroy } from "svelte";
+	import { afterUpdate, beforeUpdate, onDestroy } from "svelte";
 	import { create_config } from "./utils";
 	import { Empty } from "@gradio/atoms";
 
@@ -15,6 +15,7 @@
 	export let colors: Array<string> = [];
 	export let theme: string;
 	export let caption: string;
+	export let bokeh_version: string  | null;
 
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
@@ -32,8 +33,34 @@
 
 	$: darkmode = theme == "dark";
 
-	$: if (value && value.type == "altair") {
-		spec = JSON.parse(value["plot"]);
+	$: plot = value?.plot;
+	$: type = value?.type;
+
+	// Need to keep track of this because
+	// otherwise embed_bokeh may try to embed before
+	// bokeh is loaded
+	$: bokeh_loaded = window.Bokeh === undefined
+
+	function embed_bokeh(plot, type, bokeh_loaded){
+		if (document){
+			if (document.getElementById("bokehDiv")) {
+				document.getElementById("bokehDiv").innerHTML = "";
+			}
+		}
+		if (type == "bokeh" && window.Bokeh) {
+			if (!bokeh_loaded) {
+				load_bokeh();
+				bokeh_loaded = true;
+			}
+			let plotObj = JSON.parse(plot);
+			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+		}
+	}
+
+	$: embed_bokeh(plot, type, bokeh_loaded);
+
+	$: if (type == "altair") {
+		spec = JSON.parse(plot);
 		const config = create_config(darkmode);
 		spec.config = config;
 		switch (value.chart || "") {
@@ -75,13 +102,13 @@
 	let plotDiv;
 	let plotlyGlobalStyle;
 
-	const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
+	const main_src = `https://cdn.bokeh.org/bokeh/release/bokeh-${bokeh_version}.min.js`;
 
 	const plugins_src = [
-		"https://cdn.pydata.org/bokeh/release/bokeh-widgets-2.4.2.min.js",
-		"https://cdn.pydata.org/bokeh/release/bokeh-tables-2.4.2.min.js",
-		"https://cdn.pydata.org/bokeh/release/bokeh-gl-2.4.2.min.js",
-		"https://cdn.pydata.org/bokeh/release/bokeh-api-2.4.2.min.js"
+		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
+		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
+		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
+		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
 	];
 
 	function load_plugins() {
@@ -100,7 +127,7 @@
 		script.onload = handleBokehLoaded;
 		script.src = main_src;
 		document.head.appendChild(script);
-
+		bokeh_loaded = true;
 		return script;
 	}
 
@@ -115,10 +142,9 @@
 		}
 	}
 
-	const main_script = load_bokeh();
+	const main_script = bokeh_version ? load_bokeh() : null
 
 	let plugin_scripts = [];
-	// Bokeh
 
 	const resolves = [];
 	const bokehPromises = Array(5)
@@ -126,7 +152,7 @@
 		.map((_, i) => createPromise(i));
 
 	const initializeBokeh = (index) => {
-		if (value && value["type"] == "bokeh") {
+		if (type == "bokeh") {
 			resolves[index]();
 		}
 	};
@@ -142,23 +168,14 @@
 		plugin_scripts = load_plugins();
 	}
 
-	Promise.all(bokehPromises).then(() => {
-		let plotObj = JSON.parse(value["plot"]);
-		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
-	});
-
 	afterUpdate(() => {
-		if (value && value["type"] == "plotly") {
+		if (type == "plotly") {
 			load_plotly_css();
-			let plotObj = JSON.parse(value["plot"]);
+			let plotObj = JSON.parse(plot);
 			plotObj.layout.title
 				? (plotObj.layout.margin = { autoexpand: true })
 				: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
 			Plotly.react(plotDiv, plotObj);
-		} else if (value && value["type"] == "bokeh") {
-			document.getElementById("bokehDiv").innerHTML = "";
-			let plotObj = JSON.parse(value["plot"]);
-			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 		}
 	});
 
@@ -170,11 +187,11 @@
 	});
 </script>
 
-{#if value && value["type"] == "plotly"}
+{#if value && type == "plotly"}
 	<div bind:this={plotDiv} />
-{:else if value && value["type"] == "bokeh"}
-	<div id="bokehDiv" />
-{:else if value && value["type"] == "altair"}
+{:else if type == "bokeh"}
+	<div id="bokehDiv" class="gradio-bokeh"/>
+{:else if type == "altair"}
 	<div class="altair layout">
 		<Vega {spec} />
 		{#if caption}
@@ -183,16 +200,22 @@
 			</div>
 		{/if}
 	</div>
-{:else if value && value["type"] == "matplotlib"}
+{:else if type == "matplotlib"}
 	<div class="matplotlib layout">
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img src={value["plot"]} />
+		<img src={plot} />
 	</div>
 {:else}
 	<Empty size="large" unpadded_box={true}><PlotIcon /></Empty>
 {/if}
 
 <style>
+
+	.gradio-bokeh {
+		display: flex;
+		justify-content: center;
+	}
+
 	.layout {
 		display: flex;
 		flex-direction: column;

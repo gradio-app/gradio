@@ -1808,13 +1808,9 @@ class Video(
             x.get("is_file", False),
         )
         if is_file:
-            file = self.make_temp_copy_if_needed(file_name)
-            file_name = Path(file)
+            file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
-            file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            file_name = Path(file.name)
+            file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
         modify_format = self.format is not None and uploaded_format != self.format
@@ -2041,20 +2037,26 @@ class Audio(
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            temp_file_obj = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            temp_file_path = temp_file_obj.name
+            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         sample_rate, data = processing_utils.audio_from_file(
             temp_file_path, crop_min=crop_min, crop_max=crop_max
         )
 
+        # Need a unique name for the file to avoid re-using the same audio file if
+        # a user submits the same audio file twice, but with different crop min/max.
+        temp_file_path = Path(temp_file_path)
+        output_file_name = str(
+            temp_file_path.with_name(
+                f"{temp_file_path.stem}-{crop_min}-{crop_max}{temp_file_path.suffix}"
+            )
+        )
+
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, temp_file_path)
-            return temp_file_path
+            processing_utils.audio_to_file(sample_rate, data, output_file_name)
+            return output_file_name
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2075,8 +2077,8 @@ class Audio(
         if x.get("is_file"):
             sample_rate, data = processing_utils.audio_from_file(x["name"])
         else:
-            file_obj = processing_utils.decode_base64_to_file(x["data"])
-            sample_rate, data = processing_utils.audio_from_file(file_obj.name)
+            file_name = self.base64_to_temp_file_if_needed(x["data"])
+            sample_rate, data = processing_utils.audio_from_file(file_name)
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -2117,14 +2119,14 @@ class Audio(
     def get_masked_inputs(self, tokens, binary_mask_matrix):
         # create a "zero input" vector and get sample rate
         x = tokens[0]["data"]
-        file_obj = processing_utils.decode_base64_to_file(x)
-        sample_rate, data = processing_utils.audio_from_file(file_obj.name)
+        file_name = self.base64_to_temp_file_if_needed(x)
+        sample_rate, data = processing_utils.audio_from_file(file_name)
         zero_input = np.zeros_like(data, dtype="int16")
         # decode all of the tokens
         token_data = []
         for token in tokens:
-            file_obj = processing_utils.decode_base64_to_file(token["data"])
-            _, data = processing_utils.audio_from_file(file_obj.name)
+            file_name = self.base64_to_temp_file_if_needed(token["data"])
+            _, data = processing_utils.audio_from_file(file_name)
             token_data.append(data)
         # construct the masked version
         masked_inputs = []
@@ -3859,14 +3861,14 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
+    Postprocessing: expects function to return a {List[Tuple[str | None, str | None]]}, a list of tuples with user inputs and responses as strings of HTML or Nones. Messages that are `None` are not displayed.
 
-    Demos: chatbot_demo
+    Demos: chatbot_demo, chatbot_multimodal
     """
 
     def __init__(
         self,
-        value: List[Tuple[str, str]] | Callable | None = None,
+        value: List[Tuple[str | None, str | None]] | Callable | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
         *,
         label: str | None = None,
@@ -3928,7 +3930,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def postprocess(
+        self, y: List[Tuple[str | None, str | None]]
+    ) -> List[Tuple[str | None, str | None]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3938,7 +3942,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
+            y[i] = (
+                None if message is None else self.md.renderInline(message),
+                None if response is None else self.md.renderInline(response),
+            )
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
@@ -4046,10 +4053,7 @@ class Model3D(
         if is_file:
             temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            temp_file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            temp_file_path = temp_file.name
+            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         return temp_file_path
 
@@ -4128,7 +4132,17 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         )
 
     def get_config(self):
-        return {"value": self.value, **IOComponent.get_config(self)}
+        try:
+            import bokeh  # type: ignore
+
+            bokeh_version = bokeh.__version__
+        except ImportError:
+            bokeh_version = None
+        return {
+            "value": self.value,
+            "bokeh_version": bokeh_version,
+            **IOComponent.get_config(self),
+        }
 
     @staticmethod
     def update(
@@ -4158,9 +4172,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
-        elif isinstance(y, dict):
+        elif "bokeh" in y.__module__:
             dtype = "bokeh"
-            out_y = json.dumps(y)
+            from bokeh.embed import json_item  # type: ignore
+
+            out_y = json.dumps(json_item(y))
         else:
             is_altair = "altair" in y.__module__
             if is_altair:

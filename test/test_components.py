@@ -770,9 +770,9 @@ class TestAudio:
         """
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
-        output = audio_input.preprocess(x_wav)
-        assert output[0] == 8000
-        assert output[1].shape == (8046,)
+        output1 = audio_input.preprocess(x_wav)
+        assert output1[0] == 8000
+        assert output1[1].shape == (8046,)
         assert filecmp.cmp(
             "test/test_files/audio_sample.wav",
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
@@ -796,7 +796,9 @@ class TestAudio:
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
-        assert audio_input.preprocess(x_wav) is not None
+        output2 = audio_input.preprocess(x_wav)
+        assert output2 is not None
+        assert output1 != output2
 
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
@@ -2015,7 +2017,9 @@ simple = pd.DataFrame(
 
 
 class TestScatterPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
+
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
@@ -2027,6 +2031,7 @@ class TestScatterPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2197,6 +2202,7 @@ class TestScatterPlot:
 
 
 class TestLinePlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.LinePlot().get_config() == {
             "caption": None,
@@ -2209,6 +2215,7 @@ class TestLinePlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2358,6 +2365,7 @@ class TestLinePlot:
 
 
 class TestBarPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.BarPlot().get_config() == {
             "caption": None,
@@ -2370,6 +2378,7 @@ class TestBarPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
