@@ -357,7 +357,7 @@
 			error_detail = {
 				type: "not_found",
 				detail: {
-					description: "This space is experiencing an issue."
+					description: "This gradio app is experiencing an issue."
 				}
 			};
 		}
@@ -450,7 +450,7 @@
 						> to let them know.
 					</p>
 				{:else}
-					<p>Please contact the author of the page to let them know</p>
+					<p>Please contact the author of the page to let them know.</p>
 				{/if}
 			</div>
 		</Loader>
