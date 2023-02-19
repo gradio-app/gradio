@@ -44,7 +44,6 @@
 <style>
 	.gradio-container {
 		position: relative;
-
 		background: var(--button-secondary-background-base);
 		background: var(--color-background-primary);
 		padding: 0;
@@ -110,7 +109,6 @@
 		position: absolute;
 		bottom: 0;
 		justify-content: flex-start;
-		z-index: var(--layer-top);
 		border-top: 1px solid var(--button-secondary-border-color-base);
 		padding: var(--size-1) var(--size-5);
 		width: 100%;

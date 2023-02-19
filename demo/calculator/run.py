@@ -27,7 +27,7 @@ demo = gr.Interface(
         [0, "subtract", 1.2],
     ],
     title="Toy Calculator",
-    description="Here's a sample toy calculator. Enjoy!",
+    description="Here's a sample toy calculator. Allows you to calculate things like $2+2=4$",
 )
 if __name__ == "__main__":
     demo.launch()

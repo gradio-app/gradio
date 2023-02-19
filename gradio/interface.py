@@ -307,7 +307,7 @@ class Interface(Blocks):
                     "html": True,
                 },
             )
-            .use(dollarmath_plugin)
+            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
             .use(footnote_plugin)
             .enable("table")
         )
