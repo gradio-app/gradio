@@ -31,14 +31,21 @@
 	)
 		activeOption = filtered[0];
 
-	$: readonly = !multiselect && typeof value === "string";
+	$: readonly =
+		(!multiselect && typeof value === "string") ||
+		(multiselect && Array.isArray(value) && value.length === max_choices);
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
 	function add(option: string) {
-		if (Array.isArray(value) && value.length < max_choices) {
-			value.push(option);
-			dispatch("change", value);
+		if (Array.isArray(value)) {
+			if (value.length < max_choices) {
+				value.push(option);
+				dispatch("change", value);
+			}
+			if (value.length === max_choices) {
+				optionsVisibility(false);
+			}
 		}
 		value = value;
 	}
@@ -146,7 +153,10 @@
 					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:focus={() => optionsVisibility(true)}
+					on:focus={() =>
+						Array.isArray(value) && value.length === max_choices
+							? optionsVisibility(false)
+							: optionsVisibility(true)}
 					on:blur={() => optionsVisibility(false)}
 					on:keyup={handleKeyup}
 				/>
@@ -240,6 +250,11 @@
 		margin-left: var(--size-2);
 	}
 
+	.token:hover {
+		border: 1px solid var(--icon_button-border-color-hover);
+		color: var(--color-text-label);
+	}
+
 	.token-remove {
 		fill: var(--color-text-body);
 		display: flex;
@@ -252,6 +267,11 @@
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;
+	}
+
+	.token-remove:hover {
+		border: 1px solid var(--icon_button-border-color-hover);
+		color: var(--color-text-label);
 	}
 
 	.single-select {
@@ -285,6 +305,11 @@
 		margin-left: var(--size-1);
 		width: 20px;
 		height: 20px;
+	}
+
+	.remove-all:hover {
+		border: 1px solid var(--icon_button-border-color-hover);
+		color: var(--color-text-label);
 	}
 
 	.dropdown-arrow {

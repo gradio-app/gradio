@@ -1217,6 +1217,10 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if multiselect:
             if isinstance(value, str):
                 value = [value]
+        if not multiselect and max_choices is not None:
+            warnings.warn(
+                "Max choices is ignored when multiselect is False."
+            )
         self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
