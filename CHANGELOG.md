@@ -1,6 +1,28 @@
 # Upcoming Release
 
+# 3.19.0
+
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+- UI fixes including footer and API docs by [@aliabid94](https://github.com/aliabid94) in [PR 3242](https://github.com/gradio-app/gradio/pull/3242)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
 
 ### Improved embedding experience
 
