@@ -470,6 +470,7 @@
 <style>
 	.wrap {
 		display: flex;
+		flex-grow: 1;
 		flex-direction: column;
 		width: var(--size-full);
 	}
@@ -477,6 +478,7 @@
 	footer {
 		display: flex;
 		justify-content: center;
+		margin-top: var(--size-4);
 		color: var(--color-text-subdued);
 		font-size: var(--scale-00);
 	}

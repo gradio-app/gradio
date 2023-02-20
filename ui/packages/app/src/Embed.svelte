@@ -43,7 +43,9 @@
 
 <style>
 	.gradio-container {
+		display: flex;
 		position: relative;
+		flex-direction: column;
 		background: var(--button-secondary-background-base);
 		background: var(--color-background-primary);
 		padding: 0;
@@ -67,7 +69,9 @@
 	}
 
 	.app > .main {
-		height: 100%;
+		display: flex;
+		flex-grow: 1;
+		flex-direction: column;
 	}
 
 	.app {

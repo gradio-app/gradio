@@ -115,8 +115,8 @@
 		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
 		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--radius-sm);
-		background: var(--input-background-base);
-		padding: var(--size-0-5) var(--size-1);
+		background: var(--input-background-base) !important;
+		padding: var(--size-0-5) var(--size-1) !important;
 		width: var(--size-40);
 		font-size: var(--scale-000);
 	}
