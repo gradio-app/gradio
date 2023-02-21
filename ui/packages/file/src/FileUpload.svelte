@@ -14,7 +14,9 @@
 	export let file_count: string = "single";
 	export let file_types: string[] | null = null;
 
-	async function handle_upload({ detail }: CustomEvent<FileData>) {
+	async function handle_upload({
+		detail
+	}: CustomEvent<FileData | Array<FileData>>) {
 		value = detail;
 		await tick();
 		dispatch("change", value);
@@ -28,10 +30,10 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: FileData | null;
+		change: Array<FileData> | FileData | null;
 		clear: undefined;
 		drag: boolean;
-		upload: FileData;
+		upload: Array<FileData> | FileData;
 		error: string;
 	}>();
 
@@ -55,16 +57,17 @@
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
-{#if value === null}
+{#if value}
+	<ModifyUpload on:clear={handle_clear} absolute />
+	<FilePreview {value} />
+{:else}
 	<Upload
 		on:load={handle_upload}
 		filetype={accept_file_types}
+		parse_to_data_url={false}
 		{file_count}
 		bind:dragging
 	>
 		<slot />
 	</Upload>
-{:else}
-	<ModifyUpload on:clear={handle_clear} absolute />
-	<FilePreview {value} />
 {/if}

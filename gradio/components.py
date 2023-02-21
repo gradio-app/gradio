@@ -468,7 +468,7 @@ class Number(
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
+            precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
         """
         self.precision = precision
         IOComponent.__init__(
@@ -581,7 +581,7 @@ class Number(
                 "If delta_type='percent', pick a value of delta such that x * delta is an integer. "
                 "If delta_type='absolute', pick a value of delta that is an integer."
             )
-        # run_interpretation will preprocess the neighbors so no need to covert to int here
+        # run_interpretation will preprocess the neighbors so no need to convert to int here
         negatives = (
             np.array(x) + np.arange(-self.interpretation_steps, 0) * delta
         ).tolist()
