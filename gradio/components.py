@@ -2921,7 +2921,12 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(
-            self, visible=visible, elem_id=elem_id, value=value, interactive=interactive, **kwargs
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            value=value,
+            interactive=interactive,
+            **kwargs,
         )
         self.variant = variant
 
