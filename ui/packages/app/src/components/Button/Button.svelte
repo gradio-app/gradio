@@ -8,8 +8,9 @@
 	export let visible: boolean = true;
 	export let value: string;
 	export let variant: "primary" | "secondary" = "primary";
+	export let mode: "static" | "dynamic";
 </script>
 
-<Button {variant} {elem_id} {style} {visible} on:click>
+<Button {variant} {elem_id} {style} {visible} disabled={mode === "static"} on:click>
 	{$_(value)}
 </Button>
