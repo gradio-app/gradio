@@ -5,15 +5,15 @@ of 20 and prints the average time per job. The inference time for each job (with
 network overhead of sending/receiving the data) is 0.5 seconds. Each job sends one of:
 a text, image, audio, or video input and the output is the same as the input.
 
-Navigate to the scripts/ directory and run:
->> python benchmark_queue.py
+Navigate to the root directory of the gradio repo and run:
+>> python scripts/benchmark_queue.py
 
 You can specify the number of jobs to run and the batch size with the -n parameter:
->> python benchmark_queue.py -n 1000
+>> python scripts/benchmark_queue.py -n 1000
 
 The results are printed to the console, but you can specify a path to save the results 
 to with the -o parameter:
->> python benchmark_queue.py -n 1000 -o results.json
+>> python scripts/benchmark_queue.py -n 1000 -o results.json
 '''
 
 import gradio as gr
