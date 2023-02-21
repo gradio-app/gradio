@@ -1796,7 +1796,7 @@ class TestMarkdown:
         output_data = iface(input_data)
         assert (
             output_data
-            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png">image</a></p>\n"""
+            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png" target="_blank">image</a></p>\n"""
         )
 
 
