@@ -8,7 +8,7 @@
 	export let visible: boolean = true;
 	export let value: string;
 	export let variant: "primary" | "secondary" = "primary";
-	export let mode: "static" | "dynamic";
+	export let mode: "static" | "dynamic" = "dynamic";
 </script>
 
 <Button

@@ -10,8 +10,6 @@
 	export let disabled: boolean = false;
 
 	$: ({ styles } = get_styles(style, ["full_width"]));
-	console.log("size", size);
-	console.log("disabled", disabled);
 </script>
 
 <button
