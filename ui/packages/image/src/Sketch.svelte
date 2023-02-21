@@ -18,6 +18,14 @@
 	export let width = 400;
 	export let height = 200;
 	export let container_height = 200;
+	export let shape;
+
+	$: {
+		if (shape) {
+			width = shape[0];
+			height = shape[1];
+		}
+	}
 
 	let mounted;
 

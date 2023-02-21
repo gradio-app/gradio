@@ -19,6 +19,7 @@
 	export let pending: boolean;
 	export let style: Styles = {};
 	export let mirror_webcam: boolean;
+	export let shape: [number, number];
 
 	export let loading_status: LoadingStatus;
 
@@ -48,6 +49,7 @@
 		<StaticImage {value} {label} {show_label} />
 	{:else}
 		<Image
+			{shape}
 			bind:value
 			{source}
 			{tool}

@@ -21,7 +21,7 @@
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" = "editor";
-
+	export let shape: [number, number];
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
 	export let mirror_webcam: boolean;
@@ -231,6 +231,7 @@
 						container_height={container_height || max_height}
 						{value_img}
 						{source}
+						{shape}
 					/>
 					<ModifySketch
 						on:undo={() => sketch.undo()}
@@ -280,6 +281,7 @@
 			width={img_width || max_width}
 			height={img_height || max_height}
 			container_height={container_height || max_height}
+			{shape}
 		/>
 	{:else if (value === null && !static_image) || streaming}
 		{#if source === "webcam" && !static_image}
