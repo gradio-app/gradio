@@ -25,8 +25,6 @@ import pandas as pd
 import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
-from markdown_it import MarkdownIt
-from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
@@ -2681,11 +2679,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             return data
 
         if cls.markdown_parser is None:
-            cls.markdown_parser = (
-                MarkdownIt()
-                .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
-                .enable("table")
-            )
+            cls.markdown_parser = utils.get_markdown_parser()
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -3892,7 +3886,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
-        self.md = MarkdownIt()
+        self.md = utils.get_markdown_parser()
 
         IOComponent.__init__(
             self,
@@ -5226,11 +5220,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = (
-            MarkdownIt()
-            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
-            .enable("table")
-        )
+        self.md = utils.get_markdown_parser()
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
