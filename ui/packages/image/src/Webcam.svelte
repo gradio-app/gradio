@@ -111,7 +111,7 @@
 
 <div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video bind:this={video_source} class:scale-x-[-1]={mirror_webcam} />
+	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
 		<button on:click={mode === "image" ? take_picture : take_recording}>
 			{#if mode === "video"}
@@ -179,5 +179,9 @@
 		width: 50%;
 		height: 50%;
 		color: white;
+	}
+
+	.flip {
+		transform: scaleX(-1);
 	}
 </style>
