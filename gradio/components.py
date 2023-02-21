@@ -2917,6 +2917,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         *,
         variant: str = "secondary",
         visible: bool = True,
+        interactive: bool = True,
         elem_id: str | None = None,
         **kwargs,
     ):
@@ -2928,7 +2929,12 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(
-            self, visible=visible, elem_id=elem_id, value=value, **kwargs
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            value=value,
+            interactive=interactive,
+            **kwargs,
         )
         self.variant = variant
 
@@ -2936,6 +2942,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         return {
             "value": self.value,
             "variant": self.variant,
+            "interactive": self.interactive,
             **Component.get_config(self),
         }
 
@@ -2944,11 +2951,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         variant: str | None = None,
         visible: bool | None = None,
+        interactive: bool | None = None,
     ):
         return {
             "variant": variant,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
 
