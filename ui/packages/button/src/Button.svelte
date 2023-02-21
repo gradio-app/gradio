@@ -35,7 +35,8 @@
 		text-align: center;
 	}
 
-	button:hover, button[disabled] {
+	button:hover,
+	button[disabled] {
 		box-shadow: var(--shadow-drop-lg);
 	}
 
@@ -53,7 +54,8 @@
 		color: var(--button-plain-text-color-base);
 	}
 
-	.plain:hover, .plain[disabled] {
+	.plain:hover,
+	.plain[disabled] {
 		border: 1px solid var(--button-plain-border-color-hover);
 		background: var(--button-plain-background-hover);
 		color: var(--button-plain-text-color-hover);
@@ -68,7 +70,8 @@
 		background: var(--button-primary-background-base);
 		color: var(--button-primary-text-color-base);
 	}
-	.primary:hover, .primary[disabled] {
+	.primary:hover,
+	.primary[disabled] {
 		border-color: var(--button-primary-border-color-hover);
 		background: var(--button-primary-background-hover);
 		color: var(--button-primary-text-color-hover);
@@ -86,7 +89,8 @@
 		color: var(--button-secondary-text-color-base);
 	}
 
-	.secondary:hover, .secondary[disabled] {
+	.secondary:hover,
+	.secondary[disabled] {
 		border-color: var(--button-secondary-border-color-hover);
 		background: var(--button-secondary-background-hover);
 		color: var(--button-secondary-text-color-hover);
@@ -104,7 +108,8 @@
 		color: var(--button-cancel-text-color-base);
 	}
 
-	.stop:hover, .stop[disabled] {
+	.stop:hover,
+	.stop[disabled] {
 		border-color: var(--button-cancel-border-color-hover);
 		background: var(--button-cancel-background-hover);
 		color: var(--button-cancel-text-color-hover);

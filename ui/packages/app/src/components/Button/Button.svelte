@@ -11,6 +11,13 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Button {variant} {elem_id} {style} {visible} disabled={mode === "static"} on:click>
+<Button
+	{variant}
+	{elem_id}
+	{style}
+	{visible}
+	disabled={mode === "static"}
+	on:click
+>
 	{$_(value)}
 </Button>
