@@ -2909,7 +2909,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         *,
         variant: str = "secondary",
         visible: bool = True,
-        interactive: bool | None = None,
+        interactive: bool = True,
         elem_id: str | None = None,
         **kwargs,
     ):
