@@ -20,7 +20,8 @@ No changes to highlight.
 
 ## Contributors Shoutout:
 No changes to highlight.
-# 3.19.0
+
+# 3.19.1
 
 ## New Features:
 No changes to highlight.
@@ -42,6 +43,10 @@ No changes to highlight.
 
 ## Contributors Shoutout:
 No changes to highlight.
+
+# 3.19.0
+
+## New Features:
 
 
 ### Improved embedding experience
