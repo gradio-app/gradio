@@ -468,7 +468,7 @@ class Number(
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
+            precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
         """
         self.precision = precision
         IOComponent.__init__(
@@ -581,7 +581,7 @@ class Number(
                 "If delta_type='percent', pick a value of delta such that x * delta is an integer. "
                 "If delta_type='absolute', pick a value of delta that is an integer."
             )
-        # run_interpretation will preprocess the neighbors so no need to covert to int here
+        # run_interpretation will preprocess the neighbors so no need to convert to int here
         negatives = (
             np.array(x) + np.arange(-self.interpretation_steps, 0) * delta
         ).tolist()
@@ -1678,7 +1678,13 @@ class Image(
         )
 
     def as_example(self, input_data: str | None) -> str:
-        return "" if input_data is None else str(utils.abspath(input_data))
+        if input_data is None:
+            return ""
+        elif (
+            self.root_url
+        ):  # If an externally hosted image, don't convert to absolute path
+            return input_data
+        return str(utils.abspath(input_data))
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -1802,13 +1808,9 @@ class Video(
             x.get("is_file", False),
         )
         if is_file:
-            file = self.make_temp_copy_if_needed(file_name)
-            file_name = Path(file)
+            file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
-            file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            file_name = Path(file.name)
+            file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
         modify_format = self.format is not None and uploaded_format != self.format
@@ -2035,20 +2037,26 @@ class Audio(
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            temp_file_obj = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            temp_file_path = temp_file_obj.name
+            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         sample_rate, data = processing_utils.audio_from_file(
             temp_file_path, crop_min=crop_min, crop_max=crop_max
         )
 
+        # Need a unique name for the file to avoid re-using the same audio file if
+        # a user submits the same audio file twice, but with different crop min/max.
+        temp_file_path = Path(temp_file_path)
+        output_file_name = str(
+            temp_file_path.with_name(
+                f"{temp_file_path.stem}-{crop_min}-{crop_max}{temp_file_path.suffix}"
+            )
+        )
+
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, temp_file_path)
-            return temp_file_path
+            processing_utils.audio_to_file(sample_rate, data, output_file_name)
+            return output_file_name
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2069,8 +2077,8 @@ class Audio(
         if x.get("is_file"):
             sample_rate, data = processing_utils.audio_from_file(x["name"])
         else:
-            file_obj = processing_utils.decode_base64_to_file(x["data"])
-            sample_rate, data = processing_utils.audio_from_file(file_obj.name)
+            file_name = self.base64_to_temp_file_if_needed(x["data"])
+            sample_rate, data = processing_utils.audio_from_file(file_name)
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -2111,14 +2119,14 @@ class Audio(
     def get_masked_inputs(self, tokens, binary_mask_matrix):
         # create a "zero input" vector and get sample rate
         x = tokens[0]["data"]
-        file_obj = processing_utils.decode_base64_to_file(x)
-        sample_rate, data = processing_utils.audio_from_file(file_obj.name)
+        file_name = self.base64_to_temp_file_if_needed(x)
+        sample_rate, data = processing_utils.audio_from_file(file_name)
         zero_input = np.zeros_like(data, dtype="int16")
         # decode all of the tokens
         token_data = []
         for token in tokens:
-            file_obj = processing_utils.decode_base64_to_file(token["data"])
-            _, data = processing_utils.audio_from_file(file_obj.name)
+            file_name = self.base64_to_temp_file_if_needed(token["data"])
+            _, data = processing_utils.audio_from_file(file_name)
             token_data.append(data)
         # construct the masked version
         masked_inputs = []
@@ -2266,6 +2274,10 @@ class File(
         if type == "bytes":
             warnings.warn(
                 "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
+            )
+        if file_count == "directory" and file_types is not None:
+            warnings.warn(
+                "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
         self.type = type
         self.test_input = None
@@ -2986,6 +2998,10 @@ class UploadButton(
         """
         self.type = type
         self.file_count = file_count
+        if file_count == "directory" and file_types is not None:
+            warnings.warn(
+                "The `file_types` parameter is ignored when `file_count` is 'directory'."
+            )
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
@@ -3845,14 +3861,14 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
+    Postprocessing: expects function to return a {List[Tuple[str | None, str | None]]}, a list of tuples with user inputs and responses as strings of HTML or Nones. Messages that are `None` are not displayed.
 
-    Demos: chatbot_demo
+    Demos: chatbot_demo, chatbot_multimodal
     """
 
     def __init__(
         self,
-        value: List[Tuple[str, str]] | Callable | None = None,
+        value: List[Tuple[str | None, str | None]] | Callable | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
         *,
         label: str | None = None,
@@ -3914,7 +3930,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def postprocess(
+        self, y: List[Tuple[str | None, str | None]]
+    ) -> List[Tuple[str | None, str | None]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3924,7 +3942,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
+            y[i] = (
+                None if message is None else self.md.renderInline(message),
+                None if response is None else self.md.renderInline(response),
+            )
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
@@ -4032,10 +4053,7 @@ class Model3D(
         if is_file:
             temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            temp_file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-            temp_file_path = temp_file.name
+            temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         return temp_file_path
 
@@ -4114,7 +4132,17 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         )
 
     def get_config(self):
-        return {"value": self.value, **IOComponent.get_config(self)}
+        try:
+            import bokeh  # type: ignore
+
+            bokeh_version = bokeh.__version__
+        except ImportError:
+            bokeh_version = None
+        return {
+            "value": self.value,
+            "bokeh_version": bokeh_version,
+            **IOComponent.get_config(self),
+        }
 
     @staticmethod
     def update(
@@ -4144,9 +4172,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
-        elif isinstance(y, dict):
+        elif "bokeh" in y.__module__:
             dtype = "bokeh"
-            out_y = json.dumps(y)
+            from bokeh.embed import json_item  # type: ignore
+
+            out_y = json.dumps(json_item(y))
         else:
             is_altair = "altair" in y.__module__
             if is_altair:
@@ -4365,11 +4395,11 @@ class ScatterPlot(Plot):
             color_legend_position,
             size_legend_position,
             shape_legend_position,
-            interactive,
             height,
             width,
             x_lim,
             y_lim,
+            interactive,
         ]
         if any(properties):
             if not isinstance(value, pd.DataFrame):
@@ -4585,8 +4615,8 @@ class LinePlot(Plot):
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
             elem_id: Unique id used for custom css targetting.
         """
@@ -4857,6 +4887,320 @@ class LinePlot(Plot):
         return {"type": "altair", "plot": chart.to_json(), "chart": "line"}
 
 
+@document("change", "clear")
+class BarPlot(Plot):
+    """
+    Create a bar plot.
+
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a pandas dataframe with the data to plot.
+
+    Demos: native_plots, chicago-bikeshare-dashboard
+    """
+
+    def __init__(
+        self,
+        value: pd.DataFrame | Callable | None = None,
+        x: str | None = None,
+        y: str | None = None,
+        *,
+        color: str | None = None,
+        vertical: bool = True,
+        group: str | None = None,
+        title: str | None = None,
+        tooltip: List[str] | str | None = None,
+        x_title: str | None = None,
+        y_title: str | None = None,
+        color_legend_title: str | None = None,
+        group_title: str | None = None,
+        color_legend_position: str | None = None,
+        height: int | None = None,
+        width: int | None = None,
+        y_lim: List[int] | None = None,
+        caption: str | None = None,
+        interactive: bool | None = True,
+        label: str | None = None,
+        show_label: bool = True,
+        every: float | None = None,
+        visible: bool = True,
+        elem_id: str | None = None,
+    ):
+        """
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the bar color. Must be categorical (discrete values).
+            vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
+            group: The column with which to split the overall plot into smaller subplots.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            visible: Whether the plot should be visible.
+            elem_id: Unique id used for custom css targetting.
+        """
+        self.x = x
+        self.y = y
+        self.color = color
+        self.vertical = vertical
+        self.group = group
+        self.group_title = group_title
+        self.tooltip = tooltip
+        self.title = title
+        self.x_title = x_title
+        self.y_title = y_title
+        self.color_legend_title = color_legend_title
+        self.group_title = group_title
+        self.color_legend_position = color_legend_position
+        self.y_lim = y_lim
+        self.caption = caption
+        self.interactive_chart = interactive
+        self.width = width
+        self.height = height
+        super().__init__(
+            value=value,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            every=every,
+        )
+
+    def get_config(self):
+        config = super().get_config()
+        config["caption"] = self.caption
+        return config
+
+    def get_block_name(self) -> str:
+        return "plot"
+
+    @staticmethod
+    def update(
+        value: pd.DataFrame | Dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        x: str | None = None,
+        y: str | None = None,
+        color: str | None = None,
+        vertical: bool = True,
+        group: str | None = None,
+        title: str | None = None,
+        tooltip: List[str] | str | None = None,
+        x_title: str | None = None,
+        y_title: str | None = None,
+        color_legend_title: str | None = None,
+        group_title: str | None = None,
+        color_legend_position: str | None = None,
+        height: int | None = None,
+        width: int | None = None,
+        y_lim: List[int] | None = None,
+        caption: str | None = None,
+        interactive: bool | None = True,
+        label: str | None = None,
+        show_label: bool = True,
+        visible: bool = True,
+    ):
+        """Update an existing BarPlot component.
+
+        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
+
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the bar color. Must be categorical (discrete values).
+            vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
+            group: The column with which to split the overall plot into smaller subplots.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+        """
+        properties = [
+            x,
+            y,
+            color,
+            vertical,
+            group,
+            title,
+            tooltip,
+            x_title,
+            y_title,
+            color_legend_title,
+            group_title,
+            color_legend_position,
+            height,
+            width,
+            y_lim,
+            interactive,
+        ]
+        if any(properties):
+            if not isinstance(value, pd.DataFrame):
+                raise ValueError(
+                    "In order to update plot properties the value parameter "
+                    "must be provided, and it must be a Dataframe. Please pass a value "
+                    "parameter to gr.BarPlot.update."
+                )
+            if x is None or y is None:
+                raise ValueError(
+                    "In order to update plot properties, the x and y axis data "
+                    "must be specified. Please pass valid values for x an y to "
+                    "gr.BarPlot.update."
+                )
+            chart = BarPlot.create_plot(value, *properties)
+            value = {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "caption": caption,
+            "__type__": "update",
+        }
+        return updated_config
+
+    @staticmethod
+    def create_plot(
+        value: pd.DataFrame,
+        x: str,
+        y: str,
+        color: str | None = None,
+        vertical: bool = True,
+        group: str | None = None,
+        title: str | None = None,
+        tooltip: List[str] | str | None = None,
+        x_title: str | None = None,
+        y_title: str | None = None,
+        color_legend_title: str | None = None,
+        group_title: str | None = None,
+        color_legend_position: str | None = None,
+        height: int | None = None,
+        width: int | None = None,
+        y_lim: List[int] | None = None,
+        interactive: bool | None = True,
+    ):
+        """Helper for creating the scatter plot."""
+        interactive = True if interactive is None else interactive
+        orientation = (
+            dict(field=group, title=group_title if group_title is not None else group)
+            if group
+            else {}
+        )
+
+        x_title = x_title or x
+        y_title = y_title or y
+
+        # If horizontal, switch x and y
+        if not vertical:
+            y, x = x, y
+            x = f"sum({x}):Q"
+            y_title, x_title = x_title, y_title
+            orientation = {"row": alt.Row(**orientation)} if orientation else {}  # type: ignore
+            x_lim = y_lim
+            y_lim = None
+        else:
+            y = f"sum({y}):Q"
+            x_lim = None
+            orientation = {"column": alt.Column(**orientation)} if orientation else {}  # type: ignore
+
+        encodings = dict(
+            x=alt.X(
+                x,  # type: ignore
+                title=x_title,  # type: ignore
+                scale=AltairPlot.create_scale(x_lim),  # type: ignore
+            ),
+            y=alt.Y(
+                y,  # type: ignore
+                title=y_title,  # type: ignore
+                scale=AltairPlot.create_scale(y_lim),  # type: ignore
+            ),
+            **orientation,
+        )
+        properties = {}
+        if title:
+            properties["title"] = title
+        if height:
+            properties["height"] = height
+        if width:
+            properties["width"] = width
+
+        if color:
+            domain = value[color].unique().tolist()
+            range_ = list(range(len(domain)))
+            encodings["color"] = {
+                "field": color,
+                "type": "nominal",
+                "scale": {"domain": domain, "range": range_},
+                "legend": AltairPlot.create_legend(
+                    position=color_legend_position, title=color_legend_title or color
+                ),
+            }
+
+        if tooltip:
+            encodings["tooltip"] = tooltip
+
+        chart = (
+            alt.Chart(value)  # type: ignore
+            .mark_bar()  # type: ignore
+            .encode(**encodings)
+            .properties(background="transparent", **properties)
+        )
+        if interactive:
+            chart = chart.interactive()
+
+        return chart
+
+    def postprocess(self, y: pd.DataFrame | Dict | None) -> Dict[str, str] | None:
+        # if None or update
+        if y is None or isinstance(y, Dict):
+            return y
+        if self.x is None or self.y is None:
+            raise ValueError("No value provided for required parameters `x` and `y`.")
+        chart = self.create_plot(
+            value=y,
+            x=self.x,
+            y=self.y,
+            color=self.color,
+            vertical=self.vertical,
+            group=self.group,
+            title=self.title,
+            tooltip=self.tooltip,
+            x_title=self.x_title,
+            y_title=self.y_title,
+            color_legend_title=self.color_legend_title,
+            color_legend_position=self.color_legend_position,
+            group_title=self.group_title,
+            y_lim=self.y_lim,
+            interactive=self.interactive_chart,
+            height=self.height,
+            width=self.width,
+        )
+
+        return {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
+
+
 @document("change")
 class Markdown(IOComponent, Changeable, SimpleSerializable):
     """
@@ -4974,6 +5318,8 @@ class Dataset(Clickable, Component):
             [isinstance(c, IOComponent) for c in self.components]
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
         self.components = [c for c in self.components if isinstance(c, IOComponent)]
+        for component in self.components:
+            component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:

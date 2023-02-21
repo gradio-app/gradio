@@ -62,6 +62,8 @@
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
+	export let loading_text: string = "Loading...";
+	export let absolute: boolean = true;
 
 	let el: HTMLDivElement;
 
@@ -185,6 +187,8 @@
 	class:translucent={variant === "center" &&
 		(status === "pending" || status === "error")}
 	class:generating={status === "generating"}
+	style:position={absolute ? "absolute" : "static"}
+	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
@@ -256,10 +260,11 @@
 		{/if}
 
 		{#if !timer}
-			<p class="loading">Loading...</p>
+			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
+		<slot name="error" />
 		{#if message_visible}
 			<div class="toast">
 				<div
@@ -298,16 +303,15 @@
 <style>
 	.wrap {
 		display: flex;
-		position: absolute;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
 		border-radius: var(--rounded-lg);
 		background-color: var(--color-background-tertiary);
+		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
-		pointer-events: none;
 	}
 
 	.wrap.center {
@@ -325,6 +329,7 @@
 
 	.hide {
 		opacity: 0;
+		pointer-events: none;
 	}
 
 	.generating {

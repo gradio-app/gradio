@@ -10,6 +10,7 @@ import mimetypes
 import os
 import posixpath
 import secrets
+import tempfile
 import traceback
 from collections import defaultdict
 from copy import deepcopy
@@ -17,10 +18,11 @@ from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
+import httpx
 import markupsafe
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -31,15 +33,18 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from starlette.responses import RedirectResponse
+from starlette.background import BackgroundTask
+from starlette.responses import RedirectResponse, StreamingResponse
 from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
 from gradio import utils
+from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
+from gradio.processing_utils import TempFileManager
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
@@ -85,6 +90,7 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
+client = httpx.AsyncClient()
 
 ###########
 # Auth
@@ -105,6 +111,7 @@ class App(FastAPI):
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
+        self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -144,7 +151,9 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
-            token = request.cookies.get("access-token")
+            token = request.cookies.get("access-token") or request.cookies.get(
+                "access-token-unsecure"
+            )
             return app.tokens.get(token)
 
         @app.get("/login_check")
@@ -184,8 +193,17 @@ class App(FastAPI):
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-                response.set_cookie(key="access-token", value=token, httponly=True)
+                response = JSONResponse(content={"success": True})
+                response.set_cookie(
+                    key="access-token",
+                    value=token,
+                    httponly=True,
+                    samesite="none",
+                    secure=True,
+                )
+                response.set_cookie(
+                    key="access-token-unsecure", value=token, httponly=True
+                )
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
@@ -206,6 +224,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
+                    "is_space": app.get_blocks().is_space,
                 }
 
             try:
@@ -255,18 +274,46 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
-        @app.head("/file={path:path}", dependencies=[Depends(login_check)])
-        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
-        async def file(path: str, request: fastapi.Request):
-            abs_path = str(utils.abspath(path))
-            blocks = app.get_blocks()
-            if utils.validate_url(path):
-                return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path).parents
-            created_by_app = str(utils.abspath(path)) in set().union(
-                *blocks.temp_file_sets
+        @app.head("/proxy={url_path:path}", dependencies=[Depends(login_check)])
+        @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
+        async def reverse_proxy(url_path: str):
+            # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
+            url = httpx.URL(url_path)
+            headers = {}
+            if Context.access_token is not None:
+                headers["Authorization"] = f"Bearer {Context.access_token}"
+            rp_req = client.build_request("GET", url, headers=headers)
+            rp_resp = await client.send(rp_req, stream=True)
+            return StreamingResponse(
+                rp_resp.aiter_raw(),
+                status_code=rp_resp.status_code,
+                headers=rp_resp.headers,  # type: ignore
+                background=BackgroundTask(rp_resp.aclose),
             )
-            if in_app_dir or created_by_app:
+
+        @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        async def file(path_or_url: str, request: fastapi.Request):
+            blocks = app.get_blocks()
+            if utils.validate_url(path_or_url):
+                return RedirectResponse(
+                    url=path_or_url, status_code=status.HTTP_302_FOUND
+                )
+            abs_path = str(utils.abspath(path_or_url))
+            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
+            created_by_app = abs_path in set().union(*blocks.temp_file_sets)
+            in_file_dir = any(
+                (
+                    utils.abspath(dir) in utils.abspath(path_or_url).parents
+                    for dir in blocks.file_directories
+                )
+            )
+            was_uploaded = (
+                utils.abspath(app.uploaded_file_dir)
+                in utils.abspath(path_or_url).parents
+            )
+
+            if in_app_dir or created_by_app or in_file_dir or was_uploaded:
                 range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
@@ -285,7 +332,7 @@ class App(FastAPI):
 
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
+                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -473,6 +520,21 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
 
+        @app.post("/upload", dependencies=[Depends(login_check)])
+        async def upload_file(
+            files: List[UploadFile] = File(...),
+        ):
+            output_files = []
+            file_manager = TempFileManager()
+            for input_file in files:
+                output_files.append(
+                    await file_manager.save_uploaded_file(
+                        input_file, app.uploaded_file_dir
+                    )
+                )
+            return output_files
+
+        @app.on_event("startup")
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:

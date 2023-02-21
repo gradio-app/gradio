@@ -61,7 +61,7 @@ class Changeable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -124,7 +124,7 @@ class Clickable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -189,7 +189,7 @@ class Submittable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -253,7 +253,7 @@ class Editable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -317,7 +317,7 @@ class Clearable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -336,7 +336,7 @@ class Clearable(EventListener):
             )
 
         dep = self.set_event_trigger(
-            "submit",
+            "clear",
             fn,
             inputs,
             outputs,
@@ -351,7 +351,7 @@ class Clearable(EventListener):
             max_batch_size=max_batch_size,
             every=every,
         )
-        set_cancel_events(self, "submit", cancels)
+        set_cancel_events(self, "clear", cancels)
         return dep
 
 
@@ -381,7 +381,7 @@ class Playable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -443,7 +443,7 @@ class Playable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -505,7 +505,7 @@ class Playable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -569,7 +569,7 @@ class Streamable(EventListener):
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -633,7 +633,7 @@ class Blurrable(EventListener):
         Parameters:
             fn: Callable function
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
-            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending

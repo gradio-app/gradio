@@ -27,6 +27,7 @@
 	export let mirror_webcam: boolean;
 
 	let sketch: Sketch;
+	let cropper: Cropper;
 
 	if (
 		value &&
@@ -103,7 +104,7 @@
 		container_height = element.getBoundingClientRect().height;
 	}
 
-	async function handle_mask_clear() {
+	async function handle_sketch_clear() {
 		sketch.clear();
 		await tick();
 		value = null;
@@ -146,6 +147,17 @@
 			static_image = undefined;
 		}
 	}
+
+	$: {
+		if (cropper) {
+			if (value) {
+				cropper.image = value;
+				cropper.create();
+			} else {
+				cropper.destroy();
+			}
+		}
+	}
 </script>
 
 <BlockLabel
@@ -173,7 +185,7 @@
 			{#if (value === null && !static_image) || streaming}
 				<slot />
 			{:else if tool === "select"}
-				<Cropper image={value} on:crop={handle_save} />
+				<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
 				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 			{:else if tool === "editor"}
 				<ModifyUpload
@@ -214,7 +226,7 @@
 					/>
 					<ModifySketch
 						on:undo={() => sketch.undo()}
-						on:clear={handle_mask_clear}
+						on:clear={handle_sketch_clear}
 					/>
 					{#if tool === "color-sketch" || tool === "sketch"}
 						<SketchSettings
@@ -238,7 +250,7 @@
 	{:else if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
-			on:clear={() => sketch.clear()}
+			on:clear={handle_sketch_clear}
 		/>
 		{#if tool === "color-sketch"}
 			<SketchSettings
@@ -255,6 +267,7 @@
 			bind:brush_color
 			bind:this={sketch}
 			on:change={handle_save}
+			on:clear={handle_sketch_clear}
 			{mode}
 			width={img_width || max_width}
 			height={img_height || max_height}
@@ -273,7 +286,7 @@
 			/>
 		{/if}
 	{:else if tool === "select"}
-		<Cropper image={value} on:crop={handle_save} />
+		<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
 		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 	{:else if tool === "editor"}
 		<ModifyUpload
@@ -314,7 +327,7 @@
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
-				on:clear={handle_mask_clear}
+				on:clear={handle_sketch_clear}
 			/>
 			{#if tool === "color-sketch" || tool === "sketch"}
 				<SketchSettings

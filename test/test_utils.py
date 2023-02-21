@@ -2,8 +2,10 @@ import copy
 import ipaddress
 import json
 import os
+import sys
 import unittest.mock as mock
 import warnings
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
@@ -29,8 +31,10 @@ from gradio.utils import (
     format_ner_list,
     get_local_ip_address,
     ipython_check,
+    kaggle_check,
     launch_analytics,
     readme_to_html,
+    sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     strip_invalid_filename_characters,
@@ -102,6 +106,47 @@ class TestUtils:
 
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+
+    def test_sagemaker_check_false(self):
+        assert not sagemaker_check()
+
+    def test_sagemaker_check_false_if_boto3_not_installed(self):
+        with mock.patch.dict(sys.modules, {"boto3": None}, clear=True):
+            assert not sagemaker_check()
+
+    @mock.patch("boto3.session.Session.client")
+    def test_sagemaker_check_true(self, mock_client):
+        mock_client().get_caller_identity = MagicMock(
+            return_value={
+                "Arn": "arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker"
+            }
+        )
+        assert sagemaker_check()
+
+    def test_kaggle_check_false(self):
+        assert not kaggle_check()
+
+    def test_kaggle_check_true_when_run_type_set(self):
+        with mock.patch.dict(
+            os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_true_when_both_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
+            clear=True,
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_false_when_neither_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
+            clear=True,
+        ):
+            assert not kaggle_check()
 
 
 class TestIPAddress:
@@ -248,7 +293,16 @@ class TestDeleteNone:
                 None: 123,
             },
         }
-        truth = {"a": 12, "b": 34, "k": {"d": 34, "m": [{"k": 23}, [1, 2, 3], {1, 2}]}}
+        truth = {
+            "a": 12,
+            "b": 34,
+            "k": {
+                "d": 34,
+                "t": None,
+                "m": [{"k": 23, "t": None}, [None, 1, 2, 3], {1, 2, None}],
+                None: 123,
+            },
+        }
         assert delete_none(input) == truth
 
 

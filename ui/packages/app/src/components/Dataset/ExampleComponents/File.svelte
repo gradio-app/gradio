@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FileData } from "../../File/types";
+	import type { FileData } from "@gradio/upload";
 
 	export let value: FileData;
 	export let type: "gallery" | "table";

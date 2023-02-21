@@ -7,6 +7,7 @@ import json
 import os
 import pkgutil
 import random
+import secrets
 import sys
 import time
 import warnings
@@ -73,6 +74,7 @@ class Block:
         self.visible = visible
         self.elem_id = elem_id
         self.root_url = root_url
+        self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
@@ -336,13 +338,12 @@ class BlockFunction:
         self.total_runtime = 0
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
+        self.name = getattr(fn, "__name__", "fn") if fn is not None else None
 
     def __str__(self):
         return str(
             {
-                "fn": getattr(self.fn, "__name__", "fn")
-                if self.fn is not None
-                else None,
+                "fn": self.name,
                 "preprocess": self.preprocess,
                 "postprocess": self.postprocess,
             }
@@ -521,6 +522,8 @@ class Blocks(BlockContext):
         self.api_mode = None
         self.progress_tracking = None
 
+        self.file_directories = []
+
         if self.analytics_enabled:
             data = {
                 "mode": self.mode,
@@ -533,7 +536,10 @@ class Blocks(BlockContext):
 
     @classmethod
     def from_config(
-        cls, config: dict, fns: List[Callable], root_url: str | None = None
+        cls,
+        config: dict,
+        fns: List[Callable],
+        root_url: str | None = None,
     ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions.
@@ -936,9 +942,14 @@ class Blocks(BlockContext):
 
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
-            if predictions[i] is components._Keywords.FINISHED_ITERATING:
-                output.append(None)
-                continue
+            try:
+                if predictions[i] is components._Keywords.FINISHED_ITERATING:
+                    output.append(None)
+                    continue
+            except (IndexError, KeyError):
+                raise ValueError(
+                    f"Number of output components does not match number of values returned from from function {block_fn.name}"
+                )
             block = self.blocks[output_id]
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
@@ -959,6 +970,7 @@ class Blocks(BlockContext):
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
+
         return output
 
     async def process_api(
@@ -1238,6 +1250,7 @@ class Blocks(BlockContext):
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
+        self.app = routes.App.create_app(self)
         return self
 
     def launch(
@@ -1264,6 +1277,7 @@ class Blocks(BlockContext):
         ssl_keyfile_password: str | None = None,
         quiet: bool = False,
         show_api: bool = True,
+        file_directories: List[str] | None = None,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -1293,6 +1307,7 @@ class Blocks(BlockContext):
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
+            file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1335,6 +1350,8 @@ class Blocks(BlockContext):
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
+
+        self.file_directories = file_directories if file_directories is not None else []
 
         if not self.enable_queue and self.progress_tracking:
             raise ValueError("Progress tracking requires queuing to be enabled.")
@@ -1389,6 +1406,9 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
+            self.is_kaggle = utils.kaggle_check()
+            self.is_sagemaker = utils.sagemaker_check()
+
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
@@ -1407,13 +1427,29 @@ class Blocks(BlockContext):
                     raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
-        self.share = (
-            share
-            if share is not None
-            else True
-            if self.is_colab and self.enable_queue
-            else False
-        )
+        if share is None:
+            if self.is_colab and self.enable_queue:
+                if not quiet:
+                    print(
+                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            elif self.is_kaggle:
+                if not quiet:
+                    print(
+                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            elif self.is_sagemaker:
+                if not quiet:
+                    print(
+                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            else:
+                self.share = False
+        else:
+            self.share = share
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
@@ -1447,7 +1483,7 @@ class Blocks(BlockContext):
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
-                        self.server_name, self.server_port
+                        self.server_name, self.server_port, self.share_token
                     )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):

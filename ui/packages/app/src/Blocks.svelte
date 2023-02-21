@@ -35,9 +35,9 @@
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let id: number = 0;
-	export let autoscroll: boolean = false;
+	export let autoscroll: boolean;
 	export let show_api: boolean = true;
+	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme: string;
@@ -196,18 +196,14 @@
 		_component_map.set(c.type, _c);
 	});
 
-	let ready = false;
+	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
 				ready = true;
-
-				await tick();
-				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				window.__gradio_loader__[id].$set({ status: "error" });
 			});
 	});
 
@@ -404,7 +400,7 @@
 	{/if}
 </svelte:head>
 
-<div class="wrap" style:min-height={app_mode ? "var(--size-screen-h)" : "auto"}>
+<div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
@@ -423,28 +419,31 @@
 			/>
 		{/if}
 	</div>
-	<footer>
-		{#if show_api}
-			<button
-				on:click={() => {
-					set_api_docs_visible(!api_docs_visible);
-				}}
-				class="show-api"
+
+	{#if show_footer}
+		<footer>
+			{#if show_api}
+				<button
+					on:click={() => {
+						set_api_docs_visible(!api_docs_visible);
+					}}
+					class="show-api"
+				>
+					Use via API <img src={api_logo} alt="" />
+				</button>
+				<div>·</div>
+			{/if}
+			<a
+				href="https://gradio.app"
+				class="built-with"
+				target="_blank"
+				rel="noreferrer"
 			>
-				Use via API <img src={api_logo} alt="" />
-			</button>
-			<div>·</div>
-		{/if}
-		<a
-			href="https://gradio.app"
-			class="built-with"
-			target="_blank"
-			rel="noreferrer"
-		>
-			Built with Gradio
-			<img src={logo} alt="logo" />
-		</a>
-	</footer>
+				Built with Gradio
+				<img src={logo} alt="logo" />
+			</a>
+		</footer>
+	{/if}
 </div>
 
 {#if api_docs_visible && ready}
@@ -471,48 +470,15 @@
 <style>
 	.wrap {
 		display: flex;
+		flex-grow: 1;
 		flex-direction: column;
 		width: var(--size-full);
-	}
-
-	.contain {
-		margin-right: auto;
-		margin-left: auto;
-		background: var(--color-background-primary);
-		padding: var(--size-6) var(--size-4);
-		width: 100%;
-	}
-
-	@media (--screen-sm) {
-		.contain {
-			max-width: 640px;
-		}
-	}
-	@media (--screen-md) {
-		.contain {
-			max-width: 768px;
-		}
-	}
-	@media (--screen-lg) {
-		.contain {
-			max-width: 1024px;
-		}
-	}
-	@media (--screen-xl) {
-		.contain {
-			max-width: 1280px;
-		}
-	}
-	@media (--screen-xxl) {
-		.contain {
-			max-width: 1536px;
-		}
 	}
 
 	footer {
 		display: flex;
 		justify-content: center;
-		padding-bottom: var(--size-6);
+		margin-top: var(--size-4);
 		color: var(--color-text-subdued);
 		font-size: var(--scale-00);
 	}
@@ -554,6 +520,7 @@
 		display: flex;
 		position: fixed;
 		top: 0;
+		right: 0;
 		z-index: var(--layer-5);
 		background: rgba(0, 0, 0, 0.5);
 		width: var(--size-screen);

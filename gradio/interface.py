@@ -308,7 +308,7 @@ class Interface(Blocks):
                     "html": True,
                 },
             )
-            .use(dollarmath_plugin)
+            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
             .use(footnote_plugin)
             .enable("table")
         )
@@ -547,7 +547,7 @@ class Interface(Blocks):
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
                         if inspect.isgeneratorfunction(self.fn):
-                            stop_btn = Button("Stop", variant="stop")
+                            stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Submit", variant="primary")
@@ -588,7 +588,7 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        stop_btn = Button("Stop", variant="stop")
+                        stop_btn = Button("Stop", variant="stop", visible=False)
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
@@ -643,10 +643,38 @@ class Interface(Blocks):
                         )
         else:
             assert submit_btn is not None, "Submit button not rendered"
+            fn = self.fn
+            extra_output = []
+            if stop_btn:
+
+                # Wrap the original function to show/hide the "Stop" button
+                def fn(*args):
+                    # The main idea here is to call the original function
+                    # and append some updates to keep the "Submit" button
+                    # hidden and the "Stop" button visible
+                    # The 'finally' block hides the "Stop" button and
+                    # shows the "submit" button. Having a 'finally' block
+                    # will make sure the UI is "reset" even if there is an exception
+                    try:
+                        for output in self.fn(*args):
+                            if len(self.output_components) == 1 and not self.batch:
+                                output = [output]
+                            output = [o for o in output]
+                            yield output + [
+                                Button.update(visible=False),
+                                Button.update(visible=True),
+                            ]
+                    finally:
+                        yield [
+                            {"__type__": "generic_update"}
+                            for _ in self.output_components
+                        ] + [Button.update(visible=True), Button.update(visible=False)]
+
+                extra_output = [submit_btn, stop_btn]
             pred = submit_btn.click(
-                self.fn,
+                fn,
                 self.input_components,
-                self.output_components,
+                self.output_components + extra_output,
                 api_name="predict",
                 scroll_to_output=True,
                 preprocess=not (self.api_mode),
@@ -655,11 +683,24 @@ class Interface(Blocks):
                 max_batch_size=self.max_batch_size,
             )
             if stop_btn:
-                stop_btn.click(
-                    None,
+                submit_btn.click(
+                    lambda: (
+                        submit_btn.update(visible=False),
+                        stop_btn.update(visible=True),
+                    ),
                     inputs=None,
-                    outputs=None,
+                    outputs=[submit_btn, stop_btn],
+                    queue=False,
+                )
+                stop_btn.click(
+                    lambda: (
+                        submit_btn.update(visible=True),
+                        stop_btn.update(visible=False),
+                    ),
+                    inputs=None,
+                    outputs=[submit_btn, stop_btn],
                     cancels=[pred],
+                    queue=False,
                 )
 
     def attach_clear_events(

@@ -17,6 +17,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_update",
         "calculator",
         "cancel_events",
+        "chatbot_multimodal",
         "fake_gan",
         "fake_diffusion_with_gif",
         "gender_sentence_default_interpretation",
@@ -34,6 +35,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "stt_or_tts",
         "stream_audio",
         "stream_frames",
+        "video_component",
         "zip_files",
     ]
     for demo in demos_to_copy:

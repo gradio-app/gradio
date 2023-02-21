@@ -26,6 +26,14 @@ $code_hello_world
 
 $demo_hello_world
 
+When developing locally, if you want to run the code as a Python script, you can use the Gradio CLI to launch the application **in reload mode**, which will provide seamless and fast development. Learn more about reloading in the [Auto-Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
+
+```bash
+gradio app.py
+```
+
+Note: you can also do `python app.py`, but it won't provide the automatic reload mechanism.
+
 ## The `Interface` Class
 
 You'll notice that in order to make the demo, we created a `gradio.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
@@ -103,6 +111,6 @@ Here's an app to give you a taste of what's possible with `Blocks`:
 $code_blocks_flipper
 $demo_blocks_flipper
 
-A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://github.com/gradio-app/gradio/tree/main/guides/3\)building_with_blocks) section for you.
+A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://gradio.app/building_with_blocks) section for you.
 
 Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
