@@ -177,7 +177,7 @@
 	{#if source === "upload"}
 		<Upload
 			bind:dragging
-			filetype="image/png,image/gif,image/jpeg"
+			filetype="image/*"
 			on:load={handle_upload}
 			include_file_metadata={false}
 			disable_click={!!value}
