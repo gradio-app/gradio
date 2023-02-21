@@ -887,7 +887,16 @@ def tex2svg(formula, *args):
     svg_code = xml_code[svg_start:]
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     svg_code = re.sub(r' width="[^"]+"', '', svg_code)
-    svg_code = re.sub(r' height="[^"]+"', '', svg_code)
+    print(svg_code[:100])
+    height_match = re.search(r'height="([\d.]+)pt"', svg_code)
+    print(height_match)
+    if height_match:
+        height = float(height_match.group(1))
+        print("height", height)
+        new_height = height / 20   # rough conversion from pt to em
+        print("new_height", new_height)
+        svg_code = re.sub(r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code)
+    print(svg_code[:100])
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
