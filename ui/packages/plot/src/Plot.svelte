@@ -239,8 +239,6 @@
 	}
 
 	.matplotlib img {
-		width: var(--size-full);
-		max-height: var(--size-32);
 		object-fit: contain;
 	}
 </style>
