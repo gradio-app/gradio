@@ -1,5 +1,6 @@
 import gradio as gr
 from gradio.components import Markdown as md
+from PIL import Image
 
 demo = gr.Blocks()
 
@@ -50,6 +51,21 @@ io5a = gr.Interface(
 io5b = gr.Interface(lambda x: x, gr.ImagePaint(), gr.Image())
 io5c = gr.Interface(
     lambda x: x, gr.Image(source="webcam", tool="color-sketch"), gr.Image()
+)
+
+
+def save_image(image):
+    image.save("colorede.png")
+    return image
+
+
+img = Image.new("RGB", (512, 512), (150, 150, 150))
+img.save("image.png", "PNG")
+
+io5d = gr.Interface(
+    save_image,
+    gr.Image("image.png", source="upload", tool="color-sketch", type="pil"),
+    gr.Image(),
 )
 
 
@@ -130,6 +146,8 @@ gr.Interface(
         io3b2.render()
     with gr.Tab("Two"):
         io3b3.render()
+    md("**5d. Color Sketchpad with image upload and a default images**")
+    io5d.render()
 
 
 if __name__ == "__main__":

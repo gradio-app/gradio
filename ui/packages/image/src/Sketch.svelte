@@ -14,7 +14,6 @@
 	export let brush_color = "#0b0f19";
 	export let brush_radius = 50;
 	export let source;
-	$: console.log($$props.width, old_height);
 
 	export let width = 400;
 	export let height = 200;
@@ -33,7 +32,6 @@
 
 	$: {
 		if (mounted && value_img !== last_value_img) {
-			console.log("boo");
 			last_value_img = value_img;
 
 			clear();
@@ -152,7 +150,6 @@
 
 		canvas_observer = new ResizeObserver((entries, observer, ...rest) => {
 			handle_canvas_resize(entries, observer);
-			console.log("RESIZE OBSERVER");
 		});
 		canvas_observer.observe(canvas_container);
 
@@ -284,7 +281,6 @@
 	let old_container_height = 0;
 
 	let handle_canvas_resize = async () => {
-		console.log("RESIZE");
 		if (
 			width === old_width &&
 			height === old_height &&
@@ -293,7 +289,6 @@
 			return;
 		}
 		const dimensions = { width: width, height: height };
-		console.log({ dimensions });
 
 		const container_dimensions = {
 			height: container_height,
@@ -331,7 +326,6 @@
 
 	$: {
 		if (width || height) {
-			console.log("WIDTH?HEIGHT RESIZE");
 			handle_canvas_resize();
 		}
 	}
@@ -341,7 +335,6 @@
 		await tick();
 
 		const dpr = window.devicePixelRatio || 1;
-		console.log(dpr, dimensions);
 		canvas.width = dimensions.width * (scale ? dpr : 1);
 		canvas.height = dimensions.height * (scale ? dpr : 1);
 
