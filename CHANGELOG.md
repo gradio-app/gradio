@@ -13,7 +13,8 @@
 No changes to highlight.
 
 ## Testing and Infrastructure Changes:
-No changes to highlight.
+* Adds a script to benchmark the performance of the queue and adds some instructions on how to use it. By [@freddyaboulton](https://github.com/freddyaboulton) and [@abidlabs](https://github.com/abidlabs) in [PR 3272](https://github.com/gradio-app/gradio/pull/3272)
+
 
 ## Breaking Changes:
 No changes to highlight.
