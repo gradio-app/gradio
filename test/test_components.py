@@ -1784,7 +1784,7 @@ class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
         assert markdown_component.get_config()["value"].startswith(
-            """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
+            """<h1>Let’s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
         )
 
     def test_in_interface(self):
@@ -1796,7 +1796,7 @@ class TestMarkdown:
         output_data = iface(input_data)
         assert (
             output_data
-            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png">image</a></p>\n"""
+            == """<p>Here’s an <a href="https://gradio.app/images/gradio_logo.png" target="_blank">image</a></p>\n"""
         )
 
 
@@ -2017,7 +2017,9 @@ simple = pd.DataFrame(
 
 
 class TestScatterPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
+
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
@@ -2029,6 +2031,7 @@ class TestScatterPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2199,6 +2202,7 @@ class TestScatterPlot:
 
 
 class TestLinePlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.LinePlot().get_config() == {
             "caption": None,
@@ -2211,6 +2215,7 @@ class TestLinePlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2360,6 +2365,7 @@ class TestLinePlot:
 
 
 class TestBarPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.BarPlot().get_config() == {
             "caption": None,
@@ -2372,6 +2378,7 @@ class TestBarPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):

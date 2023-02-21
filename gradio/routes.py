@@ -10,6 +10,7 @@ import mimetypes
 import os
 import posixpath
 import secrets
+import tempfile
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
@@ -22,7 +23,7 @@ import httpx
 import markupsafe
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -44,6 +45,7 @@ from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
+from gradio.processing_utils import TempFileManager
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
@@ -110,6 +112,7 @@ class App(FastAPI):
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
+        self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -149,7 +152,9 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
-            token = request.cookies.get("access-token")
+            token = request.cookies.get("access-token") or request.cookies.get(
+                "access-token-unsecure"
+            )
             return app.tokens.get(token)
 
         @app.get("/login_check")
@@ -196,6 +201,9 @@ class App(FastAPI):
                     httponly=True,
                     samesite="none",
                     secure=True,
+                )
+                response.set_cookie(
+                    key="access-token-unsecure", value=token, httponly=True
                 )
                 return response
             else:
@@ -293,17 +301,19 @@ class App(FastAPI):
                 )
             abs_path = str(utils.abspath(path_or_url))
             in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
-            created_by_app = str(utils.abspath(path_or_url)) in set().union(
-                *blocks.temp_file_sets
-            )
+            created_by_app = abs_path in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
                 (
                     utils.abspath(dir) in utils.abspath(path_or_url).parents
                     for dir in blocks.file_directories
                 )
             )
+            was_uploaded = (
+                utils.abspath(app.uploaded_file_dir)
+                in utils.abspath(path_or_url).parents
+            )
 
-            if in_app_dir or created_by_app or in_file_dir:
+            if in_app_dir or created_by_app or in_file_dir or was_uploaded:
                 range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
@@ -521,6 +531,20 @@ class App(FastAPI):
         )
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
+
+        @app.post("/upload", dependencies=[Depends(login_check)])
+        async def upload_file(
+            files: List[UploadFile] = File(...),
+        ):
+            output_files = []
+            file_manager = TempFileManager()
+            for input_file in files:
+                output_files.append(
+                    await file_manager.save_uploaded_file(
+                        input_file, app.uploaded_file_dir
+                    )
+                )
+            return output_files
 
         @app.on_event("startup")
         @app.get("/startup-events")
