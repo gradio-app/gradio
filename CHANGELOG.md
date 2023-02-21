@@ -15,6 +15,7 @@ by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3211](https://github.
 
 ## Bug Fixes:
 - UI fixes including footer and API docs by [@aliabid94](https://github.com/aliabid94) in [PR 3242](https://github.com/gradio-app/gradio/pull/3242)
+- Updated image upload component to accept all image formats, including lossless formats like .webp by [@fienestar](https://github.com/fienestar) in [PR 3225](https://github.com/gradio-app/gradio/pull/3225)
 
 ## Documentation Changes:
 No changes to highlight.
