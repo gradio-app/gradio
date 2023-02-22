@@ -2,6 +2,7 @@
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
+	import { Remove, DropdownArrow } from "@gradio/icons";
 	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
 	export let multiselect: boolean = false;
@@ -34,8 +35,6 @@
 	$: readonly =
 		(!multiselect && typeof value === "string") ||
 		(multiselect && Array.isArray(value) && value.length === max_choices);
-	const iconClearPath =
-		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
 	function add(option: string) {
 		if (Array.isArray(value)) {
@@ -132,14 +131,7 @@
 							class="token-remove"
 							title="Remove {s}"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-							>
-								<path d={iconClearPath} />
-							</svg>
+							<Remove />
 						</div>
 					</div>
 				{/each}
@@ -166,25 +158,9 @@
 					title="Remove All"
 					on:click={remove_all}
 				>
-					<svg
-						class="icon-clear"
-						xmlns="http://www.w3.org/2000/svg"
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-					>
-						<path d={iconClearPath} />
-					</svg>
+					<Remove />
 				</div>
-				<svg
-					class="dropdown-arrow"
-					xmlns="http://www.w3.org/2000/svg"
-					width="18"
-					height="18"
-					viewBox="0 0 18 18"
-				>
-					<path d="M5 8l4 4 4-4z" />
-				</svg>
+				<DropdownArrow/>
 			</div>
 		</div>
 
@@ -219,9 +195,17 @@
 
 <style>
 	.wrap {
+		--ring-color: transparent;
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--shadow-inset);
 		position: relative;
 		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
+	}
+
+	.wrap:focus-within {
+		--ring-color: var(--color-focus-ring);
+		border-color: var(--input-border-color-focus);
 	}
 
 	.wrap-inner {
@@ -288,17 +272,18 @@
 	}
 
 	input {
-		margin-left: var(--size-2);
+		padding: var(--size-2-5);
 		outline: none;
 		border: none;
 		background: inherit;
-		width: var(--size-full);
+		width: 100%;
 		color: var(--color-text-body);
-		font-size: var(--scale-1);
+		font-size: var(--scale-00);
 	}
 
 	input:disabled {
 		cursor: not-allowed;
+		box-shadow: none;
 	}
 
 	.remove-all {
@@ -310,12 +295,6 @@
 	.remove-all:hover {
 		border: 1px solid var(--icon_button-border-color-hover);
 		color: var(--color-text-label);
-	}
-
-	.dropdown-arrow {
-		fill: var(--color-text-body);
-		margin-right: var(--size-2);
-		width: var(--size-5);
 	}
 
 	.options {
