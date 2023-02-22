@@ -94,7 +94,7 @@
 		flex-direction: column;
 		flex-wrap: wrap;
 		gap: var(--size-4);
-		border-radius: var(--rounded-lg);
+		border-radius: var(--radius-lg);
 		background: var(--color-background-secondary);
 		padding: var(--size-8);
 		width: var(--size-full);

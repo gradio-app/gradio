@@ -240,7 +240,7 @@
 		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--rounded);
+		border-radius: var(--radius-sm);
 		background-color: var(--color-background-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
@@ -340,7 +340,7 @@
 		z-index: var(--layer-1);
 		border-top: 1px solid var(--color-border-primary);
 		border-left: 1px solid var(--color-border-primary);
-		border-top-left-radius: var(--rounded-lg);
+		border-top-left-radius: var(--radius-lg);
 		background: var(--color-background-secondary);
 		padding: var(--size-1) var(--size-3);
 		max-width: 80%;

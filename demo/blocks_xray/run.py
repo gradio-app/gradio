@@ -22,12 +22,12 @@ With this model you can lorem ipsum
 """
     )
     disease = gr.CheckboxGroup(
-        choices=["Covid", "Malaria", "Lung Cancer"], label="Disease", info="Select any disease that ypu may wish to scan for"
+        choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
     )
 
     with gr.Tab("X-ray") as x_tab:
         with gr.Row():
-            xray_scan = gr.Image(info="Attach X-ray scan")
+            xray_scan = gr.Image()
             xray_results = gr.JSON()
         xray_run = gr.Button("Run")
         xray_run.click(
@@ -39,7 +39,7 @@ With this model you can lorem ipsum
 
     with gr.Tab("CT Scan"):
         with gr.Row():
-            ct_scan = gr.Image(info="Attach CT scan")
+            ct_scan = gr.Image()
             ct_results = gr.JSON()
         ct_run = gr.Button("Run")
         ct_run.click(

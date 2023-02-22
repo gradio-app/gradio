@@ -73,7 +73,7 @@
 		border-top: none;
 		border-right: none;
 		border-top-right-radius: inherit;
-		border-bottom-left-radius: var(--rounded-lg);
+		border-bottom-left-radius: var(--radius-lg);
 		background: var(--block-label-background);
 		overflow: hidden;
 		color: var(--color-text-label);

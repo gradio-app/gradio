@@ -17,7 +17,7 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		border-radius: var(--rounded-lg);
+		border-radius: var(--radius-lg);
 		background: var(--color-background-primary);
 		padding: var(--size-1) var(--size-2);
 		text-align: left;

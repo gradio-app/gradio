@@ -116,7 +116,7 @@
 	.message {
 		border-width: var(--internal-border-width);
 		border-style: solid;
-		border-radius: var(--rounded-xxl);
+		border-radius: var(--radius-3xl);
 		padding: var(--size-2) var(--size-3);
 		color: white;
 		max-width: 75%;

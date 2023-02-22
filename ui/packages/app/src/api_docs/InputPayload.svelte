@@ -85,14 +85,14 @@
 		display: flex;
 		align-items: center;
 		margin-right: var(--size-2);
-		border-radius: var(--rounded-full);
+		border-radius: var(--radius-full);
 		background: var(--color-grey-300);
 		width: 12px;
 		height: 4px;
 	}
 
 	.toggle-dot {
-		border-radius: var(--rounded-full);
+		border-radius: var(--radius-full);
 		background: var(--color-grey-700);
 		width: 6px;
 		height: 6px;
@@ -109,7 +109,7 @@
 	.payload-details {
 		display: block;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--rounded-lg);
+		border-radius: var(--radius-lg);
 		background: var(--color-background-tertiary);
 		padding: var(--size-4);
 		color: var(--color-text-body);

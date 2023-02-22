@@ -31,8 +31,8 @@
 		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-left: none;
-		border-top-left-radius: calc(var(--rounded-lg) - 1px);
-		border-bottom-right-radius: var(--rounded-lg);
+		border-top-left-radius: calc(var(--radius-lg) - 1px);
+		border-bottom-right-radius: var(--radius-lg);
 		background: var(--block-label-background);
 		padding: var(--size-1) var(--size-2);
 		pointer-events: none;

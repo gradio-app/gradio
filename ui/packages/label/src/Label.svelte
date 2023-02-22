@@ -69,7 +69,7 @@
 
 	.bar {
 		margin-bottom: var(--size-1);
-		border-radius: var(--rounded);
+		border-radius: var(--radius-sm);
 		background: var(--color-stat-background);
 		height: var(--size-1);
 	}

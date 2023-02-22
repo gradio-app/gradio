@@ -200,7 +200,7 @@
 
 	.legend-box {
 		display: inline-block;
-		border-radius: var(--rounded-sm);
+		border-radius: var(--radius-xs);
 		width: var(--size-3);
 		height: var(--size-3);
 	}

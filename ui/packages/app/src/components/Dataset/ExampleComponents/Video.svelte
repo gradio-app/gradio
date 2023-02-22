@@ -45,7 +45,7 @@
 	video {
 		flex: none;
 		border: 2px solid var(--color-border-primary);
-		border-radius: var(--rounded-lg);
+		border-radius: var(--radius-lg);
 		max-width: none;
 	}
 

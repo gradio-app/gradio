@@ -156,7 +156,7 @@
 		align-items: center;
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--rounded-xl);
+		border-radius: var(--radius-xl);
 		background-color: rgba(0, 0, 0, 0.9);
 		width: var(--size-10);
 		height: var(--size-10);

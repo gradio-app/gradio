@@ -541,8 +541,8 @@
 
 	@media (--screen-md) {
 		.api-docs-wrap {
-			border-top-left-radius: var(--rounded-lg);
-			border-bottom-left-radius: var(--rounded-lg);
+			border-top-left-radius: var(--radius-lg);
+			border-bottom-left-radius: var(--radius-lg);
 			width: 950px;
 		}
 	}
