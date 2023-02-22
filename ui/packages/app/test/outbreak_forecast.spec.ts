@@ -32,9 +32,9 @@ test("matplotlib", async ({ page }) => {
 	await page.goto("http://localhost:9876");
 
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole('button', { name: 'Matplotlib' }).click();
+	await page.getByRole("button", { name: "Matplotlib" }).click();
 	await page.getByLabel("Month").click();
-	await page.getByRole('button', { name: 'January' }).click();
+	await page.getByRole("button", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
@@ -60,9 +60,9 @@ test("plotly", async ({ page }) => {
 	await page.goto("http://localhost:9876");
 
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole('button', { name: 'Matplotlib' }).click();
+	await page.getByRole("button", { name: "Matplotlib" }).click();
 	await page.getByLabel("Month").click();
-	await page.getByRole('button', { name: 'January' }).click();
+	await page.getByRole("button", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
