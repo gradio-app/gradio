@@ -53,7 +53,8 @@ response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
         -->		{represent_value(
 					component_value,
 					instance_map[dependencies[dependency_index].inputs[component_index]]
-						.documentation?.type,
+						.documentation?.type.input_payload || instance_map[dependencies[dependency_index].inputs[component_index]]
+						.documentation?.type.payload,
 					"py"
 				)},{/each}
 	]
@@ -72,7 +73,8 @@ data = response["data"]</pre>
 -->			{represent_value(
 					component_value,
 					instance_map[dependencies[dependency_index].inputs[component_index]]
-						.documentation?.type,
+						.documentation?.type.input_payload || instance_map[dependencies[dependency_index].inputs[component_index]]
+						.documentation?.type.payload,
 					"js"
 				)},{/each}
 		]
