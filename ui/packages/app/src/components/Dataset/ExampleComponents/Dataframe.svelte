@@ -144,11 +144,11 @@
 
 	/* i dont know what i've done here but it is what it is */
 	.odd {
-		--gradient-to: var(--row-even-background);
+		--gradient-to: var(--table-even-background);
 	}
 
 	.even {
-		--gradient-to: var(--row-odd-background);
+		--gradient-to: var(--table-odd-background);
 	}
 
 	.button {

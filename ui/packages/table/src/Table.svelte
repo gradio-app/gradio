@@ -738,7 +738,7 @@
 	}
 
 	tr th {
-		background: var(--row-even-background);
+		background: var(--table-even-background);
 	}
 
 	th svg {
@@ -779,11 +779,11 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background: var(--row-even-background);
+		background: var(--table-even-background);
 	}
 
 	tbody > tr:nth-child(odd) {
-		background: var(--row-odd-background);
+		background: var(--table-odd-background);
 	}
 
 	tbody > tr:nth-child(odd):focus {

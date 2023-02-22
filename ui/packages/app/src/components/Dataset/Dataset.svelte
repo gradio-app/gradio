@@ -255,7 +255,7 @@
 	.tr-body {
 		cursor: pointer;
 		border-bottom: 1px solid var(--color-border-primary);
-		background: var(--row-even-background);
+		background: var(--table-even-background);
 	}
 
 	.tr-body:last-child {
@@ -263,11 +263,11 @@
 	}
 
 	.tr-body:nth-child(odd) {
-		background: var(--row-odd-background);
+		background: var(--table-odd-background);
 	}
 
 	.tr-body:hover {
-		background: var(--row-focus);
+		background: var(--table-row-focus);
 	}
 
 	.tr-body > * + * {
