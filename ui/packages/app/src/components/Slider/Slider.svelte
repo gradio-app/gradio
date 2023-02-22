@@ -9,7 +9,7 @@
 	export let visible: boolean = true;
 	export let value: number = 0;
 	export let label: string = "Slider";
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let style: Styles = {};
 	export let minimum: number;
 	export let maximum: number;

@@ -4,7 +4,7 @@
 
 	export let value: string = "#000000";
 	export let label: string;
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
 

@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	export let label: string;
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined = undefined;
 	export let multiselect: boolean = false;
 	export let choices: Array<string>;

@@ -9,7 +9,7 @@
 	export let visible: boolean = true;
 	export let value: boolean = false;
 	export let label: string = "Checkbox";
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;

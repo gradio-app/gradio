@@ -12,7 +12,7 @@
 	export let step: number = 1;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;

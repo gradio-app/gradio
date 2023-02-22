@@ -5,7 +5,7 @@
 	export let value: number = 0;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let show_label: boolean = true;
 
 	const dispatch = createEventDispatcher<{

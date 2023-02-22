@@ -8,7 +8,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "Textbox";
-	export let info: string | null = null;
+	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: string = "";
