@@ -563,7 +563,7 @@ class TestDropdown:
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
 
-        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"], multiselect=True, max_choices=2)
         assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
@@ -584,7 +584,8 @@ class TestDropdown:
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "multiselect": None,
+            "multiselect": True,
+            'max_choices': 2,
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
