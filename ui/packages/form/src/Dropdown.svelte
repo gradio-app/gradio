@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fly } from "svelte/transition";
+	import DropdownOptions from "./DropdownOptions.svelte";
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
@@ -14,10 +14,6 @@
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
 	}>();
-
-	$: if (!multiselect) {
-		dispatch("change", value);
-	}
 
 	let inputValue: string,
 		activeOption: string,
@@ -36,15 +32,17 @@
 		(!multiselect && typeof value === "string") ||
 		(multiselect && Array.isArray(value) && value.length === max_choices);
 
+	$: if (!multiselect) {
+		dispatch("change", value);
+	}
+
 	function add(option: string) {
 		if (Array.isArray(value)) {
 			if (value.length < max_choices) {
 				value.push(option);
 				dispatch("change", value);
 			}
-			if (value.length === max_choices) {
-				optionsVisibility(false);
-			}
+			showOptions = !(value.length === max_choices)
 		}
 		value = value;
 	}
@@ -56,11 +54,29 @@
 		}
 	}
 
-	function optionsVisibility(show: boolean) {
-		if (typeof show === "boolean") {
-			showOptions = show;
-		} else {
-			showOptions = !showOptions;
+	function remove_all(e: any) {
+		value = [];
+		inputValue = "";
+		e.preventDefault();
+		dispatch("change", value);
+	}
+
+	function handleOptionMousedown(e: any) {
+		const option = e.detail.target.dataset.value;
+		inputValue = "";
+
+		if (option !== undefined) {
+			if (!multiselect) {
+				value = option;
+				inputValue = "";
+				dispatch("change", value);
+				return;
+			}
+			if (value?.includes(option)) {
+				remove(option);
+			} else {
+				add(option);
+			}
 		}
 	}
 
@@ -85,33 +101,7 @@
 					: filtered[calcIndex];
 		}
 		if (e.key === "Escape") {
-			optionsVisibility(false);
-		}
-	}
-
-	function remove_all(e: any) {
-		value = [];
-		inputValue = "";
-		e.preventDefault();
-		dispatch("change", value);
-	}
-
-	function handleOptionMousedown(e: any) {
-		const option = e.target.dataset.value;
-		inputValue = "";
-
-		if (option !== undefined) {
-			if (!multiselect) {
-				value = option;
-				inputValue = "";
-				dispatch("change", value);
-				return;
-			}
-			if (value?.includes(option)) {
-				remove(option);
-			} else {
-				add(option);
-			}
+			showOptions = false;
 		}
 	}
 </script>
@@ -145,11 +135,11 @@
 					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:focus={() =>
-						Array.isArray(value) && value.length === max_choices
-							? optionsVisibility(false)
-							: optionsVisibility(true)}
-					on:blur={() => optionsVisibility(false)}
+					on:focus={() => showOptions = 
+						(Array.isArray(value) && value.length === max_choices)
+							? false
+							: true}
+					on:blur={() => showOptions = false}
 					on:keyup={handleKeyup}
 				/>
 				<div
@@ -163,33 +153,14 @@
 				<DropdownArrow/>
 			</div>
 		</div>
-
-		{#if showOptions && !disabled}
-			<ul
-				class="options"
-				aria-expanded={showOptions}
-				transition:fly={{ duration: 200, y: 5 }}
-				on:mousedown|preventDefault={handleOptionMousedown}
-			>
-				{#each filtered as choice}
-					<li
-						class="item"
-						role="button"
-						class:selected={value?.includes(choice)}
-						class:active={activeOption === choice}
-						class:bg-gray-100={activeOption === choice}
-						class:dark:bg-gray-600={activeOption === choice}
-						data-value={choice}
-						aria-label={choice}
-					>
-						<span class:hide={!value?.includes(choice)} class="inner-item pr-1">
-							✓
-						</span>
-						{choice}
-					</li>
-				{/each}
-			</ul>
-		{/if}
+		<DropdownOptions
+			bind:value
+			{showOptions}
+			{filtered}
+			{activeOption}
+			{disabled}
+			on:change={handleOptionMousedown}
+		/>
 	</div>
 </label>
 
@@ -253,7 +224,7 @@
 		height: 18px;
 	}
 
-	.token-remove:hover {
+	.token-remove:hover, .remove-all:hover {
 		border: 1px solid var(--icon_button-border-color-hover);
 		color: var(--color-text-label);
 	}
@@ -290,46 +261,5 @@
 		margin-left: var(--size-1);
 		width: 20px;
 		height: 20px;
-	}
-
-	.remove-all:hover {
-		border: 1px solid var(--icon_button-border-color-hover);
-		color: var(--color-text-label);
-	}
-
-	.options {
-		position: absolute;
-		z-index: var(--layer-5);
-		margin-left: 0;
-		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-primary);
-		width: var(--size-full);
-		max-height: var(--size-32);
-		overflow: auto;
-		color: var(--color-text-body);
-		list-style: none;
-	}
-
-	.item {
-		display: flex;
-		cursor: pointer;
-		padding: var(--size-2);
-	}
-
-	.item:hover {
-		background: var(--color-background-secondary);
-	}
-
-	.active {
-		background: var(--color-background-secondary);
-	}
-
-	.inner-item {
-		padding-right: var(--size-1);
-	}
-
-	.hide {
-		visibility: hidden;
 	}
 </style>
