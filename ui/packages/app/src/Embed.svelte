@@ -184,7 +184,7 @@
 
 	.space-logo img {
 		display: inline-block;
-		margin-bottom: 2px;
+		margin-bottom: 4px;
 		height: 12px;
 	}
 
