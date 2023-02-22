@@ -20,7 +20,10 @@
 		["python", python],
 		["javascript", javascript]
 	] as const;
+
 </script>
+
+
 
 <h4>
 	<svg width="1em" height="1em" viewBox="0 0 24 24">
@@ -47,41 +50,41 @@
 	{#if current_language === "python"}
 		<pre>import requests
 
-response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
+response = requests.post(<span class="token string">"{root + "run/" + dependency.api_name}"</span>, json=&lbrace;
 	"data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
 				/><!--
-        -->		{represent_value(
+        -->		<span class="token string">{represent_value(
 					component_value,
 					instance_map[dependencies[dependency_index].inputs[component_index]]
 						.documentation?.type.input_payload || instance_map[dependencies[dependency_index].inputs[component_index]]
 						.documentation?.type.payload,
 					"py"
-				)},{/each}
+				)}</span>,{/each}
 	]
 &rbrace;).json()
 
-data = response["data"]</pre>
+data = response[<span class="token string">"data"</span>]</pre>
 	{:else if current_language === "javascript"}
-		<pre>const response = await fetch("{root +
+		<pre>const response = await fetch(<span class="token string">"{root +
 				"run/" +
-				dependency.api_name}", &lbrace;
+				dependency.api_name}"</span>, &lbrace;
 	method: "POST",
 	headers: &lbrace; "Content-Type": "application/json" &rbrace;,
 	body: JSON.stringify(&lbrace;
 		data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
 				/><!--
--->			{represent_value(
+-->			<span class="token string">{represent_value(
 					component_value,
 					instance_map[dependencies[dependency_index].inputs[component_index]]
 						.documentation?.type.input_payload || instance_map[dependencies[dependency_index].inputs[component_index]]
 						.documentation?.type.payload,
 					"js"
-				)},{/each}
+				)}</span>,{/each}
 		]
 	&rbrace;)
 &rbrace;);
 
-const data = await data.json();
+const data = await <span class="token string">data</span>.json();
 </pre>
 	{:else if current_language === "gradio client"}
 		<pre class="client">Hello World</pre>
@@ -164,5 +167,10 @@ const data = await data.json();
 	.client {
 		white-space: pre-wrap;
 		overflow-wrap: break-word;
+	}
+
+	.token.string {
+		color: var(--color-accent-base);
+		display: contents
 	}
 </style>
