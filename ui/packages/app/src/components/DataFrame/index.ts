@@ -8,5 +8,5 @@ export const document = (config: Record<string, any>) => ({
 	description: {
 		payload: "an object with an array of data and an array of headers"
 	},
-	example_data: config.value ?? "#000000"
+	example_data: config.value
 });

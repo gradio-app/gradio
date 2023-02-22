@@ -6,7 +6,7 @@ export const document = () => ({
 		payload: "number"
 	},
 	description: {
-		payload:"index of selected row"
+		payload: "index of selected row"
 	},
 	example_data: 0
 });
