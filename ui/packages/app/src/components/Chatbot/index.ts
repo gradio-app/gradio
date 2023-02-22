@@ -2,8 +2,12 @@ export { default as Component } from "./Chatbot.svelte";
 export const modes = ["static"];
 
 export const document = (config: Record<string, any>) => ({
-	type: "Array<[string, string]>",
-	description: "Represents list of message pairs of chat message.",
+	type: {
+		payload:  "Array<[string, string]>"
+	},
+	description: {
+		payload: "list of message pairs of"
+	},
 	example_data: config.value ?? [
 		["Hi", "Hello"],
 		["1 + 1", "2"]
