@@ -886,8 +886,8 @@ def tex2svg(formula, *args):
     svg_start = xml_code.index("<svg ")
     svg_code = xml_code[svg_start:]
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
-    svg_code = re.sub(r' width="[^"]+"', '', svg_code)
-    svg_code = re.sub(r' height="[^"]+"', '', svg_code)
+    svg_code = re.sub(r' width="[^"]+"', "", svg_code)
+    svg_code = re.sub(r' height="[^"]+"', "", svg_code)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
