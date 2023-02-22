@@ -10,9 +10,7 @@ let FONTS: string | [];
 
 FONTS = "__FONTS_CSS__";
 
-function mount_css(url: string, target: HTMLElement): Promise<void> {
-	if (BUILD_MODE === "dev") return Promise.resolve();
-
+export function mount_css(url: string, target: HTMLElement): Promise<void> {
 	const existing_link = document.querySelector(`link[href='${url}']`);
 
 	if (existing_link) return Promise.resolve();

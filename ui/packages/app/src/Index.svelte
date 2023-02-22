@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { fn } from "./api";
+	import { mount_css } from "./main";
 
 	import type {
 		ComponentMeta,
@@ -104,13 +105,15 @@
 			return null;
 		}
 
-		mount_custom_css(target, config.css);
-		window.__is_colab__ = config.is_colab;
-
 		if (root === undefined) {
 			root = BACKEND_URL;
 			config.root = BACKEND_URL;
 		}
+
+		mount_css(config.root + "theme.css", document.head)
+		mount_custom_css(target, config.css);
+		window.__is_colab__ = config.is_colab;
+
 
 		if (config.dev_mode) {
 			reload_check(root);

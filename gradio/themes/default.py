@@ -10,6 +10,7 @@ class Default(Theme):
         secondary_hue: Color = colors.blue,
         neutral_hue: Color = colors.gray,
     ):
+        super().__init__()
         # Core values
         self.color_accent_base = self._color(primary_hue, 500)
         self.color_accent_soft = self._color(primary_hue, 300)
@@ -102,6 +103,8 @@ class Default(Theme):
         self.icon_button_background_hover = self._use("color_background_primary")
         self.icon_button_border_color_base = self._use("color_background_primary")
         self.icon_button_border_color_hover = self._use("color_border_primary")
+        self.info_color_base = self._use("color_text_subdued")
+        self.info_color_base_dark = self._use("color_text_subdued")
         self.input_border_color_base = self._use("color_border_primary")
         self.input_border_color_base_dark = self._use("color_border_primary")
         self.input_border_color_hover = self._use("color_border_primary")
@@ -148,12 +151,12 @@ class Default(Theme):
             f"linear-gradient(to top, {self._color(colors.gray, 100)}, white)"
         )
         self.checkbox_label_background_focus_dark = f"linear-gradient(to top, {self._color(colors.gray, 900)}, {self._color(colors.gray, 800)})"
-        self.row_even_background = "white"
-        self.row_even_background_dark = self._color(neutral_hue, 950)
-        self.row_odd_background = self._color(neutral_hue, 50)
-        self.row_odd_background_dark = self._color(neutral_hue, 900)
-        self.row_focus = self._color(primary_hue, 100)
-        self.row_focus_dark = self._color(neutral_hue, 800)
+        self.table_even_background = "white"
+        self.table_even_background_dark = self._color(neutral_hue, 950)
+        self.table_odd_background = self._color(neutral_hue, 50)
+        self.table_odd_background_dark = self._color(neutral_hue, 900)
+        self.table_row_focus = self._color(primary_hue, 100)
+        self.table_row_focus_dark = self._color(neutral_hue, 800)
 
         # Buttons
         self.button_shadow = self._use("shadow_drop")
