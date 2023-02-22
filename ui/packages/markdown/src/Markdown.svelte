@@ -35,7 +35,6 @@
 	div :global(.math.inline svg) {
 		display: inline;
 		margin-bottom: 0.22em;
-		height: 1em;
 	}
 
 	div {
