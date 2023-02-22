@@ -25,7 +25,7 @@
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
 	export let mirror_webcam: boolean;
-	export let brush_radius: number = 20;
+	export let brush_radius: number;
 
 	let sketch: Sketch;
 	let cropper: Cropper;
