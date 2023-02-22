@@ -39,10 +39,9 @@
 	}
 
 	button[disabled] {
-		opacity: 0.5; lowed;
-		opacity: 0.5; /* lowe
-		filter: grayscale(30%); ilter: grayscale(30%); /* app
 		cursor: not-allowed;
+		opacity: 0.5;
+  		filter: grayscale(30%);
 	}
 
 	.hide {
