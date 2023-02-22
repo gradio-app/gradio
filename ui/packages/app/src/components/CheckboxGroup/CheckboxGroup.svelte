@@ -12,7 +12,7 @@
 	export let style: Styles = {};
 	export let mode: "static" | "dynamic";
 	export let label: string = "Checkbox Group";
-	export let info: string | null = null;	
+	export let info: string | null = null;
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
