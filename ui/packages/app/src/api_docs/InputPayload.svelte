@@ -13,7 +13,7 @@
 
 	function format_label(label: unknown) {
 		return label ? "'" + label + "'" : "the";
-	}
+	} 
 </script>
 
 <h4>
@@ -37,13 +37,13 @@
 		{#if dependency_failures[dependency_index][component_index]}
 			<span class="error">ERROR</span>
 		{/if}
+
 		<span class="type">
-			: {instance_map[component_id].documentation?.type},
+				: {instance_map[component_id].documentation?.type.input_payload || instance_map[component_id].documentation?.type},
 		</span>
 		<span class="desc">
-			// represents {instance_map[component_id].documentation?.description} of
-			{format_label(instance_map[component_id].props.label)}
-
+				// represents {instance_map[component_id].documentation?.description.input_payload || instance_map[component_id].documentation?.description} of
+				{format_label(instance_map[component_id].props.label)}
 			<span class="name">
 				{instance_map[component_id].props.name}
 			</span>

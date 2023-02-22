@@ -35,14 +35,13 @@
 				:
 			{/if}
 			<span class="type">
-				{instance_map[component_id].documentation?.type},
+					{instance_map[component_id].documentation?.type.response_object || instance_map[component_id].documentation?.type},
 			</span>
 			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description} of
-				{((label) => {
-					return label ? "'" + label + "'" : "the";
-				})(instance_map[component_id].props.label)}
-
+					// represents {instance_map[component_id].documentation?.description.response_object || instance_map[component_id].documentation?.description} of
+					{((label) => {
+						return label ? "'" + label + "'" : "the";
+					})(instance_map[component_id].props.label)}
 				<span class="name capitalize">
 					{instance_map[component_id].props.name}
 				</span>
