@@ -39,9 +39,9 @@
 	}
 
 	button[disabled] {
-		cursor: not-allowed;
 		opacity: 0.5;
-  		filter: grayscale(30%);
+		filter: grayscale(30%);
+		cursor: not-allowed;
 	}
 
 	.hide {
