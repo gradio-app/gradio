@@ -8,5 +8,5 @@ export const document = (config: Record<string, any>) => ({
 	description: {
 		payload: "checked status"
 	},
-	example_data: config.value ?? true
+	example_data: config.value
 });
