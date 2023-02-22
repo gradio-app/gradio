@@ -8,7 +8,7 @@ export const document = (config: Record<string, any>) => ({
 	description: {
 		payload: "list of message pairs of"
 	},
-	example_data: config.value ?? [
+	example_data: config.value?.length ? config.value : [
 		["Hi", "Hello"],
 		["1 + 1", "2"]
 	]
