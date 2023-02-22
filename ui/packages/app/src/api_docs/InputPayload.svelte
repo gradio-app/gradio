@@ -25,10 +25,10 @@
 <div class="payload-details">
 	&#123;
 	<br />
-	&nbsp;&nbsp;"data": [
+	<div class="first-level">"data": [</div>
 	<br />
 	{#each dependency.inputs as component_id, component_index}
-		&nbsp;&nbsp;&nbsp;&nbsp;
+	<div class="second-level">
 		<input
 			class=""
 			type="text"
@@ -52,10 +52,10 @@
 			</span>
 			component
 		</span>
+	</div>
 		<br />
 	{/each}
-	&nbsp;&nbsp;]
-	<br />
+	<div class="second-level">]</div>
 	&#125;
 </div>
 
@@ -157,5 +157,13 @@
 
 	.name {
 		text-transform: capitalize;
+	}
+
+	.first-level {
+		margin-left: 2rem;
+	}
+
+	.second-level {
+		margin-left: 6rem;
 	}
 </style>
