@@ -41,6 +41,7 @@ No changes to highlight.
 # 3.19.1
 
 ## New Features:
+No changes to highlight.
 
 ## Bug Fixes:
 - UI fixes including footer and API docs by [@aliabid94](https://github.com/aliabid94) in [PR 3242](https://github.com/gradio-app/gradio/pull/3242)
