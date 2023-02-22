@@ -39,6 +39,8 @@
 	}
 
 	button[disabled] {
+		opacity: 0.5;
+		filter: grayscale(30%);
 		cursor: not-allowed;
 	}
 

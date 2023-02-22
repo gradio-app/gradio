@@ -2945,13 +2945,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
-        return {
+        updated_config = {
             "variant": variant,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(self, *, full_width: bool | None = None, **kwargs):
         """
