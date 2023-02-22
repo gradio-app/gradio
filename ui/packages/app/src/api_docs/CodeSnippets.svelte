@@ -56,10 +56,10 @@ response = requests.post(<span class="token string"
 					>{represent_value(
 						component_value,
 						instance_map[dependencies[dependency_index].inputs[component_index]]
-							.documentation?.type.input_payload ||
+							.documentation?.type?.input_payload ||
 							instance_map[
 								dependencies[dependency_index].inputs[component_index]
-							].documentation?.type.payload,
+							].documentation?.type?.payload,
 						"py"
 					)}</span
 				>,{/each}
@@ -80,10 +80,10 @@ data = response[<span class="token string">"data"</span>]</pre>
 					>{represent_value(
 						component_value,
 						instance_map[dependencies[dependency_index].inputs[component_index]]
-							.documentation?.type.input_payload ||
+							.documentation?.type?.input_payload ||
 							instance_map[
 								dependencies[dependency_index].inputs[component_index]
-							].documentation?.type.payload,
+							].documentation?.type?.payload,
 						"js"
 					)}</span
 				>,{/each}

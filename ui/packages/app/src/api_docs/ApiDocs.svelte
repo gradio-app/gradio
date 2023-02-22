@@ -60,8 +60,8 @@
 				let component = instance_map[dependency.inputs[i]];
 				input_val = represent_value(
 					input_val,
-					component.documentation?.type.input_payload ||
-						component.documentation?.type.payload
+					component.documentation?.type?.input_payload ||
+						component.documentation?.type?.payload
 				);
 				dependency_failures[index][attempted_component_index] = false;
 				return input_val;
@@ -85,8 +85,8 @@
 
 					return represent_value(
 						output_val,
-						component.documentation?.type.response_object ||
-							component.documentation?.type.payload,
+						component.documentation?.type?.response_object ||
+							component.documentation?.type?.payload,
 						"js"
 					);
 				}
