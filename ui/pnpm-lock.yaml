@@ -98,6 +98,7 @@ importers:
       '@gradio/button': workspace:^0.0.1
       '@gradio/chart': workspace:^0.0.1
       '@gradio/chatbot': workspace:^0.0.1
+      '@gradio/client': workspace:^0.0.1
       '@gradio/file': workspace:^0.0.1
       '@gradio/form': workspace:^0.0.1
       '@gradio/gallery': workspace:^0.0.1
@@ -130,6 +131,7 @@ importers:
       '@gradio/button': link:../button
       '@gradio/chart': link:../chart
       '@gradio/chatbot': link:../chatbot
+      '@gradio/client': link:../client
       '@gradio/file': link:../file
       '@gradio/form': link:../form
       '@gradio/gallery': link:../gallery
@@ -230,9 +232,11 @@ importers:
   packages/form:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/utils': link:../utils
 
   packages/gallery:

@@ -1,6 +1,6 @@
 <script lang="ts">
 	// @ts-nocheck
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 
@@ -21,10 +21,11 @@
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" = "editor";
-
+	export let shape: [number, number];
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
 	export let mirror_webcam: boolean;
+	export let brush_radius: number;
 
 	let sketch: Sketch;
 	let cropper: Cropper;
@@ -98,7 +99,7 @@
 	$: dispatch("drag", dragging);
 
 	function handle_image_load(event: Event) {
-		const element = event.composedPath()[0] as HTMLImageElement;
+		const element = event.currentTarget as HTMLImageElement;
 		img_width = element.naturalWidth;
 		img_height = element.naturalHeight;
 		container_height = element.getBoundingClientRect().height;
@@ -114,8 +115,6 @@
 	let img_height = 0;
 	let img_width = 0;
 	let container_height = 0;
-
-	let brush_radius = 20;
 
 	let mode;
 
@@ -158,6 +157,14 @@
 			}
 		}
 	}
+
+	onMount(async () => {
+		if (tool === "color-sketch" && value && typeof value === "string") {
+			static_image = value;
+			await tick();
+			handle_image_load({ currentTarget: value_img });
+		}
+	});
 </script>
 
 <BlockLabel
@@ -223,6 +230,7 @@
 						container_height={container_height || max_height}
 						{value_img}
 						{source}
+						{shape}
 					/>
 					<ModifySketch
 						on:undo={() => sketch.undo()}
@@ -242,7 +250,7 @@
 			{:else}
 				<img
 					src={value.image || value}
-					alt=""
+					alt="hello"
 					class:webcam={source === "webcam" && mirror_webcam}
 				/>
 			{/if}
@@ -272,6 +280,7 @@
 			width={img_width || max_width}
 			height={img_height || max_height}
 			container_height={container_height || max_height}
+			{shape}
 		/>
 	{:else if (value === null && !static_image) || streaming}
 		{#if source === "webcam" && !static_image}
@@ -362,6 +371,7 @@
 
 	.absolute-img {
 		position: absolute;
+		opacity: 0;
 	}
 
 	.webcam {

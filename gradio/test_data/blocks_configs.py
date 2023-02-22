@@ -2,6 +2,7 @@ XRAY_CONFIG = {
     "version": "3.4b3\n",
     "mode": "blocks",
     "dev_mode": True,
+    "analytics_enabled": False,
     "components": [
         {
             "id": 27,
@@ -196,6 +197,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [39],
@@ -212,6 +214,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [],
@@ -228,6 +231,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
     ],
 }
@@ -236,6 +240,7 @@ XRAY_CONFIG = {
 XRAY_CONFIG_DIFF_IDS = {
     "version": "3.4b3\n",
     "mode": "blocks",
+    "analytics_enabled": False,
     "dev_mode": True,
     "components": [
         {
@@ -431,6 +436,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [933],
@@ -447,6 +453,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [],
@@ -463,6 +470,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
     ],
 }
@@ -471,6 +479,7 @@ XRAY_CONFIG_DIFF_IDS = {
 XRAY_CONFIG_WITH_MISTAKE = {
     "mode": "blocks",
     "dev_mode": True,
+    "analytics_enabled": False,
     "components": [
         {
             "id": 1,

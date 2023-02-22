@@ -12,19 +12,26 @@
 	export let step: number = 1;
 	export let disabled: boolean = false;
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
-	const dispatch = createEventDispatcher<{ change: number }>();
+	const dispatch = createEventDispatcher<{ change: number; release: number }>();
+
+	function handle_release(e: MouseEvent) {
+		dispatch("release", value);
+	}
 
 	$: dispatch("change", value);
-	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
+	const clamp = () => {
+		value = Math.min(Math.max(value, minimum), maximum);
+	};
 </script>
 
 <div class="wrap">
 	<div class="head">
 		<label for={id}>
-			<BlockTitle {show_label}>{label}</BlockTitle>
+			<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		</label>
 		<input
 			type="number"
@@ -47,6 +54,7 @@
 	max={maximum}
 	{step}
 	{disabled}
+	on:mouseup={handle_release}
 />
 
 <style>

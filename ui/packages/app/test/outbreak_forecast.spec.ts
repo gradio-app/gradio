@@ -13,7 +13,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/run/predict/", (route) => {
+	return page.route("**/run/predict", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -31,13 +31,15 @@ test("matplotlib", async ({ page }) => {
 	await mock_api(page, [[{ type: "matplotlib", plot: BASE64_PLOT_IMG }]]);
 	await page.goto("http://localhost:9876");
 
-	await page.getByLabel("Plot Type").selectOption("Matplotlib");
-	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Plot Type").click();
+	await page.getByRole("button", { name: "Matplotlib" }).click();
+	await page.getByLabel("Month").click();
+	await page.getByRole("button", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
 		page.click("text=Submit"),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 
 	const matplotlib_img = await page.locator("img").nth(0);
@@ -57,13 +59,15 @@ test("plotly", async ({ page }) => {
 	]);
 	await page.goto("http://localhost:9876");
 
-	await page.getByLabel("Plot Type").selectOption("Plotly");
-	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Plot Type").click();
+	await page.getByRole("button", { name: "Matplotlib" }).click();
+	await page.getByLabel("Month").click();
+	await page.getByRole("button", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
 		page.click("text=Submit"),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 	await expect(page.locator(".js-plotly-plot")).toHaveCount(1);
 });

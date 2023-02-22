@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import { post_data } from "../api";
+	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 
 	import { represent_value } from "./utils";
@@ -58,7 +58,11 @@
 			var inputs = dependency_inputs[index].map((input_val, i) => {
 				attempted_component_index = i;
 				let component = instance_map[dependency.inputs[i]];
-				input_val = represent_value(input_val, component.documentation?.type);
+				input_val = represent_value(
+					input_val,
+					component.documentation?.type?.input_payload ||
+						component.documentation?.type?.payload
+				);
 				dependency_failures[index][attempted_component_index] = false;
 				return input_val;
 			});
@@ -68,7 +72,7 @@
 			return;
 		}
 		let [response, status_code] = await post_data(
-			`${root}run/${dependency.api_name}`,
+			`${root}/run/${dependency.api_name}`,
 			{
 				data: inputs
 			}
@@ -81,7 +85,8 @@
 
 					return represent_value(
 						output_val,
-						component.documentation?.type,
+						component.documentation?.type?.response_object ||
+							component.documentation?.type?.payload,
 						"js"
 					);
 				}
@@ -130,6 +135,7 @@
 						{dependency_index}
 						{is_running}
 						{dependency_outputs}
+						{root}
 					/>
 					<CodeSnippets
 						{instance_map}

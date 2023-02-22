@@ -5,7 +5,7 @@
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
-	import { upload_files } from "../../api";
+	import { upload_files } from "@gradio/client";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -42,6 +42,12 @@
 			old_value = _value;
 			if (_value === null) {
 				dispatch("change");
+				pending_upload = false;
+			} else if (
+				!(Array.isArray(_value) ? _value : [_value]).every(
+					(file_data) => file_data.blob
+				)
+			) {
 				pending_upload = false;
 			} else if (mode === "dynamic") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(

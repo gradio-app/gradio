@@ -1,6 +1,5 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { fn } from "./api";
 
 	import type {
 		ComponentMeta,
@@ -18,11 +17,9 @@
 		dependencies: Dependency[];
 		dev_mode: boolean;
 		enable_queue: boolean;
-		fn: ReturnType<typeof fn>;
 		layout: LayoutNode;
 		mode: "blocks" | "interface";
 		root: string;
-		target: HTMLElement;
 		theme: string;
 		title: string;
 		version: string;
@@ -61,6 +58,7 @@
 
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { client, SpaceStatus } from "@gradio/client";
 
 	import Embed from "./Embed.svelte";
 	import { Component as Loader } from "./components/StatusTracker";
@@ -82,67 +80,15 @@
 
 	let _id = id++;
 
-	let status: "pending" | "error" | "success" | "login" = "pending";
+	let loader_status: "pending" | "error" | "complete" | "generating" =
+		"pending";
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
 	let ready: boolean = false;
-	let root: string;
 	let config: Config;
 	let loading_text: string = "Loading...";
 
-	async function handle_config(target: HTMLElement, source: string | null) {
-		let config;
-
-		try {
-			let _config = await get_config(source);
-			config = _config;
-		} catch (e) {
-			if (BUILD_MODE === "dev") {
-				console.error(e);
-			}
-
-			return null;
-		}
-
-		mount_custom_css(target, config.css);
-		window.__is_colab__ = config.is_colab;
-
-		if (root === undefined) {
-			root = BACKEND_URL;
-			config.root = BACKEND_URL;
-		}
-
-		if (config.dev_mode) {
-			reload_check(root);
-		}
-
-		return config;
-	}
-
-	async function get_config(source: string | null) {
-		if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
-			let config = await fetch(BACKEND_URL + "config");
-			const result = await config.json();
-			return result;
-		} else if (source) {
-			if (!source.endsWith("/")) {
-				source += "/";
-			}
-			const config = await get_source_config(source);
-			return config;
-		} else {
-			return window.gradio_config;
-		}
-	}
-
-	async function get_source_config(source: string): Promise<Config> {
-		let config = await (await fetch(source + "config")).json();
-		root = source;
-		config.root = source;
-		return config;
-	}
-
-	function mount_custom_css(target: HTMLElement, css_string?: string) {
+	function mount_custom_css(target: HTMLElement, css_string: string | null) {
 		if (css_string) {
 			let style = document.createElement("style");
 			style.innerHTML = css_string;
@@ -151,7 +97,7 @@
 	}
 
 	async function reload_check(root: string) {
-		const result = await (await fetch(root + "app_id")).text();
+		const result = await (await fetch(root + "/app_id")).text();
 
 		if (app_id === null) {
 			app_id = result;
@@ -212,158 +158,51 @@
 		return "dark";
 	}
 
-	async function check_space_status(space_id: string, source: string) {
-		let response;
-		let _status;
-		try {
-			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
-			_status = response.status;
-			if (_status !== 200) {
-				throw new Error();
-			}
-			response = await response.json();
-		} catch (e) {
-			status = "error";
-			error_detail = {
-				type: "space_error",
-				detail: {
-					description: "This space is experiencing an issue.",
-					discussions_enabled: await discussions_enabled(space_id)
-				}
-			};
+	let status: SpaceStatus = {
+		message: "",
+		load_status: "pending",
+		status: "sleeping",
+		detail: "SLEEPING"
+	};
 
-			return;
-		}
-
-		if (!response || _status !== 200) return;
-		const {
-			runtime: { stage }
-		} = response;
-
-		switch (stage) {
-			case "STOPPED":
-			case "SLEEPING":
-				status = "pending";
-				loading_text = "Space is asleep. Waking it up...";
-				setTimeout(() => {
-					check_space_status(space_id, source);
-				}, 1000);
-				break;
-			// poll for status
-			case "RUNNING":
-			case "RUNNING_BUILDING":
-				status = "success";
-				load_config(source);
-				//  launch
-				break;
-			case "BUILDING":
-				status = "pending";
-				loading_text = "Space is building...";
-				setTimeout(() => {
-					check_space_status(space_id, source);
-				}, 1000);
-				break;
-
-			case "NO_APP_FILE":
-			case "CONFIG_ERROR":
-			case "BUILD_ERROR":
-			case "RUNTIME_ERROR":
-				status = "error";
-				error_detail = {
-					type: "space_error",
-					detail: {
-						description: "This space is experiencing an issue.",
-						discussions_enabled: await discussions_enabled(space_id),
-						stage
-					}
-				};
-				break;
-			default:
-				status = "error";
-				error_detail = {
-					type: "space_error",
-					detail: {
-						description: "This space is experiencing an issue.",
-						discussions_enabled: await discussions_enabled(space_id)
-					}
-				};
-		}
+	let app: Awaited<ReturnType<typeof client>>;
+	function handle_status(_status: SpaceStatus) {
+		status = _status;
 	}
-
-	const RE_DISABLED_DISCUSSION =
-		/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
-
-	async function discussions_enabled(space_id: string) {
-		try {
-			const r = await fetch(
-				`https://huggingface.co/api/spaces/${space_id}/discussions`,
-				{
-					method: "HEAD"
-				}
-			);
-			const error = r.headers.get("x-error-message");
-
-			if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
-			else return true;
-		} catch (e) {
-			return false;
-		}
-	}
-
-	const session_hash = Math.random().toString(36).substring(2);
-
-	let error_detail: null | {
-		type: "not_found" | "space_error";
-		detail?: Record<string, any>;
-	} = null;
-
 	onMount(async () => {
 		if (window.__gradio_mode__ !== "website") {
 			theme = handle_darkmode(wrapper);
 		}
 
-		const source = host
-			? `https://${host.trim()}`
-			: space
-			? (
-					await (
-						await fetch(
-							`https://huggingface.co/api/spaces/${space.trim()}/host`
-						)
-					).json()
-			  ).host
-			: src?.trim();
+		const api_url =
+			BUILD_MODE === "dev"
+				? "http://localhost:7860"
+				: host || space || src || location.origin;
 
-		if (space) {
-			check_space_status(space.trim(), source);
+		app = await client(api_url, handle_status);
+		config = app.config;
+
+		status = {
+			message: "",
+			load_status: "complete",
+			status: "running",
+			detail: "RUNNING"
+		};
+
+		mount_custom_css(wrapper, config.css);
+		window.__is_colab__ = config.is_colab;
+
+		if (config.dev_mode) {
+			reload_check(config.root);
 		}
-		load_config(source);
 	});
 
-	async function load_config(source: string) {
-		const _config: Config | null = await handle_config(wrapper, source);
-
-		if (_config) {
-			status = _config.auth_required ? "login" : "pending";
-			_config.fn = _config.fn = fn(
-				session_hash,
-				root + "run/",
-				_config.is_space,
-				is_embed
-			);
-			config = _config;
-		} else if (!space) {
-			status = "error";
-			error_detail = {
-				type: "not_found",
-				detail: {
-					description: "This gradio app is experiencing an issue."
-				}
-			};
-		}
-	}
-
-	$: status = ready ? "success" : status;
+	$: loader_status =
+		!ready && status.load_status !== "error"
+			? "pending"
+			: !ready && status.load_status === "error"
+			? "error"
+			: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
@@ -417,32 +256,33 @@
 </script>
 
 <Embed
-	display={!container && is_embed && !!space}
+	display={container && is_embed}
 	{is_embed}
-	{info}
+	info={!!space && info}
 	{version}
 	{initial_height}
 	{space}
+	loaded={loader_status === "complete"}
 	bind:wrapper
 >
-	{#if status === "pending" || status === "error"}
+	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
 		<Loader
 			absolute={!is_embed}
-			{status}
+			status={loader_status}
 			timer={false}
 			queue_position={null}
 			queue_size={null}
 			{loading_text}
 		>
 			<div class="error" slot="error">
-				<p><strong>{error_detail?.detail?.description || ""}</strong></p>
-				{#if error_detail?.detail?.discussions_enabled}
+				<p><strong>{status?.message || ""}</strong></p>
+				{#if status.status === "space_error" && status.discussions_enabled}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-								error_detail.detail.stage
+								status?.detail
 							)}&description={discussion_message.description(
-								error_detail.detail.stage,
+								status?.detail,
 								location.origin
 							)}"
 						>
@@ -454,17 +294,17 @@
 				{/if}
 			</div>
 		</Loader>
-	{:else if status === "login" && Login}
+	{/if}
+	{#if config?.auth_required && Login}
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
 			is_space={config.is_space}
-			id={_id}
 			{app_mode}
 		/>
-	{/if}
-	{#if config && Blocks}
+	{:else if config && Blocks}
 		<Blocks
+			{app}
 			{...config}
 			{theme}
 			{control_page_title}

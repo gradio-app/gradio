@@ -3,7 +3,6 @@
 	import { Component as Textbox } from "./components/Textbox";
 	import { Button } from "@gradio/button";
 	export let root: string;
-	export let id: number;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
 	export let is_space: boolean;
@@ -17,7 +16,7 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		let response = await fetch(root + "login", {
+		let response = await fetch(root + "/login", {
 			method: "POST",
 			body: formData
 		});
