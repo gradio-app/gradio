@@ -1,8 +1,12 @@
 # Creating a Dashboard from Supabase Data
 
-Supabase is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, we will show you how to write data into a Supabase dataset, read that data, and then plot it with Gradio using the gr.BarPlot.
+Tags: TABULAR, DASHBOARD, PLOTS 
 
-To start, you will need to have a Supabase account and create a dataset. In this tutorial, we will use a dataset containing the population of different countries.
+Supabase is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, we will show you how to read data from Supabase plot it in **real-time** on a Gradio Dashboard.
+
+**Prerequisites:** To start, you will need to have a Supabase account, which you can sign up for free 
+
+We'll cover the following steps in this Guide:
 
 Writing data to a Supabase dataset
 The first step is to write data to a Supabase dataset. We will use the Supabase Python library to do this.
