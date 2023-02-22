@@ -733,7 +733,9 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def render_flagging_buttons(self, flag_btns: List[Tuple[Button, str | None]] | None):
+    def render_flagging_buttons(
+        self, flag_btns: List[Tuple[Button, str | None]] | None
+    ):
         if flag_btns:
             if self.interface_type in [
                 InterfaceTypes.STANDARD,
@@ -749,7 +751,9 @@ class Interface(Blocks):
                     flag_components = self.input_components + self.output_components
                 for flag_btn, flag_option in flag_btns:
                     flag_method = FlagMethod(self.flagging_callback, flag_option)
-                    flag_btn.click(lambda : Button.update(interactive=False), None, flag_btn)
+                    flag_btn.click(
+                        lambda: Button.update(interactive=False), None, flag_btn
+                    )
                     flag_btn.click(
                         flag_method,
                         inputs=flag_components,
