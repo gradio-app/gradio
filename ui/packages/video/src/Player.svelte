@@ -203,7 +203,7 @@
 		bottom: 0;
 		transition: 500ms;
 		margin: var(--size-2);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		background: var(--color-grey-800);
 		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);

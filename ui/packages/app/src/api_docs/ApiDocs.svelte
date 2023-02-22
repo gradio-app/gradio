@@ -169,7 +169,7 @@
 	}
 
 	.endpoint {
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		background: var(--docs-background);
 		padding: var(--size-6);
 	}

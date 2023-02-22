@@ -45,7 +45,7 @@
 	}
 	.radio-circle {
 		box-sizing: border-box;
-		border-radius: var(--radius-fullfull);
+		border-radius: var(--radius-full);
 		width: var(--size-4);
 		height: var(--size-4);
 	}

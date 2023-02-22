@@ -192,7 +192,7 @@
 		margin: var(--size-1);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		background: var(--checkbox-label-background-base);
 		padding: var(--size-1-5) var(--size-3);
 		color: var(--color-text-body);

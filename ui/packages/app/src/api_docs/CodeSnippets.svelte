@@ -115,7 +115,7 @@ const data = await data.json();
 		align-items: center;
 		border: 1px solid var(--color-border-primary);
 
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		padding: var(--size-1) var(--size-1-5);
 		color: var(--color-text-subdued);
 		color: var(--color-text-body);
@@ -150,7 +150,7 @@ const data = await data.json();
 		display: flex;
 		flex-direction: column;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		background-color: var(--color-background-tertiary);
 		padding: var(--size-4);
 		overflow-x: auto;

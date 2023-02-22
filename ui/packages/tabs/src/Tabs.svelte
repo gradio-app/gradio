@@ -89,8 +89,8 @@
 		border: 2px solid transparent;
 		border-color: transparent;
 		border-bottom: none;
-		border-top-right-radius: var(--radius-sm);
-		border-top-left-radius: var(--radius-sm);
+		border-top-right-radius: var(--radius-md);
+		border-top-left-radius: var(--radius-md);
 		padding: var(--size-1) var(--size-4);
 		color: var(--color-text-subdued);
 	}
