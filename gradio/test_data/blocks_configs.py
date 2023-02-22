@@ -68,6 +68,7 @@ XRAY_CONFIG = {
             "props": {
                 "value": "Run",
                 "variant": "secondary",
+                "interactive": True,
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -115,6 +116,7 @@ XRAY_CONFIG = {
                 "value": "Run",
                 "variant": "secondary",
                 "name": "button",
+                "interactive": True,
                 "visible": True,
                 "style": {},
             },
@@ -300,6 +302,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "value": "Run",
                 "variant": "secondary",
+                "interactive": True,
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -346,6 +349,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "value": "Run",
                 "variant": "secondary",
+                "interactive": True,
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -536,6 +540,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "value": "Run",
                 "name": "button",
+                "interactive": True,
                 "css": {"background-color": "red", "--hover-color": "orange"},
                 "variant": "secondary",
             },
@@ -581,6 +586,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "button",
             "props": {
                 "value": "Run",
+                "interactive": True,
                 "name": "button",
                 "style": {},
                 "variant": "secondary",

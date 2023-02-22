@@ -41,6 +41,9 @@ import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
 import requests
+from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath.index import dollarmath_plugin
+from mdit_py_plugins.footnote.index import footnote_plugin
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
@@ -883,6 +886,8 @@ def tex2svg(formula, *args):
     svg_start = xml_code.index("<svg ")
     svg_code = xml_code[svg_start:]
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+    svg_code = re.sub(r' width="[^"]+"', '', svg_code)
+    svg_code = re.sub(r' height="[^"]+"', '', svg_code)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
@@ -893,3 +898,28 @@ def abspath(path: str | Path) -> Path:
         return Path.cwd() / path
     else:
         return Path(path).resolve()
+
+
+def get_markdown_parser() -> MarkdownIt:
+    md = (
+        MarkdownIt(
+            "js-default",
+            {
+                "linkify": True,
+                "typographer": True,
+                "html": True,
+            },
+        )
+        .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)
+        .use(footnote_plugin)
+        .enable("table")
+    )
+
+    # Add target="_blank" to all links. Taken from MarkdownIt docs: https://github.com/executablebooks/markdown-it-py/blob/master/docs/architecture.md
+    def render_blank_link(self, tokens, idx, options, env):
+        tokens[idx].attrSet("target", "_blank")
+        return self.renderToken(tokens, idx, options, env)
+
+    md.add_render_rule("link_open", render_blank_link)
+
+    return md

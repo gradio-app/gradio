@@ -14,10 +14,6 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
-from markdown_it import MarkdownIt
-from mdit_py_plugins.dollarmath.index import dollarmath_plugin
-from mdit_py_plugins.footnote.index import footnote_plugin
-
 from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
@@ -299,20 +295,7 @@ class Interface(Blocks):
             cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
 
-        md = (
-            MarkdownIt(
-                "js-default",
-                {
-                    "linkify": True,
-                    "typographer": True,
-                    "html": True,
-                },
-            )
-            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
-            .use(footnote_plugin)
-            .enable("table")
-        )
-
+        md = utils.get_markdown_parser()
         simple_description = None
         if description is not None:
             description = md.render(description)
