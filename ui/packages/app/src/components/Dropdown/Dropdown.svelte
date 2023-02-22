@@ -6,6 +6,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "Dropdown";
+	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: string | Array<string> = [];
@@ -32,6 +33,7 @@
 		{multiselect}
 		{max_choices}
 		{label}
+		{info}
 		{show_label}
 		on:change
 		disabled={mode === "static"}

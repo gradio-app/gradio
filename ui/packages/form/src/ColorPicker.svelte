@@ -4,6 +4,7 @@
 
 	export let value: string = "#000000";
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
 
@@ -22,7 +23,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<input type="color" bind:value {disabled} />
 </label>
 

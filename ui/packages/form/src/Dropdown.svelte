@@ -4,6 +4,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined = undefined;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
@@ -108,7 +109,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
