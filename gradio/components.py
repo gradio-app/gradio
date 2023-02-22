@@ -188,13 +188,15 @@ class IOComponent(Component, Serializable):
             self.load_event = self.attach_load_event(load_fn, every)
 
     def get_config(self):
-        return {
+        config = {
             "label": self.label,
-            "info": self.info,
             "show_label": self.show_label,
             "interactive": self.interactive,
             **super().get_config(),
         }
+        if self.info:
+            config["info"] = self.info
+        return config
 
     def generate_sample(self) -> Any:
         """
