@@ -42,7 +42,7 @@
 				value.push(option);
 				dispatch("change", value);
 			}
-			showOptions = !(value.length === max_choices)
+			showOptions = !(value.length === max_choices);
 		}
 		value = value;
 	}
@@ -135,11 +135,12 @@
 					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:focus={() => showOptions = 
-						(Array.isArray(value) && value.length === max_choices)
-							? false
-							: true}
-					on:blur={() => showOptions = false}
+					on:focus={() =>
+						(showOptions =
+							Array.isArray(value) && value.length === max_choices
+								? false
+								: true)}
+					on:blur={() => (showOptions = false)}
 					on:keyup={handleKeyup}
 				/>
 				<div
@@ -150,7 +151,7 @@
 				>
 					<Remove />
 				</div>
-				<DropdownArrow/>
+				<DropdownArrow />
 			</div>
 		</div>
 		<DropdownOptions
@@ -167,9 +168,9 @@
 <style>
 	.wrap {
 		--ring-color: transparent;
+		position: relative;
 		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
 			var(--shadow-inset);
-		position: relative;
 		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 	}
@@ -224,7 +225,8 @@
 		height: 18px;
 	}
 
-	.token-remove:hover, .remove-all:hover {
+	.token-remove:hover,
+	.remove-all:hover {
 		border: 1px solid var(--icon_button-border-color-hover);
 		color: var(--color-text-label);
 	}
@@ -243,10 +245,10 @@
 	}
 
 	input {
-		padding: var(--size-2-5);
 		outline: none;
 		border: none;
 		background: inherit;
+		padding: var(--size-2-5);
 		width: 100%;
 		color: var(--color-text-body);
 		font-size: var(--scale-00);
