@@ -890,7 +890,7 @@ def tex2svg(formula, *args):
     height_match = re.search(r'height="([\d.]+)pt"', svg_code)
     if height_match:
         height = float(height_match.group(1))
-        new_height = height / 20   # rough conversion from pt to em
+        new_height = height / FONTSIZE   # conversion from pt to em
         svg_code = re.sub(r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
