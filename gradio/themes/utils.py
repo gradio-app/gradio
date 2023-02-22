@@ -16,8 +16,8 @@ class Color:
         self.c950 = c950
 
 class Theme:
-    def _color(self, color: str, number: int = 500):
-        return f"var(--color-{color}-{number})"
+    def _color(self, color: Color, number: int = 500):
+        return getattr(color, f"c{number}")
 
     def _use(self, property):
         assert property in self.__dict__ and not property.endswith("_dark")
@@ -26,10 +26,7 @@ class Theme:
     def _get_theme_css(self):
         css = ":host, :root {\n"
         dark_css = ".dark {\n"
-        theme_attr = [
-            attr for attr in dir(self) if attr not in dir(Theme) or attr.startswith("_")
-        ]
-        for attr in theme_attr:
+        for attr, val in self.__dict__.items():
             val = getattr(self, attr)
             if val is None:
                 continue

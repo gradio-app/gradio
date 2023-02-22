@@ -66,21 +66,21 @@ class Default(Theme):
         self.color_text_code_border = self._use("color_border_primary")
 
         # Functional colors
-        self.color_functional_error_base = self._color("red", 500)
-        self.color_functional_error_base_dark = self._color("red", 400)
-        self.color_functional_error_subdued = self._color("red", 300)
-        self.color_functional_error_subdued_dark = self._color("red", 300)
-        self.color_functional_error_background = f"linear-gradient(to right,{self._color('red', 100)},{self.color_background_secondary})"
+        self.color_functional_error_base = self._color(colors.red, 500)
+        self.color_functional_error_base_dark = self._color(colors.red, 400)
+        self.color_functional_error_subdued = self._color(colors.red, 300)
+        self.color_functional_error_subdued_dark = self._color(colors.red, 300)
+        self.color_functional_error_background = f"linear-gradient(to right,{self._color(colors.red, 100)},{self.color_background_secondary})"
         self.color_functional_error_background_dark = self._use(
             "color_background_primary"
         )
-        self.color_functional_error_border = self._color("red", 200)
+        self.color_functional_error_border = self._color(colors.red, 200)
         self.color_functional_error_border_dark = self._use("color_border_primary")
 
-        self.color_functional_info_base = self._color("yellow", 500)
-        self.color_functional_info_subdued = self._color("yellow", 300)
-        self.color_functional_success_base = self._color("green", 500)
-        self.color_functional_success_subdued = self._color("green", 300)
+        self.color_functional_info_base = self._color(colors.yellow, 500)
+        self.color_functional_info_subdued = self._color(colors.yellow, 300)
+        self.color_functional_success_base = self._color(colors.green, 500)
+        self.color_functional_success_subdued = self._color(colors.green, 300)
 
         # Shadow
         self.shadow_drop = "rgba(0,0,0,0.05) 0px 1px 2px 0px"
@@ -137,17 +137,17 @@ class Default(Theme):
         self.checkbox_label_border_color_focus = self._use("color_focus_secondary")
         self.checkbox_label_border_color_focus_dark = self._use("color_focus_secondary")
         self.checkbox_label_background_base = (
-            f"linear-gradient(to top, {self._color('grey', 50)}, white)"
+            f"linear-gradient(to top, {self._color(colors.gray, 50)}, white)"
         )
-        self.checkbox_label_background_base_dark = f"linear-gradient(to top, {self._color('grey', 900)}, {self._color('grey', 800)})"
+        self.checkbox_label_background_base_dark = f"linear-gradient(to top, {self._color(colors.gray, 900)}, {self._color(colors.gray, 800)})"
         self.checkbox_label_background_hover = (
-            f"linear-gradient(to top, {self._color('grey', 100)}, white)"
+            f"linear-gradient(to top, {self._color(colors.gray, 100)}, white)"
         )
-        self.checkbox_label_background_hover_dark = f"linear-gradient(to top, {self._color('grey', 900)}, {self._color('grey', 800)})"
+        self.checkbox_label_background_hover_dark = f"linear-gradient(to top, {self._color(colors.gray, 900)}, {self._color(colors.gray, 800)})"
         self.checkbox_label_background_focus = (
-            f"linear-gradient(to top, {self._color('grey', 100)}, white)"
+            f"linear-gradient(to top, {self._color(colors.gray, 100)}, white)"
         )
-        self.checkbox_label_background_focus_dark = f"linear-gradient(to top, {self._color('grey', 900)}, {self._color('grey', 800)})"
+        self.checkbox_label_background_focus_dark = f"linear-gradient(to top, {self._color(colors.gray, 900)}, {self._color(colors.gray, 800)})"
         self.row_even_background = "white"
         self.row_even_background_dark = self._color(neutral_hue, 950)
         self.row_odd_background = self._color(neutral_hue, 50)
@@ -211,7 +211,7 @@ class Default(Theme):
         self.button_secondary_border_color_focus_dark = self._use(
             "button_secondary_border_color_base"
         )
-        self.button_secondary_text_color_base = self._color("grey", 700)
+        self.button_secondary_text_color_base = self._color(colors.gray, 700)
         self.button_secondary_text_color_base_dark = "white"
         self.button_secondary_text_color_hover = self._use(
             "button_secondary_text_color_base"
@@ -231,8 +231,8 @@ class Default(Theme):
         self.button_secondary_background_hover_dark = f"linear-gradient(to bottom right, {self._color(neutral_hue, 600)}, {self._color(neutral_hue, 600)})"
         self.button_secondary_background_focus = f"linear-gradient(to bottom right, {self._color(neutral_hue, 50)}, {self._color(neutral_hue, 100)})"
         self.button_secondary_background_focus_dark = f"linear-gradient(to bottom right, {self._color(neutral_hue, 600)}, {self._color(neutral_hue, 600)})"
-        self.button_cancel_border_color_base = self._color("red", 200)
-        self.button_cancel_border_color_base_dark = self._color("red", 600)
+        self.button_cancel_border_color_base = self._color(colors.red, 200)
+        self.button_cancel_border_color_base_dark = self._color(colors.red, 600)
         self.button_cancel_border_color_hover = self._use(
             "button_cancel_border_color_base"
         )
@@ -245,7 +245,7 @@ class Default(Theme):
         self.button_cancel_border_color_focus_dark = self._use(
             "button_cancel_border_color_base"
         )
-        self.button_cancel_text_color_base = self._color("red", 600)
+        self.button_cancel_text_color_base = self._color(colors.red, 600)
         self.button_cancel_text_color_base_dark = "white"
         self.button_cancel_text_color_hover = self._use("button_cancel_text_color_base")
         self.button_cancel_text_color_hover_dark = self._use(
@@ -255,12 +255,12 @@ class Default(Theme):
         self.button_cancel_text_color_focus_dark = self._use(
             "button_cancel_text_color_base"
         )
-        self.button_cancel_background_base = f"linear-gradient(to bottom right, {self._color('red', 100)}, {self._color('red', 200)})"
-        self.button_cancel_background_base_dark = f"linear-gradient(to bottom right, {self._color('red', 700)}, {self._color('red', 700)})"
-        self.button_cancel_background_hover = f"linear-gradient(to bottom right, {self._color('red', 100)}, {self._color('red', 100)})"
-        self.button_cancel_background_hover_dark = f"linear-gradient(to bottom right, {self._color('red', 700)}, {self._color('red', 500)})"
+        self.button_cancel_background_base = f"linear-gradient(to bottom right, {self._color(colors.red, 100)}, {self._color(colors.red, 200)})"
+        self.button_cancel_background_base_dark = f"linear-gradient(to bottom right, {self._color(colors.red, 700)}, {self._color(colors.red, 700)})"
+        self.button_cancel_background_hover = f"linear-gradient(to bottom right, {self._color(colors.red, 100)}, {self._color(colors.red, 100)})"
+        self.button_cancel_background_hover_dark = f"linear-gradient(to bottom right, {self._color(colors.red, 700)}, {self._color(colors.red, 500)})"
         self.button_cancel_background_focus = self._use("button_cancel_background_base")
-        self.button_cancel_background_focus_dark = f"linear-gradient(to bottom right, {self._color('red', 700)}, {self._color('red', 500)})"
+        self.button_cancel_background_focus_dark = f"linear-gradient(to bottom right, {self._color(colors.red, 700)}, {self._color(colors.red, 500)})"
         self.button_plain_border_color_base = self._use("color_border_primary")
         self.button_plain_border_color_base_dark = self._use("color_border_primary")
         self.button_plain_border_color_hover = self._use("color_border_primary")
