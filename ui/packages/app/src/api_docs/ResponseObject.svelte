@@ -26,7 +26,7 @@
 		&nbsp;&nbsp;"data": [
 		<br />
 		{#each dependency.outputs as component_id, component_index}
-			&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
 				<input
 					disabled
 					type="text"
@@ -49,7 +49,7 @@
 			</span>
 			<br />
 		{/each}
-		&nbsp;&nbsp;],
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],
 		<br />
 		&nbsp;&nbsp;"duration": (float)
 		<span class="desc">// number of seconds to run function call</span>
