@@ -3,9 +3,10 @@ export const modes = ["static"];
 
 export const document = (config: Record<string, any>) => ({
 	type: {
-		payload: "{ label: string; confidences?: Array<{ label: string; confidence: number }>"
+		payload:
+			"{ label: string; confidences?: Array<{ label: string; confidence: number }>"
 	},
-	description:{
+	description: {
 		payload: "output label and optional set of confidences per label"
 	}
 });

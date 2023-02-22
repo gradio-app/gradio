@@ -7,5 +7,5 @@ export const document = (config: Record<string, any>) => ({
 	},
 	description: {
 		payload: "dataset of series"
-	}, 
+	}
 });

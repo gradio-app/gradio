@@ -3,10 +3,10 @@ export const modes = ["static"];
 
 export const document = (config: Record<string, any>) => ({
 	type: {
-		payload:  "string"
+		payload: "string"
 	},
 	description: {
-		payload:  "button label"
+		payload: "button label"
 	},
 	example_data: config.value || "Run"
 });
