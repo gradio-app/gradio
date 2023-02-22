@@ -40,6 +40,8 @@
 
 	button[disabled] {
 		cursor: not-allowed;
+		opacity: 0.5; /* lower the opacity to 50% */
+  		filter: grayscale(30%); /* apply 100% desaturation */	
 	}
 
 	.hide {
