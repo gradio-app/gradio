@@ -22,6 +22,7 @@ With this model you can lorem ipsum
 """
     )
     disease = gr.CheckboxGroup(
+        info="Select the diseases you want to scan for.",
         choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
     )
 

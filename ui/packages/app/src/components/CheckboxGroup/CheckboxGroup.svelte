@@ -12,6 +12,7 @@
 	export let style: Styles = {};
 	export let mode: "static" | "dynamic";
 	export let label: string = "Checkbox Group";
+	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
@@ -29,6 +30,7 @@
 		bind:value
 		{choices}
 		{label}
+		{info}
 		{style}
 		{show_label}
 		on:change

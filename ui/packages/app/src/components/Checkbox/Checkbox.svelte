@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Checkbox } from "@gradio/form";
-	import { Block } from "@gradio/atoms";
+	import { Block, Info } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
@@ -9,6 +9,7 @@
 	export let visible: boolean = true;
 	export let value: boolean = false;
 	export let label: string = "Checkbox";
+	export let info: string | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
@@ -21,5 +22,8 @@
 >
 	<StatusTracker {...loading_status} />
 
+	{#if info}
+		<Info>{info}</Info>
+	{/if}
 	<Checkbox {label} bind:value on:change disabled={mode === "static"} />
 </Block>

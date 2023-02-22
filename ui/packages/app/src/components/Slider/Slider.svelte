@@ -9,6 +9,7 @@
 	export let visible: boolean = true;
 	export let value: number = 0;
 	export let label: string = "Slider";
+	export let info: string | undefined = undefined;
 	export let style: Styles = {};
 	export let minimum: number;
 	export let maximum: number;
@@ -29,6 +30,7 @@
 	<Range
 		bind:value
 		{label}
+		{info}
 		{show_label}
 		{minimum}
 		{maximum}

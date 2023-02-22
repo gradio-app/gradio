@@ -6,6 +6,7 @@
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
@@ -91,7 +92,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	{#if lines === 1 && max_lines === 1}
 		{#if type === "text"}

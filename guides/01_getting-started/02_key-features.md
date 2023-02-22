@@ -42,10 +42,10 @@ There are three arguments in the `Interface` constructor to specify where this c
 
 If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
 
-Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`.
+Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`. You can also add the `info=` keyword argument to form elements like `Textbox` or `Radio` to provide further information on their usage.
 
 ```python
-gr.Number(label='Age')
+gr.Number(label='Age', info='In years, must be greater than 0')
 ```
 
 ## Flagging
