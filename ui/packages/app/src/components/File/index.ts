@@ -10,7 +10,7 @@ export const document = (config: Record<string, any>) => ({
 	description: {
 		input_payload: "object with file name and base64 data",
 		response_object:
-			"file data as object with filename. `{DEMO URL}/file={name}` hosts the data"
+			"object that includes path to file. The URL: `{DEMO URL}/file={name}` contains the data"
 	},
 	example_data: {
 		name: "zip.zip",
