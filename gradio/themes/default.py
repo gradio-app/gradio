@@ -37,12 +37,6 @@ class Default(Theme):
         self.color_background_tertiary_dark = self._color(neutral_hue, 800)
         self.color_stat_background = f"linear-gradient(to right, {self._color(primary_hue, 400)}, {self._color(primary_hue, 200)});"
         self.color_stat_background_dark = f"linear-gradient(to right, {self._color(primary_hue, 400)}, {self._color(primary_hue, 600)});"
-        self.rounded_sm = "var(--radius-xs)"
-        self.rounded = "var(--radius-sm)"
-        self.rounded_lg = "var(--radius-lg)"
-        self.rounded_xl = "var(--radius-xl)"
-        self.rounded_xxl = "var(--radius-3xl)"
-        self.rounded_full = "var(--radius-full)"
         self.internal_border_width = "0"
 
         # Text colors
