@@ -12,6 +12,7 @@
 	export let step: number = 1;
 	export let disabled: boolean = false;
 	export let label: string;
+	export let info: string | null = null;
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
@@ -24,7 +25,7 @@
 <div class="wrap">
 	<div class="head">
 		<label for={id}>
-			<BlockTitle {show_label}>{label}</BlockTitle>
+			<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		</label>
 		<input
 			type="number"

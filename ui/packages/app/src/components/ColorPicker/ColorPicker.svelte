@@ -8,6 +8,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "ColorPicker";
+	export let info: string | null = null;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: string;
@@ -30,6 +31,7 @@
 	<ColorPicker
 		bind:value
 		{label}
+		{info}
 		{show_label}
 		on:change
 		on:submit

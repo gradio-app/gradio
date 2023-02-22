@@ -1,9 +1,14 @@
 <script lang="ts">
+	import { default as Info } from "./Info.svelte";
 	export let show_label: boolean = true;
+	export let info: string | null = null;
 </script>
 
 <span class:sr-only={!show_label} class:hide={!show_label}>
 	<slot />
+	{#if info}
+		<Info>{info}</Info>
+	{/if}
 </span>
 
 <style>

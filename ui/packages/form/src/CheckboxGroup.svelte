@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { BlockTitle } from "@gradio/atoms";
+	import { BlockTitle, Info } from "@gradio/atoms";
 	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 
@@ -9,6 +9,7 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
+	export let info: string | null = null;
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();
@@ -26,7 +27,7 @@
 	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>
 
-<BlockTitle {show_label}>{label}</BlockTitle>
+<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 <div class="wrap" data-testid="checkbox-group">
 	{#each choices as choice}
