@@ -311,7 +311,8 @@
 			set_canvas_size(canvas.mask, dimensions, container_dimensions, false)
 		]);
 
-		brush_radius = 20 * (dimensions.width / container_dimensions.width);
+		brush_radius =
+			brush_radius * (dimensions.width / container_dimensions.width);
 
 		loop({ once: true });
 
@@ -424,7 +425,6 @@
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
-		// ctx.temp_fake.clearRect(0, 0, width, height);
 		ctx.temp_fake.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];

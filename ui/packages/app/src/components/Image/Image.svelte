@@ -20,6 +20,7 @@
 	export let style: Styles = {};
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
+	export let brush_radius: number;
 
 	export let loading_status: LoadingStatus;
 
@@ -49,6 +50,7 @@
 		<StaticImage {value} {label} {show_label} />
 	{:else}
 		<Image
+			{brush_radius}
 			{shape}
 			bind:value
 			{source}
