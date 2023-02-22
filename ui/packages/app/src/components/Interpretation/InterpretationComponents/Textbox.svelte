@@ -19,7 +19,7 @@
 
 <style>
 	.input-text {
-		border-radius: var(--rounded);
+		border-radius: var(--radius-md);
 		padding: var(--size-2);
 		width: var(--size-full);
 		overflow-wrap: break-word;

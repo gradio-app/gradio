@@ -34,7 +34,7 @@
 		gap: var(--size-2);
 		transition: 150ms;
 		cursor: pointer;
-		border-radius: var(--rounded);
+		border-radius: var(--radius-md);
 		background: var(--color-background-primary);
 		padding: var(--size-2) var(--size-3);
 		font-weight: var(--weight-semibold);
@@ -45,7 +45,7 @@
 	}
 	.radio-circle {
 		box-sizing: border-box;
-		border-radius: var(--rounded-full);
+		border-radius: var(--radius-fullfull);
 		width: var(--size-4);
 		height: var(--size-4);
 	}

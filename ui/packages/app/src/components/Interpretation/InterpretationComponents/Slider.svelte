@@ -29,7 +29,7 @@
 		-webkit-appearance: none;
 		appearance: none;
 		cursor: pointer;
-		border-radius: var(--rounded);
+		border-radius: var(--radius-md);
 		width: var(--size-5);
 		height: var(--size-5);
 	}
@@ -45,7 +45,7 @@
 	input {
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		border-radius: var(--rounded);
+		border-radius: var(--radius-md);
 		background: var(--color-background-primary);
 		width: var(--size-full);
 		height: var(--size-3);
@@ -68,7 +68,7 @@
 	.original {
 		display: inline-block;
 		margin: var(--size-1) auto;
-		border-radius: var(--rounded);
+		border-radius: var(--radius-md);
 		padding: var(--size-0-5) var(--size-2);
 	}
 
