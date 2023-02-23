@@ -7,7 +7,7 @@
 The standard dropdown component now supports searching for choices. Also when `multiselect` is `True`, you can specify `max_choices` to set the maximum number of choices you want the user to be able to select from the dropdown component.
 
 ```python
-gr.Dropdown(label="Multiselect Dropdown", choices=CHOICES, multiselect=True, max_choices=2),
+gr.Dropdown(label="Choose your favorite colors", choices=["red", "blue", "green", "yellow", "orange"], multiselect=True, max_choices=2)
 ```
 by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3211](https://github.com/gradio-app/gradio/pull/3211)
 
