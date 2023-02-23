@@ -90,7 +90,7 @@ class FlaggingCallback(ABC):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -134,7 +134,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -194,7 +194,7 @@ class CSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -367,7 +367,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -499,7 +499,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> str:

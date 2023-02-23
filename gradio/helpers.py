@@ -311,7 +311,7 @@ class Examples:
                 output = prediction["data"]
                 if self.batch:
                     output = [value[0] for value in output]
-                cache_logger.flag(output, "")
+                cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
