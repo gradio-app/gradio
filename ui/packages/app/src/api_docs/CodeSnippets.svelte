@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
+	import CopyButton from "./CopyButton.svelte"
 	import { represent_value } from "./utils";
+
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
@@ -20,6 +22,9 @@
 		["python", python],
 		["javascript", javascript]
 	] as const;
+
+	let python_code = "";
+	let js_code = ""; 
 </script>
 
 <h4>
@@ -45,6 +50,10 @@
 </div>
 <code>
 	{#if current_language === "python"}
+	<div class="copy">
+		<CopyButton code="{python_code?.innerText}"/>
+	</div>
+	<div bind:this="{python_code}">
 		<pre>import requests
 
 response = requests.post(<span class="token string"
@@ -66,8 +75,12 @@ response = requests.post(<span class="token string"
 	]
 &rbrace;).json()
 
-data = response[<span class="token string">"data"</span>]</pre>
+data = response[<span class="token string">"data"</span>]</pre></div>
 	{:else if current_language === "javascript"}
+	<div class="copy">
+		<CopyButton code="{js_code?.innerText}"/>
+	</div>
+	<div bind:this="{js_code}">
 		<pre>const response = await fetch(<span class="token string"
 				>"{root + "run/" + dependency.api_name}"</span
 			>, &lbrace;
@@ -91,8 +104,9 @@ data = response[<span class="token string">"data"</span>]</pre>
 	&rbrace;)
 &rbrace;);
 
-const data = await <span class="token string">data</span>.json();
+const data = await <span class="token string">response</span>.json();
 </pre>
+</div>
 	{:else if current_language === "gradio client"}
 		<pre class="client">Hello World</pre>
 	{/if}
@@ -179,5 +193,16 @@ const data = await <span class="token string">data</span>.json();
 	.token.string {
 		display: contents;
 		color: var(--color-accent-base);
+	}
+
+	code {
+		position: relative;
+	}
+
+	.copy {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 1rem;
 	}
 </style>
