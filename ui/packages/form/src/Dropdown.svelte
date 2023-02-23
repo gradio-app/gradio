@@ -3,6 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined = undefined;
 	export let multiselect: boolean = false;
 	export let choices: Array<string>;
@@ -13,14 +14,16 @@
 		change: string | Array<string>;
 	}>();
 
-	$: if (!multiselect) {
+	// The initial value of value is [] so that can
+	// cause infinite loops in the non-multiselect case
+	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
 	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	{#if !multiselect}
 		<select bind:value {disabled}>
