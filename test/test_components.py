@@ -628,6 +628,7 @@ class TestImage:
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
         assert image_input.get_config() == {
+            "brush_radius": None,
             "image_mode": "RGB",
             "shape": None,
             "source": "upload",

@@ -1385,6 +1385,7 @@ class Image(
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
+        brush_radius: int | None = None,
         **kwargs,
     ):
         """
@@ -1404,7 +1405,9 @@ class Image(
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
+            brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
         """
+        self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -1452,6 +1455,7 @@ class Image(
             "value": self.value,
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
+            "brush_radius": self.brush_radius,
             **IOComponent.get_config(self),
         }
 
@@ -1462,6 +1466,7 @@ class Image(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        brush_radius: int | None = None,
     ):
         updated_config = {
             "label": label,
@@ -1469,6 +1474,7 @@ class Image(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "brush_radius": brush_radius,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
