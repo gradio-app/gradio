@@ -15,7 +15,7 @@
 
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
-	$: if (!multiselect && !(Array.isArray(value))) {
+	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
 	}
 </script>
