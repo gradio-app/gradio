@@ -1,11 +1,14 @@
 import numpy as np
 import gradio as gr
 
+
 def flip_text(x):
     return x[::-1]
 
+
 def flip_image(x):
     return np.fliplr(x)
+
 
 with gr.Blocks() as demo:
     gr.Markdown("Flip text or image files using this demo.")
@@ -24,6 +27,6 @@ with gr.Blocks() as demo:
 
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
-    
+
 if __name__ == "__main__":
     demo.launch()
