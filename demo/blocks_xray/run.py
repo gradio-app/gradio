@@ -1,7 +1,11 @@
 import gradio as gr
 import random
 import time
+from gradio.themes import Default
 
+theme = Default()
+theme.color_text_body = "green"
+theme.input_accent = "green"
 
 def xray_model(diseases, img):
     time.sleep(4)
@@ -12,7 +16,7 @@ def ct_model(diseases, img):
     time.sleep(3)
     return [{disease: 0.1 for disease in diseases}]
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=theme) as demo:
     gr.Markdown(
         """
 # Detect Disease From Scan
@@ -25,6 +29,7 @@ With this model you can lorem ipsum
         info="Select the diseases you want to scan for.",
         choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
     )
+    slider = gr.Slider(0, 100)
 
     with gr.Tab("X-ray") as x_tab:
         with gr.Row():

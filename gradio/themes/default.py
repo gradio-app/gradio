@@ -36,7 +36,7 @@ class Default(Theme):
         self.color_background_tertiary = "white"
         self.color_background_tertiary_dark = self._color(neutral_hue, 800)
         self.color_stat_background = f"linear-gradient(to right, {self._color(primary_hue, 400)}, {self._color(primary_hue, 200)});"
-        self.color_stat_background_dark = f"linear-gradient(to right, {self._color(primary_hue, 400)}, {self._color(primary_hue, 600)});"
+        self.color_stat_background_dark = f"linear-gradient(to right, {self._color(primary_hue, 400)}, {self._color(primary_hue, 600)});"        
         self.internal_border_width = "0"
 
         # Text colors
@@ -112,7 +112,7 @@ class Default(Theme):
         self.input_background_focus = self._use("color_focus_secondary")
         self.input_background_focus_dark = self._use("color_focus_secondary")
         self.input_accent = None
-        self.checkbox_border_radius = self._use("rounded")
+        self.checkbox_border_radius = "var(--radius_sm)"
         self.checkbox_border_color_base = self._use("color_border_tertiary")
         self.checkbox_border_color_base_dark = self._use("color_border_tertiary")
         self.checkbox_border_color_hover = self._color(neutral_hue, 300)
