@@ -9,6 +9,6 @@ export const document = (config: Record<string, any>) => ({
 	description: {
 		input_payload: "object with file name and base64 data",
 		response_object:
-			"object that includes path to video file. The URL: `{DEMO URL}/file={name}` contains the data"
+			"object that includes path to video file. The URL: {ROOT}file={name} contains the data"
 	}
 });

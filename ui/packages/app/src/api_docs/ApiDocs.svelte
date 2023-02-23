@@ -135,6 +135,7 @@
 						{dependency_index}
 						{is_running}
 						{dependency_outputs}
+						{root}
 					/>
 					<CodeSnippets
 						{instance_map}

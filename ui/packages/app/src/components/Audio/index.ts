@@ -9,7 +9,7 @@ export const document = () => ({
 	description: {
 		input_payload: "audio data as object with filename and base64 string",
 		response_object:
-			"object that includes path to audio file. The URL: `{DEMO URL}/file={name}` contains the data"
+			"object that includes path to audio file. The URL: {ROOT}file={name} contains the data"
 	},
 	example_data: {
 		name: "audio.wav",

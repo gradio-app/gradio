@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import Loader from "../components/StatusTracker/Loader.svelte";
-
+	
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let instance_map: {
@@ -11,6 +11,11 @@
 	export let dependency_outputs: any[][];
 
 	export let is_running: boolean;
+	
+	export let root;
+
+	const format_url = (desc, data) => desc.replaceAll("{ROOT}", root).replaceAll("{name}", data ? JSON.parse(`${data}`)?.name : "{name}");
+	
 </script>
 
 <h4>
@@ -39,9 +44,11 @@
 					instance_map[component_id].documentation?.type?.payload},
 			</span>
 			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description
+				// represents {format_url(instance_map[component_id].documentation?.description
 					?.response_object ||
-					instance_map[component_id].documentation?.description?.payload} of
+					instance_map[component_id].documentation?.description?.payload,
+					dependency_outputs[dependency_index][component_index]
+					)} of
 				{((label) => {
 					return label ? "'" + label + "'" : "the";
 				})(instance_map[component_id].props.label)}
@@ -156,4 +163,5 @@
 	.second-level {
 		margin-left: 6rem;
 	}
+
 </style>
