@@ -423,6 +423,7 @@
 	{version}
 	{initial_height}
 	{space}
+	loaded={status === "success"}
 	bind:wrapper
 >
 	{#if status === "pending" || status === "error"}
