@@ -12,12 +12,20 @@
 	export let value_img;
 	export let mode = "sketch";
 	export let brush_color = "#0b0f19";
-	export let brush_radius = 50;
+	export let brush_radius;
 	export let source;
 
 	export let width = 400;
 	export let height = 200;
 	export let container_height = 200;
+	export let shape;
+
+	$: {
+		if (shape) {
+			width = shape[0];
+			height = shape[1];
+		}
+	}
 
 	let mounted;
 
@@ -279,8 +287,16 @@
 	let old_width = 0;
 	let old_height = 0;
 	let old_container_height = 0;
+	let add_lr_border = false;
 
 	let handle_canvas_resize = async () => {
+		if (shape && canvas_container) {
+			const x = canvas_container?.getBoundingClientRect();
+			const shape_ratio = shape[0] / shape[1];
+			const container_ratio = x.width / x.height;
+			add_lr_border = shape_ratio < container_ratio;
+		}
+
 		if (
 			width === old_width &&
 			height === old_height &&
@@ -303,7 +319,9 @@
 			set_canvas_size(canvas.mask, dimensions, container_dimensions, false)
 		]);
 
-		brush_radius = 20 * (dimensions.width / container_dimensions.width);
+		if (!brush_radius) {
+			brush_radius = 20 * (dimensions.width / container_dimensions.width);
+		}
 
 		loop({ once: true });
 
@@ -311,7 +329,8 @@
 			old_height = height;
 			old_width = width;
 			old_container_height = container_height;
-		}, 100);
+		}, 10);
+		await tick();
 
 		clear();
 	};
@@ -415,7 +434,6 @@
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
-		// ctx.temp_fake.clearRect(0, 0, width, height);
 		ctx.temp_fake.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
@@ -546,6 +564,8 @@
 		<canvas
 			key={name}
 			style=" z-index:{zIndex};"
+			class:lr={add_lr_border}
+			class:tb={!add_lr_border}
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}
@@ -570,6 +590,16 @@
 		bottom: 0px;
 		left: 0px;
 		margin: auto;
+	}
+
+	.lr {
+		border-right: 1px solid var(--color-border-primary);
+		border-left: 1px solid var(--color-border-primary);
+	}
+
+	.tb {
+		border-top: 1px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--color-border-primary);
 	}
 
 	canvas:hover {
