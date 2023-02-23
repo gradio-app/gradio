@@ -354,15 +354,19 @@ class Interface(Blocks):
 
         if flagging_options is None:
             self.flagging_options = [("Flag", None)]
-        elif not(isinstance(flagging_options, list)):
-            raise ValueError("flagging_options must be a list of strings or list of (string, string) tuples.")
+        elif not (isinstance(flagging_options, list)):
+            raise ValueError(
+                "flagging_options must be a list of strings or list of (string, string) tuples."
+            )
         elif all([isinstance(x, str) for x in flagging_options]):
             self.flagging_options = [(f"Flag as {x}", x) for x in flagging_options]
         elif all([isinstance(x, tuple) for x in flagging_options]):
             self.flagging_options = flagging_options
         else:
-            raise ValueError("flagging_options must be a list of strings or list of (string, string) tuples.")
-                                                
+            raise ValueError(
+                "flagging_options must be a list of strings or list of (string, string) tuples."
+            )
+
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
         self.batch = batch
@@ -734,9 +738,7 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def attach_flagging_events(
-        self, flag_btns: List[Button] | None
-    ):
+    def attach_flagging_events(self, flag_btns: List[Button] | None):
         if flag_btns:
             if self.interface_type in [
                 InterfaceTypes.STANDARD,
@@ -755,7 +757,9 @@ class Interface(Blocks):
                     assert value is None or isinstance(value, str)
                     flag_method = FlagMethod(self.flagging_callback, label, value)
                     flag_btn.click(
-                        lambda: Button.update(value="Saving...", interactive=False), None, flag_btn
+                        lambda: Button.update(value="Saving...", interactive=False),
+                        None,
+                        flag_btn,
                     )
                     flag_btn.click(
                         flag_method,

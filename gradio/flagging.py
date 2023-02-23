@@ -580,8 +580,8 @@ class FlagMethod:
     """
 
     def __init__(
-        self, 
-        flagging_callback: FlaggingCallback, 
+        self,
+        flagging_callback: FlaggingCallback,
         label: str,
         value: str | None,
     ):
