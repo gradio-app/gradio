@@ -353,7 +353,7 @@ class App(FastAPI):
             body: PredictBody,
             request: Request | List[Request],
             fn_index_inferred: int,
-            username: str = Depends(get_current_user),
+            username: str | None = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
@@ -419,7 +419,7 @@ class App(FastAPI):
             api_name: str,
             body: PredictBody,
             request: fastapi.Request,
-            username: str = Depends(get_current_user),
+            username: str | None = Depends(get_current_user),
         ):
             fn_index_inferred = None
             if body.fn_index is None:
@@ -451,12 +451,12 @@ class App(FastAPI):
                 body.data = [body.session_hash]
             if body.request:
                 if body.batched:
-                    gr_request = [Request(**req) for req in body.request]
+                    gr_request = [Request(username=username, **req) for req in body.request]
                 else:
                     assert isinstance(body.request, dict)
-                    gr_request = Request(**body.request)
+                    gr_request = Request(username=username, **body.request)
             else:
-                gr_request = Request(request)
+                gr_request = Request(username=username, request)
             result = await run_predict(
                 body=body,
                 fn_index_inferred=fn_index_inferred,
@@ -637,7 +637,8 @@ class Request:
     A Gradio request object that can be used to access the request headers, cookies,
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
-    of this class include: `headers`, `client`, `query_params`, and `path_params`,
+    of this class include: `headers`, `client`, `query_params`, and `path_params`. If
+    auth is enabled, the `username` attribute can be used to get the logged in user.
     Example:
         import gradio as gr
         def echo(name, request: gr.Request):
@@ -647,7 +648,7 @@ class Request:
         io = gr.Interface(echo, "textbox", "textbox").launch()
     """
 
-    def __init__(self, request: fastapi.Request | None = None, **kwargs):
+    def __init__(self, request: fastapi.Request | None = None, username: str | None = None, **kwargs):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
         attributes (needed for websocket-based queueing).
@@ -655,6 +656,7 @@ class Request:
             request: A fastapi.Request
         """
         self.request = request
+        self.username = username
         self.kwargs: Dict = kwargs
 
     def dict_to_obj(self, d):
