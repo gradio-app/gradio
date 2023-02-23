@@ -33,7 +33,7 @@
 		(!multiselect && typeof value === "string") ||
 		(multiselect && Array.isArray(value) && value.length === max_choices);
 
-  // The initial value of value is [] so that can
+	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
 	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
