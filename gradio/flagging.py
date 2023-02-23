@@ -600,5 +600,5 @@ class FlagMethod:
             raise gr.Error("Error while flagging: {}".format(e))
         if not self.visual_feedback:
             return
-        time.sleep(0.5)  # to provide enough time for the user to observe button change
+        time.sleep(0.8)  # to provide enough time for the user to observe button change
         return gr.Button.update(value=self.label, interactive=True)
