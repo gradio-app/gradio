@@ -419,7 +419,7 @@ class App(FastAPI):
             api_name: str,
             body: PredictBody,
             request: fastapi.Request,
-            username: str | None = Depends(get_current_user),
+            username: str = Depends(get_current_user),
         ):
             fn_index_inferred = None
             if body.fn_index is None:
@@ -456,7 +456,7 @@ class App(FastAPI):
                     assert isinstance(body.request, dict)
                     gr_request = Request(username=username, **body.request)
             else:
-                gr_request = Request(username=username, request)
+                gr_request = Request(username=username, request=request)
             result = await run_predict(
                 body=body,
                 fn_index_inferred=fn_index_inferred,

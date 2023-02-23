@@ -438,6 +438,41 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
+        
+    def test_request_includes_username_as_none_if_no_auth(self):
+        def identity(name, request: gr.Request):
+            assert request.username is None
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_includes_username_with_auth(self):
+        def identity(name, request: gr.Request):
+            assert request.username == "admin"
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True, auth=("admin", "password")
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data=dict(username="admin", password="password"),
+        )
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+        
 
 
 def test_predict_route_is_blocked_if_api_open_false():
