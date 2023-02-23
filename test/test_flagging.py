@@ -150,4 +150,3 @@ class TestInterfaceSetsUpFlagging:
     def test_flagging_options_processed_correctly(self, options, processed_options):
         io = gr.Interface(lambda x: x, "text", "text", flagging_options=options)
         assert io.flagging_options == processed_options
-    
