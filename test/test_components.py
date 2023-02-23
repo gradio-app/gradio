@@ -563,9 +563,7 @@ class TestDropdown:
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
 
-        dropdown_input_multiselect = gr.Dropdown(
-            ["a", "b", "c"], multiselect=True, max_choices=2
-        )
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
         assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
@@ -574,6 +572,8 @@ class TestDropdown:
             value=["a", "c"],
             choices=["a", "b", "c"],
             label="Select Your Inputs",
+            multiselect=True,
+            max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "choices": ["a", "b", "c"],
