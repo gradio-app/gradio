@@ -752,7 +752,7 @@ class Interface(Blocks):
                 for flag_btn, flag_option in flag_btns:
                     flag_method = FlagMethod(self.flagging_callback, flag_option)
                     flag_btn.click(
-                        lambda: Button.update(interactive=False), None, flag_btn
+                        lambda: Button.update(value="Saving...", interactive=False), None, flag_btn
                     )
                     flag_btn.click(
                         flag_method,
