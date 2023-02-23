@@ -746,7 +746,9 @@ class Interface(Blocks):
                 InterfaceTypes.UNIFIED,
             ]:
                 if self.allow_flagging == "auto":
-                    flag_method = FlagMethod(self.flagging_callback, "", "", visual_feedback=False)
+                    flag_method = FlagMethod(
+                        self.flagging_callback, "", "", visual_feedback=False
+                    )
                     flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
                         flag_method,
                         inputs=self.input_components,
@@ -755,12 +757,12 @@ class Interface(Blocks):
                         queue=False,
                     )
                     return
-                    
+
                 if self.interface_type == InterfaceTypes.UNIFIED:
                     flag_components = self.input_components
                 else:
                     flag_components = self.input_components + self.output_components
-                
+
                 for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
                     assert isinstance(value, str)
                     flag_method = FlagMethod(self.flagging_callback, label, value)
