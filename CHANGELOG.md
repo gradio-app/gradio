@@ -2,6 +2,15 @@
 
 ## New Features:
 
+### Dropdown Component Updates
+
+The standard dropdown component now supports searching for choices. Also when `multiselect` is `True`, you can specify `max_choices` to set the maximum number of choices you want the user to be able to select from the dropdown component.
+
+```python
+gr.Dropdown(label="Choose your favorite colors", choices=["red", "blue", "green", "yellow", "orange"], multiselect=True, max_choices=2)
+```
+by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3211](https://github.com/gradio-app/gradio/pull/3211)
+
 ### Download button for images 🖼️
 
 Output images will now automatically have a download button displayed to make it easier to save and share

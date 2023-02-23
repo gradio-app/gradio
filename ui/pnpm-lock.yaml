@@ -230,9 +230,11 @@ importers:
   packages/form:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/utils': link:../utils
 
   packages/gallery:
