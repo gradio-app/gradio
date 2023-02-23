@@ -576,7 +576,8 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
 
 class FlagMethod:
     """
-    Helper class that contains the flagging button option and callback
+    Helper class that contains the flagging options and calls the flagging method. Also
+    provides visual feedback to the user when flag is clicked.
     """
 
     def __init__(
@@ -584,16 +585,20 @@ class FlagMethod:
         flagging_callback: FlaggingCallback,
         label: str,
         value: str,
+        visual_feedback: bool = True,
     ):
         self.flagging_callback = flagging_callback
         self.label = label
         self.value = value
         self.__name__ = "Flag"
+        self.visual_feedback = visual_feedback
 
     def __call__(self, *flag_data):
         try:
             self.flagging_callback.flag(list(flag_data), flag_option=self.value)
         except Exception as e:
             raise gr.Error("Error while flagging: {}".format(e))
+        if not self.visual_feedback:
+            return
         time.sleep(0.5)  # to provide enough time for the user to observe button change
         return gr.Button.update(value=self.label, interactive=True)
