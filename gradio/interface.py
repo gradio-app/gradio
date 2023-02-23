@@ -162,7 +162,7 @@ class Interface(Blocks):
             theme: Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
             css: custom css or path to custom css file to use with interface.
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
-            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (value, label), where value is the value that will be stored in the flagging CSV, and label is the label that will be displayed to the user on the user; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
+            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
@@ -353,15 +353,15 @@ class Interface(Blocks):
             )
 
         if flagging_options is None:
-            self.flagging_options = [(None, "Flag")]
+            self.flagging_options = [("Flag", None)]
         if not(isinstance(flagging_options, list)):
-            raise ValueError("flagging_options must be a list of strings or list of tuples.")
+            raise ValueError("flagging_options must be a list of strings or list of (string, string) tuples.")
         elif all([isinstance(x, str) for x in flagging_options]):
-            self.flagging_options = [(x, f"Flag as {x}") for x in flagging_options]
+            self.flagging_options = [(f"Flag as {x}", x) for x in flagging_options]
         elif all([isinstance(x, tuple) for x in flagging_options]):
             self.flagging_options = flagging_options
         else:
-            raise ValueError("flagging_options must be a list of strings orlist of tuples.")
+            raise ValueError("flagging_options must be a list of strings or list of (string, string) tuples.")
                                                 
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
@@ -473,7 +473,7 @@ class Interface(Blocks):
                 interpret_component_column,
             )
 
-            self.render_flagging_buttons(flag_btns)
+            self.attach_flagging_events(flag_btns)
             self.render_examples()
             self.render_article()
 
@@ -489,12 +489,8 @@ class Interface(Blocks):
         if self.description:
             Markdown(self.description)
 
-    def render_flag_btns(self) -> List[Tuple[Button, str | None]]:
-        buttons = []
-        for value, label in self.flagging_options:
-            assert isinstance(label, str)
-            buttons.append((Button(label), value))
-        return buttons
+    def render_flag_btns(self) -> List[Button]:
+        return [Button(label) for label, _ in self.flagging_options]
 
     def render_input_column(
         self,
@@ -502,7 +498,7 @@ class Interface(Blocks):
         Button | None,
         Button | None,
         Button | None,
-        List | None,
+        List[Button] | None,
         Column,
         Column | None,
         List[Interpretation] | None,
@@ -544,7 +540,7 @@ class Interface(Blocks):
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
                     elif self.allow_flagging == "auto":
-                        flag_btns = [(submit_btn, None)]
+                        flag_btns = [submit_btn]
         return (
             submit_btn,
             clear_btn,
@@ -581,7 +577,7 @@ class Interface(Blocks):
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
                     assert submit_btn is not None, "Submit button not rendered"
-                    flag_btns = [(submit_btn, None)]
+                    flag_btns = [submit_btn]
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
 
@@ -738,8 +734,8 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def render_flagging_buttons(
-        self, flag_btns: List[Tuple[Button, str | None]] | None
+    def attach_flagging_events(
+        self, flag_btns: List[Button] | None
     ):
         if flag_btns:
             if self.interface_type in [
@@ -752,10 +748,12 @@ class Interface(Blocks):
                     or self.allow_flagging == "auto"
                 ):
                     flag_components = self.input_components
+                    # handle auto separately
                 else:
                     flag_components = self.input_components + self.output_components
-                for flag_btn, flag_option in flag_btns:
-                    flag_method = FlagMethod(self.flagging_callback, flag_option)
+                for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+                    assert value is None or isinstance(value, str)
+                    flag_method = FlagMethod(self.flagging_callback, label, value)
                     flag_btn.click(
                         lambda: Button.update(value="Saving...", interactive=False), None, flag_btn
                     )

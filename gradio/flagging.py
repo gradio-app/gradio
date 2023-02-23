@@ -580,13 +580,17 @@ class FlagMethod:
     """
 
     def __init__(
-        self, flagging_callback: FlaggingCallback, flag_option: str | None = None
+        self, 
+        flagging_callback: FlaggingCallback, 
+        label: str,
+        value: str | None,
     ):
         self.flagging_callback = flagging_callback
-        self.flag_option = flag_option
+        self.label = label
+        self.value = value
         self.__name__ = "Flag"
 
     def __call__(self, *flag_data):
-        self.flagging_callback.flag(list(flag_data), flag_option=self.flag_option)
-        # time.sleep(0.5)  # to provide enough time for the user to observe button change
-        return gr.Button.update(value=self.flag_option, interactive=True)
+        self.flagging_callback.flag(list(flag_data), flag_option=self.value)
+        time.sleep(0.5)  # to provide enough time for the user to observe button change
+        return gr.Button.update(value=self.label, interactive=True)
