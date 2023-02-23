@@ -588,5 +588,5 @@ class FlagMethod:
 
     def __call__(self, *flag_data):
         self.flagging_callback.flag(list(flag_data), flag_option=self.flag_option)
-        time.sleep(0.5)  # to provide enough time for the user to observe button change
+        # time.sleep(0.5)  # to provide enough time for the user to observe button change
         return gr.Button.update(value=self.flag_option, interactive=True)
