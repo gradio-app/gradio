@@ -9,7 +9,6 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
-	$: console.log(loaded);
 </script>
 
 <div
