@@ -354,7 +354,7 @@ class Interface(Blocks):
 
         if flagging_options is None:
             self.flagging_options = [("Flag", None)]
-        if not(isinstance(flagging_options, list)):
+        elif not(isinstance(flagging_options, list)):
             raise ValueError("flagging_options must be a list of strings or list of (string, string) tuples.")
         elif all([isinstance(x, str) for x in flagging_options]):
             self.flagging_options = [(f"Flag as {x}", x) for x in flagging_options]
