@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import Loader from "../components/StatusTracker/Loader.svelte";
-	
+
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let instance_map: {
@@ -11,11 +11,13 @@
 	export let dependency_outputs: any[][];
 
 	export let is_running: boolean;
-	
-	export let root;
 
-	const format_url = (desc, data) => desc.replaceAll("{ROOT}", root).replaceAll("{name}", data ? JSON.parse(`${data}`)?.name : "{name}");
-	
+	export let root: string;
+
+	const format_url = (desc: string | undefined, data: string | undefined) =>
+		desc
+			?.replace("{ROOT}", root)
+			?.replace("{name}", data ? JSON.parse(`${data}`)?.name : "{name}");
 </script>
 
 <h4>
@@ -31,39 +33,43 @@
 		<div class="first-level">"data": [</div>
 		<br />
 		{#each dependency.outputs as component_id, component_index}
-		<div class="second-level">{#if dependency_outputs[dependency_index][component_index] !== undefined}
-				<input
-					disabled
-					type="text"
-					bind:value={dependency_outputs[dependency_index][component_index]}
-				/>
-				:
-			{/if}
-			<span class="type">
-				{instance_map[component_id].documentation?.type?.response_object ||
-					instance_map[component_id].documentation?.type?.payload},
-			</span>
-			<span class="desc">
-				// represents {format_url(instance_map[component_id].documentation?.description
-					?.response_object ||
-					instance_map[component_id].documentation?.description?.payload,
-					dependency_outputs[dependency_index][component_index]
-					)} of
-				{((label) => {
-					return label ? "'" + label + "'" : "the";
-				})(instance_map[component_id].props.label)}
-				<span class="name capitalize">
-					{instance_map[component_id].props.name}
+			<div class="second-level">
+				{#if dependency_outputs[dependency_index][component_index] !== undefined}
+					<input
+						disabled
+						type="text"
+						bind:value={dependency_outputs[dependency_index][component_index]}
+					/>
+					:
+				{/if}
+				<span class="type">
+					{instance_map[component_id].documentation?.type?.response_object ||
+						instance_map[component_id].documentation?.type?.payload},
 				</span>
-				component
-			</span>
-		</div>
+				<span class="desc">
+					// represents {format_url(
+						instance_map[component_id].documentation?.description
+							?.response_object ||
+							instance_map[component_id].documentation?.description?.payload,
+						dependency_outputs[dependency_index][component_index]
+					)} of
+					{((label) => {
+						return label ? "'" + label + "'" : "the";
+					})(instance_map[component_id].props.label)}
+					<span class="name capitalize">
+						{instance_map[component_id].props.name}
+					</span>
+					component
+				</span>
+			</div>
 			<br />
 		{/each}
 		<div class="second-level">],</div>
 		<br />
-		<div class="first-level">"duration": (float)
-		<span class="desc">// number of seconds to run function call</span></div>
+		<div class="first-level">
+			"duration": (float)
+			<span class="desc">// number of seconds to run function call</span>
+		</div>
 		&#125;
 	</div>
 	{#if is_running}
@@ -163,5 +169,4 @@
 	.second-level {
 		margin-left: 6rem;
 	}
-
 </style>

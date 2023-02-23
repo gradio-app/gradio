@@ -28,31 +28,31 @@
 	<div class="first-level">"data": [</div>
 	<br />
 	{#each dependency.inputs as component_id, component_index}
-	<div class="second-level">
-		<input
-			class=""
-			type="text"
-			bind:value={dependency_inputs[dependency_index][component_index]}
-		/>
-		{#if dependency_failures[dependency_index][component_index]}
-			<span class="error">ERROR</span>
-		{/if}
+		<div class="second-level">
+			<input
+				class=""
+				type="text"
+				bind:value={dependency_inputs[dependency_index][component_index]}
+			/>
+			{#if dependency_failures[dependency_index][component_index]}
+				<span class="error">ERROR</span>
+			{/if}
 
-		<span class="type">
-			: {instance_map[component_id].documentation?.type?.input_payload ||
-				instance_map[component_id].documentation?.type?.payload},
-		</span>
-		<span class="desc">
-			// represents {instance_map[component_id].documentation?.description
-				?.input_payload ||
-				instance_map[component_id].documentation?.description?.payload} of
-			{format_label(instance_map[component_id].props.label)}
-			<span class="name">
-				{instance_map[component_id].props.name}
+			<span class="type">
+				: {instance_map[component_id].documentation?.type?.input_payload ||
+					instance_map[component_id].documentation?.type?.payload},
 			</span>
-			component
-		</span>
-	</div>
+			<span class="desc">
+				// represents {instance_map[component_id].documentation?.description
+					?.input_payload ||
+					instance_map[component_id].documentation?.description?.payload} of
+				{format_label(instance_map[component_id].props.label)}
+				<span class="name">
+					{instance_map[component_id].props.name}
+				</span>
+				component
+			</span>
+		</div>
 		<br />
 	{/each}
 	<div class="second-level">]</div>
