@@ -353,7 +353,7 @@ class Interface(Blocks):
             )
 
         if flagging_options is None:
-            self.flagging_options = [("Flag", None)]
+            self.flagging_options = [("Flag", "")]
         elif not (isinstance(flagging_options, list)):
             raise ValueError(
                 "flagging_options must be a list of strings or list of (string, string) tuples."
@@ -745,6 +745,10 @@ class Interface(Blocks):
                 InterfaceTypes.OUTPUT_ONLY,
                 InterfaceTypes.UNIFIED,
             ]:
+                if self.allow_flagging == "auto":
+                    flag_components = self.input_components
+                    
+                    
                 if (
                     self.interface_type == InterfaceTypes.UNIFIED
                     or self.allow_flagging == "auto"
@@ -754,7 +758,7 @@ class Interface(Blocks):
                 else:
                     flag_components = self.input_components + self.output_components
                 for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-                    assert value is None or isinstance(value, str)
+                    assert isinstance(value, str)
                     flag_method = FlagMethod(self.flagging_callback, label, value)
                     flag_btn.click(
                         lambda: Button.update(value="Saving...", interactive=False),
