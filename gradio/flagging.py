@@ -591,6 +591,9 @@ class FlagMethod:
         self.__name__ = "Flag"
 
     def __call__(self, *flag_data):
-        self.flagging_callback.flag(list(flag_data), flag_option=self.value)
+        try:
+            self.flagging_callback.flag(list(flag_data), flag_option=self.value)
+        except Exception as e:
+            raise gr.Error("Error while flagging: {}".format(e))
         time.sleep(0.5)  # to provide enough time for the user to observe button change
         return gr.Button.update(value=self.label, interactive=True)
