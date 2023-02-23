@@ -7,6 +7,8 @@
 Output images will now automatically have a download button displayed to make it easier to save and share
 the results of Machine Learning art models.
 
+![download_sketch](https://user-images.githubusercontent.com/41651716/221025113-e693bf41-eabd-42b3-a4f2-26f2708d98fe.gif)
+
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://github.com/gradio-app/gradio/pull/3297)  
 
 - Updated image upload component to accept all image formats, including lossless formats like .webp by [@fienestar](https://github.com/fienestar) in [PR 3225](https://github.com/gradio-app/gradio/pull/3225)
