@@ -438,7 +438,7 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
-        
+
     def test_request_includes_username_as_none_if_no_auth(self):
         def identity(name, request: gr.Request):
             assert request.username is None
@@ -472,7 +472,6 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
-        
 
 
 def test_predict_route_is_blocked_if_api_open_false():

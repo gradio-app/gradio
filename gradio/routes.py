@@ -353,7 +353,6 @@ class App(FastAPI):
             body: PredictBody,
             request: Request | List[Request],
             fn_index_inferred: int,
-            username: str | None = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
@@ -451,7 +450,9 @@ class App(FastAPI):
                 body.data = [body.session_hash]
             if body.request:
                 if body.batched:
-                    gr_request = [Request(username=username, **req) for req in body.request]
+                    gr_request = [
+                        Request(username=username, **req) for req in body.request
+                    ]
                 else:
                     assert isinstance(body.request, dict)
                     gr_request = Request(username=username, **body.request)
@@ -460,7 +461,6 @@ class App(FastAPI):
             result = await run_predict(
                 body=body,
                 fn_index_inferred=fn_index_inferred,
-                username=username,
                 request=gr_request,
             )
             return result
@@ -648,7 +648,12 @@ class Request:
         io = gr.Interface(echo, "textbox", "textbox").launch()
     """
 
-    def __init__(self, request: fastapi.Request | None = None, username: str | None = None, **kwargs):
+    def __init__(
+        self,
+        request: fastapi.Request | None = None,
+        username: str | None = None,
+        **kwargs,
+    ):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
         attributes (needed for websocket-based queueing).
