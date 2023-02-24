@@ -1,74 +1,59 @@
-interface XYValue {
-	x: number;
-	y: number;
-}
+export function determine_protocol(endpoint: string): {
+	protocol: "ws" | "wss";
+	host: string;
+} {
+	if (endpoint.startsWith("http")) {
+		const { protocol, host } = new URL(endpoint);
 
-interface ObjectValue {
-	values: XYValue[];
-}
-
-export function get_domains(
-	values: ObjectValue[] | { values: number[] }
-): [number, number] {
-	let _vs: number[];
-	if (Array.isArray(values)) {
-		_vs = values.reduce<number[]>((acc, { values }) => {
-			return [...acc, ...values.map(({ y }) => y)];
-		}, []);
-	} else {
-		_vs = values.values;
-	}
-	return [Math.min(..._vs), Math.max(..._vs)];
-}
-
-interface Row {
-	name: string;
-	values: number[];
-}
-
-interface RowPoint {
-	name: string;
-	values: Array<{ x: number; y: number }>;
-}
-
-interface TransformedValues {
-	x: Row;
-	y: Array<RowPoint>;
-}
-
-export function transform_values(
-	values: Array<Record<string, string>>,
-	x?: string,
-	y?: string[]
-) {
-	const transformed_values = Object.entries(
-		values[0]
-	).reduce<TransformedValues>(
-		(acc, next, i) => {
-			if ((!x && i === 0) || (x && next[0] === x)) {
-				acc.x.name = next[0];
-			} else if (!y || (y && y.includes(next[0]))) {
-				acc.y.push({ name: next[0], values: [] });
-			}
-			return acc;
-		},
-		{ x: { name: "", values: [] }, y: [] }
-	);
-
-	for (let i = 0; i < values.length; i++) {
-		const _a = Object.entries(values[i]);
-		for (let j = 0; j < _a.length; j++) {
-			let [name, x] = _a[j];
-			if (name === transformed_values.x.name) {
-				transformed_values.x.values.push(parseFloat(x));
-			} else {
-				transformed_values.y[j - 1].values.push({
-					y: parseFloat(_a[j][1]),
-					x: parseFloat(_a[0][1])
-				});
-			}
+		if (host.endsWith("hf.space")) {
+			// space subdomain
+			return {
+				protocol: "wss",
+				host: endpoint
+			};
+		} else {
+			return {
+				protocol: protocol === "https" ? "wss" : "wss",
+				host
+			};
 		}
 	}
 
-	return transformed_values;
+	// default to secure if no protocol is provided
+	return {
+		protocol: "wss",
+		host: endpoint
+	};
+}
+
+export const RE_SPACE_NAME = /^[^\/]*\/[^\/]*$/;
+
+export function process_endpoint(app_reference: string): {
+	space_id: string | false;
+	host: string;
+	protocol: "ws" | "wss";
+} {
+	const _app_reference = app_reference.trim();
+
+	if (RE_SPACE_NAME.test(_app_reference)) {
+		// get app details from API
+		return {
+			space_id: _app_reference,
+			...determine_protocol(_app_reference)
+		};
+	}
+
+	if (_app_reference.endsWith("hf.space")) {
+		const { protocol, host } = determine_protocol(_app_reference);
+		return {
+			space_id: host.replace(".hf.space", ""),
+			protocol,
+			host
+		};
+	}
+
+	return {
+		space_id: false,
+		...determine_protocol(_app_reference)
+	};
 }

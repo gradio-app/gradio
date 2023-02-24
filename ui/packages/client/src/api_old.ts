@@ -85,12 +85,6 @@ interface UpdateOutput {
 	[key: string]: unknown;
 }
 
-type Output = {
-	data: Array<UpdateOutput | unknown>;
-	duration?: number;
-	average_duration?: number;
-};
-
 const ws_map = new Map<number, WebSocket>();
 export const fn =
 	(
@@ -104,42 +98,42 @@ export const fn =
 		payload,
 		queue,
 		backend_fn,
-		frontend_fn,
-		output_data,
+		// frontend_fn,
+		// output_data,
 		queue_callback,
-		loading_status,
+		// loading_status,
 		cancels
 	}: {
 		action: string;
 		payload: Payload;
 		queue: boolean;
 		backend_fn: boolean;
-		frontend_fn: Function | undefined;
-		output_data?: Output["data"];
+		// frontend_fn: Function | undefined;
+		// output_data?: Output["data"];
 		queue_callback: Function;
-		loading_status: LoadingStatusType;
+		// loading_status: LoadingStatusType;
 		cancels: Array<number>;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
 		payload.session_hash = session_hash;
-		if (frontend_fn !== undefined) {
-			payload.data = await frontend_fn(payload.data.concat(output_data));
-		}
+		// if (frontend_fn !== undefined) {
+		// 	payload.data = await frontend_fn(payload.data.concat(output_data));
+		// }
 		if (backend_fn == false) {
 			return payload;
 		}
 
 		if (queue && ["predict", "interpret"].includes(action)) {
-			loading_status.update(
-				fn_index as number,
-				"pending",
-				queue,
-				null,
-				null,
-				null,
-				null
-			);
+			// loading_status.update(
+			// 	fn_index as number,
+			// 	"pending",
+			// 	queue,
+			// 	null,
+			// 	null,
+			// 	null,
+			// 	null
+			// );
 
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn)?.send(JSON.stringify(data));
@@ -166,15 +160,15 @@ export const fn =
 
 			websocket.onclose = (evt) => {
 				if (!evt.wasClean) {
-					loading_status.update(
-						fn_index,
-						"error",
-						queue,
-						null,
-						null,
-						null,
-						BROKEN_CONNECTION_MSG
-					);
+					// loading_status.update(
+					// 	fn_index,
+					// 	"error",
+					// 	queue,
+					// 	null,
+					// 	null,
+					// 	null,
+					// 	BROKEN_CONNECTION_MSG
+					// );
 				}
 			};
 
@@ -194,132 +188,132 @@ export const fn =
 						);
 						break;
 					case "queue_full":
-						loading_status.update(
-							fn_index,
-							"error",
-							queue,
-							null,
-							null,
-							null,
-							QUEUE_FULL_MSG
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	"error",
+						// 	queue,
+						// 	null,
+						// 	null,
+						// 	null,
+						// 	QUEUE_FULL_MSG
+						// );
 						websocket.close();
 						return;
 					case "estimation":
-						loading_status.update(
-							fn_index,
-							get(loading_status)[data.fn_index]?.status || "pending",
-							queue,
-							data.queue_size,
-							data.rank,
-							data.rank_eta,
-							null
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	get(loading_status)[data.fn_index]?.status || "pending",
+						// 	queue,
+						// 	data.queue_size,
+						// 	data.rank,
+						// 	data.rank_eta,
+						// 	null
+						// );
 						break;
 					case "progress":
-						loading_status.update(
-							fn_index,
-							"pending",
-							queue,
-							null,
-							null,
-							null,
-							null,
-							data.progress_data
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	"pending",
+						// 	queue,
+						// 	null,
+						// 	null,
+						// 	null,
+						// 	null,
+						// 	data.progress_data
+						// );
 						break;
 					case "process_generating":
-						loading_status.update(
-							fn_index,
-							data.success ? "generating" : "error",
-							queue,
-							null,
-							null,
-							data.output.average_duration,
-							!data.success ? data.output.error : null
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	data.success ? "generating" : "error",
+						// 	queue,
+						// 	null,
+						// 	null,
+						// 	data.output.average_duration,
+						// 	!data.success ? data.output.error : null
+						// );
 						if (data.success) {
 							queue_callback(data.output);
 						}
 						break;
 					case "process_completed":
-						loading_status.update(
-							fn_index,
-							data.success ? "complete" : "error",
-							queue,
-							null,
-							null,
-							data.output.average_duration,
-							!data.success ? data.output.error : null
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	data.success ? "complete" : "error",
+						// 	queue,
+						// 	null,
+						// 	null,
+						// 	data.output.average_duration,
+						// 	!data.success ? data.output.error : null
+						// );
 						if (data.success) {
 							queue_callback(data.output);
 						}
 						websocket.close();
 						return;
 					case "process_starts":
-						loading_status.update(
-							fn_index,
-							"pending",
-							queue,
-							data.rank,
-							0,
-							null,
-							null
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	"pending",
+						// 	queue,
+						// 	data.rank,
+						// 	0,
+						// 	null,
+						// 	null
+						// );
 						break;
 				}
 			};
 		} else {
-			loading_status.update(
-				fn_index as number,
-				"pending",
-				queue,
-				null,
-				null,
-				null,
-				null
-			);
+			// loading_status.update(
+			// 	fn_index as number,
+			// 	"pending",
+			// 	queue,
+			// 	null,
+			// 	null,
+			// 	null,
+			// 	null
+			// );
 
 			var [output, status_code] = await post_data(api_endpoint + action + "/", {
 				...payload,
 				session_hash
 			});
 			if (status_code == 200) {
-				loading_status.update(
-					fn_index,
-					"complete",
-					queue,
-					null,
-					null,
-					output.average_duration as number,
-					null
-				);
+				// loading_status.update(
+				// 	fn_index,
+				// 	"complete",
+				// 	queue,
+				// 	null,
+				// 	null,
+				// 	output.average_duration as number,
+				// 	null
+				// );
 				// Cancelled jobs are set to complete
 				if (cancels.length > 0) {
 					cancels.forEach((fn_index) => {
-						loading_status.update(
-							fn_index,
-							"complete",
-							queue,
-							null,
-							null,
-							null,
-							null
-						);
+						// loading_status.update(
+						// 	fn_index,
+						// 	"complete",
+						// 	queue,
+						// 	null,
+						// 	null,
+						// 	null,
+						// 	null
+						// );
 						ws_map.get(fn_index)?.close();
 					});
 				}
 			} else {
-				loading_status.update(
-					fn_index,
-					"error",
-					queue,
-					null,
-					null,
-					null,
-					output.error
-				);
+				// loading_status.update(
+				// 	fn_index,
+				// 	"error",
+				// 	queue,
+				// 	null,
+				// 	null,
+				// 	null,
+				// 	output.error
+				// );
 				throw output.error || "API Error";
 			}
 			return output;
