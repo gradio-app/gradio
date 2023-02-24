@@ -196,6 +196,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [39],
@@ -212,6 +213,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [],
@@ -228,6 +230,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
     ],
 }
