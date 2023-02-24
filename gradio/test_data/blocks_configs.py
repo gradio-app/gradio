@@ -434,6 +434,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [933],
@@ -450,6 +451,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
         {
             "targets": [],
@@ -466,6 +468,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "types": {"continuous": False, "generator": False},
         },
     ],
 }
