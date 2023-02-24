@@ -160,6 +160,7 @@ class IOComponent(Component, Serializable):
         *,
         value: Any = None,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
         visible: bool = True,
@@ -171,6 +172,7 @@ class IOComponent(Component, Serializable):
         super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
         self.label = label
+        self.info = info
         self.show_label = show_label
         self.interactive = interactive
 
@@ -186,12 +188,15 @@ class IOComponent(Component, Serializable):
             self.load_event = self.attach_load_event(load_fn, every)
 
     def get_config(self):
-        return {
+        config = {
             "label": self.label,
             "show_label": self.show_label,
             "interactive": self.interactive,
             **super().get_config(),
         }
+        if self.info:
+            config["info"] = self.info
+        return config
 
     def generate_sample(self) -> Any:
         """
@@ -266,6 +271,7 @@ class Textbox(
         max_lines: int = 20,
         placeholder: str | None = None,
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -281,6 +287,7 @@ class Textbox(
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -298,6 +305,7 @@ class Textbox(
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -449,6 +457,7 @@ class Number(
         value: float | Callable | None = None,
         *,
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -461,6 +470,7 @@ class Number(
         Parameters:
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -472,6 +482,7 @@ class Number(
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -625,6 +636,7 @@ class Slider(
         *,
         step: float | None = None,
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -640,6 +652,7 @@ class Slider(
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -660,6 +673,7 @@ class Slider(
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -777,6 +791,7 @@ class Checkbox(
         value: bool | Callable = False,
         *,
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -788,6 +803,7 @@ class Checkbox(
         Parameters:
             value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -798,6 +814,7 @@ class Checkbox(
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -868,6 +885,7 @@ class CheckboxGroup(
         value: List[str] | str | Callable | None = None,
         type: str = "value",
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -881,6 +899,7 @@ class CheckboxGroup(
             value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -899,6 +918,7 @@ class CheckboxGroup(
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -1038,6 +1058,7 @@ class Radio(
         value: str | Callable | None = None,
         type: str = "value",
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -1051,6 +1072,7 @@ class Radio(
             value: the button selected by default. If None, no button is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, choices in this radio group will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -1068,6 +1090,7 @@ class Radio(
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -1181,7 +1204,9 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         value: str | List[str] | Callable | None = None,
         type: str = "value",
         multiselect: bool | None = None,
+        max_choices: int | None = None,
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -1195,7 +1220,9 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
+            max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -1213,11 +1240,15 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if multiselect:
             if isinstance(value, str):
                 value = [value]
+        if not multiselect and max_choices is not None:
+            warnings.warn("The `max_choices` parameter is ignored when `multiselect` is False.")
+        self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
@@ -1233,6 +1264,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             "choices": self.choices,
             "value": self.value,
             "multiselect": self.multiselect,
+            "max_choices": self.max_choices,
             **IOComponent.get_config(self),
         }
 
@@ -1353,6 +1385,7 @@ class Image(
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
+        brush_radius: int | None = None,
         **kwargs,
     ):
         """
@@ -1372,7 +1405,9 @@ class Image(
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
+            brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
         """
+        self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -1420,6 +1455,7 @@ class Image(
             "value": self.value,
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
+            "brush_radius": self.brush_radius,
             **IOComponent.get_config(self),
         }
 
@@ -1430,6 +1466,7 @@ class Image(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        brush_radius: int | None = None,
     ):
         updated_config = {
             "label": label,
@@ -1437,6 +1474,7 @@ class Image(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "brush_radius": brush_radius,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
@@ -2945,13 +2983,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
-        return {
+        updated_config = {
             "variant": variant,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(self, *, full_width: bool | None = None, **kwargs):
         """
@@ -3134,6 +3172,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         value: str | Callable | None = None,
         *,
         label: str | None = None,
+        info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
         interactive: bool | None = None,
@@ -3145,6 +3184,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         Parameters:
             value: default text to provide in color picker. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
+            info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -3156,6 +3196,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         IOComponent.__init__(
             self,
             label=label,
+            info=info,
             every=every,
             show_label=show_label,
             interactive=interactive,
