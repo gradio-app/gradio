@@ -603,7 +603,7 @@ class Blocks(BlockContext):
                 if dependency["trigger"] == "fake_event":
                     continue
                 for field in derived_fields:
-                    dependency.pop(field)
+                    dependency.pop(field, None)
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
