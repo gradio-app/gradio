@@ -33,9 +33,15 @@ export interface Dependency {
 	cancels: Array<number>;
 }
 
+interface TypeDescription {
+	input_payload?: string;
+	response_object?: string;
+	payload?: string;
+}
+
 export interface Documentation {
-	type?: string;
-	description?: string;
+	type?: TypeDescription;
+	description?: TypeDescription;
 	example_data?: string;
 }
 
