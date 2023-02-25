@@ -17,6 +17,11 @@ export interface ComponentMeta {
 	value?: any;
 }
 
+export interface DependencyTypes {
+	continuous: boolean;
+	generator: boolean;
+}
+
 export interface Dependency {
 	trigger: string;
 	targets: Array<number>;
@@ -31,6 +36,7 @@ export interface Dependency {
 	queue: boolean | null;
 	api_name: string | null;
 	cancels: Array<number>;
+	types: DependencyTypes;
 }
 
 interface TypeDescription {
