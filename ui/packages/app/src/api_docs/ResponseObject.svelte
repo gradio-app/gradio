@@ -11,6 +11,13 @@
 	export let dependency_outputs: any[][];
 
 	export let is_running: boolean;
+
+	export let root: string;
+
+	const format_url = (desc: string | undefined, data: string | undefined) =>
+		desc
+			?.replace("{ROOT}", root)
+			?.replace("{name}", data ? JSON.parse(`${data}`)?.name : "{name}");
 </script>
 
 <h4>
@@ -23,38 +30,46 @@
 	<div class:hide={is_running}>
 		&#123;
 		<br />
-		&nbsp;&nbsp;"data": [
+		<div class="first-level">"data": [</div>
 		<br />
 		{#each dependency.outputs as component_id, component_index}
-			&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
-				<input
-					disabled
-					type="text"
-					bind:value={dependency_outputs[dependency_index][component_index]}
-				/>
-				:
-			{/if}
-			<span class="type">
-				{instance_map[component_id].documentation?.type},
-			</span>
-			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description} of
-				{((label) => {
-					return label ? "'" + label + "'" : "the";
-				})(instance_map[component_id].props.label)}
-
-				<span class="name capitalize">
-					{instance_map[component_id].props.name}
+			<div class="second-level">
+				{#if dependency_outputs[dependency_index][component_index] !== undefined}
+					<input
+						disabled
+						type="text"
+						bind:value={dependency_outputs[dependency_index][component_index]}
+					/>
+					:
+				{/if}
+				<span class="type">
+					{instance_map[component_id].documentation?.type?.response_object ||
+						instance_map[component_id].documentation?.type?.payload},
 				</span>
-				component
-			</span>
+				<span class="desc">
+					// represents {format_url(
+						instance_map[component_id].documentation?.description
+							?.response_object ||
+							instance_map[component_id].documentation?.description?.payload,
+						dependency_outputs[dependency_index][component_index]
+					)} of
+					{((label) => {
+						return label ? "'" + label + "'" : "the";
+					})(instance_map[component_id].props.label)}
+					<span class="name capitalize">
+						{instance_map[component_id].props.name}
+					</span>
+					component
+				</span>
+			</div>
 			<br />
 		{/each}
-		&nbsp;&nbsp;],
+		<div class="second-level">],</div>
 		<br />
-		&nbsp;&nbsp;"duration": (float)
-		<span class="desc">// number of seconds to run function call</span>
-		<br />
+		<div class="first-level">
+			"duration": (float)
+			<span class="desc">// number of seconds to run function call</span>
+		</div>
 		&#125;
 	</div>
 	{#if is_running}
@@ -145,5 +160,13 @@
 
 	.hide {
 		display: none;
+	}
+
+	.first-level {
+		margin-left: 2rem;
+	}
+
+	.second-level {
+		margin-left: 6rem;
 	}
 </style>

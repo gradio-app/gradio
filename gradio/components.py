@@ -1347,7 +1347,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         return Component.style(self, container=container, **kwargs)
 
 
-@document("edit", "clear", "change", "stream", "change", "style")
+@document("edit", "clear", "change", "stream", "style")
 class Image(
     Editable,
     Clearable,
