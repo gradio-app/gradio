@@ -42,7 +42,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://git
 - Fix change event listed twice in image docs by [@aliabd](https://github.com/aliabd) in [PR 3318](https://github.com/gradio-app/gradio/pull/3318)
 
 ## Documentation Changes:
-No changes to highlight.
+- Added the `types` field to the dependency field in the config by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3315](https://github.com/gradio-app/gradio/pull/3315) 
 
 ## Testing and Infrastructure Changes:
 * Adds a script to benchmark the performance of the queue and adds some instructions on how to use it. By [@freddyaboulton](https://github.com/freddyaboulton) and [@abidlabs](https://github.com/abidlabs) in [PR 3272](https://github.com/gradio-app/gradio/pull/3272)
