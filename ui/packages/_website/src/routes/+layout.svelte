@@ -11,7 +11,7 @@
 
 	import Header from "../components/Header.svelte";
 	import Footer from "../components/Footer.svelte";
-
+	
 	const meta = {
 		"": {
 			title: "",
@@ -27,9 +27,16 @@
 	import { media_query } from "../utils";
 	store = media_query();
 
+	import { browser } from '$app/environment'
+    if (browser) {
+      window.__gradio_mode__ = "website";
+    }
+
 	let current_route: keyof typeof meta;
 	$: current_route = current_route || "";
     $: console.log(current_route)
+
+	
 </script>
 
 <svelte:head>

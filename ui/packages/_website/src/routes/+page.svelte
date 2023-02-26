@@ -9,8 +9,8 @@
 		.then((data) => {
 			star_count = data.stargazers_count;
 		});
-	// window.__gradio_mode__ = "website";
 	let star_count = 0;
+	
 </script>
 
 <svelte:head>
