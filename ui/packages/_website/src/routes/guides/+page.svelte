@@ -21,8 +21,6 @@
             }
         }
     }
-
-    // write a function that sums the number of guides in guides_by_category
     
     let total_guides = 0;
     for (const category in guides_by_category) {
