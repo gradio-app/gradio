@@ -21,7 +21,7 @@
 
 	if (multiselect && !value) {
 		value = [];
-	} else {
+	} else if (!value) {
 		value = "";
 	}
 </script>

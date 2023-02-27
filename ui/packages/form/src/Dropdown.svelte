@@ -5,7 +5,7 @@
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | Array<string> | undefined = undefined;
+	export let value: string | Array<string> | undefined;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -41,7 +41,7 @@
 
 	function add(option: string) {
 		if (Array.isArray(value)) {
-			if (value.length < max_choices) {
+			if (!max_choices || value.length < max_choices) {
 				value.push(option);
 				dispatch("change", value);
 			}
