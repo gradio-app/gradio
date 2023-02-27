@@ -51,6 +51,7 @@ export async function upload_files(
 	root: string,
 	files: Array<File>
 ): Promise<UploadResponse> {
+	console.log("UPLOAD FILE");
 	const formData = new FormData();
 	files.forEach((file) => {
 		formData.append("files", file);
@@ -138,6 +139,7 @@ export async function client(
 
 			let fn_index = api_map[endpoint] || payload.fn_index!;
 			const listener_map: ListenerMap<EventType> = {};
+			console.log("PREDICT", fn_index, listener_map);
 
 			function cancel(endpoint: string | number) {
 				const _index =
@@ -413,6 +415,7 @@ function handle_message(
 	data?: any;
 	status?: Status;
 } {
+	console.log(data);
 	switch (data.msg) {
 		case "send_data":
 			return { type: "send" };
