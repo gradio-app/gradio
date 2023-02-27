@@ -15,6 +15,10 @@
 	export let root_url: null | string = null;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = { grid: [2], height: "auto" };
+	let styles: string;
+
+	$: console.log(style);
+	$: console.log(style.height !== "auto");
 
 	$: _value =
 		value === null
@@ -87,7 +91,15 @@
 
 	$: can_zoom = window_height >= height;
 
-	$: ({ styles } = get_styles(style, ["grid"]));
+	function add_height_to_styles(style: Styles) {
+		styles = get_styles(style, ["grid"]).styles;
+
+		return styles + ` height: ${style.height}`;
+	}
+
+	$: styles = add_height_to_styles(style);
+
+	$: console.log(styles);
 
 	let height = 0;
 	let window_height = 0;
@@ -151,7 +163,7 @@
 	<div
 		bind:clientHeight={height}
 		class="grid-wrap"
-		class:fixed-height={style.height !== "auto"}
+		class:fixed-height={!style.height || style.height == "auto"}
 	>
 		<div class="grid-container" style={styles} class:pt-6={show_label}>
 			{#each _value as [image, caption], i}
