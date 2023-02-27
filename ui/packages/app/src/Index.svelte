@@ -1,6 +1,5 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { fn } from "./api";
 
 	import type {
 		ComponentMeta,

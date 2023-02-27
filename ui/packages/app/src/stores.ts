@@ -43,7 +43,7 @@ export function create_loading_status_store() {
 		progress
 	}: {
 		fn_index: LoadingStatus["fn_index"];
-		status?: LoadingStatus["status"];
+		status: LoadingStatus["status"];
 		queue?: LoadingStatus["queue"];
 		size?: LoadingStatus["queue_size"];
 		position?: LoadingStatus["queue_position"];
@@ -119,10 +119,10 @@ export function create_loading_status_store() {
 					progress
 				}) => {
 					outputs[id] = {
-						queue: queue,
-						queue_size: queue_size,
-						queue_position: queue_position,
-						eta: eta,
+						queue: !!queue,
+						queue_size: queue_size || null,
+						queue_position: queue_position || null,
+						eta: eta || null,
 						message,
 						progress,
 						status,
