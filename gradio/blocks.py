@@ -15,11 +15,11 @@ import webbrowser
 from abc import abstractmethod
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
-from huggingface_hub.utils import send_telemetry
 
 import anyio
 import requests
 from anyio import CapacityLimiter
+from huggingface_hub.utils import send_telemetry
 from typing_extensions import Literal
 
 from gradio import (
@@ -49,7 +49,9 @@ from gradio.utils import (
 
 set_documentation_group("blocks")
 
-GRADIO_VERSION = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+GRADIO_VERSION = (
+    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+)
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -532,7 +534,7 @@ class Blocks(BlockContext):
             }
             utils.initiated_analytics(data)
 
-            #huggingface_hub send_telemetry
+            # huggingface_hub send_telemetry
             send_telemetry(
                 topic="gradio/blocks/initiated",
                 library_name="gradio",
@@ -1609,7 +1611,7 @@ class Blocks(BlockContext):
                 "theme": self.theme,
                 "title": self.title,
                 "blocks": list(self.blocks.values()),
-                "events": [x['trigger'] for x in self.dependencies],
+                "events": [x["trigger"] for x in self.dependencies],
             }
 
             data.update(additional_data)

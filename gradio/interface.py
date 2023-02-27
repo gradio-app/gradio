@@ -8,9 +8,9 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import sys
 import pkgutil
 import re
+import sys
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
@@ -177,7 +177,7 @@ class Interface(Blocks):
             title=title or "Gradio",
             theme=theme,
             **kwargs,
-        )            
+        )
 
         if isinstance(fn, list):
             raise DeprecationWarning(
@@ -369,7 +369,11 @@ class Interface(Blocks):
         self.favicon_path = None
 
         if self.analytics_enabled:
-            gradio_version = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+            gradio_version = (
+                (pkgutil.get_data(__name__, "version.txt") or b"")
+                .decode("ascii")
+                .strip()
+            )
             data = {
                 "mode": self.mode,
                 "fn": fn,
@@ -384,8 +388,9 @@ class Interface(Blocks):
             }
             utils.initiated_analytics(data)
 
-            #huggingface_hub send_telemetry
+            # huggingface_hub send_telemetry
             from huggingface_hub.utils import send_telemetry
+
             send_telemetry(
                 topic="gradio/interface",
                 library_name="gradio",
