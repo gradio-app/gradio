@@ -57,6 +57,7 @@
 
 					pending_upload = false;
 					if (response.error) {
+						console.log(_value);
 						(Array.isArray(_value) ? _value : [_value]).forEach(
 							async (file_data, i) => {
 								file_data.data = await blobToBase64(file_data.blob!);

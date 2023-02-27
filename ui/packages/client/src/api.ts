@@ -51,12 +51,13 @@ export async function upload_files(
 	root: string,
 	files: Array<File>
 ): Promise<UploadResponse> {
+	console.log();
 	const formData = new FormData();
 	files.forEach((file) => {
 		formData.append("files", file);
 	});
 	try {
-		var response = await fetch(`${root}upload`, {
+		var response = await fetch(`${root}/upload`, {
 			method: "POST",
 			body: formData
 		});
