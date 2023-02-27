@@ -325,6 +325,37 @@ class TestBlocksMethods:
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
 
+    def test_function_types_documented_in_config(self):
+        def continuous_fn():
+            return 42
+
+        def generator_function():
+            for index in range(10):
+                yield index
+
+        with gr.Blocks() as demo:
+
+            gr.Number(value=lambda: 2, every=2)
+            meaning_of_life = gr.Number()
+            counter = gr.Number()
+            generator_btn = gr.Button(value="Generate")
+            greeting = gr.Textbox()
+            greet_btn = gr.Button(value="Greet")
+
+            greet_btn.click(lambda: "Hello!", inputs=None, outputs=[greeting])
+            generator_btn.click(generator_function, inputs=None, outputs=[counter])
+            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
+
+        for i, dependency in enumerate(demo.config["dependencies"]):
+            if i == 0:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+            if i == 1:
+                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 2:
+                assert dependency["types"] == {"continuous": False, "generator": True}
+            if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+
     @pytest.mark.asyncio
     async def test_run_without_launching(self):
         """Test that we can start the app and use queue without calling .launch().

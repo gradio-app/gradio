@@ -3,6 +3,10 @@ export { default as ExampleComponent } from "../Dataset/ExampleComponents/Model3
 export const modes = ["static", "dynamic"];
 
 export const document = (config: Record<string, any>) => ({
-	type: "{ name: string; data: string }",
-	description: "file name and base64 data of Model3D object"
+	type: {
+		payload: "{ name: string; data: string }"
+	},
+	description: {
+		payload: "object with file name and base64 data"
+	}
 });
