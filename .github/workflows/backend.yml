@@ -16,7 +16,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.test-type == "flaky" }}
+    continue-on-error: ${{ matrix.test-type == 'flaky' }}
     strategy:
       matrix:
         test-type: ["not flaky", "flaky"]
