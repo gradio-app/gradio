@@ -17,9 +17,6 @@
 	export let style: Styles = { grid: [2], height: "auto" };
 	let styles: string;
 
-	$: console.log(style);
-	$: console.log(style.height !== "auto");
-
 	$: _value =
 		value === null
 			? null
@@ -98,8 +95,6 @@
 	}
 
 	$: styles = add_height_to_styles(style);
-
-	$: console.log(styles);
 
 	let height = 0;
 	let window_height = 0;
