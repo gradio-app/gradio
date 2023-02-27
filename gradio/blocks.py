@@ -15,6 +15,7 @@ import webbrowser
 from abc import abstractmethod
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
+from huggingface_hub.utils import send_telemetry
 
 import anyio
 import requests
@@ -48,6 +49,7 @@ from gradio.utils import (
 
 set_documentation_group("blocks")
 
+GRADIO_VERSION = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -522,21 +524,19 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
-            gradio_version = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
-                "version": gradio_version,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
             #huggingface_hub send_telemetry
-            from huggingface_hub.utils import send_telemetry
             send_telemetry(
                 topic="gradio/blocks/initiated",
                 library_name="gradio",
-                library_version=gradio_version,
+                library_version=GRADIO_VERSION,
                 user_agent=data,
             )
 
@@ -1502,6 +1502,13 @@ class Blocks(BlockContext):
             except RuntimeError:
                 if self.analytics_enabled:
                     utils.error_analytics("Not able to set up tunnel")
+                    # huggingface_hub send_telemetry
+                    send_telemetry(
+                        topic="gradio/blocks/error",
+                        library_name="gradio",
+                        library_version=GRADIO_VERSION,
+                        user_agent="error/Not able to set up tunnel",
+                    )
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1579,7 +1586,6 @@ class Blocks(BlockContext):
                 pass
 
         if getattr(self, "analytics_enabled", False):
-            gradio_version = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
                 "is_google_colab": self.is_colab,
@@ -1593,12 +1599,25 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            additional_data = {
+                "is_kaggle": self.is_kaggle,
+                "is_sagemaker": self.is_sagemaker,
+                "using_auth": self.auth is not None,
+                "dev_mode": self.dev_mode,
+                "show_api": self.show_api,
+                "show_error": self.show_error,
+                "theme": self.theme,
+                "title": self.title,
+                "blocks": list(self.blocks.values()),
+                "events": [x['trigger'] for x in self.dependencies],
+            }
+
+            data.update(additional_data)
             # huggingface_hub send_telemetry
-            from huggingface_hub.utils import send_telemetry
             send_telemetry(
                 topic="gradio/blocks/launch",
                 library_name="gradio",
-                library_version=gradio_version,
+                library_version=GRADIO_VERSION,
                 user_agent=data,
             )
 
@@ -1670,6 +1689,13 @@ class Blocks(BlockContext):
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             utils.integration_analytics(data)
+            # huggingface_hub send_telemetry
+            send_telemetry(
+                topic="gradio/blocks/integration",
+                library_name="gradio",
+                library_version=GRADIO_VERSION,
+                user_agent=data,
+            )
 
     def close(self, verbose: bool = True) -> None:
         """
