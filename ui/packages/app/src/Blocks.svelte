@@ -22,7 +22,6 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
-	import { fn } from "./api";
 
 	setupi18n();
 
@@ -278,7 +277,7 @@
 					}
 
 					function handle_update(output: any) {
-						output.data.data.forEach((value: any, i: number) => {
+						output.data.forEach((value: any, i: number) => {
 							if (
 								typeof value === "object" &&
 								value !== null &&
@@ -336,7 +335,6 @@
 						});
 
 						function handle_update(output: any) {
-							console.log(output);
 							output.data.forEach((value: any, i: number) => {
 								if (
 									typeof value === "object" &&

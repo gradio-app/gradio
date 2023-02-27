@@ -255,8 +255,6 @@ export async function client(
 						websocket.close();
 					}
 					if (data) {
-						// call data listener
-						// return data;
 						fire_event({ type: "data", data: data.data });
 					}
 				};
