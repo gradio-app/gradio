@@ -16,6 +16,7 @@ export function normalise_file(
 	root: string,
 	root_url: string | null
 ): FileData | Array<FileData> | null {
+	console.log(file, root, root_url);
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {
@@ -28,9 +29,9 @@ export function normalise_file(
 		}
 	} else if (file.is_file) {
 		if (root_url == null) {
-			file.data = root + "file=" + file.name;
+			file.data = root + "/file=" + file.name;
 		} else {
-			file.data = "proxy=" + root_url + "file=" + file.name;
+			file.data = "proxy=" + root_url + "/file=" + file.name;
 		}
 	}
 	return file;
