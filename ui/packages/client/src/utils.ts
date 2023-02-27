@@ -5,10 +5,8 @@ export function determine_protocol(endpoint: string): {
 } {
 	if (endpoint.startsWith("http")) {
 		const { protocol, host } = new URL(endpoint);
-		console.log(new URL(endpoint));
 
 		if (host.endsWith("hf.space")) {
-			// space subdomain
 			return {
 				ws_protocol: "wss",
 				host: host,
@@ -16,7 +14,7 @@ export function determine_protocol(endpoint: string): {
 			};
 		} else {
 			return {
-				ws_protocol: protocol === "https:" ? "wss" : "wss",
+				ws_protocol: protocol === "https:" ? "wss" : "ws",
 				http_protocol: protocol as "http:" | "https:",
 				host
 			};
@@ -42,8 +40,6 @@ export async function process_endpoint(app_reference: string): Promise<{
 	const _app_reference = app_reference.trim();
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
-		// get app details from API
-		console.log(app_reference);
 		const _host = (
 			await (
 				await fetch(`https://huggingface.co/api/spaces/${_app_reference}/host`)
@@ -59,7 +55,6 @@ export async function process_endpoint(app_reference: string): Promise<{
 		const { ws_protocol, http_protocol, host } =
 			determine_protocol(_app_reference);
 
-		console.log({ host });
 		return {
 			space_id: host.replace(".hf.space", ""),
 			ws_protocol,

@@ -19,15 +19,12 @@ type event = <K extends EventType>(
 	listener: EventListener<K>
 ) => ReturnType<predict>;
 type predict = (
-	endpoint:
-		| string
-		| {
-				fn_index: number;
-		  },
+	endpoint: string,
 	payload: Payload
 ) => {
 	on: event;
 	off: event;
+	cancel: (endpoint: string | number) => void;
 };
 
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
@@ -70,6 +67,16 @@ export async function upload_files(
 	return { files: output };
 }
 
+function map_names_to_ids(fns: Config["dependencies"]) {
+	let apis: Record<string, number> = {};
+
+	fns.forEach(({ api_name }, i) => {
+		if (api_name) apis[api_name] = i;
+	});
+
+	return apis;
+}
+
 export async function client(
 	app_reference: string,
 	space_status_callback?: SpaceStatusCallback
@@ -81,9 +88,11 @@ export async function client(
 		const ws_map = new Map<number, WebSocket>();
 		const last_status: Record<string, Status["status"]> = {};
 		let config: Config;
+		let api_map: Record<string, number> = {};
 
 		function config_success(_config: Config) {
 			config = _config;
+			api_map = map_names_to_ids(_config.dependencies);
 			return {
 				config,
 				predict
@@ -91,14 +100,20 @@ export async function client(
 		}
 
 		async function handle_space_sucess(status: SpaceStatus) {
-			console.log(status);
 			if (space_status_callback) space_status_callback(status);
 			if (status.status === "running")
 				try {
 					config = await resolve_config(`${http_protocol}//${host}`);
 					res(config_success(config));
 				} catch (e) {
-					throw new Error("Could not get config for this app.");
+					if (space_status_callback) {
+						space_status_callback({
+							status: "error",
+							message: "Could not load this space.",
+							load_status: "error",
+							detail: "NOT_FOUND"
+						});
+					}
 				}
 		}
 
@@ -114,18 +129,24 @@ export async function client(
 				);
 			}
 		}
-		function make_predict(
-			endpoint: string | { fn_index: number },
-			payload: Payload
-		) {
+		function make_predict(endpoint: string, payload: Payload) {
 			const x = {
 				on,
-				off
+				off,
+				cancel
 			};
+
+			let fn_index = api_map[endpoint] || payload.fn_index!;
 			const listener_map: ListenerMap<EventType> = {};
 
-			if (typeof endpoint === "string") {
-				throw new Error("Cannot take a string as an endpoint yet"); // for the future
+			function cancel(endpoint: string | number) {
+				const _index =
+					typeof endpoint === "string" ? api_map[endpoint] : endpoint;
+				fire_event({
+					type: "status",
+					status: "complete"
+				});
+				ws_map.get(_index)?.close();
 			}
 
 			function on<K extends EventType>(
@@ -158,15 +179,19 @@ export async function client(
 				listeners.forEach((l) => l(event));
 			}
 
-			const { fn_index } = endpoint;
-
+			// const { fn_index } = endpoint;
 			if (skip_queue(fn_index, config)) {
 				fire_event({ type: "status", status: "pending" });
 
-				post_data(`${http_protocol}//${host}/api/predict`, {
-					...payload,
-					session_hash
-				})
+				post_data(
+					`${http_protocol}//${host}/api${
+						endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+					}`,
+					{
+						...payload,
+						session_hash
+					}
+				)
 					.then(([output, status_code]) => {
 						if (status_code == 200) {
 							fire_event({
@@ -174,16 +199,6 @@ export async function client(
 								status: "complete",
 								eta: output.average_duration
 							});
-
-							// TODO: this lives in the app not the api
-							//
-							// if (cancels.length > 0) {
-							// 	cancels.forEach((fn_index) => {
-							// 		// call 'status' listener
-							// 		status_callback({ status: "complete" });
-							// 		ws_map.get(fn_index)?.close();
-							// 	});
-							// }
 						} else {
 							fire_event({
 								type: "status",
@@ -191,7 +206,7 @@ export async function client(
 								message: output.error
 							});
 						}
-						fire_event({ type: "data", data: output });
+						fire_event({ type: "data", data: output.data });
 					})
 					.catch((e) => {
 						fire_event({
@@ -206,7 +221,6 @@ export async function client(
 
 				const websocket = new WebSocket(ws_endpoint);
 				ws_map.set(fn_index, websocket);
-
 				websocket.onclose = (evt) => {
 					if (!evt.wasClean) {
 						fire_event({
@@ -233,7 +247,7 @@ export async function client(
 					} else if (type === "send") {
 						ws_map
 							.get(fn_index)
-							?.send(JSON.stringify({ ...payload, fn_index, session_hash }));
+							?.send(JSON.stringify({ ...payload, session_hash }));
 						return;
 					} else if (type === "complete") {
 						fire_event({ type: "status", ...status, status: status?.status! });
@@ -259,10 +273,7 @@ export async function client(
 		 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
 		 * @return Returns the data for the prediction or an error message.
 		 */
-		function predict(
-			endpoint: string | { fn_index: number },
-			payload: Payload
-		) {
+		function predict(endpoint: string, payload: Payload) {
 			return make_predict(endpoint, payload);
 		}
 	});
@@ -333,8 +344,9 @@ async function check_space_status(
 	} catch (e) {
 		space_status_callback({
 			status: "error",
+			load_status: "error",
 			message: "Could not get space status",
-			detail: "not_found"
+			detail: "NOT_FOUND"
 		});
 		return;
 	}
@@ -350,6 +362,7 @@ async function check_space_status(
 		case "SLEEPING":
 			space_status_callback({
 				status: "sleeping",
+				load_status: "pending",
 				message: "Space is asleep. Waking it up...",
 				detail: stage
 			});
@@ -363,6 +376,7 @@ async function check_space_status(
 		case "RUNNING_BUILDING":
 			space_status_callback({
 				status: "running",
+				load_status: "complete",
 				message: "",
 				detail: stage
 			});
@@ -372,6 +386,7 @@ async function check_space_status(
 		case "BUILDING":
 			space_status_callback({
 				status: "building",
+				load_status: "pending",
 				message: "Space is building...",
 				detail: stage
 			});
@@ -382,7 +397,8 @@ async function check_space_status(
 			break;
 		default:
 			space_status_callback({
-				status: "error",
+				status: "space_error",
+				load_status: "error",
 				message: "This space is experiencing an issue.",
 				detail: stage,
 				discussions_enabled: await discussions_enabled(space_name)

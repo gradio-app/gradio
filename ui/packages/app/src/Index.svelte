@@ -59,7 +59,7 @@
 
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { client } from "@gradio/client";
+	import { client, SpaceStatus } from "@gradio/client";
 
 	import Embed from "./Embed.svelte";
 	import { Component as Loader } from "./components/StatusTracker";
@@ -81,11 +81,10 @@
 
 	let _id = id++;
 
-	let status: "pending" | "error" | "success" | "login" = "pending";
+	let loader_status: "pending" | "error" | "success" | "login" = "pending";
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
 	let ready: boolean = false;
-	let root: string;
 	let config: Config;
 	let loading_text: string = "Loading...";
 
@@ -132,13 +131,6 @@
 	// 	} else {
 	// 		return window.gradio_config;
 	// 	}
-	// }
-
-	// async function get_source_config(source: string): Promise<Config> {
-	// 	let config = await (await fetch(source + "config")).json();
-	// 	root = source;
-	// 	config.root = source;
-	// 	return config;
 	// }
 
 	function mount_custom_css(target: HTMLElement, css_string: string | null) {
@@ -211,180 +203,37 @@
 		return "dark";
 	}
 
-	// async function check_space_status(space_id: string, source: string) {
-	// 	let response;
-	// 	let _status;
-	// 	try {
-	// 		response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
-	// 		_status = response.status;
-	// 		if (_status !== 200) {
-	// 			throw new Error();
-	// 		}
-	// 		response = await response.json();
-	// 	} catch (e) {
-	// 		status = "error";
-	// 		error_detail = {
-	// 			type: "space_error",
-	// 			detail: {
-	// 				description: "This space is experiencing an issue.",
-	// 				discussions_enabled: await discussions_enabled(space_id)
-	// 			}
-	// 		};
-
-	// 		return;
-	// 	}
-
-	// 	if (!response || _status !== 200) return;
-	// 	const {
-	// 		runtime: { stage }
-	// 	} = response;
-
-	// 	switch (stage) {
-	// 		case "STOPPED":
-	// 		case "SLEEPING":
-	// 			status = "pending";
-	// 			loading_text = "Space is asleep. Waking it up...";
-	// 			setTimeout(() => {
-	// 				check_space_status(space_id, source);
-	// 			}, 1000);
-	// 			break;
-	// 		// poll for status
-	// 		case "RUNNING":
-	// 		case "RUNNING_BUILDING":
-	// 			status = "success";
-	// 			load_config(source);
-	// 			//  launch
-	// 			break;
-	// 		case "BUILDING":
-	// 			status = "pending";
-	// 			loading_text = "Space is building...";
-	// 			setTimeout(() => {
-	// 				check_space_status(space_id, source);
-	// 			}, 1000);
-	// 			break;
-
-	// 		case "NO_APP_FILE":
-	// 		case "CONFIG_ERROR":
-	// 		case "BUILD_ERROR":
-	// 		case "RUNTIME_ERROR":
-	// 			status = "error";
-	// 			error_detail = {
-	// 				type: "space_error",
-	// 				detail: {
-	// 					description: "This space is experiencing an issue.",
-	// 					discussions_enabled: await discussions_enabled(space_id),
-	// 					stage
-	// 				}
-	// 			};
-	// 			break;
-	// 		default:
-	// 			status = "error";
-	// 			error_detail = {
-	// 				type: "space_error",
-	// 				detail: {
-	// 					description: "This space is experiencing an issue.",
-	// 					discussions_enabled: await discussions_enabled(space_id)
-	// 				}
-	// 			};
-	// 	}
-	// }
-
-	// const RE_DISABLED_DISCUSSION =
-	// 	/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
-
-	// async function discussions_enabled(space_id: string) {
-	// 	try {
-	// 		const r = await fetch(
-	// 			`https://huggingface.co/api/spaces/${space_id}/discussions`,
-	// 			{
-	// 				method: "HEAD"
-	// 			}
-	// 		);
-	// 		const error = r.headers.get("x-error-message");
-
-	// 		if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
-	// 		else return true;
-	// 	} catch (e) {
-	// 		return false;
-	// 	}
-	// }
-
-	// const session_hash = Math.random().toString(36).substring(2);
-
 	let error_detail: null | {
 		type: "not_found" | "space_error";
 		detail?: Record<string, any>;
 	} = null;
 
+	let status: SpaceStatus;
+	let app: Awaited<ReturnType<typeof client>>;
+	function handle_status(_status: SpaceStatus) {
+		console.log(_status);
+		status = _status;
+	}
 	onMount(async () => {
 		if (window.__gradio_mode__ !== "website") {
 			theme = handle_darkmode(wrapper);
 		}
 
-		const app = await client(
+		const api_url =
 			BUILD_MODE === "dev"
 				? "http://localhost:7860" || location.origin === "http://localhost:9876"
-				: host || space || src || location.origin,
-			(s) => console.log(s)
-		);
+				: host || space || src || location.origin;
 
-		console.log(app.config);
+		app = await client(api_url, handle_status);
+
+		console.log(app, app.config);
 		config = app.config;
 
 		mount_custom_css(wrapper, config.css);
-		// 	window.__is_colab__ = config.is_colab;
-
-		// 	if (root === undefined) {
-		// 		root = BACKEND_URL;
-		// 		config.root = BACKEND_URL;
-		// 	}
-
-		// 	if (config.dev_mode) {
-		// 		reload_check(root);
-		// 	}
-
-		// const source = host
-		// 	? `https://${host.trim()}`
-		// 	: space
-		// 	? (
-		// 			await (
-		// 				await fetch(
-		// 					`https://huggingface.co/api/spaces/${space.trim()}/host`
-		// 				)
-		// 			).json()
-		// 	  ).host
-		// 	: src?.trim();
-
-		// if (space) {
-		// 	check_space_status(space.trim(), source);
-		// }
-		// load_config(source);
+		window.__is_colab__ = config.is_colab;
 	});
 
-	// async function load_config(source: string) {
-	// 	const _config: Config | null = await handle_config(wrapper, source);
-
-	// 	if (_config) {
-	// 		status = _config.auth_required ? "login" : "pending";
-	// 		_config.fn = _config.fn = fn(
-	// 			session_hash,
-	// 			root + "run/",
-	// 			_config.is_space,
-	// 			is_embed
-	// 		);
-	// 		config = _config;
-	// 	} else if (!space) {
-	// 		status = "error";
-	// 		error_detail = {
-	// 			type: "not_found",
-	// 			detail: {
-	// 				description: "This gradio app is experiencing an issue."
-	// 			}
-	// 		};
-	// 	}
-	// }
-
-	$: status = ready ? "success" : status;
+	$: loader_status = ready ? "success" : loader_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
@@ -444,27 +293,27 @@
 	{version}
 	{initial_height}
 	{space}
-	loaded={status === "success"}
+	loaded={loader_status === "success"}
 	bind:wrapper
 >
-	{#if status === "pending" || status === "error"}
+	{#if status?.load_status === "pending" || status?.load_status === "error"}
 		<Loader
 			absolute={!is_embed}
-			{status}
+			status={status.load_status}
 			timer={false}
 			queue_position={null}
 			queue_size={null}
 			{loading_text}
 		>
 			<div class="error" slot="error">
-				<p><strong>{error_detail?.detail?.description || ""}</strong></p>
-				{#if error_detail?.detail?.discussions_enabled}
+				<p><strong>{status.message || ""}</strong></p>
+				{#if status.status === "space_error" && status.discussions_enabled}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-								error_detail.detail.stage
+								status.detail
 							)}&description={discussion_message.description(
-								error_detail.detail.stage,
+								status.detail,
 								location.origin
 							)}"
 						>
@@ -476,7 +325,7 @@
 				{/if}
 			</div>
 		</Loader>
-	{:else if status === "login" && Login}
+	{:else if config?.auth_required && Login}
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
@@ -484,9 +333,9 @@
 			id={_id}
 			{app_mode}
 		/>
-	{/if}
-	{#if config && Blocks}
+	{:else if config && Blocks}
 		<Blocks
+			{app}
 			{...config}
 			{theme}
 			{control_page_title}

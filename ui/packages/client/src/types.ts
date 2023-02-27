@@ -21,6 +21,7 @@ export interface Config {
 
 export interface Payload {
 	data: Array<unknown>;
+	fn_index?: number;
 }
 
 export interface PostResponse {
@@ -55,21 +56,25 @@ export interface Status {
 // case "CONFIG_ERROR":
 // case "BUILD_ERROR":
 // case "RUNTIME_ERROR":
-export interface SpaceStatus {
+export interface SpaceStatusNormal {
 	status: "sleeping" | "running" | "building" | "error" | "stopped";
 	detail:
-		| "sleeping"
-		| "running"
-		| "running_building"
-		| "building"
-		| "no_app_file"
-		| "config_error"
-		| "build_error"
-		| "runtime_error"
-		| "not_found";
+		| "SLEEPING"
+		| "RUNNING"
+		| "RUNNING_BUILDING"
+		| "BUILDING"
+		| "NOT_FOUND";
+	load_status: "pending" | "error" | "complete" | "generating";
 	message: string;
-	discussions_enabled?: boolean;
 }
+export interface SpaceStatusError {
+	status: "space_error";
+	detail: "NO_APP_FILE" | "CONFIG_ERROR" | "BUILD_ERROR" | "RUNTIME_ERROR";
+	load_status: "error";
+	message: string;
+	discussions_enabled: boolean;
+}
+export type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
 
 export type status_callback_function = (a: Status) => void;
 export type SpaceStatusCallback = (a: SpaceStatus) => void;

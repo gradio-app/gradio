@@ -32,16 +32,25 @@ export function create_loading_status_store() {
 	const inputs_to_update = new Map<number, string>();
 	const fn_status: Array<LoadingStatus["status"]> = [];
 
-	function update(
-		fn_index: LoadingStatus["fn_index"],
-		status: LoadingStatus["status"],
-		queue: LoadingStatus["queue"],
-		size: LoadingStatus["queue_size"],
-		position: LoadingStatus["queue_position"],
-		eta: LoadingStatus["eta"],
-		message: LoadingStatus["message"],
-		progress?: LoadingStatus["progress"]
-	) {
+	function update({
+		fn_index,
+		status,
+		queue,
+		size,
+		position,
+		eta,
+		message,
+		progress
+	}: {
+		fn_index: LoadingStatus["fn_index"];
+		status?: LoadingStatus["status"];
+		queue?: LoadingStatus["queue"];
+		size?: LoadingStatus["queue_size"];
+		position?: LoadingStatus["queue_position"];
+		eta?: LoadingStatus["eta"];
+		message?: LoadingStatus["message"];
+		progress?: LoadingStatus["progress"];
+	}) {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
 		const last_status = fn_status[fn_index];
