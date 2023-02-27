@@ -3,6 +3,7 @@
 ## Bug fixes
 
 - Fix bug that cause UI to be vertically centered at all times by [@pngwn](https://github.com/pngwn) in [PR 3336](https://github.com/gradio-app/gradio/pull/3336)
+- Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventaully to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
 
 ## New Features:
 
