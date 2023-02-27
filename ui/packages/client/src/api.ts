@@ -287,7 +287,7 @@ function skip_queue(id: number, config: Config) {
 
 async function resolve_config(endpoint?: string): Promise<Config> {
 	if (window.gradio_config) {
-		return window.gradio_config;
+		return { ...window.gradio_config, root: endpoint };
 	} else if (endpoint) {
 		let response = await fetch(`${endpoint}/config`);
 		if (response.status === 200) {
