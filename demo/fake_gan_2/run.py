@@ -31,7 +31,7 @@ demo = gr.Interface(
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
 )
-demo.queue(max_size=3)
+demo.queue()
 
 if __name__ == "__main__":
     demo.launch()

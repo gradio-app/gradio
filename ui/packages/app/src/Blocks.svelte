@@ -215,7 +215,9 @@
 	}
 
 	let handled_dependencies: Array<number[]> = [];
+
 	let prediction_map: Record<string, ReturnType<typeof app.predict>> = {};
+
 	async function handle_mount() {
 		await tick();
 
@@ -260,16 +262,33 @@
 							prediction_map[fn_index].cancel(fn_index);
 						});
 
+					let payload = {
+						fn_index: i,
+						data: inputs.map((id) => instance_map[id].props.value)
+					};
+
 					if (frontend_fn) {
-						// implement
+						frontend_fn(
+							payload.data.concat(
+								outputs.map((id) => instance_map[id].props.value)
+							)
+						).then((v: []) => {
+							if (backend_fn) {
+								payload.data = v;
+								make_prediction();
+							} else {
+								handle_update({ data: v });
+							}
+						});
+					} else {
+						if (backend_fn) {
+							make_prediction();
+						}
 					}
 
-					if (backend_fn) {
+					function make_prediction() {
 						prediction_map[i] = app
-							.predict("/predict", {
-								fn_index: i,
-								data: inputs.map((id) => instance_map[id].props.value)
-							})
+							.predict("/predict", payload)
 							.on("data", handle_update)
 							.on("status", (s) =>
 								loading_status.update({ ...s, fn_index: i })
@@ -306,27 +325,45 @@
 					.filter((v) => !!v && !!v[1])
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
+
 						instance?.$on(trigger, () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
 								return;
 							}
-							console.log();
 
-							cancels &&
+							if (cancels) {
 								cancels.forEach((fn_index) => {
 									prediction_map[fn_index].cancel(fn_index);
 								});
-
-							if (frontend_fn) {
-								// implement
 							}
 
-							if (backend_fn) {
+							let payload = {
+								fn_index: i,
+								data: inputs.map((id) => instance_map[id].props.value)
+							};
+
+							if (frontend_fn) {
+								frontend_fn(
+									payload.data.concat(
+										outputs.map((id) => instance_map[id].props.value)
+									)
+								).then((v: []) => {
+									if (backend_fn) {
+										payload.data = v;
+										make_prediction();
+									} else {
+										handle_update({ data: v });
+									}
+								});
+							} else {
+								if (backend_fn) {
+									make_prediction();
+								}
+							}
+
+							function make_prediction() {
 								prediction_map[i] = app
-									.predict("/predict", {
-										fn_index: i,
-										data: inputs.map((id) => instance_map[id].props.value)
-									})
+									.predict("/predict", payload)
 									.on("data", handle_update)
 									.on("status", (s) =>
 										loading_status.update({ ...s, fn_index: i })

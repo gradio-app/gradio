@@ -16,7 +16,6 @@ export function normalise_file(
 	root: string,
 	root_url: string | null
 ): FileData | Array<FileData> | null {
-	console.log(file, root, root_url);
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {

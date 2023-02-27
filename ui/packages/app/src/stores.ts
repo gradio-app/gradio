@@ -120,9 +120,9 @@ export function create_loading_status_store() {
 				}) => {
 					outputs[id] = {
 						queue: !!queue,
-						queue_size: queue_size || null,
-						queue_position: queue_position || null,
-						eta: eta || null,
+						queue_size: queue_size,
+						queue_position: queue_position,
+						eta: eta,
 						message,
 						progress,
 						status,

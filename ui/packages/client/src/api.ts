@@ -51,7 +51,6 @@ export async function upload_files(
 	root: string,
 	files: Array<File>
 ): Promise<UploadResponse> {
-	console.log("UPLOAD FILE");
 	const formData = new FormData();
 	files.forEach((file) => {
 		formData.append("files", file);
@@ -139,14 +138,14 @@ export async function client(
 
 			let fn_index = api_map[endpoint] || payload.fn_index!;
 			const listener_map: ListenerMap<EventType> = {};
-			console.log("PREDICT", fn_index, listener_map);
 
 			function cancel(endpoint: string | number) {
 				const _index =
 					typeof endpoint === "string" ? api_map[endpoint] : endpoint;
 				fire_event({
 					type: "status",
-					status: "complete"
+					status: "complete",
+					queue: false
 				});
 				ws_map.get(_index)?.close();
 			}
@@ -183,7 +182,7 @@ export async function client(
 
 			// const { fn_index } = endpoint;
 			if (skip_queue(fn_index, config)) {
-				fire_event({ type: "status", status: "pending" });
+				fire_event({ type: "status", status: "pending", queue: false });
 
 				post_data(
 					`${http_protocol}//${host}/api${
@@ -199,13 +198,15 @@ export async function client(
 							fire_event({
 								type: "status",
 								status: "complete",
-								eta: output.average_duration
+								eta: output.average_duration,
+								queue: false
 							});
 						} else {
 							fire_event({
 								type: "status",
 								status: "error",
-								message: output.error
+								message: output.error,
+								queue: false
 							});
 						}
 						fire_event({ type: "data", data: output.data });
@@ -214,7 +215,8 @@ export async function client(
 						fire_event({
 							type: "status",
 							status: "error",
-							message: e.message
+							message: e.message,
+							queue: false
 						});
 						throw new Error(e.message);
 					});
@@ -228,7 +230,8 @@ export async function client(
 						fire_event({
 							type: "status",
 							status: "error",
-							message: BROKEN_CONNECTION_MSG
+							message: BROKEN_CONNECTION_MSG,
+							queue: true
 						});
 					}
 				};
@@ -252,7 +255,12 @@ export async function client(
 							?.send(JSON.stringify({ ...payload, session_hash }));
 						return;
 					} else if (type === "complete") {
-						fire_event({ type: "status", ...status, status: status?.status! });
+						fire_event({
+							type: "status",
+							...status,
+							status: status?.status!,
+							queue: true
+						});
 
 						websocket.close();
 					}
@@ -415,7 +423,7 @@ function handle_message(
 	data?: any;
 	status?: Status;
 } {
-	console.log(data);
+	const queue = true;
 	switch (data.msg) {
 		case "send_data":
 			return { type: "send" };
@@ -425,6 +433,7 @@ function handle_message(
 			return {
 				type: "update",
 				status: {
+					queue,
 					message: QUEUE_FULL_MSG,
 					status: "error"
 				}
@@ -433,6 +442,7 @@ function handle_message(
 			return {
 				type: "update",
 				status: {
+					queue,
 					status: last_status || "pending",
 					size: data.queue_size,
 					position: data.rank,
@@ -443,6 +453,7 @@ function handle_message(
 			return {
 				type: "update",
 				status: {
+					queue,
 					status: "pending",
 					progress: data.progress_data
 				}
@@ -451,6 +462,7 @@ function handle_message(
 			return {
 				type: "generating",
 				status: {
+					queue,
 					message: !data.success ? data.output.error : null,
 					status: data.success ? "generating" : "error",
 					progress: data.progress_data,
@@ -462,6 +474,7 @@ function handle_message(
 			return {
 				type: "complete",
 				status: {
+					queue,
 					message: !data.success ? data.output.error : undefined,
 					status: data.success ? "complete" : "error",
 					progress: data.progress_data,
@@ -473,6 +486,7 @@ function handle_message(
 			return {
 				type: "update",
 				status: {
+					queue,
 					status: "pending",
 					size: data.rank,
 					position: 0
@@ -480,5 +494,5 @@ function handle_message(
 			};
 	}
 
-	return { type: "none", status: { status: "error" } };
+	return { type: "none", status: { status: "error", queue } };
 }

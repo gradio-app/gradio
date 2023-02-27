@@ -210,7 +210,6 @@
 	let status: SpaceStatus;
 	let app: Awaited<ReturnType<typeof client>>;
 	function handle_status(_status: SpaceStatus) {
-		console.log(_status);
 		status = _status;
 	}
 	onMount(async () => {
@@ -225,7 +224,6 @@
 
 		app = await client(api_url, handle_status);
 
-		console.log(app, app.config);
 		config = app.config;
 
 		mount_custom_css(wrapper, config.css);

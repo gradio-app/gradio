@@ -34,6 +34,7 @@ export interface UploadResponse {
 }
 
 export interface Status {
+	queue: boolean;
 	status: "pending" | "error" | "complete" | "generating";
 	size?: number;
 	position?: number;
