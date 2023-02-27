@@ -30,7 +30,7 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
-from gradio.themes.utils import Theme
+from gradio.themes.base import Theme
 
 set_documentation_group("interface")
 
@@ -308,9 +308,7 @@ class Interface(Blocks):
         self.article = article
 
         self.thumbnail = thumbnail
-        self.theme = theme or os.getenv("GRADIO_THEME", "default")
-        if not (self.theme == "default"):
-            warnings.warn("Currently, only the 'default' theme is supported.")
+        self.theme = theme
 
         self.examples = examples
         self.num_shap = num_shap

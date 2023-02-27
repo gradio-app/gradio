@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import { Button } from "@gradio/button";
+	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
 	export let dependency_failures: boolean[][];
@@ -22,39 +23,41 @@
 	</div>
 	Input Payload
 </h4>
-<div class="payload-details">
-	&#123;
-	<br />
-	&nbsp;&nbsp;"data": [
-	<br />
-	{#each dependency.inputs as component_id, component_index}
-		&nbsp;&nbsp;&nbsp;&nbsp;
-		<input
-			class=""
-			type="text"
-			bind:value={dependency_inputs[dependency_index][component_index]}
-		/>
-		{#if dependency_failures[dependency_index][component_index]}
-			<span class="error">ERROR</span>
-		{/if}
-		<span class="type">
-			: {instance_map[component_id].documentation?.type},
-		</span>
-		<span class="desc">
-			// represents {instance_map[component_id].documentation?.description} of
-			{format_label(instance_map[component_id].props.label)}
-
-			<span class="name">
-				{instance_map[component_id].props.name}
-			</span>
-			component
-		</span>
+<Block>
+	<div class="details">
+		&#123;
 		<br />
-	{/each}
-	&nbsp;&nbsp;]
-	<br />
-	&#125;
-</div>
+		&nbsp;&nbsp;"data": [
+		<br />
+		{#each dependency.inputs as component_id, component_index}
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<input
+				class=""
+				type="text"
+				bind:value={dependency_inputs[dependency_index][component_index]}
+			/>
+			{#if dependency_failures[dependency_index][component_index]}
+				<span class="error">ERROR</span>
+			{/if}
+			<span class="type">
+				: {instance_map[component_id].documentation?.type},
+			</span>
+			<span class="desc">
+				// represents {instance_map[component_id].documentation?.description} of
+				{format_label(instance_map[component_id].props.label)}
+
+				<span class="name">
+					{instance_map[component_id].props.name}
+				</span>
+				component
+			</span>
+			<br />
+		{/each}
+		&nbsp;&nbsp;]
+		<br />
+		&#125;
+	</div>
+</Block>
 
 <span class="space" />
 <Button
@@ -106,37 +109,27 @@
 		background: var(--color-grey-400);
 	}
 
-	.payload-details {
-		display: block;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-tertiary);
-		padding: var(--size-4);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+	.details {
 		font-family: var(--font-mono);
+		font-size: var(--text-xs);
 	}
 
-	input {
+	input[type="text"] {
 		--ring-color: transparent;
-		margin-top: var(--size-0-5);
-		margin-bottom: var(--size-0-5);
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
-		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-sm);
-		background: var(--input-background-base) !important;
-		padding: var(--size-0-5) var(--size-1) !important;
-		width: var(--size-40);
-		font-size: var(--scale-000);
-	}
-
-	input:focus-visible {
-		--ring-color: var(--color-focus-primary);
-		outline: none;
+		margin: var(--size-1) 0;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color-base);
+		border-radius: var(--radius-lg);
+		background: var(--input-background-base);
+		padding: var(--size-1-5);
+		color: var(--color-text-body);
+		font-size: var(--text-xs);
+		line-height: var(--line-sm);
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-primary);
+		--ring-color: var(--color-focus-ring);
 		border-color: var(--input-border-color-focus);
 	}
 

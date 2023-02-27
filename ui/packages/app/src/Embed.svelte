@@ -46,8 +46,7 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		background: var(--button-secondary-background-base);
-		background: var(--color-background-primary);
+		background: var(--color-body-background);
 		padding: 0;
 		min-height: 1px;
 		overflow: hidden;
@@ -57,7 +56,7 @@
 	.embed-container {
 		margin: var(--size-4) 0px;
 		border: 1px solid var(--button-secondary-border-color-base);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-embed);
 	}
 
 	.with-info {
@@ -117,7 +116,7 @@
 		padding: var(--size-1) var(--size-5);
 		width: 100%;
 		color: var(--color-text-subdued);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		white-space: nowrap;
 	}
 
@@ -171,13 +170,13 @@
 	}
 
 	.title {
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		font-family: var(--font-mono);
 	}
 
 	.emoji {
 		margin-right: 1px;
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 	}
 
 	a:hover {

@@ -1,11 +1,9 @@
 import gradio as gr
 import random
 import time
-from gradio.themes import Default
+# from gradio.themes import Base
 
-theme = Default()
-theme.color_text_body = "green"
-theme.input_accent = "green"
+# theme = Base()
 
 def xray_model(diseases, img):
     time.sleep(4)
@@ -16,7 +14,7 @@ def ct_model(diseases, img):
     time.sleep(3)
     return [{disease: 0.1 for disease in diseases}]
 
-with gr.Blocks(theme=theme) as demo:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
 # Detect Disease From Scan
@@ -55,7 +53,7 @@ With this model you can lorem ipsum
             api_name="ct_model"
         )
 
-    upload_btn = gr.Button("Upload Results")
+    upload_btn = gr.Button("Upload Results", variant="primary")
     upload_btn.click(
         lambda ct, xr: time.sleep(5),
         inputs=[ct_results, xray_results],
@@ -63,4 +61,4 @@ With this model you can lorem ipsum
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)

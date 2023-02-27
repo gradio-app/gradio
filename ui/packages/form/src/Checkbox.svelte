@@ -32,7 +32,7 @@
 		align-items: center;
 		cursor: pointer;
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-md);
 	}
 
@@ -43,11 +43,11 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color), var(--shadow-drop);
+		box-shadow: var(--input-shadow);
 		border: 1px solid var(--checkbox-border-color-base);
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-base);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

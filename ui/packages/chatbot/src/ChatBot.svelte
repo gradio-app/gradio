@@ -114,13 +114,13 @@
 	}
 
 	.message {
-		border-width: var(--internal-border-width);
+		border-width: 0;
 		border-style: solid;
-		border-radius: var(--radius-3xl);
+		border-radius: var(--radius-xxl);
 		padding: var(--size-2) var(--size-3);
 		color: white;
 		max-width: 75%;
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-xs);
 		overflow-wrap: break-word;
 	}
@@ -128,7 +128,7 @@
 	.user {
 		border-color: var(--color-accent-base);
 		border-bottom-right-radius: 0;
-		background: var(--color-accent-soft);
+		background: var(--color-border-accent);
 	}
 
 	.bot {

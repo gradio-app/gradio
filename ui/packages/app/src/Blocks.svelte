@@ -480,7 +480,7 @@
 		justify-content: center;
 		margin-top: var(--size-4);
 		color: var(--color-text-subdued);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 	}
 
 	footer > * + * {

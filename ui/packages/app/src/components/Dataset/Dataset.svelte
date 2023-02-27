@@ -96,7 +96,7 @@
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
 				<button
-					class="button"
+					class="gallery-item"
 					on:click={() => {
 						value = i + page * samples_per_page;
 						dispatch("click", value);
@@ -182,7 +182,6 @@
 <style>
 	.wrap {
 		display: inline-block;
-		margin-top: var(--size-4);
 		width: var(--size-full);
 		max-width: var(--size-full);
 		color: var(--color-text-body);
@@ -197,7 +196,7 @@
 		align-items: center;
 		margin-bottom: var(--size-2);
 		color: var(--color-text-label);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		line-height: var(--line-sm);
 	}
 
@@ -211,25 +210,25 @@
 		gap: var(--size-2);
 	}
 
-	.button {
+	.gallery-item {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-button-large);
 		overflow: hidden;
-		overflow: hidden;
+		font-size: var(--text-xs);
 	}
 
-	.button:hover {
-		border-color: var(--color-border-tertiary);
-		background: var(--color-focus-ring);
+	.gallery-item:hover {
+		border-color: var(--color-border-accent);
+		background: var(--table-row-focus);
 	}
 
 	.table-wrap {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-table);
 		width: var(--size-full);
 		table-layout: auto;
 		overflow-x: auto;
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 	table {
@@ -277,11 +276,12 @@
 	}
 
 	.tr-body:hover > * + * {
-		border-color: var(--color-accent-soft);
+		border-color: var(--color-border-accent);
 	}
 
 	td {
 		padding: var(--size-2);
+		text-align: center;
 	}
 
 	.paginate {
@@ -291,7 +291,7 @@
 		gap: var(--size-2);
 		margin-top: var(--size-2);
 		color: var(--color-text-label);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 	}
 
 	button.current-page {

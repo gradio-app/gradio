@@ -320,12 +320,12 @@
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
-		background: var(--color-background-tertiary);
+		box-shadow: var(--checkbox-label-shadow);
+		border: var(--checkbox-label-border-width) solid var(--color-border-primary);
+		border-radius: var(--radius-button-small);
+		background: var(--checkbox-label-background-base);
 		padding: var(--size-0-5) var(--size-2);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-md);
 		white-space: nowrap;
 	}

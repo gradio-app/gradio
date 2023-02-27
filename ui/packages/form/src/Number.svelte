@@ -54,15 +54,14 @@
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
-			var(--shadow-inset);
-		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-lg);
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color-base);
+		border-radius: var(--radius-input);
 		background: var(--input-background-base);
 		padding: var(--size-2-5);
 		width: 100%;
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

@@ -68,8 +68,6 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		margin-top: var(--size-4);
-		margin-bottom: var(--size-4);
 	}
 
 	.hide {
@@ -80,17 +78,17 @@
 		display: flex;
 		position: relative;
 		flex-wrap: wrap;
-		border-bottom: 2px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--color-border-primary);
 		white-space: nowrap;
 	}
 
 	button {
-		margin-bottom: -2px;
-		border: 2px solid transparent;
+		margin-bottom: -1px;
+		border: 1px solid transparent;
 		border-color: transparent;
 		border-bottom: none;
-		border-top-right-radius: var(--radius-md);
-		border-top-left-radius: var(--radius-md);
+		border-top-right-radius: var(--radius-container);
+		border-top-left-radius: var(--radius-container);
 		padding: var(--size-1) var(--size-4);
 		color: var(--color-text-subdued);
 	}

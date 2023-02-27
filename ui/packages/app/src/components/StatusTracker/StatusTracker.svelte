@@ -307,7 +307,6 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
-		border-radius: var(--radius-lg);
 		background-color: var(--color-background-tertiary);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
@@ -370,14 +369,12 @@
 	}
 	.progress-bar-wrap {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
 		background: var(--color-background-primary);
 		width: 55.5%;
 		height: var(--size-4);
 	}
 	.progress-bar {
 		transform-origin: left;
-		border-radius: var(--radius-sm);
 		background-color: var(--color-accent-base);
 		width: var(--size-full);
 		height: var(--size-full);
@@ -395,7 +392,7 @@
 	.progress-level-inner {
 		margin: var(--size-2) auto;
 		color: var(--color-text-body);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		font-family: var(--font-mono);
 	}
 
@@ -405,7 +402,7 @@
 		right: 0;
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		font-family: var(--font-mono);
 	}
 
@@ -419,7 +416,7 @@
 		transform: translateY(var(--size-6));
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		font-family: var(--font-mono);
 		text-align: center;
 	}
@@ -433,7 +430,7 @@
 		padding-left: var(--size-4);
 		color: var(--color-functional-error-base);
 		font-weight: var(--weight-semibold);
-		font-size: var(--scale-1);
+		font-size: var(--text-md);
 		line-height: var(--line-lg);
 		font-family: var(--font-sans);
 	}
@@ -442,7 +439,6 @@
 		position: fixed;
 		top: 0;
 		right: var(--size-4);
-		bottom: 0;
 		left: var(--size-4);
 		z-index: var(--layer-top);
 		padding: var(--size-4);
@@ -459,7 +455,7 @@
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg-xl);
 		border: 1px solid var(--color-functional-error-border);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-container);
 		background: var(--color-background-secondary);
 		background: var(--color-functional-error-background);
 		padding: var(--size-4) var(--size-6);
@@ -476,7 +472,7 @@
 		color: var(--color-functional-error-base);
 		color: var(--color-red-500);
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-0);
+		font-size: var(--text-sm);
 		line-height: var(--line-xs);
 	}
 
@@ -499,7 +495,7 @@
 
 	.toast-text {
 		padding: var(--size-1) var(--size-3);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		font-family: var(--font-mono);
 	}
 

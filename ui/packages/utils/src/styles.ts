@@ -10,6 +10,7 @@ export interface Styles {
 	color_map?: Record<string, string>;
 	label_container?: boolean;
 	gap?: boolean;
+	size?: "sm" | "lg";
 }
 
 type PartialRecord<K extends keyof any, T> = {
@@ -78,7 +79,7 @@ const style_handlers: StyleHandlers = {
 	full_width(full_width) {
 		return full_width
 			? "width: var(--size-full); flex-grow: 1;"
-			: "flex-grow: 0;";
+			: "flex-grow: 0; width: fit-content;";
 	},
 	equal_height(equal_height) {
 		return equal_height ? "align-items: stretch;" : "align-items: flex-start;";

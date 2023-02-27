@@ -199,7 +199,7 @@
 		background: var(--color-background-primary);
 		background-color: transparent;
 		max-width: var(--size-full);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--scale-4);
 		word-break: break-all;
 	}
@@ -223,7 +223,7 @@
 		color: var(--color-text-body);
 		color: white;
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		text-transform: uppercase;
 	}
 

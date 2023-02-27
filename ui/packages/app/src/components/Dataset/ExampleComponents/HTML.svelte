@@ -19,14 +19,8 @@
 		align-items: center;
 		cursor: pointer;
 		border-radius: var(--radius-lg);
-		background: var(--color-background-primary);
 		padding: var(--size-2);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		text-align: left;
-	}
-
-	.gallery:hover,
-	.selected.gallery {
-		background: var(--color-focus-ring);
 	}
 </style>

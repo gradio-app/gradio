@@ -24,14 +24,8 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		background: var(--color-background-primary);
 		padding: var(--size-1) var(--size-2);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		text-align: left;
-	}
-
-	.gallery:hover,
-	.selected.gallery {
-		background: var(--color-focus-ring);
 	}
 </style>

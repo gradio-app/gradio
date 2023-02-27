@@ -57,13 +57,13 @@
 	.block {
 		position: relative;
 		margin: 0;
-		box-shadow: var(--shadow-drop);
-		border-width: 1px;
+		box-shadow: var(--block-shadow);
+		border-width: var(--block-border-width);
 		border-radius: var(--radius-lg);
 		background: var(--color-background-tertiary);
 		width: 100%;
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

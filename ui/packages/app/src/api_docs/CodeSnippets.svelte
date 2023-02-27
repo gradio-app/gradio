@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import { represent_value } from "./utils";
+	import { Block } from "@gradio/atoms";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
@@ -43,48 +44,51 @@
 		</li>
 	{/each}
 </div>
-<code>
-	{#if current_language === "python"}
-		<pre>import requests
+
+<Block>
+	<code>
+		{#if current_language === "python"}
+			<pre>import requests
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
 	"data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
-				/><!--
+					/><!--
         -->		{represent_value(
-					component_value,
-					instance_map[dependencies[dependency_index].inputs[component_index]]
-						.documentation?.type,
-					"py"
-				)},{/each}
+						component_value,
+						instance_map[dependencies[dependency_index].inputs[component_index]]
+							.documentation?.type,
+						"py"
+					)},{/each}
 	]
 &rbrace;).json()
 
 data = response["data"]</pre>
-	{:else if current_language === "javascript"}
-		<pre>const response = await fetch("{root +
-				"run/" +
-				dependency.api_name}", &lbrace;
+		{:else if current_language === "javascript"}
+			<pre>const response = await fetch("{root +
+					"run/" +
+					dependency.api_name}", &lbrace;
 	method: "POST",
 	headers: &lbrace; "Content-Type": "application/json" &rbrace;,
 	body: JSON.stringify(&lbrace;
 		data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
-				/><!--
+					/><!--
 -->			{represent_value(
-					component_value,
-					instance_map[dependencies[dependency_index].inputs[component_index]]
-						.documentation?.type,
-					"js"
-				)},{/each}
+						component_value,
+						instance_map[dependencies[dependency_index].inputs[component_index]]
+							.documentation?.type,
+						"js"
+					)},{/each}
 		]
 	&rbrace;)
 &rbrace;);
 
 const data = await data.json();
 </pre>
-	{:else if current_language === "gradio client"}
-		<pre class="client">Hello World</pre>
-	{/if}
-</code>
+		{:else if current_language === "gradio client"}
+			<pre class="client">Hello World</pre>
+		{/if}
+	</code>
+</Block>
 
 <style>
 	h4 {
@@ -119,7 +123,7 @@ const data = await data.json();
 		padding: var(--size-1) var(--size-1-5);
 		color: var(--color-text-subdued);
 		color: var(--color-text-body);
-		font-size: var(--scale-0);
+		font-size: var(--text-sm);
 		line-height: 1;
 		user-select: none;
 		text-transform: capitalize;
@@ -147,15 +151,10 @@ const data = await data.json();
 	}
 
 	code pre {
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-md);
-		background-color: var(--color-background-tertiary);
-		padding: var(--size-4);
 		overflow-x: auto;
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
+		font-family: var(--font-mono);
 		tab-size: 2;
 	}
 

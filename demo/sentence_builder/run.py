@@ -26,6 +26,7 @@ demo = gr.Interface(
         [10, "bird", "road", ["ran"], False],
         [8, "cat", "zoo", ["ate"], True],
     ],
+    theme=gr.themes.Base(),
 )
 
 if __name__ == "__main__":

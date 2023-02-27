@@ -87,49 +87,39 @@
 {/if}
 
 <style>
-	.gallery {
-		align-items: center;
-		cursor: pointer;
-		border-collapse: collapse;
-		padding: var(--size-2);
-		overflow: hidden;
-		font-size: var(--scale-000);
-		line-height: var(--line-sm);
-		text-align: left;
-	}
-
 	table {
 		position: relative;
 	}
 
 	td {
-		border: 1px solid var(--color-border-tertiary);
+		border: 1px solid var(--table-border-color);
 		padding: var(--size-2);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		font-family: var(--font-mono);
 	}
 
-	.table.selected td {
-		border-color: var(--color-border-tertiary);
+	.selected td {
+		border-color: var(--color-border-accent);
+	}
+	
+	.table {
+		margin: 0 auto;
+		display: inline-block;
 	}
 
-	.gallery.selected td {
-		border-color: var(--color-border-tertiary);
-	}
-
-	td:first-child {
+	.gallery td:first-child {
 		border-left: none;
 	}
 
-	tr:first-child td {
+	.gallery tr:first-child td {
 		border-top: none;
 	}
 
-	td:last-child {
+	.gallery td:last-child {
 		border-right: none;
 	}
 
-	tr:last-child td {
+	.gallery tr:last-child td {
 		border-bottom: none;
 	}
 
@@ -153,14 +143,5 @@
 
 	.button {
 		--gradient-to: var(--color-background-primary);
-	}
-
-	.selected .even,
-	.selected .odd {
-		--gradient-to: var(--color-focus-ring);
-	}
-
-	.selected .button {
-		--gradient-to: var(--color-focus-ring);
 	}
 </style>

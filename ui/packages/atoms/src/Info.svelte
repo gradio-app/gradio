@@ -7,7 +7,7 @@
 		margin-top: var(--size-0-5);
 		margin-bottom: var(--size-1);
 		color: var(--color-text-subdued);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		line-height: var(--line-sm);
 	}
 </style>

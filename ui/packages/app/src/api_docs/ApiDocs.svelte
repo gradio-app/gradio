@@ -153,12 +153,12 @@
 		position: relative;
 		border-bottom: 1px solid var(--color-border-primary);
 		padding: var(--size-4) var(--size-6);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 	}
 
 	@media (--screen-md) {
 		.banner-wrap {
-			font-size: var(--scale-1);
+			font-size: var(--text-md);
 		}
 	}
 
@@ -170,7 +170,7 @@
 
 	.endpoint {
 		border-radius: var(--radius-md);
-		background: var(--docs-background);
+		background: var(--color-background-primary);
 		padding: var(--size-6);
 	}
 </style>

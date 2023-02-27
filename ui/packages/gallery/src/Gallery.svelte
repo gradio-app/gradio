@@ -231,7 +231,7 @@
 		width: var(--size-full);
 		height: var(--size-14);
 		overflow-x: scroll;
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 	}
 
 	.thumbnail-item {
@@ -240,7 +240,7 @@
 		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-button-small);
 		background-color: var(--color-background-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
@@ -249,9 +249,9 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--color-accent-soft);
+		--ring-color: var(--color-border-accent);
 		filter: brightness(1.1);
-		border-color: var(--color-accent-soft);
+		border-color: var(--color-border-accent);
 	}
 
 	.thumbnail-item:focus {
@@ -340,13 +340,13 @@
 		z-index: var(--layer-1);
 		border-top: 1px solid var(--color-border-primary);
 		border-left: 1px solid var(--color-border-primary);
-		border-top-left-radius: var(--radius-lg);
+		border-radius: var(--radius-block-label);
 		background: var(--color-background-secondary);
 		padding: var(--size-1) var(--size-3);
 		max-width: 80%;
 		overflow: hidden;
 		font-weight: var(--weight-semibold);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;

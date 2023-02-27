@@ -9,10 +9,10 @@
 		Range,
 		ColorPicker
 	} from "@gradio/form";
-	import { Panel } from "@gradio/atoms";
+	import { Block } from "@gradio/atoms";
 </script>
 
-<Panel>
+<Block>
 	<TextBox
 		on:change={({ detail }) => console.log(detail)}
 		label="TextBox"
@@ -99,4 +99,4 @@ And more.`}
 	<Range label="Dropdown" value={27} disabled />
 
 	<ColorPicker label="Color" />
-</Panel>
+		</Block>

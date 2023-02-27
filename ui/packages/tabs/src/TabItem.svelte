@@ -34,10 +34,11 @@
 	div {
 		display: flex;
 		position: relative;
-		border: 2px solid var(--color-border-primary);
+		border: 1px solid var(--color-border-primary);
 		border-top: none;
-		border-bottom-right-radius: var(--radius-sm);
-		border-bottom-left-radius: var(--radius-sm);
+		border-bottom-right-radius: var(--radius-container);
+		border-bottom-left-radius: var(--radius-container);
 		padding: var(--size-2);
+		
 	}
 </style>

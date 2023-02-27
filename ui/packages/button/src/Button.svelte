@@ -5,8 +5,8 @@
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let variant: "primary" | "secondary" | "stop" | "plain" = "secondary";
-	export let size: "sm" | "lg" = "lg";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
+	export let size: "sm" | "lg" = style.size || "lg";
 	export let disabled: boolean = false;
 
 	$: ({ styles } = get_styles(style, ["full_width"]));
@@ -31,6 +31,7 @@
 		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
+		transition: var(--button-transition)
 	}
 
 	button:hover, button[disabled] {
@@ -50,25 +51,8 @@
 		display: none;
 	}
 
-	.plain {
-		border: 1px solid var(--button-plain-border-color-base);
-		background: var(--button-plain-background-base);
-		color: var(--button-plain-text-color-base);
-	}
-	.plain:hover,
-	.plain[disabled] {
-		border: 1px solid var(--button-plain-border-color-hover);
-		background: var(--button-plain-background-hover);
-		color: var(--button-plain-text-color-hover);
-	}
-	.plain:focus {
-		border: 1px solid var(--button-plain-border-color-focus);
-		background: var(--button-plain-background-focus);
-		color: var(--button-plain-text-color-focus);
-	}
-
 	.primary {
-		border: 1px solid var(--button-primary-border-color-base);
+		border: var(--button-border-width) solid var(--button-primary-border-color-base);
 		background: var(--button-primary-background-base);
 		color: var(--button-primary-text-color-base);
 	}
@@ -78,14 +62,9 @@
 		background: var(--button-primary-background-hover);
 		color: var(--button-primary-text-color-hover);
 	}
-	.primary:focus {
-		border-color: var(--button-primary-border-color-focus);
-		background: var(--button-primary-background-focus);
-		color: var(--button-primary-text-color-focus);
-	}
 
 	.secondary {
-		border: 1px solid var(--button-secondary-border-color-base);
+		border: var(--button-border-width) solid var(--button-secondary-border-color-base);
 		background: var(--button-secondary-background-base);
 		color: var(--button-secondary-text-color-base);
 	}
@@ -96,14 +75,9 @@
 		background: var(--button-secondary-background-hover);
 		color: var(--button-secondary-text-color-hover);
 	}
-	.secondary:focus {
-		border-color: var(--button-secondary-border-color-focus);
-		background: var(--button-secondary-background-focus);
-		color: var(--button-secondary-text-color-focus);
-	}
 
 	.stop {
-		border: 1px solid var(--button-cancel-border-color-base);
+		border: var(--button-border-width) solid var(--button-cancel-border-color-base);
 		background: var(--button-cancel-background-base);
 		color: var(--button-cancel-text-color-base);
 	}
@@ -114,24 +88,19 @@
 		background: var(--button-cancel-background-hover);
 		color: var(--button-cancel-text-color-hover);
 	}
-	.stop:focus {
-		border-color: var(--button-cancel-border-color-focus);
-		background: var(--button-cancel-background-focus);
-		color: var(--button-cancel-text-color-focus);
-	}
 
 	.sm {
-		border-radius: var(--radius-sm);
-		padding: var(--size-1) var(--size-3);
+		border-radius: var(--radius-button-small);
+		padding: var(--spacing-sm) var(--spacing-lg);
 		font-weight: var(--weight-regular);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 	}
 
 	.lg {
-		border-radius: var(--radius-lg);
-		padding: var(--size-2) var(--size-4);
+		border-radius: var(--radius-button-large);
+		padding: var(--spacing-lg) var(--spacing-xxl);
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-0);
+		font-size: var(--text-sm);
 		line-height: var(--line-md);
 	}
 </style>

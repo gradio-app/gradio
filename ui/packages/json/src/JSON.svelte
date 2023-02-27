@@ -48,7 +48,7 @@
 				out:fade={{ duration: 350 }}
 				class="copy-success "
 			>
-				COPIED
+				copied!
 			</span>
 		{/if}
 	</button>
@@ -72,13 +72,12 @@
 		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-right: none;
-		border-top-right-radius: inherit;
-		border-bottom-left-radius: var(--radius-lg);
+		border-radius: var(--radius-block-label-right);
 		background: var(--block-label-background);
 		overflow: hidden;
 		color: var(--color-text-label);
 		font: var(--font-sans);
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 	}
 
 	.copy-text {

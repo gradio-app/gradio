@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import Loader from "../components/StatusTracker/Loader.svelte";
+	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
 	export let dependency_index: number;
@@ -19,55 +20,58 @@
 	</div>
 	Response Object
 </h4>
-<div class="response-wrap">
-	<div class:hide={is_running}>
-		&#123;
-		<br />
-		&nbsp;&nbsp;"data": [
-		<br />
-		{#each dependency.outputs as component_id, component_index}
-			&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
-				<input
-					disabled
-					type="text"
-					bind:value={dependency_outputs[dependency_index][component_index]}
-				/>
-				:
-			{/if}
-			<span class="type">
-				{instance_map[component_id].documentation?.type},
-			</span>
-			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description} of
-				{((label) => {
-					return label ? "'" + label + "'" : "the";
-				})(instance_map[component_id].props.label)}
-
-				<span class="name capitalize">
-					{instance_map[component_id].props.name}
-				</span>
-				component
-			</span>
+<Block>
+	<div class="response-wrap">
+		<div class:hide={is_running}>
+			&#123;
 			<br />
-		{/each}
-		&nbsp;&nbsp;],
-		<br />
-		&nbsp;&nbsp;"duration": (float)
-		<span class="desc">// number of seconds to run function call</span>
-		<br />
-		&#125;
-	</div>
-	{#if is_running}
-		<div class="load-wrap">
-			<Loader margin={false} />
+			&nbsp;&nbsp;"data": [
+			<br />
+			{#each dependency.outputs as component_id, component_index}
+				&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
+					<input
+						disabled
+						type="text"
+						bind:value={dependency_outputs[dependency_index][component_index]}
+					/>
+					:
+				{/if}
+				<span class="type">
+					{instance_map[component_id].documentation?.type},
+				</span>
+				<span class="desc">
+					// represents {instance_map[component_id].documentation?.description} of
+					{((label) => {
+						return label ? "'" + label + "'" : "the";
+					})(instance_map[component_id].props.label)}
+
+					<span class="name capitalize">
+						{instance_map[component_id].props.name}
+					</span>
+					component
+				</span>
+				<br />
+			{/each}
+			&nbsp;&nbsp;],
+			<br />
+			&nbsp;&nbsp;"duration": (float)
+			<span class="desc">// number of seconds to run function call</span>
+			<br />
+			&#125;
 		</div>
-	{/if}
-</div>
+		{#if is_running}
+			<div class="load-wrap">
+				<Loader margin={false} />
+			</div>
+		{/if}
+	</div>
+</Block>
 
 <style>
 	.load-wrap {
-		align-self: center;
-		justify-self: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	h4 {
 		display: flex;
@@ -97,37 +101,26 @@
 	}
 
 	.response-wrap {
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-tertiary);
-		padding: var(--size-4);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		font-family: var(--font-mono);
 	}
 
-	input {
+	input[type="text"] {
 		--ring-color: transparent;
-		margin-top: var(--size-0-5);
-		margin-bottom: var(--size-0-5);
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
-		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-sm);
-		background: var(--input-background-base) !important;
-		padding: var(--size-0-5) var(--size-1) !important;
-		width: var(--size-40);
-		font-size: var(--scale-000);
-	}
-
-	input:focus-visible {
-		--ring-color: var(--color-focus-primary);
-		outline: none;
+		margin: var(--size-1) 0;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color-base);
+		border-radius: var(--radius-lg);
+		background: var(--input-background-base);
+		padding: var(--size-1-5);
+		color: var(--color-text-body);
+		font-size: var(--text-xs);
+		line-height: var(--line-sm);
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-primary);
+		--ring-color: var(--color-focus-ring);
 		border-color: var(--input-border-color-focus);
 	}
 

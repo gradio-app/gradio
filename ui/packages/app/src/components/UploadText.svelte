@@ -34,7 +34,7 @@
 
 	@media (--screen-md) {
 		.wrap {
-			font-size: var(--scale-0);
+			font-size: var(--text-sm);
 		}
 	}
 </style>

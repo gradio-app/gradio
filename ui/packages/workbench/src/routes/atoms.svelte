@@ -1,6 +1,5 @@
 <script lang="ts">
 	import {
-		Panel,
 		Block,
 		BlockTitle,
 		BlockLabel,
@@ -10,14 +9,14 @@
 	import { Brush } from "@gradio/icons";
 </script>
 
-<Panel>
+<Block>
 	<div>
 		<IconButton Icon={Brush} />
 		<IconButton Icon={Brush} />
 		<IconButton Icon={Brush} />
 		<IconButton Icon={Brush} />
 	</div>
-</Panel>
+</Block>
 
 <span />
 

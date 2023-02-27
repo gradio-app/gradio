@@ -174,8 +174,9 @@
 <style>
 	.wrap {
 		position: relative;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border: var(--input-border-width) solid var(--color-border-primary);
+		border-radius: var(--radius-input);
+		background: var(--input-background-base);
 	}
 
 	.wrap-inner {
@@ -183,20 +184,21 @@
 		position: relative;
 		flex-wrap: wrap;
 		align-items: center;
+		padding: var(--spacing-md);
+		gap: var(--spacing-md);
 	}
 
 	.token {
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		margin: var(--size-1);
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-md);
+		box-shadow: var(--checkbox-label-shadow);
+		border: var(--checkbox-label-border-width) solid var(--checkbox-label-border-color-base);
+		border-radius: var(--radius-button-small);
 		background: var(--checkbox-label-background-base);
-		padding: var(--size-1-5) var(--size-3);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		padding: var(--spacing-md) var(--spacing-xl);
+		color: var(--checkbox-color-text);
+		font-size: var(--text-xs);
 		line-height: var(--line-md);
 	}
 
@@ -210,7 +212,7 @@
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		border: 1px solid var(--color-border-primary);
+		border: var(--checkbox-border-width) solid var(--color-border-primary);
 		border-radius: var(--radius-full);
 		background: var(--color-background-tertiary);
 		padding: var(--size-0-5);
@@ -227,13 +229,12 @@
 	}
 
 	input {
-		margin-left: var(--size-2);
 		outline: none;
 		border: none;
 		background: inherit;
 		width: var(--size-full);
 		color: var(--color-text-body);
-		font-size: var(--scale-1);
+		font-size: var(--text-md);
 	}
 
 	input:disabled {
@@ -241,7 +242,6 @@
 	}
 
 	.remove-all {
-		margin-left: var(--size-1);
 		width: 20px;
 		height: 20px;
 	}
@@ -257,7 +257,7 @@
 		z-index: var(--layer-5);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-container);
 		background: var(--color-background-primary);
 		width: var(--size-full);
 		max-height: var(--size-32);

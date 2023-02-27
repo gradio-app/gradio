@@ -18,7 +18,7 @@
 		z-index: var(--layer-4);
 		margin-bottom: var(--size-2);
 		color: var(--color-text-label);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

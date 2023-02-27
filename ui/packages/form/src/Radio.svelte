@@ -24,7 +24,11 @@
 
 <div class="wrap">
 	{#each choices as choice, i (i)}
-		<label class:disabled style={item_container}>
+		<label
+			class:disabled
+			class:selected={value === choice}
+			style={item_container}
+		>
 			<input
 				{disabled}
 				bind:group={value}
@@ -47,23 +51,29 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-lg);
+		box-shadow: var(--checkbox-label-shadow);
+		border: var(--checkbox-label-border-width) solid
+			var(--checkbox-label-border-color-base);
+		border-radius: var(--radius-button-small);
 		background: var(--checkbox-label-background-base);
-		padding: var(--size-1-5) var(--size-3);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		padding: var(--spacing-md) var(--spacing-xl);
+		color: var(--checkbox-color-text);
+		font-size: var(--text-xs);
 		line-height: var(--line-md);
 	}
 
 	label:hover {
 		background: var(--checkbox-label-background-hover);
 	}
-
+	
 	label:focus {
 		background: var(--checkbox-label-background-focus);
 	}
+
+	label.selected {
+		background: var(--checkbox-label-background-selected);
+	}
+
 	label > * + * {
 		margin-left: var(--size-2);
 	}
@@ -71,12 +81,11 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
-			var(--shadow-inset);
-		border: 1px solid var(--checkbox-border-color-base);
+		box-shadow: var(--input-shadow);
+		border: var(--checkbox-border-width) solid var(--checkbox-border-color-base);
 		border-radius: var(--radius-full);
 		background-color: var(--checkbox-background-base);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

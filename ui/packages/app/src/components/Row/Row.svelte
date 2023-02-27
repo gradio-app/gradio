@@ -36,7 +36,7 @@
 	}
 	.compact,
 	.panel {
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-container);
 		background: var(--color-background-secondary);
 		padding: var(--size-2);
 	}

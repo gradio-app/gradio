@@ -54,7 +54,7 @@
 		align-items: flex-start;
 		margin-bottom: var(--size-2);
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-none);
 		font-family: var(--font-mono);
 	}

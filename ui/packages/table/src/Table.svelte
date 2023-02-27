@@ -652,14 +652,14 @@
 		z-index: var(--layer-4);
 		margin-bottom: var(--size-2);
 		color: var(--color-text-label);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 	}
 
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-table);
 		overflow-x: scroll;
 		overflow-y: hidden;
 	}
@@ -678,7 +678,7 @@
 		table-layout: auto;
 		overflow: hidden;
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--text-xs);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 	}
@@ -717,11 +717,11 @@
 	}
 
 	th:first-child {
-		border-top-left-radius: var(--radius-lg);
+		border-top-left-radius: var(--radius-table);
 	}
 
 	th:last-child {
-		border-top-right-radius: var(--radius-lg);
+		border-top-right-radius: var(--radius-table);
 	}
 
 	th:focus-within,
@@ -730,11 +730,11 @@
 	}
 
 	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--radius-lg);
+		border-bottom-left-radius: var(--radius-table);
 	}
 
 	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--radius-lg);
+		border-bottom-right-radius: var(--radius-table);
 	}
 
 	tr th {
@@ -755,7 +755,7 @@
 		cursor: pointer;
 		padding: var(--size-2);
 		color: var(--color-text-subdued);
-		line-height: var(--scale-0);
+		line-height: var(--text-sm);
 	}
 
 	.sort-button:hover {

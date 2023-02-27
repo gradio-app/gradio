@@ -2,8 +2,8 @@
 	import { Component as Form } from "./components/Form";
 	import { Component as Textbox } from "./components/Textbox";
 	import { Button } from "@gradio/button";
+	import { Component as Column } from "./components/Column";
 	export let root: string;
-	export let id: number;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
 	export let is_space: boolean;
@@ -32,7 +32,7 @@
 </script>
 
 <div class="wrap" class:min-h-screen={app_mode}>
-	<div class="panel">
+	<Column variant="panel" min_width={480}>
 		<h2>Login</h2>
 		{#if auth_message}
 			<p class="auth">{auth_message}</p>
@@ -76,7 +76,7 @@
 		>
 			Login
 		</Button>
-	</div>
+	</Column>
 </div>
 
 <style>
@@ -87,6 +87,7 @@
 		align-items: center;
 		background: var(--color-background-primary);
 		width: var(--size-full);
+		margin-top: var(--size-3);
 	}
 
 	.panel {

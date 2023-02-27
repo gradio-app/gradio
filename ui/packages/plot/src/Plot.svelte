@@ -235,7 +235,7 @@
 	}
 
 	.caption {
-		font-size: var(--scale-000);
+		font-size: var(--text-xxs);
 	}
 
 	.matplotlib img {
