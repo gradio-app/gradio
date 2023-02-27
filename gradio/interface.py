@@ -770,6 +770,7 @@ class Interface(Blocks):
                         lambda: Button.update(value="Saving...", interactive=False),
                         None,
                         flag_btn,
+                        queue=False,
                     )
                     flag_btn.click(
                         flag_method,
