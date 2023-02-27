@@ -1,5 +1,9 @@
 # Upcoming Release
 
+## Bug fixes
+
+- Fix bug that cause UI to be vertically centered at all times by [@pngwn](https://github.com/pngwn) in [PR 3336](https://github.com/gradio-app/gradio/pull/3336)
+
 ## New Features:
 
 ### Dropdown Component Updates
