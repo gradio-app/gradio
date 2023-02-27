@@ -8,6 +8,7 @@ from __future__ import annotations
 import inspect
 import json
 import os
+import sys
 import pkgutil
 import re
 import warnings
@@ -176,7 +177,7 @@ class Interface(Blocks):
             title=title or "Gradio",
             theme=theme,
             **kwargs,
-        )
+        )            
 
         if isinstance(fn, list):
             raise DeprecationWarning(
@@ -324,6 +325,8 @@ class Interface(Blocks):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
+        if self.analytics_enabled == False:
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
         if allow_flagging is True:
@@ -366,6 +369,7 @@ class Interface(Blocks):
         self.favicon_path = None
 
         if self.analytics_enabled:
+            gradio_version = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
             data = {
                 "mode": self.mode,
                 "fn": fn,
@@ -376,11 +380,18 @@ class Interface(Blocks):
                 "allow_flagging": allow_flagging,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "version": gradio_version,
             }
             utils.initiated_analytics(data)
+
+            #huggingface_hub send_telemetry
+            from huggingface_hub.utils import send_telemetry
+            send_telemetry(
+                topic="gradio/interface",
+                library_name="gradio",
+                library_version=gradio_version,
+                user_agent=f"gradio/{gradio_version}; python/{sys.version_info}; inputs/{inputs}; outputs/{outputs}; live/{live}; interpretation/{interpretation}; allow_flagging/{allow_flagging}; custom_css/{self.css}; theme/{self.theme}",
+            )
 
         utils.version_check()
         Interface.instances.add(self)

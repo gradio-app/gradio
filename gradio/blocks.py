@@ -487,7 +487,8 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-
+        if self.analytics_enabled == False:
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
@@ -521,15 +522,23 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
+            gradio_version = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "version": gradio_version,
             }
             utils.initiated_analytics(data)
+
+            #huggingface_hub send_telemetry
+            from huggingface_hub.utils import send_telemetry
+            send_telemetry(
+                topic="gradio/blocks/initiated",
+                library_name="gradio",
+                library_version=gradio_version,
+                user_agent=data,
+            )
 
     @classmethod
     def from_config(
@@ -1570,6 +1579,7 @@ class Blocks(BlockContext):
                 pass
 
         if getattr(self, "analytics_enabled", False):
+            gradio_version = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
                 "is_google_colab": self.is_colab,
@@ -1583,6 +1593,14 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            # huggingface_hub send_telemetry
+            from huggingface_hub.utils import send_telemetry
+            send_telemetry(
+                topic="gradio/blocks/launch",
+                library_name="gradio",
+                library_version=gradio_version,
+                user_agent=data,
+            )
 
         utils.show_tip(self)
 
