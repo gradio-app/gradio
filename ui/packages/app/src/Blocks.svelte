@@ -333,7 +333,7 @@
 
 							if (cancels) {
 								cancels.forEach((fn_index) => {
-									prediction_map[fn_index].cancel(fn_index);
+									prediction_map?.[fn_index]?.cancel(fn_index);
 								});
 							}
 
