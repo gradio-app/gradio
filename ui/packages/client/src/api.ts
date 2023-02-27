@@ -1,5 +1,9 @@
 import { process_endpoint, RE_SPACE_NAME } from "./utils";
 import type {
+	EventType,
+	EventListener,
+	ListenerMap,
+	Event,
 	Config,
 	Payload,
 	PostResponse,
@@ -9,6 +13,22 @@ import type {
 	SpaceStatusCallback,
 	status_callback_function
 } from "./types";
+
+type event = <K extends EventType>(
+	eventType: K,
+	listener: EventListener<K>
+) => ReturnType<predict>;
+type predict = (
+	endpoint:
+		| string
+		| {
+				fn_index: number;
+		  },
+	payload: Payload
+) => {
+	on: event;
+	off: event;
+};
 
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 const BROKEN_CONNECTION_MSG = "Connection errored out.";
@@ -53,141 +73,207 @@ export async function upload_files(
 export async function client(
 	app_reference: string,
 	space_status_callback?: SpaceStatusCallback
-) {
-	const { protocol, host, space_id } = process_endpoint(app_reference);
-	const session_hash = Math.random().toString(36).substring(2);
-	const ws_map = new Map<number, WebSocket>();
-	const last_status: Record<string, Status["status"]> = {};
-	let config: Config;
+): Promise<{ predict: predict; config: Config }> {
+	return new Promise(async (res, rej) => {
+		const { ws_protocol, http_protocol, host, space_id } =
+			await process_endpoint(app_reference);
+		const session_hash = Math.random().toString(36).substring(2);
+		const ws_map = new Map<number, WebSocket>();
+		const last_status: Record<string, Status["status"]> = {};
+		let config: Config;
 
-	function config_success(_config: Config) {
-		config = _config;
-		return {
-			config,
-			predict
-		};
-	}
+		function config_success(_config: Config) {
+			config = _config;
+			return {
+				config,
+				predict
+			};
+		}
 
-	async function handle_space_sucess(status: SpaceStatus) {
-		if (status.status === "running")
-			try {
-				config = await resolve_config(host);
-				return config_success(config);
-			} catch (e) {
-				throw new Error("Could not get config for this app.");
+		async function handle_space_sucess(status: SpaceStatus) {
+			console.log(status);
+			if (space_status_callback) space_status_callback(status);
+			if (status.status === "running")
+				try {
+					config = await resolve_config(`${http_protocol}//${host}`);
+					res(config_success(config));
+				} catch (e) {
+					throw new Error("Could not get config for this app.");
+				}
+		}
+
+		try {
+			config = await resolve_config(`${http_protocol}//${host}`);
+			res(config_success(config));
+		} catch (e) {
+			if (space_id) {
+				check_space_status(
+					space_id,
+					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
+					handle_space_sucess
+				);
+			}
+		}
+		function make_predict(
+			endpoint: string | { fn_index: number },
+			payload: Payload
+		) {
+			const x = {
+				on,
+				off
+			};
+			const listener_map: ListenerMap<EventType> = {};
+
+			if (typeof endpoint === "string") {
+				throw new Error("Cannot take a string as an endpoint yet"); // for the future
 			}
 
-		if (space_status_callback) space_status_callback(status);
-	}
+			function on<K extends EventType>(
+				eventType: K,
+				listener: EventListener<K>
+			) {
+				const narrowed_listener_map: ListenerMap<K> = listener_map;
+				let listeners = narrowed_listener_map[eventType] || [];
+				narrowed_listener_map[eventType] = listeners;
+				listeners.push(listener);
 
-	try {
-		config = await resolve_config(host);
-		return config_success(config);
-	} catch (e) {
-		if (space_id) {
-			check_space_status(
-				space_id,
-				RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
-				handle_space_sucess
-			);
-		}
-	}
+				return x;
+			}
 
-	/**
-	 * Run a prediction.
-	 * @param endpoint - The prediction endpoint to use.
-	 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
-	 * @return Returns the data for the prediction or an error message.
-	 */
-	async function predict(
-		endpoint: string | { fn_index: number },
-		payload: Payload,
-		status_callback: status_callback_function,
-		cancels: number[]
-	): Promise<any> {
-		if (typeof endpoint === "string") {
-			throw new Error("Cannot take a string as an endpoint yet"); // for the future
-		}
+			function off<K extends EventType>(
+				eventType: K,
+				listener: EventListener<K>
+			) {
+				const narrowed_listener_map: ListenerMap<K> = listener_map;
+				let listeners = narrowed_listener_map[eventType] || [];
+				listeners = listeners.filter((l) => l !== listener);
+				narrowed_listener_map[eventType] = listeners;
 
-		const { fn_index } = endpoint;
+				return x;
+			}
 
-		if (skip_queue(fn_index, config)) {
-			status_callback({
-				status: "pending"
-			});
+			function fire_event<K extends EventType>(event: Event<K>) {
+				const narrowed_listener_map: ListenerMap<K> = listener_map;
+				let listeners = narrowed_listener_map[event.type] || [];
+				listeners.forEach((l) => l(event));
+			}
 
-			var [output, status_code] = await post_data(`${host}/run/`, {
-				...payload,
-				session_hash
-			});
-			if (status_code == 200) {
-				status_callback({
-					status: "complete",
-					eta: output.average_duration
-				});
+			const { fn_index } = endpoint;
 
-				if (cancels.length > 0) {
-					cancels.forEach((fn_index) => {
-						status_callback({ status: "complete" });
-						ws_map.get(fn_index)?.close();
+			if (skip_queue(fn_index, config)) {
+				fire_event({ type: "status", status: "pending" });
+
+				post_data(`${http_protocol}//${host}/api/predict`, {
+					...payload,
+					session_hash
+				})
+					.then(([output, status_code]) => {
+						if (status_code == 200) {
+							fire_event({
+								type: "status",
+								status: "complete",
+								eta: output.average_duration
+							});
+
+							// TODO: this lives in the app not the api
+							//
+							// if (cancels.length > 0) {
+							// 	cancels.forEach((fn_index) => {
+							// 		// call 'status' listener
+							// 		status_callback({ status: "complete" });
+							// 		ws_map.get(fn_index)?.close();
+							// 	});
+							// }
+						} else {
+							fire_event({
+								type: "status",
+								status: "error",
+								message: output.error
+							});
+						}
+						fire_event({ type: "data", data: output });
+					})
+					.catch((e) => {
+						fire_event({
+							type: "status",
+							status: "error",
+							message: e.message
+						});
+						throw new Error(e.message);
 					});
-				}
 			} else {
-				status_callback({ status: "error", message: output.error });
+				const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
 
-				throw new Error(output.error || "API Error");
+				const websocket = new WebSocket(ws_endpoint);
+				ws_map.set(fn_index, websocket);
+
+				websocket.onclose = (evt) => {
+					if (!evt.wasClean) {
+						fire_event({
+							type: "status",
+							status: "error",
+							message: BROKEN_CONNECTION_MSG
+						});
+					}
+				};
+
+				websocket.onmessage = function (event) {
+					const _data = JSON.parse(event.data);
+					const { type, status, data } = handle_message(
+						_data,
+						last_status[fn_index]
+					);
+
+					if (type === "update" && status) {
+						// call 'status' listeners
+						fire_event({ type: "status", ...status });
+						if (status.status === "error") {
+							websocket.close();
+						}
+					} else if (type === "send") {
+						ws_map
+							.get(fn_index)
+							?.send(JSON.stringify({ ...payload, fn_index, session_hash }));
+						return;
+					} else if (type === "complete") {
+						fire_event({ type: "status", ...status, status: status?.status! });
+
+						websocket.close();
+					}
+					if (data) {
+						// call data listener
+						// return data;
+						fire_event({ type: "data", data: data.data });
+					}
+				};
+
+				return x;
 			}
-			return output;
+
+			return x;
 		}
 
-		const ws_endpoint = `${protocol}://${host}/queue/join`;
-
-		const websocket = new WebSocket(ws_endpoint);
-		ws_map.set(fn_index, websocket);
-
-		websocket.onclose = (evt) => {
-			if (!evt.wasClean) {
-				status_callback({
-					message: BROKEN_CONNECTION_MSG,
-					status: "error"
-				});
-				throw new Error(BROKEN_CONNECTION_MSG);
-			}
-		};
-
-		websocket.onmessage = async function (event) {
-			const _data = JSON.parse(event.data);
-			const { type, status, data } = handle_message(
-				_data,
-				last_status[fn_index]
-			);
-
-			if (type === "update" && status) {
-				status_callback(status);
-				if (status.status === "error") {
-					websocket.close();
-				}
-				throw new Error("Something went wrong.");
-			} else if (type === "send") {
-				ws_map
-					.get(fn_index)
-					?.send(JSON.stringify({ ...payload, fn_index, session_hash }));
-				return;
-			} else if (type === "complete") {
-				websocket.close();
-			}
-
-			if (data.success) {
-				return data;
-			}
-		};
-	}
+		/**
+		 * Run a prediction.
+		 * @param endpoint - The prediction endpoint to use.
+		 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
+		 * @return Returns the data for the prediction or an error message.
+		 */
+		function predict(
+			endpoint: string | { fn_index: number },
+			payload: Payload
+		) {
+			return make_predict(endpoint, payload);
+		}
+	});
 }
 
 function skip_queue(id: number, config: Config) {
-	!!(config?.dependencies?.[id].queue === null
-		? config.enable_queue
-		: config?.dependencies?.[id].queue) || false;
+	return (
+		!(config?.dependencies?.[id].queue === null
+			? config.enable_queue
+			: config?.dependencies?.[id].queue) || false
+	);
 }
 
 async function resolve_config(endpoint?: string): Promise<Config> {
@@ -359,7 +445,7 @@ function handle_message(
 			return {
 				type: "complete",
 				status: {
-					message: !data.success ? data.output.error : null,
+					message: !data.success ? data.output.error : undefined,
 					status: data.success ? "complete" : "error",
 					progress: data.progress_data,
 					eta: data.output.average_duration
@@ -377,5 +463,5 @@ function handle_message(
 			};
 	}
 
-	return { type: "none" };
+	return { type: "none", status: { status: "error" } };
 }

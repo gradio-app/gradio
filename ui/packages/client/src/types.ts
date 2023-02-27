@@ -21,8 +21,6 @@ export interface Config {
 
 export interface Payload {
 	data: Array<unknown>;
-	fn_index: number;
-	session_hash?: string;
 }
 
 export interface PostResponse {
@@ -75,3 +73,18 @@ export interface SpaceStatus {
 
 export type status_callback_function = (a: Status) => void;
 export type SpaceStatusCallback = (a: SpaceStatus) => void;
+
+export type EventType = "data" | "status";
+
+export interface EventMap {
+	data: Record<string, any>;
+	status: Status;
+}
+
+export type Event<K extends EventType> = {
+	[P in K]: EventMap[P] & { type: P };
+}[K];
+export type EventListener<K extends EventType> = (event: Event<K>) => void;
+export type ListenerMap<K extends EventType> = {
+	[P in K]?: EventListener<K>[];
+};

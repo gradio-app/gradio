@@ -18,11 +18,9 @@
 		dependencies: Dependency[];
 		dev_mode: boolean;
 		enable_queue: boolean;
-		fn: ReturnType<typeof fn>;
 		layout: LayoutNode;
 		mode: "blocks" | "interface";
 		root: string;
-		target: HTMLElement;
 		theme: string;
 		title: string;
 		version: string;
@@ -61,6 +59,7 @@
 
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { client } from "@gradio/client";
 
 	import Embed from "./Embed.svelte";
 	import { Component as Loader } from "./components/StatusTracker";
@@ -90,59 +89,59 @@
 	let config: Config;
 	let loading_text: string = "Loading...";
 
-	async function handle_config(target: HTMLElement, source: string | null) {
-		let config;
+	// async function handle_config(target: HTMLElement, source: string | null) {
+	// 	let config;
 
-		try {
-			let _config = await get_config(source);
-			config = _config;
-		} catch (e) {
-			if (BUILD_MODE === "dev") {
-				console.error(e);
-			}
+	// 	try {
+	// 		let _config = await get_config(source);
+	// 		config = _config;
+	// 	} catch (e) {
+	// 		if (BUILD_MODE === "dev") {
+	// 			console.error(e);
+	// 		}
 
-			return null;
-		}
+	// 		return null;
+	// 	}
 
-		mount_custom_css(target, config.css);
-		window.__is_colab__ = config.is_colab;
+	// 	mount_custom_css(target, config.css);
+	// 	window.__is_colab__ = config.is_colab;
 
-		if (root === undefined) {
-			root = BACKEND_URL;
-			config.root = BACKEND_URL;
-		}
+	// 	if (root === undefined) {
+	// 		root = BACKEND_URL;
+	// 		config.root = BACKEND_URL;
+	// 	}
 
-		if (config.dev_mode) {
-			reload_check(root);
-		}
+	// 	if (config.dev_mode) {
+	// 		reload_check(root);
+	// 	}
 
-		return config;
-	}
+	// 	return config;
+	// }
 
-	async function get_config(source: string | null) {
-		if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
-			let config = await fetch(BACKEND_URL + "config");
-			const result = await config.json();
-			return result;
-		} else if (source) {
-			if (!source.endsWith("/")) {
-				source += "/";
-			}
-			const config = await get_source_config(source);
-			return config;
-		} else {
-			return window.gradio_config;
-		}
-	}
+	// async function get_config(source: string | null) {
+	// 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
+	// 		let config = await fetch(BACKEND_URL + "config");
+	// 		const result = await config.json();
+	// 		return result;
+	// 	} else if (source) {
+	// 		if (!source.endsWith("/")) {
+	// 			source += "/";
+	// 		}
+	// 		const config = await get_source_config(source);
+	// 		return config;
+	// 	} else {
+	// 		return window.gradio_config;
+	// 	}
+	// }
 
-	async function get_source_config(source: string): Promise<Config> {
-		let config = await (await fetch(source + "config")).json();
-		root = source;
-		config.root = source;
-		return config;
-	}
+	// async function get_source_config(source: string): Promise<Config> {
+	// 	let config = await (await fetch(source + "config")).json();
+	// 	root = source;
+	// 	config.root = source;
+	// 	return config;
+	// }
 
-	function mount_custom_css(target: HTMLElement, css_string?: string) {
+	function mount_custom_css(target: HTMLElement, css_string: string | null) {
 		if (css_string) {
 			let style = document.createElement("style");
 			style.innerHTML = css_string;
@@ -212,105 +211,105 @@
 		return "dark";
 	}
 
-	async function check_space_status(space_id: string, source: string) {
-		let response;
-		let _status;
-		try {
-			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
-			_status = response.status;
-			if (_status !== 200) {
-				throw new Error();
-			}
-			response = await response.json();
-		} catch (e) {
-			status = "error";
-			error_detail = {
-				type: "space_error",
-				detail: {
-					description: "This space is experiencing an issue.",
-					discussions_enabled: await discussions_enabled(space_id)
-				}
-			};
+	// async function check_space_status(space_id: string, source: string) {
+	// 	let response;
+	// 	let _status;
+	// 	try {
+	// 		response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
+	// 		_status = response.status;
+	// 		if (_status !== 200) {
+	// 			throw new Error();
+	// 		}
+	// 		response = await response.json();
+	// 	} catch (e) {
+	// 		status = "error";
+	// 		error_detail = {
+	// 			type: "space_error",
+	// 			detail: {
+	// 				description: "This space is experiencing an issue.",
+	// 				discussions_enabled: await discussions_enabled(space_id)
+	// 			}
+	// 		};
 
-			return;
-		}
+	// 		return;
+	// 	}
 
-		if (!response || _status !== 200) return;
-		const {
-			runtime: { stage }
-		} = response;
+	// 	if (!response || _status !== 200) return;
+	// 	const {
+	// 		runtime: { stage }
+	// 	} = response;
 
-		switch (stage) {
-			case "STOPPED":
-			case "SLEEPING":
-				status = "pending";
-				loading_text = "Space is asleep. Waking it up...";
-				setTimeout(() => {
-					check_space_status(space_id, source);
-				}, 1000);
-				break;
-			// poll for status
-			case "RUNNING":
-			case "RUNNING_BUILDING":
-				status = "success";
-				load_config(source);
-				//  launch
-				break;
-			case "BUILDING":
-				status = "pending";
-				loading_text = "Space is building...";
-				setTimeout(() => {
-					check_space_status(space_id, source);
-				}, 1000);
-				break;
+	// 	switch (stage) {
+	// 		case "STOPPED":
+	// 		case "SLEEPING":
+	// 			status = "pending";
+	// 			loading_text = "Space is asleep. Waking it up...";
+	// 			setTimeout(() => {
+	// 				check_space_status(space_id, source);
+	// 			}, 1000);
+	// 			break;
+	// 		// poll for status
+	// 		case "RUNNING":
+	// 		case "RUNNING_BUILDING":
+	// 			status = "success";
+	// 			load_config(source);
+	// 			//  launch
+	// 			break;
+	// 		case "BUILDING":
+	// 			status = "pending";
+	// 			loading_text = "Space is building...";
+	// 			setTimeout(() => {
+	// 				check_space_status(space_id, source);
+	// 			}, 1000);
+	// 			break;
 
-			case "NO_APP_FILE":
-			case "CONFIG_ERROR":
-			case "BUILD_ERROR":
-			case "RUNTIME_ERROR":
-				status = "error";
-				error_detail = {
-					type: "space_error",
-					detail: {
-						description: "This space is experiencing an issue.",
-						discussions_enabled: await discussions_enabled(space_id),
-						stage
-					}
-				};
-				break;
-			default:
-				status = "error";
-				error_detail = {
-					type: "space_error",
-					detail: {
-						description: "This space is experiencing an issue.",
-						discussions_enabled: await discussions_enabled(space_id)
-					}
-				};
-		}
-	}
+	// 		case "NO_APP_FILE":
+	// 		case "CONFIG_ERROR":
+	// 		case "BUILD_ERROR":
+	// 		case "RUNTIME_ERROR":
+	// 			status = "error";
+	// 			error_detail = {
+	// 				type: "space_error",
+	// 				detail: {
+	// 					description: "This space is experiencing an issue.",
+	// 					discussions_enabled: await discussions_enabled(space_id),
+	// 					stage
+	// 				}
+	// 			};
+	// 			break;
+	// 		default:
+	// 			status = "error";
+	// 			error_detail = {
+	// 				type: "space_error",
+	// 				detail: {
+	// 					description: "This space is experiencing an issue.",
+	// 					discussions_enabled: await discussions_enabled(space_id)
+	// 				}
+	// 			};
+	// 	}
+	// }
 
-	const RE_DISABLED_DISCUSSION =
-		/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
+	// const RE_DISABLED_DISCUSSION =
+	// 	/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
 
-	async function discussions_enabled(space_id: string) {
-		try {
-			const r = await fetch(
-				`https://huggingface.co/api/spaces/${space_id}/discussions`,
-				{
-					method: "HEAD"
-				}
-			);
-			const error = r.headers.get("x-error-message");
+	// async function discussions_enabled(space_id: string) {
+	// 	try {
+	// 		const r = await fetch(
+	// 			`https://huggingface.co/api/spaces/${space_id}/discussions`,
+	// 			{
+	// 				method: "HEAD"
+	// 			}
+	// 		);
+	// 		const error = r.headers.get("x-error-message");
 
-			if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
-			else return true;
-		} catch (e) {
-			return false;
-		}
-	}
+	// 		if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
+	// 		else return true;
+	// 	} catch (e) {
+	// 		return false;
+	// 	}
+	// }
 
-	const session_hash = Math.random().toString(36).substring(2);
+	// const session_hash = Math.random().toString(36).substring(2);
 
 	let error_detail: null | {
 		type: "not_found" | "space_error";
@@ -322,46 +321,68 @@
 			theme = handle_darkmode(wrapper);
 		}
 
-		const source = host
-			? `https://${host.trim()}`
-			: space
-			? (
-					await (
-						await fetch(
-							`https://huggingface.co/api/spaces/${space.trim()}/host`
-						)
-					).json()
-			  ).host
-			: src?.trim();
+		const app = await client(
+			BUILD_MODE === "dev"
+				? "http://localhost:7860" || location.origin === "http://localhost:9876"
+				: host || space || src || location.origin,
+			(s) => console.log(s)
+		);
 
-		if (space) {
-			check_space_status(space.trim(), source);
-		}
-		load_config(source);
+		console.log(app.config);
+		config = app.config;
+
+		mount_custom_css(wrapper, config.css);
+		// 	window.__is_colab__ = config.is_colab;
+
+		// 	if (root === undefined) {
+		// 		root = BACKEND_URL;
+		// 		config.root = BACKEND_URL;
+		// 	}
+
+		// 	if (config.dev_mode) {
+		// 		reload_check(root);
+		// 	}
+
+		// const source = host
+		// 	? `https://${host.trim()}`
+		// 	: space
+		// 	? (
+		// 			await (
+		// 				await fetch(
+		// 					`https://huggingface.co/api/spaces/${space.trim()}/host`
+		// 				)
+		// 			).json()
+		// 	  ).host
+		// 	: src?.trim();
+
+		// if (space) {
+		// 	check_space_status(space.trim(), source);
+		// }
+		// load_config(source);
 	});
 
-	async function load_config(source: string) {
-		const _config: Config | null = await handle_config(wrapper, source);
+	// async function load_config(source: string) {
+	// 	const _config: Config | null = await handle_config(wrapper, source);
 
-		if (_config) {
-			status = _config.auth_required ? "login" : "pending";
-			_config.fn = _config.fn = fn(
-				session_hash,
-				root + "run/",
-				_config.is_space,
-				is_embed
-			);
-			config = _config;
-		} else if (!space) {
-			status = "error";
-			error_detail = {
-				type: "not_found",
-				detail: {
-					description: "This gradio app is experiencing an issue."
-				}
-			};
-		}
-	}
+	// 	if (_config) {
+	// 		status = _config.auth_required ? "login" : "pending";
+	// 		_config.fn = _config.fn = fn(
+	// 			session_hash,
+	// 			root + "run/",
+	// 			_config.is_space,
+	// 			is_embed
+	// 		);
+	// 		config = _config;
+	// 	} else if (!space) {
+	// 		status = "error";
+	// 		error_detail = {
+	// 			type: "not_found",
+	// 			detail: {
+	// 				description: "This gradio app is experiencing an issue."
+	// 			}
+	// 		};
+	// 	}
+	// }
 
 	$: status = ready ? "success" : status;
 
