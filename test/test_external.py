@@ -329,7 +329,7 @@ class TestLoadInterface:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=/tmp/tmp0xy5tzo4/Bunny1ry45xc2zs2oqpw6.obj"
+            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
         assert r.status_code == 200
 
