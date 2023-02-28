@@ -648,7 +648,7 @@ class Blurrable(EventListener):
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
         self.set_event_trigger(
-            "blur",
+            "release",
             fn,
             inputs,
             outputs,

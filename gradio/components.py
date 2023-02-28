@@ -616,7 +616,7 @@ class Number(
 
 @document("change", "style")
 class Slider(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent, Changeable, Blurrable, IOComponent, SimpleSerializable, NeighborInterpretable
 ):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
