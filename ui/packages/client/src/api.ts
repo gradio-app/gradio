@@ -181,7 +181,6 @@ export async function client(
 				listeners.forEach((l) => l(event));
 			}
 
-			// const { fn_index } = endpoint;
 			if (skip_queue(fn_index, config)) {
 				fire_event({ type: "status", status: "pending", queue: false });
 

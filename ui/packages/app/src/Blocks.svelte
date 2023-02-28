@@ -328,6 +328,7 @@
 
 						instance?.$on(trigger, () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
+								console.log("ALREADY RUNNING, ABORTING REQUEST");
 								return;
 							}
 

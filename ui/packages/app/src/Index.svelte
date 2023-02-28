@@ -202,14 +202,16 @@
 		return "dark";
 	}
 
-	let error_detail: null | {
-		type: "not_found" | "space_error";
-		detail?: Record<string, any>;
-	} = null;
+	let status: SpaceStatus = {
+		message: "",
+		load_status: "pending",
+		status: "sleeping",
+		detail: "SLEEPING"
+	};
 
-	let status: SpaceStatus;
 	let app: Awaited<ReturnType<typeof client>>;
 	function handle_status(_status: SpaceStatus) {
+		console.log(_status);
 		status = _status;
 	}
 	onMount(async () => {
@@ -223,8 +225,15 @@
 				: host || space || src || location.origin;
 
 		app = await client(api_url, handle_status);
-
+		console.log("HI");
 		config = app.config;
+
+		status = {
+			message: "",
+			load_status: "complete",
+			status: "running",
+			detail: "RUNNING"
+		};
 
 		mount_custom_css(wrapper, config.css);
 		window.__is_colab__ = config.is_colab;
@@ -303,14 +312,14 @@
 			{loading_text}
 		>
 			<div class="error" slot="error">
-				<p><strong>{status.message || ""}</strong></p>
+				<p><strong>{status?.message || ""}</strong></p>
 				{#if status.status === "space_error" && status.discussions_enabled}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-								status.detail
+								status?.detail
 							)}&description={discussion_message.description(
-								status.detail,
+								status?.detail,
 								location.origin
 							)}"
 						>
