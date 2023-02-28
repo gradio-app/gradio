@@ -65,7 +65,7 @@ class TestHuggingFaceDatasetSaver:
             )
             os.mkdir(os.path.join(tmpdirname, "test"))
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(["test", "test"], "")
             assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
             assert row_count == 2  # 3 rows written including header
@@ -124,7 +124,7 @@ class TestDisableFlagging:
         io.close()
 
 
-class TestInterfaceConstructsFlagMethod:
+class TestInterfaceSetsUpFlagging:
     @pytest.mark.parametrize(
         "allow_flagging, called",
         [
@@ -138,3 +138,15 @@ class TestInterfaceConstructsFlagMethod:
         flagging.FlagMethod.__init__.return_value = None
         gr.Interface(lambda x: x, "text", "text", allow_flagging=allow_flagging)
         assert flagging.FlagMethod.__init__.called == called
+
+    @pytest.mark.parametrize(
+        "options, processed_options",
+        [
+            (None, [("Flag", "")]),
+            (["yes", "no"], [("Flag as yes", "yes"), ("Flag as no", "no")]),
+            ([("abc", "de"), ("123", "45")], [("abc", "de"), ("123", "45")]),
+        ],
+    )
+    def test_flagging_options_processed_correctly(self, options, processed_options):
+        io = gr.Interface(lambda x: x, "text", "text", flagging_options=options)
+        assert io.flagging_options == processed_options
