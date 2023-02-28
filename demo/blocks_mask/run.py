@@ -1,5 +1,6 @@
 import gradio as gr
 from gradio.components import Markdown as md
+from PIL import Image
 
 demo = gr.Blocks()
 
@@ -8,6 +9,9 @@ io1b = gr.Interface(lambda x: x, gr.Image(source="webcam"), gr.Image())
 
 io2a = gr.Interface(lambda x: x, gr.Image(source="canvas"), gr.Image())
 io2b = gr.Interface(lambda x: x, gr.Sketchpad(), gr.Image())
+io2c = gr.Interface(
+    lambda x: x, gr.Image(source="canvas", shape=(512, 512)), gr.Image()
+)
 
 io3a = gr.Interface(
     lambda x: [x["mask"], x["image"]],
@@ -53,6 +57,20 @@ io5c = gr.Interface(
 )
 
 
+def save_image(image):
+    image.save("colorede.png")
+    return image
+
+
+img = Image.new("RGB", (512, 512), (150, 150, 150))
+img.save("image.png", "PNG")
+
+io5d = gr.Interface(
+    save_image,
+    gr.Image("image.png", source="upload", tool="color-sketch", type="pil"),
+    gr.Image(),
+)
+
 with demo:
     md("# Different Ways to Use the Image Input Component")
     md(
@@ -71,6 +89,8 @@ with demo:
         "**2b. Black and White Sketchpad: `gr.Interface(lambda x: x, gr.Sketchpad(), gr.Image())`**"
     )
     io2b.render()
+    md("**2c. Black and White Sketchpad with `shape=(512,512)`**")
+    io2c.render()
     md("**3a. Binary Mask with image upload:**")
     md(
         """```python
@@ -130,7 +150,8 @@ gr.Interface(
         io3b2.render()
     with gr.Tab("Two"):
         io3b3.render()
-
+    md("**5d. Color Sketchpad with image upload and a default images**")
+    io5d.render()
 
 if __name__ == "__main__":
     demo.launch()
