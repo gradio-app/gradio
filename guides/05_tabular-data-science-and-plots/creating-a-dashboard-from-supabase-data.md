@@ -40,80 +40,75 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 
 ## Writing data to Supabase
 
-The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. Start by installing `supabase`, typically by running in your terminal:
+The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
+
+6. Start by installing `supabase`, typically by running in your terminal:
 
 ```bash
 pip install supabase
 ```
 
-```
+7. You'll also need the URL and API key for your project. You can find these in the Settings (gear icon on the left pane) > API. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
+
+8. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7): 
+
+```python
 import supabase
 
 # Initialize the Supabase client
-client = supabase.create_client('SUPABASE_URL', 'SUPABASE_ANON_KEY')
+client = supabase.create_client('SUPABASE_URL', 'SUPABASE_SECRET_KEY')
 
 # Define the data to write
-data = [
-    {'country': 'United States', 'population': 331002651},
-    {'country': 'India', 'population': 1380004385},
-    {'country': 'China', 'population': 1439323776}
-]
+import random
 
-# Write the data to the dataset
-client.table('population').insert(data).execute()
-Replace SUPABASE_URL and SUPABASE_ANON_KEY with your Supabase URL and anonymous key. This code defines a list of dictionaries containing the country name and population, and then writes the data to the population dataset.
+main_list = []
+for i in range(10):
+    value = {'product_id': i, 
+             'product_name': f"Item {i}",
+             'inventory_count': random.randint(1, 100), 
+             'price': random.random()*100
+            }
+    main_list.append(value)
 
-Reading data from a Supabase dataset
-Next, we will read the data from the Supabase dataset using the same Supabase Python library.
+# Write the data to the table
+data = client.table('Product').insert(main_list).execute()
+```
 
-python
-Copy code
+If you go back to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
+
+## Visualizing the Data in a Real-Time Gradio Dashboard
+
+Finally, we will read the data from the Supabase dataset using the same `supabase` Python library and create a realtime dashboard using `gradio`. 
+
+Note: We repeat certain steps in this section (like creating the Supabase client) in case you did not go through the previous sections. As described in Step 7, you will need the project URL and API Key for your database.
+
+9. Write a function that loads the from the `Product` table and returns it as a pandas 
+
+
+```python
 import supabase
-
-# Initialize the Supabase client
-client = supabase.create_client('SUPABASE_URL', 'SUPABASE_ANON_KEY')
-
-# Read the data from the dataset
-response = client.table('population').select().execute()
-
-# Extract the data from the response
-data = response.get('data')
-
-# Print the data
-print(data)
-This code reads the data from the population dataset, extracts it from the response, and prints it to the console.
-
-Plotting data with Gradio
-Finally, we will use the Gradio library to plot the data in a bar chart.
-
-python
-Copy code
-import gradio as gr
 import pandas as pd
 
-# Initialize the Supabase client
-client = supabase.create_client('SUPABASE_URL', 'SUPABASE_ANON_KEY')
+def read_data():
+    response = client.table('Product').select("*").execute()
+    df = pd.DataFrame(response.data)
+    return df
+```
 
-# Read the data from the dataset
-response = client.table('population').select().execute()
+10. Create a small Gradio Dashboard with a Barplot that plots the prices of all of the items every minute and updates in real-time:
 
-# Extract the data from the response
-data = response.get('data')
+```python
+import gradio as gr
 
-# Convert the data to a Pandas DataFrame
-df = pd.DataFrame(data)
+with gr.Blocks() as dashboard:
+    gr.BarPlot(read_data, x="product_id", y="price", every=60)
 
-# Define the Gradio interface
-inputs = gr.inputs.Dropdown(choices=list(df['country']))
-outputs = gr.outputs.BarPlot()
+dashboard.queue().launch()
+```
 
-# Define the function to plot the data
-def plot_population(country):
-    population = df.loc[df['country'] == country, 'population'].values[0]
-    return {'x': [country], 'y': [population]}
 
-# Launch the Gradio interface
-gr.Interface(plot_population, inputs, outputs).launch()
-This code reads the data from the population dataset, converts it to a Pandas DataFrame, and defines a Gradio interface with a dropdown to select a country and a bar chart to display the population. The plot_population function extracts the population for the selected country and returns a dictionary with the x and y values for the bar chart. Finally, the Gradio interface is launched, allowing you to select a country and see its population in a bar chart.
+## Conclusion
 
-In this tutorial, we showed you how to write data to a Supabase dataset, read that
+That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as a bar plot. 
+
+If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute. Of course, we can add other kinds of plots and visualizations to build a more complex dashboard as well.
