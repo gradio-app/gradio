@@ -477,7 +477,7 @@ class Interface(Blocks):
                 interpret_component_column,
             )
 
-            self.attach_flagging_events(flag_btns)
+            self.attach_flagging_events(flag_btns, clear_btn)
             self.render_examples()
             self.render_article()
 
@@ -738,7 +738,7 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def attach_flagging_events(self, flag_btns: List[Button] | None):
+    def attach_flagging_events(self, flag_btns: List[Button] | None, clear_btn: Button):
         if flag_btns:
             if self.interface_type in [
                 InterfaceTypes.STANDARD,
@@ -777,6 +777,12 @@ class Interface(Blocks):
                         inputs=flag_components,
                         outputs=flag_btn,
                         preprocess=False,
+                        queue=False,
+                    )
+                    clear_btn.click(
+                        flag_method.reset,
+                        None,
+                        flag_btn,
                         queue=False,
                     )
 

@@ -597,8 +597,13 @@ class FlagMethod:
         try:
             self.flagging_callback.flag(list(flag_data), flag_option=self.value)
         except Exception as e:
-            raise gr.Error("Error while flagging: {}".format(e))
+            print("Error while flagging: {}".format(e))
+            if self.visual_feedback:
+                return "Error!"
         if not self.visual_feedback:
             return
         time.sleep(0.8)  # to provide enough time for the user to observe button change
+        self.reset()
+        
+    def reset(self):
         return gr.Button.update(value=self.label, interactive=True)
