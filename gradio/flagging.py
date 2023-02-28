@@ -5,6 +5,7 @@ import datetime
 import io
 import json
 import os
+import time
 import uuid
 from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
@@ -89,7 +90,7 @@ class FlaggingCallback(ABC):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str | None = None,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -133,7 +134,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str | None = None,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -193,7 +194,7 @@ class CSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str | None = None,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -226,7 +227,7 @@ class CSVLogger(FlaggingCallback):
                     if sample is not None
                     else ""
                 )
-        csv_data.append(flag_option if flag_option is not None else "")
+        csv_data.append(flag_option)
         csv_data.append(username if username is not None else "")
         csv_data.append(str(datetime.datetime.now()))
 
@@ -235,7 +236,7 @@ class CSVLogger(FlaggingCallback):
             content = list(csv.reader(file_content_))
             header = content[0]
             flag_col_index = header.index("flag")
-            content[flag_index][flag_col_index] = flag_option  # type: ignore
+            content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
             writer = csv.writer(output)
             writer.writerows(utils.sanitize_list_for_csv(content))
@@ -366,7 +367,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str | None = None,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
@@ -398,7 +399,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                     csv_data.append(
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
-            csv_data.append(flag_option if flag_option is not None else "")
+            csv_data.append(flag_option)
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         if is_new:
@@ -498,7 +499,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: str | None = None,
+        flag_option: str = "",
         flag_index: int | None = None,
         username: str | None = None,
     ) -> str:
@@ -550,7 +551,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
 
             csv_data.append(filepath)
         headers.append("flag")
-        csv_data.append(flag_option if flag_option is not None else "")
+        csv_data.append(flag_option)
 
         # Creates metadata dict from row data and dumps it
         metadata_dict = {
@@ -575,13 +576,34 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
 
 class FlagMethod:
     """
-    Helper class that contains the flagging button option and callback
+    Helper class that contains the flagging options and calls the flagging method. Also
+    provides visual feedback to the user when flag is clicked.
     """
 
-    def __init__(self, flagging_callback: FlaggingCallback, flag_option=None):
+    def __init__(
+        self,
+        flagging_callback: FlaggingCallback,
+        label: str,
+        value: str,
+        visual_feedback: bool = True,
+    ):
         self.flagging_callback = flagging_callback
-        self.flag_option = flag_option
+        self.label = label
+        self.value = value
         self.__name__ = "Flag"
+        self.visual_feedback = visual_feedback
 
     def __call__(self, *flag_data):
-        self.flagging_callback.flag(list(flag_data), flag_option=self.flag_option)
+        try:
+            self.flagging_callback.flag(list(flag_data), flag_option=self.value)
+        except Exception as e:
+            print("Error while flagging: {}".format(e))
+            if self.visual_feedback:
+                return "Error!"
+        if not self.visual_feedback:
+            return
+        time.sleep(0.8)  # to provide enough time for the user to observe button change
+        return self.reset()
+
+    def reset(self):
+        return gr.Button.update(value=self.label, interactive=True)
