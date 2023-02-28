@@ -1490,7 +1490,7 @@ class Blocks(BlockContext):
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except RuntimeError:
+            except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
                     utils.error_analytics("Not able to set up tunnel")
                 self.share_url = None
