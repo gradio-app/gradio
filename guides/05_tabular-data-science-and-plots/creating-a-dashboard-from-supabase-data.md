@@ -4,11 +4,26 @@ Tags: TABULAR, DASHBOARD, PLOTS
 
 Supabase is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, we will show you how to read data from Supabase plot it in **real-time** on a Gradio Dashboard.
 
-**Prerequisites:** To start, you will need to have a Supabase account, which you can sign up for free 
+**Prerequisites:** To start, you will need to have a free Supabase account, which you can sign up for here: https://app.supabase.com/
 
-We'll cover the following steps in this Guide:
+We'll cover the following steps in this end-to-end Guide:
 
-Writing data to a Supabase dataset
+* Creating tables in Supabase
+* Writing data to Supabase using the Supabase Python Client
+* Visualize the data in a real-time dashboard using Gradio
+
+If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip sections and first two sections and go directly to [visualizing the data]()!
+
+## Creating tables in Supabase
+
+First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create some fake commerce data and put it in Supabase. 
+
+1. We'll start by creating a new project in Supabase. Once you're logged in, click the "New Project" button
+
+2. Give your project a name and database password. You can also choose a pricing plan (for our purposes, the Free Tier is sufficient!)
+
+3. 
+
 The first step is to write data to a Supabase dataset. We will use the Supabase Python library to do this.
 
 python
