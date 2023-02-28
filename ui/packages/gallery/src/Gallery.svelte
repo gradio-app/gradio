@@ -15,7 +15,6 @@
 	export let root_url: null | string = null;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = { grid: [2], height: "auto" };
-	let styles: string;
 
 	$: _value =
 		value === null
