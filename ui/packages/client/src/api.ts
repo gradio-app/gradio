@@ -148,7 +148,11 @@ export async function client(
 					status: "complete",
 					queue: false
 				});
-				ws_map.get(_index)?.close();
+				const _ws = ws_map.get(_index);
+				if (_ws) {
+					_ws.close();
+					ws_map.delete(_index);
+				}
 			}
 
 			function on<K extends EventType>(
@@ -222,8 +226,11 @@ export async function client(
 					});
 			} else {
 				const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
-
+				if (ws_map.get(fn_index)) {
+					return x;
+				}
 				const websocket = new WebSocket(ws_endpoint);
+
 				ws_map.set(fn_index, websocket);
 				websocket.onclose = (evt) => {
 					if (!evt.wasClean) {
@@ -236,6 +243,30 @@ export async function client(
 					}
 				};
 
+				// 	function sendMessage(msg){
+				// 		// Wait until the state of the socket is not ready and send the message when it is...
+				// 		waitForSocketConnection(ws: WebSocket, function(){
+				// 				console.log("message sent!!!");
+				// 				ws.send(msg);
+				// 		});
+				// }
+
+				// Make the function wait until the connection is made...
+				function wait_and_send(
+					socket: WebSocket,
+					_payload: Record<string, any>
+				) {
+					setTimeout(function () {
+						if (socket && socket.readyState === 1) {
+							console.log("Connection is made", socket.readyState, socket);
+							ws_map.get(fn_index)?.send(JSON.stringify(_payload));
+						} else {
+							// console.log("wait for connection...");
+							wait_and_send(socket, _payload);
+						}
+					}, 5); // wait 5 milisecond for the connection...
+				}
+
 				websocket.onmessage = function (event) {
 					const _data = JSON.parse(event.data);
 					const { type, status, data } = handle_message(
@@ -247,12 +278,15 @@ export async function client(
 						// call 'status' listeners
 						fire_event({ type: "status", ...status });
 						if (status.status === "error") {
-							websocket.close();
+							const _ws = ws_map.get(fn_index);
+							if (_ws) {
+								_ws.close();
+								ws_map.delete(fn_index);
+							}
 						}
 					} else if (type === "send") {
-						ws_map
-							.get(fn_index)
-							?.send(JSON.stringify({ ...payload, session_hash }));
+						const socket = ws_map.get(fn_index);
+						if (socket) wait_and_send(socket, { ...payload, session_hash });
 						return;
 					} else if (type === "complete") {
 						fire_event({
@@ -262,7 +296,12 @@ export async function client(
 							queue: true
 						});
 
-						websocket.close();
+						const _ws = ws_map.get(fn_index);
+						if (_ws) {
+							_ws.close();
+							ws_map.delete(fn_index);
+							console.log(fn_index, ws_map);
+						}
 					}
 					if (data) {
 						fire_event({ type: "data", data: data.data });
