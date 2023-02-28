@@ -51,7 +51,6 @@ export async function upload_files(
 	root: string,
 	files: Array<File>
 ): Promise<UploadResponse> {
-	console.log();
 	const formData = new FormData();
 	files.forEach((file) => {
 		formData.append("files", file);
@@ -150,8 +149,8 @@ export async function client(
 				});
 				const _ws = ws_map.get(_index);
 				if (_ws) {
-					_ws.close();
-					ws_map.delete(_index);
+					// _ws.close();
+					// ws_map.delete(_index);
 				}
 			}
 
@@ -225,10 +224,12 @@ export async function client(
 						throw new Error(e.message);
 					});
 			} else {
+				fire_event({ type: "status", status: "pending", queue: true });
+
 				const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
-				if (ws_map.get(fn_index)) {
-					return x;
-				}
+				// if (ws_map.get(fn_index)) {
+				// 	return x;
+				// }
 				const websocket = new WebSocket(ws_endpoint);
 
 				ws_map.set(fn_index, websocket);
@@ -243,30 +244,6 @@ export async function client(
 					}
 				};
 
-				// 	function sendMessage(msg){
-				// 		// Wait until the state of the socket is not ready and send the message when it is...
-				// 		waitForSocketConnection(ws: WebSocket, function(){
-				// 				console.log("message sent!!!");
-				// 				ws.send(msg);
-				// 		});
-				// }
-
-				// Make the function wait until the connection is made...
-				function wait_and_send(
-					socket: WebSocket,
-					_payload: Record<string, any>
-				) {
-					setTimeout(function () {
-						if (socket && socket.readyState === 1) {
-							console.log("Connection is made", socket.readyState, socket);
-							ws_map.get(fn_index)?.send(JSON.stringify(_payload));
-						} else {
-							// console.log("wait for connection...");
-							wait_and_send(socket, _payload);
-						}
-					}, 5); // wait 5 milisecond for the connection...
-				}
-
 				websocket.onmessage = function (event) {
 					const _data = JSON.parse(event.data);
 					const { type, status, data } = handle_message(
@@ -278,16 +255,13 @@ export async function client(
 						// call 'status' listeners
 						fire_event({ type: "status", ...status });
 						if (status.status === "error") {
-							const _ws = ws_map.get(fn_index);
-							if (_ws) {
-								_ws.close();
-								ws_map.delete(fn_index);
-							}
+							websocket.close();
 						}
-					} else if (type === "send") {
-						const socket = ws_map.get(fn_index);
-						if (socket) wait_and_send(socket, { ...payload, session_hash });
+					} else if (type === "hash") {
+						websocket.send(JSON.stringify({ fn_index, session_hash }));
 						return;
+					} else if (type === "data") {
+						websocket.send(JSON.stringify({ ...payload, session_hash }));
 					} else if (type === "complete") {
 						fire_event({
 							type: "status",
@@ -295,13 +269,7 @@ export async function client(
 							status: status?.status!,
 							queue: true
 						});
-
-						const _ws = ws_map.get(fn_index);
-						if (_ws) {
-							_ws.close();
-							ws_map.delete(fn_index);
-							console.log(fn_index, ws_map);
-						}
+						websocket.close();
 					}
 					if (data) {
 						fire_event({ type: "data", data: data.data });
@@ -458,16 +426,16 @@ function handle_message(
 	data: any,
 	last_status: Status["status"]
 ): {
-	type: "send" | "update" | "complete" | "generating" | "none";
+	type: "hash" | "data" | "update" | "complete" | "generating" | "none";
 	data?: any;
 	status?: Status;
 } {
 	const queue = true;
 	switch (data.msg) {
 		case "send_data":
-			return { type: "send" };
+			return { type: "data" };
 		case "send_hash":
-			return { type: "send" };
+			return { type: "hash" };
 		case "queue_full":
 			return {
 				type: "update",

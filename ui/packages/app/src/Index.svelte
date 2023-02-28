@@ -211,7 +211,6 @@
 
 	let app: Awaited<ReturnType<typeof client>>;
 	function handle_status(_status: SpaceStatus) {
-		console.log(_status);
 		status = _status;
 	}
 	onMount(async () => {
@@ -225,7 +224,6 @@
 				: host || space || src || location.origin;
 
 		app = await client(api_url, handle_status);
-		console.log("HI");
 		config = app.config;
 
 		status = {

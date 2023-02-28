@@ -489,7 +489,7 @@ class App(FastAPI):
 
             try:
                 session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=1
+                    websocket.receive_json(), timeout=10
                 )
             except AsyncTimeOutError:
                 return

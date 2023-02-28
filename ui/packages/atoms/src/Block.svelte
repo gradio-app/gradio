@@ -48,7 +48,7 @@
 	style="{styles} {size_style || null}"
 	style:border-style={variant}
 	style:border-color={color_style[color]}
-	style:overflow={allow_overflow ? "visible" : "hidden"}
+	style:overflow={allow_overflow ? "" : "hidden"}
 >
 	<slot />
 </svelte:element>

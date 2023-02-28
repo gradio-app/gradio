@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable, get } from "svelte/store";
 
 export interface LoadingStatus {
 	eta: number | null;
@@ -107,7 +107,7 @@ export function create_loading_status_store() {
 			}
 		});
 
-		store.update((outputs) => {
+		store.update((outputs: LoadingStatusCollection) => {
 			outputs_to_update.forEach(
 				({
 					id,
@@ -120,10 +120,10 @@ export function create_loading_status_store() {
 				}) => {
 					outputs[id] = {
 						queue: !!queue,
-						queue_size: queue_size,
-						queue_position: queue_position,
-						eta: eta,
-						message,
+						queue_size: queue_size ?? null,
+						queue_position: queue_position ?? null,
+						eta: eta ?? null,
+						message: message ?? null,
 						progress,
 						status,
 						fn_index
@@ -133,7 +133,6 @@ export function create_loading_status_store() {
 
 			return outputs;
 		});
-
 		fn_status[fn_index] = status;
 	}
 
