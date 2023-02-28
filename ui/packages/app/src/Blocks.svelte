@@ -149,6 +149,7 @@
 		name: T;
 		component: LoadedComponent;
 	}> {
+		console.log("LOAD COMP");
 		return new Promise(async (res, rej) => {
 			try {
 				const c = await component_map[name]();
@@ -197,8 +198,10 @@
 
 	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
+		console.log("START WALK");
 		walk_layout(layout)
 			.then(async () => {
+				console.log("WALK DONE");
 				ready = true;
 			})
 			.catch((e) => {
@@ -437,7 +440,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 

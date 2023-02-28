@@ -127,6 +127,14 @@ export async function client(
 					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
 					handle_space_sucess
 				);
+			} else {
+				if (space_status_callback)
+					space_status_callback({
+						status: "error",
+						message: "Could not load this space.",
+						load_status: "error",
+						detail: "NOT_FOUND"
+					});
 			}
 		}
 		function make_predict(endpoint: string, payload: Payload) {
@@ -184,7 +192,7 @@ export async function client(
 					fire_event({ type: "status", status: "pending", queue: false });
 
 					post_data(
-						`${http_protocol}//${host}/api${
+						`${http_protocol}//${host}/run${
 							endpoint.startsWith("/") ? endpoint : `/${endpoint}`
 						}`,
 						{
@@ -297,10 +305,11 @@ function skip_queue(id: number, config: Config) {
 }
 
 async function resolve_config(endpoint?: string): Promise<Config> {
-	if (window.gradio_config) {
+	if (window.gradio_config && location.origin !== "http://localhost:9876") {
 		return { ...window.gradio_config, root: endpoint };
 	} else if (endpoint) {
 		let response = await fetch(`${endpoint}/config`);
+
 		if (response.status === 200) {
 			const config = await response.json();
 			config.root = endpoint;

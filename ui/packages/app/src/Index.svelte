@@ -80,57 +80,13 @@
 
 	let _id = id++;
 
-	let loader_status: "pending" | "error" | "success" | "login" = "pending";
+	let loader_status: "pending" | "error" | "complete" | "generating" =
+		"pending";
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
 	let ready: boolean = false;
 	let config: Config;
 	let loading_text: string = "Loading...";
-
-	// async function handle_config(target: HTMLElement, source: string | null) {
-	// 	let config;
-
-	// 	try {
-	// 		let _config = await get_config(source);
-	// 		config = _config;
-	// 	} catch (e) {
-	// 		if (BUILD_MODE === "dev") {
-	// 			console.error(e);
-	// 		}
-
-	// 		return null;
-	// 	}
-
-	// 	mount_custom_css(target, config.css);
-	// 	window.__is_colab__ = config.is_colab;
-
-	// 	if (root === undefined) {
-	// 		root = BACKEND_URL;
-	// 		config.root = BACKEND_URL;
-	// 	}
-
-	// 	if (config.dev_mode) {
-	// 		reload_check(root);
-	// 	}
-
-	// 	return config;
-	// }
-
-	// async function get_config(source: string | null) {
-	// 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
-	// 		let config = await fetch(BACKEND_URL + "config");
-	// 		const result = await config.json();
-	// 		return result;
-	// 	} else if (source) {
-	// 		if (!source.endsWith("/")) {
-	// 			source += "/";
-	// 		}
-	// 		const config = await get_source_config(source);
-	// 		return config;
-	// 	} else {
-	// 		return window.gradio_config;
-	// 	}
-	// }
 
 	function mount_custom_css(target: HTMLElement, css_string: string | null) {
 		if (css_string) {
@@ -141,7 +97,7 @@
 	}
 
 	async function reload_check(root: string) {
-		const result = await (await fetch(root + "app_id")).text();
+		const result = await (await fetch(root + "/app_id")).text();
 
 		if (app_id === null) {
 			app_id = result;
@@ -219,7 +175,7 @@
 		}
 
 		const api_url =
-			BUILD_MODE === "dev" || location.origin === "http://localhost:9876"
+			BUILD_MODE === "dev"
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
@@ -235,9 +191,18 @@
 
 		mount_custom_css(wrapper, config.css);
 		window.__is_colab__ = config.is_colab;
+
+		if (config.dev_mode) {
+			reload_check(config.root);
+		}
 	});
 
-	$: loader_status = ready ? "success" : loader_status;
+	$: loader_status =
+		!ready && status.load_status !== "error"
+			? "pending"
+			: !ready && status.load_status === "error"
+			? "error"
+			: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
@@ -297,13 +262,13 @@
 	{version}
 	{initial_height}
 	{space}
-	loaded={loader_status === "success"}
+	loaded={loader_status === "complete"}
 	bind:wrapper
 >
-	{#if status?.load_status === "pending" || status?.load_status === "error"}
+	{#if loader_status === "pending" || loader_status === "error"}
 		<Loader
 			absolute={!is_embed}
-			status={status.load_status}
+			status={loader_status}
 			timer={false}
 			queue_position={null}
 			queue_size={null}
@@ -329,7 +294,8 @@
 				{/if}
 			</div>
 		</Loader>
-	{:else if config?.auth_required && Login}
+	{/if}
+	{#if config?.auth_required && Login}
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
