@@ -16,6 +16,11 @@
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = { grid: [2], height: "auto" };
 
+	// tracks whether the value of the gallery was reset
+	let was_reset: boolean = true;
+
+	$: was_reset = value == null || value.length == 0 ? true : was_reset;
+
 	$: _value =
 		value === null
 			? null
@@ -25,14 +30,24 @@
 						: [normalise_file(img, root, root_url), null]
 			  );
 
-	let prevValue: string[] | FileData[] | null = null;
+	let prevValue: string[] | FileData[] | null = value;
 	let selected_image: number | null = null;
 	$: if (prevValue !== value) {
-		// so that gallery preserves selected image after update
-		selected_image =
-			selected_image !== null && value !== null && selected_image < value.length
-				? selected_image
-				: null;
+		// When value is falsy (clear button or first load),
+		// style.preview determines the selected image
+		if (was_reset) {
+			selected_image = style.preview ? 0 : null;
+			was_reset = false;
+			// Otherwise we keep the selected_image the same if the
+			// gallery has at least as many elements as it did before
+		} else {
+			selected_image =
+				selected_image !== null &&
+				value !== null &&
+				selected_image < value.length
+					? selected_image
+					: null;
+		}
 		prevValue = value;
 	}
 
