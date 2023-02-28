@@ -219,8 +219,8 @@
 		}
 
 		const api_url =
-			BUILD_MODE === "dev"
-				? "http://localhost:7860" || location.origin === "http://localhost:9876"
+			BUILD_MODE === "dev" || location.origin === "http://localhost:9876"
+				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
 		app = await client(api_url, handle_status);
