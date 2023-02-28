@@ -58,7 +58,12 @@
 	}
 
 	function remove_all(e: any) {
-		value = [];
+		if (multiselect) {
+			value = [];
+		} else {
+			value = "";
+		}
+
 		inputValue = "";
 		e.preventDefault();
 		dispatch("change", value);
