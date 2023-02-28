@@ -1260,9 +1260,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             **kwargs,
         )
 
-        self.cleared_value = (
-            self.value if self.value is not None else [] if multiselect is True else ""
-        )
+        self.cleared_value = self.value or ([] if multiselect else "")
 
     def get_config(self):
         return {
