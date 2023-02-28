@@ -147,11 +147,7 @@ export async function client(
 					status: "complete",
 					queue: false
 				});
-				const _ws = ws_map.get(_index);
-				if (_ws) {
-					// _ws.close();
-					// ws_map.delete(_index);
-				}
+				ws_map.get(_index)?.close();
 			}
 
 			function on<K extends EventType>(
@@ -183,102 +179,100 @@ export async function client(
 				let listeners = narrowed_listener_map[event.type] || [];
 				listeners.forEach((l) => l(event));
 			}
+			setTimeout(() => {
+				if (skip_queue(fn_index, config)) {
+					fire_event({ type: "status", status: "pending", queue: false });
 
-			if (skip_queue(fn_index, config)) {
-				fire_event({ type: "status", status: "pending", queue: false });
-
-				post_data(
-					`${http_protocol}//${host}/api${
-						endpoint.startsWith("/") ? endpoint : `/${endpoint}`
-					}`,
-					{
-						...payload,
-						session_hash
-					}
-				)
-					.then(([output, status_code]) => {
-						if (status_code == 200) {
-							fire_event({
-								type: "status",
-								status: "complete",
-								eta: output.average_duration,
-								queue: false
-							});
-						} else {
+					post_data(
+						`${http_protocol}//${host}/api${
+							endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+						}`,
+						{
+							...payload,
+							session_hash
+						}
+					)
+						.then(([output, status_code]) => {
+							if (status_code == 200) {
+								fire_event({
+									type: "status",
+									status: "complete",
+									eta: output.average_duration,
+									queue: false
+								});
+							} else {
+								fire_event({
+									type: "status",
+									status: "error",
+									message: output.error,
+									queue: false
+								});
+							}
+							fire_event({ type: "data", data: output.data });
+						})
+						.catch((e) => {
 							fire_event({
 								type: "status",
 								status: "error",
-								message: output.error,
+								message: e.message,
 								queue: false
 							});
+							throw new Error(e.message);
+						});
+				} else {
+					fire_event({ type: "status", status: "pending", queue: true });
+
+					const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
+
+					const websocket = new WebSocket(ws_endpoint);
+
+					ws_map.set(fn_index, websocket);
+					websocket.onclose = (evt) => {
+						if (!evt.wasClean) {
+							fire_event({
+								type: "status",
+								status: "error",
+								message: BROKEN_CONNECTION_MSG,
+								queue: true
+							});
 						}
-						fire_event({ type: "data", data: output.data });
-					})
-					.catch((e) => {
-						fire_event({
-							type: "status",
-							status: "error",
-							message: e.message,
-							queue: false
-						});
-						throw new Error(e.message);
-					});
-			} else {
-				fire_event({ type: "status", status: "pending", queue: true });
+					};
 
-				const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
-				// if (ws_map.get(fn_index)) {
-				// 	return x;
-				// }
-				const websocket = new WebSocket(ws_endpoint);
+					websocket.onmessage = function (event) {
+						const _data = JSON.parse(event.data);
+						const { type, status, data } = handle_message(
+							_data,
+							last_status[fn_index]
+						);
 
-				ws_map.set(fn_index, websocket);
-				websocket.onclose = (evt) => {
-					if (!evt.wasClean) {
-						fire_event({
-							type: "status",
-							status: "error",
-							message: BROKEN_CONNECTION_MSG,
-							queue: true
-						});
-					}
-				};
-
-				websocket.onmessage = function (event) {
-					const _data = JSON.parse(event.data);
-					const { type, status, data } = handle_message(
-						_data,
-						last_status[fn_index]
-					);
-
-					if (type === "update" && status) {
-						// call 'status' listeners
-						fire_event({ type: "status", ...status });
-						if (status.status === "error") {
+						if (type === "update" && status) {
+							// call 'status' listeners
+							fire_event({ type: "status", ...status });
+							if (status.status === "error") {
+								websocket.close();
+							}
+						} else if (type === "hash") {
+							websocket.send(JSON.stringify({ fn_index, session_hash }));
+							return;
+						} else if (type === "data") {
+							websocket.send(JSON.stringify({ ...payload, session_hash }));
+						} else if (type === "complete") {
+							fire_event({
+								type: "status",
+								...status,
+								status: status?.status!,
+								queue: true
+							});
 							websocket.close();
 						}
-					} else if (type === "hash") {
-						websocket.send(JSON.stringify({ fn_index, session_hash }));
-						return;
-					} else if (type === "data") {
-						websocket.send(JSON.stringify({ ...payload, session_hash }));
-					} else if (type === "complete") {
-						fire_event({
-							type: "status",
-							...status,
-							status: status?.status!,
-							queue: true
-						});
-						websocket.close();
-					}
-					if (data) {
-						fire_event({ type: "data", data: data.data });
-					}
-				};
+						if (data) {
+							fire_event({ type: "data", data: data.data });
+						}
+					};
 
-				return x;
-			}
-
+					return x;
+				}
+			}, 0);
 			return x;
 		}
 

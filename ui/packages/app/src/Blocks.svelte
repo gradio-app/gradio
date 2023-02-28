@@ -327,18 +327,8 @@
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 
 						instance?.$on(trigger, () => {
-							let load_status = loading_status.get_status_for_fn(i);
-
 							if (loading_status.get_status_for_fn(i) === "pending") {
 								return;
-							}
-
-							if (load_status === undefined) {
-								loading_status.update({
-									fn_index: i,
-									status: "pending",
-									queue: queue ? queue : undefined
-								});
 							}
 
 							if (cancels) {
@@ -375,9 +365,9 @@
 								prediction_map[i] = app
 									.predict("/predict", payload)
 									.on("data", handle_update)
-									.on("status", (s) =>
-										loading_status.update({ ...s, fn_index: i })
-									);
+									.on("status", (s) => {
+										loading_status.update({ ...s, fn_index: i });
+									});
 							}
 						});
 

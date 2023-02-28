@@ -18,8 +18,8 @@ demo = gr.Interface(
         [np.random.randint(0, 10, (10, 3)).tolist()],
         [np.random.randint(0, 10, (10, 10)).tolist()],
     ],
-    cache_examples=False
+    cache_examples=False,
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(enable_queue=True)
