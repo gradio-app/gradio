@@ -87,7 +87,7 @@
 
 	$: can_zoom = window_height >= height;
 
-	function add_height_to_styles(style: Styles) {
+	function add_height_to_styles(style: Styles): string {
 		styles = get_styles(style, ["grid"]).styles;
 
 		return styles + ` height: ${style.height}`;
