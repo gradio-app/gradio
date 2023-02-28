@@ -1,5 +1,10 @@
 # Upcoming Release
 
+## Bug fixes
+
+- Fix bug that cause UI to be vertically centered at all times by [@pngwn](https://github.com/pngwn) in [PR 3336](https://github.com/gradio-app/gradio/pull/3336)
+- Ensure markdown lists are rendered correctly by [@pngwn](https://github.com/pngwn) in [PR 3341](https://github.com/gradio-app/gradio/pull/3341)
+
 ## New Features:
 
 ### Dropdown Component Updates
@@ -43,10 +48,11 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://git
 
 ## Documentation Changes:
 - Added the `types` field to the dependency field in the config by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3315](https://github.com/gradio-app/gradio/pull/3315) 
+- Gradio Status Page by [@aliabd](https://github.com/aliabd) in [PR 3331](https://github.com/gradio-app/gradio/pull/3331)
 
 ## Testing and Infrastructure Changes:
 * Adds a script to benchmark the performance of the queue and adds some instructions on how to use it. By [@freddyaboulton](https://github.com/freddyaboulton) and [@abidlabs](https://github.com/abidlabs) in [PR 3272](https://github.com/gradio-app/gradio/pull/3272)
-
+* Flaky python tests no longer cancel non-flaky tests by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3344](https://github.com/gradio-app/gradio/pull/3344)  
 
 ## Breaking Changes:
 No changes to highlight.
