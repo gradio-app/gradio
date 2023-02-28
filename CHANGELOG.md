@@ -56,7 +56,6 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://git
 ## Testing and Infrastructure Changes:
 - Adds a script to benchmark the performance of the queue and adds some instructions on how to use it. By [@freddyaboulton](https://github.com/freddyaboulton) and [@abidlabs](https://github.com/abidlabs) in [PR 3272](https://github.com/gradio-app/gradio/pull/3272)
 - Flaky python tests no longer cancel non-flaky tests by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3344](https://github.com/gradio-app/gradio/pull/3344)  
-- Fixed a test failure in `test_external.py` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3348](https://github.com/gradio-app/gradio/pull/3348)   
 
 ## Breaking Changes:
 No changes to highlight.
