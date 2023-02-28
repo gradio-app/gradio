@@ -3833,6 +3833,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         grid: int | Tuple | None = None,
         height: str | None = None,
         container: bool | None = None,
+        preview: bool | None = None,
         **kwargs,
     ):
         """
@@ -3846,6 +3847,8 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             self._style["grid"] = grid
         if height is not None:
             self._style["height"] = height
+        if preview is not None:
+            self._style["preview"] = preview
 
         return Component.style(self, container=container, **kwargs)
 
