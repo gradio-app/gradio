@@ -14,7 +14,7 @@ We'll cover the following steps in this end-to-end Guide:
 
 If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip sections and first two sections and go directly to [visualizing the data]()!
 
-## Creating tables in Supabase
+## Creating a table in Supabase
 
 First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create some fake commerce data and put it in Supabase. 
 
@@ -22,12 +22,31 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 
 2. Give your project a name and database password. You can also choose a pricing plan (for our purposes, the Free Tier is sufficient!)
 
-3. 
+3. You'll be presented with your API keys while the database spins up (can take up to 2 minutes). 
 
-The first step is to write data to a Supabase dataset. We will use the Supabase Python library to do this.
+4. Click on "Table Editor" (the table icon) in the left pane to create a new table. We'll create a single table called `Product`, with the following schema:
 
-python
-Copy code
+<center>
+<table>
+<tr><td>product_id</td><td>int8</td></tr>
+<tr><td>inventory_count</td><td>int8</td></tr>
+<tr><td>price</td><td>float8</td></tr>
+<tr><td>product_name</td><td>varchar</td></tr>
+</table>
+</center>
+
+5. Click Save to save the table. Our schema is now ready!
+
+
+## Writing data to Supabase
+
+The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. Start by installing `supabase`, typically by running in your terminal:
+
+```bash
+pip install supabase
+```
+
+```
 import supabase
 
 # Initialize the Supabase client
