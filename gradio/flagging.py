@@ -603,7 +603,7 @@ class FlagMethod:
         if not self.visual_feedback:
             return
         time.sleep(0.8)  # to provide enough time for the user to observe button change
-        self.reset()
+        return self.reset()
 
     def reset(self):
         return gr.Button.update(value=self.label, interactive=True)
