@@ -7,6 +7,8 @@
 
 ## New Features:
 
+- Support new emeds for huggingface spaces subdomains by [@pngwn](https://github.com/pngwn) in [PR 3334](https://github.com/gradio-app/gradio/pull/3334)
+
 ### Dropdown Component Updates
 
 The standard dropdown component now supports searching for choices. Also when `multiselect` is `True`, you can specify `max_choices` to set the maximum number of choices you want the user to be able to select from the dropdown component.
