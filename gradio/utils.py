@@ -41,6 +41,7 @@ import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
 import requests
+from huggingface_hub.utils import send_telemetry
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
@@ -57,6 +58,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
+GRADIO_VERSION = (
+    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+)
 
 T = TypeVar("T")
 
@@ -114,6 +118,15 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
             pass  # do not push analytics if no network
 
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
+    try:
+        send_telemetry(
+            topic="gradio/initiated",
+            library_name="gradio",
+            library_version=GRADIO_VERSION,
+            user_agent=data,
+        )
+    except Exception as e:
+        print("Error while sending telemetry: {}".format(e))
 
 
 def launch_analytics(data: Dict[str, Any]) -> None:
@@ -130,6 +143,63 @@ def launch_analytics(data: Dict[str, Any]) -> None:
     threading.Thread(target=launch_analytics_thread, args=(data,)).start()
 
 
+def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
+    from gradio.blocks import BlockContext
+
+    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
+        [],
+        [],
+        [],
+        [],
+    )
+
+    for x in list(blocks.blocks.values()):
+        blocks_telemetry.append(x.get_block_name()) if isinstance(
+            x, BlockContext
+        ) else blocks_telemetry.append(str(x))
+
+    for x in blocks.dependencies:
+        targets_telemetry = targets_telemetry + [
+            str(blocks.blocks[y]) for y in x["targets"]
+        ]
+        inputs_telemetry = inputs_telemetry + [
+            str(blocks.blocks[y]) for y in x["inputs"]
+        ]
+        outputs_telemetry = outputs_telemetry + [
+            str(blocks.blocks[y]) for y in x["outputs"]
+        ]
+    additional_data = {
+        "is_kaggle": blocks.is_kaggle,
+        "is_sagemaker": blocks.is_sagemaker,
+        "using_auth": blocks.auth is not None,
+        "dev_mode": blocks.dev_mode,
+        "show_api": blocks.show_api,
+        "show_error": blocks.show_error,
+        "theme": blocks.theme,
+        "title": blocks.title,
+        "inputs": blocks.input_components
+        if blocks.mode == "interface"
+        else inputs_telemetry,
+        "outputs": blocks.output_components
+        if blocks.mode == "interface"
+        else outputs_telemetry,
+        "targets": targets_telemetry,
+        "blocks": blocks_telemetry,
+        "events": [str(x["trigger"]) for x in blocks.dependencies],
+    }
+
+    data.update(additional_data)
+    try:
+        send_telemetry(
+            topic="gradio/launched",
+            library_name="gradio",
+            library_version=GRADIO_VERSION,
+            user_agent=data,
+        )
+    except Exception as e:
+        print("Error while sending telemetry: {}".format(e))
+
+
 def integration_analytics(data: Dict[str, Any]) -> None:
     data.update({"ip_address": get_local_ip_address()})
 
@@ -142,6 +212,15 @@ def integration_analytics(data: Dict[str, Any]) -> None:
             pass  # do not push analytics if no network
 
     threading.Thread(target=integration_analytics_thread, args=(data,)).start()
+    try:
+        send_telemetry(
+            topic="gradio/integration",
+            library_name="gradio",
+            library_version=GRADIO_VERSION,
+            user_agent=data,
+        )
+    except Exception as e:
+        print("Error while sending telemetry: {}".format(e))
 
 
 def error_analytics(message: str) -> None:
@@ -161,6 +240,15 @@ def error_analytics(message: str) -> None:
             pass  # do not push analytics if no network
 
     threading.Thread(target=error_analytics_thread, args=(data,)).start()
+    try:
+        send_telemetry(
+            topic="gradio/error",
+            library_name="gradio",
+            library_version=GRADIO_VERSION,
+            user_agent=message,
+        )
+    except Exception as e:
+        print("Error while sending telemetry: {}".format(e))
 
 
 async def log_feature_analytics(feature: str) -> None:

@@ -10,12 +10,9 @@ import json
 import os
 import pkgutil
 import re
-import sys
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
-
-from huggingface_hub.utils import send_telemetry
 
 from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
@@ -36,12 +33,12 @@ from gradio.pipelines import load_from_pipeline
 
 set_documentation_group("interface")
 
-if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from transformers.pipelines.base import Pipeline
-
 GRADIO_VERSION = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 )
+
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from transformers.pipelines.base import Pipeline
 
 
 @document("launch", "load", "from_pipeline", "integrate", "queue")
@@ -331,7 +328,7 @@ class Interface(Blocks):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-        if self.analytics_enabled == False:
+        if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
@@ -402,16 +399,6 @@ class Interface(Blocks):
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
-
-            try:
-                send_telemetry(
-                    topic="gradio/initiated",
-                    library_name="gradio",
-                    library_version=GRADIO_VERSION,
-                    user_agent=data,
-                )
-            except Exception as e:
-                print("Error while sending telemetry: {}".format(e))
 
         utils.version_check()
         Interface.instances.add(self)
