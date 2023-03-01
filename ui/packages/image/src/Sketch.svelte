@@ -21,7 +21,7 @@
 	export let shape;
 
 	$: {
-		if (shape) {
+		if (shape && (width || height)) {
 			width = shape[0];
 			height = shape[1];
 		}
@@ -52,7 +52,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					ctx.temp.drawImage(value_img, 0, 0);
+					draw_cropped_image();
 				}
 
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
@@ -106,6 +106,35 @@
 	let canvas_observer = null;
 	let line_count = 0;
 
+	function draw_cropped_image() {
+		if (!shape) return { x: 0, y: 0, width, height };
+		let _width = value_img.naturalWidth;
+		let _height = value_img.naturalHeight;
+
+		const shape_ratio = shape[0] / shape[1];
+		const image_ratio = _width / _height;
+
+		let x = 0;
+		let y = 0;
+
+		if (shape_ratio < image_ratio) {
+			_width = shape[1] * image_ratio;
+			_height = shape[1];
+			x = (shape[0] - _width) / 2;
+		} else if (shape_ratio > image_ratio) {
+			_width = shape[0];
+			_height = shape[0] / image_ratio;
+			y = (shape[1] - _height) / 2;
+		} else {
+			x = 0;
+			y = 0;
+			_width = shape[0];
+			_height = shape[1];
+		}
+
+		ctx.temp.drawImage(value_img, x, y, _width, _height);
+	}
+
 	onMount(async () => {
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
@@ -122,7 +151,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					ctx.temp.drawImage(value_img, 0, 0);
+					draw_cropped_image();
 				}
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
 
@@ -137,7 +166,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					ctx.temp.drawImage(value_img, 0, 0);
+					draw_cropped_image();
 				}
 
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
@@ -199,7 +228,7 @@
 				ctx.temp.drawImage(value_img, 0, 0);
 				ctx.temp.restore();
 			} else {
-				ctx.temp.drawImage(value_img, 0, 0);
+				draw_cropped_image();
 			}
 
 			if (!lines || !lines.length) {
