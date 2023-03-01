@@ -44,7 +44,7 @@ Our schema is now ready!
 
 The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
 
-6. Start by installing `supabase`, typically by running in your terminal:
+6. Install `supabase` by running the following command in your terminal:
 
 ```bash
 pip install supabase
