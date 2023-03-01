@@ -491,7 +491,7 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-        if self.analytics_enabled == False:
+        if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
@@ -534,13 +534,15 @@ class Blocks(BlockContext):
             }
             utils.initiated_analytics(data)
 
-            # huggingface_hub send_telemetry
-            send_telemetry(
-                topic="gradio/blocks/initiated",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=data,
-            )
+            try:
+                send_telemetry(
+                    topic="gradio/initiated",
+                    library_name="gradio",
+                    library_version=GRADIO_VERSION,
+                    user_agent=data,
+                )
+            except Exception as e:
+                print("Error while sending telemetry: {}".format(e))
 
     @classmethod
     def from_config(
@@ -1504,13 +1506,15 @@ class Blocks(BlockContext):
             except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
                     utils.error_analytics("Not able to set up tunnel")
-                    # huggingface_hub send_telemetry
-                    send_telemetry(
-                        topic="gradio/blocks/error",
-                        library_name="gradio",
-                        library_version=GRADIO_VERSION,
-                        user_agent="error/Not able to set up tunnel",
-                    )
+                    try:
+                        send_telemetry(
+                            topic="gradio/error",
+                            library_name="gradio",
+                            library_version=GRADIO_VERSION,
+                            user_agent="error/Not able to set up tunnel",
+                        )
+                    except Exception as e:
+                        print("Error while sending telemetry: {}".format(e))
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1601,6 +1605,13 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            inputs = []
+            outputs = []
+            targets = []
+            for x in self.dependencies:
+                targets.append([self.blocks[y] for y in x["targets"]])
+                inputs.append([self.blocks[y] for y in x["inputs"]])
+                outputs.append([self.blocks[y] for y in x["outputs"]])
             additional_data = {
                 "is_kaggle": self.is_kaggle,
                 "is_sagemaker": self.is_sagemaker,
@@ -1610,18 +1621,23 @@ class Blocks(BlockContext):
                 "show_error": self.show_error,
                 "theme": self.theme,
                 "title": self.title,
+                "inputs": self.input_components if self.mode is "interface" else inputs,
+                "outputs": self.output_components if self.mode is "interface" else outputs,
+                "targets": targets,
                 "blocks": list(self.blocks.values()),
                 "events": [x["trigger"] for x in self.dependencies],
             }
 
             data.update(additional_data)
-            # huggingface_hub send_telemetry
-            send_telemetry(
-                topic="gradio/blocks/launch",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=data,
-            )
+            try:
+                send_telemetry(
+                    topic="gradio/launched",
+                    library_name="gradio",
+                    library_version=GRADIO_VERSION,
+                    user_agent=data,
+                )
+            except Exception as e:
+                print("Error while sending telemetry: {}".format(e))
 
         utils.show_tip(self)
 
@@ -1691,13 +1707,15 @@ class Blocks(BlockContext):
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             utils.integration_analytics(data)
-            # huggingface_hub send_telemetry
-            send_telemetry(
-                topic="gradio/blocks/integration",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=data,
-            )
+            try:
+                send_telemetry(
+                    topic="gradio/integration",
+                    library_name="gradio",
+                    library_version=GRADIO_VERSION,
+                    user_agent=data,
+                )
+            except Exception as e:
+                print("Error while sending telemetry: {}".format(e))
 
     def close(self, verbose: bool = True) -> None:
         """

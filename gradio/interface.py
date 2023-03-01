@@ -14,6 +14,7 @@ import sys
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from huggingface_hub.utils import send_telemetry
 
 from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
@@ -37,6 +38,9 @@ set_documentation_group("interface")
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from transformers.pipelines.base import Pipeline
 
+GRADIO_VERSION = (
+    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+)
 
 @document("launch", "load", "from_pipeline", "integrate", "queue")
 class Interface(Blocks):
@@ -383,11 +387,6 @@ class Interface(Blocks):
         self.favicon_path = None
 
         if self.analytics_enabled:
-            gradio_version = (
-                (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip()
-            )
             data = {
                 "mode": self.mode,
                 "fn": fn,
@@ -398,19 +397,19 @@ class Interface(Blocks):
                 "allow_flagging": allow_flagging,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
-                "version": gradio_version,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
-            # huggingface_hub send_telemetry
-            from huggingface_hub.utils import send_telemetry
-
-            send_telemetry(
-                topic="gradio/interface",
-                library_name="gradio",
-                library_version=gradio_version,
-                user_agent=f"gradio/{gradio_version}; python/{sys.version_info}; inputs/{inputs}; outputs/{outputs}; live/{live}; interpretation/{interpretation}; allow_flagging/{allow_flagging}; custom_css/{self.css}; theme/{self.theme}",
-            )
+            try:
+                send_telemetry(
+                    topic="gradio/initiated",
+                    library_name="gradio",
+                    library_version=GRADIO_VERSION,
+                    user_agent=data,
+                )
+            except Exception as e:
+                print("Error while sending telemetry: {}".format(e))
 
         utils.version_check()
         Interface.instances.add(self)
