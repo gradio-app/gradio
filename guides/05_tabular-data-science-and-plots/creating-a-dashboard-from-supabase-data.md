@@ -82,12 +82,14 @@ Finally, we will read the data from the Supabase dataset using the same `supabas
 
 Note: We repeat certain steps in this section (like creating the Supabase client) in case you did not go through the previous sections. As described in Step 7, you will need the project URL and API Key for your database.
 
-9. Write a function that loads the from the `Product` table and returns it as a pandas 
+9. Write a function that loads the data from the `Product` table and returns it as a pandas Dataframe:
 
 
 ```python
 import supabase
 import pandas as pd
+
+client = supabase.create_client('SUPABASE_URL', 'SUPABASE_SECRET_KEY')
 
 def read_data():
     response = client.table('Product').select("*").execute()
@@ -95,20 +97,26 @@ def read_data():
     return df
 ```
 
-10. Create a small Gradio Dashboard with a Barplot that plots the prices of all of the items every minute and updates in real-time:
+10. Create a small Gradio Dashboard with 2 Barplots that plots the prices and inventories of all of the items every minute and updates in real-time:
 
 ```python
 import gradio as gr
 
 with gr.Blocks() as dashboard:
-    gr.BarPlot(read_data, x="product_id", y="price", every=60)
+    with gr.Row():
+        gr.BarPlot(read_data, x="product_id", y="price", title="Prices", every=60)
+        gr.BarPlot(read_data, x="product_id", y="inventory_count", title="Inventory", every=60)
 
 dashboard.queue().launch()
 ```
 
+Your final dashboard should look something like this:
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/product-plots.png)
+
 
 ## Conclusion
 
-That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as a bar plot. 
+That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as bar plots. 
 
 If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute. Of course, we can add other kinds of plots and visualizations to build a more complex dashboard as well.
