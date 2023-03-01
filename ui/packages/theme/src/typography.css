@@ -86,6 +86,11 @@
 .prose ol {
 	list-style: decimal inside;
 }
+
+.prose ul > p,
+.prose li > p {
+	display: inline-block;
+}
 .prose ol,
 .prose ul {
 	margin-top: 0;
