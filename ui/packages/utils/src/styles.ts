@@ -11,6 +11,7 @@ export interface Styles {
 	label_container?: boolean;
 	gap?: boolean;
 	size?: "sm" | "lg";
+	preview?: boolean;
 }
 
 type PartialRecord<K extends keyof any, T> = {

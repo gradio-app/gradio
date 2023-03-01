@@ -23,14 +23,13 @@
 	</div>
 	Input Payload
 </h4>
-<Block>
-	<div class="details">
-		&#123;
-		<br />
-		&nbsp;&nbsp;"data": [
-		<br />
-		{#each dependency.inputs as component_id, component_index}
-			&nbsp;&nbsp;&nbsp;&nbsp;
+<div class="payload-details">
+	&#123;
+	<br />
+	<div class="first-level">"data": [</div>
+	<br />
+	{#each dependency.inputs as component_id, component_index}
+		<div class="second-level">
 			<input
 				class=""
 				type="text"
@@ -39,25 +38,27 @@
 			{#if dependency_failures[dependency_index][component_index]}
 				<span class="error">ERROR</span>
 			{/if}
+
 			<span class="type">
-				: {instance_map[component_id].documentation?.type},
+				: {instance_map[component_id].documentation?.type?.input_payload ||
+					instance_map[component_id].documentation?.type?.payload},
 			</span>
 			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description} of
+				// represents {instance_map[component_id].documentation?.description
+					?.input_payload ||
+					instance_map[component_id].documentation?.description?.payload} of
 				{format_label(instance_map[component_id].props.label)}
-
 				<span class="name">
 					{instance_map[component_id].props.name}
 				</span>
 				component
 			</span>
-			<br />
-		{/each}
-		&nbsp;&nbsp;]
+		</div>
 		<br />
-		&#125;
-	</div>
-</Block>
+	{/each}
+	<div class="second-level">]</div>
+	&#125;
+</div>
 
 <span class="space" />
 <Button
@@ -147,5 +148,13 @@
 
 	.name {
 		text-transform: capitalize;
+	}
+
+	.first-level {
+		margin-left: 2rem;
+	}
+
+	.second-level {
+		margin-left: 6rem;
 	}
 </style>

@@ -1204,6 +1204,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         value: str | List[str] | Callable | None = None,
         type: str = "value",
         multiselect: bool | None = None,
+        max_choices: int | None = None,
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
@@ -1219,6 +1220,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
+            max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             label: component name in interface.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -1238,6 +1240,11 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if multiselect:
             if isinstance(value, str):
                 value = [value]
+        if not multiselect and max_choices is not None:
+            warnings.warn(
+                "The `max_choices` parameter is ignored when `multiselect` is False."
+            )
+        self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1252,13 +1259,15 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value=value,
             **kwargs,
         )
-        self.cleared_value = self.value
+
+        self.cleared_value = self.value or ([] if multiselect else "")
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
             "multiselect": self.multiselect,
+            "max_choices": self.max_choices,
             **IOComponent.get_config(self),
         }
 
@@ -1341,7 +1350,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         return Component.style(self, container=container, **kwargs)
 
 
-@document("edit", "clear", "change", "stream", "change", "style")
+@document("edit", "clear", "change", "stream", "style")
 class Image(
     Editable,
     Clearable,
@@ -1379,6 +1388,7 @@ class Image(
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
+        brush_radius: int | None = None,
         **kwargs,
     ):
         """
@@ -1398,7 +1408,9 @@ class Image(
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
+            brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
         """
+        self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -1446,6 +1458,7 @@ class Image(
             "value": self.value,
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
+            "brush_radius": self.brush_radius,
             **IOComponent.get_config(self),
         }
 
@@ -1456,6 +1469,7 @@ class Image(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        brush_radius: int | None = None,
     ):
         updated_config = {
             "label": label,
@@ -1463,6 +1477,7 @@ class Image(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "brush_radius": brush_radius,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
@@ -3840,6 +3855,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         grid: int | Tuple | None = None,
         height: str | None = None,
         container: bool | None = None,
+        preview: bool | None = None,
         **kwargs,
     ):
         """
@@ -3853,6 +3869,8 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             self._style["grid"] = grid
         if height is not None:
             self._style["height"] = height
+        if preview is not None:
+            self._style["preview"] = preview
 
         return Component.style(self, container=container, **kwargs)
 

@@ -12,6 +12,13 @@
 	export let dependency_outputs: any[][];
 
 	export let is_running: boolean;
+
+	export let root: string;
+
+	const format_url = (desc: string | undefined, data: string | undefined) =>
+		desc
+			?.replace("{ROOT}", root)
+			?.replace("{name}", data ? JSON.parse(`${data}`)?.name : "{name}");
 </script>
 
 <h4>
@@ -20,15 +27,15 @@
 	</div>
 	Response Object
 </h4>
-<Block>
-	<div class="response-wrap">
-		<div class:hide={is_running}>
-			&#123;
-			<br />
-			&nbsp;&nbsp;"data": [
-			<br />
-			{#each dependency.outputs as component_id, component_index}
-				&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
+<div class="response-wrap">
+	<div class:hide={is_running}>
+		&#123;
+		<br />
+		<div class="first-level">"data": [</div>
+		<br />
+		{#each dependency.outputs as component_id, component_index}
+			<div class="second-level">
+				{#if dependency_outputs[dependency_index][component_index] !== undefined}
 					<input
 						disabled
 						type="text"
@@ -37,27 +44,38 @@
 					:
 				{/if}
 				<span class="type">
-					{instance_map[component_id].documentation?.type},
+					{instance_map[component_id].documentation?.type?.response_object ||
+						instance_map[component_id].documentation?.type?.payload},
 				</span>
 				<span class="desc">
-					// represents {instance_map[component_id].documentation?.description} of
+					// represents {format_url(
+						instance_map[component_id].documentation?.description
+							?.response_object ||
+							instance_map[component_id].documentation?.description?.payload,
+						dependency_outputs[dependency_index][component_index]
+					)} of
 					{((label) => {
 						return label ? "'" + label + "'" : "the";
 					})(instance_map[component_id].props.label)}
-
 					<span class="name capitalize">
 						{instance_map[component_id].props.name}
 					</span>
 					component
 				</span>
-				<br />
-			{/each}
-			&nbsp;&nbsp;],
+			</div>
 			<br />
-			&nbsp;&nbsp;"duration": (float)
+		{/each}
+		<div class="second-level">],</div>
+		<br />
+		<div class="first-level">
+			"duration": (float)
 			<span class="desc">// number of seconds to run function call</span>
-			<br />
-			&#125;
+		</div>
+		&#125;
+	</div>
+	{#if is_running}
+		<div class="load-wrap">
+			<Loader margin={false} />
 		</div>
 		{#if is_running}
 			<div class="load-wrap">
@@ -138,5 +156,13 @@
 
 	.hide {
 		display: none;
+	}
+
+	.first-level {
+		margin-left: 2rem;
+	}
+
+	.second-level {
+		margin-left: 6rem;
 	}
 </style>

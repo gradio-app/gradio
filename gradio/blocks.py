@@ -238,6 +238,10 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
+            "types": {
+                "continuous": bool(every),
+                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+            },
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -586,6 +590,8 @@ class Blocks(BlockContext):
                     with block:
                         iterate_over_children(children)
 
+        derived_fields = ["types"]
+
         with Blocks() as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
@@ -603,6 +609,8 @@ class Blocks(BlockContext):
                 # older demos
                 if dependency["trigger"] == "fake_event":
                     continue
+                for field in derived_fields:
+                    dependency.pop(field, None)
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
@@ -1488,7 +1496,7 @@ class Blocks(BlockContext):
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except RuntimeError:
+            except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
                     utils.error_analytics("Not able to set up tunnel")
                 self.share_url = None
