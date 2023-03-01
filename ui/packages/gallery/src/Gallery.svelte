@@ -214,7 +214,7 @@
 	.caption {
 		padding: var(--size-2) var(--size-3);
 		overflow: hidden;
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 		font-weight: var(--weight-semibold);
 		text-align: center;
 		text-overflow: ellipsis;
@@ -227,11 +227,10 @@
 		bottom: 0;
 		justify-content: center;
 		align-items: center;
-		gap: var(--size-2);
+		gap: var(--spacing-lg);
 		width: var(--size-full);
 		height: var(--size-14);
 		overflow-x: scroll;
-		font-size: var(--text-xs);
 	}
 
 	.thumbnail-item {
@@ -240,7 +239,7 @@
 		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-button-small);
+		border-radius: var(--button-small-radius);
 		background-color: var(--color-background-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
@@ -294,7 +293,7 @@
 	.grid-container {
 		display: grid;
 		grid-template-columns: var(--grid-cols);
-		gap: var(--size-2);
+		gap: var(--spacing-lg);
 	}
 	@media (--screen-sm) {
 		.grid-container {
@@ -335,18 +334,17 @@
 
 	.caption-label {
 		position: absolute;
-		right: 0;
-		bottom: 0;
+		right: var(--block-label-margin);
+		bottom: var(--block-label-margin);
 		z-index: var(--layer-1);
 		border-top: 1px solid var(--color-border-primary);
 		border-left: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-block-label);
+		border-radius: var(--block-label-radius);
 		background: var(--color-background-secondary);
-		padding: var(--size-1) var(--size-3);
+		padding: var(--block-label-padding);
 		max-width: 80%;
 		overflow: hidden;
-		font-weight: var(--weight-semibold);
-		font-size: var(--text-xxs);
+		font-size: var(--block-label-text-size);
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;

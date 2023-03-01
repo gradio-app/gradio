@@ -44,10 +44,10 @@
 		border: var(--input-border-width) solid var(--input-border-color-base);
 		border-radius: var(--radius-lg);
 		background-color: var(--input-background-base);
-		padding: var(--size-2-5);
+		padding: var(--input-padding);
 		width: 100%;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
+		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 	}
 

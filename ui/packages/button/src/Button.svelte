@@ -28,13 +28,14 @@
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
+		transition: var(--button-transition);
 		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
-		transition: var(--button-transition)
 	}
 
-	button:hover, button[disabled] {
+	button:hover,
+	button[disabled] {
 		box-shadow: var(--button-shadow-hover);
 	}
 	button:active {
@@ -52,7 +53,8 @@
 	}
 
 	.primary {
-		border: var(--button-border-width) solid var(--button-primary-border-color-base);
+		border: var(--button-border-width) solid
+			var(--button-primary-border-color-base);
 		background: var(--button-primary-background-base);
 		color: var(--button-primary-text-color-base);
 	}
@@ -64,7 +66,8 @@
 	}
 
 	.secondary {
-		border: var(--button-border-width) solid var(--button-secondary-border-color-base);
+		border: var(--button-border-width) solid
+			var(--button-secondary-border-color-base);
 		background: var(--button-secondary-background-base);
 		color: var(--button-secondary-text-color-base);
 	}
@@ -77,7 +80,8 @@
 	}
 
 	.stop {
-		border: var(--button-border-width) solid var(--button-cancel-border-color-base);
+		border: var(--button-border-width) solid
+			var(--button-cancel-border-color-base);
 		background: var(--button-cancel-background-base);
 		color: var(--button-cancel-text-color-base);
 	}
@@ -90,17 +94,16 @@
 	}
 
 	.sm {
-		border-radius: var(--radius-button-small);
-		padding: var(--spacing-sm) var(--spacing-lg);
-		font-weight: var(--weight-regular);
-		font-size: var(--text-xs);
+		border-radius: var(--button-small-radius);
+		padding: var(--button-small-padding);
+		font-weight: var(--button-small-text-weight);
+		font-size: var(--button-small-text-size);
 	}
 
 	.lg {
-		border-radius: var(--radius-button-large);
-		padding: var(--spacing-lg) var(--spacing-xxl);
-		font-weight: var(--weight-bold);
-		font-size: var(--text-sm);
-		line-height: var(--line-md);
+		border-radius: var(--button-large-radius);
+		padding: var(--button-large-padding);
+		font-weight: var(--button-large-text-weight);
+		font-size: var(--button-large-text-size);
 	}
 </style>

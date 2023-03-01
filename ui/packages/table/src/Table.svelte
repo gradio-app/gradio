@@ -651,15 +651,15 @@
 		position: relative;
 		z-index: var(--layer-4);
 		margin-bottom: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--text-xs);
+		color: var(--block-label-color);
+		font-size: var(--block-label-text-size);
 	}
 
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-table);
+		border-radius: var(--table-radius);
 		overflow-x: scroll;
 		overflow-y: hidden;
 	}
@@ -678,7 +678,7 @@
 		table-layout: auto;
 		overflow: hidden;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
+		font-size: var(--input-text-size);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 	}
@@ -717,11 +717,11 @@
 	}
 
 	th:first-child {
-		border-top-left-radius: var(--radius-table);
+		border-top-left-radius: var(--table-radius);
 	}
 
 	th:last-child {
-		border-top-right-radius: var(--radius-table);
+		border-top-right-radius: var(--table-radius);
 	}
 
 	th:focus-within,
@@ -730,11 +730,11 @@
 	}
 
 	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--radius-table);
+		border-bottom-left-radius: var(--table-radius);
 	}
 
 	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--radius-table);
+		border-bottom-right-radius: var(--table-radius);
 	}
 
 	tr th {

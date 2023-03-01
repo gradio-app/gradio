@@ -70,8 +70,8 @@
 <style>
 	.load-wrap {
 		display: flex;
-		align-items: center;
 		justify-content: center;
+		align-items: center;
 	}
 	h4 {
 		display: flex;
@@ -101,7 +101,6 @@
 	}
 
 	.response-wrap {
-		font-size: var(--text-xs);
 		font-family: var(--font-mono);
 	}
 
@@ -115,17 +114,19 @@
 		background: var(--input-background-base);
 		padding: var(--size-1-5);
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 	}
 
 	input:focus {
 		--ring-color: var(--color-focus-ring);
+		box-shadow: var(--input-shadow);
 		border-color: var(--input-border-color-focus);
 	}
 
 	.type {
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 	}
 
 	.desc {

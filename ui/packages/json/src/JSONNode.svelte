@@ -87,7 +87,6 @@
 	.json-node {
 		display: inline;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 		font-family: var(--font-mono);
 	}

@@ -87,10 +87,12 @@
 		border: 1px solid transparent;
 		border-color: transparent;
 		border-bottom: none;
-		border-top-right-radius: var(--radius-container);
-		border-top-left-radius: var(--radius-container);
+		border-top-right-radius: var(--container-radius);
+		border-top-left-radius: var(--container-radius);
 		padding: var(--size-1) var(--size-4);
 		color: var(--color-text-subdued);
+		font-weight: var(--section-text-weight);
+		font-size: var(--section-text-size);
 	}
 
 	button:hover {

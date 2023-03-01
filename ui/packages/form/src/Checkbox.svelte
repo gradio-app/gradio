@@ -32,7 +32,8 @@
 		align-items: center;
 		cursor: pointer;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
+		font-weight: var(--checkbox-label-text-weight);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
 	}
 
@@ -47,7 +48,6 @@
 		border: 1px solid var(--checkbox-border-color-base);
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-base);
-		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

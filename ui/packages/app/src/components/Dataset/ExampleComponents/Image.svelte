@@ -15,8 +15,8 @@
 
 <style>
 	img {
-		max-width: none;
 		border-radius: var(--radius-lg);
+		max-width: none;
 	}
 
 	img.selected {
@@ -24,12 +24,12 @@
 	}
 
 	.table {
+		margin: 0 auto;
 		border: 2px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;
-		margin: 0 auto;
 	}
 
 	.gallery {

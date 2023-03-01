@@ -45,33 +45,34 @@
 	.wrap {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-2);
+		gap: var(--checkbox-label-gap);
 	}
 	label {
 		display: flex;
 		align-items: center;
+		transition: var(--button-transition);
 		cursor: pointer;
 		box-shadow: var(--checkbox-label-shadow);
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-button-small);
+		border-radius: var(--button-small-radius);
 		background: var(--checkbox-label-background-base);
-		padding: var(--spacing-md) var(--spacing-xl);
+		padding: var(--checkbox-label-padding);
 		color: var(--checkbox-color-text);
-		font-size: var(--text-xs);
+		font-weight: var(--checkbox-label-text-weight);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
 	}
 
 	label:hover {
 		background: var(--checkbox-label-background-hover);
 	}
-	
 	label:focus {
 		background: var(--checkbox-label-background-focus);
 	}
-
 	label.selected {
 		background: var(--checkbox-label-background-selected);
+		color: var(--checkbox-color-text-selected);
 	}
 
 	label > * + * {
@@ -81,11 +82,10 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: var(--input-shadow);
+		box-shadow: var(--checkbox-shadow);
 		border: var(--checkbox-border-width) solid var(--checkbox-border-color-base);
 		border-radius: var(--radius-full);
 		background-color: var(--checkbox-background-base);
-		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 

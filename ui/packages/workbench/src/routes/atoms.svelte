@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		Block,
-		BlockTitle,
-		BlockLabel,
-		IconButton
-	} from "@gradio/atoms";
+	import { Block, BlockTitle, BlockLabel, IconButton } from "@gradio/atoms";
 
 	import { Brush } from "@gradio/icons";
 </script>

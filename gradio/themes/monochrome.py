@@ -1,5 +1,5 @@
 from .base import Base
-from .utils import colors, size 
+from .utils import colors, size
 
 
 class Monochrome(Base):
@@ -7,7 +7,7 @@ class Monochrome(Base):
         self,
         *,
         hue: colors.Color = colors.neutral,
-        spacing_size: size.Size = size.spacing_md,
+        spacing_size: size.Size = size.spacing_lg,
         radius_size: size.Size = size.radius_none,
         text_size: size.Size = size.text_md,
     ):
@@ -20,61 +20,57 @@ class Monochrome(Base):
             text_size=text_size,
         )
         super().set(
-            # # Colors
-            # input_background_base_dark="*neutral_800",
+            # Colors
             slider_color="*neutral_900",
+            slider_color_dark="*neutral_500",
             color_text_body="*neutral_900",
-            color_text_label="*color_text_body",
+            block_label_color="*color_text_body",
             color_text_subdued="*neutral_700",
-            color_background_primary_dark="*neutral_700",
-
+            color_background_primary_dark="*neutral_900",
+            color_background_secondary_dark="*neutral_800",
+            color_background_tertiary_dark="*neutral_800",
+            input_background_base_dark="*neutral_600",
+            # Button Colors
             button_primary_background_base="*neutral_900",
             button_primary_background_hover="*neutral_700",
             button_primary_text_color_base="white",
-            button_secondary_background_base="*neutral_900",
-            button_secondary_background_hover="*neutral_700",
-            button_secondary_text_color_base="white",
-            button_cancel_background_base="*neutral_900",
-            button_cancel_background_hover="*neutral_700",
-            button_cancel_text_color_base="white",
-            checkbox_label_background_base="*neutral_900",
-            checkbox_label_background_hover="*neutral_700",
-            checkbox_color_text="white",
+            button_primary_background_base_dark="*neutral_600",
+            button_primary_background_hover_dark="*neutral_600",
+            button_primary_text_color_base_dark="white",
+            button_secondary_background_base="*button_primary_background_base",
+            button_secondary_background_hover="*button_primary_background_hover",
+            button_secondary_text_color_base="*button_primary_text_color_base",
+            button_secondary_background_base_dark="*button_primary_background_base",
+            button_secondary_background_hover_dark="*button_primary_background_hover",
+            button_secondary_text_color_base_dark="*button_primary_text_color_base",
+            button_cancel_background_base="*button_primary_background_base",
+            button_cancel_background_hover="*button_primary_background_hover",
+            button_cancel_text_color_base="*button_primary_text_color_base",
+            button_cancel_background_base_dark="*button_primary_background_base",
+            button_cancel_background_hover_dark="*button_primary_background_hover",
+            button_cancel_text_color_base_dark="*button_primary_text_color_base",
+            checkbox_label_background_base="*button_primary_background_base",
+            checkbox_label_background_hover="*button_primary_background_hover",
+            checkbox_color_text="*button_primary_text_color_base",
+            checkbox_label_background_base_dark="*button_primary_background_base",
+            checkbox_label_background_hover_dark="*button_primary_background_hover",
+            checkbox_color_text_dark="*button_primary_text_color_base",
             checkbox_background_selected="*neutral_600",
-            checkbox_border_color_selected="*neutral_600",
-
-            # # Transition
-            # button_transition = "none",
-            # # Shadows
-            # button_shadow="*shadow_drop",
-            # button_shadow_hover="*shadow_drop_lg",
-            # button_shadow_active="*shadow_inset",
-            # input_shadow="0 0 0 *shadow_spread transparent, *shadow_inset",
-            # checkbox_label_shadow="*shadow_drop",
-            # block_shadow="*shadow_drop",
-            # form_gap_width="1px",
-            # # Button borders
-            # input_border_width="1px",
-            # input_background_base="white",
-            # # Gradients
-            # color_stat_background="linear-gradient(to right, *primary_400, *primary_200)",
-            # color_stat_background_dark="linear-gradient(to right, *primary_400, *primary_600)",
-            # color_functional_error_background=f"linear-gradient(to right, {colors.red.c100}, *color_background_secondary)",
-            # color_functional_error_background_dark="*color_background_primary",
-            # checkbox_label_background_base="linear-gradient(to top, *neutral_50, white)",
-            # checkbox_label_background_base_dark="linear-gradient(to top, *neutral_700, *neutral_800)",
-            # checkbox_label_background_hover="linear-gradient(to top, *neutral_100, white)",
-            # checkbox_label_background_hover_dark="linear-gradient(to top, *neutral_700, *neutral_800)",
-            # button_primary_background_base="linear-gradient(to bottom right, *primary_100, *primary_300)",
-            # button_primary_background_base_dark="linear-gradient(to bottom right, *primary_600, *primary_700)",
-            # button_primary_background_hover="linear-gradient(to bottom right, *primary_100, *primary_200)",
-            # button_primary_background_hover_dark="linear-gradient(to bottom right, *primary_600, *primary_600)",
-            # button_secondary_background_base="linear-gradient(to bottom right, *neutral_100, *neutral_200)",
-            # button_secondary_background_base_dark="linear-gradient(to bottom right, *neutral_600, *neutral_700)",
-            # button_secondary_background_hover="linear-gradient(to bottom right, *neutral_100, *neutral_100)",
-            # button_secondary_background_hover_dark="linear-gradient(to bottom right, *neutral_600, *neutral_600)",
-            # button_cancel_background_base=f"linear-gradient(to bottom right, {colors.red.c100}, {colors.red.c200})",
-            # button_cancel_background_base_dark=f"linear-gradient(to bottom right, {colors.red.c600}, {colors.red.c700})",
-            # button_cancel_background_hover=f"linear-gradient(to bottom right, {colors.red.c100}, {colors.red.c100})",
-            # button_cancel_background_hover_dark=f"linear-gradient(to bottom right, {colors.red.c600}, {colors.red.c600})",
+            checkbox_background_base_dark="*neutral_700",
+            checkbox_background_selected_dark="*neutral_700",
+            checkbox_border_color_selected_dark="*neutral_800",
+            # Padding
+            checkbox_label_padding="*spacing_md",
+            button_large_padding="*spacing_lg",
+            button_small_padding="*spacing_sm",
+            # Borders
+            block_border_width="0px",
+            block_border_width_dark="1px",
+            shadow_drop_lg="0 1px 4px 0 rgb(0 0 0 / 0.1)",
+            block_shadow="*shadow_drop_lg",
+            block_shadow_dark="none",
+            # Block Labels
+            block_title_text_weight="600",
+            block_label_text_weight="600",
+            block_label_text_size="*text_md",
         )

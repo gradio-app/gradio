@@ -62,24 +62,23 @@
 		justify-content: space-between;
 	}
 	input[type="number"] {
-		--ring-color: transparent;
 		display: block;
 		position: relative;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color-base);
-		border-radius: var(--radius-input);
+		border-radius: var(--input-radius);
 		background: var(--input-background-base);
 		padding: var(--size-2) var(--size-2);
 		height: var(--size-6);
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
+		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		text-align: center;
 	}
 
-	input:focus {
-		--ring-color: var(--color-focus-ring);
+	input[type="number"]:focus {
+		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
 	}
 

@@ -1,5 +1,5 @@
 from .base import Base
-from .utils import colors, size 
+from .utils import colors, size
 
 
 class Default(Base):
@@ -25,12 +25,14 @@ class Default(Base):
             # Colors
             input_background_base_dark="*neutral_800",
             # Transition
-            button_transition = "none",
+            button_transition="none",
             # Shadows
             button_shadow="*shadow_drop",
             button_shadow_hover="*shadow_drop_lg",
             button_shadow_active="*shadow_inset",
             input_shadow="0 0 0 *shadow_spread transparent, *shadow_inset",
+            input_shadow_focus="0 0 0 *shadow_spread *color_focus_ring, *shadow_inset",
+            input_shadow_focus_dark="0 0 0 *shadow_spread *color_focus_ring, *shadow_inset",
             checkbox_label_shadow="*shadow_drop",
             block_shadow="*shadow_drop",
             form_gap_width="1px",

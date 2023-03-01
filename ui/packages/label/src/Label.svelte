@@ -45,7 +45,7 @@
 		padding: var(--size-6) var(--size-4);
 		color: var(--color-text-body);
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-3);
+		font-size: var(--text-xxl);
 	}
 
 	.confidence-set {
@@ -54,7 +54,6 @@
 		align-items: flex-start;
 		margin-bottom: var(--size-2);
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
 		line-height: var(--line-none);
 		font-family: var(--font-mono);
 	}
@@ -84,7 +83,7 @@
 	}
 
 	.confidence-set:hover .label {
-		color: var(--color-orange-500);
+		color: var(--color-accent-base);
 	}
 
 	.text {

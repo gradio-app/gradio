@@ -153,19 +153,19 @@
 		position: relative;
 		border-bottom: 1px solid var(--color-border-primary);
 		padding: var(--size-4) var(--size-6);
-		font-size: var(--text-xs);
+		font-size: var(--text-md);
 	}
 
 	@media (--screen-md) {
 		.banner-wrap {
-			font-size: var(--text-md);
+			font-size: var(--text-xl);
 		}
 	}
 
 	.docs-wrap {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-6);
+		gap: var(--spacing-xxl);
 	}
 
 	.endpoint {

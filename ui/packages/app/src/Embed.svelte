@@ -56,7 +56,7 @@
 	.embed-container {
 		margin: var(--size-4) 0px;
 		border: 1px solid var(--button-secondary-border-color-base);
-		border-radius: var(--radius-embed);
+		border-radius: var(--embed-radius);
 	}
 
 	.with-info {
@@ -116,7 +116,7 @@
 		padding: var(--size-1) var(--size-5);
 		width: 100%;
 		color: var(--color-text-subdued);
-		font-size: var(--text-xs);
+		font-size: var(--text-md);
 		white-space: nowrap;
 	}
 
@@ -170,13 +170,13 @@
 	}
 
 	.title {
-		font-size: var(--text-xxs);
+		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
 
 	.emoji {
 		margin-right: 1px;
-		font-size: var(--text-xxs);
+		font-size: var(--text-sm);
 	}
 
 	a:hover {

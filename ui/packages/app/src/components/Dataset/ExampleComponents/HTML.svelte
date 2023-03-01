@@ -15,12 +15,6 @@
 
 <style>
 	.gallery {
-		display: flex;
-		align-items: center;
-		cursor: pointer;
-		border-radius: var(--radius-lg);
 		padding: var(--size-2);
-		font-size: var(--text-xxs);
-		text-align: left;
 	}
 </style>

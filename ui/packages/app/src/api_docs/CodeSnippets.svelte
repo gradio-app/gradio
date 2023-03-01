@@ -123,7 +123,6 @@ const data = await data.json();
 		padding: var(--size-1) var(--size-1-5);
 		color: var(--color-text-subdued);
 		color: var(--color-text-body);
-		font-size: var(--text-sm);
 		line-height: 1;
 		user-select: none;
 		text-transform: capitalize;
@@ -153,7 +152,6 @@ const data = await data.json();
 	code pre {
 		overflow-x: auto;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
 		font-family: var(--font-mono);
 		tab-size: 2;
 	}

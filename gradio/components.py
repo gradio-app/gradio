@@ -2982,7 +2982,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def style(self, *, full_width: bool | None = None, size: Literal["sm"] | Literal["lg"] = None, **kwargs):
+    def style(
+        self,
+        *,
+        full_width: bool | None = None,
+        size: Literal["sm"] | Literal["lg"] = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
@@ -3139,7 +3145,13 @@ class UploadButton(
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 
-    def style(self, *, full_width: bool | None = None, size: Literal["sm"] | Literal["lg"] = None, **kwargs):
+    def style(
+        self,
+        *,
+        full_width: bool | None = None,
+        size: Literal["sm"] | Literal["lg"] = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the button component.
         Parameters:

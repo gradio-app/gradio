@@ -34,7 +34,7 @@
 	}
 
 	.gap {
-		gap: var(--size-4);
+		gap: var(--standard-gap);
 	}
 
 	.hide {
@@ -48,8 +48,9 @@
 
 	.compact,
 	.panel {
-		border-radius: var(--radius-container);
-		background: var(--color-background-secondary);
-		padding: var(--size-2);
+		border: solid var(--panel-border-width) var(--panel-border-color);
+		border-radius: var(--container-radius);
+		background: var(--panel-background);
+		padding: var(--spacing-lg);
 	}
 </style>

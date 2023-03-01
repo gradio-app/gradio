@@ -24,7 +24,7 @@
 		flex-direction: column;
 		justify-content: center;
 		min-height: var(--size-60);
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 		line-height: var(--line-md);
 	}
 
@@ -34,7 +34,7 @@
 
 	@media (--screen-md) {
 		.wrap {
-			font-size: var(--text-sm);
+			font-size: var(--text-lg);
 		}
 	}
 </style>

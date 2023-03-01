@@ -94,17 +94,17 @@
 	td {
 		border: 1px solid var(--table-border-color);
 		padding: var(--size-2);
-		font-size: var(--text-xxs);
+		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
 
 	.selected td {
 		border-color: var(--color-border-accent);
 	}
-	
+
 	.table {
-		margin: 0 auto;
 		display: inline-block;
+		margin: 0 auto;
 	}
 
 	.gallery td:first-child {

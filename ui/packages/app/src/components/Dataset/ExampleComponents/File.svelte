@@ -25,7 +25,6 @@
 		align-items: center;
 		cursor: pointer;
 		padding: var(--size-1) var(--size-2);
-		font-size: var(--text-xs);
 		text-align: left;
 	}
 </style>

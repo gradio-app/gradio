@@ -99,4 +99,4 @@ And more.`}
 	<Range label="Dropdown" value={27} disabled />
 
 	<ColorPicker label="Color" />
-		</Block>
+</Block>

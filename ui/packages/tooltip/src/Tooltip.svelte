@@ -29,7 +29,7 @@
 		background-color: rgba(0, 0, 0, 0.8);
 		padding: var(--size-1) 0.4rem;
 		color: white;
-		font-size: var(--text-xxs);
+		font-size: var(--text-sm);
 	}
 
 	span {

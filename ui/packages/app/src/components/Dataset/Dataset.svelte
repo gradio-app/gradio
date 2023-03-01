@@ -195,8 +195,9 @@
 		display: flex;
 		align-items: center;
 		margin-bottom: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--text-xxs);
+		color: var(--block-label-color);
+		font-weight: var(--block-label-text-weight);
+		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
 	}
 
@@ -207,14 +208,13 @@
 	.gallery {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-2);
+		gap: var(--spacing-lg);
 	}
 
 	.gallery-item {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-button-large);
+		border-radius: var(--button-large-radius);
 		overflow: hidden;
-		font-size: var(--text-xs);
 	}
 
 	.gallery-item:hover {
@@ -224,11 +224,10 @@
 
 	.table-wrap {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-table);
+		border-radius: var(--table-radius);
 		width: var(--size-full);
 		table-layout: auto;
 		overflow-x: auto;
-		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 	table {
@@ -288,10 +287,10 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: var(--size-2);
+		gap: var(--spacing-sm);
 		margin-top: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--text-xxs);
+		color: var(--block-label-color);
+		font-size: var(--text-sm);
 	}
 
 	button.current-page {

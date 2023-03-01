@@ -160,24 +160,24 @@
 	input[type="password"],
 	input[type="email"],
 	textarea {
-		--ring-color: transparent;
 		display: block;
 		position: relative;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color-base);
-		border-radius: var(--radius-input);
+		border-radius: var(--input-radius);
 		background: var(--input-background-base);
-		padding: var(--size-2-5);
+		padding: var(--input-padding);
 		width: 100%;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 	}
 
 	input:focus,
 	textarea:focus {
-		--ring-color: var(--color-focus-ring);
+		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
 	}
 

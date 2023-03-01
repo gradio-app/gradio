@@ -162,7 +162,7 @@
 	.category-legend {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-1);
+		gap: var(--spacing-sm);
 		margin-top: var(--size-7);
 		margin-bottom: var(--size-2);
 		color: black;
@@ -199,7 +199,6 @@
 		background: var(--color-background-primary);
 		background-color: transparent;
 		max-width: var(--size-full);
-		font-size: var(--text-xs);
 		line-height: var(--scale-4);
 		word-break: break-all;
 	}
@@ -223,7 +222,7 @@
 		color: var(--color-text-body);
 		color: white;
 		font-weight: var(--weight-bold);
-		font-size: var(--text-xxs);
+		font-size: var(--text-sm);
 		text-transform: uppercase;
 	}
 

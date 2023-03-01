@@ -19,12 +19,12 @@
 		background: var(--color-background-primary);
 		width: var(--size-5);
 		height: var(--size-5);
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 	}
 
 	button:hover {
 		border: 1px solid var(--icon_button-border-color-hover);
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 	}
 
 	div {

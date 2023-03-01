@@ -32,7 +32,7 @@
 		});
 </script>
 
-<BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
+<BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
 {#if value === null}
 	<Empty size="small" unpadded_box={true}>
 		<Music />
@@ -50,7 +50,6 @@
 
 <style>
 	audio {
-		margin-top: var(--size-7);
 		padding: var(--size-2);
 		width: var(--size-full);
 		height: var(--size-14);

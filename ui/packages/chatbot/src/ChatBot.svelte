@@ -118,9 +118,8 @@
 		border-style: solid;
 		border-radius: var(--radius-xxl);
 		padding: var(--size-2) var(--size-3);
-		color: white;
 		max-width: 75%;
-		font-size: var(--text-xs);
+		color: white;
 		line-height: var(--line-xs);
 		overflow-wrap: break-word;
 	}

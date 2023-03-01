@@ -1,5 +1,6 @@
-from .utils import colors, size
 import re
+
+from .utils import colors, size
 
 
 class Theme:
@@ -141,11 +142,9 @@ class Base(Theme):
         color_body_background_dark="*color_background_primary",
         color_stat_background="*primary_300",
         color_stat_background_dark="*primary_500",
-        # Text Color
+        # Text Colors
         color_text_body="*neutral_800",
         color_text_body_dark="*neutral_100",
-        color_text_label="*neutral_500",
-        color_text_label_dark="*neutral_200",
         color_text_placeholder="*neutral_400",
         color_text_placeholder_dark="*neutral_500",
         color_text_subdued="*neutral_400",
@@ -161,7 +160,7 @@ class Base(Theme):
         color_text_code_background="*neutral_200",
         color_text_code_background_dark="*neutral_800",
         color_text_code_border="*color_border_primary",
-        # Functional
+        # Functional Colors
         color_functional_error_base=colors.red.c500,
         color_functional_error_base_dark=colors.red.c500,
         color_functional_error_subdued=colors.red.c300,
@@ -174,32 +173,50 @@ class Base(Theme):
         color_functional_info_subdued=colors.yellow.c300,
         color_functional_success_base=colors.green.c500,
         color_functional_success_subdued=colors.yellow.c300,
-        # Corner Radius
-        radius_button_small="*radius_lg",
-        radius_button_large="*radius_lg",
-        radius_container="*radius_lg",
-        radius_block="*radius_lg",
-        radius_block_label="*radius_lg 0 *radius_lg 0",
-        radius_block_label_right="0 *radius_lg 0 *radius_lg",
-        radius_input="*radius_lg",
-        radius_table="*radius_lg",
-        radius_embed="*radius_lg",
-        # Shadows
+        # Other
+        standard_text_size="*text_md",
+        standard_text_weight="400",
+        standard_gap="*spacing_xxl",
         shadow_drop="rgba(0,0,0,0.05) 0px 1px 2px 0px",
         shadow_drop_lg="0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
         shadow_inset="rgba(0,0,0,0.05) 0px 2px 4px 0px inset",
         shadow_spread="3px",
         shadow_spread_dark="1px",
         # Atoms
+        container_radius="*radius_lg",
+        block_radius="*radius_lg",
+        block_padding="*spacing_xl calc(*spacing_xl + 2px)",
+        block_label_color="*neutral_500",
+        block_label_color_dark="*neutral_200",
+        block_label_radius="calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px) 0",
+        block_label_right_radius="0 calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px)",
         block_label_border_color="*color_border_primary",
-        block_label_icon_color="*color_text_label",
+        block_label_icon_color="*block_label_color",
         block_label_background="*color_background_primary",
         block_label_background_dark="*color_background_secondary",
+        block_label_padding="*spacing_sm *spacing_lg",
+        block_label_margin="0",
+        block_label_text_size="*text_sm",
+        block_label_text_weight="400",
+        block_label_overall_height="calc(2 * *block_label_margin + 2 * *block_label_padding + *block_label_text_size)",
+        block_title_text_size="*text_md",
+        block_title_text_weight="400",
+        block_title_padding="0",
+        block_title_background="none",
+        block_title_background_dark="none",
+        block_title_border_color="none",
+        block_title_border_color_dark="none",
+        block_title_border_width="0px",
+        block_title_radius="none",
+        block_info_color_base="*color_text_subdued",
+        block_info_color_base_dark="*color_text_subdued",
+        block_info_color_size="*text_sm",
+        block_info_color_weight="400",
         block_shadow="none",
+        block_shadow_dark="none",
         block_border_width="1px",
+        block_border_width_dark="1px",
         form_gap_width="0px",
-        info_color_base="*color_text_subdued",
-        info_color_base_dark="*color_text_subdued",
         input_border_color_base="*color_border_primary",
         input_border_color_base_dark="*color_border_primary",
         input_border_color_hover="*color_border_primary",
@@ -213,7 +230,14 @@ class Base(Theme):
         input_background_hover_dark="*input_background_base",
         input_background_focus="*color_focus_secondary",
         input_background_focus_dark="*color_focus_secondary",
+        input_padding="*spacing_xl",
+        input_text_size="*text_md",
+        input_text_weight="400",
+        input_radius="*radius_lg",
         input_shadow="none",
+        input_shadow_dark="*input_shadow",
+        input_shadow_focus="*input_shadow",
+        input_shadow_focus_dark="*input_shadow",
         checkbox_border_radius="*radius_sm",
         checkbox_border_color_base="*neutral_300",
         checkbox_border_color_base_dark="*neutral_700",
@@ -222,6 +246,7 @@ class Base(Theme):
         checkbox_border_color_focus="*secondary_500",
         checkbox_border_color_focus_dark="*secondary_500",
         checkbox_border_color_selected="*secondary_600",
+        checkbox_border_color_selected_dark="*secondary_600",
         checkbox_border_width="*input_border_width",
         checkbox_background_base="*color_background_primary",
         checkbox_background_base_dark="*neutral_800",
@@ -230,8 +255,12 @@ class Base(Theme):
         checkbox_background_focus="*color_background_primary",
         checkbox_background_focus_dark="*checkbox_background_base",
         checkbox_background_selected="*secondary_600",
+        checkbox_background_selected_dark="*secondary_600",
         checkbox_color_text="*color_text_body",
         checkbox_color_text_dark="*color_text_body",
+        checkbox_color_text_selected="*checkbox_color_text",
+        checkbox_color_text_selected_dark="*checkbox_color_text",
+        checkbox_shadow="*input_shadow",
         checkbox_label_border_width="*input_border_width",
         checkbox_label_border_color_base="*color_border_primary",
         checkbox_label_border_color_base_dark="*color_border_primary",
@@ -248,7 +277,13 @@ class Base(Theme):
         checkbox_label_background_selected="*checkbox_label_background_base",
         checkbox_label_background_selected_dark="*checkbox_label_background_base",
         checkbox_label_shadow="none",
+        checkbox_label_text_size="*text_md",
+        checkbox_label_text_weight="400",
+        checkbox_label_gap="*spacing_lg",
+        checkbox_label_padding="*spacing_md calc(2 * *spacing_md)",
         slider_color=None,
+        slider_color_dark=None,
+        table_radius="*radius_lg",
         table_even_background="white",
         table_even_background_dark="*neutral_950",
         table_odd_background="*neutral_50",
@@ -257,7 +292,26 @@ class Base(Theme):
         table_border_color_dark="*neutral_700",
         table_row_focus="*color_accent_soft",
         table_row_focus_dark="*color_accent_soft",
+        panel_background="*color_background_secondary",
+        panel_background_dark="*color_background_secondary",
+        panel_border_color="*color_border_primary",
+        panel_border_color_dark="*color_border_primary",
+        panel_border_width="0",
+        section_text_size="*text_md",
+        section_text_weight="400",
+        header_text_weight="600",
+        prose_text_size="*text_md",
+        prose_text_weight="400",
+        embed_radius="*radius_lg",
         # Buttons
+        button_large_text_size="*text_lg",
+        button_large_text_weight="600",
+        button_small_text_size="*text_md",
+        button_small_text_weight="400",
+        button_large_padding="*spacing_lg calc(2 * *spacing_lg)",
+        button_small_padding="*spacing_sm calc(2 * *spacing_sm)",
+        button_small_radius="*radius_lg",
+        button_large_radius="*radius_lg",
         button_shadow="none",
         button_shadow_hover="none",
         button_shadow_active="none",
@@ -273,8 +327,8 @@ class Base(Theme):
         button_primary_text_color_hover_dark="*button_primary_text_color_base",
         button_primary_background_base="*primary_200",
         button_primary_background_base_dark="*primary_700",
-        button_primary_background_hover="*primary_100",
-        button_primary_background_hover_dark="*primary_600",
+        button_primary_background_hover="*button_primary_background_base",
+        button_primary_background_hover_dark="*button_primary_background_base",
         button_secondary_border_color_base="*neutral_200",
         button_secondary_border_color_base_dark="*neutral_600",
         button_secondary_border_color_hover="*button_secondary_border_color_base",
@@ -285,8 +339,8 @@ class Base(Theme):
         button_secondary_text_color_hover_dark="*button_secondary_text_color_base",
         button_secondary_background_base="*neutral_200",
         button_secondary_background_base_dark="*neutral_600",
-        button_secondary_background_hover="*neutral_100",
-        button_secondary_background_hover_dark="*neutral_500",
+        button_secondary_background_hover="*button_secondary_background_base",
+        button_secondary_background_hover_dark="*button_secondary_background_base",
         button_cancel_border_color_base=colors.red.c200,
         button_cancel_border_color_base_dark=colors.red.c600,
         button_cancel_border_color_hover="*button_cancel_border_color_base",
@@ -297,8 +351,8 @@ class Base(Theme):
         button_cancel_text_color_hover_dark="*button_cancel_text_color_base",
         button_cancel_background_base=colors.red.c200,
         button_cancel_background_base_dark=colors.red.c700,
-        button_cancel_background_hover=colors.red.c100,
-        button_cancel_background_hover_dark=colors.red.c600,
+        button_cancel_background_hover="*button_cancel_background_base",
+        button_cancel_background_hover_dark="*button_cancel_background_hover",
     ):
         # Colors
         self.color_accent_base = color_accent_base
@@ -325,11 +379,11 @@ class Base(Theme):
         self.color_body_background_dark = color_body_background_dark
         self.color_stat_background = color_stat_background
         self.color_stat_background_dark = color_stat_background_dark
-        # Text
+        # Text Colors
         self.color_text_body = color_text_body
         self.color_text_body_dark = color_text_body_dark
-        self.color_text_label = color_text_label
-        self.color_text_label_dark = color_text_label_dark
+        self.block_label_color = block_label_color
+        self.block_label_color_dark = block_label_color_dark
         self.color_text_placeholder = color_text_placeholder
         self.color_text_placeholder_dark = color_text_placeholder_dark
         self.color_text_subdued = color_text_subdued
@@ -345,7 +399,7 @@ class Base(Theme):
         self.color_text_code_background = color_text_code_background
         self.color_text_code_background_dark = color_text_code_background_dark
         self.color_text_code_border = color_text_code_border
-        # Functional
+        # Functional Colors
         self.color_functional_error_base = color_functional_error_base
         self.color_functional_error_base_dark = color_functional_error_base_dark
         self.color_functional_error_subdued = color_functional_error_subdued
@@ -360,32 +414,48 @@ class Base(Theme):
         self.color_functional_info_subdued = color_functional_info_subdued
         self.color_functional_success_base = color_functional_success_base
         self.color_functional_success_subdued = color_functional_success_subdued
-        # Corner Radius
-        self.radius_button_small = radius_button_small
-        self.radius_button_large = radius_button_large
-        self.radius_container = radius_container
-        self.radius_block = radius_block
-        self.radius_block_label = radius_block_label
-        self.radius_block_label_right = radius_block_label_right
-        self.radius_input = radius_input
-        self.radius_table = radius_table
-        self.radius_embed = radius_embed
-        # Shadows
+        # Other
+        self.standard_text_size = standard_text_size
+        self.standard_text_weight = standard_text_weight
+        self.standard_gap = standard_gap
         self.shadow_drop = shadow_drop
         self.shadow_drop_lg = shadow_drop_lg
         self.shadow_inset = shadow_inset
         self.shadow_spread = shadow_spread
         self.shadow_spread_dark = shadow_spread_dark
         # Atoms
+        self.container_radius = container_radius
+        self.block_radius = block_radius
+        self.block_padding = block_padding
+        self.block_label_radius = block_label_radius
+        self.block_label_right_radius = block_label_right_radius
         self.block_label_border_color = block_label_border_color
         self.block_label_icon_color = block_label_icon_color
         self.block_label_background = block_label_background
         self.block_label_background_dark = block_label_background_dark
+        self.block_label_padding = block_label_padding
+        self.block_label_margin = block_label_margin
+        self.block_label_text_size = block_label_text_size
+        self.block_label_text_weight = block_label_text_weight
+        self.block_label_overall_height = block_label_overall_height
+        self.block_title_text_size = block_title_text_size
+        self.block_title_text_weight = block_title_text_weight
+        self.block_title_padding = block_title_padding
+        self.block_title_background = block_title_background
+        self.block_title_background_dark = block_title_background_dark
+        self.block_title_border_color = block_title_border_color
+        self.block_title_border_color_dark = block_title_border_color_dark
+        self.block_title_border_width = block_title_border_width
+        self.block_title_radius = block_title_radius
+        self.block_info_color_base = block_info_color_base
+        self.block_info_color_base_dark = block_info_color_base_dark
+        self.block_info_color_size = block_info_color_size
+        self.block_info_color_weight = block_info_color_weight
         self.block_shadow = block_shadow
+        self.block_shadow_dark = block_shadow_dark
         self.block_border_width = block_border_width
+        self.block_border_width_dark = block_border_width_dark
         self.form_gap_width = form_gap_width
-        self.info_color_base = info_color_base
-        self.info_color_base_dark = info_color_base_dark
         self.input_border_color_base = input_border_color_base
         self.input_border_color_base_dark = input_border_color_base_dark
         self.input_border_color_hover = input_border_color_hover
@@ -399,7 +469,14 @@ class Base(Theme):
         self.input_background_hover_dark = input_background_hover_dark
         self.input_background_focus = input_background_focus
         self.input_background_focus_dark = input_background_focus_dark
+        self.input_padding = input_padding
+        self.input_text_size = input_text_size
+        self.input_text_weight = input_text_weight
+        self.input_radius = input_radius
         self.input_shadow = input_shadow
+        self.input_shadow_dark = input_shadow_dark
+        self.input_shadow_focus = input_shadow_focus
+        self.input_shadow_focus_dark = input_shadow_focus_dark
         self.checkbox_border_radius = checkbox_border_radius
         self.checkbox_border_color_base = checkbox_border_color_base
         self.checkbox_border_color_base_dark = checkbox_border_color_base_dark
@@ -408,6 +485,7 @@ class Base(Theme):
         self.checkbox_border_color_focus = checkbox_border_color_focus
         self.checkbox_border_color_focus_dark = checkbox_border_color_focus_dark
         self.checkbox_border_color_selected = checkbox_border_color_selected
+        self.checkbox_border_color_selected_dark = checkbox_border_color_selected_dark
         self.checkbox_border_width = checkbox_border_width
         self.checkbox_background_base = checkbox_background_base
         self.checkbox_background_base_dark = checkbox_background_base_dark
@@ -416,8 +494,12 @@ class Base(Theme):
         self.checkbox_background_focus = checkbox_background_focus
         self.checkbox_background_focus_dark = checkbox_background_focus_dark
         self.checkbox_background_selected = checkbox_background_selected
+        self.checkbox_background_selected_dark = checkbox_background_selected_dark
         self.checkbox_color_text = checkbox_color_text
         self.checkbox_color_text_dark = checkbox_color_text_dark
+        self.checkbox_color_text_selected = checkbox_color_text_selected
+        self.checkbox_color_text_selected_dark = checkbox_color_text_selected_dark
+        self.checkbox_shadow = checkbox_shadow
         self.checkbox_label_border_width = checkbox_label_border_width
         self.checkbox_label_border_color_base = checkbox_label_border_color_base
         self.checkbox_label_border_color_base_dark = (
@@ -442,7 +524,13 @@ class Base(Theme):
             checkbox_label_background_selected_dark
         )
         self.checkbox_label_shadow = checkbox_label_shadow
+        self.checkbox_label_text_size = checkbox_label_text_size
+        self.checkbox_label_text_weight = checkbox_label_text_weight
+        self.checkbox_label_gap = checkbox_label_gap
+        self.checkbox_label_padding = checkbox_label_padding
         self.slider_color = slider_color
+        self.slider_color_dark = slider_color_dark
+        self.table_radius = table_radius
         self.table_even_background = table_even_background
         self.table_even_background_dark = table_even_background_dark
         self.table_odd_background = table_odd_background
@@ -451,7 +539,26 @@ class Base(Theme):
         self.table_border_color_dark = table_border_color_dark
         self.table_row_focus = table_row_focus
         self.table_row_focus_dark = table_row_focus_dark
+        self.panel_background = panel_background
+        self.panel_background_dark = panel_background_dark
+        self.panel_border_color = panel_border_color
+        self.panel_border_color_dark = panel_border_color_dark
+        self.panel_border_width = panel_border_width
+        self.section_text_size = section_text_size
+        self.section_text_weight = section_text_weight
+        self.header_text_weight = header_text_weight
+        self.prose_text_size = prose_text_size
+        self.prose_text_weight = prose_text_weight
+        self.embed_radius = embed_radius
         # Buttons
+        self.button_large_text_size = button_large_text_size
+        self.button_large_text_weight = button_large_text_weight
+        self.button_small_text_size = button_small_text_size
+        self.button_small_text_weight = button_small_text_weight
+        self.button_large_padding = button_large_padding
+        self.button_small_padding = button_small_padding
+        self.button_small_radius = button_small_radius
+        self.button_large_radius = button_large_radius
         self.button_shadow = button_shadow
         self.button_shadow_hover = button_shadow_hover
         self.button_shadow_active = button_shadow_active

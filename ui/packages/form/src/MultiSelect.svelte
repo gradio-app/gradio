@@ -174,8 +174,9 @@
 <style>
 	.wrap {
 		position: relative;
+		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--color-border-primary);
-		border-radius: var(--radius-input);
+		border-radius: var(--input-radius);
 		background: var(--input-background-base);
 	}
 
@@ -184,21 +185,24 @@
 		position: relative;
 		flex-wrap: wrap;
 		align-items: center;
-		padding: var(--spacing-md);
-		gap: var(--spacing-md);
+		gap: var(--checkbox-label-gap);
+		padding: var(--checkbox-label-gap);
 	}
 
 	.token {
 		display: flex;
 		align-items: center;
+		transition: var(--button-transition);
 		cursor: pointer;
 		box-shadow: var(--checkbox-label-shadow);
-		border: var(--checkbox-label-border-width) solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-button-small);
+		border: var(--checkbox-label-border-width) solid
+			var(--checkbox-label-border-color-base);
+		border-radius: var(--button-small-radius);
 		background: var(--checkbox-label-background-base);
-		padding: var(--spacing-md) var(--spacing-xl);
+		padding: var(--checkbox-label-padding);
 		color: var(--checkbox-color-text);
-		font-size: var(--text-xs);
+		font-weight: var(--checkbox-label-text-weight);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
 	}
 
@@ -234,7 +238,7 @@
 		background: inherit;
 		width: var(--size-full);
 		color: var(--color-text-body);
-		font-size: var(--text-md);
+		font-size: var(--input-text-size);
 	}
 
 	input:disabled {
@@ -257,7 +261,7 @@
 		z-index: var(--layer-5);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--radius-container);
+		border-radius: var(--container-radius);
 		background: var(--color-background-primary);
 		width: var(--size-full);
 		max-height: var(--size-32);

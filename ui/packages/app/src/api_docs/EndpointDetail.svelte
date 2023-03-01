@@ -37,8 +37,8 @@
 	h3 {
 		margin-bottom: var(--size-2);
 		color: var(--color-text-body);
-		font-weight: var(--weight-bold);
-		font-size: var(--text-md);
+		font-weight: var(--header-text-weight);
+		font-size: var(--text-xl);
 	}
 
 	.post {
@@ -50,13 +50,11 @@
 		padding-left: var(--size-1);
 		color: var(--color-accent-base);
 		font-weight: var(--weight-semibold);
-		font-size: var(--text-xs);
 	}
 
 	.endpoint {
 		margin-bottom: var(--size-6);
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
 	}
 
 	.url {
@@ -64,8 +62,6 @@
 		border: none;
 		background: none;
 		padding: var(--size-0-5);
-		font-size: var(--text-xs);
 		font-family: var(--font-mono);
 	}
-
 </style>

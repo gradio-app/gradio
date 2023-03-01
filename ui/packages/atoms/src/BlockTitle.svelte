@@ -4,21 +4,31 @@
 	export let info: string | undefined = undefined;
 </script>
 
-<span class:sr-only={!show_label} class:hide={!show_label}>
-	<slot />
+<div class:margin-bottom={show_label || info}>
+	<span class:sr-only={!show_label} class:hide={!show_label}>
+		<slot />
+	</span>
 	{#if info}
 		<Info>{info}</Info>
 	{/if}
-</span>
+</div>
 
 <style>
+	div.margin-bottom {
+		margin-bottom: var(--spacing-lg);
+	}
 	span {
-		display: block;
+		display: inline-block;
 		position: relative;
 		z-index: var(--layer-4);
-		margin-bottom: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--text-xs);
+		border: solid var(--block-title-border-width)
+			var(--block-title-border-color);
+		border-radius: var(--block-title-radius);
+		background: var(--block-title-background);
+		padding: var(--block-title-padding);
+		color: var(--block-label-color);
+		font-weight: var(--block-title-text-weight);
+		font-size: var(--block-title-text-size);
 		line-height: var(--line-sm);
 	}
 

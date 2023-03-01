@@ -233,7 +233,7 @@
 		margin-right: var(--size-3);
 		margin-left: var(--size-3);
 		color: white;
-		font-size: var(--text-xxs);
+		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
 	.wrap {

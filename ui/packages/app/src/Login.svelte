@@ -85,27 +85,16 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		background: var(--color-background-primary);
-		width: var(--size-full);
 		margin-top: var(--size-3);
-	}
-
-	.panel {
-		display: flex;
-		flex-direction: column;
-		flex-wrap: wrap;
-		gap: var(--size-4);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-secondary);
-		padding: var(--size-8);
+		background: var(--color-background-primary);
 		width: var(--size-full);
 	}
 
 	h2 {
 		margin-bottom: var(--size-3);
 		color: var(--color-text-body);
-		font-weight: var(--weight-semibold);
-		font-size: var(--scale-2);
+		font-weight: var(--header-text-weight);
+		font-size: var(--text-xl);
 	}
 
 	.auth {

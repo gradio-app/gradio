@@ -8,7 +8,7 @@ base_theme = gr.themes.Base()
 default_theme = gr.themes.Default()
 monochrome_theme = gr.themes.Monochrome()
 flow_theme = gr.themes.Flow()
-
+glass_theme = gr.themes.Glass()
 
 with gr.Blocks() as demo:
     gr.Markdown(
@@ -36,7 +36,7 @@ with gr.Blocks() as demo:
         """,
     )
     theme_selector = gr.Radio(
-        ["Base", "Default", "Monochrome", "Flow"], value="Default", label="Theme"
+        ["Base", "Default", "Monochrome", "Flow", "Glass"], value="Default", label="Theme"
     )
     theme_selector.change(
         None,
@@ -59,6 +59,8 @@ with gr.Blocks() as demo:
                 var theme_css = `{monochrome_theme._get_theme_css()}`;
             }} else if (theme == "Flow") {{
                 var theme_css = `{flow_theme._get_theme_css()}`;
+            }} else if (theme == "Glass") {{
+                var theme_css = `{glass_theme._get_theme_css()}`;
             }}
             theme_elem.innerHTML = theme_css;
         }}
@@ -86,7 +88,7 @@ with gr.Blocks() as demo:
                 label="Radio",
                 info="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
             )
-            drop = gr.Dropdown(["Option 1", "Option 2", "Option 3"], label="Dropdown")
+            drop = gr.Dropdown(["Option 1", "Option 2", "Option 3"], show_label=False)
             drop_2 = gr.Dropdown(
                 ["Option A", "Option B", "Option C"],
                 multiselect=True,
@@ -160,8 +162,9 @@ with gr.Blocks() as demo:
         gr.JSON(
             value={"a": 1, "b": 2, "c": {"test": "a", "test2": [1, 2, 3]}}, label="JSON"
         )
-        gr.Label(value={"cat": 0.7, "dog": 0.2, "fish": 0.1})
+        gr.Label(value={"cat": 0.7, "dog": 0.2, "fish": 0.1})        
         gr.File()
+    with gr.Row():
         gr.ColorPicker()
         gr.Video(join(KS_FILES, "world.mp4"))
         gr.Gallery(

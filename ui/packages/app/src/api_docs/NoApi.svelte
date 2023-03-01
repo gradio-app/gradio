@@ -44,7 +44,7 @@
 
 	.attention {
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-3);
+		font-size: var(--text-lg);
 	}
 
 	.attention code {

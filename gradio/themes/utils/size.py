@@ -8,6 +8,7 @@ class Size:
         self.xl = xl
         self.xxl = xxl
 
+
 radius_none = Size(
     xxs="0px",
     xs="0px",
@@ -51,11 +52,11 @@ radius_lg = Size(
 spacing_sm = Size(
     xxs="1px",
     xs="1px",
-    sm="1px",
-    md="2px",
-    lg="4px",
-    xl="6px",
-    xxl="8px",
+    sm="2px",
+    md="4px",
+    lg="6px",
+    xl="9px",
+    xxl="12px",
 )
 
 spacing_md = Size(
@@ -69,42 +70,41 @@ spacing_md = Size(
 )
 
 spacing_lg = Size(
-    xxs="1px",
-    xs="2px",
-    sm="4px",
-    md="6px",
+    xxs="2px",
+    xs="4px",
+    sm="6px",
+    md="8px",
     lg="10px",
     xl="14px",
-    xxl="24px",
+    xxl="28px",
 )
 
 text_sm = Size(
-    xxs="9px",
-    xs="11px",
-    sm="12px",
-    md="14px",
+    xxs="8px",
+    xs="9px",
+    sm="11px",
+    md="13px",
     lg="16px",
-    xl="28px",
-    xxl="20px",
+    xl="20px",
+    xxl="24px",
 )
 
 text_md = Size(
-    xxs="12px",
-    xs="14px",
-    sm="16px",
-    md="18px",
-    lg="20px",
+    xxs="9px",
+    xs="10px",
+    sm="12px",
+    md="14px",
+    lg="16px",
     xl="22px",
     xxl="26px",
 )
 
 text_lg = Size(
-    xxs="14px",
-    xs="16px",
-    sm="18px",
-    md="20px",
-    lg="22px",
+    xxs="10px",
+    xs="12px",
+    sm="14px",
+    md="16px",
+    lg="20px",
     xl="24px",
     xxl="28px",
 )
-

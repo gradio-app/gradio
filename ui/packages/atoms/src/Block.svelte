@@ -59,16 +59,15 @@
 		margin: 0;
 		box-shadow: var(--block-shadow);
 		border-width: var(--block-border-width);
-		border-radius: var(--radius-lg);
+		border-radius: var(--block-radius);
 		background: var(--color-background-tertiary);
 		width: 100%;
 		color: var(--color-text-body);
-		font-size: var(--text-xs);
 		line-height: var(--line-sm);
 	}
 
 	.padded {
-		padding: var(--size-2-5) var(--size-3);
+		padding: var(--block-padding);
 	}
 
 	.hidden {

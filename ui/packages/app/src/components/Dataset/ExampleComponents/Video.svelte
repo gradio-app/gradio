@@ -54,10 +54,10 @@
 		border-color: var(--color-border-accent);
 	}
 	.table {
+		margin: 0 auto;
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;
-		margin: 0 auto;
 	}
 
 	.gallery {

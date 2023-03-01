@@ -110,10 +110,9 @@
 			config.root = BACKEND_URL;
 		}
 
-		mount_css(config.root + "theme.css", document.head)
+		mount_css(config.root + "theme.css", document.head);
 		mount_custom_css(target, config.css);
 		window.__is_colab__ = config.is_colab;
-
 
 		if (config.dev_mode) {
 			reload_check(root);
