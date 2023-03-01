@@ -1,10 +1,10 @@
-# Creating a Dashboard from Supabase Data
+# Create a Dashboard from Supabase Data
 
 Tags: TABULAR, DASHBOARD, PLOTS 
 
-Supabase is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, we will show you how to read data from Supabase plot it in **real-time** on a Gradio Dashboard.
+[Supabase](https://supabase.com/) is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, you will learn how to read data from Supabase and plot it in **real-time** on a Gradio Dashboard.
 
-**Prerequisites:** To start, you will need to have a free Supabase account, which you can sign up for here: https://app.supabase.com/
+**Prerequisites:** To start, you will need a free Supabase account, which you can sign up for here: [https://app.supabase.com/](https://app.supabase.com/)
 
 We'll cover the following steps in this end-to-end Guide:
 
