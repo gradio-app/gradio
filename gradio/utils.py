@@ -117,16 +117,19 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
+    def initiated_telemetry_thread(data: Dict[str, Any]) -> None:
+        try:
+            send_telemetry(
+                topic="gradio/initiated",
+                library_name="gradio",
+                library_version=GRADIO_VERSION,
+                user_agent=data,
+            )
+        except Exception as e:
+            print("Error while sending telemetry: {}".format(e))
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
-    try:
-        send_telemetry(
-            topic="gradio/initiated",
-            library_name="gradio",
-            library_version=GRADIO_VERSION,
-            user_agent=data,
-        )
-    except Exception as e:
-        print("Error while sending telemetry: {}".format(e))
+    threading.Thread(target=initiated_telemetry_thread, args=(data,)).start()
+    
 
 
 def launch_analytics(data: Dict[str, Any]) -> None:
@@ -189,16 +192,18 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     }
 
     data.update(additional_data)
-    try:
-        send_telemetry(
-            topic="gradio/launched",
-            library_name="gradio",
-            library_version=GRADIO_VERSION,
-            user_agent=data,
-        )
-    except Exception as e:
-        print("Error while sending telemetry: {}".format(e))
-
+    def launched_telemtry_thread(data: Dict[str, Any]) -> None:
+        try:
+            send_telemetry(
+                topic="gradio/launched",
+                library_name="gradio",
+                library_version=GRADIO_VERSION,
+                user_agent=data,
+            )
+        except Exception as e:
+            print("Error while sending telemetry: {}".format(e))
+    
+    threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
 
 def integration_analytics(data: Dict[str, Any]) -> None:
     data.update({"ip_address": get_local_ip_address()})
@@ -211,16 +216,18 @@ def integration_analytics(data: Dict[str, Any]) -> None:
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
+    def integration_telemetry_thread(data: Dict[str, Any]) -> None:
+        try:
+            send_telemetry(
+                topic="gradio/integration",
+                library_name="gradio",
+                library_version=GRADIO_VERSION,
+                user_agent=data,
+            )
+        except Exception as e:
+            print("Error while sending telemetry: {}".format(e))
     threading.Thread(target=integration_analytics_thread, args=(data,)).start()
-    try:
-        send_telemetry(
-            topic="gradio/integration",
-            library_name="gradio",
-            library_version=GRADIO_VERSION,
-            user_agent=data,
-        )
-    except Exception as e:
-        print("Error while sending telemetry: {}".format(e))
+    threading.Thread(target=integration_telemetry_thread, args=(data,)).start()
 
 
 def error_analytics(message: str) -> None:
@@ -239,16 +246,18 @@ def error_analytics(message: str) -> None:
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
+    def error_telemetry_thread(data: Dict[str, Any]) -> None:
+        try:
+            send_telemetry(
+                topic="gradio/error",
+                library_name="gradio",
+                library_version=GRADIO_VERSION,
+                user_agent=message,
+            )
+        except Exception as e:
+            print("Error while sending telemetry: {}".format(e))
     threading.Thread(target=error_analytics_thread, args=(data,)).start()
-    try:
-        send_telemetry(
-            topic="gradio/error",
-            library_name="gradio",
-            library_version=GRADIO_VERSION,
-            user_agent=message,
-        )
-    except Exception as e:
-        print("Error while sending telemetry: {}".format(e))
+    threading.Thread(target=error_telemetry_thread, args=(data,)).start()
 
 
 async def log_feature_analytics(feature: str) -> None:
