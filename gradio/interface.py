@@ -14,6 +14,7 @@ import sys
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+
 from huggingface_hub.utils import send_telemetry
 
 from gradio import Examples, interpretation, utils
@@ -41,6 +42,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 GRADIO_VERSION = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 )
+
 
 @document("launch", "load", "from_pipeline", "integrate", "queue")
 class Interface(Blocks):
