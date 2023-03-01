@@ -462,7 +462,6 @@
 			auth_message={config.auth_message}
 			root={config.root}
 			is_space={config.is_space}
-			id={_id}
 			{app_mode}
 		/>
 	{/if}

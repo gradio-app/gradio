@@ -588,7 +588,7 @@
 		<div class="controls-wrap">
 			{#if row_count[1] === "dynamic"}
 				<span class="button-wrap">
-					<Button variant="plain" size="sm" on:click={() => add_row()}>
+					<Button variant="secondary" size="sm" on:click={() => add_row()}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -610,7 +610,7 @@
 			{/if}
 			{#if col_count[1] === "dynamic"}
 				<span class="button-wrap">
-					<Button variant="plain" size="sm" on:click={add_col}>
+					<Button variant="secondary" size="sm" on:click={add_col}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							xmlns:xlink="http://www.w3.org/1999/xlink"

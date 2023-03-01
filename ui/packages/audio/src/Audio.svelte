@@ -259,7 +259,7 @@
 	{#if source === "microphone"}
 		<div class="mic-wrap">
 			{#if recording}
-				<Button size="sm" class="stop-button" on:click={stop}>
+				<Button size="sm" on:click={stop}>
 					<span class="record-icon">
 						<span class="pinger" />
 						<span class="dot" />
@@ -315,11 +315,6 @@
 	.mic-wrap {
 		position: absolute;
 		padding: var(--size-2);
-	}
-
-	.stop-button {
-		background: rgba(239 68 68 / 0.1);
-		color: var(--color-red-500);
 	}
 
 	.record-icon {

@@ -1,9 +1,6 @@
 import gradio as gr
 import random
 import time
-# from gradio.themes import Base
-
-# theme = Base()
 
 def xray_model(diseases, img):
     time.sleep(4)
