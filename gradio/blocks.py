@@ -1068,6 +1068,7 @@ class Blocks(BlockContext):
             "version": routes.VERSION,
             "mode": self.mode,
             "dev_mode": self.dev_mode,
+            "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
             "title": self.title or "Gradio",
