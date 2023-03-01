@@ -496,7 +496,6 @@
 
 	a:hover {
 		color: var(--color-text-link-hover);
-		text-decoration: underline;
 	}
 
 	a:visited {

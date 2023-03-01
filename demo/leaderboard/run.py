@@ -21,7 +21,7 @@ def get_blocks_party_spaces():
 block = gr.Blocks()
 
 with block:    
-    gr.Markdown("""Leaderboard for the most popular Blocks Event Spaces. To learn more and join, see <a href="https://huggingface.co/Gradio-Blocks" target="_blank" style="text-decoration: underline">Blocks Party Event</a>""")
+    gr.Markdown("""Leaderboard for the most popular Blocks Event Spaces. To learn more and join, see <a href="https://huggingface.co/Gradio-Blocks" target="_blank">Blocks Party Event</a>""")
     with gr.Tabs():
         with gr.TabItem("Blocks Party Leaderboard"):
             with gr.Row():

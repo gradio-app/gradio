@@ -12,7 +12,6 @@
 .prose a {
 	color: #111827;
 	font-weight: 500;
-	text-decoration: underline;
 }
 .prose strong {
 	color: #111827;
@@ -1090,7 +1089,6 @@
 	.sm\:prose a {
 		color: #111827;
 		font-weight: 500;
-		text-decoration: underline;
 	}
 	.sm\:prose strong {
 		color: #111827;
@@ -2169,7 +2167,6 @@
 	.md\:prose a {
 		color: #111827;
 		font-weight: 500;
-		text-decoration: underline;
 	}
 	.md\:prose strong {
 		color: #111827;
@@ -3248,7 +3245,6 @@
 	.lg\:prose a {
 		color: #111827;
 		font-weight: 500;
-		text-decoration: underline;
 	}
 	.lg\:prose strong {
 		color: #111827;
@@ -4327,7 +4323,6 @@
 	.xl\:prose a {
 		color: #111827;
 		font-weight: 500;
-		text-decoration: underline;
 	}
 	.xl\:prose strong {
 		color: #111827;
@@ -5406,7 +5401,6 @@
 	.\32xl\:prose a {
 		color: #111827;
 		font-weight: 500;
-		text-decoration: underline;
 	}
 	.\32xl\:prose strong {
 		color: #111827;

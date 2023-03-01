@@ -65,9 +65,6 @@
 		padding: var(--size-1) var(--size-2-5);
 	}
 
-	.download:hover {
-		text-decoration: underline;
-	}
 	.download > a {
 		color: var(--color-text-link-base);
 	}

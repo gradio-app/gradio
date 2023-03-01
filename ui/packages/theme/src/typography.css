@@ -169,7 +169,6 @@
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .prose a {
 	color: var(--color-text-link-base);
-	text-decoration: underline;
 }
 
 .prose a:visited {

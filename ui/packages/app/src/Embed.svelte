@@ -186,8 +186,4 @@
 		margin-bottom: 4px;
 		height: 12px;
 	}
-
-	a:hover {
-		text-decoration: underline;
-	}
 </style>
