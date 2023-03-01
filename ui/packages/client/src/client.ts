@@ -210,6 +210,7 @@ export async function client(
 									eta: output.average_duration,
 									queue: false
 								});
+								fire_event({ type: "data", data: output.data });
 							} else {
 								fire_event({
 									type: "status",
@@ -218,7 +219,6 @@ export async function client(
 									queue: false
 								});
 							}
-							fire_event({ type: "data", data: output.data });
 						})
 						.catch((e) => {
 							fire_event({
@@ -227,6 +227,7 @@ export async function client(
 								message: e.message,
 								queue: false
 							});
+							console.log(e.trace);
 							throw new Error(e.message);
 						});
 				} else {
