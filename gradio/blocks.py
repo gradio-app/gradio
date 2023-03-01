@@ -585,7 +585,7 @@ class Blocks(BlockContext):
 
         derived_fields = ["types"]
 
-        with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+        with Blocks(theme=config["theme"]) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -1061,6 +1061,7 @@ class Blocks(BlockContext):
             "version": routes.VERSION,
             "mode": self.mode,
             "dev_mode": self.dev_mode,
+            "analytics_enabled": self.analytics_enabled,
             "components": [],
             "theme": self.theme,
             "css": self.css,
