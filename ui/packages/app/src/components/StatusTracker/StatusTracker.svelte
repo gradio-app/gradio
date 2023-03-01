@@ -453,11 +453,10 @@
 		align-items: center;
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
-		box-shadow: var(--shadow-drop-lg-xl);
-		border: 1px solid var(--functional-error-color-border);
-		border-radius: var(--radius-container);
-		background: var(--color-background-secondary);
-		background: var(--functional-error-color-background);
+		box-shadow: var(--shadow-drop-lg);
+		border: 1px solid var(--functional-error-border-color);
+		border-radius: var(--container-radius);
+		background: var(--functional-error-background-color);
 		padding: var(--size-4) var(--size-6);
 		max-width: 1200px;
 		max-width: 610px;
