@@ -355,14 +355,13 @@
 							} else {
 								if (backend_fn) {
 									make_prediction();
+									loading_status.update({
+										fn_index: i,
+										status: "pending",
+										queue: prediction_map[i].queue
+									});
 								}
 							}
-
-							loading_status.update({
-								fn_index: i,
-								status: "pending",
-								queue: prediction_map[i].queue
-							});
 
 							function make_prediction() {
 								prediction_map[i] = app
@@ -440,7 +439,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
