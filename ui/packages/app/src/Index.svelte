@@ -265,7 +265,7 @@
 	loaded={loader_status === "complete"}
 	bind:wrapper
 >
-	{#if loader_status === "pending" || loader_status === "error"}
+	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
 		<Loader
 			absolute={!is_embed}
 			status={loader_status}

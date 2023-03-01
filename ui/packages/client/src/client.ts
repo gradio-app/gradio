@@ -93,7 +93,7 @@ export async function client(
 
 		function config_success(_config: Config) {
 			config = _config;
-			api_map = map_names_to_ids(_config.dependencies);
+			api_map = map_names_to_ids(_config?.dependencies || []);
 			return {
 				config,
 				predict
