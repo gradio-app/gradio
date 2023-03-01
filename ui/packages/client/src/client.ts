@@ -148,7 +148,6 @@ export async function client(
 			const listener_map: ListenerMap<EventType> = {};
 
 			function cancel(endpoint: string | number) {
-				console.log("CANCEL");
 				const _index =
 					typeof endpoint === "string" ? api_map[endpoint] : endpoint;
 				fire_event({
@@ -184,7 +183,6 @@ export async function client(
 			}
 
 			function fire_event<K extends EventType>(event: Event<K>) {
-				console.log(event);
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
 				let listeners = narrowed_listener_map[event.type] || [];
 				listeners?.forEach((l) => l(event));
@@ -227,7 +225,6 @@ export async function client(
 								message: e.message,
 								queue: false
 							});
-							console.log(e.trace);
 							throw new Error(e.message);
 						});
 				} else {
@@ -284,7 +281,6 @@ export async function client(
 							});
 						}
 						if (data) {
-							console.log("DATA");
 							fire_event({ type: "data", data: data.data });
 						}
 					};
@@ -444,7 +440,6 @@ function handle_message(
 	data?: any;
 	status?: Status;
 } {
-	console.log(data.msg);
 	const queue = true;
 	switch (data.msg) {
 		case "send_data":

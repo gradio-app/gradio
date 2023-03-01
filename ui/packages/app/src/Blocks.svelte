@@ -213,7 +213,6 @@
 		obj.props[prop] = val;
 		rootNode = rootNode;
 	}
-	$: console.log(JSON.parse(JSON.stringify($loading_status)));
 	let handled_dependencies: Array<number[]> = [];
 
 	let prediction_map: Record<string, ReturnType<typeof app.predict>> = {};
