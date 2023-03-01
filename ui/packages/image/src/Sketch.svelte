@@ -52,7 +52,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					const image = get_image_details();
+					const image = draw_cropped_image();
 					ctx.temp.drawImage(
 						value_img,
 						image.x,
@@ -113,7 +113,7 @@
 	let canvas_observer = null;
 	let line_count = 0;
 
-	function get_image_details() {
+	function draw_cropped_image() {
 		if (!shape) return { x: 0, y: 0, width, height };
 		let _width = value_img.naturalWidth;
 		let _height = value_img.naturalHeight;
@@ -132,14 +132,14 @@
 			_width = shape[0];
 			_height = shape[0] / image_ratio;
 			y = (shape[1] - _height) / 2;
+		} else {
+			x = 0;
+			y = 0;
+			_width = shape[0];
+			_height = shape[1];
 		}
 
-		return {
-			x,
-			y,
-			width: _width,
-			height: _height
-		};
+		ctx.temp.drawImage(value_img, x, y, _width, _height);
 	}
 
 	onMount(async () => {
@@ -158,15 +158,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					const image = get_image_details();
-
-					ctx.temp.drawImage(
-						value_img,
-						image.x,
-						image.y,
-						image.width,
-						image.height
-					);
+					draw_cropped_image();
 				}
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
 
@@ -181,14 +173,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					const image = get_image_details();
-					ctx.temp.drawImage(
-						value_img,
-						image.x,
-						image.y,
-						image.width,
-						image.height
-					);
+					draw_cropped_image();
 				}
 
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
@@ -250,14 +235,7 @@
 				ctx.temp.drawImage(value_img, 0, 0);
 				ctx.temp.restore();
 			} else {
-				const image = get_image_details();
-				ctx.temp.drawImage(
-					value_img,
-					image.x,
-					image.y,
-					image.width,
-					image.height
-				);
+				draw_cropped_image();
 			}
 
 			if (!lines || !lines.length) {
