@@ -87,7 +87,13 @@
 
 	$: can_zoom = window_height >= height;
 
-	$: ({ styles } = get_styles(style, ["grid"]));
+	function add_height_to_styles(style: Styles): string {
+		styles = get_styles(style, ["grid"]).styles;
+
+		return styles + ` height: ${style.height}`;
+	}
+
+	$: styles = add_height_to_styles(style);
 
 	let height = 0;
 	let window_height = 0;
@@ -151,7 +157,7 @@
 	<div
 		bind:clientHeight={height}
 		class="grid-wrap"
-		class:fixed-height={style.height !== "auto"}
+		class:fixed-height={!style.height || style.height == "auto"}
 	>
 		<div class="grid-container" style={styles} class:pt-6={show_label}>
 			{#each _value as [image, caption], i}
