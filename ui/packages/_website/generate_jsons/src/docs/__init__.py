@@ -104,7 +104,7 @@ def style_types():
             ]:
                 if tag not in cls["tags"]:
                     continue
-                cls["tags"][tag] = (
+                cls[tag] = (
                     cls["tags"][tag]
                     .replace(
                         "{",
@@ -141,72 +141,157 @@ def find_cls(target_cls):
     raise ValueError("Class not found")
 
 
-def build_page(obj, prev_obj, next_obj, is_component):
-
-    output = {
-            "obj": obj,
-            "is_class": True,
-            "parent": "gradio",
-            "is_component": is_component,
-            "prev_obj": prev_obj,
-            "next_obj": next_obj,
-            "ordered_events": ordered_events,
-    }
-    return output
-    
-    
-def generate(json_path):
-        flagging_obj = {
-            "name": "Flagging",
-            "description": """A Gradio Interface includes a 'Flag' button that appears
-                underneath the output. By default, clicking on the Flag button sends the input and output
-                data back to the machine where the gradio demo is running, and saves it to a CSV log file.
-                But this default behavior can be changed. To set what happens when the Flag button is clicked,
-                you pass an instance of a subclass of <em>FlaggingCallback</em> to the <em>flagging_callback</em> parameter
-                in the <em>Interface</em> constructor. You can use one of the <em>FlaggingCallback</em> subclasses
-                that are listed below, or you can create your own, which lets you do whatever
-                you want with the data that is being flagged.""",
-        }
-        combining_interfaces_obj = {
-            "name": "Combining-Interfaces",
-            "description": """Once you have created several Interfaces, we provide several classes that let you
-                start combining them together. For example, you can chain them in <em>Series</em>
-                or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly.
-                You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>."""
-        }
-        block_layouts_obj = {
-            "name": "Block-Layouts",
-            "description": """Customize the layout of your Blocks UI with the layout classes below."""
-        }
-
-        documented_obj = [(find_cls("Interface"), False), (flagging_obj, False), (combining_interfaces_obj, False), (find_cls("Blocks"), False), (block_layouts_obj, False)]
-        documented_obj.extend([(c, True) for c in docs["component"]])
-        documented_obj.extend([(c, False) for c in docs["helpers"]])
-        documented_obj.extend([(c, False) for c in docs["routes"]])
-
-        for obj in documented_obj:
-            obj[0]["class"] = None
-            if "returns" in obj[0]:
-            obj[0]["returns"]["annotation"] = None
-            for p in obj[0].get("parameters", []):
+def organize_docs(d):
+    organized = {"building": {}, 
+                 "components": {}, 
+                 "helpers": {}, 
+                 "routes": {}, 
+                 "events": {}}
+    pages = []
+    for mode in d:
+        for c in d[mode]: 
+            c["parent"] = "gradio"
+            c["class"] = None
+            if "returns" in c:
+                c["returns"]["annotation"] = None
+            for p in c.get("parameters", []):
                 p["annotation"] = str(p["annotation"])
-            for f in obj[0].get("fns", []):
+            for f in c["fns"]:
                 f["fn"] = None
+                f["parent"] = "gradio." + c["name"]
                 for p in f.get("parameters", []):
                     p["annotation"] = str(p["annotation"])
+            if mode == "component":
+                organized["components"][c["name"].lower()] = c
+                pages.append(c["name"].lower())
+            elif mode in ["helpers", "routes"]:
+                organized[mode][c["name"].lower()] = c
+                pages.append(c["name"].lower())
+            else:
+                if mode not in organized["building"]:
+                    organized["building"][mode] = {}
+                organized["building"][mode][c["name"].lower()] = c
+
+    c_keys = list(organized["components"].keys())
+    for i, cls in enumerate(organized["components"]):
+        if not i: 
+            organized["components"][cls]["prev_obj"] = "Components"
+        elif i == len(c_keys) - 1:
+            organized["components"][cls]["next_obj"] = "Routes"
+        else:
+            organized["components"][cls]["prev_obj"] = organized["components"][c_keys[i-1]]["name"]
+            organized["components"][cls]["next_obj"] = organized["components"][c_keys[i+1]]["name"]
+    return {"docs": organized, "pages": pages}
+
+docs = organize_docs(docs)
+    
+def generate(json_path):
+        # flagging_obj = {
+        #     "name": "Flagging",
+        #     "description": """A Gradio Interface includes a 'Flag' button that appears
+        #         underneath the output. By default, clicking on the Flag button sends the input and output
+        #         data back to the machine where the gradio demo is running, and saves it to a CSV log file.
+        #         But this default behavior can be changed. To set what happens when the Flag button is clicked,
+        #         you pass an instance of a subclass of <em>FlaggingCallback</em> to the <em>flagging_callback</em> parameter
+        #         in the <em>Interface</em> constructor. You can use one of the <em>FlaggingCallback</em> subclasses
+        #         that are listed below, or you can create your own, which lets you do whatever
+        #         you want with the data that is being flagged.""",
+        # }
+        # combining_interfaces_obj = {
+        #     "name": "Combining-Interfaces",
+        #     "description": """Once you have created several Interfaces, we provide several classes that let you
+        #         start combining them together. For example, you can chain them in <em>Series</em>
+        #         or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly.
+        #         You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>."""
+        # }
+        # block_layouts_obj = {
+        #     "name": "Block-Layouts",
+        #     "description": """Customize the layout of your Blocks UI with the layout classes below."""
+        # }
+
+        # documented_obj = [(find_cls("Interface"), False), (flagging_obj, False), (combining_interfaces_obj, False), (find_cls("Blocks"), False), (block_layouts_obj, False)]
+        # documented_obj.extend([(c, True) for c in docs["component"]])
+        # documented_obj.extend([(c, False) for c in docs["helpers"]])
+        # documented_obj.extend([(c, False) for c in docs["routes"]])
+
+        # for obj in documented_obj:
+        #     obj[0]["class"] = None
+        #     if "returns" in obj[0]:
+        #         obj[0]["returns"]["annotation"] = None
+        #     for p in obj[0].get("parameters", []):
+        #         p["annotation"] = str(p["annotation"])
+        #     for f in obj[0].get("fns", []):
+        #         f["fn"] = None
+        #         for p in f.get("parameters", []):
+        #             p["annotation"] = str(p["annotation"])
     
 
-        docs_obj = {}
+        # docs_obj = {}
 
-        for index, obj in enumerate(documented_obj):
-            if index == 0: 
-                prev_obj, next_obj = None, documented_obj[1][0]
-            elif index == len(documented_obj) - 1:
-                prev_obj, next_obj = documented_obj[-2][0], None
-            else: 
-                prev_obj, next_obj = documented_obj[index-1][0], documented_obj[index+1][0]
-            docs_obj[obj[0]["name"].lower()] = build_page(obj=obj[0], prev_obj=prev_obj, next_obj=next_obj, is_component=obj[1])
+        # for index, obj in enumerate(documented_obj):
+        #     if index == 0: 
+        #         prev_obj, next_obj = None, documented_obj[1][0]
+        #     elif index == len(documented_obj) - 1:
+        #         prev_obj, next_obj = documented_obj[-2][0], None
+        #     else: 
+        #         prev_obj, next_obj = documented_obj[index-1][0], documented_obj[index+1][0]
+        #     docs_obj[obj[0]["name"].lower()] = build_page(obj=obj[0], prev_obj=prev_obj, next_obj=next_obj, is_component=obj[1])
         
         
         with open(json_path, "w+") as f:
-            json.dump(docs_obj, f)
+            json.dump(docs, f)
+
+
+
+# docs = {
+#     "building" :
+#         {
+#             "interface"  :  {
+#                 "name" : "Interface",
+#                 "prev_obj" : {
+#                     "name" : "Flagging",
+#                     "url" : "flagging"
+#                 },
+#                 "next_obj" : {
+#                     "name" : "Flagging",
+#                     "url" : "flagging"
+#                 },
+#                 "parent": "gradio",
+#                 "demos": ["", ""],
+#                 "override_signature": None,
+#                 "parameters" ...
+#                 "description" ...
+#                 "preprocessing" ...
+#                 "postprocessing" ...
+#                 "examples-format" ...
+#                 "events" ...
+#                 "example" ...
+#                 "string_shortcuts" ...
+#                 "guides"
+
+#                 "fns": 
+#                     [       ]
+
+
+
+
+
+#             },
+#             "flagging" : ,
+#             "combining-interfaces" : ,
+#             "blocks" : ,
+#             "block-layouts" : ,
+#         }, ...
+#     "components": [
+    
+#     ],
+#     "helpers": [
+    
+#     ],
+#     "routes": [
+    
+#     ]
+#     "events": [
+    
+#     ]
+# }
