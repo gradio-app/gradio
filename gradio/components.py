@@ -40,6 +40,7 @@ from gradio.events import (
     Clickable,
     Editable,
     Playable,
+    Releaseable,
     Streamable,
     Submittable,
     Uploadable,
@@ -616,7 +617,12 @@ class Number(
 
 @document("change", "style")
 class Slider(
-    FormComponent, Changeable, Blurrable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Changeable,
+    Releaseable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
@@ -624,7 +630,7 @@ class Slider(
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
 
-    Demos: sentence_builder, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
+    Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create_your_own_friends_with_a_gan
     """
 
