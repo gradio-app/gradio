@@ -35,7 +35,9 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 </table>
 </center>
 
-5. Click Save to save the table. Our schema is now ready!
+5. Click Save to save the table. 
+
+Our schema is now ready!
 
 
 ## Writing data to Supabase
