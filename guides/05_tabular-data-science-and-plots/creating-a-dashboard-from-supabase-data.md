@@ -24,7 +24,7 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 
 3. You'll be presented with your API keys while the database spins up (can take up to 2 minutes). 
 
-4. Click on "Table Editor" (the table icon) in the left pane to create a new table. We'll create a single table called `Product`, with the following schema:
+4. Click on "Table Editor" (the table icon) in the left pane to create a new table. Create a single table called `Product`, with the following schema:
 
 <center>
 <table>
