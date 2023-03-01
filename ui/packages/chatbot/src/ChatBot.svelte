@@ -125,7 +125,7 @@
 	}
 
 	.user {
-		border-color: var(--color-accent-base);
+		border-color: var(--color-accent);
 		border-bottom-right-radius: 0;
 		background: var(--color-border-accent);
 	}

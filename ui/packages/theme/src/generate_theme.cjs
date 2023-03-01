@@ -275,9 +275,9 @@ const theme_light = {
 			},
 			text: {
 				color: {
-					base: "var(--color-text-body)",
-					hover: "var(--color-text-body)",
-					focus: "var(--color-text-body)"
+					base: "var(--body-text-color)",
+					hover: "var(--body-text-color)",
+					focus: "var(--body-text-color)"
 				}
 			},
 			background: {
@@ -563,9 +563,9 @@ const theme_dark = {
 			},
 			text: {
 				color: {
-					base: "var(--color-text-body)",
-					hover: "var(--color-text-body)",
-					focus: "var(--color-text-body)"
+					base: "var(--body-text-color)",
+					hover: "var(--body-text-color)",
+					focus: "var(--body-text-color)"
 				}
 			},
 			background: {

@@ -223,7 +223,7 @@
 		align-items: center;
 		width: var(--size-full);
 		height: var(--size-full);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 	.altair {
 		display: flex;

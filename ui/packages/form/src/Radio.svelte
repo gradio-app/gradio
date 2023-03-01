@@ -54,11 +54,11 @@
 		cursor: pointer;
 		box-shadow: var(--checkbox-label-shadow);
 		border: var(--checkbox-label-border-width) solid
-			var(--checkbox-label-border-color-base);
+			var(--checkbox-label-border-color);
 		border-radius: var(--button-small-radius);
-		background: var(--checkbox-label-background-base);
+		background: var(--checkbox-label-background);
 		padding: var(--checkbox-label-padding);
-		color: var(--checkbox-color-text);
+		color: var(--checkbox-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
@@ -72,7 +72,7 @@
 	}
 	label.selected {
 		background: var(--checkbox-label-background-selected);
-		color: var(--checkbox-color-text-selected);
+		color: var(--checkbox-text-color-selected);
 	}
 
 	label > * + * {
@@ -83,9 +83,9 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow: var(--checkbox-shadow);
-		border: var(--checkbox-border-width) solid var(--checkbox-border-color-base);
+		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
 		border-radius: var(--radius-full);
-		background-color: var(--checkbox-background-base);
+		background-color: var(--checkbox-background);
 		line-height: var(--line-sm);
 	}
 
@@ -100,7 +100,6 @@
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-ring);
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-focus);
 	}

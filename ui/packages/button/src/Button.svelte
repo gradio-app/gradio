@@ -54,9 +54,9 @@
 
 	.primary {
 		border: var(--button-border-width) solid
-			var(--button-primary-border-color-base);
-		background: var(--button-primary-background-base);
-		color: var(--button-primary-text-color-base);
+			var(--button-primary-border-color);
+		background: var(--button-primary-background);
+		color: var(--button-primary-text-color);
 	}
 	.primary:hover,
 	.primary[disabled] {
@@ -67,9 +67,9 @@
 
 	.secondary {
 		border: var(--button-border-width) solid
-			var(--button-secondary-border-color-base);
-		background: var(--button-secondary-background-base);
-		color: var(--button-secondary-text-color-base);
+			var(--button-secondary-border-color);
+		background: var(--button-secondary-background);
+		color: var(--button-secondary-text-color);
 	}
 
 	.secondary:hover,
@@ -81,9 +81,9 @@
 
 	.stop {
 		border: var(--button-border-width) solid
-			var(--button-cancel-border-color-base);
-		background: var(--button-cancel-background-base);
-		color: var(--button-cancel-text-color-base);
+			var(--button-cancel-border-color);
+		background: var(--button-cancel-background);
+		color: var(--button-cancel-text-color);
 	}
 
 	.stop:hover,

@@ -184,7 +184,7 @@
 		display: inline-block;
 		width: var(--size-full);
 		max-width: var(--size-full);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.hide {

@@ -253,11 +253,6 @@
 		border-color: var(--color-border-accent);
 	}
 
-	.thumbnail-item:focus {
-		--ring-color: var(--color-focus-secondary);
-		border-color: var(--color-focus-secondary);
-	}
-
 	.thumbnail-small {
 		flex: none;
 		transform: scale(0.9);
@@ -267,14 +262,9 @@
 	}
 
 	.thumbnail-small.selected {
-		--ring-color: var(--color-accent-base);
+		--ring-color: var(--color-accent);
 		transform: scale(1);
-		border-color: var(--color-accent-base);
-	}
-
-	.thumbnail-small.selected:focus {
-		--ring-color: var(--color-focus-secondary) !important;
-		border-color: var(--color-focus-secondary) !important;
+		border-color: var(--color-accent);
 	}
 
 	.thumbnail-small > img {

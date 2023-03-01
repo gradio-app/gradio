@@ -96,7 +96,7 @@ const data = await data.json();
 		align-items: center;
 		margin-top: var(--size-8);
 		margin-bottom: var(--size-3);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--weight-bold);
 	}
 
@@ -121,27 +121,27 @@ const data = await data.json();
 
 		border-radius: var(--radius-md);
 		padding: var(--size-1) var(--size-1-5);
-		color: var(--color-text-subdued);
-		color: var(--color-text-body);
+		color: var(--text-color-subdued);
+		color: var(--body-text-color);
 		line-height: 1;
 		user-select: none;
 		text-transform: capitalize;
 	}
 
 	.current-lang {
-		border: 1px solid var(--color-text-subdued);
-		color: var(--color-text-body);
+		border: 1px solid var(--text-color-subdued);
+		color: var(--body-text-color);
 	}
 
 	.inactive-lang {
 		cursor: pointer;
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 	}
 
 	.inactive-lang:hover,
 	.inactive-lang:focus {
 		box-shadow: var(--shadow-drop);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.snippet img {
@@ -151,7 +151,7 @@ const data = await data.json();
 
 	code pre {
 		overflow-x: auto;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-family: var(--font-mono);
 		tab-size: 2;
 	}

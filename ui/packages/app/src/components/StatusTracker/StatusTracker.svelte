@@ -307,7 +307,7 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
-		background-color: var(--color-background-tertiary);
+		background-color: var(--color-background-primary);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
@@ -333,7 +333,7 @@
 
 	.generating {
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-		border: 2px solid var(--color-accent-base);
+		border: 2px solid var(--color-accent);
 		background: transparent;
 	}
 
@@ -353,7 +353,7 @@
 
 	.loading {
 		z-index: var(--layer-2);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 	.eta-bar {
 		position: absolute;
@@ -375,7 +375,7 @@
 	}
 	.progress-bar {
 		transform-origin: left;
-		background-color: var(--color-accent-base);
+		background-color: var(--color-accent);
 		width: var(--size-full);
 		height: var(--size-full);
 	}
@@ -391,7 +391,7 @@
 
 	.progress-level-inner {
 		margin: var(--size-2) auto;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
@@ -428,7 +428,7 @@
 		background: rgba(255, 0, 0, 0.2);
 		padding-right: var(--size-4);
 		padding-left: var(--size-4);
-		color: var(--color-functional-error-base);
+		color: var(--functional-error-color);
 		font-weight: var(--weight-semibold);
 		font-size: var(--text-xl);
 		line-height: var(--line-lg);
@@ -454,10 +454,10 @@
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg-xl);
-		border: 1px solid var(--color-functional-error-border);
+		border: 1px solid var(--functional-error-color-border);
 		border-radius: var(--radius-container);
 		background: var(--color-background-secondary);
-		background: var(--color-functional-error-background);
+		background: var(--functional-error-color-background);
 		padding: var(--size-4) var(--size-6);
 		max-width: 1200px;
 		max-width: 610px;
@@ -469,7 +469,7 @@
 		display: flex;
 		align-items: center;
 		padding: var(--size-1) var(--size-3);
-		color: var(--color-functional-error-base);
+		color: var(--functional-error-color);
 		color: var(--color-red-500);
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);

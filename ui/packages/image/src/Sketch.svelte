@@ -595,6 +595,6 @@
 		z-index: var(--layer-4);
 		touch-action: none;
 		pointer-events: none;
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 	}
 </style>

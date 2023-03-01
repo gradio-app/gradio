@@ -36,7 +36,7 @@
 <style>
 	h3 {
 		margin-bottom: var(--size-2);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--header-text-weight);
 		font-size: var(--text-xl);
 	}
@@ -48,13 +48,13 @@
 		background: var(--color-accent-soft);
 		padding-right: var(--size-1);
 		padding-left: var(--size-1);
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 		font-weight: var(--weight-semibold);
 	}
 
 	.endpoint {
 		margin-bottom: var(--size-6);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.url {

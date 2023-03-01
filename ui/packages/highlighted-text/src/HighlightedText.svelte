@@ -219,7 +219,7 @@
 		margin-right: calc(var(--size-1) * -1);
 		border-radius: var(--radius-xs);
 		padding: 1px 5px;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		color: white;
 		font-weight: var(--weight-bold);
 		font-size: var(--text-sm);
@@ -231,7 +231,7 @@
 	}
 
 	.score-text .text {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.score-text {
@@ -240,10 +240,10 @@
 	}
 
 	.no-cat {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.no-label {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 </style>

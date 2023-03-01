@@ -43,7 +43,7 @@
 		justify-content: center;
 		align-items: center;
 		padding: var(--size-6) var(--size-4);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--weight-bold);
 		font-size: var(--text-xxl);
 	}
@@ -53,7 +53,7 @@
 		justify-content: space-between;
 		align-items: flex-start;
 		margin-bottom: var(--size-2);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		line-height: var(--line-none);
 		font-family: var(--font-mono);
 	}
@@ -69,7 +69,7 @@
 	.bar {
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
-		background: var(--color-stat-background);
+		background: var(--stat-color-background);
 		height: var(--size-1);
 	}
 
@@ -83,7 +83,7 @@
 	}
 
 	.confidence-set:hover .label {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	.text {

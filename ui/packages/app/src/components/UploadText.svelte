@@ -29,7 +29,7 @@
 	}
 
 	.or {
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 	}
 
 	@media (--screen-md) {

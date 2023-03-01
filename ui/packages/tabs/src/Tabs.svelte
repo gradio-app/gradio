@@ -90,18 +90,18 @@
 		border-top-right-radius: var(--container-radius);
 		border-top-left-radius: var(--container-radius);
 		padding: var(--size-1) var(--size-4);
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 		font-weight: var(--section-text-weight);
 		font-size: var(--section-text-size);
 	}
 
 	button:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 	.selected {
 		border-color: var(--color-border-primary);
 		background-color: var(--color-background-primary);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.bar {

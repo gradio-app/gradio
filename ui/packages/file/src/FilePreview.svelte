@@ -57,7 +57,7 @@
 		width: var(--size-full);
 		max-height: var(--size-60);
 		overflow-y: auto;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 	.file {
 		width: var(--size-full);
@@ -71,16 +71,16 @@
 		text-decoration: underline;
 	}
 	.download > a {
-		color: var(--color-text-link-base);
+		color: var(--text-color-link);
 	}
 
 	.download > a:hover {
-		color: var(--color-text-link-hover);
+		color: var(--text-color-link-hover);
 	}
 	.download > a:visited {
-		color: var(--color-text-link-visited);
+		color: var(--text-color-link-visited);
 	}
 	.download > a:active {
-		color: var(--color-text-link-active);
+		color: var(--text-color-link-active);
 	}
 </style>

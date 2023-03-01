@@ -18,7 +18,7 @@
 
 	const color_style = {
 		grey: "var(--color-border-primary)",
-		green: "var(--color-functional-success)"
+		green: "var(--functional-success-color)"
 	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
@@ -60,9 +60,9 @@
 		box-shadow: var(--block-shadow);
 		border-width: var(--block-border-width);
 		border-radius: var(--block-radius);
-		background: var(--color-background-tertiary);
+		background: var(--block-background);
 		width: 100%;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		line-height: var(--line-sm);
 	}
 

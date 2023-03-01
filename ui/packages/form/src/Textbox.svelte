@@ -164,12 +164,12 @@
 		position: relative;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--input-border-color-base);
+		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--input-radius);
-		background: var(--input-background-base);
+		background: var(--input-background);
 		padding: var(--input-padding);
 		width: 100%;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
@@ -183,7 +183,7 @@
 
 	input::placeholder,
 	textarea::placeholder {
-		color: var(--color-text-placeholder);
+		color: var(--input-placeholder-color);
 	}
 
 	input[disabled],

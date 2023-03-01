@@ -34,7 +34,7 @@
 	}
 
 	.gap {
-		gap: var(--standard-gap);
+		gap: var(--layout-gap);
 	}
 
 	.hide {

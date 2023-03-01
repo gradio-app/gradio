@@ -23,7 +23,7 @@
 	div {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--standard-gap);
+		gap: var(--layout-gap);
 		width: var(--size-full);
 	}
 

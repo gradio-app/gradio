@@ -186,7 +186,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.legend-item {
@@ -209,7 +209,7 @@
 	}
 
 	.label-text {
-		fill: var(--color-text-body);
+		fill: var(--body-text-color);
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
@@ -218,6 +218,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 </style>

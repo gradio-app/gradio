@@ -92,7 +92,7 @@
 
 	h2 {
 		margin-bottom: var(--size-3);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--header-text-weight);
 		font-size: var(--text-xl);
 	}
@@ -100,13 +100,13 @@
 	.auth {
 		margin-top: var(--size-1);
 		margin-bottom: var(--size-1);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.creds {
 		margin-top: var(--size-4);
 		margin-bottom: var(--size-4);
-		color: var(--color-functional-error-base);
+		color: var(--functional-error-color);
 		font-weight: var(--weight-semibold);
 	}
 </style>

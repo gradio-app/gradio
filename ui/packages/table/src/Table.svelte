@@ -636,7 +636,7 @@
 
 <style>
 	.button-wrap:hover svg {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	.button-wrap svg {
@@ -665,7 +665,7 @@
 	}
 
 	.dragging {
-		border-color: var(--color-functional-success);
+		border-color: var(--functional-success-color);
 	}
 
 	.no-wrap {
@@ -677,7 +677,7 @@
 		width: var(--size-full);
 		table-layout: auto;
 		overflow: hidden;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
@@ -726,7 +726,7 @@
 
 	th:focus-within,
 	td:focus-within {
-		--ring-color: var(--color-accent-base);
+		--ring-color: var(--color-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -754,12 +754,12 @@
 		transition: 150ms;
 		cursor: pointer;
 		padding: var(--size-2);
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 		line-height: var(--text-sm);
 	}
 
 	.sort-button:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.des {
@@ -767,7 +767,7 @@
 	}
 
 	.sort-button.sorted {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	tbody {
@@ -791,7 +791,7 @@
 	}
 
 	.editing {
-		background: var(--color-focus-ring);
+		background: var(--table-editing);
 	}
 
 	.cell-wrap {

@@ -31,7 +31,7 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
@@ -45,9 +45,9 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow: var(--input-shadow);
-		border: 1px solid var(--checkbox-border-color-base);
+		border: 1px solid var(--checkbox-border-color);
 		border-radius: var(--checkbox-border-radius);
-		background-color: var(--checkbox-background-base);
+		background-color: var(--checkbox-background);
 		line-height: var(--line-sm);
 	}
 
@@ -62,7 +62,6 @@
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-ring);
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-focus);
 	}

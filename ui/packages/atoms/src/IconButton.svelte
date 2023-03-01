@@ -14,7 +14,7 @@
 		align-items: center;
 		z-index: var(--layer-1);
 		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--icon_button-border-color-base);
+		border: 1px solid var(--icon_button-border-color);
 		border-radius: var(--radius-sm);
 		background: var(--color-background-primary);
 		width: var(--size-5);
