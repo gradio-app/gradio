@@ -178,5 +178,6 @@
 		border-radius: var(--radius-md);
 		background: var(--color-background-primary);
 		padding: var(--size-6);
+		font-size: var(--text-md);
 	}
 </style>

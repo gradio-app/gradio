@@ -48,72 +48,75 @@
 		</li>
 	{/each}
 </div>
-<code>
-	{#if current_language === "python"}
-		<div class="copy">
-			<CopyButton code={python_code?.innerText} />
-		</div>
-		<div bind:this={python_code}>
-			<pre>import requests
+
+<Block>
+	<code>
+		{#if current_language === "python"}
+			<div class="copy">
+				<CopyButton code={python_code?.innerText} />
+			</div>
+			<div bind:this={python_code}>
+				<pre>import requests
 
 response = requests.post(<span class="token string"
-					>"{root + "run/" + dependency.api_name}"</span
-				>, json=&lbrace;
+						>"{root + "run/" + dependency.api_name}"</span
+					>, json=&lbrace;
 	"data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
-					/><!--
+						/><!--
         -->		<span class="token string"
-						>{represent_value(
-							component_value,
-							instance_map[
-								dependencies[dependency_index].inputs[component_index]
-							].documentation?.type?.input_payload ||
+							>{represent_value(
+								component_value,
 								instance_map[
 									dependencies[dependency_index].inputs[component_index]
-								].documentation?.type?.payload,
-							"py"
-						)}</span
-					>,{/each}
+								].documentation?.type?.input_payload ||
+									instance_map[
+										dependencies[dependency_index].inputs[component_index]
+									].documentation?.type?.payload,
+								"py"
+							)}</span
+						>,{/each}
 	]
 &rbrace;).json()
 
 data = response[<span class="token string">"data"</span>]</pre>
-		</div>
-	{:else if current_language === "javascript"}
-		<div class="copy">
-			<CopyButton code={js_code?.innerText} />
-		</div>
-		<div bind:this={js_code}>
-			<pre>const response = await fetch(<span class="token string"
-					>"{root + "run/" + dependency.api_name}"</span
-				>, &lbrace;
+			</div>
+		{:else if current_language === "javascript"}
+			<div class="copy">
+				<CopyButton code={js_code?.innerText} />
+			</div>
+			<div bind:this={js_code}>
+				<pre>const response = await fetch(<span class="token string"
+						>"{root + "run/" + dependency.api_name}"</span
+					>, &lbrace;
 	method: "POST",
 	headers: &lbrace; "Content-Type": "application/json" &rbrace;,
 	body: JSON.stringify(&lbrace;
 		data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
-					/><!--
+						/><!--
 -->			<span class="token string"
-						>{represent_value(
-							component_value,
-							instance_map[
-								dependencies[dependency_index].inputs[component_index]
-							].documentation?.type?.input_payload ||
+							>{represent_value(
+								component_value,
 								instance_map[
 									dependencies[dependency_index].inputs[component_index]
-								].documentation?.type?.payload,
-							"js"
-						)}</span
-					>,{/each}
+								].documentation?.type?.input_payload ||
+									instance_map[
+										dependencies[dependency_index].inputs[component_index]
+									].documentation?.type?.payload,
+								"js"
+							)}</span
+						>,{/each}
 		]
 	&rbrace;)
 &rbrace;);
 
 const data = await <span class="token string">response</span>.json();
 </pre>
-		</div>
-	{:else if current_language === "gradio client"}
-		<pre class="client">Hello World</pre>
-	{/if}
-</code>
+			</div>
+		{:else if current_language === "gradio client"}
+			<pre class="client">Hello World</pre>
+		{/if}
+	</code>
+</Block>
 
 <style>
 	h4 {

@@ -375,7 +375,7 @@
 	}
 	.progress-bar {
 		transform-origin: left;
-		background-color: var(--color-accent);
+		background-color: var(--loader-color);
 		width: var(--size-full);
 		height: var(--size-full);
 	}

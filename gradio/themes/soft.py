@@ -30,6 +30,7 @@ class Soft(Base):
             shadow_drop="0 1px 4px 0 rgb(0 0 0 / 0.1)",
             shadow_drop_lg="0 2px 5px 0 rgb(0 0 0 / 0.1)",
             # Block Labels
+            block_background="white",
             block_label_padding="*spacing_sm *spacing_md",
             block_label_background="*primary_100",
             block_label_background_dark="*primary_600",

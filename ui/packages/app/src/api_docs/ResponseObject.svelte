@@ -27,55 +27,48 @@
 	</div>
 	Response Object
 </h4>
-<div class="response-wrap">
-	<div class:hide={is_running}>
-		&#123;
-		<br />
-		<div class="first-level">"data": [</div>
-		<br />
-		{#each dependency.outputs as component_id, component_index}
-			<div class="second-level">
-				{#if dependency_outputs[dependency_index][component_index] !== undefined}
-					<input
-						disabled
-						type="text"
-						bind:value={dependency_outputs[dependency_index][component_index]}
-					/>
-					:
-				{/if}
-				<span class="type">
-					{instance_map[component_id].documentation?.type?.response_object ||
-						instance_map[component_id].documentation?.type?.payload},
-				</span>
-				<span class="desc">
-					// represents {format_url(
-						instance_map[component_id].documentation?.description
-							?.response_object ||
-							instance_map[component_id].documentation?.description?.payload,
-						dependency_outputs[dependency_index][component_index]
-					)} of
-					{((label) => {
-						return label ? "'" + label + "'" : "the";
-					})(instance_map[component_id].props.label)}
-					<span class="name capitalize">
-						{instance_map[component_id].props.name}
+<Block>
+	<div class="response-wrap">
+		<div class:hide={is_running}>
+			&#123;
+			<div class="first-level">"data": [</div>
+			{#each dependency.outputs as component_id, component_index}
+				<div class="second-level">
+					{#if dependency_outputs[dependency_index][component_index] !== undefined}
+						<input
+							disabled
+							type="text"
+							bind:value={dependency_outputs[dependency_index][component_index]}
+						/>
+						:
+					{/if}
+					<span class="type">
+						{instance_map[component_id].documentation?.type?.response_object ||
+							instance_map[component_id].documentation?.type?.payload},
 					</span>
-					component
-				</span>
+					<span class="desc">
+						// represents {format_url(
+							instance_map[component_id].documentation?.description
+								?.response_object ||
+								instance_map[component_id].documentation?.description?.payload,
+							dependency_outputs[dependency_index][component_index]
+						)} of
+						{((label) => {
+							return label ? "'" + label + "'" : "the";
+						})(instance_map[component_id].props.label)}
+						<span class="name capitalize">
+							{instance_map[component_id].props.name}
+						</span>
+						component
+					</span>
+				</div>
+			{/each}
+			<div class="first-level">],</div>
+			<div class="first-level">
+				"duration": (float)
+				<span class="desc">// number of seconds to run function call</span>
 			</div>
-			<br />
-		{/each}
-		<div class="second-level">],</div>
-		<br />
-		<div class="first-level">
-			"duration": (float)
-			<span class="desc">// number of seconds to run function call</span>
-		</div>
-		&#125;
-	</div>
-	{#if is_running}
-		<div class="load-wrap">
-			<Loader margin={false} />
+			&#125;
 		</div>
 		{#if is_running}
 			<div class="load-wrap">
@@ -159,10 +152,10 @@
 	}
 
 	.first-level {
-		margin-left: 2rem;
+		margin-left: 1rem;
 	}
 
 	.second-level {
-		margin-left: 6rem;
+		margin-left: 2rem;
 	}
 </style>

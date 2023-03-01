@@ -35,10 +35,9 @@
 
 <style>
 	h3 {
-		margin-bottom: var(--size-2);
 		color: var(--body-text-color);
 		font-weight: var(--header-text-weight);
-		font-size: var(--text-xl);
+		font-size: var(--text-lg);
 	}
 
 	.post {

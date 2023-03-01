@@ -284,6 +284,8 @@ class Base(Theme):
         input_shadow_focus_dark="*input_shadow",
         input_text_size="*text_md",
         input_text_weight="400",
+        loader_color="*color_accent",
+        loader_color_dark="*loader_color",
         prose_text_size="*text_md",
         prose_text_weight="400",
         slider_color=None,
@@ -523,6 +525,8 @@ class Base(Theme):
         self.input_shadow_focus_dark = input_shadow_focus_dark
         self.input_text_size = input_text_size
         self.input_text_weight = input_text_weight
+        self.loader_color = loader_color
+        self.loader_color_dark = loader_color_dark
         self.prose_text_size = prose_text_size
         self.prose_text_weight = prose_text_weight
         self.slider_color = slider_color

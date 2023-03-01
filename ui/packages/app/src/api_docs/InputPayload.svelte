@@ -23,42 +23,41 @@
 	</div>
 	Input Payload
 </h4>
-<div class="payload-details">
-	&#123;
-	<br />
-	<div class="first-level">"data": [</div>
-	<br />
-	{#each dependency.inputs as component_id, component_index}
-		<div class="second-level">
-			<input
-				class=""
-				type="text"
-				bind:value={dependency_inputs[dependency_index][component_index]}
-			/>
-			{#if dependency_failures[dependency_index][component_index]}
-				<span class="error">ERROR</span>
-			{/if}
+<Block>
+	<div class="payload-details">
+		&#123;
+		<div class="first-level">"data": [</div>
+		{#each dependency.inputs as component_id, component_index}
+			<div class="second-level">
+				<input
+					class=""
+					type="text"
+					bind:value={dependency_inputs[dependency_index][component_index]}
+				/>
+				{#if dependency_failures[dependency_index][component_index]}
+					<span class="error">ERROR</span>
+				{/if}
 
-			<span class="type">
-				: {instance_map[component_id].documentation?.type?.input_payload ||
-					instance_map[component_id].documentation?.type?.payload},
-			</span>
-			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description
-					?.input_payload ||
-					instance_map[component_id].documentation?.description?.payload} of
-				{format_label(instance_map[component_id].props.label)}
-				<span class="name">
-					{instance_map[component_id].props.name}
+				<span class="type">
+					: {instance_map[component_id].documentation?.type?.input_payload ||
+						instance_map[component_id].documentation?.type?.payload},
 				</span>
-				component
-			</span>
-		</div>
-		<br />
-	{/each}
-	<div class="second-level">]</div>
-	&#125;
-</div>
+				<span class="desc">
+					// represents {instance_map[component_id].documentation?.description
+						?.input_payload ||
+						instance_map[component_id].documentation?.description?.payload} of
+					{format_label(instance_map[component_id].props.label)}
+					<span class="name">
+						{instance_map[component_id].props.name}
+					</span>
+					component
+				</span>
+			</div>
+		{/each}
+		<div class="first-level">]</div>
+		&#125;
+	</div>
+</Block>
 
 <span class="space" />
 <Button
@@ -70,6 +69,10 @@
 </Button>
 
 <style>
+	.payload-details {
+		font-family: var(--font-mono);
+	}
+
 	.space {
 		display: flex;
 		flex-basis: 1;
@@ -151,10 +154,10 @@
 	}
 
 	.first-level {
-		margin-left: 2rem;
+		margin-left: 1rem;
 	}
 
 	.second-level {
-		margin-left: 6rem;
+		margin-left: 2rem;
 	}
 </style>

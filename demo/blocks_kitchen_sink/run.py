@@ -107,7 +107,7 @@ with gr.Blocks() as demo:
                     "Clear", label="Secondary Button", variant="secondary"
                 )
 
-                def go(*argss):
+                def go(*args):
                     time.sleep(3)
                     return "https://gradio.app/assets/img/header-image.jpg"
 

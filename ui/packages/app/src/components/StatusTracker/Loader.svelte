@@ -95,6 +95,10 @@
 		height: var(--size-20);
 	}
 
+	svg path {
+		fill: var(--loader-color);
+	}
+
 	div {
 		z-index: var(--layer-2);
 	}
