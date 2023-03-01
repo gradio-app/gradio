@@ -17,7 +17,7 @@
 	class:embed-container={display}
 	class:with-info={info}
 	class="gradio-container gradio-container-{version}"
-	style={loaded ? "" : `min-height: ${initial_height}`}
+	style:min-height={loaded ? "initial" : initial_height}
 	style:flex-grow={!display ? "1" : "auto"}
 >
 	<div class="main">

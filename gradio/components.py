@@ -1241,7 +1241,9 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             if isinstance(value, str):
                 value = [value]
         if not multiselect and max_choices is not None:
-            warnings.warn("The `max_choices` parameter is ignored when `multiselect` is False.")
+            warnings.warn(
+                "The `max_choices` parameter is ignored when `multiselect` is False."
+            )
         self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
@@ -1257,7 +1259,8 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value=value,
             **kwargs,
         )
-        self.cleared_value = self.value
+
+        self.cleared_value = self.value or ([] if multiselect else "")
 
     def get_config(self):
         return {
@@ -1347,7 +1350,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         return Component.style(self, container=container, **kwargs)
 
 
-@document("edit", "clear", "change", "stream", "change", "style")
+@document("edit", "clear", "change", "stream", "style")
 class Image(
     Editable,
     Clearable,
@@ -3831,6 +3834,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         grid: int | Tuple | None = None,
         height: str | None = None,
         container: bool | None = None,
+        preview: bool | None = None,
         **kwargs,
     ):
         """
@@ -3844,6 +3848,8 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             self._style["grid"] = grid
         if height is not None:
             self._style["height"] = height
+        if preview is not None:
+            self._style["preview"] = preview
 
         return Component.style(self, container=container, **kwargs)
 
