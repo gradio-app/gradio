@@ -52,14 +52,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					const image = draw_cropped_image();
-					ctx.temp.drawImage(
-						value_img,
-						image.x,
-						image.y,
-						image.width,
-						image.height
-					);
+					draw_cropped_image();
 				}
 
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
