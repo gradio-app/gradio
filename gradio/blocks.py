@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tupl
 import anyio
 import requests
 from anyio import CapacityLimiter
-from huggingface_hub.utils import send_telemetry
 from typing_extensions import Literal
 
 from gradio import (
@@ -533,16 +532,6 @@ class Blocks(BlockContext):
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
-
-            try:
-                send_telemetry(
-                    topic="gradio/initiated",
-                    library_name="gradio",
-                    library_version=GRADIO_VERSION,
-                    user_agent=data,
-                )
-            except Exception as e:
-                print("Error while sending telemetry: {}".format(e))
 
     @classmethod
     def from_config(
@@ -1506,15 +1495,6 @@ class Blocks(BlockContext):
             except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
                     utils.error_analytics("Not able to set up tunnel")
-                    try:
-                        send_telemetry(
-                            topic="gradio/error",
-                            library_name="gradio",
-                            library_version=GRADIO_VERSION,
-                            user_agent="error/Not able to set up tunnel",
-                        )
-                    except Exception as e:
-                        print("Error while sending telemetry: {}".format(e))
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1605,41 +1585,7 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
-            inputs = []
-            outputs = []
-            targets = []
-            for x in self.dependencies:
-                targets.append([self.blocks[y] for y in x["targets"]])
-                inputs.append([self.blocks[y] for y in x["inputs"]])
-                outputs.append([self.blocks[y] for y in x["outputs"]])
-            additional_data = {
-                "is_kaggle": self.is_kaggle,
-                "is_sagemaker": self.is_sagemaker,
-                "using_auth": self.auth is not None,
-                "dev_mode": self.dev_mode,
-                "show_api": self.show_api,
-                "show_error": self.show_error,
-                "theme": self.theme,
-                "title": self.title,
-                "inputs": self.input_components if self.mode is "interface" else inputs,
-                "outputs": self.output_components
-                if self.mode is "interface"
-                else outputs,
-                "targets": targets,
-                "blocks": list(self.blocks.values()),
-                "events": [x["trigger"] for x in self.dependencies],
-            }
-
-            data.update(additional_data)
-            try:
-                send_telemetry(
-                    topic="gradio/launched",
-                    library_name="gradio",
-                    library_version=GRADIO_VERSION,
-                    user_agent=data,
-                )
-            except Exception as e:
-                print("Error while sending telemetry: {}".format(e))
+            utils.launched_telemetry(self, data)
 
         utils.show_tip(self)
 
@@ -1709,15 +1655,6 @@ class Blocks(BlockContext):
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             utils.integration_analytics(data)
-            try:
-                send_telemetry(
-                    topic="gradio/integration",
-                    library_name="gradio",
-                    library_version=GRADIO_VERSION,
-                    user_agent=data,
-                )
-            except Exception as e:
-                print("Error while sending telemetry: {}".format(e))
 
     def close(self, verbose: bool = True) -> None:
         """
