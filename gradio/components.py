@@ -3001,7 +3001,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         self,
         *,
         full_width: bool | None = None,
-        size: Literal["sm"] | Literal["lg"] = None,
+        size: Literal["sm"] | Literal["lg"] | None = None,
         **kwargs,
     ):
         """
@@ -3164,7 +3164,7 @@ class UploadButton(
         self,
         *,
         full_width: bool | None = None,
-        size: Literal["sm"] | Literal["lg"] = None,
+        size: Literal["sm"] | Literal["lg"] | None = None,
         **kwargs,
     ):
         """
