@@ -665,7 +665,7 @@
 	}
 
 	.dragging {
-		border-color: var(--functional-success-color);
+		border-color: var(--color-accent);
 	}
 
 	.no-wrap {

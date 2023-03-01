@@ -138,7 +138,7 @@
 	}
 
 	.error {
-		color: var(--functional-error-color);
+		color: var(--error-color);
 	}
 
 	.type {

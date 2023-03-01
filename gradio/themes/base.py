@@ -143,19 +143,6 @@ class Base(Theme):
         text_color_link_visited_dark="*secondary_600",
         text_color_subdued="*neutral_400",
         text_color_subdued_dark="*neutral_400",
-        # Functional Colors
-        functional_error_background_color=colors.red.c100,
-        functional_error_background_dark_color="*color_background_primary",
-        functional_error_border_color=colors.red.c200,
-        functional_error_border_dark_color="*color_border_primary",
-        functional_error_color=colors.red.c500,
-        functional_error_dark_color=colors.red.c500,
-        functional_error_subdued_color=colors.red.c300,
-        functional_error_subdued_dark_color=colors.red.c300,
-        functional_info_color=colors.yellow.c500,
-        functional_info_subdued_color=colors.yellow.c300,
-        functional_success_color=colors.green.c500,
-        functional_success_subdued_color=colors.yellow.c300,
         # Body
         body_background_color="*color_background_primary",
         body_background_color_dark="*color_background_primary",
@@ -173,6 +160,8 @@ class Base(Theme):
         # Layout Atoms
         block_background="*color_background_primary",
         block_background_dark="*neutral_800",
+        block_border_color="*color_border_primary",
+        block_border_color_dark="*color_border_primary",
         block_border_width="1px",
         block_border_width_dark="1px",
         block_info_color="*text_color_subdued",
@@ -260,6 +249,14 @@ class Base(Theme):
         checkbox_text_color_dark="*body_text_color",
         checkbox_text_color_selected="*checkbox_text_color",
         checkbox_text_color_selected_dark="*checkbox_text_color",
+        error_background=colors.red.c100,
+        error_background_dark="*color_background_primary",
+        error_border_color=colors.red.c200,
+        error_border_color_dark="*color_border_primary",
+        error_border_width="1px",
+        error_border_width_dark="*error_border_width",
+        error_color=colors.red.c500,
+        error_color_dark=colors.red.c500,
         header_text_weight="600",
         input_background="*neutral_100",
         input_background_dark="*neutral_700",
@@ -378,21 +375,6 @@ class Base(Theme):
         self.text_color_link_visited_dark = text_color_link_visited_dark
         self.text_color_subdued = text_color_subdued
         self.text_color_subdued_dark = text_color_subdued_dark
-        # Functional Colors
-        self.functional_error_background_color = functional_error_background_color
-        self.functional_error_background_dark_color = (
-            functional_error_background_dark_color
-        )
-        self.functional_error_border_color = functional_error_border_color
-        self.functional_error_border_dark_color = functional_error_border_dark_color
-        self.functional_error_color = functional_error_color
-        self.functional_error_dark_color = functional_error_dark_color
-        self.functional_error_subdued_color = functional_error_subdued_color
-        self.functional_error_subdued_dark_color = functional_error_subdued_dark_color
-        self.functional_info_color = functional_info_color
-        self.functional_info_subdued_color = functional_info_subdued_color
-        self.functional_success_color = functional_success_color
-        self.functional_success_subdued_color = functional_success_subdued_color
         # Body
         self.body_background_color = body_background_color
         self.body_background_color_dark = body_background_color_dark
@@ -410,6 +392,8 @@ class Base(Theme):
         # Layout Atoms
         self.block_background = block_background
         self.block_background_dark = block_background_dark
+        self.block_border_color = block_border_color
+        self.block_border_color_dark = block_border_color_dark
         self.block_border_width = block_border_width
         self.block_border_width_dark = block_border_width_dark
         self.block_info_color = block_info_color
@@ -501,6 +485,14 @@ class Base(Theme):
         self.checkbox_text_color_dark = checkbox_text_color_dark
         self.checkbox_text_color_selected = checkbox_text_color_selected
         self.checkbox_text_color_selected_dark = checkbox_text_color_selected_dark
+        self.error_background = error_background
+        self.error_background_dark = error_background_dark
+        self.error_border_color = error_border_color
+        self.error_border_color_dark = error_border_color_dark
+        self.error_border_width = error_border_width
+        self.error_border_width_dark = error_border_width_dark
+        self.error_color = error_color
+        self.error_color_dark = error_color_dark
         self.header_text_weight = header_text_weight
         self.input_background = input_background
         self.input_background_dark = input_background_dark

@@ -106,7 +106,7 @@
 	.creds {
 		margin-top: var(--size-4);
 		margin-bottom: var(--size-4);
-		color: var(--functional-error-color);
+		color: var(--error-color);
 		font-weight: var(--weight-semibold);
 	}
 </style>

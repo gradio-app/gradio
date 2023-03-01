@@ -90,7 +90,6 @@
 		position: absolute;
 		background: var(--block-label-background);
 		width: var(--size-full);
-		color: var(--functional-success-color);
 		text-align: left;
 	}
 </style>

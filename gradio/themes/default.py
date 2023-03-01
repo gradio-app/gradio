@@ -42,8 +42,8 @@ class Default(Base):
             # Gradients
             stat_color_background="linear-gradient(to right, *primary_400, *primary_200)",
             stat_color_background_dark="linear-gradient(to right, *primary_400, *primary_600)",
-            functional_error_background_color=f"linear-gradient(to right, {colors.red.c100}, *color_background_secondary)",
-            functional_error_background_dark_color="*color_background_primary",
+            error_background=f"linear-gradient(to right, {colors.red.c100}, *color_background_secondary)",
+            error_background_dark="*color_background_primary",
             checkbox_label_background="linear-gradient(to top, *neutral_50, white)",
             checkbox_label_background_dark="linear-gradient(to top, *neutral_900, *neutral_800)",
             checkbox_label_background_hover="linear-gradient(to top, *neutral_100, white)",

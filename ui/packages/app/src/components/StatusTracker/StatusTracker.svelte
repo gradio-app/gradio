@@ -423,14 +423,15 @@
 
 	.error {
 		box-shadow: var(--shadow-drop);
+		border: solid 1px var(--error-border-color);
 		border-radius: var(--radius-full);
 		background-color: var(--color-background-primary);
-		background: rgba(255, 0, 0, 0.2);
+		background: var(--error-background);
 		padding-right: var(--size-4);
 		padding-left: var(--size-4);
-		color: var(--functional-error-color);
+		color: var(--error-color);
 		font-weight: var(--weight-semibold);
-		font-size: var(--text-xl);
+		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		font-family: var(--font-sans);
 	}
@@ -454,9 +455,9 @@
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg);
-		border: 1px solid var(--functional-error-border-color);
+		border: 1px solid var(--error-border-color);
 		border-radius: var(--container-radius);
-		background: var(--functional-error-background-color);
+		background: var(--error-background);
 		padding: var(--size-4) var(--size-6);
 		max-width: 1200px;
 		max-width: 610px;
@@ -468,7 +469,7 @@
 		display: flex;
 		align-items: center;
 		padding: var(--size-1) var(--size-3);
-		color: var(--functional-error-color);
+		color: var(--error-color);
 		color: var(--color-red-500);
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
@@ -491,6 +492,7 @@
 
 	.toast-text {
 		padding: var(--size-1) var(--size-3);
+		color: var(--body-text-color);
 		font-family: var(--font-mono);
 	}
 
