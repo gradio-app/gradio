@@ -41,17 +41,17 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 Our table is now ready!
 
 
-## Writing data to Supabase
+## Write data to Supabase
 
 The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
 
-6\. Start by installing `supabase`, typically by running in your terminal:
+6\. Install `supabase` by running the following command in your terminal:
 
 ```bash
 pip install supabase
 ```
 
-7\. You'll also need the URL and API key for your project. You can find these in the Settings (gear icon on the left pane) > API. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
+7\. Get your project URL and API key. Click the Settings (gear icon) on the left pane and click 'API'. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
 
 8\. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7): 
 
@@ -77,7 +77,7 @@ for i in range(10):
 data = client.table('Product').insert(main_list).execute()
 ```
 
-If you go back to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
+Return to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
 
 ## Visualize the Data in a Real-Time Gradio Dashboard
 
