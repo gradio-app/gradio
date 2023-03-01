@@ -8,23 +8,23 @@ Tags: TABULAR, DASHBOARD, PLOTS
 
 In this end-to-end guide, you will learn how to:
 
-* Creating tables in Supabase
-* Writing data to Supabase using the Supabase Python Client
+* Create tables in Supabase
+* Write data to Supabase using the Supabase Python Client
 * Visualize the data in a real-time dashboard using Gradio
 
-If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip sections and first two sections and go directly to [visualizing the data]()!
+If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip the first two sections and go directly to [visualizing the data](#visualizing-the-data-in-a-real-time-gradio-dashboard)!
 
 ## Creating a table in Supabase
 
-First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create some fake commerce data and put it in Supabase. 
+First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create fake commerce data and put it in Supabase. 
 
-1. We'll start by creating a new project in Supabase. Once you're logged in, click the "New Project" button
+1\. Start by creating a new project in Supabase. Once you're logged in, click the "New Project" button
 
-2. Give your project a name and database password. You can also choose a pricing plan (for our purposes, the Free Tier is sufficient!)
+2\. Give your project a name and database password. You can also choose a pricing plan (for our purposes, the Free Tier is sufficient!)
 
-3. You'll be presented with your API keys while the database spins up (can take up to 2 minutes). 
+3\. You'll be presented with your API keys while the database spins up (can take up to 2 minutes). 
 
-4. Click on "Table Editor" (the table icon) in the left pane to create a new table. We'll create a single table called `Product`, with the following schema:
+4\. Click on "Table Editor" (the table icon) in the left pane to create a new table. We'll create a single table called `Product`, with the following schema:
 
 <center>
 <table>
@@ -35,22 +35,22 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 </table>
 </center>
 
-5. Click Save to save the table. Our schema is now ready!
+5\. Click Save to save the table. Our schema is now ready!
 
 
 ## Writing data to Supabase
 
 The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
 
-6. Start by installing `supabase`, typically by running in your terminal:
+6\. Start by installing `supabase`, typically by running in your terminal:
 
 ```bash
 pip install supabase
 ```
 
-7. You'll also need the URL and API key for your project. You can find these in the Settings (gear icon on the left pane) > API. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
+7\. You'll also need the URL and API key for your project. You can find these in the Settings (gear icon on the left pane) > API. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
 
-8. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7): 
+8\. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7): 
 
 ```python
 import supabase
@@ -82,7 +82,7 @@ Finally, we will read the data from the Supabase dataset using the same `supabas
 
 Note: We repeat certain steps in this section (like creating the Supabase client) in case you did not go through the previous sections. As described in Step 7, you will need the project URL and API Key for your database.
 
-9. Write a function that loads the data from the `Product` table and returns it as a pandas Dataframe:
+9\. Write a function that loads the data from the `Product` table and returns it as a pandas Dataframe:
 
 
 ```python
@@ -97,7 +97,7 @@ def read_data():
     return df
 ```
 
-10. Create a small Gradio Dashboard with 2 Barplots that plots the prices and inventories of all of the items every minute and updates in real-time:
+10\. Create a small Gradio Dashboard with 2 Barplots that plots the prices and inventories of all of the items every minute and updates in real-time:
 
 ```python
 import gradio as gr
