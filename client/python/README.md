@@ -1,4 +1,4 @@
-# `gradio_client`: Use any Gradio app as an API -- in 2 lines of Python
+# `gradio_client`: Use any Gradio app as an API -- in 3 lines of Python
 
 This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. This library is 
 
@@ -10,9 +10,11 @@ Here's the entire code to do it:
 import gradio_client as grc
 
 client = grc.Client(space="stability-ai/stable-diffusion")
-client.run("a hyperrealistic portrait of a cat wearing cyberpunk armor")
+job = client.predict("a hyperrealistic portrait of a cat wearing cyberpunk armor")
+job.result()
 
 >> URL
+
 ```
 
 ## Installation
