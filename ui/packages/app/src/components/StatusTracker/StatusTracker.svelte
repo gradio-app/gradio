@@ -65,6 +65,8 @@
 	export let loading_text: string = "Loading...";
 	export let absolute: boolean = true;
 
+	// $: console.log({ queue, queue_position, queue_size });
+
 	let el: HTMLDivElement;
 
 	let _timer: boolean = false;

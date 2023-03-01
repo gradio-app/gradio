@@ -5,7 +5,7 @@ export interface LoadingStatus {
 	status: "pending" | "error" | "complete" | "generating";
 	queue: boolean;
 	queue_position: number | null;
-	queue_size: number | null;
+	queue_size?: number;
 	fn_index: number;
 	message?: string | null;
 	scroll_to_output?: boolean;
@@ -35,11 +35,11 @@ export function create_loading_status_store() {
 	function update({
 		fn_index,
 		status,
-		queue,
+		queue = true,
 		size,
-		position,
-		eta,
-		message,
+		position = null,
+		eta = null,
+		message = null,
 		progress
 	}: {
 		fn_index: LoadingStatus["fn_index"];
@@ -51,6 +51,7 @@ export function create_loading_status_store() {
 		message?: LoadingStatus["message"];
 		progress?: LoadingStatus["progress"];
 	}) {
+		// console.log(queue, size, position);
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
 		const last_status = fn_status[fn_index];
@@ -118,12 +119,13 @@ export function create_loading_status_store() {
 					message,
 					progress
 				}) => {
+					// console.log({ queue_position, queue_size });
 					outputs[id] = {
-						queue: !!queue,
-						queue_size: queue_size ?? null,
-						queue_position: queue_position ?? null,
-						eta: eta ?? null,
-						message: message ?? null,
+						queue: queue,
+						queue_size: queue_size,
+						queue_position: queue_position,
+						eta: eta,
+						message: message,
 						progress,
 						status,
 						fn_index
