@@ -33,7 +33,7 @@
 
 	export let enable_queue: boolean;
 	export let title: string = "Gradio";
-	export let analytics_enabled: boolean = false;
+	export let analytics_enabled: boolean;
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
 	export let show_api: boolean = true;
