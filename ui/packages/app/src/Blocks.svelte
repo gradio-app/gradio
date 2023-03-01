@@ -284,7 +284,6 @@
 							make_prediction();
 						}
 					}
-
 					function make_prediction() {
 						prediction_map[i] = app
 							.predict("/predict", payload)
@@ -324,7 +323,6 @@
 					.filter((v) => !!v && !!v[1])
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
-
 						instance?.$on(trigger, () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
 								return;
@@ -359,6 +357,12 @@
 									make_prediction();
 								}
 							}
+
+							loading_status.update({
+								fn_index: i,
+								status: "pending",
+								queue: prediction_map[i].queue
+							});
 
 							function make_prediction() {
 								prediction_map[i] = app
@@ -436,8 +440,7 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
 

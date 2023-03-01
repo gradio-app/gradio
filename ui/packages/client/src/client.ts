@@ -22,6 +22,7 @@ type predict = (
 	endpoint: string,
 	payload: Payload
 ) => {
+	queue: boolean;
 	on: event;
 	off: event;
 	cancel: (endpoint: string | number) => void;
@@ -138,14 +139,15 @@ export async function client(
 			}
 		}
 		function make_predict(endpoint: string, payload: Payload) {
+			let fn_index = api_map[endpoint] || payload.fn_index!;
+			const listener_map: ListenerMap<EventType> = {};
+
 			const x = {
 				on,
 				off,
-				cancel
+				cancel,
+				queue: !skip_queue(fn_index, config)
 			};
-
-			let fn_index = api_map[endpoint] || payload.fn_index!;
-			const listener_map: ListenerMap<EventType> = {};
 
 			function cancel(endpoint: string | number) {
 				const _index =
@@ -208,6 +210,7 @@ export async function client(
 									eta: output.average_duration,
 									queue: false
 								});
+
 								fire_event({ type: "data", data: output.data });
 							} else {
 								fire_event({

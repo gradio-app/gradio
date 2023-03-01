@@ -48,15 +48,7 @@ export interface Status {
 		desc: string | null;
 	}>;
 }
-// case "STOPPED":
-// case "SLEEPING":
-// case "RUNNING":
-// case "RUNNING_BUILDING":
-// case "BUILDING":
-// case "NO_APP_FILE":
-// case "CONFIG_ERROR":
-// case "BUILD_ERROR":
-// case "RUNTIME_ERROR":
+
 export interface SpaceStatusNormal {
 	status: "sleeping" | "running" | "building" | "error" | "stopped";
 	detail:
