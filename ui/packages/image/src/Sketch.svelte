@@ -129,7 +129,7 @@
 			_height = shape[1];
 			x = (shape[0] - _width) / 2;
 		} else if (shape_ratio > image_ratio) {
-			_width = shape[0]; //shape[1] * image_ratio;
+			_width = shape[0];
 			_height = shape[0] / image_ratio;
 			y = (shape[1] - _height) / 2;
 		}
