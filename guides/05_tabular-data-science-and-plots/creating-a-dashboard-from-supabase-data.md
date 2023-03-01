@@ -113,13 +113,13 @@ with gr.Blocks() as dashboard:
 dashboard.queue().launch()
 ```
 
-Your final dashboard should look something like this:
+Notice that by passing in a function to `gr.BarPlot()`, we have the BarPlot query the database as soon as the web app loads (and then again every 60 seconds because of the `every` parameter). Your final dashboard should look something like this:
 
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/product-plots.png)
+<gradio-app space="abidlabs/supabase"></gradio-app>
 
 
 ## Conclusion
 
-That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as bar plots. 
+That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as bar plots. If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute. 
 
-If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute. Of course, we can add other kinds of plots and visualizations to build a more complex dashboard as well.
+Try adding more plots and visualizations to this example (or with a different dataset) to build a more complex dashboard! 
