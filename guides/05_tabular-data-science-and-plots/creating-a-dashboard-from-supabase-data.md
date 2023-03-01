@@ -12,9 +12,9 @@ In this end-to-end guide, you will learn how to:
 * Write data to Supabase using the Supabase Python Client
 * Visualize the data in a real-time dashboard using Gradio
 
-If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip the first two sections and go directly to [visualizing the data](#visualizing-the-data-in-a-real-time-gradio-dashboard)!
+If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip the first two sections and go directly to [visualizing the data](#visualize-the-data-in-a-real-time-gradio-dashboard)!
 
-## Creating a table in Supabase
+## Create a table in Supabase
 
 First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create fake commerce data and put it in Supabase. 
 
@@ -35,7 +35,10 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 </table>
 </center>
 
-5\. Click Save to save the table. Our schema is now ready!
+5\. Click Save to save the table schema. 
+
+
+Our table is now ready!
 
 
 ## Writing data to Supabase
@@ -76,7 +79,7 @@ data = client.table('Product').insert(main_list).execute()
 
 If you go back to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
 
-## Visualizing the Data in a Real-Time Gradio Dashboard
+## Visualize the Data in a Real-Time Gradio Dashboard
 
 Finally, we will read the data from the Supabase dataset using the same `supabase` Python library and create a realtime dashboard using `gradio`. 
 
