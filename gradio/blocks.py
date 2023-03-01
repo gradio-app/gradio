@@ -1622,7 +1622,9 @@ class Blocks(BlockContext):
                 "theme": self.theme,
                 "title": self.title,
                 "inputs": self.input_components if self.mode is "interface" else inputs,
-                "outputs": self.output_components if self.mode is "interface" else outputs,
+                "outputs": self.output_components
+                if self.mode is "interface"
+                else outputs,
                 "targets": targets,
                 "blocks": list(self.blocks.values()),
                 "events": [x["trigger"] for x in self.dependencies],
