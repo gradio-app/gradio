@@ -6,7 +6,7 @@ Supabase is a cloud-based open-source backend that provides a PostgreSQL databas
 
 **Prerequisites:** To start, you will need to have a free Supabase account, which you can sign up for here: https://app.supabase.com/
 
-We'll cover the following steps in this end-to-end Guide:
+In this end-to-end guide, you will learn how to:
 
 * Creating tables in Supabase
 * Writing data to Supabase using the Supabase Python Client
