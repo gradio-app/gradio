@@ -40,7 +40,7 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 Our schema is now ready!
 
 
-## Writing data to Supabase
+## Write data to Supabase
 
 The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
 
