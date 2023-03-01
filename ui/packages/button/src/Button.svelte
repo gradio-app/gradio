@@ -53,8 +53,7 @@
 	}
 
 	.primary {
-		border: var(--button-border-width) solid
-			var(--button-primary-border-color);
+		border: var(--button-border-width) solid var(--button-primary-border-color);
 		background: var(--button-primary-background);
 		color: var(--button-primary-text-color);
 	}
@@ -80,8 +79,7 @@
 	}
 
 	.stop {
-		border: var(--button-border-width) solid
-			var(--button-cancel-border-color);
+		border: var(--button-border-width) solid var(--button-cancel-border-color);
 		background: var(--button-cancel-background);
 		color: var(--button-cancel-text-color);
 	}

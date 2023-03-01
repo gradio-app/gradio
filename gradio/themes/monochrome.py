@@ -25,6 +25,7 @@ class Monochrome(Base):
             slider_color_dark="*neutral_500",
             body_text_color="*neutral_900",
             block_label_color="*body_text_color",
+            block_title_color="*body_text_color",
             text_color_subdued="*neutral_700",
             color_background_primary_dark="*neutral_900",
             color_background_secondary_dark="*neutral_800",

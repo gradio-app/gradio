@@ -62,7 +62,6 @@
 		border-radius: var(--block-radius);
 		background: var(--block-background);
 		width: 100%;
-		color: var(--body-text-color);
 		line-height: var(--line-sm);
 	}
 

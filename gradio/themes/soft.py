@@ -2,7 +2,7 @@ from .base import Base
 from .utils import colors, size
 
 
-class Flow(Base):
+class Soft(Base):
     def __init__(
         self,
         *,
@@ -43,6 +43,8 @@ class Flow(Base):
             block_title_background="*block_label_background",
             block_title_background_dark="*block_label_background",
             block_title_text_weight="600",
+            block_title_color="*primary_500",
+            block_title_color_dark="*white",
             block_label_margin="*spacing_md",
             # Inputs
             input_background="white",

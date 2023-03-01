@@ -31,7 +31,7 @@
 		align-items: center;
 		z-index: var(--layer-2);
 		box-shadow: var(--block-shadow);
-		border: var(--block-border-width) solid var(--color-border-primary);
+		border: var(--block-label-border-width) solid var(--color-border-primary);
 		border-top: none;
 		border-left: none;
 		border-radius: var(--block-label-radius);
@@ -61,7 +61,7 @@
 	span {
 		opacity: 0.8;
 		margin-right: var(--size-2);
-		width: var(--size-3);
-		height: var(--size-3);
+		width: calc(var(--block-label-text-size) - 1px);
+		height: calc(var(--block-label-text-size) - 1px);
 	}
 </style>

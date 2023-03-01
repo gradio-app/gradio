@@ -473,8 +473,8 @@
 		flex-grow: 1;
 		flex-direction: column;
 		width: var(--size-full);
-		font-size: var(--body-text-size);
 		font-weight: var(--body-text-weight);
+		font-size: var(--body-text-size);
 	}
 
 	footer {

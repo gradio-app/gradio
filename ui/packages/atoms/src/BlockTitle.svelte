@@ -26,7 +26,7 @@
 		border-radius: var(--block-title-radius);
 		background: var(--block-title-background);
 		padding: var(--block-title-padding);
-		color: var(--block-label-color);
+		color: var(--block-title-color);
 		font-weight: var(--block-title-text-weight);
 		font-size: var(--block-title-text-size);
 		line-height: var(--line-sm);

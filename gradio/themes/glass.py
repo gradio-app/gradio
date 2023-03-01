@@ -52,6 +52,7 @@ class Glass(Base):
             input_border_width="1px",
             slider_color="*primary_400",
             block_label_color="*primary_500",
+            block_title_color="*primary_500",
             block_label_text_weight="600",
             block_title_text_weight="600",
             block_label_text_size="*text_md",

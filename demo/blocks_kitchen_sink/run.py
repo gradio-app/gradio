@@ -7,7 +7,7 @@ KS_FILES = abspath(join(pardir, "kitchen_sink", "files"))
 base_theme = gr.themes.Base()
 default_theme = gr.themes.Default()
 monochrome_theme = gr.themes.Monochrome()
-flow_theme = gr.themes.Flow()
+soft_theme = gr.themes.Soft()
 glass_theme = gr.themes.Glass()
 
 with gr.Blocks() as demo:
@@ -36,7 +36,7 @@ with gr.Blocks() as demo:
         """,
     )
     theme_selector = gr.Radio(
-        ["Base", "Default", "Monochrome", "Flow", "Glass"], value="Default", label="Theme"
+        ["Base", "Default", "Monochrome", "Soft", "Glass"], value="Default", label="Theme"
     )
     theme_selector.change(
         None,
@@ -57,8 +57,8 @@ with gr.Blocks() as demo:
                 var theme_css = `{default_theme._get_theme_css()}`;
             }} else if (theme == "Monochrome") {{
                 var theme_css = `{monochrome_theme._get_theme_css()}`;
-            }} else if (theme == "Flow") {{
-                var theme_css = `{flow_theme._get_theme_css()}`;
+            }} else if (theme == "Soft") {{
+                var theme_css = `{soft_theme._get_theme_css()}`;
             }} else if (theme == "Glass") {{
                 var theme_css = `{glass_theme._get_theme_css()}`;
             }}
