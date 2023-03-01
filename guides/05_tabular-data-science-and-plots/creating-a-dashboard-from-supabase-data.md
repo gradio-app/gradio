@@ -6,7 +6,7 @@ Tags: TABULAR, DASHBOARD, PLOTS
 
 **Prerequisites:** To start, you will need a free Supabase account, which you can sign up for here: [https://app.supabase.com/](https://app.supabase.com/)
 
-We'll cover the following steps in this end-to-end Guide:
+In this end-to-end guide, you will learn how to:
 
 * Creating tables in Supabase
 * Writing data to Supabase using the Supabase Python Client
