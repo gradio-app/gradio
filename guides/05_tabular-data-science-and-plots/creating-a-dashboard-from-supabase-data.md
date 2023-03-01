@@ -76,7 +76,7 @@ for i in range(10):
 data = client.table('Product').insert(main_list).execute()
 ```
 
-If you go back to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
+Return to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
 
 ## Visualizing the Data in a Real-Time Gradio Dashboard
 
