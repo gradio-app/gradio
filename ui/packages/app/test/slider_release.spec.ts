@@ -1,41 +1,6 @@
 import { test, expect, Page, Locator } from "@playwright/test";
-import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 
-// function mock_demo(page: Page, demo: string) {
-// 	return page.route("**/config", (route) => {
-// 		return route.fulfill({
-// 			headers: {
-// 				"Access-Control-Allow-Origin": "*"
-// 			},
-// 			path: `../../../demo/${demo}/config.json`
-// 		});
-// 	});
-// }
-
-// function mock_api(page: Page) {
-// 	return page.route("**/run/predict/", (route) => {
-// 		console.log(route.request().postData()!);
-// 		return route.fulfill({
-// 			headers: {
-// 				"Access-Control-Allow-Origin": "*"
-// 			},
-// 			body: route.request().postData()!
-// 		});
-// 	});
-// }
-
-// let demo: ChildProcessWithoutNullStreams;
-
-// test.beforeAll(async () => {
-// 	demo = spawn("python", ["../../../demo/slider_release/run.py"]);
-// 	demo.stderr.pipe(process.stderr);
-// 	demo.stdout.pipe(process.stdout);
-// });
-
-// test.afterAll(async () => {
-// 	//demo.kill("SIGINT");
-// })
-
+//taken from: https://github.com/microsoft/playwright/issues/20032
 async function changeSlider(
 	page: Page,
 	thumb: Locator,
@@ -68,9 +33,7 @@ async function changeSlider(
 }
 
 test("slider release", async ({ page }) => {
-	//await mock_demo(page, "slider_release");
 	await page.goto("http://127.0.0.1:7888/");
-	//await mock_api(page);
 
 	const slider = page.getByLabel("Slider");
 

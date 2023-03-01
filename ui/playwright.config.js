@@ -1,8 +1,7 @@
 export default {
 	use: {
 		screenshot: "only-on-failure",
-		trace: "retain-on-failure",
-		ignoreHTTPSErrors: true
+		trace: "retain-on-failure"
 	},
 	globalSetup: "./playwright-setup.js",
 	workers: 1,
