@@ -4,17 +4,22 @@
 	export let info: string | undefined = undefined;
 </script>
 
-<div class:margin-bottom={show_label || info}>
-	<span class:sr-only={!show_label} class:hide={!show_label}>
-		<slot />
-	</span>
-	{#if info}
-		<Info>{info}</Info>
-	{/if}
-</div>
+<span
+	class:sr-only={!show_label}
+	class:hide={!show_label}
+	class:has-info={info != null}
+>
+	<slot />
+</span>
+{#if info}
+	<Info>{info}</Info>
+{/if}
 
 <style>
-	div.margin-bottom {
+	span.has-info {
+		margin-bottom: var(--spacing-xs);
+	}
+	span:not(.has-info) {
 		margin-bottom: var(--spacing-lg);
 	}
 	span {

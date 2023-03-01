@@ -5,7 +5,7 @@ from .utils import colors, size
 
 class Theme:
     def _get_theme_css(self):
-        css = ":host, :root {\n"
+        css = ":root {\n"
         dark_css = ".dark {\n"
         for attr, val in self.__dict__.items():
             val = getattr(self, attr)
