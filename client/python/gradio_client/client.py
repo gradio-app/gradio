@@ -49,28 +49,60 @@ class Client:
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
-    def predict(self, *args, api_name: str | None = None, fn_index: int = 0) -> Future:
+    def predict(self, *args, api_name: str | None = None, fn_index: int = 0, callbacks: List[Callable] | None = None) -> Future:
         complete_fn = self._get_complete_fn(api_name, fn_index)
         future = self.executor.submit(complete_fn, *args)
+        if callbacks:            
+            def create_fn(callback) -> Callable:
+                def fn(future):
+                    if isinstance(future.result(), tuple):
+                        callback(*future.result())
+                    else:
+                        callback(future.result())
+                return fn
+            
+            for callback in callbacks:
+                future.add_done_callback(create_fn(callback))
         return future
-
-    #################
-    # Helper methods
-    #################
     
+    def info(self, api_name: str | None = None) -> Dict:
+        if api_name:
+            fn_index = self._infer_fn_index(api_name)
+            dependency = self.config["dependencies"][fn_index]
+            return {api_name: {"input_parameters": ["(str) value"], "output_values": ["(str) value"]}}
+        else:
+            api_info = {"named_endpoints": {}}
+            for dependency in self.config["dependencies"]:
+                if dependency.get("api_name") and dependency["backend_fn"]:
+                    api_name = dependency["api_name"]
+                    api_info["named_endpoints"] = self.info(api_name)
+            api_info["num_named_endpoints"] = len(api_info)  # type: ignore
+            return api_info
+        
+    def pprint(self, api_name: str | None = None) -> None:
+        print(json.dumps(self.info(api_name), indent=2))
+
+    ##################################
+    # Private helper methods
+    ##################################
+    
+    def _infer_fn_index(self, api_name: str) -> int:
+        inferred_fn_index = next(
+            (
+                i
+                for i, d in enumerate(self.config["dependencies"])
+                if d.get("api_name") == api_name
+            ),
+            None,
+        )
+        if inferred_fn_index is None:
+            raise ValueError(f"Cannot find a function with api_name: {api_name}")
+        return inferred_fn_index
+        
+        
     def _get_complete_fn(self, api_name: str | None, fn_index: int) -> Callable:
         if api_name is not None:
-            inferred_fn_index = next(
-                (
-                    i
-                    for i, d in enumerate(self.config["dependencies"])
-                    if d.get("api_name") == api_name
-                ),
-                None,
-            )
-            if inferred_fn_index is None:
-                raise ValueError(f"Cannot find a function with api_name: {api_name}")
-            fn_index = inferred_fn_index        
+            fn_index = self._infer_fn_index(api_name)        
         
         predict_fn = self._get_predict_fn(fn_index)
         serialize_fn = self._get_serialize_fn(fn_index)
@@ -144,7 +176,7 @@ class Client:
             for i in inputs:
                 for component in self.config["components"]:
                     if component["id"] == i:
-                        if component.get("serializer", None):
+                        if component.get("serializer"):
                             serializer_name = component["serializer"]
                             assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                             serializer = serializing.SERIALIZER_MAPPING[serializer_name]
@@ -178,7 +210,7 @@ class Client:
             for i in outputs:
                 for component in self.config["components"]:
                     if component["id"] == i:
-                        if component.get("serializer", None):
+                        if component.get("serializer"):
                             serializer_name = component["serializer"]
                             assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                             deserializer = serializing.SERIALIZER_MAPPING[serializer_name]

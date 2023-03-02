@@ -72,7 +72,7 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block):
+class Component(Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
     """
@@ -149,8 +149,13 @@ class Component(Block):
                 self.parent.variant = "compact"
         return self
 
+    def serialize_info(self):
+        return {
+            "input": "value",
+            "output": "value",
+        }
 
-class IOComponent(Component, Serializable):
+class IOComponent(Component):
     """
     A base class for defining methods that all input/output components should have.
     """
@@ -318,6 +323,12 @@ class Textbox(
         self.cleared_value = ""
         self.test_input = value
         self.type = type
+        
+    def serialize_info(self):
+        return {
+            "input": "(str) value",
+            "output": "(str) value",
+        }
 
     def get_config(self):
         return {
@@ -1460,6 +1471,12 @@ class Image(
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
             **IOComponent.get_config(self),
+        }
+
+    def serialize_info(self):
+        return {
+            "input": "(str) filepath or URL to image",
+            "output": "(str) filepath or URL to image",
         }
 
     @staticmethod
