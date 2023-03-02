@@ -1,14 +1,16 @@
 <script>
     import { page } from '$app/stores';
     import docs_json from "../docs.json";
-    import { onMount, afterUpdate } from 'svelte';
-	  import Demos from '../../../components/Demos.svelte';
+    import { onDestroy, afterUpdate } from 'svelte';
+	  import DemoCode from '../../../components/DemoCode.svelte';
     import DocsNav from '../../../components/DocsNav.svelte';
-
+    import FunctionDoc from '../../../components/FunctionDoc.svelte';
 
     let name = $page.params.doc;
     let obj;
     let mode;
+
+    let current_selection = 0;
 
     let docs = docs_json.docs;
     let components = docs.components;
@@ -24,15 +26,22 @@
         }
     }
 
+    onDestroy(() => {
+      gradio_targets = {};
+    });
+
     afterUpdate(() => {  
-      for (const key in gradio_targets) {
-        if (!gradio_targets[key].firstChild) {
-        let embed = document.createElement('gradio-app');
-        embed.setAttribute('space', `gradio/${key}`);
-        gradio_targets[key].appendChild(embed);
-        }
-      } 
-    }); 
+      if (Object.keys(gradio_targets).length) {
+        for (const key in gradio_targets) {
+          if (!gradio_targets[key]?.firstChild) {
+          let embed = document.createElement('gradio-app');
+          embed.setAttribute('space', `gradio/${key}`);
+          gradio_targets[key]?.appendChild(embed);
+          }
+        } 
+      }
+    }    
+  ); 
 
     $:  name = $page.params.doc;
     $: for (const key in docs) {
@@ -43,7 +52,8 @@
             }
         }
     }
-    $: gradio_targets
+    $: gradio_targets = {};
+    $: console.log(name)
 
 </script>
 
@@ -101,7 +111,7 @@
             
             {#if mode === "components"}
                 <div class="embedded-component">
-                    <div bind:this={gradio_targets[obj.name.toLowerCase() + "_component"]} class="gradio-target"></div>
+                    <div bind:this={gradio_targets[name + "_component"]} class="gradio-target"></div>
                 </div>
             {/if}
 
@@ -157,6 +167,79 @@
           </tbody>
         </table>
         {/if}
+
+        {#if mode === "components" && obj.string_shortcuts }
+        <table class="mb-4 table-fixed w-full mt-6">
+          <thead class="text-left">
+            <tr>
+              <th class="p-3 font-semibold w-2/5">Class</th>
+              <th class="p-3 font-semibold">Interface String Shortcut</th>
+              <th class="p-3 font-semibold">Initialization</th>
+            </tr>
+          </thead>
+          <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+          {#each obj.string_shortcuts as shortcut }
+              <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                <td class="p-3 w-2/5 break-words" >
+                  <p><code class="lang-python">gradio.{ shortcut[0] }</code></p>
+                </td>
+                <td class="p-3 w-2/5 break-words">
+                  <p>"{ shortcut[1] }"</p>
+                </td>
+                <td class="p-3 text-gray-700 break-words">
+                  { shortcut[2] }
+                </td>
+              </tr>
+          {/each}
+          </tbody>
+        </table>
+         {/if}
+
+         {#if obj.fns && obj.fns.length > 0 }
+            <h4 class="mt-4 p-3 font-semibold">Methods</h4>
+              <div class="flex flex-col gap-8 pl-12">
+                {#each obj.fns as fn}
+
+                  <FunctionDoc fn={fn} parent={obj.name} />
+               
+                {/each}
+              <div class="ml-12"> </div>
+            </div>
+          {/if}
+
+          
+          {#if obj.demos }
+
+            <div class="category mb-8" id="examples">
+              <h2 class="mb-4 text-2xl font-thin block">✨ {obj.name} Examples</h2>
+              <div>
+                <div class="demo-window overflow-y-auto h-full w-full my-4">
+                  <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
+                    <div class="flex overflow-auto pt-4">
+                      {#each obj.demos as demo, i }
+                      <button
+                        on:click={() => (current_selection = i)}
+                        class:selected-demo-tab={current_selection == i}
+                        class="demo-btn px-4 py-2 text-lg min-w-max text-gray-600 hover:text-orange-500"
+                        name="{ demo[0] }">{ demo[0] }</button>
+                      {/each}
+                    </div>
+                    {#each obj.demos as demo, i }
+                    <div 
+                    class:hidden={current_selection !== i }
+                    class:selected-demo-window={current_selection == i}
+                    class="demo-content px-4" name="{ demo[0] }">
+                      <DemoCode name={demo[0]} code={demo[1]} />
+                      <div bind:this={gradio_targets[demo[0]]} class="gradio-target"></div>
+                    </div>
+                    {/each}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          {/if}
+
         
         </div>
 
