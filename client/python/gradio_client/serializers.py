@@ -5,14 +5,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 from gradio import processing_utils, utils
-from gradio.context import Context
 
 
 class Serializable(ABC):
     @abstractmethod
-    def serialize(
-        self, x: Any, load_dir: str | Path = "", encryption_key: bytes | None = None
-    ):
+    def serialize(self, x: Any, load_dir: str | Path = ""):
         """
         Convert data from human-readable format to serialized format for a browser.
         """
@@ -23,7 +20,6 @@ class Serializable(ABC):
         self,
         x: Any,
         save_dir: str | Path | None = None,
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
     ):
         """
@@ -33,9 +29,7 @@ class Serializable(ABC):
 
 
 class SimpleSerializable(Serializable):
-    def serialize(
-        self, x: Any, load_dir: str | Path = "", encryption_key: bytes | None = None
-    ) -> Any:
+    def serialize(self, x: Any, load_dir: str | Path = "") -> Any:
         """
         Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
         Parameters:
@@ -49,7 +43,6 @@ class SimpleSerializable(Serializable):
         self,
         x: Any,
         save_dir: str | Path | None = None,
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
     ):
         """
@@ -68,7 +61,6 @@ class ImgSerializable(Serializable):
         self,
         x: str | None,
         load_dir: str | Path = "",
-        encryption_key: bytes | None = None,
     ) -> str | None:
         """
         Convert from human-friendly version of a file (string filepath) to a seralized
@@ -82,16 +74,14 @@ class ImgSerializable(Serializable):
             return None
         is_url = utils.validate_url(x)
         path = x if is_url else Path(load_dir) / x
-        return processing_utils.encode_url_or_file_to_base64(
-            path, encryption_key=encryption_key
-        )
+        return processing_utils.encode_url_or_file_to_base64(path)
 
     def deserialize(
         self,
         x: str | None,
         save_dir: str | Path | None = None,
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
+        access_token: str | None = None,
     ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
@@ -104,9 +94,7 @@ class ImgSerializable(Serializable):
         """
         if x is None or x == "":
             return None
-        file = processing_utils.decode_base64_to_file(
-            x, dir=save_dir, encryption_key=encryption_key
-        )
+        file = processing_utils.decode_base64_to_file(x, dir=save_dir)
         return file.name
 
 
@@ -141,8 +129,8 @@ class FileSerializable(Serializable):
         self,
         x: str | Dict | None,
         save_dir: Path | str | None = None,
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
+        access_token: str | None = None,
     ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
@@ -166,7 +154,7 @@ class FileSerializable(Serializable):
                 if root_url is not None:
                     file_name = processing_utils.download_tmp_copy_of_file(
                         root_url + "file=" + x["name"],
-                        access_token=Context.access_token,
+                        access_token=access_token,
                         dir=save_dir,
                     ).name
                 else:
@@ -207,7 +195,6 @@ class JSONSerializable(Serializable):
         self,
         x: str | Dict,
         save_dir: str | Path | None = None,
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
     ) -> str | None:
         """
@@ -222,3 +209,6 @@ class JSONSerializable(Serializable):
         if x is None:
             return None
         return processing_utils.dict_or_str_to_json_file(x, dir=save_dir).name
+
+
+serializer_mapping = {cls.__name__: cls for cls in Serializable.__subclasses__()}
