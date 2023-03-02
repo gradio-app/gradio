@@ -6,7 +6,7 @@ import json
 import re
 from concurrent.futures import Future
 from packaging import version
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 import uuid
 import websockets
 
@@ -42,6 +42,10 @@ class Client:
         self.ws_url = utils.WS_URL.format(self.src).replace("https", "wss")
         self.config = self._get_config()
 
+        self.predict_fns = self._setup_predict_fns()
+        self.serialize_fns = self._setup_serialize_fn()
+        self.deserialize_fns = self._setup_deserialize_fn()
+        
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
@@ -68,11 +72,9 @@ class Client:
                 raise ValueError(f"Cannot find a function with api_name: {api_name}")
             fn_index = inferred_fn_index        
         
-        dependency = self.config["dependencies"][fn_index]
-        
-        predict_fn = self._get_predict_fn(fn_index, dependency)
-        serialize_fn = self._get_serialize_fn(dependency)
-        deserialize_fn = self._get_deserialize_fn(dependency)
+        predict_fn = self._get_predict_fn(fn_index)
+        serialize_fn = self._get_serialize_fn(fn_index)
+        deserialize_fn = self._get_deserialize_fn(fn_index)
         
         return lambda *args: deserialize_fn(*predict_fn(*serialize_fn(*args)))        
 
@@ -90,83 +92,113 @@ class Client:
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data)
 
-    def _get_predict_fn(self, fn_index: int, dependency: Dict) -> Callable:
-        use_ws = self._use_websocket(dependency)
-        def predict_fn(*data):
-            print("data", data)
+    def _get_predict_fn(self, fn_index: int) -> Callable:
+        return self.predict_fns[fn_index]
+    
+    def _setup_predict_fns(self) -> List[Callable]:        
+        def create_fn(fn_index, dependency: Dict) -> Callable:
             if not dependency["backend_fn"]:
-                return None
-            data = json.dumps({"data": data, "fn_index": fn_index})
-            hash_data = json.dumps(
-                {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
-            )
-            if use_ws:
-                result = utils.synchronize_async(self._ws_fn, data, hash_data)
-                output = result["data"]
-            else:
-                response = requests.post(self.api_url, headers=self.headers, data=data)
-                result = json.loads(response.content.decode("utf-8"))
-                try:
+                return lambda *args: args
+            use_ws = self._use_websocket(dependency)
+            def predict_fn(*data):
+                if not dependency["backend_fn"]:
+                    return None
+                data = json.dumps({"data": data, "fn_index": fn_index})
+                hash_data = json.dumps(
+                    {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
+                )
+                if use_ws:
+                    result = utils.synchronize_async(self._ws_fn, data, hash_data)
                     output = result["data"]
-                except KeyError:
-                    if "error" in result and "429" in result["error"]:
-                        raise utils.TooManyRequestsError(
-                            "Too many requests to the Hugging Face API"
+                else:
+                    response = requests.post(self.api_url, headers=self.headers, data=data)
+                    result = json.loads(response.content.decode("utf-8"))
+                    try:
+                        output = result["data"]
+                    except KeyError:
+                        if "error" in result and "429" in result["error"]:
+                            raise utils.TooManyRequestsError(
+                                "Too many requests to the Hugging Face API"
+                            )
+                        raise KeyError(
+                            f"Could not find 'data' key in response. Response received: {result}"
                         )
-                    raise KeyError(
-                        f"Could not find 'data' key in response. Response received: {result}"
-                    )
-            print("output", output)
-            print("output", tuple(output))
-            return tuple(output)
-        return predict_fn
+                return tuple(output)
+            return predict_fn            
+        
+        fns = []
+        for fn_index, dependency in enumerate(self.config["dependencies"]):
+            fns.append(create_fn(fn_index, dependency))
+        return fns
+
+    def _get_serialize_fn(self, fn_index: int) -> Callable:
+        return self.serialize_fns[fn_index]
     
-    def _get_serialize_fn(self, dependency: Dict) -> Callable:
-        inputs = dependency["inputs"]
-        serializers = []
+    def _setup_serialize_fn(self) -> List[Callable]:
+        def create_fn(dependency: Dict) -> Callable:
+            if not dependency["backend_fn"]:
+                return lambda *args: args
+            inputs = dependency["inputs"]
+            serializers = []
+            
+            for i in inputs:
+                for component in self.config["components"]:
+                    if component["id"] == i:
+                        if component.get("serializer", None):
+                            serializer_name = component["serializer"]
+                            assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                            serializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                        else:
+                            component_name = component["type"]
+                            assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                            serializer = serializing.COMPONENT_MAPPING[component_name]
+                        serializers.append(serializer())  # type: ignore
+            
+            def serialize_fn(*data):
+                assert len(data) == len(serializers), f"Expected {len(serializers)} arguments, got {len(data)}"
+                return [s.serialize(d) for s, d in zip(serializers, data)]
+            return serialize_fn
         
-        for i in inputs:
-            for component in self.config["components"]:
-                if component["id"] == i:
-                    if component.get("serializer", None):
-                        serializer_name = component["serializer"]
-                        assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                        serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        component_name = component["type"]
-                        assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        serializer = serializing.COMPONENT_MAPPING[component_name]
-                    serializers.append(serializer())  # type: ignore
-        
-        def serialize_fn(*data):
-            assert len(data) == len(serializers), f"Expected {len(serializers)} arguments, got {len(data)}"
-            return [s.serialize(d) for s, d in zip(serializers, data)]
-        
-        return serialize_fn
+        fns = []
+        for dependency in self.config["dependencies"]:
+            fns.append(create_fn(dependency))
+        return fns
     
-    def _get_deserialize_fn(self, dependency: Dict) -> Callable:
-        outputs = dependency["outputs"]
-        deserializers = []
+    def _get_deserialize_fn(self, fn_index: int) -> Callable:
+        return self.deserialize_fns[fn_index]
+    
+    def _setup_deserialize_fn(self) -> List[Callable]:
+        def create_fn(dependency: Dict) -> Callable:
+            if not dependency["backend_fn"]:
+                return lambda *args: args
+            
+            outputs = dependency["outputs"]
+            deserializers = []
+            
+            for i in outputs:
+                for component in self.config["components"]:
+                    if component["id"] == i:
+                        if component.get("serializer", None):
+                            serializer_name = component["serializer"]
+                            assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                            deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                        else:
+                            component_name = component["type"]
+                            assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                            deserializer = serializing.COMPONENT_MAPPING[component_name]
+                        deserializers.append(deserializer())  # type: ignore
+            
+            def deserialize_fn(*data):
+                result = [s.deserialize(d) for s, d in zip(deserializers, data)]
+                if len(outputs) == 1:
+                    result = result[0]
+                return result
+            return deserialize_fn
         
-        for i in outputs:
-            for component in self.config["components"]:
-                if component["id"] == i:
-                    if component.get("serializer", None):
-                        serializer_name = component["serializer"]
-                        assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                        deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        component_name = component["type"]
-                        assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        deserializer = serializing.COMPONENT_MAPPING[component_name]
-                    deserializers.append(deserializer())  # type: ignore
-        
-        def deserialize_fn(*data):
-            result = [s.deserialize(d) for s, d in zip(deserializers, data)]
-            if len(outputs) == 1:
-                result = result[0]
-            return result
-        return deserialize_fn
+        fns = []
+        for dependency in self.config["dependencies"]:
+            fns.append(create_fn(dependency))
+        return fns
 
     def __del__(self):
         if hasattr(self, "executor"):
