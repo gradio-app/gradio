@@ -5,4 +5,4 @@ pip_required
 
 pip install --upgrade pip
 pip install pyright
-pyright gradio/
+pyright gradio/*.py
