@@ -1,6 +1,6 @@
 import re
 
-from .utils import colors, size
+from gradio.themes.utils import colors, size
 
 
 class ThemeClass:

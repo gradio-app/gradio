@@ -1,5 +1,5 @@
-from .Base import Base
-from .utils import colors, size
+from gradio.themes.base import Base
+from gradio.themes.utils import colors, size
 
 
 class Soft(Base):
