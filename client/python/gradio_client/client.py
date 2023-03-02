@@ -37,6 +37,8 @@ class Client:
             raise ValueError(
                 f"Could not find Space: {space}. If it is a private Space, please provide an access_token."
             )
+        else:
+            print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = utils.API_URL.format(self.src)
         self.ws_url = utils.WS_URL.format(self.src).replace("https", "wss")
@@ -52,6 +54,7 @@ class Client:
     def predict(self, *args, api_name: str | None = None, fn_index: int = 0, callbacks: List[Callable] | None = None) -> Future:
         complete_fn = self._get_complete_fn(api_name, fn_index)
         future = self.executor.submit(complete_fn, *args)
+        job = Job(future)
         if callbacks:            
             def create_fn(callback) -> Callable:
                 def fn(future):
@@ -62,8 +65,8 @@ class Client:
                 return fn
             
             for callback in callbacks:
-                future.add_done_callback(create_fn(callback))
-        return future
+                job.add_done_callback(create_fn(callback))
+        return job
     
     def info(self, api_name: str | None = None) -> Dict:
         if api_name:
@@ -81,6 +84,7 @@ class Client:
         
     def pprint(self, api_name: str | None = None) -> None:
         print(json.dumps(self.info(api_name), indent=2))
+        
 
     ##################################
     # Private helper methods
@@ -260,3 +264,27 @@ class Client:
                 f"Gradio 2.x is not supported by this client. Please upgrade this app to Gradio 3.x."
             )
         return config
+
+
+class Job(Future):
+    """A Job is a thin wrapper over the Future class that can be cancelled."""
+    def __init__(self, future: Future):
+        self.future = future
+        
+    def __getattr__(self, name):
+        """Forwards any properties to the Future class."""
+        return getattr(self.future, name)
+    
+    def cancel(self) -> bool:
+        """Cancels the job."""
+        if self.future.cancelled() or self.future.done():
+            pass
+            return False
+        elif self.future.running():
+            pass # TODO: Handle this case
+            return True
+        else:
+            return self.future.cancel()
+    
+        
+    
