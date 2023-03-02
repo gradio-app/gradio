@@ -115,20 +115,20 @@
 
 	.message {
 		position: relative;
+		align-self: flex-start;
+		border-width: 1px;
 		border-radius: var(--radius-xxl);
 		background-color: var(--color-background-secondary);
-		border-width: 1px;
 		padding: var(--spacing-xl) var(--spacing-xxl);
+		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
 		line-height: var(--line-xs);
 		overflow-wrap: break-word;
-		width: calc(100% - var(--spacing-xxl));
-		align-self: flex-start;
 	}
 	.user {
-		border-bottom-right-radius: 0;
 		align-self: flex-end;
+		border-bottom-right-radius: 0;
 	}
 	.bot {
 		border-bottom-left-radius: 0;
@@ -139,20 +139,20 @@
 			width: auto;
 		}
 		.bot {
-			padding-left: var(--spacing-xxl);			
+			padding-left: var(--spacing-xxl);
 		}
 	}
 
-
 	/* Colors */
-	.bot, .pending {
-		background-color: var(--color-background-secondary);
+	.bot,
+	.pending {
 		border-color: var(--color-border-primary);
+		background-color: var(--color-background-secondary);
 	}
 	.user {
+		border-color: var(--color-border-accent);
 		background-color: var(--color-accent-soft);
 		color: var(--color-accent);
-		border-color: var(--color-border-accent);
 	}
 	.feedback {
 		display: flex;
@@ -169,13 +169,12 @@
 		color: var(--body-text-color);
 	}
 
-
 	.pending {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 2px;
 		align-self: center;
+		gap: 2px;
 	}
 	.dot-flashing {
 		animation: dot-flashing 1s infinite linear alternate;

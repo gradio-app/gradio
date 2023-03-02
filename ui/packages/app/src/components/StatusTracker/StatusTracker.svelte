@@ -307,11 +307,11 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
+		border-radius: var(--block-radius);
 		background-color: var(--color-background-primary);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
-		border-radius: var(--block-radius);
 	}
 
 	.wrap.center {
