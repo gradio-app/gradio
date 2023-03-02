@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import concurrent.futures
-from concurrent.futures import Future
 import json
 import re
+from concurrent.futures import Future
+from packaging import version
 from typing import Callable, Dict
+import uuid
+import websockets
 
 import requests
-
 from gradio_client import utils
 
 
@@ -44,15 +46,15 @@ class Client:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
     def predict(self, args, api_name: str | None = None, fn_index: int = 0) -> Future:
-        predict_fn = self._get_predict_fn(api_name, fn_index)
-        future = self.executor.submit(predict_fn, *args)
+        complete_fn = self._get_complete_fn(api_name, fn_index)
+        future = self.executor.submit(complete_fn, *args)
         return future
 
     #################
     # Helper methods
     #################
-
-    def _get_predict_fn(self, api_name: str | None, fn_index: int) -> Callable:
+    
+    def _get_complete_fn(self, api_name: str | None, fn_index: int) -> Callable:
         if api_name is not None:
             inferred_fn_index = next(
                 (
@@ -64,9 +66,69 @@ class Client:
             )
             if inferred_fn_index is None:
                 raise ValueError(f"Cannot find a function with api_name: {api_name}")
-            fn_index = inferred_fn_index
+            fn_index = inferred_fn_index        
+        
+        dependency = self.config["dependencies"][fn_index]
+        
+        predict_fn = self._get_predict_fn(fn_index, dependency)
+        serialize_fn = self._get_serialize_fn(dependency)
+        deserialize_fn = self._get_deserialize_fn(dependency)
+        
+        return lambda *args: deserialize_fn(predict_fn(*serialize_fn(*args)))        
 
-        return lambda *args: None
+    def _use_websocket(self, dependency: Dict) -> bool:
+        queue_enabled = self.config.get("enable_queue", False)
+        queue_uses_websocket = version.parse(
+            self.config.get("version", "2.0")
+        ) >= version.Version("3.2")
+        dependency_uses_queue = dependency.get("queue", False) is not False
+        return queue_enabled and queue_uses_websocket and dependency_uses_queue
+    
+    async def _ws_fn(self, data, hash_data):
+        async with websockets.connect(  # type: ignore
+            self.ws_url, open_timeout=10, extra_headers=self.headers
+        ) as websocket:
+            return await utils.get_pred_from_ws(websocket, data, hash_data)
+
+    def _get_predict_fn(self, fn_index: int, dependency: Dict) -> Callable:
+        use_ws = self._use_websocket(dependency)
+        def predict_fn(*data):
+            if not dependency["backend_fn"]:
+                return None
+            data = json.dumps({"data": data, "fn_index": fn_index})
+            hash_data = json.dumps(
+                {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
+            )
+            if use_ws:
+                result = utils.synchronize_async(self._ws_fn, data, hash_data)
+                output = result["data"]
+            else:
+                response = requests.post(self.api_url, headers=self.headers, data=data)
+                result = json.loads(response.content.decode("utf-8"))
+                try:
+                    output = result["data"]
+                except KeyError:
+                    if "error" in result and "429" in result["error"]:
+                        raise utils.TooManyRequestsError(
+                            "Too many requests to the Hugging Face API"
+                        )
+                    raise KeyError(
+                        f"Could not find 'data' key in response. Response received: {result}"
+                    )
+            return output
+        return predict_fn
+    
+    def _get_serialize_fn(self, dependency: Dict) -> Callable:
+        def serialize_fn(*data):
+            return data
+        return serialize_fn
+    
+    def _get_deserialize_fn(self, dependency: Dict) -> Callable:
+        def deserialize_fn(*data):
+            if len(dependency["outputs"]) == 1:
+                data = data[0]
+            return data
+        return deserialize_fn
 
     def __del__(self):
         if hasattr(self, "executor"):
