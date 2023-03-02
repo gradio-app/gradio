@@ -2,21 +2,11 @@
     import { afterUpdate } from 'svelte';
     import demos_by_category from "./demos.json"
     import space_logo from "../../assets/img/spaces-logo.svg";
-    import Prism from 'prismjs';
-    import 'prismjs/components/prism-python';
-    import { svgCopy, svgCheck } from "../../assets/copy.js";
+    import DemoCode from '../../components/DemoCode.svelte';
     
-    let language = 'python';
     let current_selection = 0;
     let gradio_targets = {};
-    let copied = false;
-
-    function copy(code) {
-      navigator.clipboard.writeText(code);
-      copied = true;
-      setTimeout(() => (copied = false), 2000);
-    }
-
+    
     afterUpdate(() => {  
       for (const key in gradio_targets) {
         if (!gradio_targets[key].firstChild) {
@@ -54,23 +44,11 @@
               class:hidden={current_selection !== i }
               class:selected-demo-window={current_selection == i}
               class="demo-content px-4">
-                <p class="my-4 text-lg text-gray-600">{ demo.text }</p>
-                <div class="codeblock bg-gray-50 mx-auto p-3" id="{ demo.dir }_code">
-                  <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{ demo.dir }/run.ipynb" target="_blank" style="right:30px">
-                    <img src="https://colab.research.google.com/assets/colab-badge.svg">
-                  </a>
-                  <button class="clipboard-button" type="button" on:click={() => copy(demo.code)}>
-                    {#if !copied }
-                      {@html svgCopy }
-                    {:else}
-                      {@html svgCheck }
-                    {/if}
-                  </button>
 
-                <pre class=" max-h-80 overflow-auto"><code class="code language-python">{@html Prism.highlight(demo.code, Prism.languages[language])}</code></pre>
-                </div>
+                <DemoCode name={demo.dir} code={demo.code} />
+
                 <div bind:this={gradio_targets[demo.dir]} class="gradio-target"></div>
-                <!-- <gradio-app space="gradio/{ demo.dir }" /> -->
+
               </div>
               {/each}
             </div>

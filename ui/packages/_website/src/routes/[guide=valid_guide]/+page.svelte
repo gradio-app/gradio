@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import guides_json from "../guides/guides.json";
     import space_logo from "../../assets/img/spaces-logo.svg";
-    import { onMount } from 'svelte';
+    import { afterUpdate } from 'svelte';
 
 
     let guides = guides_json.guides;
@@ -25,7 +25,7 @@
         sidebar.scrollTop = target_link?.offsetTop;
     }
 
-    onMount(() => {
+    afterUpdate(() => {
         document.querySelectorAll(".prose h2").forEach(subheader => {
         navigation.innerHTML += `
           <a class='subheading block thin-link -indent-2 ml-4 mr-2' href='#${subheader.id}'>${subheader.innerText}</a>

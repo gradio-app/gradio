@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import docs_json from "../docs.json";
     import { onMount, afterUpdate } from 'svelte';
-	import Demos from '../../../components/Demos.svelte';
+	  import Demos from '../../../components/Demos.svelte';
     import DocsNav from '../../../components/DocsNav.svelte';
 
 
