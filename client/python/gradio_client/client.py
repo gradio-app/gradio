@@ -1,4 +1,5 @@
 """The main Client class for the Python client."""
+from __future__ import annotations
 
 import concurrent.futures
 from concurrent.futures import Future
