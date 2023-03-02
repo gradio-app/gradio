@@ -37,7 +37,7 @@ from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
-from gradio.themes.base import Theme
+from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,

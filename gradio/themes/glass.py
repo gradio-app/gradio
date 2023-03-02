@@ -1,4 +1,4 @@
-from .base import Base
+from .Base import Base
 from .utils import colors, size
 
 
