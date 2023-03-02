@@ -482,11 +482,10 @@ class Blocks(BlockContext):
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
-        self.analytics_enabled = (
-            analytics_enabled
-            if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
-        )
+        if "GRADIO_ANALYTICS_ENABLED" in os.environ:
+            self.analytics_enabled = os.environ.get("GRADIO_ANALYTICS_ENABLED") == "True"
+        else:
+            self.analytics_enabled = analytics_enabled if analytics_enabled is not None else True
 
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
@@ -519,6 +518,9 @@ class Blocks(BlockContext):
         self.progress_tracking = None
 
         self.file_directories = []
+        
+        if "GRADIO_FILE_DIRECTORIES" in os.environ:
+            self.file_directories.append(os.environ.get("GRADIO_FILE_DIRECTORIES"))
 
         if self.analytics_enabled:
             data = {
@@ -1354,7 +1356,8 @@ class Blocks(BlockContext):
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
 
-        self.file_directories = file_directories if file_directories is not None else []
+        if len(self.file_directories) == 0:
+            self.file_directories = file_directories if file_directories is not None else []
 
         if not self.enable_queue and self.progress_tracking:
             raise ValueError("Progress tracking requires queuing to be enabled.")

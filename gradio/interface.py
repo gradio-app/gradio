@@ -319,11 +319,11 @@ class Interface(Blocks):
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
-        self.analytics_enabled = (
-            analytics_enabled
-            if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
-        )
+        if "GRADIO_ANALYTICS_ENABLED" in os.environ:
+            self.analytics_enabled = os.environ.get("GRADIO_ANALYTICS_ENABLED") == "True"
+        else:
+            self.analytics_enabled = analytics_enabled if analytics_enabled is not None else True
+
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
         if allow_flagging is True:
