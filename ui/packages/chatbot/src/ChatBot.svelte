@@ -5,8 +5,6 @@
 
 	export let value: Array<[string | null, string | null]> | null;
 	let old_value: Array<[string | null, string | null]> | null;
-	export let user_name = "You";
-	export let bot_name = "Bot";
 	export let feedback: Array<string> | null = null; // ["✕", "✓"];
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
@@ -67,9 +65,6 @@
 				class="message user"
 				class:hide={message[0] === null}
 			>
-				<div class="speaker">
-					{user_name}
-				</div>
 				{@html message[0]}
 			</div>
 			<div
@@ -77,9 +72,6 @@
 				class="message bot"
 				class:hide={message[1] === null}
 			>
-				<div class="speaker">
-					{bot_name}
-				</div>
 				{@html message[1]}
 				{#if feedback}
 					<div class="feedback">
@@ -126,19 +118,31 @@
 		border-radius: var(--radius-xxl);
 		background-color: var(--color-background-secondary);
 		border-width: 1px;
-		padding: var(--spacing-xxl);
+		padding: var(--spacing-xl) var(--spacing-xxl);
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
 		line-height: var(--line-xs);
 		overflow-wrap: break-word;
+		width: calc(100% - var(--spacing-xxl));
+		align-self: flex-start;
 	}
-
 	.user {
 		border-bottom-right-radius: 0;
+		align-self: flex-end;
 	}
 	.bot {
 		border-bottom-left-radius: 0;
+		padding-left: calc(2 * var(--spacing-xxl));
 	}
+	@media (max-width: 480px) {
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);			
+		}
+	}
+
 
 	/* Colors */
 	.bot, .pending {
@@ -149,13 +153,6 @@
 		background-color: var(--color-accent-soft);
 		color: var(--color-accent);
 		border-color: var(--color-border-accent);
-	}
-
-	.speaker {
-		margin-bottom: var(--spacing-xs);
-		font-weight: bold;
-		font-size: var(--text-sm);
-		opacity: 0.7;
 	}
 	.feedback {
 		display: flex;
@@ -172,11 +169,13 @@
 		color: var(--body-text-color);
 	}
 
+
 	.pending {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		gap: 2px;
+		align-self: center;
 	}
 	.dot-flashing {
 		animation: dot-flashing 1s infinite linear alternate;
