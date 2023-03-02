@@ -11,7 +11,7 @@ import uuid
 import websockets
 
 import requests
-from gradio_client import utils
+from gradio_client import utils, serializing
 
 
 class Client:
@@ -45,7 +45,7 @@ class Client:
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
-    def predict(self, args, api_name: str | None = None, fn_index: int = 0) -> Future:
+    def predict(self, *args, api_name: str | None = None, fn_index: int = 0) -> Future:
         complete_fn = self._get_complete_fn(api_name, fn_index)
         future = self.executor.submit(complete_fn, *args)
         return future
@@ -74,7 +74,7 @@ class Client:
         serialize_fn = self._get_serialize_fn(dependency)
         deserialize_fn = self._get_deserialize_fn(dependency)
         
-        return lambda *args: deserialize_fn(predict_fn(*serialize_fn(*args)))        
+        return lambda *args: deserialize_fn(*predict_fn(*serialize_fn(*args)))        
 
     def _use_websocket(self, dependency: Dict) -> bool:
         queue_enabled = self.config.get("enable_queue", False)
@@ -93,6 +93,7 @@ class Client:
     def _get_predict_fn(self, fn_index: int, dependency: Dict) -> Callable:
         use_ws = self._use_websocket(dependency)
         def predict_fn(*data):
+            print("data", data)
             if not dependency["backend_fn"]:
                 return None
             data = json.dumps({"data": data, "fn_index": fn_index})
@@ -115,19 +116,56 @@ class Client:
                     raise KeyError(
                         f"Could not find 'data' key in response. Response received: {result}"
                     )
-            return output
+            print("output", output)
+            print("output", tuple(output))
+            return tuple(output)
         return predict_fn
     
     def _get_serialize_fn(self, dependency: Dict) -> Callable:
+        inputs = dependency["inputs"]
+        serializers = []
+        
+        for i in inputs:
+            for component in self.config["components"]:
+                if component["id"] == i:
+                    if component.get("serializer", None):
+                        serializer_name = component["serializer"]
+                        assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                        serializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                    else:
+                        component_name = component["type"]
+                        assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                        serializer = serializing.COMPONENT_MAPPING[component_name]
+                    serializers.append(serializer())  # type: ignore
+        
         def serialize_fn(*data):
-            return data
+            assert len(data) == len(serializers), f"Expected {len(serializers)} arguments, got {len(data)}"
+            return [s.serialize(d) for s, d in zip(serializers, data)]
+        
         return serialize_fn
     
     def _get_deserialize_fn(self, dependency: Dict) -> Callable:
+        outputs = dependency["outputs"]
+        deserializers = []
+        
+        for i in outputs:
+            for component in self.config["components"]:
+                if component["id"] == i:
+                    if component.get("serializer", None):
+                        serializer_name = component["serializer"]
+                        assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                        deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                    else:
+                        component_name = component["type"]
+                        assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                        deserializer = serializing.COMPONENT_MAPPING[component_name]
+                    deserializers.append(deserializer())  # type: ignore
+        
         def deserialize_fn(*data):
-            if len(dependency["outputs"]) == 1:
-                data = data[0]
-            return data
+            result = [s.deserialize(d) for s, d in zip(deserializers, data)]
+            if len(outputs) == 1:
+                result = result[0]
+            return result
         return deserialize_fn
 
     def __del__(self):

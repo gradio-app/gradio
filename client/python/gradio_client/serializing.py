@@ -211,4 +211,36 @@ class JSONSerializable(Serializable):
         return processing_utils.dict_or_str_to_json_file(x, dir=save_dir).name
 
 
-serializer_mapping = {cls.__name__: cls for cls in Serializable.__subclasses__()}
+SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
+
+COMPONENT_MAPPING = {
+    'textbox': SimpleSerializable,
+    'number': SimpleSerializable,
+    'slider': SimpleSerializable,
+    'checkbox': SimpleSerializable,
+    'checkboxgroup': SimpleSerializable,
+    'radio': SimpleSerializable,
+    'dropdown': SimpleSerializable,
+    'image': ImgSerializable,
+    'video': FileSerializable,
+    'audio': FileSerializable,
+    'file': FileSerializable,
+    'dataframe': JSONSerializable,
+    'timeseries': JSONSerializable,
+    'state': SimpleSerializable,
+    'button': SimpleSerializable,
+    'uploadbutton': FileSerializable,
+    'colorpicker': SimpleSerializable,
+    'label': JSONSerializable,
+    'highlightedtext': JSONSerializable,
+    'json': JSONSerializable,
+    'html': SimpleSerializable,
+    'gallery': SimpleSerializable,  # TODO: Make this a proper Serializable class
+    'chatbot': JSONSerializable,
+    'model3d': FileSerializable,
+    'plot': JSONSerializable,
+    'markdown': SimpleSerializable,
+    'dataset': SimpleSerializable
+ }
+
+    
