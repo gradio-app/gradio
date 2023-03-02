@@ -212,16 +212,25 @@
 		return "dark";
 	}
 
-	async function check_space_status(space_id: string, source: string) {
+	export const RE_SPACE_NAME = /^[^\/]*\/[^\/]*$/;
+	async function check_space_status(
+		space_id: string,
+		source: string,
+		cb: Function = () => {}
+	) {
+		const endpoint = RE_SPACE_NAME.test(space_id) ? "" : "by-subdomain/";
 		let response;
 		let _status;
 		try {
-			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
+			response = await fetch(
+				`https://huggingface.co/api/spaces/${endpoint}${space_id}`
+			);
 			_status = response.status;
 			if (_status !== 200) {
 				throw new Error();
 			}
 			response = await response.json();
+			cb(response.id);
 		} catch (e) {
 			status = "error";
 			error_detail = {
@@ -335,7 +344,14 @@
 			: src?.trim();
 
 		if (space) {
-			check_space_status(space.trim(), source);
+			check_space_status(space?.trim(), source);
+		} else if (src?.endsWith(".hf.space")) {
+			check_space_status(
+				src.replace(".hf.space", "").replace("https://", ""),
+				source,
+				(id: string) => (space = id)
+			);
+			space = " ";
 		}
 		load_config(source);
 	});
@@ -460,7 +476,6 @@
 			auth_message={config.auth_message}
 			root={config.root}
 			is_space={config.is_space}
-			id={_id}
 			{app_mode}
 		/>
 	{/if}
