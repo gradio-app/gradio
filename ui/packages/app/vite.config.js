@@ -5,7 +5,7 @@ import sveltePreprocess from "svelte-preprocess";
 import custom_media from "postcss-custom-media";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const version_path = join(__dirname, "..", "..", "..", "gradio", "version.txt");
@@ -113,7 +113,23 @@ export default defineConfig(({ mode }) => {
 				cdn_url: CDN_URL
 			}),
 			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			handle_ce_css()
+			handle_ce_css(),
+			{
+				writeBundle() {
+					const template_path = join(
+						__dirname,
+						"..",
+						"..",
+						"..",
+						"gradio",
+						"templates",
+						"frontend",
+						"theme.css"
+					);
+
+					writeFileSync(template_path, "");
+				}
+			}
 		],
 		test: {
 			environment: "happy-dom",
