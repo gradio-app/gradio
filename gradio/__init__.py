@@ -5,7 +5,7 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
-import gradio.themes
+import gradio.themes as themes
 from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
