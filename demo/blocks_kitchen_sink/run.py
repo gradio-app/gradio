@@ -36,7 +36,9 @@ with gr.Blocks() as demo:
         """,
     )
     theme_selector = gr.Radio(
-        ["Base", "Default", "Monochrome", "Soft", "Glass"], value="Default", label="Theme"
+        ["Base", "Default", "Monochrome", "Soft", "Glass"],
+        value="Default",
+        label="Theme",
     )
     theme_selector.change(
         None,
@@ -162,7 +164,7 @@ with gr.Blocks() as demo:
         gr.JSON(
             value={"a": 1, "b": 2, "c": {"test": "a", "test2": [1, 2, 3]}}, label="JSON"
         )
-        gr.Label(value={"cat": 0.7, "dog": 0.2, "fish": 0.1})        
+        gr.Label(value={"cat": 0.7, "dog": 0.2, "fish": 0.1})
         gr.File()
     with gr.Row():
         gr.ColorPicker()
@@ -177,8 +179,18 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         with gr.Column(scale=2):
-            gr.Chatbot(
-                [["Hello", "Hi"], ["How are you?", "I am good."]], label="Chatbot"
+            chatbot = gr.Chatbot([["Hello", "Hi"]], label="Chatbot")
+            chat_btn = gr.Button("Add messages")
+            def chat(history):
+                time.sleep(2)
+                yield [["How are you?", "I am good."]]
+                time
+            chat_btn.click(
+                lambda history: history
+                + [["How are you?", "I am good."]]
+                + (time.sleep(2) or []),
+                chatbot,
+                chatbot,
             )
         with gr.Column(scale=1):
             with gr.Accordion("Advanced Settings"):
@@ -218,4 +230,4 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(file_directories=[KS_FILES])
+    demo.queue().launch(file_directories=[KS_FILES])

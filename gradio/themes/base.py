@@ -119,8 +119,8 @@ class Base(Theme):
         *,
         # Core Colors
         color_accent="*primary_500",
-        color_accent_soft="*primary_100",
-        color_accent_soft_dark="*neutral_800",
+        color_accent_soft="*primary_50",
+        color_accent_soft_dark="*neutral_900",
         color_background_primary="white",
         color_background_primary_dark="*neutral_950",
         color_background_secondary="*neutral_50",
