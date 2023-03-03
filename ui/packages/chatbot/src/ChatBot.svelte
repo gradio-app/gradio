@@ -54,6 +54,7 @@
 		}
 	}
 </script>
+
 <!-- style={"height:" + height} -->
 <div class="wrap" style:height={`${style.height}px` || `100%`} bind:this={div}>
 	<div class="message-wrap">

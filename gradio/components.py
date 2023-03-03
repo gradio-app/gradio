@@ -4004,7 +4004,13 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             )
         return y
 
-    def style(self, *, color_map: Tuple[str, str] | None = None, height: int | None = None, **kwargs):
+    def style(
+        self,
+        *,
+        color_map: Tuple[str, str] | None = None,
+        height: int | None = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the Chatbot component.
         Parameters:
@@ -4022,6 +4028,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             self,
             **kwargs,
         )
+
 
 @document("change", "edit", "clear", "style")
 class Model3D(
