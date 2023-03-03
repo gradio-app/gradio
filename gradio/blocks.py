@@ -44,13 +44,10 @@ from gradio.utils import (
     delete_none,
     get_cancel_function,
     get_continuous_fn,
+    GRADIO_VERSION,
 )
 
 set_documentation_group("blocks")
-
-GRADIO_VERSION = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml

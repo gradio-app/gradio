@@ -30,12 +30,8 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
-
+from gradio.utils import GRADIO_VERSION
 set_documentation_group("interface")
-
-GRADIO_VERSION = (
-    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-)
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from transformers.pipelines.base import Pipeline
@@ -321,15 +317,8 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For analytics_enabled and allow_flagging: (1) first check for
-        # parameter, (2) check for env variable, (3) default to True/"manual"
-        self.analytics_enabled = (
-            analytics_enabled
-            if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
-        )
-        if not self.analytics_enabled:
-            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
+        # For allow_flagging: (1) first check for parameter, 
+        # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
         if allow_flagging is True:

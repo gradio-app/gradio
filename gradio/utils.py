@@ -126,7 +126,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
                 user_agent=data,
             )
         except Exception as e:
-            print("Error while sending telemetry: {}".format(e))
+            pass
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
     threading.Thread(target=initiated_telemetry_thread, args=(data,)).start()
     
@@ -147,8 +147,6 @@ def launch_analytics(data: Dict[str, Any]) -> None:
 
 
 def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
-    from gradio.blocks import BlockContext
-
     blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
         [],
         [],
