@@ -67,7 +67,7 @@ function create_custom_element() {
 			const control_page_title = this.getAttribute("control_page_title");
 			const initial_height = this.getAttribute("initial_height") ?? "300px"; // default: 300px
 			const is_embed = this.getAttribute("embed") ?? "true"; // default: true
-			const container = this.getAttribute("container");
+			const container = this.getAttribute("container") ?? "true"; // default: true
 			const info = this.getAttribute("info") ?? true; // default: true
 			const autoscroll = this.getAttribute("autoscroll");
 			const eager = this.getAttribute("eager");
@@ -81,7 +81,7 @@ function create_custom_element() {
 					host: host ? host.trim() : host,
 					// embed info
 					info: info === "false" ? false : true,
-					container: !!container,
+					container: container === "false" ? false : true,
 					is_embed: is_embed === "false" ? false : true,
 					initial_height: initial_height ?? undefined,
 					eager: eager === "true" ? true : false,
