@@ -159,26 +159,21 @@
 			Hello text. Hello text.
 		</p>
 		<!-- https://huggingface.co/spaces/freddyaboulton/blocks-essay -->
-		<!-- <gradio-app
+		<gradio-app
 			space="freddyaboulton/timeseries-forecasting-with-prophet
     "
-			
-		></gradio-app> -->
+		></gradio-app>
 		<!-- -->
 		<!-- </p> -->
 
-		<!-- <gradio-app
-			space="awacke1/GradioAutoPlotFromCSV"
-			info="false"
-		></gradio-app>
+		<gradio-app space="awacke1/GradioAutoPlotFromCSV" info="false"></gradio-app>
 		<gradio-app
 			space="gradio/plot_component_main"
 			initial_height="400px"
 			control_page_title="true"
 		></gradio-app>
-		 -->
 
-		<!-- <gradio-app
+		<gradio-app
 			space="gradio/colorpicker_component_main"
 			initial_height="400px"
 			control_page_title="true"
@@ -188,13 +183,51 @@
 			space="gradio/live_with_vars_main"
 			initial_height="400px"
 			control_page_title="true"
-		></gradio-app> -->
+		></gradio-app>
+		<h2>no src</h2>
 		<gradio-app
-			space="freddyaboulton/Chat-GPT-LangChain
-			"
+			src=""
 			initial_height="400px"
 			control_page_title="true"
 		></gradio-app>
+		<h2>no host</h2>
+		<gradio-app
+			host=""
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<h2>no space</h2>
+		<gradio-app
+			space=""
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<h2>invalid src</h2>
+		<gradio-app
+			src="https://pngwn-mu123sic-visualizer.hf.space"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<h2>invalid host</h2>
+		<gradio-app
+			host="asd.com"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<h2>invalid space</h2>
+		<gradio-app
+			space="asd/asd"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+
+		<gradio-app
+			src="https://pngwn-music-visualizer.hf.space"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<h2>Error: runtime error</h2>
 
 		<gradio-app
 			space="gradio/titanic_survival_main"
@@ -202,70 +235,44 @@
 			control_page_title="true"
 		></gradio-app>
 
-		<gradio-app
-			space="gradio/text_analysis_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-
-		<gradio-app
-			space="gradio/neon-tts-plugin-coqui_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-
-		<gradio-app
-			space="gradio/scatterplot_component_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-
-		<gradio-app
-			space="gradio/image_classifier_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-
-		<gradio-app
-			space="gradio/reverse_audio_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-		<gradio-app
-			space="gradio/ner_pipeline_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-		<gradio-app
-			space="gradio/longest_word_main"
-			initial_height="400px"
-			control_page_title="true"
-		></gradio-app>
-
+		<h2>Error: no app file</h2>
 		<gradio-app
 			space="pngwn/AnimeGANv2_v3"
 			initial_height="400px"
 			control_page_title="true"
 		></gradio-app>
-
+		<h2>Error: no app file</h2>
+		<gradio-app
+			src="https://pngwn-animeganv2-v3.hf.space"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
+		<h2>Error: build error</h2>
 		<gradio-app
 			space="pngwn/Stable-Diffusion-prompt-generator"
 			initial_height="400px"
 			control_page_title="true"
 		></gradio-app>
+		<h2>Error: build error</h2>
+		<gradio-app
+			src="https://pngwn-stable-diffusion-prompt-generato-85ff371.hf.space"
+			initial_height="400px"
+			control_page_title="true"
+		></gradio-app>
 
 		<!-- https://huggingface.co/spaces/ -->
-
-		<!-- <gradio-app
+		<h2>Config Error</h2>
+		<gradio-app
 			space="pngwn/clear-inputs"
 			initial_height="400px"
 			control_page_title="true"
 		></gradio-app>
+		<h2>Working</h2>
 		<gradio-app
-		space="gradio/live_with_vars"
-		initial_height="200px"
-		control_page_title="true"
-	></gradio-app> -->
+			space="gradio/live_with_vars"
+			initial_height="200px"
+			control_page_title="true"
+		></gradio-app>
 		<!-- <iframe
 			id="myIframe"
 			allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
