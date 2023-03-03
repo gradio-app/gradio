@@ -46,6 +46,5 @@ test("slider release", async ({ page }) => {
 
 	expect(responseData.data[0]).toBeGreaterThan(69.5);
 	expect(responseData.data[0]).toBeLessThan(71.0);
-	//const eventTracker = page.getByLabel("Number of events fired");
 	expect(responseData.data[2]).toEqual(1);
 });
