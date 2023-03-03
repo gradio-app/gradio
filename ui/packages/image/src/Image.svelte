@@ -371,6 +371,7 @@
 
 	.absolute-img {
 		position: absolute;
+		opacity: 0;
 	}
 
 	.webcam {
