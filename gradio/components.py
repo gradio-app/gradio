@@ -4002,6 +4002,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 None if message is None else self.md.renderInline(message),
                 None if response is None else self.md.renderInline(response),
             )
+        print(y)
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):

@@ -1,16 +1,26 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<[string | null, string | null]> | null;
 	let old_value: Array<[string | null, string | null]> | null;
 	export let pending_message: boolean = false;
+	export let root: string;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
+	export let style: Styles = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const redirect_src_url = (src: string) =>
+		src.replace('src="/file', `src="${root}file`);
 
-	$: _value = value || [];
+	$: _value = value
+		? value.map(([user_msg, bot_msg]) => [
+				user_msg ? redirect_src_url(user_msg) : null,
+				bot_msg ? redirect_src_url(bot_msg) : null,
+		  ])
+		: [];
 	beforeUpdate(() => {
 		autoscroll =
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
