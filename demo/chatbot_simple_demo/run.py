@@ -5,10 +5,13 @@ def respond(chat_history, message):
   response = random.choice(["Yes", "No"])
   return chat_history + [[message, response]]
 
-with gr.Blocks():
-  chatbot = gr.Chatbot()
-  msg = gr.Textbox()
-  clear = gr.Button("Clear")
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    msg = gr.Textbox()
+    clear = gr.Button("Clear")
 
-  msg.submit(respond, [chatbot, msg], chatbot)
-  clear.click(lambda: None, None, chatbot)
+    msg.submit(respond, [chatbot, msg], chatbot)
+    clear.click(lambda: None, None, chatbot)
+
+if __name__ == "__main__":
+    demo.launch()

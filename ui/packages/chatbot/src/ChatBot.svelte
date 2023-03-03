@@ -9,7 +9,6 @@
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
-	export let style: Styles = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 	const redirect_src_url = (src: string) =>
@@ -18,7 +17,7 @@
 	$: _value = value
 		? value.map(([user_msg, bot_msg]) => [
 				user_msg ? redirect_src_url(user_msg) : null,
-				bot_msg ? redirect_src_url(bot_msg) : null,
+				bot_msg ? redirect_src_url(bot_msg) : null
 		  ])
 		: [];
 	beforeUpdate(() => {
@@ -129,7 +128,8 @@
 	}
 	:global(.dark) .user {
 		border-color: var(--color-border-primary);
-		background: var(--color-background-secondary);
+		background: var(--color-grey-700);
+		color: var(--color-text-body);
 	}
 
 	.pending {
