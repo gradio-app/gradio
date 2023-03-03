@@ -37,5 +37,6 @@
 		{step}
 		disabled={mode === "static"}
 		on:change
+		on:release
 	/>
 </Block>
