@@ -3,6 +3,17 @@
 
 ## New Features:
 
+### Release event for Slider
+
+Now you can trigger your python function to run when the slider is released as opposed to every slider change value!
+
+Simply use the `release` method on the slider
+```python
+slider.release(function, inputs=[...], outputs=[...], api_name="predict")
+```
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3353](https://github.com/gradio-app/gradio/pull/3353)
+
 ### Dropdown Component Updates
 
 The standard dropdown component now supports searching for choices. Also when `multiselect` is `True`, you can specify `max_choices` to set the maximum number of choices you want the user to be able to select from the dropdown component.
