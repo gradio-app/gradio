@@ -43,6 +43,12 @@
 			if (_value === null) {
 				dispatch("change");
 				pending_upload = false;
+			} else if (
+				!(Array.isArray(_value) ? _value : [_value]).every(
+					(file_data) => file_data.blob
+				)
+			) {
+				pending_upload = false;
 			} else if (mode === "dynamic") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!
