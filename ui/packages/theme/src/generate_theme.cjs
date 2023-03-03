@@ -36,6 +36,7 @@ const foundation_light = {
 			highlight: "color.accent.base"
 		},
 		accent: {
+			soft: "var(--color-orange-50)",
 			base: "var(--color-orange-500)",
 			light: "var(--color-orange-300)",
 			dark: "var(--color-orange-700)"
@@ -313,29 +314,6 @@ const theme_light = {
 					selected: "color.accent.base"
 				}
 			}
-		}
-	},
-	chatbot: {
-		border: {
-			radius: "var(--radius-3xl)",
-			width: "0"
-		},
-		// do we do this via theme or constructor?
-		user: {
-			background: {
-				base: "var(--color-orange-400)",
-				latest: "var(--color-orange-400)"
-			},
-			text: { color: { base: "white", latest: "white" } },
-			border: { color: { base: "transparent", latest: "transparent" } }
-		},
-		bot: {
-			background: {
-				base: "var(--color-grey-400)",
-				latest: "var(--color-grey-400)"
-			},
-			text: { color: { base: "white", latest: "white" } },
-			border: { color: { base: "transparent", latest: "transparent" } }
 		}
 	},
 	label: {

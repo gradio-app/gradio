@@ -1,6 +1,8 @@
 import gradio as gr
 
 def add_text(state, text):
+    import time
+    time.sleep(2)
     state = state + [(text, text + "?")]
     return state, state
 

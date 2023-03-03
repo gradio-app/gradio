@@ -30,7 +30,6 @@
 		/>
 	{/if}
 	<ChatBot
-		{style}
 		{value}
 		pending_message={loading_status?.status === "pending"}
 		on:change

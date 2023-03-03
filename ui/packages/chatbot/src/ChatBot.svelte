@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import { colors } from "@gradio/theme";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<[string | null, string | null]> | null;
 	let old_value: Array<[string | null, string | null]> | null;
-	export let style: Styles = {};
 	export let pending_message: boolean = false;
 
 	let div: HTMLDivElement;
@@ -36,24 +33,6 @@
 			dispatch("change");
 		}
 	}
-
-	$: _colors = get_colors();
-
-	function get_color(c: string) {
-		if (c in colors) {
-			return colors[c as keyof typeof colors].primary;
-		} else {
-			return c;
-		}
-	}
-
-	function get_colors() {
-		if (!style.color_map) {
-			return ["#fb923c", "#9ca3af"];
-		} else {
-			return [get_color(style.color_map[0]), get_color(style.color_map[1])];
-		}
-	}
 </script>
 
 <div class="wrap" bind:this={div}>
@@ -64,7 +43,6 @@
 				class:latest={i === _value.length - 1}
 				class="message user"
 				class:hide={message[0] === null}
-				style={"background-color:" + _colors[0]}
 			>
 				{@html message[0]}
 			</div>
@@ -73,17 +51,12 @@
 				class:latest={i === _value.length - 1}
 				class="message bot"
 				class:hide={message[1] === null}
-				style={"background-color:" + _colors[1]}
 			>
 				{@html message[1]}
 			</div>
 		{/each}
 		{#if pending_message}
-			<div
-				data-testid="bot"
-				class="message user pending"
-				style={"background-color:" + _colors[0]}
-			>
+			<div data-testid="bot" class="message pending">
 				<div class="dot-flashing" />
 				&nbsp;
 				<div class="dot-flashing" />
@@ -96,61 +69,57 @@
 
 <style>
 	.wrap {
+		margin-top: var(--size-4);
 		height: 100%;
+		max-height: 480px;
 		overflow-y: auto;
 	}
 
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-end;
+		gap: var(--size-4);
 		padding: var(--size-3);
 	}
 
-	.message-wrap > * + * {
-		margin-top: var(--size-4);
-	}
 	.message-wrap > div :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
 	}
 
 	.message {
-		border-width: var(--chatbot-border-width);
+		border-width: 1px;
 		border-style: solid;
-		border-radius: var(--chatbot-border-radius);
-		padding: var(--size-2) var(--size-3);
-		max-width: 75%;
-		font-size: var(--scale-00);
-		line-height: var(--line-xs);
+		border-radius: var(--size-2);
+		padding: var(--size-3);
+		font-size: var(--scale-0);
+		line-height: var(--line-md);
 		overflow-wrap: break-word;
 	}
 
 	.user {
-		border-color: var(--chatbot-user-border-color-base);
+		margin-left: var(--size-6);
+		border-color: var(--color-accent-light);
 		border-bottom-right-radius: 0;
-		background: var(--chatbot-user-background-base);
-		color: var(--chatbot-user-text-color-base);
+		background: var(--color-accent-soft);
+		color: var(--color-accent-base);
 	}
-
-	.user.latest {
-		border-color: var(--chatbot-user-border-color-latest);
-		background: var(--chatbot-user-background-latest);
-		color: var(--chatbot-user-text-color-latest);
-	}
-
+	.pending,
 	.bot {
-		place-self: start;
-		border-color: var(--chatbot-bot-border-color-base);
-		border-bottom-left-radius: 0;
-		background: var(--chatbot-bot-background-base);
-		color: var(--chatbot-bot-text-color-base);
+		border-color: var(--color-border-primary);
+		background: var(--color-background-secondary);
 	}
-
-	.bot.latest {
-		border-color: var(--chatbot-bot-border-color-latest);
-		background: var(--chatbot-bot-background-latest);
-		color: var(--chatbot-bot-text-color-latest);
+	.bot {
+		margin-right: var(--size-6);
+		border-bottom-left-radius: 0;
+		padding-left: var(--size-9);
+	}
+	.pending {
+		margin: 0 var(--size-6);
+	}
+	:global(.dark) .user {
+		border-color: var(--color-border-primary);
+		background: var(--color-background-secondary);
 	}
 
 	.pending {
@@ -162,16 +131,27 @@
 	.dot-flashing {
 		animation: dot-flashing 1s infinite linear alternate;
 		border-radius: 5px;
-		background-color: white;
+		background-color: var(--color-text-subdued);
 		width: 5px;
 		height: 5px;
-		color: white;
+		color: var(--color-text-subdued);
 	}
 	.dot-flashing:nth-child(2) {
 		animation-delay: 0.33s;
 	}
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
+	}
+
+	/* Small screen */
+	@media (max-width: 480px) {
+		.user {
+			align-self: flex-end;
+		}
+		.bot {
+			align-self: flex-start;
+			padding-left: var(--size-3);
+		}
 	}
 
 	@keyframes dot-flashing {
