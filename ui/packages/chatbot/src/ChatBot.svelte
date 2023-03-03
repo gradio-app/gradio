@@ -38,7 +38,6 @@
 	}
 
 	$: _colors = get_colors();
-
 	function get_color(c: string) {
 		if (c in colors) {
 			return colors[c as keyof typeof colors].primary;
@@ -55,8 +54,8 @@
 		}
 	}
 </script>
-
-<div class="wrap" bind:this={div}>
+<!-- style={"height:" + height} -->
+<div class="wrap" style:height={`${style.height}px` || `100%`} bind:this={div}>
 	<div class="message-wrap">
 		{#each _value as message, i}
 			<div
@@ -96,7 +95,6 @@
 
 <style>
 	.wrap {
-		height: 100%;
 		overflow-y: auto;
 	}
 

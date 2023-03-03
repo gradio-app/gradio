@@ -9,8 +9,8 @@ def add_image(state, image):
     return state, state
 
 
-with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}") as demo:
-    chatbot = gr.Chatbot(elem_id="chatbot")
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot(elem_id="chatbot").style(height=500)
     state = gr.State([])
     
     with gr.Row():
