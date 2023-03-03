@@ -60,7 +60,9 @@
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
-			const wrap = d.backend_fn ? d.inputs.length === 1 : d.outputs.length === 1;
+			const wrap = d.backend_fn
+				? d.inputs.length === 1
+				: d.outputs.length === 1;
 			try {
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",

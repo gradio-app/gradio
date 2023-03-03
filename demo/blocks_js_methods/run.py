@@ -11,8 +11,10 @@ with blocks as demo:
         btn = gr.Button("Create sentence.")
         reverse_btn = gr.Button("Reverse sentence.")
         foo_bar_btn = gr.Button("Append foo")
-        reverse_then_to_the_server_btn = gr.Button("Reverse sentence and send to server.")
-    
+        reverse_then_to_the_server_btn = gr.Button(
+            "Reverse sentence and send to server."
+        )
+
     def sentence_maker(w1, w2, w3):
         return f"{w1} {w2} {w3}"
 
@@ -22,12 +24,18 @@ with blocks as demo:
     output4 = gr.Textbox(label="front end process and then send to backend")
 
     btn.click(sentence_maker, [subject, verb, object], output1)
-    reverse_btn.click(None, [subject, verb, object], output2, _js="(s, v, o) => o + ' ' + v + ' ' + s")
+    reverse_btn.click(
+        None, [subject, verb, object], output2, _js="(s, v, o) => o + ' ' + v + ' ' + s"
+    )
     verb.change(lambda x: x, verb, output3, _js="(x) => [...x].reverse().join('')")
     foo_bar_btn.click(None, [], subject, _js="(x) => x + ' foo'")
 
-    js = "(s, v, o) => [s, v, o].map(x => [...x].reverse().join(''))"
-    reverse_then_to_the_server_btn.click(sentence_maker, [subject, verb, object], output4, _js=js)
+    reverse_then_to_the_server_btn.click(
+        sentence_maker,
+        [subject, verb, object],
+        output4,
+        _js="(s, v, o) => [s, v, o].map(x => [...x].reverse().join(''))",
+    )
 
 if __name__ == "__main__":
     demo.launch()
