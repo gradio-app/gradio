@@ -111,7 +111,7 @@
 		border-color: var(--color-accent-light);
 		border-bottom-right-radius: 0;
 		background: var(--color-accent-soft);
-		color: var(--color-accent-base);
+		color: var(--color-text-body);
 	}
 	.pending,
 	.bot {
@@ -174,6 +174,10 @@
 		100% {
 			opacity: 0.8;
 		}
+	}
+	.message-wrap .message :global(img) {
+		max-height: 200px;
+		margin: var(--size-2);
 	}
 
 	.hide {
