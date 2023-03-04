@@ -21,7 +21,8 @@ describe("Chatbot", () => {
 		const { getAllByTestId } = render(Chatbot, {
 			loading_status,
 			label: "hello",
-			value: [["user message one", "bot message one"]]
+			value: [["user message one", "bot message one"]],
+			root: ""
 		});
 
 		const bot = getAllByTestId("user")[0];
@@ -35,7 +36,8 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = render(Chatbot, {
 			loading_status,
 			label: "hello",
-			value: [["user message one", "bot message one"]]
+			value: [["user message one", "bot message one"]],
+			root: ""
 		});
 
 		const bot = getAllByTestId("user");

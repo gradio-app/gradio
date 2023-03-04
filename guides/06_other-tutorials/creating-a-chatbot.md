@@ -13,7 +13,18 @@ This tutorial will show how to take a pretrained chatbot model and deploy it wit
 
 <iframe src="https://dawood-chatbot-guide.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-Chatbots are *stateful*, meaning that the model's prediction can change depending on how the user has previously interacted with the model. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
+## A Simple Chatbot Demo
+
+Let's start with a simple demo, with no actual model. Our bot will randomly respond "yes" or "no" to any input. 
+
+$code_chatbot_simple_demo
+$demo_chatbot_simple_demo
+
+The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. We pass the entire history of the chatbot to the function and back to the component. To clear the chatbot, we pass it `None`.
+
+### Using a Model
+
+Chatbots are *stateful*, meaning we need to track how the user has previously interacted with the model. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
 
 ### Prerequisites
 

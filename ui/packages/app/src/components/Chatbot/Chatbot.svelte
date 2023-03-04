@@ -12,6 +12,7 @@
 	export let label: string;
 	export let show_label: boolean = true;
 	export let color_map: Record<string, string> = {};
+	export let root: string;
 
 	$: if (!style.color_map && Object.keys(color_map).length) {
 		style.color_map = color_map;
@@ -30,7 +31,7 @@
 		/>
 	{/if}
 	<ChatBot
-		{style}
+		{root}
 		{value}
 		pending_message={loading_status?.status === "pending"}
 		on:change
