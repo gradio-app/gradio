@@ -176,8 +176,8 @@
 		}
 	}
 	.message-wrap .message :global(img) {
-		max-height: 200px;
 		margin: var(--size-2);
+		max-height: 200px;
 	}
 
 	.hide {
