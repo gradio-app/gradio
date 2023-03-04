@@ -1,5 +1,5 @@
 class Size:
-    def __init__(self, xxs, xs, sm, md, lg, xl, xxl):
+    def __init__(self, xxs, xs, sm, md, lg, xl, xxl, name=None):
         self.xxs = xxs
         self.xs = xs
         self.sm = sm
@@ -7,9 +7,11 @@ class Size:
         self.lg = lg
         self.xl = xl
         self.xxl = xxl
+        self.name = name
 
 
 radius_none = Size(
+    name="radius_none",
     xxs="0px",
     xs="0px",
     sm="0px",
@@ -20,6 +22,7 @@ radius_none = Size(
 )
 
 radius_sm = Size(
+    name="radius_sm",
     xxs="1px",
     xs="1px",
     sm="2px",
@@ -30,6 +33,7 @@ radius_sm = Size(
 )
 
 radius_md = Size(
+    name="radius_md",
     xxs="1px",
     xs="2px",
     sm="4px",
@@ -40,6 +44,7 @@ radius_md = Size(
 )
 
 radius_lg = Size(
+    name="radius_lg",
     xxs="2px",
     xs="4px",
     sm="6px",
@@ -50,6 +55,7 @@ radius_lg = Size(
 )
 
 spacing_sm = Size(
+    name="spacing_sm",
     xxs="1px",
     xs="1px",
     sm="2px",
@@ -60,6 +66,7 @@ spacing_sm = Size(
 )
 
 spacing_md = Size(
+    name="spacing_md",
     xxs="1px",
     xs="2px",
     sm="4px",
@@ -70,6 +77,7 @@ spacing_md = Size(
 )
 
 spacing_lg = Size(
+    name="spacing_lg",
     xxs="2px",
     xs="4px",
     sm="6px",
@@ -80,6 +88,7 @@ spacing_lg = Size(
 )
 
 text_sm = Size(
+    name="text_sm",
     xxs="8px",
     xs="9px",
     sm="11px",
@@ -90,6 +99,7 @@ text_sm = Size(
 )
 
 text_md = Size(
+    name="text_md",
     xxs="9px",
     xs="10px",
     sm="12px",
@@ -100,6 +110,7 @@ text_md = Size(
 )
 
 text_lg = Size(
+    name="text_lg",
     xxs="10px",
     xs="12px",
     sm="14px",

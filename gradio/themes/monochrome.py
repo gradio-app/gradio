@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, size
 
@@ -6,10 +8,10 @@ class Monochrome(Base):
     def __init__(
         self,
         *,
-        hue: colors.Color = colors.neutral,
-        spacing_size: size.Size = size.spacing_lg,
-        radius_size: size.Size = size.radius_none,
-        text_size: size.Size = size.text_md,
+        hue: colors.Color | str = colors.neutral,
+        spacing_size: size.Size | str = size.spacing_lg,
+        radius_size: size.Size | str = size.radius_none,
+        text_size: size.Size | str = size.text_md,
     ):
         super().__init__(
             primary_hue=hue,

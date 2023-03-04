@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, size
 
@@ -6,12 +8,12 @@ class Default(Base):
     def __init__(
         self,
         *,
-        primary_hue: colors.Color = colors.orange,
-        secondary_hue: colors.Color = colors.blue,
-        neutral_hue: colors.Color = colors.gray,
-        spacing_size: size.Size = size.spacing_md,
-        radius_size: size.Size = size.radius_md,
-        text_size: size.Size = size.text_md,
+        primary_hue: colors.Color | str = colors.orange,
+        secondary_hue: colors.Color | str = colors.blue,
+        neutral_hue: colors.Color | str = colors.gray,
+        spacing_size: size.Size | str = size.spacing_md,
+        radius_size: size.Size | str = size.radius_md,
+        text_size: size.Size | str = size.text_md,
     ):
         super().__init__(
             primary_hue=primary_hue,

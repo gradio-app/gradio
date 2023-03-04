@@ -1,5 +1,7 @@
 class Color:
-    def __init__(self, c50, c100, c200, c300, c400, c500, c600, c700, c800, c900, c950):
+    def __init__(
+        self, c50, c100, c200, c300, c400, c500, c600, c700, c800, c900, c950, name=None
+    ):
         self.c50 = c50
         self.c100 = c100
         self.c200 = c200
@@ -11,9 +13,11 @@ class Color:
         self.c800 = c800
         self.c900 = c900
         self.c950 = c950
+        self.name = name
 
 
 slate = Color(
+    name="slate",
     c50="#f8fafc",
     c100="#f1f5f9",
     c200="#e2e8f0",
@@ -27,6 +31,7 @@ slate = Color(
     c950="#0a0f1e",
 )
 gray = Color(
+    name="gray",
     c50="#f9fafb",
     c100="#f3f4f6",
     c200="#e5e7eb",
@@ -40,6 +45,7 @@ gray = Color(
     c950="#0b0f19",
 )
 zinc = Color(
+    name="zinc",
     c50="#fafafa",
     c100="#f4f4f5",
     c200="#e4e4e7",
@@ -53,6 +59,7 @@ zinc = Color(
     c950="#0f0f11",
 )
 neutral = Color(
+    name="neutral",
     c50="#fafafa",
     c100="#f5f5f5",
     c200="#e5e5e5",
@@ -66,6 +73,7 @@ neutral = Color(
     c950="#0f0f0f",
 )
 stone = Color(
+    name="stone",
     c50="#fafaf9",
     c100="#f5f5f4",
     c200="#e7e5e4",
@@ -79,6 +87,7 @@ stone = Color(
     c950="#0f0e0d",
 )
 red = Color(
+    name="red",
     c50="#fef2f2",
     c100="#fee2e2",
     c200="#fecaca",
@@ -92,6 +101,7 @@ red = Color(
     c950="#6c1e1e",
 )
 orange = Color(
+    name="orange",
     c50="#fff7ed",
     c100="#ffedd5",
     c200="#fed7aa",
@@ -105,6 +115,7 @@ orange = Color(
     c950="#6c2e12",
 )
 amber = Color(
+    name="amber",
     c50="#fffbeb",
     c100="#fef3c7",
     c200="#fde68a",
@@ -118,6 +129,7 @@ amber = Color(
     c950="#6c370f",
 )
 yellow = Color(
+    name="yellow",
     c50="#fefce8",
     c100="#fef9c3",
     c200="#fef08a",
@@ -131,6 +143,7 @@ yellow = Color(
     c950="#653b12",
 )
 lime = Color(
+    name="lime",
     c50="#f7fee7",
     c100="#ecfccb",
     c200="#d9f99d",
@@ -144,6 +157,7 @@ lime = Color(
     c950="#2f4e14",
 )
 green = Color(
+    name="green",
     c50="#f0fdf4",
     c100="#dcfce7",
     c200="#bbf7d0",
@@ -157,6 +171,7 @@ green = Color(
     c950="#134e28",
 )
 emerald = Color(
+    name="emerald",
     c50="#ecfdf5",
     c100="#d1fae5",
     c200="#a7f3d0",
@@ -170,6 +185,7 @@ emerald = Color(
     c950="#054436",
 )
 teal = Color(
+    name="teal",
     c50="#f0fdfa",
     c100="#ccfbf1",
     c200="#99f6e4",
@@ -183,6 +199,7 @@ teal = Color(
     c950="#12443e",
 )
 cyan = Color(
+    name="cyan",
     c50="#ecfeff",
     c100="#cffafe",
     c200="#a5f3fc",
@@ -196,6 +213,7 @@ cyan = Color(
     c950="#14455c",
 )
 sky = Color(
+    name="sky",
     c50="#f0f9ff",
     c100="#e0f2fe",
     c200="#bae6fd",
@@ -209,6 +227,7 @@ sky = Color(
     c950="#0b4165",
 )
 blue = Color(
+    name="blue",
     c50="#eff6ff",
     c100="#dbeafe",
     c200="#bfdbfe",
@@ -222,6 +241,7 @@ blue = Color(
     c950="#1d3660",
 )
 indigo = Color(
+    name="indigo",
     c50="#eef2ff",
     c100="#e0e7ff",
     c200="#c7d2fe",
@@ -235,6 +255,7 @@ indigo = Color(
     c950="#2b2c5e",
 )
 violet = Color(
+    name="violet",
     c50="#f5f3ff",
     c100="#ede9fe",
     c200="#ddd6fe",
@@ -248,6 +269,7 @@ violet = Color(
     c950="#431d7f",
 )
 purple = Color(
+    name="purple",
     c50="#faf5ff",
     c100="#f3e8ff",
     c200="#e9d5ff",
@@ -261,6 +283,7 @@ purple = Color(
     c950="#4c1a73",
 )
 fuchsia = Color(
+    name="fuchsia",
     c50="#fdf4ff",
     c100="#fae8ff",
     c200="#f5d0fe",
@@ -274,6 +297,7 @@ fuchsia = Color(
     c950="#5e1a66",
 )
 pink = Color(
+    name="pink",
     c50="#fdf2f8",
     c100="#fce7f3",
     c200="#fbcfe8",
@@ -287,6 +311,7 @@ pink = Color(
     c950="#6e1a3d",
 )
 rose = Color(
+    name="rose",
     c50="#fff1f2",
     c100="#ffe4e6",
     c200="#fecdd3",

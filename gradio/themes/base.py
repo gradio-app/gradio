@@ -1,5 +1,6 @@
-import re
+from __future__ import annotations
 
+import re
 from gradio.themes.utils import colors, size
 
 
@@ -35,22 +36,44 @@ class Base(ThemeClass):
     def __init__(
         self,
         *,
-        primary_hue: colors.Color = colors.blue,
-        secondary_hue: colors.Color = colors.blue,
-        neutral_hue: colors.Color = colors.gray,
-        text_size: size.Size = size.text_md,
-        spacing_size: size.Size = size.spacing_md,
-        radius_size: size.Size = size.radius_md,
+        primary_hue: colors.Color | str = colors.blue,
+        secondary_hue: colors.Color | str = colors.blue,
+        neutral_hue: colors.Color | str = colors.gray,
+        text_size: size.Size | str = size.text_md,
+        spacing_size: size.Size | str = size.spacing_md,
+        radius_size: size.Size | str = size.radius_md,
     ):
         """
         Parameters:
-            primary_hue: The primary hue of the theme. Load a preset, like gradio.themes.utils.green, or pass your own gradio.themes.utils.Color object.
-            secondary_hue: The secondary hue of the theme. Load a preset, like gradio.themes.utils.green, or pass your own gradio.themes.utils.Color object.
-            neutral_hue: The neutral hue of the theme, used . Load a preset, like gradio.themes.utils.green, or pass your own gradio.themes.utils.Color object.
-            text_size: The size of the text. Load a preset, like gradio.themes.utils.text_small, or pass your own gradio.themes.utils.Size object.
-            spacing_size: The size of the spacing. Load a preset, like gradio.themes.utils.spacing_small, or pass your own gradio.themes.utils.Size object.
-            radius_size: The radius size of corners. Load a preset, like gradio.themes.utils.radius_small, or pass your own gradio.themes.utils.Size object.
+            primary_hue: The primary hue of the theme. Load a preset, like gradio.themes.utils.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
+            secondary_hue: The secondary hue of the theme. Load a preset, like gradio.themes.utils.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
+            neutral_hue: The neutral hue of the theme, used . Load a preset, like gradio.themes.utils.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
+            text_size: The size of the text. Load a preset, like gradio.themes.utils.text_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
+            spacing_size: The size of the spacing. Load a preset, like gradio.themes.utils.spacing_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
+            radius_size: The radius size of corners. Load a preset, like gradio.themes.utils.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
         """
+
+        def expand_shortcut(shortcut, mode="color", prefix=None):
+            if not isinstance(shortcut, str):
+                return shortcut
+            if mode == "color":
+                for color in colors.Color.__subclasses__():
+                    if color.name == shortcut:
+                        return color
+                raise ValueError(f"Color shortcut {shortcut} not found.")
+            elif mode == "size":
+                for size in size.Size.__subclasses__():
+                    if prefix + "_" + size.name == shortcut:
+                        return size
+                raise ValueError(f"Size shortcut {shortcut} not found.")
+
+        primary_hue = expand_shortcut(primary_hue, mode="color")
+        secondary_hue = expand_shortcut(secondary_hue, mode="color")
+        neutral_hue = expand_shortcut(neutral_hue, mode="color")
+        text_size = expand_shortcut(text_size, mode="size", prefix="text")
+        spacing_size = expand_shortcut(spacing_size, mode="size", prefix="spacing")
+        radius_size = expand_shortcut(radius_size, mode="size", prefix="radius")
+
         # Hue ranges
         self.primary_50 = primary_hue.c50
         self.primary_100 = primary_hue.c100
