@@ -20,7 +20,7 @@ with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}") as demo:
             btn = gr.UploadButton("🖼️", file_types=["image"])
             
     txt.submit(add_text, [chatbot, txt], [chatbot])
-    txt.submit(lambda :"", None, txt)
+    txt.submit(lambda :"", None, txt, queue=False)
     btn.upload(add_image, [chatbot, btn], [chatbot])
             
 if __name__ == "__main__":
