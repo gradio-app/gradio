@@ -79,10 +79,11 @@ component by [@abidlabs](https://github.com/abidlabs) in [PR 3275](https://githu
 - Flaky python tests no longer cancel non-flaky tests by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3344](https://github.com/gradio-app/gradio/pull/3344)
 
 ## Breaking Changes:
-No changes to highlight.
+- Chatbot bubble colors can no longer be set by `chatbot.style(color_map=)` by [@aliabid94] in [PR 3370](https://github.com/gradio-app/gradio/pull/3370)
 
 ## Full Changelog:
 - Fixed comment typo in components.py by [@eltociear](https://github.com/eltociear) in [PR 3235](https://github.com/gradio-app/gradio/pull/3235)
+- Cleaned up chatbot ui look and feel by [@aliabid94] in [PR 3370](https://github.com/gradio-app/gradio/pull/3370)
 
 ## Contributors Shoutout:
 No changes to highlight.
