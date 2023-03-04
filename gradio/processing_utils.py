@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -8,12 +9,16 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
+import urllib.request
 import warnings
 from io import BytesIO
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Set, Tuple
 
+import aiofiles
 import numpy as np
 import requests
+from fastapi import UploadFile
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -32,8 +37,13 @@ with warnings.catch_warnings():
 def to_binary(x: str | Dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
     if isinstance(x, dict):
-        x = encode_url_or_file_to_base64(x["name"])
-    return base64.b64decode(x.split(",")[1])
+        if x.get("data"):
+            base64str = x["data"]
+        else:
+            base64str = encode_url_or_file_to_base64(x["name"])
+    else:
+        base64str = x
+    return base64.b64decode(base64str.split(",")[1])
 
 
 #########################
@@ -41,31 +51,38 @@ def to_binary(x: str | Dict) -> bytes:
 #########################
 
 
-def decode_base64_to_image(encoding):
+def decode_base64_to_image(encoding: str) -> Image.Image:
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
-    return Image.open(BytesIO(base64.b64decode(image_encoded)))
+    img = Image.open(BytesIO(base64.b64decode(image_encoded)))
+    exif = img.getexif()
+    # 274 is the code for image rotation and 1 means "correct orientation"
+    if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+        img = ImageOps.exif_transpose(img)
+    return img
 
 
-def encode_url_or_file_to_base64(path, encryption_key=None):
-    if utils.validate_url(path):
-        return encode_url_to_base64(path, encryption_key=encryption_key)
+def encode_url_or_file_to_base64(path: str | Path, encryption_key: bytes | None = None):
+    if utils.validate_url(str(path)):
+        return encode_url_to_base64(str(path), encryption_key=encryption_key)
     else:
-        return encode_file_to_base64(path, encryption_key=encryption_key)
+        return encode_file_to_base64(str(path), encryption_key=encryption_key)
 
 
-def get_mimetype(filename):
+def get_mimetype(filename: str) -> str | None:
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
     return mimetype
 
 
-def get_extension(encoding):
+def get_extension(encoding: str) -> str | None:
     encoding = encoding.replace("audio/wav", "audio/x-wav")
     type = mimetypes.guess_type(encoding)[0]
     if type == "audio/flac":  # flac is not supported by mimetypes
         return "flac"
+    elif type is None:
+        return None
     extension = mimetypes.guess_extension(type)
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
@@ -106,15 +123,6 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
-def download_to_file(url, dir=None):
-    file_suffix = os.path.splitext(url)[1]
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix, dir=dir)
-    with requests.get(url, stream=True) as r:
-        with open(file_obj.name, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-    return file_obj
-
-
 def save_array_to_file(image_array, dir=None):
     pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
@@ -122,26 +130,25 @@ def save_array_to_file(image_array, dir=None):
     return file_obj
 
 
+def get_pil_metadata(pil_image):
+    # Copy any text-only metadata
+    metadata = PngImagePlugin.PngInfo()
+    for key, value in pil_image.info.items():
+        if isinstance(key, str) and isinstance(value, str):
+            metadata.add_text(key, value)
+
+    return metadata
+
+
 def save_pil_to_file(pil_image, dir=None):
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj)
+    pil_image.save(file_obj, pnginfo=get_pil_metadata(pil_image))
     return file_obj
 
 
 def encode_pil_to_base64(pil_image):
     with BytesIO() as output_bytes:
-
-        # Copy any text-only metadata
-        use_metadata = False
-        metadata = PngImagePlugin.PngInfo()
-        for key, value in pil_image.info.items():
-            if isinstance(key, str) and isinstance(value, str):
-                metadata.add_text(key, value)
-                use_metadata = True
-
-        pil_image.save(
-            output_bytes, "PNG", pnginfo=(metadata if use_metadata else None)
-        )
+        pil_image.save(output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image))
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
@@ -180,7 +187,7 @@ def resize_and_crop(img, size, crop_type="center"):
         resize[0] = img.size[0]
     if size[1] is None:
         resize[1] = img.size[1]
-    return ImageOps.fit(img, resize, centering=center)
+    return ImageOps.fit(img, resize, centering=center)  # type: ignore
 
 
 ##################
@@ -192,11 +199,15 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:
-        error_message = str(e)
-        if "ffprobe" in error_message:
-            print(
-                "Please install `ffmpeg` in your system to use non-WAV audio file formats."
-            )
+        isfile = Path(filename).is_file()
+        msg = (
+            f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
+            + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
+            " and make sure `ffprobe` is in your PATH."
+            if isfile
+            else ""
+        )
+        raise RuntimeError(msg) from e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
@@ -215,7 +226,8 @@ def audio_to_file(sample_rate, data, filename):
         sample_width=data.dtype.itemsize,
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
-    audio.export(filename, format="wav").close()
+    file = audio.export(filename, format="wav")
+    file.close()  # type: ignore
 
 
 def convert_to_16_bit_wav(data):
@@ -253,9 +265,12 @@ def convert_to_16_bit_wav(data):
 ##################
 
 
-def decode_base64_to_binary(encoding):
+def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
-    data = encoding.split(",")[1]
+    try:
+        data = encoding.split(",")[1]
+    except IndexError:
+        data = ""
     return base64.b64decode(data), extension
 
 
@@ -266,7 +281,7 @@ def decode_base64_to_file(
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
     if file_path is not None and prefix is None:
-        filename = os.path.basename(file_path)
+        filename = Path(file_path).name
         prefix = filename
         if "." in filename:
             prefix = filename[0 : filename.index(".")]
@@ -291,20 +306,6 @@ def decode_base64_to_file(
     return file_obj
 
 
-def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
-    try:
-        response = requests.get(file_path_or_url, stream=True)
-        if file_path_or_url.find("/"):
-            new_file_path = file_path_or_url.rsplit("/", 1)[1]
-        else:
-            new_file_path = "file.txt"
-        with open(new_file_path, "wb") as out_file:
-            shutil.copyfileobj(response.raw, out_file)
-        del response
-    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        return create_tmp_copy_of_file(file_path_or_url, dir)
-
-
 def dict_or_str_to_json_file(jsn, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
@@ -319,29 +320,177 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path):
-    return json.load(open(file_path))
+def file_to_json(file_path: str | Path) -> Dict:
+    with open(file_path) as f:
+        return json.load(f)
 
 
-def create_tmp_copy_of_file(file_path, dir=None):
+class TempFileManager:
+    """
+    A class that should be inherited by any Component that needs to manage temporary files.
+    It should be instantiated in the __init__ method of the component.
+    """
+
+    def __init__(self) -> None:
+        # Set stores all the temporary files created by this component.
+        self.temp_files: Set[str] = set()
+
+    def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+                sha1.update(chunk)
+        return sha1.hexdigest()
+
+    def hash_url(self, url: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        remote = urllib.request.urlopen(url)
+        max_file_size = 100 * 1024 * 1024  # 100MB
+        total_read = 0
+        while True:
+            data = remote.read(chunk_num_blocks * sha1.block_size)
+            total_read += chunk_num_blocks * sha1.block_size
+            if not data or total_read > max_file_size:
+                break
+            sha1.update(data)
+        return sha1.hexdigest()
+
+    def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
+            data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
+            sha1.update(data.encode("utf-8"))
+        return sha1.hexdigest()
+
+    def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
+        file_name = Path(file_path_or_url).name
+        prefix, extension = file_name, None
+        if "." in file_name:
+            prefix = file_name[0 : file_name.index(".")]
+            extension = "." + file_name[file_name.index(".") + 1 :]
+        else:
+            extension = ""
+        prefix = utils.strip_invalid_filename_characters(prefix)
+        return prefix, extension
+
+    def get_temp_file_path(self, file_path: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(file_path)
+        file_hash = self.hash_file(file_path)
+        return prefix + file_hash + extension
+
+    def get_temp_url_path(self, url: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(url)
+        file_hash = self.hash_url(url)
+        return prefix + file_hash + extension
+
+    def get_temp_base64_path(self, base64_encoding: str, prefix: str) -> str:
+        extension = get_extension(base64_encoding)
+        extension = "." + extension if extension else ""
+        base64_hash = self.hash_base64(base64_encoding)
+        return prefix + base64_hash + extension
+
+    def make_temp_copy_if_needed(self, file_path: str) -> str:
+        """Returns a temporary file path for a copy of the given file path if it does
+        not already exist. Otherwise returns the path to the existing temp file."""
+        f = tempfile.NamedTemporaryFile()
+        temp_dir = Path(f.name).parent
+
+        temp_file_path = self.get_temp_file_path(file_path)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(utils.abspath(f.name))
+
+        if not Path(full_temp_file_path).exists():
+            shutil.copy2(file_path, full_temp_file_path)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(file.filename)
+        output_file_obj = tempfile.NamedTemporaryFile(
+            delete=False, dir=upload_dir, suffix=f"{extension}", prefix=f"{prefix}_"
+        )
+        async with aiofiles.open(output_file_obj.name, "wb") as output_file:
+            while True:
+                content = await file.read(100 * 1024 * 1024)
+                if not content:
+                    break
+                await output_file.write(content)
+        return str(utils.abspath(output_file_obj.name))
+
+    def download_temp_copy_if_needed(self, url: str) -> str:
+        """Downloads a file and makes a temporary file path for a copy if does not already
+        exist. Otherwise returns the path to the existing temp file."""
+        f = tempfile.NamedTemporaryFile()
+        temp_dir = Path(f.name).parent
+
+        temp_file_path = self.get_temp_url_path(url)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(utils.abspath(f.name))
+
+        if not Path(full_temp_file_path).exists():
+            with requests.get(url, stream=True) as r:
+                with open(full_temp_file_path, "wb") as f:
+                    shutil.copyfileobj(r.raw, f)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    def base64_to_temp_file_if_needed(
+        self, base64_encoding: str, file_name: str | None = None
+    ) -> str:
+        """Converts a base64 encoding to a file and returns the path to the file if
+        the file doesn't already exist. Otherwise returns the path to the existing file."""
+        f = tempfile.NamedTemporaryFile(delete=False)
+        temp_dir = Path(f.name).parent
+        prefix = self.get_prefix_and_extension(file_name)[0] if file_name else ""
+
+        temp_file_path = self.get_temp_base64_path(base64_encoding, prefix=prefix)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(utils.abspath(f.name))
+
+        if not Path(full_temp_file_path).exists():
+            data, _ = decode_base64_to_binary(base64_encoding)
+            with open(full_temp_file_path, "wb") as fb:
+                fb.write(data)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+
+def download_tmp_copy_of_file(
+    url_path: str, access_token: str | None = None, dir: str | None = None
+) -> tempfile._TemporaryFileWrapper:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
+    headers = {"Authorization": "Bearer " + access_token} if access_token else {}
+    prefix = Path(url_path).stem
+    suffix = Path(url_path).suffix
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        prefix=prefix,
+        suffix=suffix,
+        dir=dir,
+    )
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        with open(file_obj.name, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    return file_obj
 
-    file_name = os.path.basename(file_path)
-    prefix, extension = file_name, None
-    if "." in file_name:
-        prefix = file_name[0 : file_name.index(".")]
-        extension = file_name[file_name.index(".") + 1 :]
-    prefix = utils.strip_invalid_filename_characters(prefix)
-    if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
-    else:
-        file_obj = tempfile.NamedTemporaryFile(
-            delete=False,
-            prefix=prefix,
-            suffix="." + extension,
-            dir=dir,
-        )
+
+def create_tmp_copy_of_file(
+    file_path: str, dir: str | None = None
+) -> tempfile._TemporaryFileWrapper:
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+    prefix = Path(file_path).stem
+    suffix = Path(file_path).suffix
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        prefix=prefix,
+        suffix=suffix,
+        dir=dir,
+    )
     shutil.copy2(file_path, file_obj.name)
     return file_obj
 
@@ -530,8 +679,8 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         imin_in = np.iinfo(dtype_in).min
         imax_in = np.iinfo(dtype_in).max
     if kind_out in "ui":
-        imin_out = np.iinfo(dtype_out).min
-        imax_out = np.iinfo(dtype_out).max
+        imin_out = np.iinfo(dtype_out).min  # type: ignore
+        imax_out = np.iinfo(dtype_out).max  # type: ignore
 
     # any -> binary
     if kind_out == "b":
@@ -560,23 +709,23 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
         if not uniform:
             if kind_out == "u":
-                image_out = np.multiply(image, imax_out, dtype=computation_type)
+                image_out = np.multiply(image, imax_out, dtype=computation_type)  # type: ignore
             else:
                 image_out = np.multiply(
-                    image, (imax_out - imin_out) / 2, dtype=computation_type
+                    image, (imax_out - imin_out) / 2, dtype=computation_type  # type: ignore
                 )
                 image_out -= 1.0 / 2.0
             np.rint(image_out, out=image_out)
-            np.clip(image_out, imin_out, imax_out, out=image_out)
+            np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
         elif kind_out == "u":
-            image_out = np.multiply(image, imax_out + 1, dtype=computation_type)
-            np.clip(image_out, 0, imax_out, out=image_out)
+            image_out = np.multiply(image, imax_out + 1, dtype=computation_type)  # type: ignore
+            np.clip(image_out, 0, imax_out, out=image_out)  # type: ignore
         else:
             image_out = np.multiply(
-                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type
+                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type  # type: ignore
             )
             np.floor(image_out, out=image_out)
-            np.clip(image_out, imin_out, imax_out, out=image_out)
+            np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
         return image_out.astype(dtype_out)
 
     # signed/unsigned int -> float
@@ -589,13 +738,13 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         if kind_in == "u":
             # using np.divide or np.multiply doesn't copy the data
             # until the computation time
-            image = np.multiply(image, 1.0 / imax_in, dtype=computation_type)
+            image = np.multiply(image, 1.0 / imax_in, dtype=computation_type)  # type: ignore
             # DirectX uses this conversion also for signed ints
             # if imin_in:
             #     np.maximum(image, -1.0, out=image)
         else:
             image = np.add(image, 0.5, dtype=computation_type)
-            image *= 2 / (imax_in - imin_in)
+            image *= 2 / (imax_in - imin_in)  # type: ignore
 
         return np.asarray(image, dtype_out)
 
@@ -621,9 +770,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         return _scale(image, 8 * itemsize_in - 1, 8 * itemsize_out - 1)
 
     image = image.astype(_dtype_bits("i", itemsize_out * 8))
-    image -= imin_in
+    image -= imin_in  # type: ignore
     image = _scale(image, 8 * itemsize_in, 8 * itemsize_out, copy=False)
-    image += imin_out
+    image += imin_out  # type: ignore
     return image.astype(dtype_out)
 
 

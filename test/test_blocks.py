@@ -3,10 +3,12 @@ import copy
 import io
 import json
 import os
+import pathlib
 import random
 import sys
 import time
 import unittest.mock as mock
+import warnings
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
@@ -14,12 +16,14 @@ from unittest.mock import patch
 
 import mlflow
 import pytest
+import uvicorn
 import wandb
 import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.exceptions import DuplicateBlockError
+from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
@@ -70,6 +74,20 @@ class TestBlocksMethods:
             demo.launch(prevent_thread_lock=True)
             assert demo.share
             demo.close()
+
+    def test_default_enabled_deprecated(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with pytest.warns(
+            UserWarning, match="The default_enabled parameter of queue has no effect"
+        ):
+            io.queue(default_enabled=True)
+
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            io.queue()
+        for warning in record:
+            assert "default_enabled" not in str(warning.message)
 
     def test_xray(self):
         def fake_func():
@@ -163,7 +181,7 @@ class TestBlocksMethods:
 
             btn.click(greet, {first, last}, greeting)
 
-        result = await demo.process_api(inputs=["huggy", "face"], fn_index=0)
+        result = await demo.process_api(inputs=["huggy", "face"], fn_index=0, state={})
         assert result["data"] == ["Hello huggy face"]
 
     @pytest.mark.asyncio
@@ -178,7 +196,7 @@ class TestBlocksMethods:
             button.click(wait, [text], [text])
 
             start = time.time()
-            result = await demo.process_api(inputs=[1], fn_index=0)
+            result = await demo.process_api(inputs=[1], fn_index=0, state={})
             end = time.time()
             difference = end - start
             assert difference >= 0.01
@@ -258,6 +276,119 @@ class TestBlocksMethods:
         assert demo.show_error
         demo.close()
 
+    def test_custom_css(self):
+        css = """
+            .gr-button {
+                color: white;
+                border-color: black;
+                background: black;
+            }
+        """
+        css = css * 5  # simulate a long css string
+        block = gr.Blocks(css=css)
+
+        assert block.css == css
+
+    @pytest.mark.asyncio
+    async def test_restart_after_close(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_completed":
+                    completed = True
+            assert msg["output"]["data"][0] == "freddy"
+
+        io.close()
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_completed":
+                    completed = True
+            assert msg["output"]["data"][0] == "Victor"
+
+    def test_function_types_documented_in_config(self):
+        def continuous_fn():
+            return 42
+
+        def generator_function():
+            for index in range(10):
+                yield index
+
+        with gr.Blocks() as demo:
+
+            gr.Number(value=lambda: 2, every=2)
+            meaning_of_life = gr.Number()
+            counter = gr.Number()
+            generator_btn = gr.Button(value="Generate")
+            greeting = gr.Textbox()
+            greet_btn = gr.Button(value="Greet")
+
+            greet_btn.click(lambda: "Hello!", inputs=None, outputs=[greeting])
+            generator_btn.click(generator_function, inputs=None, outputs=[counter])
+            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
+
+        for i, dependency in enumerate(demo.config["dependencies"]):
+            if i == 0:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+            if i == 1:
+                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 2:
+                assert dependency["types"] == {"continuous": False, "generator": True}
+            if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+
+    @pytest.mark.asyncio
+    async def test_run_without_launching(self):
+        """Test that we can start the app and use queue without calling .launch().
+
+        This is essentially what the 'gradio' reload mode does
+        """
+
+        port = get_first_available_port(7860, 7870)
+
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+
+        config = uvicorn.Config(app=io.app, port=port, log_level="warning")
+
+        server = Server(config=config)
+        server.run_in_thread()
+
+        try:
+            async with websockets.connect(f"ws://localhost:{port}/queue/join") as ws:
+                completed = False
+                while not completed:
+                    msg = json.loads(await ws.recv())
+                    if msg["msg"] == "send_data":
+                        await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
+                    if msg["msg"] == "send_hash":
+                        await ws.send(
+                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
+                        )
+                    if msg["msg"] == "process_completed":
+                        completed = True
+                assert msg["output"]["data"][0] == "Victor"
+        finally:
+            server.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -283,9 +414,9 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.attach_load_event
+                    assert not component.load_event
                 else:
-                    assert component.attach_load_event
+                    assert component.load_event
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
@@ -294,10 +425,10 @@ class TestComponentsInBlocks:
         assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [comp for comp in io_components if not (comp == gr.State)]
+        io_components = [comp for comp in io_components if comp not in [gr.State]]
         interface = gr.Interface(
             lambda *args: None,
-            inputs=[comp(value=lambda: None) for comp in io_components],
+            inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
 
@@ -305,9 +436,23 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
+        assert all([dep["every"] == 1 for dep in dependencies_on_load])
 
+    def test_get_load_events(self, io_components):
+        components = []
+        with gr.Blocks() as demo:
+            for component in io_components:
+                components.append(component(value=lambda: None, every=1))
+        assert [comp.load_event for comp in components] == demo.dependencies
+
+
+class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
-        io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
+        io_components = [
+            c()
+            for c in io_components
+            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot, gr.BarPlot]
+        ]
         with gr.Blocks() as demo:
             for component in io_components:
                 component.render()
@@ -319,7 +464,7 @@ class TestComponentsInBlocks:
             )
 
         output = demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state=None
+            0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
             [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
@@ -335,7 +480,7 @@ class TestComponentsInBlocks:
                 outputs=text,
             )
 
-        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
 
     def test_blocks_returns_correct_output_dict_single_key(self):
@@ -349,12 +494,10 @@ class TestComponentsInBlocks:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(
-            0, {num2: gr.Number.update(value=42)}, state=None
-        )
+        output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state={})
         assert output[0]["value"] == 42
 
-        output = demo.postprocess_data(0, {num2: 23}, state=None)
+        output = demo.postprocess_data(0, {num2: 23}, state={})
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -369,7 +512,7 @@ class TestComponentsInBlocks:
             share_button = gr.Button("share", visible=False)
             run_button.click(infer, prompt, [image, share_button], postprocess=False)
 
-        output = await demo.process_api(0, ["test"])
+        output = await demo.process_api(0, ["test"], state={})
         assert output["data"][0] == gr.media_data.BASE64_IMAGE
         assert output["data"][1] == {"__type__": "update", "visible": True}
 
@@ -386,7 +529,7 @@ class TestComponentsInBlocks:
             run_button = gr.Button()
             run_button.click(infer, [prompt], [image], postprocess=False)
 
-        output = await demo.process_api(0, ["test"])
+        output = await demo.process_api(0, ["test"], state={})
         assert output["data"][0] == {
             "__type__": "update",
             "value": gr.media_data.BASE64_IMAGE,
@@ -413,13 +556,25 @@ class TestComponentsInBlocks:
             run.click(generic_update, None, [image, textbox])
 
         for fn_index in range(2):
-            output = await demo.process_api(fn_index, [])
+            output = await demo.process_api(fn_index, [], state={})
             assert output["data"][0] == {
                 "interactive": True,
                 "__type__": "update",
                 "mode": "dynamic",
             }
             assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+
+    def test_error_raised_if_num_outputs_mismatch(self):
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(lambda x: x, textbox1, [textbox1, textbox2])
+        with pytest.raises(
+            ValueError,
+            match="Number of output components does not match number of values returned from from function <lambda>",
+        ):
+            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
 
 
 class TestCallFunction:
@@ -660,7 +815,7 @@ class TestBatchProcessing:
                 btn = gr.Button()
                 btn.click(batch_fn, inputs=text, outputs=text, batch=True)
 
-            await demo.process_api(0, [["Adam", "Yahya"]])
+            await demo.process_api(0, [["Adam", "Yahya"]], state={})
 
     @pytest.mark.asyncio
     async def test_exceeds_max_batch_size(self):
@@ -679,7 +834,7 @@ class TestBatchProcessing:
                     batch_fn, inputs=text, outputs=text, batch=True, max_batch_size=2
                 )
 
-            await demo.process_api(0, [["A", "B", "C"]])
+            await demo.process_api(0, [["A", "B", "C"]], state={})
 
     @pytest.mark.asyncio
     async def test_unequal_batch_sizes(self):
@@ -697,7 +852,7 @@ class TestBatchProcessing:
                 btn = gr.Button()
                 btn.click(batch_fn, inputs=[t1, t2], outputs=t1, batch=True)
 
-            await demo.process_api(0, [["A", "B", "C"], ["D", "E"]])
+            await demo.process_api(0, [["A", "B", "C"], ["D", "E"]], state={})
 
 
 class TestSpecificUpdate:
@@ -776,13 +931,17 @@ class TestSpecificUpdate:
                 inputs=None,
                 outputs=[accordion],
             )
-        result = await demo.process_api(fn_index=0, inputs=[None], request=None)
+        result = await demo.process_api(
+            fn_index=0, inputs=[None], request=None, state={}
+        )
         assert result["data"][0] == {
             "open": True,
             "label": "Open Accordion",
             "__type__": "update",
         }
-        result = await demo.process_api(fn_index=1, inputs=[None], request=None)
+        result = await demo.process_api(
+            fn_index=1, inputs=[None], request=None, state={}
+        )
         assert result["data"][0] == {
             "open": False,
             "label": "Closed Accordion",
@@ -925,6 +1084,51 @@ class TestCancel:
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
 
+    @pytest.mark.asyncio
+    async def test_cancel_button_for_interfaces(self):
+        def generate(x):
+            for i in range(4):
+                yield i
+                time.sleep(0.2)
+
+        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
+        stop_btn_id = next(
+            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
+        )
+        assert not io.blocks[stop_btn_id].visible
+
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            checked_iteration = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_generating" and isinstance(
+                    msg["output"]["data"][0], str
+                ):
+                    checked_iteration = True
+                    assert msg["output"]["data"][1:] == [
+                        {"visible": False, "__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                    ]
+                if msg["msg"] == "process_completed":
+                    assert msg["output"]["data"] == [
+                        {"__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                        {"visible": False, "__type__": "update"},
+                    ]
+                    completed = True
+            assert checked_iteration
+
+        io.close()
+
 
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
@@ -975,6 +1179,187 @@ class TestEvery:
                     else:
                         break
 
+    @pytest.mark.asyncio
+    async def test_generating_event_cancelled_if_ws_closed(self, capsys):
+        def generation():
+            for i in range(10):
+                time.sleep(0.1)
+                print(f"At step {i}")
+                yield i
+            return "Hello!"
+
+        with gr.Blocks() as demo:
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+            button.click(generation, None, greeting)
+
+        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            n_steps = 0
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                elif msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                elif msg["msg"] == "process_generating":
+                    if n_steps == 2:
+                        # Close the websocket
+                        break
+                    n_steps += 1
+                else:
+                    continue
+        await asyncio.sleep(1)
+        # If the generation function did not get cancelled
+        # it would have finished running and `At step 9` would
+        # have been printed
+        captured = capsys.readouterr()
+        assert "At step 9" not in captured.out
+
+
+class TestProgressBar:
+    @pytest.mark.asyncio
+    async def test_progress_bar(self):
+        from tqdm import tqdm
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+
+            def greet(s, prog=gr.Progress()):
+                prog(0, desc="start")
+                time.sleep(0.25)
+                for _ in prog.tqdm(range(4), unit="iter"):
+                    time.sleep(0.25)
+                time.sleep(1)
+                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                    time.sleep(0.25)
+                return f"Hello, {s}!"
+
+            button.click(greet, name, greeting)
+        demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            progress_updates = []
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "progress":
+                    progress_updates.append(msg["progress_data"])
+                if msg["msg"] == "process_completed":
+                    completed = True
+                    break
+        print(progress_updates)
+        assert progress_updates == [
+            [
+                {
+                    "index": None,
+                    "length": None,
+                    "unit": "steps",
+                    "progress": 0.0,
+                    "desc": "start",
+                }
+            ],
+            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+        ]
+
+    @pytest.mark.asyncio
+    async def test_progress_bar_track_tqdm(self):
+        from tqdm import tqdm
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+
+            def greet(s, prog=gr.Progress(track_tqdm=True)):
+                prog(0, desc="start")
+                time.sleep(0.25)
+                for _ in prog.tqdm(range(4), unit="iter"):
+                    time.sleep(0.25)
+                time.sleep(1)
+                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                    time.sleep(0.25)
+                return f"Hello, {s}!"
+
+            button.click(greet, name, greeting)
+        demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            progress_updates = []
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "progress":
+                    progress_updates.append(msg["progress_data"])
+                if msg["msg"] == "process_completed":
+                    completed = True
+                    break
+        assert progress_updates == [
+            [
+                {
+                    "index": None,
+                    "length": None,
+                    "unit": "steps",
+                    "progress": 0.0,
+                    "desc": "start",
+                }
+            ],
+            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [
+                {
+                    "index": 0,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+            [
+                {
+                    "index": 1,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+            [
+                {
+                    "index": 2,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+        ]
+
 
 class TestAddRequests:
     def test_no_type_hints(self):
@@ -983,12 +1368,12 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a=1)
         inputs = [2]
-        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_no_type_hints_with_request(self):
@@ -997,12 +1382,12 @@ class TestAddRequests:
 
         inputs = ["abc", 2]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a="def")
         inputs = [2]
-        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_type_hints_with_request(self):
@@ -1011,7 +1396,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request]
 
         def moo(a: gr.Request, b, c: int):
@@ -1019,7 +1404,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs
 
     def test_type_hints_with_multiple_requests(self):
@@ -1028,7 +1413,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, request]
 
         def moo(a: gr.Request, b, c: int, d: gr.Request):
@@ -1036,7 +1421,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
 
 
@@ -1078,7 +1463,7 @@ async def test_queue_when_using_auth():
         data={"username": "abc", "password": "123"},
         follow_redirects=False,
     )
-    assert resp.status_code == 302
+    assert resp.status_code == 200
     token = resp.cookies.get("access-token")
     assert token
 
@@ -1124,6 +1509,22 @@ async def test_queue_when_using_auth():
     loop = asyncio.get_event_loop()
     tm = loop.time()
     group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
+        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
     )
     await group
+
+
+def test_temp_file_sets_get_extended():
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+
+    with gr.Blocks() as demo1:
+        gr.Video(str(test_file_dir / "video_sample.mp4"))
+
+    with gr.Blocks() as demo2:
+        gr.Audio(str(test_file_dir / "audio_sample.wav"))
+
+    with gr.Blocks() as demo3:
+        demo1.render()
+        demo2.render()
+
+    assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets

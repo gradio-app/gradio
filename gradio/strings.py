@@ -1,4 +1,6 @@
 import json
+import threading
+from typing import Dict
 
 import requests
 
@@ -8,20 +10,17 @@ en = {
     "RUNNING_LOCALLY": "Running on local URL:  {}",
     "RUNNING_LOCALLY_SEPARATED": "Running on local URL:  {}://{}:{}",
     "SHARE_LINK_DISPLAY": "Running on public URL: {}",
-    "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link, please check your internet connection.",
+    "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",
     "PUBLIC_SHARE_TRUE": "\nTo create a public link, set `share=True` in `launch()`.",
     "MODEL_PUBLICLY_AVAILABLE_URL": "Model available publicly at: {} (may take up to a minute for link to be usable)",
     "GENERATING_PUBLIC_LINK": "Generating public link (may take a few seconds...):",
-    "TF1_ERROR": "It looks like you might be using tensorflow < 2.0. Please pass capture_session=True in Interface() to"
-    " avoid the 'Tensor is not an element of this graph.' error.",
     "BETA_INVITE": "\nThanks for being a Gradio user! If you have questions or feedback, please join our Discord server and chat with us: https://discord.gg/feTf9x3ZSB",
     "COLAB_DEBUG_TRUE": "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
     "COLAB_WARNING": "Note: opening Chrome Inspector may crash demo inside Colab notebooks.",
     "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades (NEW!), check out Spaces: https://huggingface.co/spaces",
-    "PRIVATE_LINK_MESSAGE": "Since this is a private endpoint, this share link will never expire.",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
     "TIPS": [
         "You can add authentication to your app with the `auth=` kwarg in the `launch()` command; for example: `gr.Interface(...).launch(auth=('username', 'password'))`",
@@ -33,12 +32,17 @@ en = {
     ],
 }
 
-try:
-    updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
-    en.update(updated_messaging)
-except (
-    requests.ConnectionError,
-    requests.exceptions.ReadTimeout,
-    json.decoder.JSONDecodeError,
-):  # Use default messaging
-    pass
+
+def get_updated_messaging(en: Dict):
+    try:
+        updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
+        en.update(updated_messaging)
+    except (
+        requests.ConnectionError,
+        requests.exceptions.ReadTimeout,
+        json.decoder.JSONDecodeError,
+    ):  # Use default messaging
+        pass
+
+
+threading.Thread(target=get_updated_messaging, args=(en,)).start()

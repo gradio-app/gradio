@@ -6,6 +6,7 @@
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
@@ -90,15 +91,15 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label class="block w-full">
-	<BlockTitle {show_label}>{label}</BlockTitle>
+<label>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	{#if lines === 1 && max_lines === 1}
 		{#if type === "text"}
 			<input
 				data-testid="textbox"
 				type="text"
-				class="scroll-hide block gr-box gr-input w-full gr-text-input"
+				class="scroll-hide"
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -110,7 +111,7 @@
 			<input
 				data-testid="password"
 				type="password"
-				class="scroll-hide block gr-box gr-input w-full gr-text-input"
+				class="scroll-hide"
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -123,7 +124,7 @@
 			<input
 				data-testid="textbox"
 				type="email"
-				class="scroll-hide block gr-box gr-input w-full gr-text-input"
+				class="scroll-hide"
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -137,7 +138,7 @@
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={value}
-			class="scroll-hide block gr-box gr-input w-full gr-text-input"
+			class="scroll-hide"
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -148,3 +149,46 @@
 		/>
 	{/if}
 </label>
+
+<style>
+	label {
+		display: block;
+		width: 100%;
+	}
+
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
+	textarea {
+		--ring-color: transparent;
+		display: block;
+		position: relative;
+		outline: none !important;
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--shadow-inset);
+		border: 1px solid var(--input-border-color-base);
+		border-radius: var(--radius-lg);
+		background: var(--input-background-base);
+		padding: var(--size-2-5);
+		width: 100%;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+
+	input:focus,
+	textarea:focus {
+		--ring-color: var(--color-focus-ring);
+		border-color: var(--input-border-color-focus);
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--color-text-placeholder);
+	}
+
+	input[disabled],
+	textarea[disabled] {
+		box-shadow: none;
+	}
+</style>

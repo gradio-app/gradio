@@ -1,0 +1,62 @@
+name: Build PR Artifacts
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_pr:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 7
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: pnpm
+        cache-dependency-path: ui/pnpm-lock.yaml
+    - name: Install pip
+      run: python -m pip install build requests
+    - name: Get PR Number
+      run: |
+        python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+        echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_ENV
+    - name: Build pr package
+      run: |
+        echo ${{ env.GRADIO_VERSION }} > gradio/version.txt
+        cd ui
+        pnpm i --frozen-lockfile
+        pnpm build
+        cd ..
+        python3 -m build -w
+      env:
+        NODE_OPTIONS: --max_old_space_size=8192
+    - name: Upload wheel
+      uses: actions/upload-artifact@v3
+      with:
+        name: gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+        path: dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+    - name: Set up Demos
+      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+    - name: Upload all_demos
+      uses: actions/upload-artifact@v3
+      with:
+        name: all_demos
+        path: demo/all_demos
+    - name: Create metadata artifact
+      run: |
+        python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ env.PR_NUMBER }}, 'version': '${{ env.GRADIO_VERSION }}', 'wheel': 'gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
+    - name: Upload metadata
+      uses: actions/upload-artifact@v3
+      with:
+        name: metadata.json
+        path: metadata.json

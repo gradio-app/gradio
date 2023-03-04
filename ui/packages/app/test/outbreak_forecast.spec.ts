@@ -29,10 +29,12 @@ function mock_api(page: Page, body: Array<unknown>) {
 test("matplotlib", async ({ page }) => {
 	await mock_demo(page, "outbreak_forecast");
 	await mock_api(page, [[{ type: "matplotlib", plot: BASE64_PLOT_IMG }]]);
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
-	await page.getByLabel("Plot Type").selectOption("Matplotlib");
-	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Plot Type").click();
+	await page.getByRole("button", { name: "Matplotlib" }).click();
+	await page.getByLabel("Month").click();
+	await page.getByRole("button", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
@@ -55,10 +57,12 @@ test("plotly", async ({ page }) => {
 			}
 		]
 	]);
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
-	await page.getByLabel("Plot Type").selectOption("Plotly");
-	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Plot Type").click();
+	await page.getByRole("button", { name: "Matplotlib" }).click();
+	await page.getByLabel("Month").click();
+	await page.getByRole("button", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([

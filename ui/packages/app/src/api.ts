@@ -36,6 +36,10 @@ interface PostResponse {
 	error?: string;
 	[x: string]: any;
 }
+export interface UploadResponse {
+	error?: string;
+	files?: Array<string>;
+}
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
@@ -55,6 +59,27 @@ export async function post_data(
 	const output: PostResponse = await response.json();
 	return [output, response.status];
 }
+
+export async function upload_files(
+	root: string,
+	files: Array<File>
+): Promise<UploadResponse> {
+	const formData = new FormData();
+	files.forEach((file) => {
+		formData.append("files", file);
+	});
+	try {
+		var response = await fetch(`${root}upload`, {
+			method: "POST",
+			body: formData
+		});
+	} catch (e) {
+		return { error: BROKEN_CONNECTION_MSG };
+	}
+	const output: UploadResponse["files"] = await response.json();
+	return { files: output };
+}
+
 interface UpdateOutput {
 	__type__: string;
 	[key: string]: unknown;
@@ -130,7 +155,7 @@ export const fn =
 				var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 				var ws_path = location.pathname === "/" ? "/" : location.pathname;
 				var ws_host =
-					BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
+					BUILD_MODE === "dev" || location.origin === "http://localhost:9876"
 						? BACKEND_URL.replace("http://", "").slice(0, -1)
 						: location.host;
 				WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
@@ -189,6 +214,18 @@ export const fn =
 							data.rank,
 							data.rank_eta,
 							null
+						);
+						break;
+					case "progress":
+						loading_status.update(
+							fn_index,
+							"pending",
+							queue,
+							null,
+							null,
+							null,
+							null,
+							data.progress_data
 						);
 						break;
 					case "process_generating":

@@ -9,14 +9,13 @@ import socket
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Tuple
 
-import fastapi
 import requests
 import uvicorn
 
 from gradio.routes import App
-from gradio.tunneling import create_tunnel
+from gradio.tunneling import Tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
@@ -26,7 +25,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
-GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
+GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
 
 
 class Server(uvicorn.Server):
@@ -69,7 +68,7 @@ def get_first_available_port(initial: int, final: int) -> int:
     )
 
 
-def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
+def configure_app(app: App, blocks: Blocks) -> App:
     auth = blocks.auth
     if auth is not None:
         if not callable(auth):
@@ -87,12 +86,12 @@ def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
 
 def start_server(
     blocks: Blocks,
-    server_name: Optional[str] = None,
-    server_port: Optional[int] = None,
-    ssl_keyfile: Optional[str] = None,
-    ssl_certfile: Optional[str] = None,
-    ssl_keyfile_password: Optional[str] = None,
-) -> Tuple[int, str, App, Server]:
+    server_name: str | None = None,
+    server_port: int | None = None,
+    ssl_keyfile: str | None = None,
+    ssl_certfile: str | None = None,
+    ssl_keyfile_password: str | None = None,
+) -> Tuple[str, int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     blocks: The Blocks object to run on the server
@@ -157,14 +156,17 @@ def start_server(
     return server_name, port, path_to_local_server, app, server
 
 
-def setup_tunnel(local_server_port: int, endpoint: str) -> str:
-    response = requests.get(
-        endpoint + "/v1/tunnel-request" if endpoint is not None else GRADIO_API_SERVER
-    )
+def setup_tunnel(local_host: str, local_port: int, share_token: str) -> str:
+    response = requests.get(GRADIO_API_SERVER)
     if response and response.status_code == 200:
         try:
             payload = response.json()[0]
-            return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
+            remote_host, remote_port = payload["host"], int(payload["port"])
+            tunnel = Tunnel(
+                remote_host, remote_port, local_host, local_port, share_token
+            )
+            address = tunnel.start_tunnel()
+            return address
         except Exception as e:
             raise RuntimeError(str(e))
     else:
@@ -174,11 +176,12 @@ def setup_tunnel(local_server_port: int, endpoint: str) -> str:
 def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
-            time.sleep(0.500)
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
                 r = requests.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
+            time.sleep(0.500)
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
+    return False

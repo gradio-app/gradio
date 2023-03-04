@@ -69,15 +69,6 @@ class TestInterface:
         )
         assert dataset_check
 
-    def test_test_launch(self):
-        with captured_output() as (out, err):
-            prediction_fn = lambda x: x
-            prediction_fn.__name__ = "prediction_fn"
-            interface = Interface(prediction_fn, "textbox", "label")
-            interface.test_launch()
-            output = out.getvalue().strip()
-            assert output == "Test launch: prediction_fn()... PASSED"
-
     @mock.patch("time.sleep")
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
@@ -132,10 +123,13 @@ class TestInterface:
 
     def test_examples_list(self):
         examples = ["test1", "test2"]
-        interface = Interface(lambda x: x, "textbox", "label", examples=examples)
+        interface = Interface(
+            lambda x: x, "textbox", "label", examples=examples, examples_per_page=2
+        )
         interface.launch(prevent_thread_lock=True)
         assert len(interface.examples_handler.examples) == 2
         assert len(interface.examples_handler.examples[0]) == 1
+        assert interface.examples_handler.dataset.get_config()["samples_per_page"] == 2
         interface.close()
 
     @mock.patch("IPython.display.display")
@@ -242,6 +236,34 @@ class TestInterfaceInterpretation:
             inputs=["number", "number"],
             outputs="number",
             interpretation="default",
+        )
+
+        interpretation_id = None
+        for c in iface.config["components"]:
+            if c["props"].get("value") == "Interpret" and c.get("type") == "button":
+                interpretation_id = c["id"]
+
+        # Make sure the event is configured correctly.
+        interpretation_dep = next(
+            d
+            for d in iface.config["dependencies"]
+            if d["targets"] == [interpretation_id]
+        )
+        interpretation_comps = [
+            c["id"]
+            for c in iface.config["components"]
+            if c.get("type") == "interpretation"
+        ]
+        interpretation_columns = [
+            c["id"]
+            for c in iface.config["components"]
+            if c.get("type") == "column" and c["props"].get("variant") == "default"
+        ]
+        assert sorted(interpretation_dep["outputs"]) == sorted(
+            interpretation_comps + interpretation_columns
+        )
+        assert sorted(interpretation_dep["inputs"]) == sorted(
+            [c._id for c in iface.input_components + iface.output_components]
         )
 
         app, _, _ = iface.launch(prevent_thread_lock=True)

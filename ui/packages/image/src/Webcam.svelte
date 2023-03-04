@@ -9,6 +9,7 @@
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
+	export let include_audio: boolean;
 
 	const dispatch = createEventDispatcher();
 
@@ -17,9 +18,11 @@
 	async function access_webcam() {
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
-				video: true
+				video: true,
+				audio: include_audio
 			});
 			video_source.srcObject = stream;
+			video_source.muted = true;
 			video_source.play();
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
@@ -106,33 +109,79 @@
 	}
 </script>
 
-<div class="h-full min-h-[15rem] w-full relative">
+<div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video
-		bind:this={video_source}
-		class="h-full w-full "
-		class:scale-x-[-1]={mirror_webcam}
-	/>
+	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
-		<button
-			on:click={mode === "image" ? take_picture : take_recording}
-			class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
-		>
+		<button on:click={mode === "image" ? take_picture : take_recording}>
 			{#if mode === "video"}
 				{#if recording}
-					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<div class="icon">
 						<Square />
 					</div>
 				{:else}
-					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<div class="icon ">
 						<Circle />
 					</div>
 				{/if}
 			{:else}
-				<div class="w-2/4 h-2/4 text-white opacity-80">
+				<div class="icon">
 					<Camera />
 				</div>
 			{/if}
 		</button>
 	{/if}
 </div>
+
+<style>
+	.wrap {
+		position: relative;
+		width: var(--size-full);
+		height: var(--size-full);
+		min-height: var(--size-60);
+	}
+
+	video {
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	button {
+		display: flex;
+		position: absolute;
+		right: 0px;
+		bottom: var(--size-2);
+		left: 0px;
+		justify-content: center;
+		align-items: center;
+		margin: auto;
+		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-xl);
+		background-color: rgba(0, 0, 0, 0.9);
+		width: var(--size-10);
+		height: var(--size-10);
+	}
+
+	@media (--screen-md) {
+		button {
+			bottom: var(--size-4);
+		}
+	}
+
+	@media (--screen-xl) {
+		button {
+			bottom: var(--size-8);
+		}
+	}
+
+	.icon {
+		opacity: 0.8;
+		width: 50%;
+		height: 50%;
+		color: white;
+	}
+
+	.flip {
+		transform: scaleX(-1);
+	}
+</style>

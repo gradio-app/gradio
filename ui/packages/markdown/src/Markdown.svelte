@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import "./typography.css";
-	import "./latex.css";
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: string;
@@ -16,11 +14,37 @@
 
 <div
 	id={elem_id}
-	class:min-h-[6rem]={min_height}
-	class="output-markdown gr-prose"
-	class:hidden={!visible}
-	style="max-width: 100%"
+	class:min={min_height}
+	class="prose"
+	class:hide={!visible}
 	bind:this={target}
+	data-testid="markdown"
 >
 	{@html value}
 </div>
+
+<style>
+	div :global(.math.inline) {
+		fill: var(--color-text-body);
+		display: inline-block;
+		vertical-align: middle;
+		padding: var(--size-1-5) -var(--size-1);
+		color: var(--color-text-body);
+	}
+
+	div :global(.math.inline svg) {
+		display: inline;
+		margin-bottom: 0.22em;
+	}
+
+	div {
+		max-width: 100%;
+	}
+
+	.min {
+		min-height: var(--size-24);
+	}
+	.hide {
+		display: none;
+	}
+</style>

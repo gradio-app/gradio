@@ -14,6 +14,7 @@
 	export let has_modes: boolean | undefined;
 	export let parent: string | null = null;
 	export let target: HTMLElement;
+	export let theme: string;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -46,6 +47,16 @@
 			instance_map[id].props[k] = e.detail[k];
 		}
 	}
+
+	$: {
+		if (instance_map[id].type === "form") {
+			if (children?.every((c) => !c.props.visible)) {
+				props.visible = false;
+			} else {
+				props.visible = true;
+			}
+		}
+	}
 </script>
 
 <svelte:component
@@ -56,6 +67,7 @@
 	on:prop_change={handle_prop_change}
 	{target}
 	{...props}
+	{theme}
 	{root}
 >
 	{#if children && children.length}
@@ -70,6 +82,7 @@
 				children={_children}
 				{dynamic_ids}
 				{has_modes}
+				{theme}
 				on:destroy
 				on:mount
 			/>

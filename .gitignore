@@ -7,6 +7,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 build/
+__tmp/*
 
 # JS build
 gradio/templates/cdn
@@ -21,6 +22,7 @@ gradio/templates/frontend
 gradio/launches.json
 flagged/
 gradio_cached_examples/
+tmp.zip
 
 # Tests
 .coverage
@@ -45,3 +47,9 @@ workspace.code-workspace
 
 # log files
 .pnpm-debug.log
+
+# Local virtualenv for devs
+.venv*
+
+# FRP
+gradio/frpc_*

@@ -14,7 +14,7 @@
   {% if obj['demos'] %}
   <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
     <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
-      <div class="flex">
+      <div class="flex overflow-x-scroll">
         {% for demo_name, _ in obj["demos"] %}
         <button 
           class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
@@ -23,6 +23,9 @@
 
         >{{ demo_name }}</button>
         {% endfor %}
+        <button type="button" class="absolute right-0 top-0 w-14 flex items-center text-grey-600 hover:text-slate-600 py-8 px-5 bg-white" tabindex="0" onclick="this.parentElement.parentElement.parentElement.classList.add('hidden');">
+          <svg viewBox="0 0 10 10" class="overflow-visible text-gray-500 w-full"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+        </button>
       </div>
       {% for demo_name, demo_code in obj["demos"] %}
       <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
@@ -63,22 +66,24 @@
   {% if obj['override_signature'] %}
   <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
   {% else %}
-  <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
+  <div class="codeblock"><pre><code class="lang-python">{{ parent }}{% if obj["name"] != "__call__" %}.<span>{{ obj["name"] }}{% endif %}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "positional" in param["kind"] and "default" not in param and param["name"] != "self" %}<!--
+  -->{% if "kwargs" not in param and "default" not in param and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre></div>
   {% endif %}
-  {% if is_component %}
-    <div class="embedded-component">
-      {% if version=="main" %}
-        <gradio-app space="gradio/{{ obj['name'].lower() }}_component_main" />
-      {% else %}
-        <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
-      {% endif %}
-    </div>
+  {% if (is_component or obj['name'].lower() in ["examples", "progress"]) %}
+    {% if obj['name'].lower() != "state" %}
+      <div class="embedded-component">
+        {% if version=="main" %}
+          <gradio-app space="gradio/{{ obj['name'].lower() }}_component_main" />
+        {% else %}
+          <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
+        {% endif %}
+      </div>
+    {% endif %}
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   <br>
@@ -86,7 +91,7 @@
   <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {{ obj["tags"]["preprocessing"] }}</p>
   <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {{ obj["tags"]["postprocessing"] }}</p>
   {% if "examples-format" in obj["tags"]  %}
-  <p class="text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
   {% endif %}
   {% if obj["events"]|length > 0 %}
   <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{{ obj["events"] }}</em></p>
@@ -100,7 +105,7 @@
     </div>
     {% if obj["demos"] %}
       <button 
-      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
+      class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
       onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
     >
       More Examples →

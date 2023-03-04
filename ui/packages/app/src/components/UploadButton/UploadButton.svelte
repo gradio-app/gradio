@@ -2,22 +2,34 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import type { Styles } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
-	import { UploadButton } from "@gradio/uploadbutton";
+	import { UploadButton } from "@gradio/upload-button";
+	import { upload_files } from "../../api";
+	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let label: string;
-	export let value: null | FileData | Array<FileData>;
+	export let value: null | FileData;
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
+	export let root: string;
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
 		await tick();
-		dispatch("change", value);
-		dispatch("upload", detail);
+		upload_files(root, [detail.blob!]).then(async (response) => {
+			if (response.error) {
+				detail.data = await blobToBase64(detail.blob!);
+			} else {
+				detail.orig_name = detail.name;
+				detail.name = response.files![0];
+				detail.is_file = true;
+			}
+			dispatch("change", value);
+			dispatch("upload", detail);
+		});
 	}
 
 	const dispatch = createEventDispatcher<{

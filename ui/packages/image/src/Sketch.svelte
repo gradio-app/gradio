@@ -12,12 +12,20 @@
 	export let value_img;
 	export let mode = "sketch";
 	export let brush_color = "#0b0f19";
-	export let brush_radius = 50;
+	export let brush_radius;
 	export let source;
 
 	export let width = 400;
 	export let height = 200;
 	export let container_height = 200;
+	export let shape;
+
+	$: {
+		if (shape && (width || height)) {
+			width = shape[0];
+			height = shape[1];
+		}
+	}
 
 	let mounted;
 
@@ -44,7 +52,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					ctx.temp.drawImage(value_img, 0, 0);
+					draw_cropped_image();
 				}
 
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
@@ -98,6 +106,35 @@
 	let canvas_observer = null;
 	let line_count = 0;
 
+	function draw_cropped_image() {
+		if (!shape) return { x: 0, y: 0, width, height };
+		let _width = value_img.naturalWidth;
+		let _height = value_img.naturalHeight;
+
+		const shape_ratio = shape[0] / shape[1];
+		const image_ratio = _width / _height;
+
+		let x = 0;
+		let y = 0;
+
+		if (shape_ratio < image_ratio) {
+			_width = shape[1] * image_ratio;
+			_height = shape[1];
+			x = (shape[0] - _width) / 2;
+		} else if (shape_ratio > image_ratio) {
+			_width = shape[0];
+			_height = shape[0] / image_ratio;
+			y = (shape[1] - _height) / 2;
+		} else {
+			x = 0;
+			y = 0;
+			_width = shape[0];
+			_height = shape[1];
+		}
+
+		ctx.temp.drawImage(value_img, x, y, _width, _height);
+	}
+
 	onMount(async () => {
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
@@ -114,7 +151,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					ctx.temp.drawImage(value_img, 0, 0);
+					draw_cropped_image();
 				}
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
 
@@ -129,7 +166,7 @@
 					ctx.temp.drawImage(value_img, 0, 0);
 					ctx.temp.restore();
 				} else {
-					ctx.temp.drawImage(value_img, 0, 0);
+					draw_cropped_image();
 				}
 
 				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
@@ -191,7 +228,7 @@
 				ctx.temp.drawImage(value_img, 0, 0);
 				ctx.temp.restore();
 			} else {
-				ctx.temp.drawImage(value_img, 0, 0);
+				draw_cropped_image();
 			}
 
 			if (!lines || !lines.length) {
@@ -206,6 +243,9 @@
 			lines = _lines;
 		}
 
+		if (lines.length == 0) {
+			dispatch("clear");
+		}
 		trigger_on_change();
 	}
 
@@ -276,8 +316,16 @@
 	let old_width = 0;
 	let old_height = 0;
 	let old_container_height = 0;
+	let add_lr_border = false;
 
 	let handle_canvas_resize = async () => {
+		if (shape && canvas_container) {
+			const x = canvas_container?.getBoundingClientRect();
+			const shape_ratio = shape[0] / shape[1];
+			const container_ratio = x.width / x.height;
+			add_lr_border = shape_ratio < container_ratio;
+		}
+
 		if (
 			width === old_width &&
 			height === old_height &&
@@ -300,7 +348,9 @@
 			set_canvas_size(canvas.mask, dimensions, container_dimensions, false)
 		]);
 
-		brush_radius = 20 * (dimensions.width / container_dimensions.width);
+		if (!brush_radius) {
+			brush_radius = 20 * (dimensions.width / container_dimensions.width);
+		}
 
 		loop({ once: true });
 
@@ -308,7 +358,8 @@
 			old_height = height;
 			old_width = width;
 			old_container_height = container_height;
-		}, 100);
+		}, 10);
+		await tick();
 
 		clear();
 	};
@@ -412,7 +463,6 @@
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
-		// ctx.temp_fake.clearRect(0, 0, width, height);
 		ctx.temp_fake.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
@@ -529,24 +579,22 @@
 </script>
 
 <div
-	class="touch-none relative h-full w-full"
+	class="wrap"
 	bind:this={canvas_container}
 	bind:offsetWidth={canvas_width}
 	bind:offsetHeight={canvas_height}
 >
 	{#if line_count === 0}
-		<div
-			transition:fade={{ duration: 50 }}
-			class="absolute inset-0 flex items-center justify-center z-40 pointer-events-none touch-none text-gray-400 md:text-xl"
-		>
+		<div transition:fade={{ duration: 50 }} class="start-prompt">
 			Start drawing
 		</div>
 	{/if}
 	{#each canvas_types as { name, zIndex }}
 		<canvas
 			key={name}
-			class="inset-0 m-auto hover:cursor-none"
-			style=" display:block;position:absolute; z-index:{zIndex};"
+			style=" z-index:{zIndex};"
+			class:lr={add_lr_border}
+			class:tb={!add_lr_border}
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}
@@ -561,3 +609,51 @@
 		/>
 	{/each}
 </div>
+
+<style>
+	canvas {
+		display: block;
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+		margin: auto;
+	}
+
+	.lr {
+		border-right: 1px solid var(--color-border-primary);
+		border-left: 1px solid var(--color-border-primary);
+	}
+
+	.tb {
+		border-top: 1px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--color-border-primary);
+	}
+
+	canvas:hover {
+		cursor: none;
+	}
+
+	.wrap {
+		position: relative;
+		width: var(--size-full);
+		height: var(--size-full);
+		touch-action: none;
+	}
+
+	.start-prompt {
+		display: flex;
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+		justify-content: center;
+		align-items: center;
+		z-index: var(--layer-4);
+		touch-action: none;
+		pointer-events: none;
+		color: var(--color-text-subdued);
+	}
+</style>

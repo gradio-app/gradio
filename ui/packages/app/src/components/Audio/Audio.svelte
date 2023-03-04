@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
+	import UploadText from "../UploadText.svelte";
 
 	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -8,8 +9,6 @@
 	import { Audio, StaticAudio } from "@gradio/audio";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { Block } from "@gradio/atoms";
-	import type { Styles } from "@gradio/utils";
-	export let style: Styles = {};
 
 	import { normalise_file } from "@gradio/upload";
 
@@ -35,7 +34,7 @@
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root_url ?? root);
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging: boolean;
 </script>
@@ -79,10 +78,9 @@
 				loading_status.status = "error";
 				loading_status.message = detail;
 			}}
-			drop_text={$_("interface.drop_audio")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
-		/>
+		>
+			<UploadText type="audio" />
+		</Audio>
 	{:else}
 		<StaticAudio
 			{show_label}

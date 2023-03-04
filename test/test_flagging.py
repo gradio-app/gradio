@@ -3,6 +3,7 @@ import tempfile
 from unittest.mock import MagicMock
 
 import huggingface_hub
+import pytest
 
 import gradio as gr
 from gradio import flagging
@@ -42,6 +43,7 @@ class TestSimpleFlagging:
 
 class TestHuggingFaceDatasetSaver:
     def test_saver_setup(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         flagger = flagging.HuggingFaceDatasetSaver("test", "test")
@@ -50,6 +52,7 @@ class TestHuggingFaceDatasetSaver:
         huggingface_hub.create_repo.assert_called_once()
 
     def test_saver_flag(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -62,7 +65,7 @@ class TestHuggingFaceDatasetSaver:
             )
             os.mkdir(os.path.join(tmpdirname, "test"))
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(["test", "test"])
+            row_count = io.flagging_callback.flag(["test", "test"], "")
             assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
             assert row_count == 2  # 3 rows written including header
@@ -70,6 +73,7 @@ class TestHuggingFaceDatasetSaver:
 
 class TestHuggingFaceDatasetJSONSaver:
     def test_saver_setup(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         flagger = flagging.HuggingFaceDatasetJSONSaver("test", "test")
@@ -78,6 +82,7 @@ class TestHuggingFaceDatasetJSONSaver:
         huggingface_hub.create_repo.assert_called_once()
 
     def test_saver_flag(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -117,3 +122,31 @@ class TestDisableFlagging:
                 self.fail("launch() raised a PermissionError unexpectedly")
 
         io.close()
+
+
+class TestInterfaceSetsUpFlagging:
+    @pytest.mark.parametrize(
+        "allow_flagging, called",
+        [
+            ("manual", True),
+            ("auto", True),
+            ("never", False),
+        ],
+    )
+    def test_flag_method_init_called(self, allow_flagging, called):
+        flagging.FlagMethod.__init__ = MagicMock()
+        flagging.FlagMethod.__init__.return_value = None
+        gr.Interface(lambda x: x, "text", "text", allow_flagging=allow_flagging)
+        assert flagging.FlagMethod.__init__.called == called
+
+    @pytest.mark.parametrize(
+        "options, processed_options",
+        [
+            (None, [("Flag", "")]),
+            (["yes", "no"], [("Flag as yes", "yes"), ("Flag as no", "no")]),
+            ([("abc", "de"), ("123", "45")], [("abc", "de"), ("123", "45")]),
+        ],
+    )
+    def test_flagging_options_processed_correctly(self, options, processed_options):
+        io = gr.Interface(lambda x: x, "text", "text", flagging_options=options)
+        assert io.flagging_options == processed_options

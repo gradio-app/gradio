@@ -2,13 +2,14 @@
 	import { createEventDispatcher } from "svelte";
 	import { Label } from "@gradio/label";
 	import { LineChart as LabelIcon } from "@gradio/icons";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
+	export let color: undefined | string = undefined;
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
@@ -39,10 +40,8 @@
 		/>
 	{/if}
 	{#if typeof value === "object" && value !== undefined && value !== null}
-		<Label {value} {show_label} />
+		<Label {value} {show_label} {color} />
 	{:else}
-		<div class="h-full min-h-[6rem] flex justify-center items-center">
-			<div class="h-5 dark:text-white opacity-50"><LabelIcon /></div>
-		</div>
+		<Empty><LabelIcon /></Empty>
 	{/if}
 </Block>

@@ -40,11 +40,8 @@
 	});
 </script>
 
-<div class=" z-20" class:m-12={margin}>
+<div class:margin>
 	<svg
-		class="text-xl"
-		width="5em"
-		height="5em"
 		viewBox="-1200 -1200 3000 3000"
 		fill="none"
 		xmlns="http://www.w3.org/2000/svg"
@@ -91,3 +88,19 @@
 		</g>
 	</svg>
 </div>
+
+<style>
+	svg {
+		width: var(--size-20);
+		height: var(--size-20);
+		font-size: var(--scale-2);
+	}
+
+	div {
+		z-index: var(--layer-2);
+	}
+
+	.margin {
+		margin: var(--size-4);
+	}
+</style>

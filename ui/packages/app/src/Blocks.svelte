@@ -18,7 +18,7 @@
 	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
-	import ApiDocs from "./ApiDocs.svelte";
+	import { ApiDocs } from "./api_docs/";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
@@ -35,11 +35,12 @@
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let id: number = 0;
-	export let autoscroll: boolean = false;
+	export let autoscroll: boolean;
 	export let show_api: boolean = true;
+	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
+	export let theme: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -59,11 +60,14 @@
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
+			const wrap = d.backend_fn
+				? d.inputs.length === 1
+				: d.outputs.length === 1;
 			try {
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
 					`let result = await (${d.js})(...__fn_args);
-					return ${d.outputs.length} === 1 ? [result] : result;`
+					return ${wrap} ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
@@ -195,18 +199,14 @@
 		_component_map.set(c.type, _c);
 	});
 
-	let ready = false;
+	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
 				ready = true;
-
-				await tick();
-				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				window.__gradio_loader__[id].$set({ status: "error" });
 			});
 	});
 
@@ -403,11 +403,8 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full flex flex-col" class:min-h-screen={app_mode}>
-	<div
-		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={app_mode}
-	>
+<div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
+	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
 				has_modes={rootNode.has_modes}
@@ -419,48 +416,48 @@
 				{instance_map}
 				{root}
 				{target}
+				{theme}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
 		{/if}
 	</div>
-	<footer
-		class="flex justify-center pb-6 text-gray-400 space-x-2 text-sm md:text-base"
-	>
-		{#if show_api}
-			<button
-				on:click={() => {
-					set_api_docs_visible(!api_docs_visible);
-				}}
-				class="flex items-center hover:text-gray-500"
+
+	{#if show_footer}
+		<footer>
+			{#if show_api}
+				<button
+					on:click={() => {
+						set_api_docs_visible(!api_docs_visible);
+					}}
+					class="show-api"
+				>
+					Use via API <img src={api_logo} alt="" />
+				</button>
+				<div>·</div>
+			{/if}
+			<a
+				href="https://gradio.app"
+				class="built-with"
+				target="_blank"
+				rel="noreferrer"
 			>
-				Use via API <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />
-			</button>
-			<div>·</div>
-		{/if}
-		<a
-			href="https://gradio.app"
-			class="flex items-center hover:text-gray-500"
-			target="_blank"
-			rel="noreferrer"
-		>
-			Built with Gradio
-			<img class="w-2.5 md:w-3 mx-1" src={logo} alt="logo" />
-		</a>
-	</footer>
+				Built with Gradio
+				<img src={logo} alt="logo" />
+			</a>
+		</footer>
+	{/if}
 </div>
 
 {#if api_docs_visible && ready}
-	<div class="h-screen w-screen fixed z-50 bg-black/50 flex top-0">
+	<div class="api-docs">
 		<div
-			class="flex-1 backdrop-blur-sm"
+			class="backdrop"
 			on:click={() => {
 				set_api_docs_visible(false);
 			}}
 		/>
-		<div
-			class="md:w-[950px] 2xl:w-[1150px] bg-white md:rounded-l-xl shadow-2xl overflow-hidden overflow-y-auto"
-		>
+		<div class="api-docs-wrap ">
 			<ApiDocs
 				on:close={() => {
 					set_api_docs_visible(false);
@@ -472,3 +469,90 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.wrap {
+		display: flex;
+		flex-grow: 1;
+		flex-direction: column;
+		width: var(--size-full);
+	}
+
+	footer {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--size-4);
+		color: var(--color-text-subdued);
+		font-size: var(--scale-00);
+	}
+
+	footer > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+	.show-api:hover {
+		color: var(--color-text-body);
+	}
+
+	.show-api img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
+	}
+
+	.built-with {
+		display: flex;
+		align-items: center;
+	}
+
+	.built-with:hover {
+		color: var(--color-text-body);
+	}
+
+	.built-with img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
+	}
+
+	.api-docs {
+		display: flex;
+		position: fixed;
+		top: 0;
+		right: 0;
+		z-index: var(--layer-5);
+		background: rgba(0, 0, 0, 0.5);
+		width: var(--size-screen);
+		height: var(--size-screen-h);
+	}
+
+	.backdrop {
+		flex: 1 1 0%;
+		backdrop-filter: blur(4px);
+	}
+
+	.api-docs-wrap {
+		box-shadow: var(--shadow-drop-lg);
+		background: var(--color-background-primary);
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+
+	@media (--screen-md) {
+		.api-docs-wrap {
+			border-top-left-radius: var(--radius-lg);
+			border-bottom-left-radius: var(--radius-lg);
+			width: 950px;
+		}
+	}
+
+	@media (--screen-xxl) {
+		.api-docs-wrap {
+			width: 1150px;
+		}
+	}
+</style>

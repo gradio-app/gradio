@@ -6,6 +6,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "Radio";
+	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: string = "";
@@ -27,6 +28,7 @@
 	<Radio
 		bind:value
 		{label}
+		{info}
 		{elem_id}
 		{show_label}
 		{choices}
