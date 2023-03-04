@@ -11,7 +11,7 @@ with gr.Blocks() as demo:
     clear = gr.Button("Clear")
 
     msg.submit(respond, [chatbot, msg], chatbot)
-    clear.click(lambda: None, None, chatbot)
+    clear.click(lambda: None, None, chatbot, queue=False)
 
 if __name__ == "__main__":
     demo.launch()
