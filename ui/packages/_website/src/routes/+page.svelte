@@ -1,16 +1,6 @@
 <script lang="ts">
-    import Demos from "../components/Demos.svelte";
-	import gradio_banner from "../assets/img/header-image.jpg";
-	import { logos, tweets } from "../assets";
-	fetch("https://api.github.com/repos/gradio-app/gradio")
-		.then((r) => {
-			return r.json();
-		})
-		.then((data) => {
-			star_count = data.stargazers_count;
-		});
-	let star_count = 0;
-	
+    import DemosLanding from "../components/DemosLanding.svelte";
+	export let data;
 </script>
 
 <svelte:head>
@@ -21,7 +11,7 @@
 		<img
 			id="gradio-banner"
 			class="mb-12 lg:flex-1"
-			src={gradio_banner}
+			src={data.gradio_banner}
 			alt="Gradio Banner"
 		/>
 		<div class="text-left">
@@ -71,7 +61,7 @@
 							<a
 								id="star-count"
 								class="inset-0 cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 border-gray-200 from-white to-gray-100 hover:shadow-inner font-bold text-lg dark:hover:text-yellow-500 relative"
-								href="https://github.com/gradio-app/gradio">{star_count}</a
+								href="https://github.com/gradio-app/gradio">{data.star_count}</a
 							>
 						</div>
 					</div>
@@ -80,7 +70,7 @@
 		</div>
 	</div>
 </div>
-<Demos />
+<DemosLanding />
 <div
 	class="relative mx-auto container space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg"
 >
@@ -209,7 +199,7 @@
 		<div
 			class="mx-auto grid container grid-cols-3 justify-items-center gap-x-3 gap-y-8 grayscale sm:gap-x-4 md:grid-cols-5"
 		>
-			{#each logos as logo}
+			{#each data.logos as logo}
 				<img
 					class:constrast-0={logo.contrast}
 					class="logo h-4 sm:h-5"
@@ -222,7 +212,7 @@
 </div>
 <div class="pt-12 md:pt-20 mx-auto container px-4">
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-		{#each tweets as tweet}
+		{#each data.tweets as tweet}
 			<a
 				href={tweet["link"]}
 				class="rounded-xl border border-gray-200 bg-white p-4 hover:shadow dark:border-gray-800 dark:bg-gray-800"
