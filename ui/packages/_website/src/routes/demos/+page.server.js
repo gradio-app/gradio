@@ -4,11 +4,13 @@ import demos_by_category from "./demos.json"
 
 let language = 'python';
 
-demos_by_category.forEach(category => {category.demos.forEach(demo => {
-    demo.code = Prism.highlight(demo.code, Prism.languages[language])
-})})
 
 export async function load() {
+
+    demos_by_category.forEach(category => {category.demos.forEach(demo => {
+        demo.highlighted_code = Prism.highlight(demo.code, Prism.languages[language]);
+    })})
+
     return {
         demos_by_category
     };

@@ -1,10 +1,7 @@
 <script>
-import docs_json from "../routes/docs/docs.json";
-let components = docs_json.docs.components;
-let helpers = docs_json.docs.helpers;
-let routes = docs_json.docs.routes;
-
-
+    export let components;
+    export let helpers;
+    export let routes;
 </script>
 
 <div class="navigation mobile-nav overflow-y-auto hidden fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:h-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-2/12" id="mobile-nav">

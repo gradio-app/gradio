@@ -4,13 +4,11 @@
 
     export let name;
     export let code;
-
-    let code_elem = "";
+    export let highlighted_code;
      
     let copied = false;
-    function copy(code_elem) {
-      let code_text = code_elem.textContent;
-      navigator.clipboard.writeText(code_text);
+    function copy(code) {
+      navigator.clipboard.writeText(code);
       copied = true;
       setTimeout(() => (copied = false), 2000);
     }
@@ -22,16 +20,14 @@
     <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{ name }/run.ipynb" target="_blank" style="right:30px">
       <img src="https://colab.research.google.com/assets/colab-badge.svg">
     </a>
-    <button class="clipboard-button" type="button" on:click={() => copy(code_elem)}>
+    <button class="clipboard-button" type="button" on:click={() => copy(code)}>
       {#if !copied }
         {@html svgCopy }
       {:else}
         {@html svgCheck }
       {/if}
     </button>
-<pre class=" max-h-80 overflow-auto"><code
-    bind:this={code_elem}
-  class="code language-python">{@html code}</code>
+<pre class=" max-h-80 overflow-auto"><code class="code language-python">{@html highlighted_code}</code>
 </pre>
 </div>
 

@@ -33,7 +33,7 @@
               class:hidden={current_selection !== i }
               class:selected-demo-window={current_selection == i}
               class="demo-content px-4">
-                <Demos name={demo.dir} code={demo.code} />
+                <Demos name={demo.dir} code={demo.code} highlighted_code={demo.highlighted_code}/>
               </div>
               {/each}
               </div>

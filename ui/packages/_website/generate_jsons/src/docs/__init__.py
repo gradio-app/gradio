@@ -156,11 +156,15 @@ def organize_docs(d):
                 c["returns"]["annotation"] = None
             for p in c.get("parameters", []):
                 p["annotation"] = str(p["annotation"])
+                if "default" in p:
+                    p["default"] = str(p["default"])
             for f in c["fns"]:
                 f["fn"] = None
                 f["parent"] = "gradio." + c["name"]
                 for p in f.get("parameters", []):
                     p["annotation"] = str(p["annotation"])
+                    if "default" in p:
+                        p["default"] = str(p["default"])
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
@@ -168,15 +172,18 @@ def organize_docs(d):
                 organized[mode][c["name"].lower()] = c
                 pages.append(c["name"].lower())
             else:
-                if mode not in organized["building"]:
-                    organized["building"][mode] = {}
-                organized["building"][mode][c["name"].lower()] = c
+                # if mode not in organized["building"]:
+                #     organized["building"][mode] = {}
+                organized["building"][c["name"].lower()] = c
+                pages.append(c["name"].lower())
 
     c_keys = list(organized["components"].keys())
     for i, cls in enumerate(organized["components"]):
         if not i: 
             organized["components"][cls]["prev_obj"] = "Components"
+            organized["components"][cls]["next_obj"] =  organized["components"][c_keys[1]]["name"]
         elif i == len(c_keys) - 1:
+            organized["components"][cls]["prev_obj"] = organized["components"][c_keys[len(c_keys) - 2]]["name"]
             organized["components"][cls]["next_obj"] = "Routes"
         else:
             organized["components"][cls]["prev_obj"] = organized["components"][c_keys[i-1]]["name"]

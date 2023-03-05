@@ -1,66 +1,37 @@
 <script>
     import { page } from '$app/stores';
-    import docs_json from "../docs.json";
-    import { onDestroy, afterUpdate } from 'svelte';
-	  import DemoCode from '../../../components/DemoCode.svelte';
+	  import Demos from '../../../components/Demos.svelte';
     import DocsNav from '../../../components/DocsNav.svelte';
     import FunctionDoc from '../../../components/FunctionDoc.svelte';
 
-    let name = $page.params.doc;
-    let obj;
-    let mode;
+    export let data;
+
+    let name = data.name;
+    let obj = data.obj;
+    let mode = data.mode;
+    let docs = data.docs;
+    let components = data.components;
+    let helpers = data.helpers;
+    let routes = data.routes;
 
     let current_selection = 0;
 
-    let docs = docs_json.docs;
-    let components = docs.components;
 
-    let gradio_targets = {};
-
-    for (const key in docs) {
-        for (const o in docs[key]) {
-            if (o == name) {
-                obj = docs[key][o];
-                mode = key;
-            }
-        }
-    }
-
-    onDestroy(() => {
-      gradio_targets = {};
-    });
-
-    afterUpdate(() => {  
-      if (Object.keys(gradio_targets).length) {
-        for (const key in gradio_targets) {
-          if (!gradio_targets[key]?.firstChild) {
-          let embed = document.createElement('gradio-app');
-          embed.setAttribute('space', `gradio/${key}`);
-          gradio_targets[key]?.appendChild(embed);
-          }
-        } 
-      }
-    }    
-  ); 
-
-    $:  name = $page.params.doc;
     $: for (const key in docs) {
         for (const o in docs[key]) {
-            if (o == name) {
+            if (o == $page.params.doc) {
                 obj = docs[key][o];
                 mode = key;
             }
         }
     }
-    $: gradio_targets = {};
-    $: console.log(name)
 
 </script>
 
 
 <main class="container mx-auto px-4 flex gap-4">
 
-    <DocsNav />
+    <DocsNav components={components} helpers={helpers} routes={routes} />
     
     <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
         <div>
@@ -111,7 +82,7 @@
             
             {#if mode === "components"}
                 <div class="embedded-component">
-                    <div bind:this={gradio_targets[name + "_component"]} class="gradio-target"></div>
+                    <gradio-app space={"gradio/" + obj.name.toLowerCase() + "_component"} />
                 </div>
             {/if}
 
@@ -123,7 +94,7 @@
                     {#if obj.examples_format }
                     <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {@html obj.examples_format }}</p>
                     {/if}
-                    {#if obj.events.length > 0}
+                    {#if obj.events && obj.events.length > 0}
                     <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{@html obj.events }</em></p>
                     {/if}
             {/if}
@@ -229,8 +200,7 @@
                     class:hidden={current_selection !== i }
                     class:selected-demo-window={current_selection == i}
                     class="demo-content px-4" name="{ demo[0] }">
-                      <DemoCode name={demo[0]} code={demo[1]} />
-                      <div bind:this={gradio_targets[demo[0]]} class="gradio-target"></div>
+                      <Demos name={demo[0]} code={demo[1]} highlighted_code={demo[2]} />
                     </div>
                     {/each}
                   </div>
