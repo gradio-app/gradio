@@ -25,34 +25,37 @@
 <div class="payload-details">
 	&#123;
 	<br />
-	&nbsp;&nbsp;"data": [
+	<div class="first-level">"data": [</div>
 	<br />
 	{#each dependency.inputs as component_id, component_index}
-		&nbsp;&nbsp;&nbsp;&nbsp;
-		<input
-			class=""
-			type="text"
-			bind:value={dependency_inputs[dependency_index][component_index]}
-		/>
-		{#if dependency_failures[dependency_index][component_index]}
-			<span class="error">ERROR</span>
-		{/if}
-		<span class="type">
-			: {instance_map[component_id].documentation?.type},
-		</span>
-		<span class="desc">
-			// represents {instance_map[component_id].documentation?.description} of
-			{format_label(instance_map[component_id].props.label)}
+		<div class="second-level">
+			<input
+				class=""
+				type="text"
+				bind:value={dependency_inputs[dependency_index][component_index]}
+			/>
+			{#if dependency_failures[dependency_index][component_index]}
+				<span class="error">ERROR</span>
+			{/if}
 
-			<span class="name">
-				{instance_map[component_id].props.name}
+			<span class="type">
+				: {instance_map[component_id].documentation?.type?.input_payload ||
+					instance_map[component_id].documentation?.type?.payload},
 			</span>
-			component
-		</span>
+			<span class="desc">
+				// represents {instance_map[component_id].documentation?.description
+					?.input_payload ||
+					instance_map[component_id].documentation?.description?.payload} of
+				{format_label(instance_map[component_id].props.label)}
+				<span class="name">
+					{instance_map[component_id].props.name}
+				</span>
+				component
+			</span>
+		</div>
 		<br />
 	{/each}
-	&nbsp;&nbsp;]
-	<br />
+	<div class="second-level">]</div>
 	&#125;
 </div>
 
@@ -124,8 +127,8 @@
 		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
 		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--radius-sm);
-		background: var(--input-background-base);
-		padding: var(--size-0-5) var(--size-1);
+		background: var(--input-background-base) !important;
+		padding: var(--size-0-5) var(--size-1) !important;
 		width: var(--size-40);
 		font-size: var(--scale-000);
 	}
@@ -154,5 +157,13 @@
 
 	.name {
 		text-transform: capitalize;
+	}
+
+	.first-level {
+		margin-left: 2rem;
+	}
+
+	.second-level {
+		margin-left: 6rem;
 	}
 </style>

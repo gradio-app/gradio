@@ -1,4 +1,5 @@
 <script lang="ts">
+	import space_logo from "./images/spaces.svg";
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
@@ -7,6 +8,7 @@
 	export let space: string | null;
 	export let display: boolean;
 	export let info: boolean;
+	export let loaded: boolean;
 </script>
 
 <div
@@ -15,7 +17,7 @@
 	class:embed-container={display}
 	class:with-info={info}
 	class="gradio-container gradio-container-{version}"
-	style:min-height={initial_height}
+	style:min-height={loaded ? "initial" : initial_height}
 	style:flex-grow={!display ? "1" : "auto"}
 >
 	<div class="main">
@@ -34,7 +36,7 @@
 			<span>
 				Hosted on
 				<a class="hf" href="https://huggingface.co/spaces"
-					><span class="emoji">🤗</span> Spaces</a
+					><span class="space-logo"><img src={space_logo} /></span> Spaces</a
 				>
 			</span>
 		</div>
@@ -43,7 +45,9 @@
 
 <style>
 	.gradio-container {
+		display: flex;
 		position: relative;
+		flex-direction: column;
 		background: var(--button-secondary-background-base);
 		background: var(--color-background-primary);
 		padding: 0;
@@ -67,7 +71,9 @@
 	}
 
 	.app > .main {
-		height: 100%;
+		display: flex;
+		flex-grow: 1;
+		flex-direction: column;
 	}
 
 	.app {
@@ -171,9 +177,14 @@
 		font-family: var(--font-mono);
 	}
 
-	.emoji {
-		margin-right: 1px;
-		font-size: var(--scale-000);
+	.hf {
+		margin-left: 5px;
+	}
+
+	.space-logo img {
+		display: inline-block;
+		margin-bottom: 4px;
+		height: 12px;
 	}
 
 	a:hover {

@@ -46,11 +46,7 @@
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	{#if source === "upload"}
-		<Upload
-			bind:dragging
-			filetype="video/mp4,video/x-m4v,video/*"
-			on:load={handle_load}
-		>
+		<Upload bind:dragging filetype="video/x-m4v,video/*" on:load={handle_load}>
 			<slot />
 		</Upload>
 	{:else if source === "webcam"}
