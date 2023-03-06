@@ -3,7 +3,7 @@
 <div align="center">
 
 
-  [<img src="I:/desktop/Gradio/readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
+  [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
   <em>轻松构建 & 分享 令人愉快的机器学习程序</em>
 
   [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
@@ -27,7 +27,7 @@ Gradio是一个开源的Python库，用于构建演示机器学习或数据科�
 
 使用Gradio，您可以基于您的机器学习模型或数据科学工作流快速创建一个漂亮的用户界面，让用户可以”尝试“拖放他们自己的图像、粘贴文本、录制他们自己的声音，并通过浏览器与您的演示程序进行交互。
 
-![Interface montage](I:/desktop/Gradio/readme_files/header-image.jpg)
+![Interface montage](readme_files/header-image.jpg)
 
 Gradio适用于:
 
@@ -71,7 +71,7 @@ demo.launch()
 
 3\. 下面的演示会自动出现在Jupyter Notebook中，如果使用脚本运行则会在浏览器[http://localhost:7860](http://localhost:7860)弹出:
 
-![`hello_world` demo](I:/desktop/Gradio/demo/hello_world/screenshot.gif)
+![`hello_world` demo](demo/hello_world/screenshot.gif)
 
 ####  `Interface` 类
 
@@ -105,7 +105,7 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-![`hello_world_2` demo](I:/desktop/Gradio/demo/hello_world_2/screenshot.gif)
+![`hello_world_2` demo](demo/hello_world_2/screenshot.gif)
 
 #### 多输入和输出组件
 
@@ -128,7 +128,7 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-![`hello_world_3` demo](I:/desktop/Gradio/demo/hello_world_3/screenshot.gif)
+![`hello_world_3` demo](demo/hello_world_3/screenshot.gif)
 
 您只需将组件包装在列表中。输入列表`inputs`中的每个组件依次对应函数的一个参数。输出列表`outputs`中的每个组件都对应于函数的一个返回值，两者均按顺序对应。
 
@@ -154,7 +154,7 @@ demo = gr.Interface(sepia, gr.Image(shape=(200, 200)), "image")
 demo.launch()
 ```
 
-![`sepia_filter` demo](I:/desktop/Gradio/demo/sepia_filter/screenshot.gif)
+![`sepia_filter` demo](demo/sepia_filter/screenshot.gif)
 
 当使用`Image`组件作为输入时，您的函数将接收一个形状为 `(width, height, 3)` 的NumPy数组，其中最后一个维度表示RGB值。我们还将以NumPy数组的形式返回一张图像。
 
@@ -195,7 +195,7 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-![`hello_blocks` demo](I:/desktop/Gradio/demo/hello_blocks/screenshot.gif)
+![`hello_blocks` demo](demo/hello_blocks/screenshot.gif)
 
 注意事项：
 
@@ -236,7 +236,7 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-![`blocks_flipper` demo](I:/desktop/Gradio/demo/blocks_flipper/screenshot.gif)
+![`blocks_flipper` demo](demo/blocks_flipper/screenshot.gif)
 
 还有很多事情可以做！我们将在[使用blocks构建](https://github.com/gradio-app/gradio/tree/main/guides/3\)部分为您介绍如何创建像这样复杂的 `Blocks` 应用程序。
 
@@ -246,14 +246,14 @@ demo.launch()
 
 Gradio是由许多很棒的开源库构建的，请一并支持它们!
 
-[<img src="I:/desktop/Gradio/readme_files/huggingface_mini.svg" alt="huggingface" height=40>](https://huggingface.co)
-[<img src="I:/desktop/Gradio/readme_files/python.svg" alt="python" height=40>](https://www.python.org)
-[<img src="I:/desktop/Gradio/readme_files/fastapi.svg" alt="fastapi" height=40>](https://fastapi.tiangolo.com)
-[<img src="I:/desktop/Gradio/readme_files/encode.svg" alt="encode" height=40>](https://www.encode.io)
-[<img src="I:/desktop/Gradio/readme_files/svelte.svg" alt="svelte" height=40>](https://svelte.dev)
-[<img src="I:/desktop/Gradio/readme_files/vite.svg" alt="vite" height=40>](https://vitejs.dev)
-[<img src="I:/desktop/Gradio/readme_files/pnpm.svg" alt="pnpm" height=40>](https://pnpm.io)
-[<img src="I:/desktop/Gradio/readme_files/tailwind.svg" alt="tailwind" height=40>](https://tailwindcss.com)
+[<img src="readme_files/huggingface_mini.svg" alt="huggingface" height=40>](https://huggingface.co)
+[<img src="readme_files/python.svg" alt="python" height=40>](https://www.python.org)
+[<img src="readme_files/fastapi.svg" alt="fastapi" height=40>](https://fastapi.tiangolo.com)
+[<img src="readme_files/encode.svg" alt="encode" height=40>](https://www.encode.io)
+[<img src="readme_files/svelte.svg" alt="svelte" height=40>](https://svelte.dev)
+[<img src="readme_files/vite.svg" alt="vite" height=40>](https://vitejs.dev)
+[<img src="readme_files/pnpm.svg" alt="pnpm" height=40>](https://pnpm.io)
+[<img src="readme_files/tailwind.svg" alt="tailwind" height=40>](https://tailwindcss.com)
 
 ## 协议
 
