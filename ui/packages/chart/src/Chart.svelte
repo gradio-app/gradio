@@ -186,14 +186,13 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		color: var(--body-text-color);
 	}
 
 	.legend-item {
 		display: flex;
 		align-items: center;
-		gap: var(--size-1);
+		gap: var(--spacing-sm);
 		margin-right: var(--size-2);
 		margin-left: var(--size-2);
 	}
@@ -210,8 +209,8 @@
 	}
 
 	.label-text {
-		fill: var(--color-text-body);
-		font-size: var(--scale-000);
+		fill: var(--body-text-color);
+		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
 
@@ -219,7 +218,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		color: var(--body-text-color);
 	}
 </style>

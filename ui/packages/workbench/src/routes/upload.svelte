@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Upload } from "@gradio/upload";
-	import { Panel, Block } from "@gradio/atoms";
+	import { Block } from "@gradio/atoms";
 </script>
 
 <Block>

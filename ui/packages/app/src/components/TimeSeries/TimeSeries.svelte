@@ -138,7 +138,6 @@
 <Block
 	{visible}
 	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
-	color={"grey"}
 	padding={false}
 	{elem_id}
 >

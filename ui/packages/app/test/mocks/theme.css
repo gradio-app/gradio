@@ -1,0 +1,361 @@
+:root {
+	--primary-50: #fff7ed;
+	--primary-100: #ffedd5;
+	--primary-200: #fed7aa;
+	--primary-300: #fdba74;
+	--primary-400: #fb923c;
+	--primary-500: #f97316;
+	--primary-600: #ea580c;
+	--primary-700: #c2410c;
+	--primary-800: #9a3412;
+	--primary-900: #7c2d12;
+	--primary-950: #6c2e12;
+	--secondary-50: #eff6ff;
+	--secondary-100: #dbeafe;
+	--secondary-200: #bfdbfe;
+	--secondary-300: #93c5fd;
+	--secondary-400: #60a5fa;
+	--secondary-500: #3b82f6;
+	--secondary-600: #2563eb;
+	--secondary-700: #1d4ed8;
+	--secondary-800: #1e40af;
+	--secondary-900: #1e3a8a;
+	--secondary-950: #1d3660;
+	--neutral-50: #f9fafb;
+	--neutral-100: #f3f4f6;
+	--neutral-200: #e5e7eb;
+	--neutral-300: #d1d5db;
+	--neutral-400: #9ca3af;
+	--neutral-500: #6b7280;
+	--neutral-600: #4b5563;
+	--neutral-700: #374151;
+	--neutral-800: #1f2937;
+	--neutral-900: #111827;
+	--neutral-950: #0b0f19;
+	--spacing-xxs: 1px;
+	--spacing-xs: 2px;
+	--spacing-sm: 4px;
+	--spacing-md: 6px;
+	--spacing-lg: 8px;
+	--spacing-xl: 10px;
+	--spacing-xxl: 16px;
+	--radius-xxs: 1px;
+	--radius-xs: 2px;
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+	--radius-xl: 12px;
+	--radius-xxl: 22px;
+	--text-xxs: 9px;
+	--text-xs: 10px;
+	--text-sm: 12px;
+	--text-md: 14px;
+	--text-lg: 16px;
+	--text-xl: 22px;
+	--text-xxl: 26px;
+	--color-accent: var(--primary-500);
+	--color-accent-soft: var(--primary-50);
+	--color-background-primary: white;
+	--color-background-secondary: var(--neutral-50);
+	--color-border-accent: var(--primary-300);
+	--color-border-primary: var(--neutral-200);
+	--text-color-code-background: var(--neutral-200);
+	--text-color-code-border: var(--color-border-primary);
+	--text-color-link: var(--secondary-600);
+	--text-color-link-active: var(--secondary-600);
+	--text-color-link-hover: var(--secondary-700);
+	--text-color-link-visited: var(--secondary-500);
+	--text-color-subdued: var(--neutral-400);
+	--body-background-color: var(--color-background-primary);
+	--body-text-color: var(--neutral-800);
+	--body-text-size: var(--text-md);
+	--body-text-weight: 400;
+	--embed-radius: var(--radius-lg);
+	--shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+		0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
+	--shadow-spread: 3px;
+	--block-background: var(--color-background-primary);
+	--block-border-color: var(--color-border-primary);
+	--block-border-width: 1px;
+	--block-info-color: var(--text-color-subdued);
+	--block-info-color-size: var(--text-sm);
+	--block-info-color-weight: 400;
+	--block-label-background: var(--color-background-primary);
+	--block-label-border-color: var(--color-border-primary);
+	--block-label-border-width: 1px;
+	--block-label-color: var(--neutral-500);
+	--block-label-icon-color: var(--block-label-color);
+	--block-label-margin: 0;
+	--block-label-padding: var(--spacing-sm) var(--spacing-lg);
+	--block-label-radius: calc(var(--radius-lg) - 1px) 0
+		calc(var(--radius-lg) - 1px) 0;
+	--block-label-right-radius: 0 calc(var(--radius-lg) - 1px) 0
+		calc(var(--radius-lg) - 1px);
+	--block-label-text-size: var(--text-sm);
+	--block-label-text-weight: 400;
+	--block-padding: var(--spacing-xl) calc(var(--spacing-xl) + 2px);
+	--block-radius: var(--radius-lg);
+	--block-shadow: var(--shadow-drop);
+	--block-title-background: none;
+	--block-title-border-color: none;
+	--block-title-border-width: 0px;
+	--block-title-color: var(--neutral-500);
+	--block-title-padding: 0;
+	--block-title-radius: none;
+	--block-title-text-size: var(--text-md);
+	--block-title-text-weight: 400;
+	--container-radius: var(--radius-lg);
+	--form-gap-width: 1px;
+	--layout-gap: var(--spacing-xxl);
+	--panel-background: var(--color-background-secondary);
+	--panel-border-color: var(--color-border-primary);
+	--panel-border-width: 0;
+	--section-text-size: var(--text-md);
+	--section-text-weight: 400;
+	--checkbox-background: var(--color-background-primary);
+	--checkbox-background-focus: var(--color-background-primary);
+	--checkbox-background-hover: var(--color-background-primary);
+	--checkbox-background-selected: var(--secondary-600);
+	--checkbox-border-color: var(--neutral-300);
+	--checkbox-border-color-focus: var(--secondary-500);
+	--checkbox-border-color-hover: var(--neutral-300);
+	--checkbox-border-color-selected: var(--secondary-600);
+	--checkbox-border-radius: var(--radius-sm);
+	--checkbox-border-width: var(--input-border-width);
+	--checkbox-label-background: linear-gradient(
+		to top,
+		var(--neutral-50),
+		white
+	);
+	--checkbox-label-background-hover: linear-gradient(
+		to top,
+		var(--neutral-100),
+		white
+	);
+	--checkbox-label-background-selected: var(--checkbox-label-background);
+	--checkbox-label-border-color: var(--color-border-primary);
+	--checkbox-label-border-color-hover: var(--color-border-primary);
+	--checkbox-label-border-width: var(--input-border-width);
+	--checkbox-label-gap: var(--spacing-lg);
+	--checkbox-label-padding: var(--spacing-md) calc(2 * var(--spacing-md));
+	--checkbox-label-shadow: var(--shadow-drop);
+	--checkbox-label-text-size: var(--text-md);
+	--checkbox-label-text-weight: 400;
+	--checkbox-shadow: var(--input-shadow);
+	--checkbox-text-color: var(--body-text-color);
+	--checkbox-text-color-selected: var(--checkbox-text-color);
+	--error-background: linear-gradient(
+		to right,
+		#fee2e2,
+		var(--color-background-secondary)
+	);
+	--error-border-color: #fecaca;
+	--error-border-width: 1px;
+	--error-color: #ef4444;
+	--header-text-weight: 600;
+	--input-background: white;
+	--input-background-focus: var(--secondary-500);
+	--input-background-hover: var(--input-background);
+	--input-border-color: var(--color-border-primary);
+	--input-border-color-focus: var(--secondary-300);
+	--input-border-color-hover: var(--color-border-primary);
+	--input-border-width: 1px;
+	--input-padding: var(--spacing-xl);
+	--input-placeholder-color: var(--neutral-400);
+	--input-radius: var(--radius-lg);
+	--input-shadow: 0 0 0 var(--shadow-spread) transparent, var(--shadow-inset);
+	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--secondary-50),
+		var(--shadow-inset);
+	--input-text-size: var(--text-md);
+	--input-text-weight: 400;
+	--loader-color: var(--color-accent);
+	--prose-text-size: var(--text-md);
+	--prose-text-weight: 400;
+	--stat-color-background: linear-gradient(
+		to right,
+		var(--primary-400),
+		var(--primary-200)
+	);
+	--table-border-color: var(--neutral-300);
+	--table-even-background: white;
+	--table-odd-background: var(--neutral-50);
+	--table-radius: var(--radius-lg);
+	--table-row-focus: var(--color-accent-soft);
+	--button-border-width: var(--input-border-width);
+	--button-cancel-background: linear-gradient(
+		to bottom right,
+		#fee2e2,
+		#fecaca
+	);
+	--button-cancel-background-hover: linear-gradient(
+		to bottom right,
+		#fee2e2,
+		#fee2e2
+	);
+	--button-cancel-border-color: #fecaca;
+	--button-cancel-border-color-hover: var(--button-cancel-border-color);
+	--button-cancel-text-color: #dc2626;
+	--button-cancel-text-color-hover: var(--button-cancel-text-color);
+	--button-large-padding: var(--spacing-lg) calc(2 * var(--spacing-lg));
+	--button-large-radius: var(--radius-lg);
+	--button-large-text-size: var(--text-lg);
+	--button-large-text-weight: 600;
+	--button-primary-background: linear-gradient(
+		to bottom right,
+		var(--primary-100),
+		var(--primary-300)
+	);
+	--button-primary-background-hover: linear-gradient(
+		to bottom right,
+		var(--primary-100),
+		var(--primary-200)
+	);
+	--button-primary-border-color: var(--primary-200);
+	--button-primary-border-color-hover: var(--button-primary-border-color);
+	--button-primary-text-color: var(--primary-600);
+	--button-primary-text-color-hover: var(--button-primary-text-color);
+	--button-secondary-background: linear-gradient(
+		to bottom right,
+		var(--neutral-100),
+		var(--neutral-200)
+	);
+	--button-secondary-background-hover: linear-gradient(
+		to bottom right,
+		var(--neutral-100),
+		var(--neutral-100)
+	);
+	--button-secondary-border-color: var(--neutral-200);
+	--button-secondary-border-color-hover: var(--button-secondary-border-color);
+	--button-secondary-text-color: var(--neutral-700);
+	--button-secondary-text-color-hover: var(--button-secondary-text-color);
+	--button-shadow: var(--shadow-drop);
+	--button-shadow-active: var(--shadow-inset);
+	--button-shadow-hover: var(--shadow-drop-lg);
+	--button-small-padding: var(--spacing-sm) calc(2 * var(--spacing-sm));
+	--button-small-radius: var(--radius-lg);
+	--button-small-text-size: var(--text-md);
+	--button-small-text-weight: 400;
+	--button-transition: none;
+}
+.dark {
+	--color-accent-soft: var(--neutral-900);
+	--color-background-primary: var(--neutral-950);
+	--color-background-secondary: var(--neutral-900);
+	--color-border-accent: var(--neutral-600);
+	--color-border-primary: var(--neutral-700);
+	--text-color-code-background: var(--neutral-800);
+	--text-color-link-active: var(--secondary-500);
+	--text-color-link: var(--secondary-500);
+	--text-color-link-hover: var(--secondary-400);
+	--text-color-link-visited: var(--secondary-600);
+	--text-color-subdued: var(--neutral-400);
+	--body-background-color: var(--color-background-primary);
+	--body-text-color: var(--neutral-100);
+	--shadow-spread: 1px;
+	--block-background: var(--neutral-800);
+	--block-border-color: var(--color-border-primary);
+	--block-border-width: 1px;
+	--block-info-color: var(--text-color-subdued);
+	--block-label-background: var(--color-background-secondary);
+	--block-label-border-color: var(--color-border-primary);
+	--block-label-border-width: 1px;
+	--block-label-color: var(--neutral-200);
+	--block-shadow: none;
+	--block-title-background: none;
+	--block-title-border-color: none;
+	--block-title-border-width: 0px;
+	--block-title-color: var(--neutral-200);
+	--panel-background: var(--color-background-secondary);
+	--panel-border-color: var(--color-border-primary);
+	--checkbox-background: var(--neutral-800);
+	--checkbox-background-focus: var(--checkbox-background);
+	--checkbox-background-hover: var(--checkbox-background);
+	--checkbox-background-selected: var(--secondary-600);
+	--checkbox-border-color: var(--neutral-700);
+	--checkbox-border-color-focus: var(--secondary-500);
+	--checkbox-border-color-hover: var(--neutral-600);
+	--checkbox-border-color-selected: var(--secondary-600);
+	--checkbox-label-background: linear-gradient(
+		to top,
+		var(--neutral-900),
+		var(--neutral-800)
+	);
+	--checkbox-label-background-hover: linear-gradient(
+		to top,
+		var(--neutral-900),
+		var(--neutral-800)
+	);
+	--checkbox-label-background-selected: var(--checkbox-label-background);
+	--checkbox-label-border-color: var(--color-border-primary);
+	--checkbox-label-border-color-hover: var(--color-border-primary);
+	--checkbox-text-color: var(--body-text-color);
+	--checkbox-text-color-selected: var(--checkbox-text-color);
+	--error-background: var(--color-background-primary);
+	--error-border-color: var(--color-border-primary);
+	--error-border-width: var(--error-border-width);
+	--error-color: #ef4444;
+	--input-background: var(--neutral-800);
+	--input-background-focus: var(--secondary-600);
+	--input-background-hover: var(--input-background);
+	--input-border-color: var(--color-border-primary);
+	--input-border-color-focus: var(--neutral-700);
+	--input-border-color-hover: var(--color-border-primary);
+	--input-placeholder-color: var(--neutral-500);
+	--input-shadow: var(--input-shadow);
+	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--neutral-700),
+		var(--shadow-inset);
+	--loader-color: var(--loader-color);
+	--stat-color-background: linear-gradient(
+		to right,
+		var(--primary-400),
+		var(--primary-600)
+	);
+	--table-border-color: var(--neutral-700);
+	--table-even-background: var(--neutral-950);
+	--table-odd-background: var(--neutral-900);
+	--table-row-focus: var(--color-accent-soft);
+	--button-cancel-background: linear-gradient(
+		to bottom right,
+		#dc2626,
+		#b91c1c
+	);
+	--button-cancel-background-hover: linear-gradient(
+		to bottom right,
+		#dc2626,
+		#dc2626
+	);
+	--button-cancel-border-color: #dc2626;
+	--button-cancel-border-color-hover: var(--button-cancel-border-color);
+	--button-cancel-text-color: white;
+	--button-cancel-text-color-hover: var(--button-cancel-text-color);
+	--button-primary-background: linear-gradient(
+		to bottom right,
+		var(--primary-600),
+		var(--primary-700)
+	);
+	--button-primary-background-hover: linear-gradient(
+		to bottom right,
+		var(--primary-600),
+		var(--primary-600)
+	);
+	--button-primary-border-color: var(--primary-600);
+	--button-primary-border-color-hover: var(--button-primary-border-color);
+	--button-primary-text-color: white;
+	--button-primary-text-color-hover: var(--button-primary-text-color);
+	--button-secondary-background: linear-gradient(
+		to bottom right,
+		var(--neutral-600),
+		var(--neutral-700)
+	);
+	--button-secondary-background-hover: linear-gradient(
+		to bottom right,
+		var(--neutral-600),
+		var(--neutral-600)
+	);
+	--button-secondary-border-color: var(--neutral-600);
+	--button-secondary-border-color-hover: var(--button-secondary-border-color);
+	--button-secondary-text-color: white;
+	--button-secondary-text-color-hover: var(--button-secondary-text-color);
+}
