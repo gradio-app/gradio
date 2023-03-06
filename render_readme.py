@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 README_TEMPLATE_FILEPATH = "readme_template.md"
-GETTING_STARTED_TEMPLATE_FILEPATH = "guides/1)getting_started/1)quickstart.md"
+GETTING_STARTED_TEMPLATE_FILEPATH = "guides/01_getting-started/01_quickstart.md"
 
 readme_template = Path(README_TEMPLATE_FILEPATH).read_text()
 getting_started_template = Path(GETTING_STARTED_TEMPLATE_FILEPATH).read_text()
