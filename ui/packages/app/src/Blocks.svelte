@@ -210,7 +210,9 @@
 	});
 
 	function handle_update(data: any, fn_index: number) {
+		console.log(dependencies, instance_map, fn_index, data);
 		dependencies[fn_index].outputs.forEach((d, i) => {
+			console.log({ d, i });
 			let value = data[i];
 			if (
 				typeof value === "object" &&
@@ -234,7 +236,10 @@
 		// });
 	}
 
+	console.log("ATTACH LISTENERS TO CLIENT");
+
 	app.on("data", ({ data, fn_index }) => {
+		console.log({ data, fn_index });
 		handle_update(data, fn_index);
 	});
 
@@ -252,6 +257,7 @@
 	let handled_dependencies: Array<number[]> = [];
 
 	async function handle_mount() {
+		console.log("MOUNTING");
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -296,6 +302,8 @@
 							app.cancel("/predict", fn_index);
 						});
 
+					console.log(i);
+
 					let payload = {
 						fn_index: i,
 						data: inputs.map((id) => instance_map[id].props.value)
@@ -316,6 +324,7 @@
 						});
 					} else {
 						if (backend_fn) {
+							console.log("predict");
 							make_prediction();
 						}
 					}

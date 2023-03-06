@@ -187,146 +187,146 @@ export async function client(
 			return new Promise((res, rej) => {
 				const trimmed_endpoint = endpoint.replace(/^\//, "");
 				let fn_index =
-					typeof api_map[trimmed_endpoint] !== "number"
-						? payload.fn_index!
+					typeof payload.fn_index === "number"
+						? payload.fn_index
 						: api_map[trimmed_endpoint];
 
-				setTimeout(() => {
-					if (skip_queue(fn_index, config)) {
-						fire_event({
-							type: "status",
-							endpoint,
-							status: "pending",
-							queue: false,
-							fn_index
-						});
+				console.log(fn_index, api_map[trimmed_endpoint], api_map, payload);
+				if (skip_queue(fn_index, config)) {
+					console.log("NOT_QUEUED_PREDICT");
+					fire_event({
+						type: "status",
+						endpoint,
+						status: "pending",
+						queue: false,
+						fn_index
+					});
 
-						post_data(
-							`${http_protocol}//${host}/run${
-								endpoint.startsWith("/") ? endpoint : `/${endpoint}`
-							}`,
-							{
-								...payload,
-								session_hash
-							}
-						)
-							.then(([output, status_code]) => {
-								if (status_code == 200) {
-									fire_event({
-										type: "status",
-										endpoint,
-										fn_index,
-										status: "complete",
-										eta: output.average_duration,
-										queue: false
-									});
-
-									fire_event({
-										type: "data",
-										endpoint,
-										fn_index,
-										data: output.data
-									});
-								} else {
-									fire_event({
-										type: "status",
-										status: "error",
-										endpoint,
-										fn_index,
-										message: output.error,
-										queue: false
-									});
-								}
-							})
-							.catch((e) => {
+					post_data(
+						`${http_protocol}//${host}/run${
+							endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+						}`,
+						{
+							...payload,
+							session_hash
+						}
+					)
+						.then(([output, status_code]) => {
+							if (status_code == 200) {
 								fire_event({
 									type: "status",
-									status: "error",
-									message: e.message,
 									endpoint,
 									fn_index,
+									status: "complete",
+									eta: output.average_duration,
 									queue: false
 								});
-								throw new Error(e.message);
-							});
-					} else {
-						fire_event({
-							type: "status",
-							status: "pending",
-							queue: true,
-							endpoint,
-							fn_index
-						});
 
-						const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
-
-						const websocket = new WebSocket(ws_endpoint);
-
-						ws_map.set(fn_index, websocket);
-						websocket.onclose = (evt) => {
-							if (!evt.wasClean) {
+								fire_event({
+									type: "data",
+									endpoint,
+									fn_index,
+									data: output.data
+								});
+							} else {
 								fire_event({
 									type: "status",
 									status: "error",
-									message: BROKEN_CONNECTION_MSG,
-									queue: true,
 									endpoint,
-									fn_index
+									fn_index,
+									message: output.error,
+									queue: false
 								});
 							}
-						};
+						})
+						.catch((e) => {
+							fire_event({
+								type: "status",
+								status: "error",
+								message: e.message,
+								endpoint,
+								fn_index,
+								queue: false
+							});
+							throw new Error(e.message);
+						});
+				} else {
+					fire_event({
+						type: "status",
+						status: "pending",
+						queue: true,
+						endpoint,
+						fn_index
+					});
 
-						websocket.onmessage = function (event) {
-							const _data = JSON.parse(event.data);
-							const { type, status, data } = handle_message(
-								_data,
-								last_status[fn_index]
-							);
+					const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
 
-							if (type === "update" && status) {
-								// call 'status' listeners
-								fire_event({ type: "status", endpoint, fn_index, ...status });
-								if (status.status === "error") {
-									websocket.close();
-									rej(status);
-								}
-							} else if (type === "hash") {
-								websocket.send(JSON.stringify({ fn_index, session_hash }));
-								return;
-							} else if (type === "data") {
-								websocket.send(JSON.stringify({ ...payload, session_hash }));
-							} else if (type === "complete") {
-								fire_event({
-									type: "status",
-									...status,
-									status: status?.status!,
-									queue: true,
-									endpoint,
-									fn_index
-								});
+					const websocket = new WebSocket(ws_endpoint);
+
+					ws_map.set(fn_index, websocket);
+					websocket.onclose = (evt) => {
+						if (!evt.wasClean) {
+							fire_event({
+								type: "status",
+								status: "error",
+								message: BROKEN_CONNECTION_MSG,
+								queue: true,
+								endpoint,
+								fn_index
+							});
+						}
+					};
+
+					websocket.onmessage = function (event) {
+						const _data = JSON.parse(event.data);
+						const { type, status, data } = handle_message(
+							_data,
+							last_status[fn_index]
+						);
+
+						if (type === "update" && status) {
+							// call 'status' listeners
+							fire_event({ type: "status", endpoint, fn_index, ...status });
+							if (status.status === "error") {
 								websocket.close();
-							} else if (type === "generating") {
-								fire_event({
-									type: "status",
-									...status,
-									status: status?.status!,
-									queue: true,
-									endpoint,
-									fn_index
-								});
+								rej(status);
 							}
-							if (data) {
-								fire_event({
-									type: "data",
-									data: data.data,
-									endpoint,
-									fn_index
-								});
-								res({ data: data.data });
-							}
-						};
-					}
-				}, 0);
+						} else if (type === "hash") {
+							websocket.send(JSON.stringify({ fn_index, session_hash }));
+							return;
+						} else if (type === "data") {
+							websocket.send(JSON.stringify({ ...payload, session_hash }));
+						} else if (type === "complete") {
+							fire_event({
+								type: "status",
+								...status,
+								status: status?.status!,
+								queue: true,
+								endpoint,
+								fn_index
+							});
+							websocket.close();
+						} else if (type === "generating") {
+							fire_event({
+								type: "status",
+								...status,
+								status: status?.status!,
+								queue: true,
+								endpoint,
+								fn_index
+							});
+						}
+						if (data) {
+							fire_event({
+								type: "data",
+								data: data.data,
+								endpoint,
+								fn_index
+							});
+							res({ data: data.data });
+						}
+					};
+				}
 			});
 		}
 
