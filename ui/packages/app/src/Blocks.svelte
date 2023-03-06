@@ -210,8 +210,8 @@
 	});
 
 	function handle_update(data: any, fn_index: number) {
-		dependencies[fn_index].outputs.forEach((d, i) => {
-			let value = data[i];
+		const outputs = dependencies[fn_index].outputs;
+		data.forEach((value: any, i: number) => {
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -221,17 +221,14 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						instance_map[d].props[update_key] = update_value;
+						instance_map[outputs[i]].props[update_key] = update_value;
 					}
 				}
 				rootNode = rootNode;
 			} else {
-				instance_map[d].props.value = value;
+				instance_map[outputs[i]].props.value = value;
 			}
 		});
-		// output.data.forEach((value: any, i: number) => {
-
-		// });
 	}
 
 	app.on("data", ({ data, fn_index }) => {
@@ -416,7 +413,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
