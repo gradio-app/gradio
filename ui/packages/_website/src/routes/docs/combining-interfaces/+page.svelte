@@ -214,7 +214,6 @@
             
             </div>
     {/each}
-    </div>
     <div class="flex justify-between my-4">
         <a href="/docs/flagging"
             class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
@@ -225,6 +224,7 @@
         <div class="text-lg">Blocks <span class="text-orange-500">&#8594;</span></div>
         </a>
     </div> 
+    </div>
 
 </main>
 
