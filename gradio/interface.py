@@ -398,6 +398,8 @@ class Interface(Blocks):
         Interface.instances.add(self)
 
         param_names = inspect.getfullargspec(self.fn)[0]
+        if len(param_names) > 0 and inspect.ismethod(self.fn):
+            param_names = param_names[1:]
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, IOComponent)
             if component.label is None:
