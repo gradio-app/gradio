@@ -8,7 +8,7 @@
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let size: "sm" | "lg" = "lg";
+	export let size: "sm" | "lg" = style.size || "lg";
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
@@ -83,7 +83,7 @@
 
 <Button
 	{size}
-	variant="plain"
+	variant="secondary"
 	{elem_id}
 	{visible}
 	on:click={openFileUpload}

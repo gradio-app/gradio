@@ -29,7 +29,7 @@
 <style>
 	h2 {
 		display: flex;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--weight-semibold);
 	}
 
@@ -39,7 +39,7 @@
 	}
 
 	span {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	button {
@@ -47,11 +47,11 @@
 		top: var(--size-5);
 		right: var(--size-6);
 		width: var(--size-4);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	button:hover {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	@media (--screen-md) {

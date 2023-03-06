@@ -7,7 +7,7 @@
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let variant: "solid" | "dashed" | "none" = "solid";
-	export let color: "grey" | "green" = "grey";
+	export let border_mode: "base" | "focus" = "base";
 	export let padding: boolean = true;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
@@ -15,11 +15,6 @@
 	export let explicit_call: boolean = false;
 	export let visible = true;
 	export let allow_overflow = true;
-
-	const color_style = {
-		grey: "var(--color-border-primary)",
-		green: "var(--color-functional-success)"
-	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
@@ -45,9 +40,9 @@
 	class:hidden={visible === false}
 	class="block"
 	class:padded={padding}
+	class:border_focus={border_mode === "focus"}
 	style="{styles} {size_style || null}"
 	style:border-style={variant}
-	style:border-color={color_style[color]}
 	style:overflow={allow_overflow ? "visible" : "hidden"}
 >
 	<slot />
@@ -57,18 +52,21 @@
 	.block {
 		position: relative;
 		margin: 0;
-		box-shadow: var(--shadow-drop);
-		border-width: 1px;
-		border-radius: var(--radius-lg);
-		background: var(--color-background-tertiary);
+		box-shadow: var(--block-shadow);
+		border-width: var(--block-border-width);
+		border-color: var(--block-border-color);
+		border-radius: var(--block-radius);
+		background: var(--block-background);
 		width: 100%;
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
 		line-height: var(--line-sm);
 	}
 
+	.block.border_focus {
+		border-color: var(--color-accent);
+	}
+
 	.padded {
-		padding: var(--size-2-5) var(--size-3);
+		padding: var(--block-padding);
 	}
 
 	.hidden {

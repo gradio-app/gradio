@@ -5,8 +5,8 @@
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let variant: "primary" | "secondary" | "stop" | "plain" = "secondary";
-	export let size: "sm" | "lg" = "lg";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
+	export let size: "sm" | "lg" = style.size || "lg";
 	export let disabled: boolean = false;
 
 	$: ({ styles } = get_styles(style, ["full_width"]));
@@ -28,14 +28,18 @@
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
-		box-shadow: var(--shadow-drop);
+		transition: var(--button-transition);
+		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
 	}
 
 	button:hover,
 	button[disabled] {
-		box-shadow: var(--shadow-drop-lg);
+		box-shadow: var(--button-shadow-hover);
+	}
+	button:active {
+		box-shadow: var(--button-shadow-active);
 	}
 
 	button[disabled] {
@@ -48,27 +52,10 @@
 		display: none;
 	}
 
-	.plain {
-		border: 1px solid var(--button-plain-border-color-base);
-		background: var(--button-plain-background-base);
-		color: var(--button-plain-text-color-base);
-	}
-
-	.plain:hover,
-	.plain[disabled] {
-		border: 1px solid var(--button-plain-border-color-hover);
-		background: var(--button-plain-background-hover);
-		color: var(--button-plain-text-color-hover);
-	}
-	.plain:focus {
-		border: 1px solid var(--button-plain-border-color-focus);
-		background: var(--button-plain-background-focus);
-		color: var(--button-plain-text-color-focus);
-	}
 	.primary {
-		border: 1px solid var(--button-primary-border-color-base);
-		background: var(--button-primary-background-base);
-		color: var(--button-primary-text-color-base);
+		border: var(--button-border-width) solid var(--button-primary-border-color);
+		background: var(--button-primary-background);
+		color: var(--button-primary-text-color);
 	}
 	.primary:hover,
 	.primary[disabled] {
@@ -77,16 +64,11 @@
 		color: var(--button-primary-text-color-hover);
 	}
 
-	.primary:focus {
-		border-color: var(--button-primary-border-color-focus);
-		background: var(--button-primary-background-focus);
-		color: var(--button-primary-text-color-focus);
-	}
-
 	.secondary {
-		border: 1px solid var(--button-secondary-border-color-base);
-		background: var(--button-secondary-background-base);
-		color: var(--button-secondary-text-color-base);
+		border: var(--button-border-width) solid
+			var(--button-secondary-border-color);
+		background: var(--button-secondary-background);
+		color: var(--button-secondary-text-color);
 	}
 
 	.secondary:hover,
@@ -96,16 +78,10 @@
 		color: var(--button-secondary-text-color-hover);
 	}
 
-	.secondary:focus {
-		border-color: var(--button-secondary-border-color-focus);
-		background: var(--button-secondary-background-focus);
-		color: var(--button-secondary-text-color-focus);
-	}
-
 	.stop {
-		border: 1px solid var(--button-cancel-border-color-base);
-		background: var(--button-cancel-background-base);
-		color: var(--button-cancel-text-color-base);
+		border: var(--button-border-width) solid var(--button-cancel-border-color);
+		background: var(--button-cancel-background);
+		color: var(--button-cancel-text-color);
 	}
 
 	.stop:hover,
@@ -115,24 +91,17 @@
 		color: var(--button-cancel-text-color-hover);
 	}
 
-	.stop:focus {
-		border-color: var(--button-cancel-border-color-focus);
-		background: var(--button-cancel-background-focus);
-		color: var(--button-cancel-text-color-focus);
-	}
-
 	.sm {
-		border-radius: var(--radius-sm);
-		padding: var(--size-1) var(--size-3);
-		font-weight: var(--weight-regular);
-		font-size: var(--scale-00);
+		border-radius: var(--button-small-radius);
+		padding: var(--button-small-padding);
+		font-weight: var(--button-small-text-weight);
+		font-size: var(--button-small-text-size);
 	}
 
 	.lg {
-		border-radius: var(--radius-lg);
-		padding: var(--size-2) var(--size-4);
-		font-weight: var(--weight-bold);
-		font-size: var(--scale-0);
-		line-height: var(--line-md);
+		border-radius: var(--button-large-radius);
+		padding: var(--button-large-padding);
+		font-weight: var(--button-large-text-weight);
+		font-size: var(--button-large-text-size);
 	}
 </style>

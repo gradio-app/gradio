@@ -162,7 +162,7 @@
 	.category-legend {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-1);
+		gap: var(--spacing-sm);
 		margin-top: var(--size-7);
 		margin-bottom: var(--size-2);
 		color: black;
@@ -199,7 +199,6 @@
 		background: var(--color-background-primary);
 		background-color: transparent;
 		max-width: var(--size-full);
-		font-size: var(--scale-00);
 		line-height: var(--scale-4);
 		word-break: break-all;
 	}
@@ -220,10 +219,10 @@
 		margin-right: calc(var(--size-1) * -1);
 		border-radius: var(--radius-xs);
 		padding: 1px 5px;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		color: white;
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-000);
+		font-size: var(--text-sm);
 		text-transform: uppercase;
 	}
 
@@ -232,7 +231,7 @@
 	}
 
 	.score-text .text {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.score-text {
@@ -241,10 +240,10 @@
 	}
 
 	.no-cat {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.no-label {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 </style>

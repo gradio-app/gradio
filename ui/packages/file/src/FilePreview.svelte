@@ -7,37 +7,39 @@
 	export let value: FileData | FileData[];
 </script>
 
-<table class="file-preview">
-	<tbody>
-		{#each Array.isArray(value) ? value : [value] as file}
-			<tr class="file">
-				<td>
-					{display_file_name(file)}
-				</td>
+<div class="file-preview-holder">
+	<table class="file-preview">
+		<tbody>
+			{#each Array.isArray(value) ? value : [value] as file}
+				<tr class="file">
+					<td>
+						{display_file_name(file)}
+					</td>
 
-				<td>
-					{display_file_size(file)}
-				</td>
+					<td>
+						{display_file_size(file)}
+					</td>
 
-				<td class="download">
-					{#if file.data}
-						<a
-							href={file.data}
-							target="_blank"
-							download={window.__is_colab__
-								? null
-								: file.orig_name || file.name}
-						>
-							Download
-						</a>
-					{:else}
-						Uploading...
-					{/if}
-				</td>
-			</tr>
-		{/each}
-	</tbody>
-</table>
+					<td class="download">
+						{#if file.data}
+							<a
+								href={file.data}
+								target="_blank"
+								download={window.__is_colab__
+									? null
+									: file.orig_name || file.name}
+							>
+								Download
+							</a>
+						{:else}
+							Uploading...
+						{/if}
+					</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
 
 <style>
 	td {
@@ -48,14 +50,14 @@
 		width: 10%;
 		text-align: right;
 	}
-
+	.file-preview-holder {
+		overflow-x: auto;
+	}
 	.file-preview {
-		margin-top: var(--size-7);
-		margin-bottom: var(--size-7);
 		width: var(--size-full);
 		max-height: var(--size-60);
 		overflow-y: auto;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 	.file {
 		width: var(--size-full);
@@ -69,16 +71,16 @@
 		text-decoration: underline;
 	}
 	.download > a {
-		color: var(--color-text-link-base);
+		color: var(--text-color-link);
 	}
 
 	.download > a:hover {
-		color: var(--color-text-link-hover);
+		color: var(--text-color-link-hover);
 	}
 	.download > a:visited {
-		color: var(--color-text-link-visited);
+		color: var(--text-color-link-visited);
 	}
 	.download > a:active {
-		color: var(--color-text-link-active);
+		color: var(--text-color-link-active);
 	}
 </style>

@@ -21,11 +21,12 @@
 	export let loading_status: LoadingStatus | undefined;
 </script>
 
-<Block {elem_id} {visible}>
+<Block {elem_id} {visible} padding={false}>
 	{#if show_label}
 		<BlockLabel
 			{show_label}
 			Icon={Chat}
+			float={false}
 			label={label || "Chatbot"}
 			disable={typeof style.container === "boolean" && !style.container}
 		/>

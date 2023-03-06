@@ -154,7 +154,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Added backend support for themes by [@aliabid94](https://github.com/aliabid94) in [PR 2931](https://github.com/gradio-app/gradio/pull/2931)
+* Added support for button sizes "lg" (default) and "sm".
 
 ## Contributors Shoutout:
 No changes to highlight.

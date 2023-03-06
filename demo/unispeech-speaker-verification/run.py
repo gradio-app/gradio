@@ -109,7 +109,6 @@ demo = gr.Interface(
     description=description,
     article=article,
     layout="horizontal",
-    theme="huggingface",
     allow_flagging="never",
     live=False,
     examples=examples,

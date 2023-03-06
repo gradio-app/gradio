@@ -15,16 +15,17 @@
 
 <style>
 	img {
+		border-radius: var(--radius-lg);
 		max-width: none;
 	}
 
-	img:hover,
 	img.selected {
-		border-color: var(--color-accent-light);
+		border-color: var(--color-border-accent);
 	}
 
 	.table {
-		border: 1px solid var(--color-border-primary);
+		margin: 0 auto;
+		border: 2px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 		width: var(--size-20);
 		height: var(--size-20);
@@ -32,6 +33,7 @@
 	}
 
 	.gallery {
+		border: 2px solid var(--color-border-primary);
 		max-height: var(--size-20);
 		object-fit: cover;
 	}
