@@ -21,15 +21,7 @@ import requests
 from anyio import CapacityLimiter
 from typing_extensions import Literal
 
-from gradio import (
-    components,
-    external,
-    networking,
-    queueing,
-    routes,
-    strings,
-    utils,
-)
+from gradio import components, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
@@ -1354,7 +1346,6 @@ class Blocks(BlockContext):
                 "The `encrypt` parameter has been deprecated and has no effect.",
                 DeprecationWarning,
             )
-            
 
         if self.is_space:
             self.enable_queue = self.enable_queue is not False

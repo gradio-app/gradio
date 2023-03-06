@@ -226,7 +226,7 @@ class CSVLogger(FlaggingCallback):
             if is_new:
                 writer.writerow(utils.sanitize_list_for_csv(headers))
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
-        
+
         with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
