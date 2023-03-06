@@ -17,7 +17,7 @@
   | [Guides](https://gradio.app/guides/)
   | [Getting Started](https://gradio.app/getting_started/)
   | [Examples](demo/)
-  | [中文](README-zh-cn.md)
+  | [中文](readme_files/zh-cn/)
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python
