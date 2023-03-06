@@ -26,5 +26,5 @@
 	disable={typeof style.container === "boolean" && !style.container}
 >
 	<StatusTracker {...loading_status} />
-	<Gallery {label} {value} {style} {show_label} {root} {root_url} />
+	<Gallery on:focus {label} {value} {style} {show_label} {root} {root_url} />
 </Block>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
+	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
 	import type { Styles } from "@gradio/utils";
@@ -15,6 +16,8 @@
 	export let root_url: null | string = null;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = { grid: [2], height: "auto" };
+
+	const dispatch = createEventDispatcher<{ focus: { index: number | null } }>();
 
 	// tracks whether the value of the gallery was reset
 	let was_reset: boolean = true;
@@ -32,6 +35,8 @@
 
 	let prevValue: string[] | FileData[] | null = value;
 	let selected_image: number | null = null;
+	let old_selected_image: number | null = null;
+
 	$: if (prevValue !== value) {
 		// When value is falsy (clear button or first load),
 		// style.preview determines the selected image
@@ -71,6 +76,13 @@
 				break;
 			default:
 				break;
+		}
+	}
+
+	$: {
+		if (selected_image !== old_selected_image) {
+			old_selected_image = selected_image;
+			dispatch("focus", { index: selected_image });
 		}
 	}
 

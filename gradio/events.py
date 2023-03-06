@@ -820,7 +820,7 @@ class Focusable(EventListener):
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
         self.set_event_trigger(
-            "release",
+            "focus",
             fn,
             inputs,
             outputs,
@@ -835,4 +835,4 @@ class Focusable(EventListener):
             max_batch_size=max_batch_size,
             every=every,
         )
-        set_cancel_events(self, "release", cancels)
+        set_cancel_events(self, "focus", cancels)
