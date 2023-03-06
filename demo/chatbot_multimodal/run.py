@@ -9,9 +9,8 @@ def add_image(history, image):
     history = history + [(f"![](/file={quote(image.name)})", "Cool pic!")]
     return history
 
-
-with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}") as demo:
-    chatbot = gr.Chatbot(elem_id="chatbot")
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot(elem_id="chatbot").style(height=500)
     
     with gr.Row():
         with gr.Column(scale=0.85):
