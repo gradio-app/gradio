@@ -1,7 +1,7 @@
-import docs_json from "../docs.json";
-import Demos from '../../../components/Demos.svelte';
-import DocsNav from '../../../components/DocsNav.svelte';
-import FunctionDoc from '../../../components/FunctionDoc.svelte';
+import docs_json from "./docs.json";
+import Demos from '../../components/Demos.svelte';
+import DocsNav from '../../components/DocsNav.svelte';
+import FunctionDoc from '../../components/FunctionDoc.svelte';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
 
@@ -12,8 +12,8 @@ let components = docs_json.docs.components;
 let helpers = docs_json.docs.helpers;
 let routes = docs_json.docs.routes;
 
-export async function load({params}) {
-    let name = params.doc;
+export async function load() {
+    let name = "interface";
     let obj;
     let mode;
     for (const key in docs) {
@@ -21,14 +21,6 @@ export async function load({params}) {
             if (o == name) {
                 obj = docs[key][o];
                 mode = key;
-
-                if (obj.name == "Interface") {
-                    obj.next_obj = "Flagging"
-                } else if (obj.name == "Blocks") {
-                    obj.prev_obj = "Combining-Interfaces"
-                    obj.next_obj = "Block-Layouts"
-                }
-
                 if ("demos" in obj) {
                     obj.demos.forEach(demo => {
                         demo.push(Prism.highlight(demo[1], Prism.languages[language]));

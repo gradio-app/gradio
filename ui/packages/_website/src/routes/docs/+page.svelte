@@ -1,9 +1,9 @@
 <script>
     import { page } from '$app/stores';
-	  import Demos from '../../../components/Demos.svelte';
-    import DocsNav from '../../../components/DocsNav.svelte';
-    import FunctionDoc from '../../../components/FunctionDoc.svelte';
-    import MetaTags from "../../../components/MetaTags.svelte";
+	import Demos from '../../components/Demos.svelte';
+    import DocsNav from '../../components/DocsNav.svelte';
+    import FunctionDoc from '../../components/FunctionDoc.svelte';
+    import MetaTags from "../../components/MetaTags.svelte";
 
     export let data;
 
@@ -32,14 +32,14 @@
 
 <svelte:head>
   <MetaTags title={"Gradio " + obj.name + " Docs"} 
-            url={"https://gradio.app/docs/" + obj.name.toLowerCase()} 
-            canonical={"https://gradio.app/docs/" + obj.name.toLowerCase()}
+            url={"https://gradio.app/docs/" + name} 
+            canonical={"https://gradio.app/docs/" + name}
             description={obj.description}/>
 </svelte:head>
 
 <main class="container mx-auto px-4 flex gap-4">
 
-  <DocsNav current_nav_link={obj.name.toLowerCase()} components={components} helpers={helpers} routes={routes} />
+    <DocsNav current_nav_link={name} components={components} helpers={helpers} routes={routes} />
     
     <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
         <div>
@@ -52,22 +52,11 @@
         </div>
 
         <div class="flex justify-between mt-4">
-            {#if obj.prev_obj}
-              <a href="/docs/{ obj.prev_obj.toLowerCase() }"
-                 class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
-                <div class="text-lg"><span class="text-orange-500">&#8592;</span> { obj.prev_obj.replace("-", " ") }</div>
-              </a>
-            {:else }
-              <div></div>
-            {/if}
-            {#if obj.next_obj}
-              <a href="/docs/{ obj.next_obj.toLowerCase() }"
+                <div></div>
+              <a href="/docs/flagging"
                  class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
-                <div class="text-lg">{ obj.next_obj.replace("-", " ") } <span class="text-orange-500">&#8594;</span></div>
+                <div class="text-lg">Flagging <span class="text-orange-500">&#8594;</span></div>
               </a>
-            {:else }
-              <div></div>
-            {/if}
         </div>
         
         <div class="obj" id={ obj.name.toLowerCase() }>
@@ -220,25 +209,13 @@
 
         
         </div>
-
         <div class="flex justify-between my-4">
-          {#if obj.prev_obj}
-            <a href="/docs/{ obj.prev_obj.toLowerCase() }"
-               class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
-              <div class="text-lg"><span class="text-orange-500">&#8592;</span> { obj.prev_obj.replace("-", " ") }</div>
-            </a>
-          {:else }
             <div></div>
-          {/if}
-          {#if obj.next_obj}
-            <a href="/docs/{ obj.next_obj.toLowerCase() }"
-               class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
-              <div class="text-lg">{ obj.next_obj.replace("-", " ") } <span class="text-orange-500">&#8594;</span></div>
-            </a>
-          {:else }
-            <div></div>
-          {/if}
-      </div>
+          <a href="/docs/flagging"
+             class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
+            <div class="text-lg">Flagging <span class="text-orange-500">&#8594;</span></div>
+          </a>
+    </div>
 
     </div> 
 
