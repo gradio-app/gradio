@@ -290,6 +290,7 @@
 					outputs.every((v) => instance_map?.[v].instance) &&
 					inputs.every((v) => instance_map?.[v].instance)
 				) {
+					console.log("MAKE_LOAD_PREDICT");
 					cancels &&
 						cancels.forEach((fn_index) => {
 							app.cancel("/predict", fn_index);
@@ -331,6 +332,7 @@
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
 							const current_status = loading_status.get_status_for_fn(i);
+							console.log("ATTEMPT_PREDICT");
 							if (
 								current_status === "pending" ||
 								current_status === "generating"
@@ -357,6 +359,7 @@
 								).then((v: []) => {
 									if (backend_fn) {
 										payload.data = v;
+										console.log("MAKE_PREDICT", { fn_index: i });
 										make_prediction();
 									} else {
 										handle_update(v, i);
@@ -364,6 +367,8 @@
 								});
 							} else {
 								if (backend_fn) {
+									console.log("MAKE_PREDICT", { fn_index: i });
+
 									make_prediction();
 								}
 							}
