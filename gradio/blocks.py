@@ -1278,7 +1278,7 @@ class Blocks(BlockContext):
         show_tips: bool = False,
         height: int = 500,
         width: int | str = "100%",
-        encrypt: bool = False,
+        encrypt: bool | None = None,
         favicon_path: str | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
@@ -1308,7 +1308,7 @@ class Blocks(BlockContext):
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
-            encrypt: If True, flagged data will be encrypted by key provided by creator at launch
+            encrypt: DEPRECATED. Has no effect.
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1350,6 +1350,12 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
+        if encrypt is not None:
+            warnings.warn(
+                "The `encrypt` parameter has been deprecated and has no effect.",
+                DeprecationWarning,
+            )
+            
 
         if self.is_space:
             self.enable_queue = self.enable_queue is not False
@@ -1381,14 +1387,9 @@ class Blocks(BlockContext):
                 raise ValueError("In order to use batching, the queue must be enabled.")
 
         self.config = self.get_config_file()
-        self.encrypt = encrypt
         self.max_threads = max(
             self._queue.max_thread_count if self.enable_queue else 0, max_threads
         )
-        if self.encrypt:
-            self.encryption_key = encryptor.get_key(
-                getpass.getpass("Enter key for encryption: ")
-            )
 
         if self.is_running:
             assert isinstance(
@@ -1430,9 +1431,6 @@ class Blocks(BlockContext):
             # Workaround by triggering the app endpoint
             requests.get(f"{self.local_url}startup-events")
 
-            if self.enable_queue:
-                if self.encrypt:
-                    raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
         if share is None:
