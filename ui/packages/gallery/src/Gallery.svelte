@@ -247,7 +247,7 @@
 	.caption {
 		padding: var(--size-2) var(--size-3);
 		overflow: hidden;
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 		font-weight: var(--weight-semibold);
 		text-align: center;
 		text-overflow: ellipsis;
@@ -260,11 +260,10 @@
 		bottom: 0;
 		justify-content: center;
 		align-items: center;
-		gap: var(--size-2);
+		gap: var(--spacing-lg);
 		width: var(--size-full);
 		height: var(--size-14);
 		overflow-x: scroll;
-		font-size: var(--scale-00);
 	}
 
 	.thumbnail-item {
@@ -272,9 +271,9 @@
 		position: relative;
 		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
-		border: 1px solid var(--gallery-thumb-border-color-base);
-		border-radius: var(--radius-sm);
-		background-color: var(--gallery-thumb-background-base);
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--button-small-radius);
+		background-color: var(--color-background-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
@@ -282,14 +281,9 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--gallery-thumb-border-color-hover);
+		--ring-color: var(--color-border-accent);
 		filter: brightness(1.1);
-		border-color: var(--gallery-thumb-border-color-hover);
-	}
-
-	.thumbnail-item:focus {
-		--ring-color: var(--gallery-thumb-border-color-focus);
-		border-color: var(--gallery-thumb-border-color-focus);
+		border-color: var(--color-border-accent);
 	}
 
 	.thumbnail-small {
@@ -301,14 +295,9 @@
 	}
 
 	.thumbnail-small.selected {
-		--ring-color: var(--gallery-thumb-border-color-selected);
+		--ring-color: var(--color-accent);
 		transform: scale(1);
-		border-color: var(--gallery-thumb-border-color-selected);
-	}
-
-	.thumbnail-small.selected:focus {
-		--ring-color: var(--gallery-thumb-border-color-focus) !important;
-		border-color: var(--gallery-thumb-border-color-focus) !important;
+		border-color: var(--color-accent);
 	}
 
 	.thumbnail-small > img {
@@ -327,7 +316,7 @@
 	.grid-container {
 		display: grid;
 		grid-template-columns: var(--grid-cols);
-		gap: var(--size-2);
+		gap: var(--spacing-lg);
 	}
 	@media (--screen-sm) {
 		.grid-container {
@@ -368,18 +357,17 @@
 
 	.caption-label {
 		position: absolute;
-		right: 0;
-		bottom: 0;
+		right: var(--block-label-margin);
+		bottom: var(--block-label-margin);
 		z-index: var(--layer-1);
-		border-top: 1px solid var(--gallery-label-border-color-base);
-		border-left: 1px solid var(--gallery-label-border-color-base);
-		border-top-left-radius: var(--radius-lg);
-		background: var(--gallery-thumb-background-base);
-		padding: var(--size-1) var(--size-3);
+		border-top: 1px solid var(--color-border-primary);
+		border-left: 1px solid var(--color-border-primary);
+		border-radius: var(--block-label-radius);
+		background: var(--color-background-secondary);
+		padding: var(--block-label-padding);
 		max-width: 80%;
 		overflow: hidden;
-		font-weight: var(--weight-semibold);
-		font-size: var(--scale-000);
+		font-size: var(--block-label-text-size);
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;

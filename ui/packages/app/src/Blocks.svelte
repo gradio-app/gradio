@@ -478,14 +478,15 @@
 		flex-grow: 1;
 		flex-direction: column;
 		width: var(--size-full);
+		font-weight: var(--body-text-weight);
+		font-size: var(--body-text-size);
 	}
 
 	footer {
 		display: flex;
 		justify-content: center;
 		margin-top: var(--size-4);
-		color: var(--color-text-subdued);
-		font-size: var(--scale-00);
+		color: var(--text-color-subdued);
 	}
 
 	footer > * + * {
@@ -497,7 +498,7 @@
 		align-items: center;
 	}
 	.show-api:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.show-api img {
@@ -512,7 +513,7 @@
 	}
 
 	.built-with:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.built-with img {

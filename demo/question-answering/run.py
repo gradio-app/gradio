@@ -3,7 +3,6 @@ context = "The Amazon rainforest, also known in English as Amazonia or the Amazo
 question = "Which continent is the Amazon rainforest in?"
 gr.Interface.load(
              "huggingface/deepset/roberta-base-squad2",
-             theme="default",
              inputs=[gr.inputs.Textbox(lines=7, default=context, label="Context Paragraph"), gr.inputs.Textbox(lines=2, default=question, label="Question")],
              outputs=[gr.outputs.Textbox(label="Answer"), gr.outputs.Textbox(label="Score")],
              title=None).launch()

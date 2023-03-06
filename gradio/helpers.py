@@ -257,6 +257,7 @@ class Examples:
                 load_example,
                 inputs=[self.dataset],
                 outputs=targets,  # type: ignore
+                show_progress=False,
                 postprocess=False,
                 queue=False,
             )

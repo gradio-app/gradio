@@ -36,6 +36,8 @@ from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.themes import Default as DefaultTheme
+from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -464,7 +466,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: str = "default",
+        theme: Theme | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -473,7 +475,6 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            theme: which theme to use - right now, only "default" is supported.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -482,7 +483,13 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
+        if theme is None:
+            theme = DefaultTheme()
+        elif not isinstance(theme, Theme):
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+            theme = DefaultTheme()
         self.theme = theme
+        self.theme_css = self.theme._get_theme_css()
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -538,7 +545,6 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),
@@ -599,7 +605,7 @@ class Blocks(BlockContext):
 
         derived_fields = ["types"]
 
-        with Blocks(theme=config["theme"]) as blocks:
+        with Blocks() as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -1080,7 +1086,6 @@ class Blocks(BlockContext):
             "dev_mode": self.dev_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
-            "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,

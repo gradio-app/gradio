@@ -25,11 +25,11 @@
 
 <style>
 	div :global(.math.inline) {
-		fill: var(--color-text-body);
+		fill: var(--body-text-color);
 		display: inline-block;
 		vertical-align: middle;
 		padding: var(--size-1-5) -var(--size-1);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	div :global(.math.inline svg) {

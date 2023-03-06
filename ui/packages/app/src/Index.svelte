@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { fn } from "./api";
+	import { mount_css } from "./main";
 
 	import type {
 		ComponentMeta,
@@ -103,13 +104,14 @@
 			return null;
 		}
 
-		mount_custom_css(target, config.css);
-		window.__is_colab__ = config.is_colab;
-
 		if (root === undefined) {
 			root = BACKEND_URL;
 			config.root = BACKEND_URL;
 		}
+
+		mount_css(config.root + "theme.css", document.head);
+		mount_custom_css(target, config.css);
+		window.__is_colab__ = config.is_colab;
 
 		if (config.dev_mode) {
 			reload_check(root);
@@ -518,7 +520,7 @@
 	.error {
 		position: relative;
 		padding: var(--size-4);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		text-align: center;
 	}
 
@@ -527,19 +529,19 @@
 	}
 
 	a {
-		color: var(--color-text-link-base);
+		color: var(--text-color-link);
 	}
 
 	a:hover {
-		color: var(--color-text-link-hover);
+		color: var(--text-color-link-hover);
 		text-decoration: underline;
 	}
 
 	a:visited {
-		color: var(--color-text-link-visited);
+		color: var(--text-color-link-visited);
 	}
 
 	a:active {
-		color: var(--color-text-link-active);
+		color: var(--text-color-link-active);
 	}
 </style>

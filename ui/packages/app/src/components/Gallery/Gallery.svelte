@@ -20,7 +20,6 @@
 <Block
 	{visible}
 	variant="solid"
-	color="grey"
 	padding={false}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}

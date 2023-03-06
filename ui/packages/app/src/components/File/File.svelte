@@ -90,7 +90,7 @@
 <Block
 	{visible}
 	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
-	color={dragging ? "green" : "grey"}
+	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
 >
