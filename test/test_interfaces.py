@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 import gradio
 from gradio.blocks import Blocks
-from gradio.components import Textbox, Image
+from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids
