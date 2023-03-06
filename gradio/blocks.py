@@ -208,8 +208,19 @@ class Block:
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
+        _, progress_index, event_data_index = (
+            special_args(fn) if fn else (None, None, None)
+        )
         Context.root_block.fns.append(
-            BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
+            BlockFunction(
+                fn,
+                inputs,
+                outputs,
+                preprocess,
+                postprocess,
+                inputs_as_dict,
+                progress_index is not None,
+            )
         )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -240,6 +251,7 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
+            "collects_event_data": event_data_index is not None,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -331,12 +343,14 @@ class BlockFunction:
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
+        tracks_progress: bool = False,
     ):
         self.fn = fn
         self.inputs = inputs
         self.outputs = outputs
         self.preprocess = preprocess
         self.postprocess = postprocess
+        self.tracks_progress = tracks_progress
         self.total_runtime = 0
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
@@ -820,7 +834,7 @@ class Blocks(BlockContext):
             request = requests[0]
         else:
             request = requests
-        processed_input, progress_index = special_args(
+        processed_input, progress_index, _ = special_args(
             block_fn.fn, processed_input, request, event_data
         )
         progress_tracker = (
@@ -1117,10 +1131,7 @@ class Blocks(BlockContext):
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
-        self.progress_tracking = any(
-            block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
-            for block_fn in self.fns
-        )
+        self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
 
     @class_or_instancemethod
     def load(

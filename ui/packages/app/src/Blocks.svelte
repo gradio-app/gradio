@@ -241,6 +241,7 @@
 					backend_fn,
 					frontend_fn,
 					cancels,
+					collects_event_data,
 					...rest
 				},
 				i
@@ -320,7 +321,7 @@
 								payload: {
 									fn_index: i,
 									data: inputs.map((id) => instance_map[id].props.value),
-									event_data: event.detail
+									event_data: collects_event_data ? event.detail : null
 								},
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,

@@ -25,7 +25,7 @@ type StatusResponse =
 
 interface Payload {
 	data: Array<unknown>;
-	event_data: unknown;
+	event_data?: unknown;
 	fn_index: number;
 	session_hash?: string;
 }

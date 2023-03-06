@@ -602,7 +602,7 @@ def special_args(
         inputs: array to load special arguments into.
         request: request to load into inputs.
     Returns:
-        updated inputs, request index, progress index
+        updated inputs, progress index, event data index.
     """
     signature = inspect.signature(fn)
     positional_args = []
@@ -611,6 +611,7 @@ def special_args(
             break
         positional_args.append(param)
     progress_index = None
+    event_data_index = None
     for i, param in enumerate(positional_args):
         if isinstance(param.default, Progress):
             progress_index = i
@@ -620,6 +621,7 @@ def special_args(
             if inputs is not None:
                 inputs.insert(i, request)
         elif param.annotation == EventData:
+            event_data_index = i
             if inputs is not None:
                 inputs.insert(i, event_data)
     if inputs is not None:
@@ -631,7 +633,7 @@ def special_args(
                 inputs.append(None)
             else:
                 inputs.append(param.default)
-    return inputs or [], progress_index
+    return inputs or [], progress_index, event_data_index
 
 
 @document()
