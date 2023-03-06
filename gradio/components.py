@@ -2457,10 +2457,8 @@ class File(
                 "is_file": True,
             }
 
-    def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
+        serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
             return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
@@ -3157,10 +3155,8 @@ class UploadButton(
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
+        serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
             return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
@@ -3884,7 +3880,6 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         self,
         x: Any,
         save_dir: str = "",
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
     ) -> None | str:
         if x is None:

@@ -11,7 +11,6 @@ numpy
 orjson
 pandas
 pillow
-pycryptodome
 python-multipart
 pydub
 pyyaml

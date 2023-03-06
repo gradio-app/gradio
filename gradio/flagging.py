@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import datetime
-import io
 import json
 import os
 import time
@@ -15,7 +14,7 @@ from typing import TYPE_CHECKING, Any, List
 import pkg_resources
 
 import gradio as gr
-from gradio import encryptor, utils
+from gradio import utils
 from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:
@@ -91,7 +90,6 @@ class FlaggingCallback(ABC):
         self,
         flag_data: List[Any],
         flag_option: str = "",
-        flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
         """
@@ -101,7 +99,6 @@ class FlaggingCallback(ABC):
         interface: The Interface object that is being used to launch the flagging interface.
         flag_data: The data to be flagged.
         flag_option (optional): In the case that flagging_options are provided, the flag option that is being used.
-        flag_index (optional): The index of the sample that is being flagged.
         username (optional): The username of the user that is flagging the data, if logged in.
         Returns:
         (int) The total number of samples that have been flagged.
@@ -135,7 +132,6 @@ class SimpleCSVLogger(FlaggingCallback):
         self,
         flag_data: List[Any],
         flag_option: str = "",
-        flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
         flagging_dir = self.flagging_dir
@@ -184,18 +180,15 @@ class CSVLogger(FlaggingCallback):
         self,
         components: List[IOComponent],
         flagging_dir: str | Path,
-        encryption_key: bytes | None = None,
     ):
         self.components = components
         self.flagging_dir = flagging_dir
-        self.encryption_key = encryption_key
         os.makedirs(flagging_dir, exist_ok=True)
 
     def flag(
         self,
         flag_data: List[Any],
         flag_option: str = "",
-        flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
         flagging_dir = self.flagging_dir
@@ -219,11 +212,7 @@ class CSVLogger(FlaggingCallback):
                 csv_data.append(str(sample))
             else:
                 csv_data.append(
-                    component.deserialize(
-                        sample,
-                        save_dir=save_dir,
-                        encryption_key=self.encryption_key,
-                    )
+                    component.deserialize(sample, save_dir=save_dir)
                     if sample is not None
                     else ""
                 )
@@ -231,53 +220,12 @@ class CSVLogger(FlaggingCallback):
         csv_data.append(username if username is not None else "")
         csv_data.append(str(datetime.datetime.now()))
 
-        def replace_flag_at_index(file_content: str, flag_index: int):
-            file_content_ = io.StringIO(file_content)
-            content = list(csv.reader(file_content_))
-            header = content[0]
-            flag_col_index = header.index("flag")
-            content[flag_index][flag_col_index] = flag_option
-            output = io.StringIO()
-            writer = csv.writer(output)
-            writer.writerows(utils.sanitize_list_for_csv(content))
-            return output.getvalue()
+        with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            if is_new:
+                writer.writerow(utils.sanitize_list_for_csv(headers))
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
-        if self.encryption_key:
-            output = io.StringIO()
-            if not is_new:
-                with open(log_filepath, "rb", encoding="utf-8") as csvfile:
-                    encrypted_csv = csvfile.read()
-                    decrypted_csv = encryptor.decrypt(
-                        self.encryption_key, encrypted_csv
-                    )
-                    file_content = decrypted_csv.decode()
-                    if flag_index is not None:
-                        file_content = replace_flag_at_index(file_content, flag_index)
-                    output.write(file_content)
-            writer = csv.writer(output)
-            if flag_index is None:
-                if is_new:
-                    writer.writerow(utils.sanitize_list_for_csv(headers))
-                writer.writerow(utils.sanitize_list_for_csv(csv_data))
-            with open(log_filepath, "wb", encoding="utf-8") as csvfile:
-                csvfile.write(
-                    encryptor.encrypt(self.encryption_key, output.getvalue().encode())
-                )
-        else:
-            if flag_index is None:
-                with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
-                    writer = csv.writer(csvfile)
-                    if is_new:
-                        writer.writerow(utils.sanitize_list_for_csv(headers))
-                    writer.writerow(utils.sanitize_list_for_csv(csv_data))
-            else:
-                with open(log_filepath, encoding="utf-8") as csvfile:
-                    file_content = csvfile.read()
-                    file_content = replace_flag_at_index(file_content, flag_index)
-                with open(
-                    log_filepath, "w", newline="", encoding="utf-8"
-                ) as csvfile:  # newline parameter needed for Windows
-                    csvfile.write(file_content)
         with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
@@ -368,7 +316,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self,
         flag_data: List[Any],
         flag_option: str = "",
-        flag_index: int | None = None,
         username: str | None = None,
     ) -> int:
         self.repo.git_pull(lfs=True)
@@ -500,7 +447,6 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         self,
         flag_data: List[Any],
         flag_option: str = "",
-        flag_index: int | None = None,
         username: str | None = None,
     ) -> str:
         self.repo.git_pull(lfs=True)
