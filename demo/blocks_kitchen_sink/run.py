@@ -2,7 +2,7 @@ import gradio as gr
 import time
 from os.path import abspath, join, pardir
 
-KS_FILES = abspath(join(pardir, "kitchen_sink", "files"))
+KS_FILES = abspath(join(__file__, pardir, pardir, "kitchen_sink", "files"))
 
 base_theme = gr.themes.Base()
 default_theme = gr.themes.Default()

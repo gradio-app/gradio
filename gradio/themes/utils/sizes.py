@@ -1,7 +1,9 @@
 class Size:
     all = []
 
-    def __init__(self, xxs, xs, sm, md, lg, xl, xxl, name=None):
+    def __init__(
+        self, xxs: str, xs: str, sm: str, md: str, lg: str, xl: str, xxl: str, name=None
+    ):
         self.xxs = xxs
         self.xs = xs
         self.sm = sm

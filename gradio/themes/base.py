@@ -46,12 +46,12 @@ class Base(ThemeClass):
     ):
         """
         Parameters:
-            primary_hue: The primary hue of the theme. Load a preset, like gradio.themes.utils.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
-            secondary_hue: The secondary hue of the theme. Load a preset, like gradio.themes.utils.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
-            neutral_hue: The neutral hue of the theme, used . Load a preset, like gradio.themes.utils.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
-            text_size: The size of the text. Load a preset, like gradio.themes.utils.text_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
-            spacing_size: The size of the spacing. Load a preset, like gradio.themes.utils.spacing_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
-            radius_size: The radius size of corners. Load a preset, like gradio.themes.utils.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
+            primary_hue: The primary hue of the theme. Load a preset, like gradio.themes.colors.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
+            secondary_hue: The secondary hue of the theme. Load a preset, like gradio.themes.colors.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
+            neutral_hue: The neutral hue of the theme, used . Load a preset, like gradio.themes.colors.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.
+            text_size: The size of the text. Load a preset, like gradio.themes.sizes.text_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
+            spacing_size: The size of the spacing. Load a preset, like gradio.themes.sizes.spacing_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
+            radius_size: The radius size of corners. Load a preset, like gradio.themes.sizes.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
         """
 
         def expand_shortcut(shortcut, mode="color", prefix=None):

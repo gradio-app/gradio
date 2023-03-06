@@ -4025,10 +4025,12 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             )
         return y
 
-    def style(self, **kwargs):
+    def style(self, height: int | None = None, **kwargs):
         """
         This method can be used to change the appearance of the Chatbot component.
         """
+        if height is not None:
+            self._style["height"] = height
         if kwargs.get("color_map") is not None:
             warnings.warn("The 'color_map' parameter has been deprecated.")
 

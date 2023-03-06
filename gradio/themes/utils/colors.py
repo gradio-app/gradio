@@ -1,8 +1,23 @@
+from __future__ import annotations
+
+
 class Color:
     all = []
 
     def __init__(
-        self, c50, c100, c200, c300, c400, c500, c600, c700, c800, c900, c950, name=None
+        self,
+        c50: str,
+        c100: str,
+        c200: str,
+        c300: str,
+        c400: str,
+        c500: str,
+        c600: str,
+        c700: str,
+        c800: str,
+        c900: str,
+        c950: str,
+        name: str | None = None,
     ):
         self.c50 = c50
         self.c100 = c100
