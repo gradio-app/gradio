@@ -26,7 +26,8 @@ from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import Component, IOComponent
+    from gradio.components import IOComponent
+    from gradio.blocks import Block
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -820,6 +821,6 @@ class EventData:
         gallery.focus(on_focus, None, focused)
     """
 
-    def __init__(self, target: Component, data: Any):
+    def __init__(self, target: Block | None, data: Any):
         self.target = target
         self.data = data
