@@ -6,6 +6,7 @@
 	let old_value: Array<[string | null, string | null]> | null;
 	export let pending_message: boolean = false;
 	export let root: string;
+	export let style: Styles = {};
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -44,7 +45,12 @@
 	}
 </script>
 
-<div class="wrap" bind:this={div}>
+<div
+	class="wrap"
+	style:height={`${style.height}px`}
+	style:max-height={`${style.height}px`}
+	bind:this={div}
+>
 	<div class="message-wrap">
 		{#each _value as message, i}
 			<div
