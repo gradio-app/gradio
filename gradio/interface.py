@@ -860,7 +860,6 @@ class TabbedInterface(Blocks):
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
-            theme: Theme to use, loaded from gradio.themes.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             css: custom css or path to custom css file to apply to entire Blocks
         Returns:
