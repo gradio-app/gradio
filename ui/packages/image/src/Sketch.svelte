@@ -107,7 +107,11 @@
 	let line_count = 0;
 
 	function draw_cropped_image() {
-		if (!shape) return { x: 0, y: 0, width, height };
+		if (!shape) {
+			ctx.temp.drawImage(value_img, 0, 0, width, height);
+			return;
+		}
+
 		let _width = value_img.naturalWidth;
 		let _height = value_img.naturalHeight;
 
