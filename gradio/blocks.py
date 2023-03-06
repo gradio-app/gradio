@@ -1694,15 +1694,20 @@ class Blocks(BlockContext):
                 ):
                     load_fn, every = component.load_event_to_attach
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
-                    self.set_event_trigger(
+                    dep = self.set_event_trigger(
                         "load",
                         load_fn,
                         None,
                         component,
                         no_target=True,
-                        queue=False,
+                        # If every is None, for sure skip the queue
+                        # else, let the enable_queue parameter take precedence
+                        # this will raise a nice error message is every is used
+                        # without queue
+                        queue=False if every is None else None,
                         every=every,
                     )
+                    component.load_event = dep
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
