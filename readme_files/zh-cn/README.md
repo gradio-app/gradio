@@ -19,7 +19,7 @@
   | [指南](https://gradio.app/guides/)
   | [开始](https://gradio.app/getting_started/)]
   | [样例](../../demo/)
-  | [English](../../#readme)
+  | [English](https://github.com/gradio-app/gradio#readme)
 </div>
 
 # Gradio: 用Python构建机器学习网页APP
