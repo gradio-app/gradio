@@ -16,7 +16,7 @@ No changes to highlight.
 
 ## Breaking Changes:
 
-Add Chinese Readme.md by [@uanu2002](https://github.com/uanu2002) in []
+Add Chinese Readme.md by [@uanu2002](https://github.com/uanu2002) in [PR 3394](https://github.com/gradio-app/gradio/pull/3394)
 
 ## Full Changelog:
 
