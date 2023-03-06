@@ -35,7 +35,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.helpers import create_tracker, skip, special_args, EventData
+from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -821,10 +821,7 @@ class Blocks(BlockContext):
         else:
             request = requests
         processed_input, progress_index = special_args(
-            block_fn.fn,
-            processed_input,
-            request,
-            event_data
+            block_fn.fn, processed_input, request, event_data
         )
         progress_tracker = (
             processed_input[progress_index] if progress_index is not None else None

@@ -819,8 +819,8 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     """
 
     def is_special_typed_parameter(name):
-        from gradio.routes import Request
         from gradio.helpers import EventData
+        from gradio.routes import Request
 
         """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
         return parameter_types.get(name, "") in [Request, EventData]
