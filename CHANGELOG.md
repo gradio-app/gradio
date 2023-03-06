@@ -4,7 +4,9 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+- Add `height` kwarg to style in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3369](https://github.com/gradio-app/gradio/pull/3369)
+
+    ```chatbot = gr.Chatbot().style(height=500)```
 
 ## Documentation Changes:
 No changes to highlight.
@@ -64,10 +66,6 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://git
 - Allow developers to access the username of a logged-in user from the `gr.Request()` object using the `.username` attribute by [@abidlabs](https://github.com/abidlabs) in [PR 3296](https://github.com/gradio-app/gradio/pull/3296)
 - Add `preview` option to `Gallery.style` that launches the gallery in preview mode when first loaded by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3345](https://github.com/gradio-app/gradio/pull/3345) 
 - Support new embeds for huggingface spaces subdomains by [@pngwn](https://github.com/pngwn) in [PR 3367](https://github.com/gradio-app/gradio/pull/3367)
-- Add `height` kwarg to style in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3369](https://github.com/gradio-app/gradio/pull/3369)
-
-    ```chatbot = gr.Chatbot().style(height=500)```
-
 
 
 ## Bug Fixes:
