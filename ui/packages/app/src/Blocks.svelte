@@ -210,9 +210,7 @@
 	});
 
 	function handle_update(data: any, fn_index: number) {
-		console.log(dependencies, instance_map, fn_index, data);
 		dependencies[fn_index].outputs.forEach((d, i) => {
-			console.log({ d, i });
 			let value = data[i];
 			if (
 				typeof value === "object" &&
@@ -236,10 +234,7 @@
 		// });
 	}
 
-	console.log("ATTACH LISTENERS TO CLIENT");
-
 	app.on("data", ({ data, fn_index }) => {
-		console.log({ data, fn_index });
 		handle_update(data, fn_index);
 	});
 
@@ -257,7 +252,6 @@
 	let handled_dependencies: Array<number[]> = [];
 
 	async function handle_mount() {
-		console.log("MOUNTING");
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -296,13 +290,10 @@
 					outputs.every((v) => instance_map?.[v].instance) &&
 					inputs.every((v) => instance_map?.[v].instance)
 				) {
-					console.log("MAKE_LOAD_PREDICT");
 					cancels &&
 						cancels.forEach((fn_index) => {
 							app.cancel("/predict", fn_index);
 						});
-
-					console.log(i);
 
 					let payload = {
 						fn_index: i,
@@ -324,7 +315,6 @@
 						});
 					} else {
 						if (backend_fn) {
-							console.log("predict");
 							make_prediction();
 						}
 					}
@@ -341,7 +331,6 @@
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
 							const current_status = loading_status.get_status_for_fn(i);
-							console.log("ATTEMPT_PREDICT");
 							if (
 								current_status === "pending" ||
 								current_status === "generating"
@@ -368,7 +357,6 @@
 								).then((v: []) => {
 									if (backend_fn) {
 										payload.data = v;
-										console.log("MAKE_PREDICT", { fn_index: i });
 										make_prediction();
 									} else {
 										handle_update(v, i);
@@ -376,8 +364,6 @@
 								});
 							} else {
 								if (backend_fn) {
-									console.log("MAKE_PREDICT", { fn_index: i });
-
 									make_prediction();
 								}
 							}
@@ -430,8 +416,7 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
 

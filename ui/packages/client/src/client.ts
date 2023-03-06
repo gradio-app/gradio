@@ -191,9 +191,7 @@ export async function client(
 						? payload.fn_index
 						: api_map[trimmed_endpoint];
 
-				console.log(fn_index, api_map[trimmed_endpoint], api_map, payload);
 				if (skip_queue(fn_index, config)) {
-					console.log("NOT_QUEUED_PREDICT");
 					fire_event({
 						type: "status",
 						endpoint,
