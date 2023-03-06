@@ -45,7 +45,12 @@
 	}
 </script>
 
-<div class="wrap" style:height={`${style.height}px`} style:max-height={`${style.height}px`} bind:this={div}>
+<div
+	class="wrap"
+	style:height={`${style.height}px`}
+	style:max-height={`${style.height}px`}
+	bind:this={div}
+>
 	<div class="message-wrap">
 		{#each _value as message, i}
 			<div
