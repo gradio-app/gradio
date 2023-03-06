@@ -816,7 +816,7 @@ class EventData:
         focused = gr.Textbox()
 
         def on_focus(evt: gr.EventData):
-            return evt.data["index]
+            return evt.data["index"]
 
         gallery.focus(on_focus, None, focused)
     """

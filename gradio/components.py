@@ -3749,7 +3749,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
         return self
 
 
-@document("style")
+@document("focus", "style")
 class Gallery(IOComponent, TempFileManager, FileSerializable, Focusable):
     """
     Used to display a list of images as a gallery that can be scrolled through.

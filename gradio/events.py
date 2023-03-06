@@ -799,8 +799,9 @@ class Focusable(EventListener):
         _js: str | None = None,
     ):
         """
-        This event is triggered when the user focuses on some part of the component (e.g. when the user focuses on one image from the Gallery component). This method can be used when this component is in a Gradio Blocks.
-        This event includes EventData that will identify the specific part of the component that was focused on.
+        This event is triggered when the user focuses on some part of the component (e.g. when the user focuses on one image from the Gallery component). 
+        This method can be used when this component is in a Gradio Blocks.
+        This event includes EventData that will identify the specific part of the component that was focused on. To extract this value, type hint one of the arguments of fn as gradio.EventData, and that argument will be populated with the EventData.
 
         Parameters:
             fn: Callable function
