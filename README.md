@@ -20,8 +20,6 @@
   | [Examples](demo/)
 </div>
 
-English | [简体中文](./README-zh_CN.md)
-
 # Gradio: Build Machine Learning Web Apps — in Python
 
 Gradio is an open-source Python library that is used to build machine learning and data science demos and web applications.
