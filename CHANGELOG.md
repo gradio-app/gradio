@@ -4,6 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
+- Ensure uploaded images are always shown in the sketch tool by [@pngwn](https://github.com/pngwn) in [PR 3386](https://github.com/gradio-app/gradio/pull/3386)
 - Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventaully to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
 
 ## Documentation Changes:
