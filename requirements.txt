@@ -2,7 +2,7 @@ aiohttp
 altair>=4.2.0
 fastapi
 ffmpy
-git+https://github.com/huggingface/huggingface_hub.git
+git+https://github.com/huggingface/huggingface_hub.git@57d23eee58af01611ddade8406e08166db3fcfa1
 markdown-it-py[linkify]>=2.0.0
 mdit-py-plugins<=0.3.3
 markupsafe
