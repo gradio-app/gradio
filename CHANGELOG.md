@@ -1,7 +1,7 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+- Added the `.focus()` event listener, applicable right now only to the Gallery component. This event has EventData, data that is passed along the API to provide additional information about the event trigger. The EventData for the Gallery component is the index of the gallery item that was clicked. By [@aliabid94](https://github.com/aliabid94) in [PR 3399](https://github.com/gradio-app/gradio/pull/3399)
 
 ## Bug Fixes:
 No changes to highlight.
