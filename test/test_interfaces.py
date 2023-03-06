@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 
 import gradio
 from gradio.blocks import Blocks
+from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids
@@ -58,6 +59,24 @@ class TestInterface:
         greet_upper_case = partial(greet, formatter=capwords)
         demo = Interface(fn=greet_upper_case, inputs="text", outputs="text")
         assert demo("abubakar") == "Hello Abubakar!"
+
+    def test_input_labels_extracted_from_method(self):
+        class A:
+            def test(self, parameter_name):
+                return parameter_name
+
+        t = Textbox()
+        Interface(A().test, t, "text")
+        assert t.label == "parameter_name"
+
+        def test(parameter_name1, parameter_name2):
+            return parameter_name1
+
+        t = Textbox()
+        i = Image()
+        Interface(test, [t, i], "text")
+        assert t.label == "parameter_name1"
+        assert i.label == "parameter_name2"
 
     def test_examples_valid_path(self):
         path = os.path.join(
