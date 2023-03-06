@@ -1,8 +1,28 @@
 # Upcoming Release
 
-## Bug fixes
+## New Features:
+No changes to highlight.
 
+## Bug Fixes:
 - Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventaully to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# 3.20.0
 
 ## New Features:
 
