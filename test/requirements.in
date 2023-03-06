@@ -11,7 +11,7 @@ scikit-image
 shap
 pytest
 wandb
-huggingface_hub
+git+https://github.com/huggingface/huggingface_hub.git@57d23eee58af01611ddade8406e08166db3fcfa1
 pytest-cov
 pytest-asyncio
 black
