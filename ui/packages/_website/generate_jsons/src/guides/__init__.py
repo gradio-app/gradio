@@ -70,6 +70,17 @@ for guide_folder in guide_folders:
         contributor = get_labeled_metadata("Contributed by", is_list=False)
 
         url = f"/{guide_name}/"
+        
+        guide_content = re.sub(
+            r"\$code_([a-z _\-0-9]+)",
+            lambda x: f"{demos[x.group(1)]}",
+            guide_content,
+        )
+        guide_content = re.sub(
+            r"\$demo_([a-z _\-0-9]+)",
+            lambda x: f"<gradio-app space='gradio/{x.group(1)}' />",
+            guide_content,
+        )
 
         content_no_html = guide_content
 

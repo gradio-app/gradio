@@ -1,4 +1,6 @@
 <script>
+    import MetaTags from "../../components/MetaTags.svelte";
+
     export let data;
 
     let search_query = "";
@@ -12,6 +14,13 @@
         }
     }
 </script>
+
+<svelte:head>
+    <MetaTags title="Gradio Guides"
+              url="https://gradio.app/guides"
+              canonical="https://gradio.app/guides"
+              description="Step-by-Step Gradio Tutorials"/>
+</svelte:head>
 
 <div class="container mx-auto px-4 relative pt-8 mb-12">
 

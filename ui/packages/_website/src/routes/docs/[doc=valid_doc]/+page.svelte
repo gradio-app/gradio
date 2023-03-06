@@ -3,6 +3,7 @@
 	  import Demos from '../../../components/Demos.svelte';
     import DocsNav from '../../../components/DocsNav.svelte';
     import FunctionDoc from '../../../components/FunctionDoc.svelte';
+    import MetaTags from "../../../components/MetaTags.svelte";
 
     export let data;
 
@@ -28,6 +29,13 @@
 
 </script>
 
+
+<svelte:head>
+  <MetaTags title={"Gradio " + obj.name + " Docs"} 
+            url={"https://gradio.app/docs/" + name} 
+            canonical={"https://gradio.app/docs/" + name}
+            description={obj.description}/>
+</svelte:head>
 
 <main class="container mx-auto px-4 flex gap-4">
 

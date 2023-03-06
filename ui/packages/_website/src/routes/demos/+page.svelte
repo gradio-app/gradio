@@ -1,11 +1,19 @@
 <script>
     import space_logo from "../../assets/img/spaces-logo.svg";
     import Demos from '../../components/Demos.svelte';
+    import MetaTags from "../../components/MetaTags.svelte";
     
     export let data;
     
     let current_selection = 0;
 </script>
+
+<svelte:head>
+    <MetaTags title="Gradio Demos"
+              url="https://gradio.app/demos"
+              canonical="https://gradio.app/demos"
+              description="Play Around with Gradio Demos"/>
+</svelte:head>
 
 
 <main class="container mx-auto px-4 gap-4">

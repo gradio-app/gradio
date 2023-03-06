@@ -1,10 +1,11 @@
 <script lang="ts">
     import DemosLanding from "../components/DemosLanding.svelte";
+	import MetaTags from "../components/MetaTags.svelte";
 	export let data;
 </script>
 
 <svelte:head>
-
+	<MetaTags url={"https://gradio.app"} canonical={"https://gradio.app"}/>
 </svelte:head>
 <div class="container relative mx-auto px-4 pt-8 pb-12">
 	<div class="flex flex-col items-center lg:flex-row">

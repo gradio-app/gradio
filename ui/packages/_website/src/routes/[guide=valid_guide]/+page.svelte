@@ -2,10 +2,11 @@
     import { page } from '$app/stores';
     import guides_json from "../guides/guides.json";
     import space_logo from "../../assets/img/spaces-logo.svg";
-    import { afterUpdate } from 'svelte';
+    import MetaTags from "../../components/MetaTags.svelte";
 
+    export let data;
 
-    let guides = guides_json.guides;
+    let guides = data.guides;
     let guides_by_category = guides_json.guides_by_category;
     let guide;
 
@@ -25,17 +26,24 @@
         sidebar.scrollTop = target_link?.offsetTop;
     }
 
-    afterUpdate(() => {
-        document.querySelectorAll(".prose h2").forEach(subheader => {
-        navigation.innerHTML += `
-          <a class='subheading block thin-link -indent-2 ml-4 mr-2' href='#${subheader.id}'>${subheader.innerText}</a>
-        `
-        });
-      })
+    // afterUpdate(() => {
+    //     document.querySelectorAll(".prose h2").forEach(subheader => {
+    //     navigation.innerHTML += `
+    //       <a class='subheading block thin-link -indent-2 ml-4 mr-2' href='#${subheader.id}'>${subheader.innerText}</a>
+    //     `
+    //     });
+    //   })
         
     $: console.log(navigation?.children)
     $: guide_page = guides.filter(guide => guide.name === $page.params.guide)[0];
-</script>
+</script> 
+
+<svelte:head>
+    <MetaTags title={guide_page.pretty_name}
+              url={"https://gradio.app/" + guide_page.name}
+              canonical={"https://gradio.app/" + guide_page.name}
+              description="A Step-by-Step Gradio Tutorial"/>
+</svelte:head>
 
 <div class="container mx-auto px-4 flex gap-4 relative">
     <div
@@ -97,7 +105,7 @@
             </div>
         {/if}
         <div class="prose text-lg max-w-full">
-            {@html guide_page.html}
+            {@html guide_page.new_html}
         </div>
     </div>
 </div>
