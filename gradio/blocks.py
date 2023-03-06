@@ -35,7 +35,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.helpers import create_tracker, skip, special_args
+from gradio.helpers import create_tracker, skip, special_args, EventData
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -792,6 +792,7 @@ class Blocks(BlockContext):
         iterator: Iterator[Any] | None = None,
         requests: routes.Request | List[routes.Request] | None = None,
         event_id: str | None = None,
+        event_data: EventData | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -801,6 +802,7 @@ class Blocks(BlockContext):
             iterator: iterator to use if function is a generator
             requests: requests to pass to function
             event_id: id of event in queue
+            event_data: data associated with event trigger
         """
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
@@ -822,6 +824,7 @@ class Blocks(BlockContext):
             block_fn.fn,
             processed_input,
             request,
+            event_data
         )
         progress_tracker = (
             processed_input[progress_index] if progress_index is not None else None
@@ -982,6 +985,7 @@ class Blocks(BlockContext):
         request: routes.Request | List[routes.Request] | None = None,
         iterators: Dict[int, Any] | None = None,
         event_id: str | None = None,
+        event_data: EventData | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -992,6 +996,8 @@ class Blocks(BlockContext):
             username: name of user if authentication is set up (not used)
             state: data stored from stateful components for session (key is input block id)
             iterators: the in-progress iterators for each generator function (key is function index)
+            event_id: id of event that triggered this API call
+            event_data: data associated with the event trigger itself
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1018,7 +1024,7 @@ class Blocks(BlockContext):
                 self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
             ]
             result = await self.call_function(
-                fn_index, list(zip(*inputs)), None, request
+                fn_index, list(zip(*inputs)), None, request, event_id, event_data
             )
             preds = result["prediction"]
             data = [
@@ -1030,7 +1036,7 @@ class Blocks(BlockContext):
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
             result = await self.call_function(
-                fn_index, inputs, iterator, request, event_id
+                fn_index, inputs, iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]

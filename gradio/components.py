@@ -39,6 +39,7 @@ from gradio.events import (
     Clearable,
     Clickable,
     Editable,
+    Focusable,
     Playable,
     Releaseable,
     Streamable,
@@ -170,7 +171,7 @@ class IOComponent(Component, Serializable):
         every: float | None = None,
         **kwargs,
     ):
-        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
+        Component.__init__(self, elem_id=elem_id, visible=visible, **kwargs)
 
         self.label = label
         self.info = info
@@ -3728,7 +3729,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent, TempFileManager, FileSerializable):
+class Gallery(IOComponent, TempFileManager, FileSerializable, Focusable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -3758,7 +3759,8 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         TempFileManager.__init__(self)
-        super().__init__(
+        IOComponent.__init__(
+            self,
             label=label,
             every=every,
             show_label=show_label,

@@ -26,7 +26,7 @@ from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import IOComponent
+    from gradio.components import IOComponent, Component
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -592,9 +592,10 @@ def special_args(
     fn: Callable,
     inputs: List[Any] | None = None,
     request: routes.Request | None = None,
+    event_data: EventData | None = None,
 ):
     """
-    Checks if function has special arguments Request (via annotation) or Progress (via default value).
+    Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
     If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
         block_fn: function to check.
@@ -618,6 +619,9 @@ def special_args(
         elif param.annotation == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
+        elif param.annotation == EventData:
+            if inputs is not None:
+                inputs.insert(i, event_data)
     if inputs is not None:
         while len(inputs) < len(positional_args):
             i = len(inputs)
@@ -795,3 +799,24 @@ def make_waveform(
 
     subprocess.call(ffmpeg_cmd, shell=True)
     return output_mp4.name
+
+
+@document()
+class EventData:
+    """
+    When added to the arguments of an event listener method, this object will be passed into that method.
+    It contains information about the event that triggered the listener, including the target object and any other optional data.
+
+    Example:
+        gallery = gr.Gallery()
+        focused = gr.Textbox()
+
+        def on_focus(evt: gr.EventData):
+            return evt.data["index]
+
+        gallery.focus(on_focus, None, focused)
+    """
+
+    def __init__(self, target: Component, data: Any):
+        self.target = target
+        self.data = data

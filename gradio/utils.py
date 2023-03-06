@@ -820,9 +820,10 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
 
     def is_special_typed_parameter(name):
         from gradio.routes import Request
+        from gradio.helpers import EventData
 
-        """Checks if parameter has a type hint designating it as a gr.Request"""
-        return parameter_types.get(name, "") == Request
+        """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
+        return parameter_types.get(name, "") in [Request, EventData]
 
     signature = inspect.signature(fn)
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
@@ -832,7 +833,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
-            if not (is_special_typed_parameter(name)):
+            if not is_special_typed_parameter(name):
                 if not has_default:
                     min_args += 1
                 max_args += 1
