@@ -19,7 +19,7 @@ export interface Config {
 
 export interface Payload {
 	data: Array<unknown>;
-	fn_index?: number;
+	fn_index: number;
 }
 
 export interface PostResponse {
@@ -78,7 +78,7 @@ export interface EventMap {
 }
 
 export type Event<K extends EventType> = {
-	[P in K]: EventMap[P] & { type: P; endpoint: string; fn_index?: number };
+	[P in K]: EventMap[P] & { type: P; endpoint: string; fn_index: number };
 }[K];
 export type EventListener<K extends EventType> = (event: Event<K>) => void;
 export type ListenerMap<K extends EventType> = {

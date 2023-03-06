@@ -209,6 +209,39 @@
 			});
 	});
 
+	function handle_update(data: any, fn_index: number) {
+		dependencies[fn_index].outputs.forEach((d, i) => {
+			let value = data[i];
+			if (
+				typeof value === "object" &&
+				value !== null &&
+				value.__type__ === "update"
+			) {
+				for (const [update_key, update_value] of Object.entries(value)) {
+					if (update_key === "__type__") {
+						continue;
+					} else {
+						instance_map[d].props[update_key] = update_value;
+					}
+				}
+				rootNode = rootNode;
+			} else {
+				instance_map[d].props.value = value;
+			}
+		});
+		// output.data.forEach((value: any, i: number) => {
+
+		// });
+	}
+
+	app.on("data", ({ data, fn_index }) => {
+		handle_update(data, fn_index);
+	});
+
+	app.on("status", ({ fn_index, ...status }) => {
+		loading_status.update({ ...status, fn_index });
+	});
+
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
 		if (!obj?.props) {
 			obj.props = {};
@@ -217,8 +250,6 @@
 		rootNode = rootNode;
 	}
 	let handled_dependencies: Array<number[]> = [];
-
-	let prediction_map: Record<string, ReturnType<typeof app.predict>> = {};
 
 	async function handle_mount() {
 		await tick();
@@ -261,7 +292,7 @@
 				) {
 					cancels &&
 						cancels.forEach((fn_index) => {
-							prediction_map[fn_index].cancel(fn_index);
+							app.cancel("/predict", fn_index);
 						});
 
 					let payload = {
@@ -279,7 +310,7 @@
 								payload.data = v;
 								make_prediction();
 							} else {
-								handle_update({ data: v });
+								handle_update(v, i);
 							}
 						});
 					} else {
@@ -288,35 +319,7 @@
 						}
 					}
 					function make_prediction() {
-						prediction_map[i] = app
-							.predict("/predict", payload)
-							.on("data", handle_update)
-							.on("status", (s) =>
-								loading_status.update({ ...s, fn_index: i })
-							);
-					}
-
-					function handle_update(output: any) {
-						output.data.forEach((value: any, i: number) => {
-							if (
-								typeof value === "object" &&
-								value !== null &&
-								value.__type__ === "update"
-							) {
-								for (const [update_key, update_value] of Object.entries(
-									value
-								)) {
-									if (update_key === "__type__") {
-										continue;
-									} else {
-										instance_map[outputs[i]].props[update_key] = update_value;
-									}
-								}
-								rootNode = rootNode;
-							} else {
-								instance_map[outputs[i]].props.value = value;
-							}
-						});
+						app.predict("/predict", payload);
 					}
 
 					handled_dependencies[i] = [-1];
@@ -327,13 +330,17 @@
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
-							if (loading_status.get_status_for_fn(i) === "pending") {
+							const current_status = loading_status.get_status_for_fn(i);
+							if (
+								current_status === "pending" ||
+								current_status === "generating"
+							) {
 								return;
 							}
 
 							if (cancels) {
 								cancels.forEach((fn_index) => {
-									prediction_map?.[fn_index]?.cancel(fn_index);
+									app.cancel("/predict", fn_index);
 								});
 							}
 
@@ -352,52 +359,19 @@
 										payload.data = v;
 										make_prediction();
 									} else {
-										handle_update({ data: v });
+										handle_update(v, i);
 									}
 								});
 							} else {
 								if (backend_fn) {
 									make_prediction();
-									loading_status.update({
-										fn_index: i,
-										status: "pending",
-										queue: prediction_map[i].queue
-									});
 								}
 							}
 
 							function make_prediction() {
-								prediction_map[i] = app
-									.predict("/predict", payload)
-									.on("data", handle_update)
-									.on("status", (s) => {
-										loading_status.update({ ...s, fn_index: i });
-									});
+								app.predict("/predict", payload);
 							}
 						});
-
-						function handle_update(output: any) {
-							output.data.forEach((value: any, i: number) => {
-								if (
-									typeof value === "object" &&
-									value !== null &&
-									value.__type__ === "update"
-								) {
-									for (const [update_key, update_value] of Object.entries(
-										value
-									)) {
-										if (update_key === "__type__") {
-											continue;
-										} else {
-											instance_map[outputs[i]].props[update_key] = update_value;
-										}
-									}
-									rootNode = rootNode;
-								} else {
-									instance_map[outputs[i]].props.value = value;
-								}
-							});
-						}
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
@@ -442,7 +416,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 

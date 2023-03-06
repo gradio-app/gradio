@@ -97,7 +97,6 @@ export async function client(
 		function config_success(_config: Config) {
 			config = _config;
 			api_map = map_names_to_ids(_config?.dependencies || []);
-			console.log(api_map);
 			return {
 				config,
 				...return_obj
@@ -126,7 +125,8 @@ export async function client(
 		}
 
 		function cancel(endpoint: string, fn_index?: number) {
-			const _index = fn_index ? fn_index : api_map[endpoint];
+			const _index =
+				typeof fn_index === "number" ? fn_index : api_map[endpoint];
 
 			fire_event({
 				type: "status",
@@ -190,15 +190,6 @@ export async function client(
 					typeof api_map[trimmed_endpoint] !== "number"
 						? payload.fn_index!
 						: api_map[trimmed_endpoint];
-
-				console.log(endpoint, trimmed_endpoint, api_map, fn_index);
-
-				const x = {
-					on,
-					off,
-					cancel,
-					queue: !skip_queue(fn_index, config)
-				};
 
 				setTimeout(() => {
 					if (skip_queue(fn_index, config)) {
