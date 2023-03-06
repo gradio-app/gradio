@@ -36,7 +36,7 @@
 		top: var(--size-2);
 		right: var(--size-2);
 		justify-content: flex-end;
-		gap: var(--size-1);
+		gap: var(--spacing-sm);
 		z-index: var(--layer-1);
 	}
 

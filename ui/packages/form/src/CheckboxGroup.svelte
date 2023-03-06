@@ -31,7 +31,11 @@
 
 <div class="wrap" data-testid="checkbox-group">
 	{#each choices as choice}
-		<label class:disabled style={item_container}>
+		<label
+			class:disabled
+			class:selected={value.includes(choice)}
+			style={item_container}
+		>
 			<input
 				{disabled}
 				on:change={() => toggleChoice(choice)}
@@ -48,29 +52,36 @@
 	.wrap {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-2);
+		gap: var(--checkbox-label-gap);
 	}
 	label {
 		display: flex;
 		align-items: center;
+		transition: var(--button-transition);
 		cursor: pointer;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-lg);
-		background: var(--checkbox-label-background-base);
-		padding: var(--size-1-5) var(--size-3);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		box-shadow: var(--checkbox-label-shadow);
+		border: var(--checkbox-label-border-width) solid
+			var(--checkbox-label-border-color);
+		border-radius: var(--button-small-radius);
+		background: var(--checkbox-label-background);
+		padding: var(--checkbox-label-padding);
+		color: var(--checkbox-text-color);
+		font-weight: var(--checkbox-label-text-weight);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
 	}
 
 	label:hover {
 		background: var(--checkbox-label-background-hover);
 	}
-
 	label:focus {
 		background: var(--checkbox-label-background-focus);
 	}
+	label.selected {
+		background: var(--checkbox-label-background-selected);
+		color: var(--checkbox-text-color-selected);
+	}
+
 	label > * + * {
 		margin-left: var(--size-2);
 	}
@@ -78,11 +89,10 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color), var(--shadow-drop);
-		border: 1px solid var(--checkbox-border-color-base);
+		box-shadow: var(--checkbox-shadow);
+		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
 		border-radius: var(--checkbox-border-radius);
-		background-color: var(--checkbox-background-base);
-		font-size: var(--scale-00);
+		background-color: var(--checkbox-background);
 		line-height: var(--line-sm);
 	}
 
@@ -97,7 +107,6 @@
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-ring);
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-focus);
 	}

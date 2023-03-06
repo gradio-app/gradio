@@ -172,7 +172,7 @@
 
 	progress {
 		margin-right: var(--size-3);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-sm);
 		width: var(--size-full);
 		height: var(--size-2);
 	}
@@ -233,7 +233,7 @@
 		margin-right: var(--size-3);
 		margin-left: var(--size-3);
 		color: white;
-		font-size: var(--scale-000);
+		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 	}
 	.wrap {

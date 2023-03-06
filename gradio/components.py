@@ -40,6 +40,7 @@ from gradio.events import (
     Clickable,
     Editable,
     Playable,
+    Releaseable,
     Streamable,
     Submittable,
     Uploadable,
@@ -627,7 +628,12 @@ class Number(
 
 @document("change", "style")
 class Slider(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Changeable,
+    Releaseable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
@@ -635,7 +641,7 @@ class Slider(
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
 
-    Demos: sentence_builder, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
+    Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create_your_own_friends_with_a_gan
     """
 
@@ -2974,7 +2980,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -2986,6 +2992,9 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             interactive=interactive,
             **kwargs,
         )
+        if variant == "plain":
+            warnings.warn("'plain' variant deprecated, using 'secondary' instead.")
+            variant = "secondary"
         self.variant = variant
 
     def get_config(self):
@@ -3011,14 +3020,23 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def style(self, *, full_width: bool | None = None, **kwargs):
+    def style(
+        self,
+        *,
+        full_width: bool | None = None,
+        size: Literal["sm"] | Literal["lg"] | None = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
             full_width: If True, will expand to fill parent container.
+            size: Size of the button. Can be "sm" or "lg".
         """
         if full_width is not None:
             self._style["full_width"] = full_width
+        if size is not None:
+            self._style["size"] = size
 
         return Component.style(self, **kwargs)
 
@@ -3165,14 +3183,23 @@ class UploadButton(
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 
-    def style(self, *, full_width: bool | None = None, **kwargs):
+    def style(
+        self,
+        *,
+        full_width: bool | None = None,
+        size: Literal["sm"] | Literal["lg"] | None = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
             full_width: If True, will expand to fill parent container.
+            size: Size of the button. Can be "sm" or "lg".
         """
         if full_width is not None:
             self._style["full_width"] = full_width
+        if size is not None:
+            self._style["size"] = size
 
         return Component.style(self, **kwargs)
 
@@ -4015,16 +4042,14 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             )
         return y
 
-    def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
+    def style(self, height: int | None = None, **kwargs):
         """
         This method can be used to change the appearance of the Chatbot component.
-        Parameters:
-            color_map: Tuple containing colors to apply to user and response chat bubbles.
-        Returns:
-
         """
-        if color_map is not None:
-            self._style["color_map"] = color_map
+        if height is not None:
+            self._style["height"] = height
+        if kwargs.get("color_map") is not None:
+            warnings.warn("The 'color_map' parameter has been deprecated.")
 
         return Component.style(
             self,

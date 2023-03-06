@@ -2,8 +2,8 @@
 	import { Component as Form } from "./components/Form";
 	import { Component as Textbox } from "./components/Textbox";
 	import { Button } from "@gradio/button";
+	import { Component as Column } from "./components/Column";
 	export let root: string;
-	export let id: number;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
 	export let is_space: boolean;
@@ -32,7 +32,7 @@
 </script>
 
 <div class="wrap" class:min-h-screen={app_mode}>
-	<div class="panel">
+	<Column variant="panel" min_width={480}>
 		<h2>Login</h2>
 		{#if auth_message}
 			<p class="auth">{auth_message}</p>
@@ -76,7 +76,7 @@
 		>
 			Login
 		</Button>
-	</div>
+	</Column>
 </div>
 
 <style>
@@ -85,38 +85,28 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		margin-top: var(--size-3);
 		background: var(--color-background-primary);
-		width: var(--size-full);
-	}
-
-	.panel {
-		display: flex;
-		flex-direction: column;
-		flex-wrap: wrap;
-		gap: var(--size-4);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-secondary);
-		padding: var(--size-8);
 		width: var(--size-full);
 	}
 
 	h2 {
 		margin-bottom: var(--size-3);
-		color: var(--color-text-body);
-		font-weight: var(--weight-semibold);
-		font-size: var(--scale-2);
+		color: var(--body-text-color);
+		font-weight: var(--header-text-weight);
+		font-size: var(--text-xl);
 	}
 
 	.auth {
 		margin-top: var(--size-1);
 		margin-bottom: var(--size-1);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.creds {
 		margin-top: var(--size-4);
 		margin-bottom: var(--size-4);
-		color: var(--color-functional-error-base);
+		color: var(--error-color);
 		font-weight: var(--weight-semibold);
 	}
 </style>

@@ -60,11 +60,14 @@
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
+			const wrap = d.backend_fn
+				? d.inputs.length === 1
+				: d.outputs.length === 1;
 			try {
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
 					`let result = await (${d.js})(...__fn_args);
-					return ${d.outputs.length} === 1 ? [result] : result;`
+					return ${wrap} ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
@@ -473,14 +476,15 @@
 		flex-grow: 1;
 		flex-direction: column;
 		width: var(--size-full);
+		font-weight: var(--body-text-weight);
+		font-size: var(--body-text-size);
 	}
 
 	footer {
 		display: flex;
 		justify-content: center;
 		margin-top: var(--size-4);
-		color: var(--color-text-subdued);
-		font-size: var(--scale-00);
+		color: var(--text-color-subdued);
 	}
 
 	footer > * + * {
@@ -492,7 +496,7 @@
 		align-items: center;
 	}
 	.show-api:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.show-api img {
@@ -507,7 +511,7 @@
 	}
 
 	.built-with:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.built-with img {

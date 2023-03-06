@@ -16,10 +16,16 @@
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
-	const dispatch = createEventDispatcher<{ change: number }>();
+	const dispatch = createEventDispatcher<{ change: number; release: number }>();
+
+	function handle_release(e: MouseEvent) {
+		dispatch("release", value);
+	}
 
 	$: dispatch("change", value);
-	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
+	const clamp = () => {
+		value = Math.min(Math.max(value, minimum), maximum);
+	};
 </script>
 
 <div class="wrap">
@@ -48,6 +54,7 @@
 	max={maximum}
 	{step}
 	{disabled}
+	on:mouseup={handle_release}
 />
 
 <style>
@@ -62,38 +69,36 @@
 		justify-content: space-between;
 	}
 	input[type="number"] {
-		--ring-color: transparent;
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
-			var(--shadow-inset);
-		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-lg);
-		background: var(--input-background-base);
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--input-radius);
+		background: var(--input-background);
 		padding: var(--size-2) var(--size-2);
 		height: var(--size-6);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		color: var(--body-text-color);
+		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		text-align: center;
 	}
 
-	input:focus {
-		--ring-color: var(--color-focus-ring);
+	input[type="number"]:focus {
+		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
 	}
 
 	input::placeholder {
-		color: var(--color-text-placeholder);
+		color: var(--input-placeholder-color);
 	}
 
 	input[type="range"] {
 		width: 100%;
+		accent-color: var(--slider-color);
 	}
 
 	input[disabled] {
 		cursor: not-allowed;
-		box-shadow: none;
 	}
 </style>
