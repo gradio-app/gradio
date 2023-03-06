@@ -1,4 +1,6 @@
 class Color:
+    all = []
+
     def __init__(
         self, c50, c100, c200, c300, c400, c500, c600, c700, c800, c900, c950, name=None
     ):
@@ -14,6 +16,7 @@ class Color:
         self.c900 = c900
         self.c950 = c950
         self.name = name
+        Color.all.append(self)
 
 
 slate = Color(

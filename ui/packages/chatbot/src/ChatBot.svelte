@@ -1,20 +1,26 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import { colors } from "@gradio/theme";
 	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<[string | null, string | null]> | null;
 	let old_value: Array<[string | null, string | null]> | null;
-	export let feedback: Array<string> | null = null; // ["✕", "✓"];
-	export let style: Styles = {};
 	export let pending_message: boolean = false;
+	export let root: string;
+	export let feedback: Array<string> | null = null;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const redirect_src_url = (src: string) =>
+		src.replace('src="/file', `src="${root}file`);
 
-	$: _value = value || [];
+	$: _value = value
+		? value.map(([user_msg, bot_msg]) => [
+				user_msg ? redirect_src_url(user_msg) : null,
+				bot_msg ? redirect_src_url(bot_msg) : null
+		  ])
+		: [];
 	beforeUpdate(() => {
 		autoscroll =
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
@@ -35,24 +41,6 @@
 		if (value !== old_value) {
 			old_value = value;
 			dispatch("change");
-		}
-	}
-
-	$: _colors = get_colors();
-
-	function get_color(c: string) {
-		if (c in colors) {
-			return colors[c as keyof typeof colors].primary;
-		} else {
-			return c;
-		}
-	}
-
-	function get_colors() {
-		if (!style.color_map) {
-			return ["#fb923c", "#9ca3af"];
-		} else {
-			return [get_color(style.color_map[0]), get_color(style.color_map[1])];
 		}
 	}
 </script>
@@ -119,11 +107,11 @@
 		border-width: 1px;
 		border-radius: var(--radius-xxl);
 		background-color: var(--color-background-secondary);
-		padding: var(--spacing-xl) var(--spacing-xxl);
+		padding: var(--spacing-xxl);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--text-lg);
-		line-height: var(--line-xs);
+		line-height: var(--line-lg);
 		overflow-wrap: break-word;
 	}
 	.user {
@@ -152,7 +140,6 @@
 	.user {
 		border-color: var(--color-border-accent);
 		background-color: var(--color-accent-soft);
-		color: var(--color-accent);
 	}
 	.feedback {
 		display: flex;
@@ -191,6 +178,17 @@
 		animation-delay: 0.66s;
 	}
 
+	/* Small screen */
+	@media (max-width: 480px) {
+		.user {
+			align-self: flex-end;
+		}
+		.bot {
+			align-self: flex-start;
+			padding-left: var(--size-3);
+		}
+	}
+
 	@keyframes dot-flashing {
 		0% {
 			opacity: 0.8;
@@ -201,6 +199,14 @@
 		100% {
 			opacity: 0.8;
 		}
+	}
+	.message-wrap .message :global(img) {
+		margin: var(--size-2);
+		max-height: 200px;
+	}
+	.message-wrap .message :global(a) {
+		color: var(--color-text-link);
+		text-decoration: underline;
 	}
 
 	.hide {

@@ -256,7 +256,6 @@
 
 	input:disabled {
 		cursor: not-allowed;
-		box-shadow: none;
 	}
 
 	.remove-all {

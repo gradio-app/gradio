@@ -16,10 +16,16 @@
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
-	const dispatch = createEventDispatcher<{ change: number }>();
+	const dispatch = createEventDispatcher<{ change: number; release: number }>();
+
+	function handle_release(e: MouseEvent) {
+		dispatch("release", value);
+	}
 
 	$: dispatch("change", value);
-	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
+	const clamp = () => {
+		value = Math.min(Math.max(value, minimum), maximum);
+	};
 </script>
 
 <div class="wrap">
@@ -48,6 +54,7 @@
 	max={maximum}
 	{step}
 	{disabled}
+	on:mouseup={handle_release}
 />
 
 <style>
@@ -93,6 +100,5 @@
 
 	input[disabled] {
 		cursor: not-allowed;
-		box-shadow: none;
 	}
 </style>

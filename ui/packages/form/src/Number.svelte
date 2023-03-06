@@ -72,8 +72,4 @@
 	input::placeholder {
 		color: var(--input-placeholder-color);
 	}
-
-	input[disabled] {
-		box-shadow: none;
-	}
 </style>

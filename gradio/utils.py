@@ -912,6 +912,7 @@ def get_markdown_parser() -> MarkdownIt:
                 "linkify": True,
                 "typographer": True,
                 "html": True,
+                "breaks": True,
             },
         )
         .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)

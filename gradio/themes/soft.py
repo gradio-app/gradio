@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from gradio.themes.base import Base
-from gradio.themes.utils import colors, size
+from gradio.themes.utils import colors, sizes
 
 
 class Soft(Base):
@@ -11,9 +11,9 @@ class Soft(Base):
         primary_hue: colors.Color | str = colors.indigo,
         secondary_hue: colors.Color | str = colors.indigo,
         neutral_hue: colors.Color | str = colors.gray,
-        spacing_size: size.Size | str = size.spacing_md,
-        radius_size: size.Size | str = size.radius_md,
-        text_size: size.Size | str = size.text_md,
+        spacing_size: sizes.Size | str = sizes.spacing_md,
+        radius_size: sizes.Size | str = sizes.radius_md,
+        text_size: sizes.Size | str = sizes.text_md,
     ):
         super().__init__(
             primary_hue=primary_hue,

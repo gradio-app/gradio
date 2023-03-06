@@ -1,4 +1,6 @@
 class Size:
+    all = []
+
     def __init__(self, xxs, xs, sm, md, lg, xl, xxl, name=None):
         self.xxs = xxs
         self.xs = xs
@@ -8,6 +10,7 @@ class Size:
         self.xl = xl
         self.xxl = xxl
         self.name = name
+        Size.all.append(self)
 
 
 radius_none = Size(

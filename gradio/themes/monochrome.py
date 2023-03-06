@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from gradio.themes.base import Base
-from gradio.themes.utils import colors, size
+from gradio.themes.utils import colors, sizes
 
 
 class Monochrome(Base):
@@ -9,9 +9,9 @@ class Monochrome(Base):
         self,
         *,
         hue: colors.Color | str = colors.neutral,
-        spacing_size: size.Size | str = size.spacing_lg,
-        radius_size: size.Size | str = size.radius_none,
-        text_size: size.Size | str = size.text_md,
+        spacing_size: sizes.Size | str = sizes.spacing_lg,
+        radius_size: sizes.Size | str = sizes.radius_none,
+        text_size: sizes.Size | str = sizes.text_md,
     ):
         super().__init__(
             primary_hue=hue,

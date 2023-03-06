@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from gradio.themes.utils import colors, size
+
+from gradio.themes.utils import colors, sizes
 
 
 class ThemeClass:
@@ -39,9 +40,9 @@ class Base(ThemeClass):
         primary_hue: colors.Color | str = colors.blue,
         secondary_hue: colors.Color | str = colors.blue,
         neutral_hue: colors.Color | str = colors.gray,
-        text_size: size.Size | str = size.text_md,
-        spacing_size: size.Size | str = size.spacing_md,
-        radius_size: size.Size | str = size.radius_md,
+        text_size: sizes.Size | str = sizes.text_md,
+        spacing_size: sizes.Size | str = sizes.spacing_md,
+        radius_size: sizes.Size | str = sizes.radius_md,
     ):
         """
         Parameters:
@@ -57,13 +58,13 @@ class Base(ThemeClass):
             if not isinstance(shortcut, str):
                 return shortcut
             if mode == "color":
-                for color in colors.Color.__subclasses__():
+                for color in colors.Color.all:
                     if color.name == shortcut:
                         return color
                 raise ValueError(f"Color shortcut {shortcut} not found.")
             elif mode == "size":
-                for size in size.Size.__subclasses__():
-                    if prefix + "_" + size.name == shortcut:
+                for size in sizes.Size.all:
+                    if size.name == prefix + "_" + shortcut:
                         return size
                 raise ValueError(f"Size shortcut {shortcut} not found.")
 
@@ -380,7 +381,7 @@ class Base(ThemeClass):
             self, "color_accent_soft", "*primary_50"
         )
         self.color_accent_soft_dark = color_accent_soft_dark or getattr(
-            self, "color_accent_soft_dark", "*neutral_900"
+            self, "color_accent_soft_dark", "*neutral_700"
         )
         self.color_background_primary = color_background_primary or getattr(
             self, "color_background_primary", "white"
@@ -878,7 +879,7 @@ class Base(ThemeClass):
             self, "loader_color", "*color_accent"
         )
         self.loader_color_dark = loader_color_dark or getattr(
-            self, "loader_color_dark", "*loader_color"
+            self, "loader_color_dark", "*color_accent"
         )
         self.prose_text_size = prose_text_size or getattr(
             self, "prose_text_size", "*text_md"

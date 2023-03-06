@@ -185,9 +185,4 @@
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
 	}
-
-	input[disabled],
-	textarea[disabled] {
-		box-shadow: none;
-	}
 </style>

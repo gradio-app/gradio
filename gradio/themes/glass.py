@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from gradio.themes.base import Base
-from gradio.themes.utils import colors, size
+from gradio.themes.utils import colors, sizes
 
 
 class Glass(Base):
@@ -9,9 +9,9 @@ class Glass(Base):
         self,
         *,
         hue: colors.Color | str = colors.stone,
-        spacing_size: size.Size | str = size.spacing_sm,
-        radius_size: size.Size | str = size.radius_sm,
-        text_size: size.Size | str = size.text_sm,
+        spacing_size: sizes.Size | str = sizes.spacing_sm,
+        radius_size: sizes.Size | str = sizes.radius_sm,
+        text_size: sizes.Size | str = sizes.text_sm,
     ):
         super().__init__(
             primary_hue=hue,

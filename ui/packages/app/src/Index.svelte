@@ -93,7 +93,6 @@
 
 	async function handle_config(target: HTMLElement, source: string | null) {
 		let config;
-
 		try {
 			let _config = await get_config(source);
 			config = _config;
@@ -132,8 +131,10 @@
 			}
 			const config = await get_source_config(source);
 			return config;
-		} else {
+		} else if (window.gradio_config) {
 			return window.gradio_config;
+		} else {
+			throw new Error("Config not found");
 		}
 	}
 
@@ -214,23 +215,39 @@
 		return "dark";
 	}
 
-	async function check_space_status(space_id: string, source: string) {
+	export const RE_SPACE_NAME = /^[^\/]*\/[^\/]*$/;
+	async function check_space_status(
+		space_id: string,
+		source: string,
+		cb: Function = () => {}
+	) {
+		const endpoint = RE_SPACE_NAME.test(space_id) ? "" : "by-subdomain/";
+		let _space_id = "";
 		let response;
 		let _status;
 		try {
-			response = await fetch(`https://huggingface.co/api/spaces/${space_id}`);
+			response = await fetch(
+				`https://huggingface.co/api/spaces/${endpoint}${space_id}`
+			);
 			_status = response.status;
+
 			if (_status !== 200) {
+				space = "";
+				source = "";
 				throw new Error();
 			}
 			response = await response.json();
+			_space_id = response.id;
+			cb(response.id);
 		} catch (e) {
+			space = "";
+			source = "";
 			status = "error";
 			error_detail = {
 				type: "space_error",
 				detail: {
 					description: "This space is experiencing an issue.",
-					discussions_enabled: await discussions_enabled(space_id)
+					discussions_enabled: await discussions_enabled(_space_id || space_id)
 				}
 			};
 
@@ -248,7 +265,7 @@
 				status = "pending";
 				loading_text = "Space is asleep. Waking it up...";
 				setTimeout(() => {
-					check_space_status(space_id, source);
+					check_space_status(_space_id, source);
 				}, 1000);
 				break;
 			// poll for status
@@ -262,7 +279,7 @@
 				status = "pending";
 				loading_text = "Space is building...";
 				setTimeout(() => {
-					check_space_status(space_id, source);
+					check_space_status(_space_id, source);
 				}, 1000);
 				break;
 
@@ -275,7 +292,7 @@
 					type: "space_error",
 					detail: {
 						description: "This space is experiencing an issue.",
-						discussions_enabled: await discussions_enabled(space_id),
+						discussions_enabled: await discussions_enabled(_space_id),
 						stage
 					}
 				};
@@ -286,7 +303,7 @@
 					type: "space_error",
 					detail: {
 						description: "This space is experiencing an issue.",
-						discussions_enabled: await discussions_enabled(space_id)
+						discussions_enabled: await discussions_enabled(_space_id)
 					}
 				};
 		}
@@ -324,20 +341,36 @@
 			theme = handle_darkmode(wrapper);
 		}
 
-		const source = host
-			? `https://${host.trim()}`
-			: space
-			? (
-					await (
-						await fetch(
-							`https://huggingface.co/api/spaces/${space.trim()}/host`
-						)
-					).json()
-			  ).host
-			: src?.trim();
+		let source;
+		if (space) {
+			try {
+				const r = await fetch(
+					`https://huggingface.co/api/spaces/${space.trim()}/host`
+				);
+
+				if (r.status !== 200) {
+					source = "";
+					space = "";
+				}
+
+				source = (await r.json()).host;
+			} catch (e) {
+				source = "";
+				space = "";
+			}
+		} else {
+			source = (host ? `https://${host}` : src)?.trim();
+		}
 
 		if (space) {
-			check_space_status(space.trim(), source);
+			check_space_status(space?.trim(), source);
+		} else if (src?.endsWith(".hf.space")) {
+			check_space_status(
+				src.replace(".hf.space", "").replace("https://", ""),
+				source,
+				(id: string) => (space = id)
+			);
+			space = " ";
 		}
 		load_config(source);
 	});
@@ -354,15 +387,19 @@
 				is_embed
 			);
 			config = _config;
-		} else if (!space) {
-			status = "error";
-			error_detail = {
-				type: "not_found",
-				detail: {
-					description: "This gradio app is experiencing an issue."
-				}
-			};
+		} else {
+			create_not_found_error();
 		}
+	}
+
+	function create_not_found_error() {
+		status = "error";
+		error_detail = {
+			type: "not_found",
+			detail: {
+				description: "This gradio app is experiencing an issue."
+			}
+		};
 	}
 
 	$: status = ready ? "success" : status;
@@ -419,9 +456,9 @@
 </script>
 
 <Embed
-	display={!container && is_embed && !!space}
+	display={container && is_embed}
 	{is_embed}
-	{info}
+	info={!!space && info}
 	{version}
 	{initial_height}
 	{space}
