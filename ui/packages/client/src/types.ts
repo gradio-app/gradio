@@ -6,11 +6,9 @@ export interface Config {
 	dependencies: any[];
 	dev_mode: boolean;
 	enable_queue: boolean;
-	// fn: Function
 	layout: any;
 	mode: "blocks" | "interface";
 	root: string;
-	// target: HTMLElement;
 	theme: string;
 	title: string;
 	version: string;
@@ -80,7 +78,7 @@ export interface EventMap {
 }
 
 export type Event<K extends EventType> = {
-	[P in K]: EventMap[P] & { type: P };
+	[P in K]: EventMap[P] & { type: P; endpoint: string; fn_index?: number };
 }[K];
 export type EventListener<K extends EventType> = (event: Event<K>) => void;
 export type ListenerMap<K extends EventType> = {

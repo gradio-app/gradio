@@ -250,8 +250,17 @@
 		}
 	};
 
-	onMount(() => {
+	onMount(async () => {
 		intersecting.register(_id, wrapper);
+
+		const a = await client("https://gradio-hello-world-2.hf.space/");
+		a.on("data", (d) => {
+			console.log("DATA LISTENER", d);
+		});
+
+		const result = await a.predict("/predict", { data: ["hello world"] });
+		console.log("AWAITED VALUE", result);
+		console.log(a);
 	});
 </script>
 
