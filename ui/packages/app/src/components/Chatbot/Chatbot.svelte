@@ -4,20 +4,33 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import { Chat } from "@gradio/icons";
+	import type { FileData } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Array<[string | null, string | null]> = [];
+	export let value: Array<
+		[string | FileData | null, string | FileData | null]
+	> = [];
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
-	export let color_map: Record<string, string> = {};
 	export let root: string;
+	export let root_url: null | string;
 
-	$: if (!style.color_map && Object.keys(color_map).length) {
-		style.color_map = color_map;
-	}
+	const redirect_src_url = (src: string) =>
+		src.replace('src="/file', `src="${root}file`);
 
+	$: _value = value
+		? value.map(([user_msg, bot_msg]) => [
+				typeof user_msg === "string"
+					? redirect_src_url(user_msg)
+					: normalise_file(user_msg, root, root_url),
+				typeof bot_msg === "string"
+					? redirect_src_url(bot_msg)
+					: normalise_file(bot_msg, root, root_url)
+		  ])
+		: [];
 	export let loading_status: LoadingStatus | undefined;
 </script>
 
@@ -33,7 +46,7 @@
 	<ChatBot
 		{style}
 		{root}
-		{value}
+		value={_value}
 		pending_message={loading_status?.status === "pending"}
 		on:change
 	/>

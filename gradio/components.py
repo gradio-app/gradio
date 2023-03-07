@@ -8,6 +8,7 @@ import inspect
 import json
 import math
 import operator
+import os
 import random
 import tempfile
 import uuid
@@ -3913,7 +3914,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("change", "style")
-class Chatbot(Changeable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, IOComponent, JSONSerializable, TempFileManager):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
@@ -3945,11 +3946,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         if color_map is not None:
             warnings.warn(
-                "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
+                "The 'color_map' parameter has been deprecated.",
             )
-        self.color_map = color_map
         self.md = utils.get_markdown_parser()
-
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -3964,20 +3964,17 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
-            "color_map": self.color_map,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        color_map: Tuple[str, str] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
     ):
         updated_config = {
-            "color_map": color_map,
             "label": label,
             "show_label": show_label,
             "visible": visible,
@@ -3986,9 +3983,24 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
+    def _process_chat_messages(self, chat_message: str | Dict | None):
+        if isinstance(chat_message, str) and os.path.exists(chat_message):
+            file_path = self.make_temp_copy_if_needed(chat_message)
+            mime_type = processing_utils.get_mimetype(file_path)
+            return {
+                "name": file_path,
+                "data": None,
+                "is_file": True,
+                "mime_type": mime_type,
+            }
+        elif isinstance(chat_message, dict) or chat_message is None:
+            return chat_message
+        else:
+            return self.md.renderInline(chat_message)
+
     def postprocess(
-        self, y: List[Tuple[str | None, str | None]]
-    ) -> List[Tuple[str | None, str | None]]:
+        self, y: List[Tuple[str | None | Dict, str | None | Dict]]
+    ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3999,8 +4011,8 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             return []
         for i, (message, response) in enumerate(y):
             y[i] = (
-                None if message is None else self.md.renderInline(message),
-                None if response is None else self.md.renderInline(response),
+                self._process_chat_messages(message),
+                self._process_chat_messages(response),
             )
         return y
 

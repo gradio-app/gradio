@@ -1,26 +1,22 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles } from "@gradio/utils";
+	import type { FileData } from "@gradio/upload";
 
-	export let value: Array<[string | null, string | null]> | null;
-	let old_value: Array<[string | null, string | null]> | null;
+	export let value: Array<
+		[string | FileData | null, string | FileData | null]
+	> | null;
+	let old_value: Array<
+		[string | FileData | null, string | FileData | null]
+	> | null;
 	export let pending_message: boolean = false;
-	export let root: string;
 	export let style: Styles = {};
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
-	const redirect_src_url = (src: string) =>
-		src.replace('src="/file', `src="${root}file`);
 
-	$: _value = value
-		? value.map(([user_msg, bot_msg]) => [
-				user_msg ? redirect_src_url(user_msg) : null,
-				bot_msg ? redirect_src_url(bot_msg) : null
-		  ])
-		: [];
 	beforeUpdate(() => {
 		autoscroll =
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
@@ -52,24 +48,44 @@
 	bind:this={div}
 >
 	<div class="message-wrap">
-		{#each _value as message, i}
-			<div
-				data-testid="user"
-				class:latest={i === _value.length - 1}
-				class="message user"
-				class:hide={message[0] === null}
-			>
-				{@html message[0]}
-			</div>
-			<div
-				data-testid="bot"
-				class:latest={i === _value.length - 1}
-				class="message bot"
-				class:hide={message[1] === null}
-			>
-				{@html message[1]}
-			</div>
-		{/each}
+		{#if value !== null}
+			{#each value as message_pair, i}
+				{#each message_pair as message, j}
+					<div
+						data-testid={j == 0 ? "user" : "bot"}
+						class:latest={i === value.length - 1}
+						class="message {j == 0 ? 'user' : 'bot'}"
+						class:hide={message === null}
+					>
+						{#if typeof message === "string"}
+							{@html message}
+						{:else if message !== null && message.mime_type.includes("audio")}
+							<audio
+								controls
+								preload="metadata"
+								src={message.data}
+								on:play
+								on:pause
+								on:ended
+							/>
+						{:else if message !== null && message.mime_type.includes("video")}
+							<video
+								controls
+								src={message.data}
+								preload="auto"
+								on:play
+								on:pause
+								on:ended
+							>
+								<track kind="captions" />
+							</video>
+						{:else if message !== null && message.mime_type.includes("image")}
+							<img src={message.data} alt="" />
+						{/if}
+					</div>
+				{/each}
+			{/each}
+		{/if}
 		{#if pending_message}
 			<div data-testid="bot" class="message pending">
 				<div class="dot-flashing" />
@@ -100,6 +116,10 @@
 	.message-wrap > div :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
+	}
+
+	.message-wrap :global(audio) {
+		width: 100%;
 	}
 
 	.message {

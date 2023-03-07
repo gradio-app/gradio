@@ -5,4 +5,5 @@ export interface FileData {
 	data: string;
 	blob?: File;
 	is_file?: boolean;
+	mime_type?: string;
 }

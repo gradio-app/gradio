@@ -5,22 +5,21 @@ def add_text(history, text):
     history = history + [(text, text + "?")]
     return history
 
-def add_image(history, image):
-    history = history + [(f"![](/file={quote(image.name)})", "Cool pic!")]
+def add_file(history, file):
+    history = history + [(file.name, None)]
     return history
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(elem_id="chatbot").style(height=500)
+    chatbot = gr.Chatbot(elem_id="chatbot").style(height=750)
     
     with gr.Row():
         with gr.Column(scale=0.85):
             txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter, or upload an image").style(container=False)
         with gr.Column(scale=0.15, min_width=0):
-            btn = gr.UploadButton("🖼️", file_types=["image"])
-            
+            btn = gr.UploadButton("🖼️", file_types=["image", "video", "audio"])
     txt.submit(add_text, [chatbot, txt], [chatbot])
     txt.submit(lambda :"", None, txt, queue=False)
-    btn.upload(add_image, [chatbot, btn], [chatbot])
+    btn.upload(add_file, [chatbot, btn], [chatbot])
             
 if __name__ == "__main__":
     demo.launch()
