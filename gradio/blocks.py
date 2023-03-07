@@ -141,6 +141,7 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
+        collects_event_data: bool | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -243,7 +244,9 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
-            "collects_event_data": event_data_index is not None,
+            "collects_event_data": event_data_index is not None
+            if collects_event_data is None
+            else collects_event_data,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
