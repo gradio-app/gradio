@@ -251,6 +251,7 @@ class Block:
 
     @classmethod
     def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+        generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
