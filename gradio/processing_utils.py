@@ -366,21 +366,21 @@ class TempFileManager:
         prefix = utils.strip_invalid_filename_characters(prefix)
         return prefix, extension
 
-    def get_temp_file_path(self, file_path: str) -> str:
+    def get_temp_file_path(self, file_path: str) -> Tuple[str, str]:
         prefix, extension = self.get_prefix_and_extension(file_path)
         file_hash = self.hash_file(file_path)
-        return prefix + file_hash + extension
+        return file_hash, (prefix + extension)
 
-    def get_temp_url_path(self, url: str) -> str:
+    def get_temp_url_path(self, url: str) -> Tuple[str, str]:
         prefix, extension = self.get_prefix_and_extension(url)
         file_hash = self.hash_url(url)
-        return prefix + file_hash + extension
+        return file_hash, (prefix + extension)
 
-    def get_temp_base64_path(self, base64_encoding: str, prefix: str) -> str:
-        extension = get_extension(base64_encoding)
+    def get_temp_base64_path(self, b64_encoding: str, prefix: str) -> Tuple[str, str]:
+        extension = get_extension(b64_encoding)
         extension = "." + extension if extension else ""
-        base64_hash = self.hash_base64(base64_encoding)
-        return prefix + base64_hash + extension
+        base64_hash = self.hash_base64(b64_encoding)
+        return base64_hash, (prefix + extension)
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
@@ -393,6 +393,7 @@ class TempFileManager:
         full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
+            Path(full_temp_file_path).parent.mkdir(exist_ok=True, parents=True)            
             shutil.copy2(file_path, full_temp_file_path)
 
         self.temp_files.add(full_temp_file_path)
@@ -422,6 +423,7 @@ class TempFileManager:
         full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
+            Path(full_temp_file_path).parent.mkdir(exist_ok=True, parents=True)            
             with requests.get(url, stream=True) as r:
                 with open(full_temp_file_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
@@ -443,6 +445,7 @@ class TempFileManager:
         full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
+            Path(full_temp_file_path).parent.mkdir(exist_ok=True, parents=True)            
             data, _ = decode_base64_to_binary(base64_encoding)
             with open(full_temp_file_path, "wb") as fb:
                 fb.write(data)
