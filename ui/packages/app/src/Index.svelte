@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
+	import { mount_css } from "./main";
 
 	import type {
 		ComponentMeta,
@@ -94,6 +95,7 @@
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
+		mount_css(config.root + "/theme.css", document.head);
 	}
 
 	async function reload_check(root: string) {
