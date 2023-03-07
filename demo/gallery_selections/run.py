@@ -13,7 +13,7 @@ with gr.Blocks() as demo:
         btn = gr.Button("Generate image").style(full_width=False)
 
     imgs = gr.State()
-    gallery = gr.Gallery()
+    gallery = gr.Gallery().style(preview=True)
 
     with gr.Row():
         selected = gr.Textbox(show_label=False, placeholder="Selected")
