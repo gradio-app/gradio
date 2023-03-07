@@ -10,6 +10,7 @@ How to share your Gradio app:
 6. [Adding authentication to the page](#authentication)
 7. [Accessing Network Requests](#accessing-the-network-request-directly)
 8. [Mounting within FastAPI](#mounting-within-another-fastapi-app)
+9. [Security](#security)
 
 ## Sharing Demos
 
@@ -105,6 +106,8 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 This will document the endpoint `/api/addition/` to the automatically generated API page. 
 
+*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method.
+
 ## Authentication
 
 You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a  list of acceptable username/password tuples;  Here's an example that provides password-based authentication for a single user named "admin":
@@ -157,3 +160,11 @@ Here's a complete example:
 $code_custom_path
 
 Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
+
+## Security and File Access
+
+Sharing your Gradio app with others by hosting it on Spaces, on your own server, or through temporary share links exposes certain files on the host machine to users of your Gradio app. This is necessary in order for Gradio apps to be able to display examples (example images, etc.) or output files created by your prediction function.
+
+In particular, Gradio apps grant users access to three kinds of files:
+
+* 
