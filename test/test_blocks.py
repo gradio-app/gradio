@@ -347,13 +347,13 @@ class TestBlocksMethods:
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
         for i, dependency in enumerate(demo.config["dependencies"]):
-            if i == 0:
-                assert dependency["types"] == {"continuous": True, "generator": True}
-            if i == 1:
-                assert dependency["types"] == {"continuous": False, "generator": False}
-            if i == 2:
-                assert dependency["types"] == {"continuous": False, "generator": True}
             if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+            if i == 0:
+                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 1:
+                assert dependency["types"] == {"continuous": False, "generator": True}
+            if i == 2:
                 assert dependency["types"] == {"continuous": True, "generator": True}
 
     @pytest.mark.asyncio
@@ -414,15 +414,16 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.load_event
+                    assert not component.load_event_to_attach
                 else:
-                    assert component.load_event
+                    assert component.load_event_to_attach
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
-        assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+        # Queue should be explicitly false for these events
+        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
