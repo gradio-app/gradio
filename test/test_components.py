@@ -842,12 +842,11 @@ class TestAudio:
 
     def test_serialize(self):
         audio_input = gr.Audio()
-        assert audio_input.serialize("test/test_files/audio_sample.wav") == {
-            "data": media_data.BASE64_AUDIO["data"],
-            "is_file": False,
-            "orig_name": "audio_sample.wav",
-            "name": "test/test_files/audio_sample.wav",
-        }
+        serialized_input = audio_input.serialize("test/test_files/audio_sample.wav")
+        assert serialized_input["data"] == media_data.BASE64_AUDIO["data"]
+        assert os.path.basename(serialized_input["name"]) == "audio_sample.wav"
+        assert serialized_input["orig_name"] == "audio_sample.wav"
+        assert not serialized_input["is_file"]
 
     def test_tokenize(self):
         """

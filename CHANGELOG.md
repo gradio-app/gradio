@@ -16,7 +16,7 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-No changes to highlight.
+- Fixes tests that were failing locally but passing on CI by [@abidlabs](https://github.com/abidlabs) in [PR 3411](https://github.com/gradio-app/gradio/pull/3411)
 
 ## Breaking Changes:
 
