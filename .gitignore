@@ -40,6 +40,7 @@ demo/*/config.json
 
 # Etc
 .idea/*
+.vscode/*
 .DS_Store
 *.bak
 workspace.code-workspace
