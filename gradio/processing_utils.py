@@ -388,6 +388,7 @@ class TempFileManager:
     async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
         temp_dir = secrets.token_hex(20)  # Since the full file is being uploaded anyways, there is no benefit to hashing the file. 
         temp_dir = Path(upload_dir) / temp_dir
+        temp_dir.mkdir(exist_ok=True, parents=True)
         output_file_obj = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
         
         if file.filename:
