@@ -376,9 +376,12 @@ class TempFileManager:
         file_hash = self.hash_url(url)
         return prefix + file_hash + extension
 
-    def get_temp_base64_path(self, base64_encoding: str, prefix: str) -> str:
-        extension = get_extension(base64_encoding)
-        extension = "." + extension if extension else ""
+    def get_temp_base64_path(
+        self, base64_encoding: str, prefix: str, extension: str
+    ) -> str:
+        guess_extension = get_extension(base64_encoding)
+        if not extension and guess_extension:
+            extension = "." + guess_extension
         base64_hash = self.hash_base64(base64_encoding)
         return prefix + base64_hash + extension
 
@@ -436,9 +439,12 @@ class TempFileManager:
         the file doesn't already exist. Otherwise returns the path to the existing file."""
         f = tempfile.NamedTemporaryFile(delete=False)
         temp_dir = Path(f.name).parent
-        prefix = self.get_prefix_and_extension(file_name)[0] if file_name else ""
-
-        temp_file_path = self.get_temp_base64_path(base64_encoding, prefix=prefix)
+        prefix, extension = (
+            self.get_prefix_and_extension(file_name) if file_name else ("", "")
+        )
+        temp_file_path = self.get_temp_base64_path(
+            base64_encoding, prefix=prefix, extension=extension
+        )
         f.name = str(temp_dir / temp_file_path)
         full_temp_file_path = str(utils.abspath(f.name))
 
