@@ -357,17 +357,6 @@ class TempFileManager:
             sha1.update(data.encode("utf-8"))
         return sha1.hexdigest()
 
-    def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
-        file_name = Path(file_path_or_url).name
-        prefix, extension = file_name, None
-        if "." in file_name:
-            prefix = file_name[0 : file_name.index(".")]
-            extension = "." + file_name[file_name.index(".") + 1 :]
-        else:
-            extension = ""
-        prefix = utils.strip_invalid_filename_characters(prefix)
-        return prefix, extension
-
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
@@ -414,11 +403,9 @@ class TempFileManager:
         temp_dir = self.hash_url(url)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        prefix, extension = self.get_prefix_and_extension(url)
-        file_name = prefix + extension
-        f.name = utils.strip_invalid_filename_characters(file_name)
+        
+        f.name = utils.strip_invalid_filename_characters(Path(url).name)
         full_temp_file_path = str(temp_dir / f.name)
 
         if not Path(full_temp_file_path).exists():
