@@ -10,6 +10,7 @@ How to share your Gradio app:
 6. [Adding authentication to the page](#authentication)
 7. [Accessing Network Requests](#accessing-the-network-request-directly)
 8. [Mounting within FastAPI](#mounting-within-another-fastapi-app)
+9. [Security](#security-and-file-access)
 
 ## Sharing Demos
 
@@ -105,6 +106,8 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 This will document the endpoint `/api/addition/` to the automatically generated API page. 
 
+*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method.
+
 ## Authentication
 
 You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a  list of acceptable username/password tuples;  Here's an example that provides password-based authentication for a single user named "admin":
@@ -157,3 +160,17 @@ Here's a complete example:
 $code_custom_path
 
 Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
+
+## Security and File Access
+
+Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app. This is done so that Gradio apps are able to display output files created by Gradio or created by your prediction function.
+
+In particular, Gradio apps grant users access to three kinds of files:
+
+* Files in the same folder (or a subdirectory) of where the Gradio script is launched from. For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is needed so that you can easily reference these files in your Gradio app.
+
+* Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. 
+
+* Files that you explicitly allow via the `file_directories` parameter in `launch()`. In some cases, you may want to reference other files in your file system. The `file_directories` parameter allows you to pass in a list of additional directories you'd like to provide access to. (By default, there are no additional file directories).
+
+Users should NOT be able to access other arbitrary paths on the host.  
