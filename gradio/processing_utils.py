@@ -377,14 +377,13 @@ class TempFileManager:
         not already exist. Otherwise returns the path to the existing temp file."""
         temp_dir = self.hash_file(file_path)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        Path(temp_dir).mkdir(exist_ok=True, parents=True)
+        temp_dir.mkdir(exist_ok=True, parents=True)
         
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = Path(file_path).name
-        full_temp_file_path = str(utils.abspath(f.name))
+        f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
+        full_temp_file_path = str(temp_dir / f.name)
 
         if not Path(full_temp_file_path).exists():
-            Path(full_temp_file_path).parent.mkdir(exist_ok=True, parents=True)            
             shutil.copy2(file_path, full_temp_file_path)
 
         self.temp_files.add(full_temp_file_path)
@@ -429,26 +428,25 @@ class TempFileManager:
         the file doesn't already exist. Otherwise returns the path to the existing file."""
         temp_dir = self.hash_base64(base64_encoding)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        Path(temp_dir).mkdir(exist_ok=True, parents=True)
+        temp_dir.mkdir(exist_ok=True, parents=True)
     
         guess_extension = get_extension(base64_encoding)        
         if not file_name and guess_extension:
             suffix = "." + guess_extension
         else:
             suffix = ""
-        print("temp_dir", temp_dir)
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, suffix=suffix)        
         if file_name:
-            print("file_name", file_name, Path(file_name).name)
-            f.name = Path(file_name).name
-        full_temp_file_path = str(utils.abspath(f.name))
+            f.name = utils.strip_invalid_filename_characters(Path(file_name).name)
+        full_temp_file_path = str(temp_dir / f.name)
 
         if not Path(full_temp_file_path).exists():
             data, _ = decode_base64_to_binary(base64_encoding)
             with open(full_temp_file_path, "wb") as fb:
                 fb.write(data)
-        print("full_temp_file_path", full_temp_file_path)
+
         self.temp_files.add(full_temp_file_path)
+        print("full_temp_file_path", full_temp_file_path)
         return full_temp_file_path
 
 
