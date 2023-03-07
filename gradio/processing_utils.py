@@ -6,6 +6,7 @@ import json
 import mimetypes
 import os
 import pathlib
+import secrets
 import shutil
 import subprocess
 import tempfile
@@ -13,7 +14,6 @@ import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
-import secrets
 from typing import Dict, Set, Tuple
 
 import aiofiles
@@ -374,7 +374,7 @@ class TempFileManager:
         temp_dir = self.hash_file(file_path)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-        
+
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
         f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
         full_temp_file_path = str(temp_dir / f.name)
@@ -386,24 +386,26 @@ class TempFileManager:
         return full_temp_file_path
 
     async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
-        temp_dir = secrets.token_hex(20)  # Since the full file is being uploaded anyways, there is no benefit to hashing the file. 
+        temp_dir = secrets.token_hex(
+            20
+        )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
         temp_dir = Path(upload_dir) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
         output_file_obj = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        
+
         if file.filename:
             file_name = Path(file.filename).name
             output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
-        
+
         full_temp_file_path = str(temp_dir / output_file_obj.name)
-        
+
         async with aiofiles.open(full_temp_file_path, "wb") as output_file:
             while True:
                 content = await file.read(100 * 1024 * 1024)
                 if not content:
                     break
                 await output_file.write(content)
-        
+
         return full_temp_file_path
 
     def download_temp_copy_if_needed(self, url: str) -> str:
@@ -435,13 +437,13 @@ class TempFileManager:
         temp_dir = self.hash_base64(base64_encoding)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-    
-        guess_extension = get_extension(base64_encoding)        
+
+        guess_extension = get_extension(base64_encoding)
         if not file_name and guess_extension:
             suffix = "." + guess_extension
         else:
             suffix = ""
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, suffix=suffix)        
+        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, suffix=suffix)
         if file_name:
             f.name = utils.strip_invalid_filename_characters(Path(file_name).name)
         full_temp_file_path = str(temp_dir / f.name)
