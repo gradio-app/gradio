@@ -163,8 +163,14 @@ Note that this approach also allows you run your Gradio apps on custom paths (`h
 
 ## Security and File Access
 
-Sharing your Gradio app with others by hosting it on Spaces, on your own server, or through temporary share links exposes certain files on the host machine to users of your Gradio app. This is necessary in order for Gradio apps to be able to display examples (example images, etc.) or output files created by your prediction function.
+Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app. This is done so that Gradio apps are able to display output files created by Gradio or created by your prediction function.
 
 In particular, Gradio apps grant users access to three kinds of files:
 
-* 
+* files in the same folder (or a subdirectory) of where the Gradio script is launched from. For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is needed so that you can easily reference these files in your Gradio app.
+
+* temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. 
+
+* files that you explicitly allow via the `file_directories` parameter in `launch()`. In some cases, you may want to reference other files in your file system. The `file_directories` parameter allows you to pass in a list of additional directories you'd like to provide access to. (By default, there are no additional file directories).
+
+Users should NOT be able to access other arbitrary paths on the host.  

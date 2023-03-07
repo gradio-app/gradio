@@ -1355,6 +1355,8 @@ class Blocks(BlockContext):
         self.show_api = self.api_open if self.enable_queue else show_api
 
         self.file_directories = file_directories if file_directories is not None else []
+        if not isinstance(self.file_directories, list):
+            raise ValueError("file_directories must be a list of directories.")
 
         if not self.enable_queue and self.progress_tracking:
             raise ValueError("Progress tracking requires queuing to be enabled.")
