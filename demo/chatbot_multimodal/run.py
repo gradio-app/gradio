@@ -20,6 +20,6 @@ with gr.Blocks() as demo:
     txt.submit(add_text, [chatbot, txt], [chatbot])
     txt.submit(lambda :"", None, txt, queue=False)
     btn.upload(add_file, [chatbot, btn], [chatbot])
-            
+
 if __name__ == "__main__":
     demo.launch()
