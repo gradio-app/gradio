@@ -6,23 +6,21 @@ No changes to highlight.
 
 ## Bug Fixes:
 - Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventaully to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
+- Ensure load events created by components (randomize for slider, callable values) are never queued unless every is passed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3391](https://github.com/gradio-app/gradio/pull/3391) 
 
 ## Documentation Changes:
-No changes to highlight.
+- Add Chinese README by [@uanu2002](https://github.com/uanu2002) in [PR 3394](https://github.com/gradio-app/gradio/pull/3394)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
 
 ## Breaking Changes:
-
-Add Chinese Readme.md by [@uanu2002](https://github.com/uanu2002) in [PR 3394](https://github.com/gradio-app/gradio/pull/3394)
+No changes to highlight.
 
 ## Full Changelog:
-
 No changes to highlight.
 
 ## Contributors Shoutout:
-
 No changes to highlight.
 
 # 3.20.1
