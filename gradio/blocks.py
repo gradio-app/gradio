@@ -225,6 +225,9 @@ class Block:
                 )
                 api_name = api_name_
 
+        if collects_event_data is None:
+            collects_event_data = event_data_index is not None
+
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -244,9 +247,7 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
-            "collects_event_data": event_data_index is not None
-            if collects_event_data is None
-            else collects_event_data,
+            "collects_event_data": collects_event_data,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
