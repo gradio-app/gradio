@@ -5,7 +5,7 @@
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
-	import { upload_files } from "../../api";
+	import { upload_files } from "@gradio/client";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -90,7 +90,7 @@
 <Block
 	{visible}
 	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
-	color={dragging ? "green" : "grey"}
+	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
 >

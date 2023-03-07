@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { hover } from "@testing-library/user-event/dist/hover";
 	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
@@ -17,8 +18,8 @@
 	const dispatch = createEventDispatcher<{ click: number }>();
 
 	let samples_dir: string = root_url
-		? "proxy=" + root_url + "file="
-		: root + "file=";
+		? "proxy=" + root_url + "/file="
+		: root + "/file=";
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
@@ -95,7 +96,7 @@
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
 				<button
-					class="button"
+					class="gallery-item"
 					on:click={() => {
 						value = i + page * samples_per_page;
 						dispatch("click", value);
@@ -181,10 +182,9 @@
 <style>
 	.wrap {
 		display: inline-block;
-		margin-top: var(--size-4);
 		width: var(--size-full);
 		max-width: var(--size-full);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.hide {
@@ -195,8 +195,9 @@
 		display: flex;
 		align-items: center;
 		margin-bottom: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--scale-000);
+		color: var(--block-label-color);
+		font-weight: var(--block-label-text-weight);
+		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
 	}
 
@@ -207,28 +208,26 @@
 	.gallery {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-2);
+		gap: var(--spacing-lg);
 	}
 
-	.button {
+	.gallery-item {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
+		border-radius: var(--button-large-radius);
 		overflow: hidden;
 	}
 
-	.button:hover {
-		border-color: var(--dataset-dataframe-border-hover);
-		background: var(--dataset-gallery-background-hover);
+	.gallery-item:hover {
+		border-color: var(--color-border-accent);
+		background: var(--table-row-focus);
 	}
 
 	.table-wrap {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--table-radius);
 		width: var(--size-full);
 		table-layout: auto;
 		overflow-x: auto;
-		font-size: var(--scale-00);
 		line-height: var(--line-sm);
 	}
 	table {
@@ -243,7 +242,7 @@
 	.tr-head > * + * {
 		border-right-width: 0px;
 		border-left-width: 1px;
-		border-color: var(--dataset-table-border-base);
+		border-color: var(--color-border-primary);
 	}
 
 	th {
@@ -253,7 +252,7 @@
 
 	.tr-body {
 		cursor: pointer;
-		border-bottom: 1px solid var(--dataset-table-border-base);
+		border-bottom: 1px solid var(--color-border-primary);
 		background: var(--table-even-background);
 	}
 
@@ -266,31 +265,32 @@
 	}
 
 	.tr-body:hover {
-		background: var(--dataset-table-background-hover);
+		background: var(--table-row-focus);
 	}
 
 	.tr-body > * + * {
 		border-right-width: 0px;
 		border-left-width: 1px;
-		border-color: var(--dataset-table-border-base);
+		border-color: var(--color-border-primary);
 	}
 
 	.tr-body:hover > * + * {
-		border-color: var(--dataset-table-border-hover);
+		border-color: var(--color-border-accent);
 	}
 
 	td {
 		padding: var(--size-2);
+		text-align: center;
 	}
 
 	.paginate {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: var(--size-2);
+		gap: var(--spacing-sm);
 		margin-top: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--scale-000);
+		color: var(--block-label-color);
+		font-size: var(--text-sm);
 	}
 
 	button.current-page {

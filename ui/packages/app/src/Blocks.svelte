@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
+	import type { client } from "@gradio/client";
 
 	import { component_map } from "./components/directory";
 	import {
@@ -15,7 +16,6 @@
 		LayoutNode,
 		Documentation
 	} from "./components/types";
-	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
 	import { ApiDocs } from "./api_docs/";
@@ -26,12 +26,10 @@
 	setupi18n();
 
 	export let root: string;
-	export let fn: ReturnType<typeof api_fn>;
 	export let components: Array<ComponentMeta>;
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
 
-	export let enable_queue: boolean;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
@@ -41,6 +39,7 @@
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme: string;
+	export let app: Awaited<ReturnType<typeof client>>;
 
 	let loading_status = create_loading_status_store();
 
@@ -210,6 +209,36 @@
 			});
 	});
 
+	function handle_update(data: any, fn_index: number) {
+		const outputs = dependencies[fn_index].outputs;
+		data.forEach((value: any, i: number) => {
+			if (
+				typeof value === "object" &&
+				value !== null &&
+				value.__type__ === "update"
+			) {
+				for (const [update_key, update_value] of Object.entries(value)) {
+					if (update_key === "__type__") {
+						continue;
+					} else {
+						instance_map[outputs[i]].props[update_key] = update_value;
+					}
+				}
+				rootNode = rootNode;
+			} else {
+				instance_map[outputs[i]].props.value = value;
+			}
+		});
+	}
+
+	app.on("data", ({ data, fn_index }) => {
+		handle_update(data, fn_index);
+	});
+
+	app.on("status", ({ fn_index, ...status }) => {
+		loading_status.update({ ...status, fn_index });
+	});
+
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
 		if (!obj?.props) {
 			obj.props = {};
@@ -217,7 +246,6 @@
 		obj.props[prop] = val;
 		rootNode = rootNode;
 	}
-
 	let handled_dependencies: Array<number[]> = [];
 
 	async function handle_mount() {
@@ -259,45 +287,36 @@
 					outputs.every((v) => instance_map?.[v].instance) &&
 					inputs.every((v) => instance_map?.[v].instance)
 				) {
-					const req = fn({
-						action: "predict",
-						backend_fn,
-						frontend_fn,
-						payload: {
-							fn_index: i,
-							data: inputs.map((id) => instance_map[id].props.value)
-						},
-						queue: queue === null ? enable_queue : queue,
-						queue_callback: handle_update,
-						loading_status: loading_status,
-						cancels
-					});
+					cancels &&
+						cancels.forEach((fn_index) => {
+							app.cancel("/predict", fn_index);
+						});
 
-					function handle_update(output: any) {
-						output.data.forEach((value: any, i: number) => {
-							if (
-								typeof value === "object" &&
-								value !== null &&
-								value.__type__ === "update"
-							) {
-								for (const [update_key, update_value] of Object.entries(
-									value
-								)) {
-									if (update_key === "__type__") {
-										continue;
-									} else {
-										instance_map[outputs[i]].props[update_key] = update_value;
-									}
-								}
-								rootNode = rootNode;
+					let payload = {
+						fn_index: i,
+						data: inputs.map((id) => instance_map[id].props.value)
+					};
+
+					if (frontend_fn) {
+						frontend_fn(
+							payload.data.concat(
+								outputs.map((id) => instance_map[id].props.value)
+							)
+						).then((v: []) => {
+							if (backend_fn) {
+								payload.data = v;
+								make_prediction();
 							} else {
-								instance_map[outputs[i]].props.value = value;
+								handle_update(v, i);
 							}
 						});
+					} else {
+						if (backend_fn) {
+							make_prediction();
+						}
 					}
-
-					if (!(queue === null ? enable_queue : queue)) {
-						req.then(handle_update);
+					function make_prediction() {
+						app.predict("/predict", payload);
 					}
 
 					handled_dependencies[i] = [-1];
@@ -308,53 +327,48 @@
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
-							if (loading_status.get_status_for_fn(i) === "pending") {
+							const current_status = loading_status.get_status_for_fn(i);
+							if (
+								current_status === "pending" ||
+								current_status === "generating"
+							) {
 								return;
 							}
 
-							// page events
-							const req = fn({
-								action: "predict",
-								backend_fn,
-								frontend_fn,
-								payload: {
-									fn_index: i,
-									data: inputs.map((id) => instance_map[id].props.value)
-								},
-								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue,
-								queue_callback: handle_update,
-								loading_status: loading_status,
-								cancels
-							});
+							if (cancels) {
+								cancels.forEach((fn_index) => {
+									app.cancel("/predict", fn_index);
+								});
+							}
 
-							if (!(queue === null ? enable_queue : queue)) {
-								req.then(handle_update);
+							let payload = {
+								fn_index: i,
+								data: inputs.map((id) => instance_map[id].props.value)
+							};
+
+							if (frontend_fn) {
+								frontend_fn(
+									payload.data.concat(
+										outputs.map((id) => instance_map[id].props.value)
+									)
+								).then((v: []) => {
+									if (backend_fn) {
+										payload.data = v;
+										make_prediction();
+									} else {
+										handle_update(v, i);
+									}
+								});
+							} else {
+								if (backend_fn) {
+									make_prediction();
+								}
+							}
+
+							function make_prediction() {
+								app.predict("/predict", payload);
 							}
 						});
-
-						function handle_update(output: any) {
-							output.data.forEach((value: any, i: number) => {
-								if (
-									typeof value === "object" &&
-									value !== null &&
-									value.__type__ === "update"
-								) {
-									for (const [update_key, update_value] of Object.entries(
-										value
-									)) {
-										if (update_key === "__type__") {
-											continue;
-										} else {
-											instance_map[outputs[i]].props[update_key] = update_value;
-										}
-									}
-									rootNode = rootNode;
-								} else {
-									instance_map[outputs[i]].props.value = value;
-								}
-							});
-						}
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
@@ -476,14 +490,15 @@
 		flex-grow: 1;
 		flex-direction: column;
 		width: var(--size-full);
+		font-weight: var(--body-text-weight);
+		font-size: var(--body-text-size);
 	}
 
 	footer {
 		display: flex;
 		justify-content: center;
 		margin-top: var(--size-4);
-		color: var(--color-text-subdued);
-		font-size: var(--scale-00);
+		color: var(--text-color-subdued);
 	}
 
 	footer > * + * {
@@ -495,7 +510,7 @@
 		align-items: center;
 	}
 	.show-api:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.show-api img {
@@ -510,7 +525,7 @@
 	}
 
 	.built-with:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.built-with img {

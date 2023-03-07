@@ -12,8 +12,19 @@ function mock_demo(page: Page, demo: string) {
 	});
 }
 
+function mock_theme(page: Page) {
+	return page.route("**/theme.css", (route) => {
+		return route.fulfill({
+			headers: {
+				"Access-Control-Allow-Origin": "*"
+			},
+			path: `./test/mocks/theme.css`
+		});
+	});
+}
+
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/run/predict/", (route) => {
+	return page.route("**/run/predict", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -29,6 +40,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 test("matplotlib", async ({ page }) => {
 	await mock_demo(page, "outbreak_forecast");
 	await mock_api(page, [[{ type: "matplotlib", plot: BASE64_PLOT_IMG }]]);
+	await mock_theme(page);
 	await page.goto("http://localhost:9876");
 
 	await page.getByLabel("Plot Type").click();
@@ -39,7 +51,7 @@ test("matplotlib", async ({ page }) => {
 
 	await Promise.all([
 		page.click("text=Submit"),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 
 	const matplotlib_img = await page.locator("img").nth(0);
@@ -57,6 +69,7 @@ test("plotly", async ({ page }) => {
 			}
 		]
 	]);
+	await mock_theme(page);
 	await page.goto("http://localhost:9876");
 
 	await page.getByLabel("Plot Type").click();
@@ -67,7 +80,7 @@ test("plotly", async ({ page }) => {
 
 	await Promise.all([
 		page.click("text=Submit"),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 	await expect(page.locator(".js-plotly-plot")).toHaveCount(1);
 });

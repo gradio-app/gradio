@@ -98,6 +98,7 @@ importers:
       '@gradio/button': workspace:^0.0.1
       '@gradio/chart': workspace:^0.0.1
       '@gradio/chatbot': workspace:^0.0.1
+      '@gradio/client': workspace:^0.0.1
       '@gradio/file': workspace:^0.0.1
       '@gradio/form': workspace:^0.0.1
       '@gradio/gallery': workspace:^0.0.1
@@ -130,6 +131,7 @@ importers:
       '@gradio/button': link:../button
       '@gradio/chart': link:../chart
       '@gradio/chatbot': link:../chatbot
+      '@gradio/client': link:../client
       '@gradio/file': link:../file
       '@gradio/form': link:../form
       '@gradio/gallery': link:../gallery
@@ -165,6 +167,7 @@ importers:
   packages/audio:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/button': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       extendable-media-recorder: ^7.0.2
@@ -172,6 +175,7 @@ importers:
       svelte-range-slider-pips: ^2.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/button': link:../button
       '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
       extendable-media-recorder: 7.0.2
@@ -218,6 +222,9 @@ importers:
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
+
+  packages/client:
+    specifiers: {}
 
   packages/file:
     specifiers:

@@ -1,23 +1,17 @@
 <script lang="ts">
-	import {
-		Panel,
-		Block,
-		BlockTitle,
-		BlockLabel,
-		IconButton
-	} from "@gradio/atoms";
+	import { Block, BlockTitle, BlockLabel, IconButton } from "@gradio/atoms";
 
 	import { Brush } from "@gradio/icons";
 </script>
 
-<Panel>
+<Block>
 	<div>
 		<IconButton Icon={Brush} />
 		<IconButton Icon={Brush} />
 		<IconButton Icon={Brush} />
 		<IconButton Icon={Brush} />
 	</div>
-</Panel>
+</Block>
 
 <span />
 

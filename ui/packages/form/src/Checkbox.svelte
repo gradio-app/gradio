@@ -31,8 +31,9 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		color: var(--body-text-color);
+		font-weight: var(--checkbox-label-text-weight);
+		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
 	}
 
@@ -43,11 +44,10 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color), var(--shadow-drop);
-		border: 1px solid var(--checkbox-border-color-base);
+		box-shadow: var(--input-shadow);
+		border: 1px solid var(--checkbox-border-color);
 		border-radius: var(--checkbox-border-radius);
-		background-color: var(--checkbox-background-base);
-		font-size: var(--scale-00);
+		background-color: var(--checkbox-background);
 		line-height: var(--line-sm);
 	}
 
@@ -62,7 +62,6 @@
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-ring);
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-focus);
 	}

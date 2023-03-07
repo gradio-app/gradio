@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import getpass
 import inspect
 import json
 import os
@@ -21,21 +20,14 @@ import requests
 from anyio import CapacityLimiter
 from typing_extensions import Literal
 
-from gradio import (
-    components,
-    encryptor,
-    external,
-    networking,
-    queueing,
-    routes,
-    strings,
-    utils,
-)
+from gradio import components, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.themes import Default as DefaultTheme
+from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -259,6 +251,7 @@ class Block:
 
     @classmethod
     def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+        generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
@@ -450,7 +443,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: str = "default",
+        theme: Theme | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -459,7 +452,6 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            theme: which theme to use - right now, only "default" is supported.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -468,7 +460,13 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
+        if theme is None:
+            theme = DefaultTheme()
+        elif not isinstance(theme, Theme):
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+            theme = DefaultTheme()
         self.theme = theme
+        self.theme_css = self.theme._get_theme_css()
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -524,7 +522,6 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),
@@ -585,7 +582,7 @@ class Blocks(BlockContext):
 
         derived_fields = ["types"]
 
-        with Blocks(theme=config["theme"]) as blocks:
+        with Blocks() as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -1063,7 +1060,6 @@ class Blocks(BlockContext):
             "dev_mode": self.dev_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],
-            "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,
@@ -1273,7 +1269,7 @@ class Blocks(BlockContext):
         show_tips: bool = False,
         height: int = 500,
         width: int | str = "100%",
-        encrypt: bool = False,
+        encrypt: bool | None = None,
         favicon_path: str | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
@@ -1303,7 +1299,7 @@ class Blocks(BlockContext):
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
-            encrypt: If True, flagged data will be encrypted by key provided by creator at launch
+            encrypt: DEPRECATED. Has no effect.
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1345,6 +1341,11 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
+        if encrypt is not None:
+            warnings.warn(
+                "The `encrypt` parameter has been deprecated and has no effect.",
+                DeprecationWarning,
+            )
 
         if self.is_space:
             self.enable_queue = self.enable_queue is not False
@@ -1355,6 +1356,8 @@ class Blocks(BlockContext):
         self.show_api = self.api_open if self.enable_queue else show_api
 
         self.file_directories = file_directories if file_directories is not None else []
+        if not isinstance(self.file_directories, list):
+            raise ValueError("file_directories must be a list of directories.")
 
         if not self.enable_queue and self.progress_tracking:
             raise ValueError("Progress tracking requires queuing to be enabled.")
@@ -1376,14 +1379,9 @@ class Blocks(BlockContext):
                 raise ValueError("In order to use batching, the queue must be enabled.")
 
         self.config = self.get_config_file()
-        self.encrypt = encrypt
         self.max_threads = max(
             self._queue.max_thread_count if self.enable_queue else 0, max_threads
         )
-        if self.encrypt:
-            self.encryption_key = encryptor.get_key(
-                getpass.getpass("Enter key for encryption: ")
-            )
 
         if self.is_running:
             assert isinstance(
@@ -1425,9 +1423,6 @@ class Blocks(BlockContext):
             # Workaround by triggering the app endpoint
             requests.get(f"{self.local_url}startup-events")
 
-            if self.enable_queue:
-                if self.encrypt:
-                    raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
         if share is None:
@@ -1694,15 +1689,20 @@ class Blocks(BlockContext):
                 ):
                     load_fn, every = component.load_event_to_attach
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
-                    self.set_event_trigger(
+                    dep = self.set_event_trigger(
                         "load",
                         load_fn,
                         None,
                         component,
                         no_target=True,
-                        queue=False,
+                        # If every is None, for sure skip the queue
+                        # else, let the enable_queue parameter take precedence
+                        # this will raise a nice error message is every is used
+                        # without queue
+                        queue=False if every is None else None,
                         every=every,
                     )
+                    component.load_event = dep
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""

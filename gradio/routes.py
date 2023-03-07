@@ -233,7 +233,8 @@ class App(FastAPI):
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
                 return templates.TemplateResponse(
-                    template, {"request": request, "config": config}
+                    template,
+                    {"request": request, "config": config},
                 )
             except TemplateNotFound:
                 if blocks.share:
@@ -554,6 +555,10 @@ class App(FastAPI):
                 app.startup_events_triggered = True
                 return True
             return False
+
+        @app.get("/theme.css", response_class=PlainTextResponse)
+        def theme_css():
+            return PlainTextResponse(app.get_blocks().theme_css, media_type="text/css")
 
         @app.get("/robots.txt", response_class=PlainTextResponse)
         def robots_txt():

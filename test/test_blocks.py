@@ -347,13 +347,13 @@ class TestBlocksMethods:
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
         for i, dependency in enumerate(demo.config["dependencies"]):
-            if i == 0:
-                assert dependency["types"] == {"continuous": True, "generator": True}
-            if i == 1:
-                assert dependency["types"] == {"continuous": False, "generator": False}
-            if i == 2:
-                assert dependency["types"] == {"continuous": False, "generator": True}
             if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+            if i == 0:
+                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 1:
+                assert dependency["types"] == {"continuous": False, "generator": True}
+            if i == 2:
                 assert dependency["types"] == {"continuous": True, "generator": True}
 
     @pytest.mark.asyncio
@@ -414,15 +414,16 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.load_event
+                    assert not component.load_event_to_attach
                 else:
-                    assert component.load_event
+                    assert component.load_event_to_attach
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
-        assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+        # Queue should be explicitly false for these events
+        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
@@ -482,6 +483,22 @@ class TestBlocksPostprocessing:
 
         output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
+
+    def test_blocks_does_not_del_dict_keys_inplace(self):
+        with gr.Blocks() as demo:
+            im_list = [gr.Image() for i in range(2)]
+
+            def change_visibility(value):
+                return [gr.update(visible=value)] * 2
+
+            checkbox = gr.Checkbox(value=True, label="Show image")
+            checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
+
+        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state={})
+        assert output == [
+            {"visible": False, "__type__": "update"},
+            {"visible": False, "__type__": "update"},
+        ]
 
     def test_blocks_returns_correct_output_dict_single_key(self):
         with gr.Blocks() as demo:

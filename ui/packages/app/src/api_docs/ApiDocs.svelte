@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import { post_data } from "../api";
+	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 
 	import { represent_value } from "./utils";
@@ -72,7 +72,7 @@
 			return;
 		}
 		let [response, status_code] = await post_data(
-			`${root}run/${dependency.api_name}`,
+			`${root}/run/${dependency.api_name}`,
 			{
 				data: inputs
 			}
@@ -159,24 +159,25 @@
 		position: relative;
 		border-bottom: 1px solid var(--color-border-primary);
 		padding: var(--size-4) var(--size-6);
-		font-size: var(--scale-00);
+		font-size: var(--text-md);
 	}
 
 	@media (--screen-md) {
 		.banner-wrap {
-			font-size: var(--scale-1);
+			font-size: var(--text-xl);
 		}
 	}
 
 	.docs-wrap {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-6);
+		gap: var(--spacing-xxl);
 	}
 
 	.endpoint {
 		border-radius: var(--radius-md);
-		background: var(--api-background);
+		background: var(--color-background-primary);
 		padding: var(--size-6);
+		font-size: var(--text-md);
 	}
 </style>

@@ -97,7 +97,6 @@ interface = gr.Interface(
     inputs=inputs,
     outputs=output,
     layout="horizontal",
-    theme="huggingface",
     allow_flagging=False,
     live=False,
     examples=examples,

@@ -32,7 +32,6 @@ from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
@@ -178,7 +177,8 @@ class IOComponent(Component, Serializable):
         self.show_label = show_label
         self.interactive = interactive
 
-        self.load_event = None
+        # load_event is set in the Blocks.attach_load_events method
+        self.load_event: None | Dict[str, Any] = None
         self.load_event_to_attach = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = (
@@ -187,7 +187,7 @@ class IOComponent(Component, Serializable):
             else self.postprocess(initial_value)
         )
         if callable(load_fn):
-            self.load_event = self.attach_load_event(load_fn, every)
+            self.attach_load_event(load_fn, every)
 
     def get_config(self):
         config = {
@@ -224,16 +224,7 @@ class IOComponent(Component, Serializable):
 
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
-        if Context.root_block:
-            return Context.root_block.load(
-                callable,
-                None,
-                self,
-                no_target=True,
-                every=every,
-            )
-        else:
-            self.load_event_to_attach = (callable, every)
+        self.load_event_to_attach = (callable, every)
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
@@ -2458,10 +2449,8 @@ class File(
                 "is_file": True,
             }
 
-    def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
+        serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
             return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
@@ -2964,7 +2953,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -2976,6 +2965,9 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             interactive=interactive,
             **kwargs,
         )
+        if variant == "plain":
+            warnings.warn("'plain' variant deprecated, using 'secondary' instead.")
+            variant = "secondary"
         self.variant = variant
 
     def get_config(self):
@@ -3001,14 +2993,23 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def style(self, *, full_width: bool | None = None, **kwargs):
+    def style(
+        self,
+        *,
+        full_width: bool | None = None,
+        size: Literal["sm"] | Literal["lg"] | None = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
             full_width: If True, will expand to fill parent container.
+            size: Size of the button. Can be "sm" or "lg".
         """
         if full_width is not None:
             self._style["full_width"] = full_width
+        if size is not None:
+            self._style["size"] = size
 
         return Component.style(self, **kwargs)
 
@@ -3146,23 +3147,30 @@ class UploadButton(
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
+        serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
             return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 
-    def style(self, *, full_width: bool | None = None, **kwargs):
+    def style(
+        self,
+        *,
+        full_width: bool | None = None,
+        size: Literal["sm"] | Literal["lg"] | None = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
             full_width: If True, will expand to fill parent container.
+            size: Size of the button. Can be "sm" or "lg".
         """
         if full_width is not None:
             self._style["full_width"] = full_width
+        if size is not None:
+            self._style["size"] = size
 
         return Component.style(self, **kwargs)
 
@@ -3864,7 +3872,6 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         self,
         x: Any,
         save_dir: str = "",
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
     ) -> None | str:
         if x is None:

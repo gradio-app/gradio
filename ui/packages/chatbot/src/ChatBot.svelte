@@ -10,6 +10,7 @@
 		[string | FileData | null, string | FileData | null]
 	> | null;
 	export let pending_message: boolean = false;
+	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 
 	let div: HTMLDivElement;
@@ -59,6 +60,13 @@
 					>
 						{#if typeof message === "string"}
 							{@html message}
+							{#if feedback && j == 1}
+								<div class="feedback">
+									{#each feedback as f}
+										<button>{f}</button>
+									{/each}
+								</div>
+							{/if}
 						{:else if message !== null && message.mime_type.includes("audio")}
 							<audio
 								controls
@@ -87,7 +95,7 @@
 			{/each}
 		{/if}
 		{#if pending_message}
-			<div data-testid="bot" class="message pending">
+			<div class="message pending">
 				<div class="dot-flashing" />
 				&nbsp;
 				<div class="dot-flashing" />
@@ -100,7 +108,7 @@
 
 <style>
 	.wrap {
-		margin-top: var(--size-4);
+		padding: var(--block-padding);
 		height: 100%;
 		max-height: 480px;
 		overflow-y: auto;
@@ -109,8 +117,7 @@
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-4);
-		padding: var(--size-3);
+		gap: var(--spacing-xxl);
 	}
 
 	.message-wrap > div :global(img) {
@@ -123,54 +130,74 @@
 	}
 
 	.message {
+		position: relative;
+		align-self: flex-start;
 		border-width: 1px;
-		border-style: solid;
-		border-radius: var(--size-2);
-		padding: var(--size-3);
-		font-size: var(--scale-0);
-		line-height: var(--line-md);
+		border-radius: var(--radius-xxl);
+		background-color: var(--color-background-secondary);
+		padding: var(--spacing-xxl);
+		width: calc(100% - var(--spacing-xxl));
+		color: var(--body-text-color);
+		font-size: var(--text-lg);
+		line-height: var(--line-lg);
 		overflow-wrap: break-word;
 	}
-
 	.user {
-		margin-left: var(--size-6);
-		border-color: var(--color-accent-light);
+		align-self: flex-end;
 		border-bottom-right-radius: 0;
-		background: var(--color-accent-soft);
-		color: var(--color-text-body);
-	}
-	.pending,
-	.bot {
-		border-color: var(--color-border-primary);
-		background: var(--color-background-secondary);
 	}
 	.bot {
-		margin-right: var(--size-6);
 		border-bottom-left-radius: 0;
-		padding-left: var(--size-9);
+		padding-left: calc(2 * var(--spacing-xxl));
 	}
+	@media (max-width: 480px) {
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
+	}
+
+	/* Colors */
+	.bot,
 	.pending {
-		margin: 0 var(--size-6);
-	}
-	:global(.dark) .user {
 		border-color: var(--color-border-primary);
-		background: var(--color-grey-700);
-		color: var(--color-text-body);
+		background-color: var(--color-background-secondary);
+	}
+	.user {
+		border-color: var(--color-border-accent);
+		background-color: var(--color-accent-soft);
+	}
+	.feedback {
+		display: flex;
+		position: absolute;
+		top: var(--spacing-xl);
+		right: calc(var(--spacing-xxl) + var(--spacing-xl));
+		gap: var(--spacing-lg);
+		font-size: var(--text-sm);
+	}
+	.feedback button {
+		color: var(--text-color-subdued);
+	}
+	.feedback button:hover {
+		color: var(--body-text-color);
 	}
 
 	.pending {
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		align-self: center;
 		gap: 2px;
 	}
 	.dot-flashing {
 		animation: dot-flashing 1s infinite linear alternate;
 		border-radius: 5px;
-		background-color: var(--color-text-subdued);
+		background-color: var(--body-text-color);
 		width: 5px;
 		height: 5px;
-		color: var(--color-text-subdued);
+		color: var(--body-text-color);
 	}
 	.dot-flashing:nth-child(2) {
 		animation-delay: 0.33s;

@@ -6,7 +6,7 @@
 	import JSONNode from "./JSONNode.svelte";
 
 	export let value: any = {};
-	export let copy_to_clipboard: string = "copy to clipboard";
+	export let copy_to_clipboard: string = "copy json";
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -48,12 +48,13 @@
 				out:fade={{ duration: 350 }}
 				class="copy-success "
 			>
-				COPIED
+				copied!
 			</span>
 		{/if}
 	</button>
-
-	<JSONNode {value} depth={0} />
+	<div class="json-holder">
+		<JSONNode {value} depth={0} />
+	</div>
 {:else}
 	<Empty>
 		<JSONIcon />
@@ -61,38 +62,34 @@
 {/if}
 
 <style>
+	.json-holder {
+		padding: var(--size-2);
+	}
 	button {
 		display: flex;
 		position: absolute;
-		top: 0;
-		right: 0;
+		top: var(--block-label-margin);
+		right: var(--block-label-margin);
 		align-items: center;
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-right: none;
-		border-top-right-radius: inherit;
-		border-bottom-left-radius: var(--radius-lg);
-		background: var(--block_label-background);
+		border-radius: var(--block-label-right-radius);
+		background: var(--block-label-background);
+		padding: var(--block-label-padding);
 		overflow: hidden;
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 		font: var(--font-sans);
-		font-size: var(--scale-000);
-	}
-
-	.copy-text {
-		padding: var(--size-1) var(--size-2);
+		font-size: var(--button-small-text-size);
 	}
 
 	.copy-success {
 		display: block;
 		position: absolute;
-		background: var(--block_label-background);
-		padding: var(--size-1) var(--size-2);
+		background: var(--block-label-background);
 		width: var(--size-full);
-		color: var(--color-functional-success);
-		font-weight: bold;
 		text-align: left;
 	}
 </style>

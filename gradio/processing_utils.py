@@ -22,7 +22,7 @@ from fastapi import UploadFile
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps, PngImagePlugin
 
-from gradio import encryptor, utils
+from gradio import utils
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -62,11 +62,12 @@ def decode_base64_to_image(encoding: str) -> Image.Image:
     return img
 
 
-def encode_url_or_file_to_base64(path: str | Path, encryption_key: bytes | None = None):
-    if utils.validate_url(str(path)):
-        return encode_url_to_base64(str(path), encryption_key=encryption_key)
+def encode_url_or_file_to_base64(path: str | Path):
+    path = str(path)
+    if utils.validate_url(path):
+        return encode_url_to_base64(path)
     else:
-        return encode_file_to_base64(str(path), encryption_key=encryption_key)
+        return encode_file_to_base64(path)
 
 
 def get_mimetype(filename: str) -> str | None:
@@ -89,11 +90,9 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
-def encode_file_to_base64(f, encryption_key=None):
+def encode_file_to_base64(f):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
-        if encryption_key:
-            encoded_string = encryptor.decrypt(encryption_key, encoded_string)
         base64_str = str(encoded_string, "utf-8")
         mimetype = get_mimetype(f)
         return (
@@ -104,10 +103,8 @@ def encode_file_to_base64(f, encryption_key=None):
         )
 
 
-def encode_url_to_base64(url, encryption_key=None):
+def encode_url_to_base64(url):
     encoded_string = base64.b64encode(requests.get(url).content)
-    if encryption_key:
-        encoded_string = encryptor.decrypt(encryption_key, encoded_string)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (
@@ -274,9 +271,7 @@ def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(
-    encoding, encryption_key=None, file_path=None, dir=None, prefix=None
-):
+def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
@@ -299,8 +294,6 @@ def decode_base64_to_file(
             suffix="." + extension,
             dir=dir,
         )
-    if encryption_key is not None:
-        data = encryptor.encrypt(encryption_key, data)
     file_obj.write(data)
     file_obj.flush()
     return file_obj
@@ -383,9 +376,12 @@ class TempFileManager:
         file_hash = self.hash_url(url)
         return prefix + file_hash + extension
 
-    def get_temp_base64_path(self, base64_encoding: str, prefix: str) -> str:
-        extension = get_extension(base64_encoding)
-        extension = "." + extension if extension else ""
+    def get_temp_base64_path(
+        self, base64_encoding: str, prefix: str, extension: str
+    ) -> str:
+        guess_extension = get_extension(base64_encoding)
+        if not extension and guess_extension:
+            extension = "." + guess_extension
         base64_hash = self.hash_base64(base64_encoding)
         return prefix + base64_hash + extension
 
@@ -443,9 +439,12 @@ class TempFileManager:
         the file doesn't already exist. Otherwise returns the path to the existing file."""
         f = tempfile.NamedTemporaryFile(delete=False)
         temp_dir = Path(f.name).parent
-        prefix = self.get_prefix_and_extension(file_name)[0] if file_name else ""
-
-        temp_file_path = self.get_temp_base64_path(base64_encoding, prefix=prefix)
+        prefix, extension = (
+            self.get_prefix_and_extension(file_name) if file_name else ("", "")
+        )
+        temp_file_path = self.get_temp_base64_path(
+            base64_encoding, prefix=prefix, extension=extension
+        )
         f.name = str(temp_dir / temp_file_path)
         full_temp_file_path = str(utils.abspath(f.name))
 
