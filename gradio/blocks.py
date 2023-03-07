@@ -761,7 +761,6 @@ class Blocks(BlockContext):
 
         inputs = list(inputs)
         processed_inputs = self.serialize_data(fn_index, inputs)
-        print("processed_inputs", processed_inputs)
         batch = self.dependencies[fn_index]["batch"]
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
@@ -774,7 +773,6 @@ class Blocks(BlockContext):
             state={},
         )
         outputs = outputs["data"]
-        print("outputs", outputs)
 
         if batch:
             outputs = [out[0] for out in outputs]
@@ -782,7 +780,6 @@ class Blocks(BlockContext):
         processed_outputs = self.deserialize_data(fn_index, outputs)
         processed_outputs = utils.resolve_singleton(processed_outputs)
 
-        print("processed_outputs", processed_outputs)
 
         return processed_outputs
 
@@ -1028,16 +1025,12 @@ class Blocks(BlockContext):
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
-            print("inputs", inputs)
             inputs = self.preprocess_data(fn_index, inputs, state)
-            print("inputs", inputs)
             iterator = iterators.get(fn_index, None) if iterators else None
             result = await self.call_function(
                 fn_index, inputs, iterator, request, event_id
             )
-            print("result", result)
             data = self.postprocess_data(fn_index, result["prediction"], state)
-            print("data", data)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
         block_fn.total_runtime += result["duration"]
