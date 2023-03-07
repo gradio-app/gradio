@@ -427,7 +427,6 @@ class TempFileManager:
     ) -> str:
         """Converts a base64 encoding to a file and returns the path to the file if
         the file doesn't already exist. Otherwise returns the path to the existing file."""
-<<<<<<< HEAD
         temp_dir = self.hash_base64(base64_encoding)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         Path(temp_dir).mkdir(exist_ok=True, parents=True)
@@ -442,17 +441,6 @@ class TempFileManager:
         if file_name:
             print("file_name", file_name, Path(file_name).name)
             f.name = Path(file_name).name
-=======
-        f = tempfile.NamedTemporaryFile(delete=False)
-        temp_dir = Path(f.name).parent
-        prefix, extension = (
-            self.get_prefix_and_extension(file_name) if file_name else ("", "")
-        )
-        temp_file_path = self.get_temp_base64_path(
-            base64_encoding, prefix=prefix, extension=extension
-        )
-        f.name = str(temp_dir / temp_file_path)
->>>>>>> main
         full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
