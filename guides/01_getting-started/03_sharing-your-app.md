@@ -108,12 +108,12 @@ To embed with IFrames instead (if you cannot add javascript to your website, for
 &lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
 ```
 
-Again, you cand `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
+Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
 
-For example: 
+You'll also need to add a fixed `height` manually as well as other regular iframe attributes. For example: 
 
 ```html
-&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/iframe>
+&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space" frameBorder="0" height="900">&lt;/iframe>
 ```
 
 ## API Page
