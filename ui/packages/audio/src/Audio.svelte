@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { Button } from "@gradio/button";
 	export interface AudioData extends FileData {
 		crop_min?: number;
 		crop_max?: number;
@@ -248,25 +249,30 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
+<BlockLabel
+	{show_label}
+	Icon={Music}
+	float={source === "upload" && value === null}
+	label={label || "Audio"}
+/>
 {#if value === null || streaming}
 	{#if source === "microphone"}
 		<div class="mic-wrap">
 			{#if recording}
-				<button class="stop-button" on:click={stop}>
+				<Button size="sm" on:click={stop}>
 					<span class="record-icon">
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
 					Stop recording
-				</button>
+				</Button>
 			{:else}
-				<button on:click={record}>
+				<Button size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
 					Record from microphone
-				</button>
+				</Button>
 			{/if}
 		</div>
 	{:else if source === "upload"}
@@ -279,7 +285,7 @@
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
 		editable
-		absolute={false}
+		absolute={true}
 	/>
 
 	<audio
@@ -307,27 +313,8 @@
 
 <style>
 	.mic-wrap {
-		margin-top: var(--size-6);
+		position: absolute;
 		padding: var(--size-2);
-	}
-
-	.stop-button {
-		background: rgba(239 68 68 / 0.1);
-		color: var(--color-red-500);
-	}
-
-	button {
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
-		background: var(--color-background-tertiary);
-		padding: var(--size-0-5) var(--size-2);
-		font-size: var(--scale-00);
-		line-height: var(--line-md);
-		white-space: nowrap;
 	}
 
 	.record-icon {

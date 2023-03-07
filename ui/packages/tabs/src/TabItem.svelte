@@ -34,8 +34,10 @@
 	div {
 		display: flex;
 		position: relative;
-		border: 2px solid var(--color-border-primary);
+		border: 1px solid var(--color-border-primary);
 		border-top: none;
-		padding: var(--size-2);
+		border-bottom-right-radius: var(--container-radius);
+		border-bottom-left-radius: var(--container-radius);
+		padding: var(--block-padding);
 	}
 </style>

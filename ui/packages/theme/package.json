@@ -8,8 +8,6 @@
 	"license": "ISC",
 	"private": true,
 	"scripts": {
-		"generate:theme": "node src/generate_theme.cjs",
-		"generate:tokens": "pollen -c src/pollen.config.cjs",
-		"generate": "run-p generate:theme generate:tokens"
+		"generate": "pollen -c src/pollen.config.cjs"
 	}
 }
