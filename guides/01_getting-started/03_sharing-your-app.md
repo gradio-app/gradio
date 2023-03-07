@@ -40,15 +40,17 @@ You can either drag and drop a folder containing your Gradio model and all relat
 
 ## Embedding Hosted Spaces
 
-Once you have hosted your app on Hugging Face Spaces, you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interative demos even in static websites, such as GitHub pages.
+Once you have hosted your app on Hugging Face Spaces (or on your own server), you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interative demos even in static websites, such as GitHub pages.
 
-There are two ways to embed your Gradio demos, hosted on Hugging Face Spaces. You can find quick links to both options directly on the Space page, in the "Embed this Space" dropdown option:
+There are two ways to embed your Gradio demos. You can find quick links to both options directly on the Hugging Face Space page, in the "Embed this Space" dropdown option:
 
 ![Embed this Space dropdown option](/assets/guides/embed_this_space.png)
 
 ### Embedding with Web Components
 
-Using web components is faster then iframes, and will automatically adjust to other content on your site. To embed with Web Components:
+Web components typically offer a better experience to users than IFrames. Web components load lazily, meaning that they won't slow down the loading time of your website, and they automatically adjust their height based on the size of the Gradio app. 
+
+To embed with Web Components:
 
 1. Import the gradio JS library into into your site by adding the script below in your site (replace {GRADIO_VERSION} in the URL with the library version of Gradio you are using). 
 
@@ -62,7 +64,7 @@ src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
     ```html
 &lt;gradio-app src="https://$your_space_host.hf.space">&lt;/gradio-app>
     ```
-element where you want to place the app. Set the `src=` attribute to your Space's embed URL, which you can find in the Embed this Space button. For example:
+element where you want to place the app. Set the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button. For example:
 
     ```html
 &lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
@@ -78,20 +80,42 @@ fetch("https://pypi.org/pypi/gradio/json"
 });
 </script>
 
+You can see examples of how web components look <a href="https://www.gradio.app">on the Gradio landing page</a>.
+
+You can also customize the appearance and behavior of your web component with attributes that you pass into the `<gradio-app>` tag:
+
+* `src`: as we've seen, the `src` attributes links to the URL of the hosted Gradio demo that you would like to embed
+* `space`: an optional shorthand if your Gradio demo is hosted on Hugging Face Space. Accepts a `username/space_name` instead of a full URL. Example: `gradio/Echocardiogram-Segmentation`. If this attribute attribute is provided, then `src` does not need to be provided.
+* `control_page_title`: a boolean designating whether the html title of the page should be set to the title of the Gradio app (by default `"false"`)
+* `initial_height`: the intial height of the web component while it is loading the Gradio app, (by default `"300px"`). Note that the final height is set based on the size of the Gradio app.
+* `container`: whether to show the border frame and information about where the Space is hosted (by default `"true"`)
+* `info`: whether to show just the information about where the Space is hosted underneath the embedded app (by default `"true"`)
+* `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
+* `eager`: whether to load the Gradio app as soon as the page loads (by default `"false"`)
+
+Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
+
+```html
+&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
+initial_height="0px">&lt;/gradio-app>
+```
+
 _Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
 
 ### Embedding with IFrames
 
-To embed with IFrames instead, simply add this element:
+To embed with IFrames instead (if you cannot add javascript to your website, for example),  add this element:
 
 ```html
 &lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
 ```
 
-For example: 
+Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
+
+You'll also need to add a fixed `height` manually as well as other regular iframe attributes. For example: 
 
 ```html
-&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/iframe>
+&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space" frameBorder="0" height="900">&lt;/iframe>
 ```
 
 ## API Page
