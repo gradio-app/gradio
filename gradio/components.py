@@ -38,6 +38,7 @@ from gradio.events import (
     Clearable,
     Clickable,
     Editable,
+    EventListener,
     Playable,
     Releaseable,
     Streamable,
@@ -76,6 +77,10 @@ class Component(Block):
     """
     A base class for defining the methods that all gradio components should have.
     """
+
+    def __init__(self, *args, **kwargs):
+        Block.__init__(self, *args, **kwargs)
+        EventListener.__init__(self)
 
     def __str__(self):
         return self.__repr__()
@@ -169,7 +174,7 @@ class IOComponent(Component, Serializable):
         every: float | None = None,
         **kwargs,
     ):
-        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
+        Component.__init__(self, elem_id=elem_id, visible=visible, **kwargs)
 
         self.label = label
         self.info = info

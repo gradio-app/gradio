@@ -230,137 +230,100 @@
 			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
 		}
 
-		dependencies.forEach(
-			(
-				{
-					targets,
-					trigger,
-					inputs,
-					outputs,
-					queue,
+		dependencies.forEach((dep, i) => {
+			let {
+				targets,
+				trigger,
+				inputs,
+				outputs,
+				queue,
+				backend_fn,
+				frontend_fn,
+				cancels
+			} = dep;
+			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
+				t,
+				instance_map[t]
+			]);
+
+			const trigger_api_call = (dep: Dependency, i: number) => {
+				if (loading_status.get_status_for_fn(i) === "pending") {
+					return;
+				}
+				function handle_update(output: any, complete: boolean) {
+					output.data.forEach((value: any, i: number) => {
+						if (
+							typeof value === "object" &&
+							value !== null &&
+							value.__type__ === "update"
+						) {
+							for (const [update_key, update_value] of Object.entries(value)) {
+								if (update_key === "__type__") {
+									continue;
+								} else {
+									instance_map[dep.outputs[i]].props[update_key] = update_value;
+								}
+							}
+							rootNode = rootNode;
+						} else {
+							instance_map[dep.outputs[i]].props.value = value;
+						}
+					});
+					if (complete) {
+						dependencies.forEach((d, j) => {
+							if (d.after === i) {
+								trigger_api_call(d, j);
+							}
+						});
+					}
+				}
+				const req = fn({
+					action: "predict",
 					backend_fn,
 					frontend_fn,
-					cancels,
-					...rest
-				},
-				i
-			) => {
-				const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-					t,
-					instance_map[t]
-				]);
+					payload: {
+						fn_index: i,
+						data: inputs.map((id) => instance_map[id].props.value)
+					},
+					output_data: outputs.map((id) => instance_map[id].props.value),
+					queue: queue === null ? enable_queue : queue,
+					queue_callback: handle_update,
+					loading_status: loading_status,
+					cancels
+				});
 
-				// page events
-				if (
-					targets.length === 0 &&
-					!handled_dependencies[i]?.includes(-1) &&
-					trigger === "load" &&
-					// check all input + output elements are on the page
-					outputs.every((v) => instance_map?.[v].instance) &&
-					inputs.every((v) => instance_map?.[v].instance)
-				) {
-					const req = fn({
-						action: "predict",
-						backend_fn,
-						frontend_fn,
-						payload: {
-							fn_index: i,
-							data: inputs.map((id) => instance_map[id].props.value)
-						},
-						queue: queue === null ? enable_queue : queue,
-						queue_callback: handle_update,
-						loading_status: loading_status,
-						cancels
+				if (!(queue === null ? enable_queue : queue)) {
+					req.then((data) => {
+						handle_update(data, true);
 					});
-
-					function handle_update(output: any) {
-						output.data.forEach((value: any, i: number) => {
-							if (
-								typeof value === "object" &&
-								value !== null &&
-								value.__type__ === "update"
-							) {
-								for (const [update_key, update_value] of Object.entries(
-									value
-								)) {
-									if (update_key === "__type__") {
-										continue;
-									} else {
-										instance_map[outputs[i]].props[update_key] = update_value;
-									}
-								}
-								rootNode = rootNode;
-							} else {
-								instance_map[outputs[i]].props.value = value;
-							}
-						});
-					}
-
-					if (!(queue === null ? enable_queue : queue)) {
-						req.then(handle_update);
-					}
-
-					handled_dependencies[i] = [-1];
 				}
+			};
 
-				target_instances
-					.filter((v) => !!v && !!v[1])
-					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-						if (handled_dependencies[i]?.includes(id) || !instance) return;
-						instance?.$on(trigger, () => {
-							if (loading_status.get_status_for_fn(i) === "pending") {
-								return;
-							}
-
-							// page events
-							const req = fn({
-								action: "predict",
-								backend_fn,
-								frontend_fn,
-								payload: {
-									fn_index: i,
-									data: inputs.map((id) => instance_map[id].props.value)
-								},
-								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue,
-								queue_callback: handle_update,
-								loading_status: loading_status,
-								cancels
-							});
-
-							if (!(queue === null ? enable_queue : queue)) {
-								req.then(handle_update);
-							}
-						});
-
-						function handle_update(output: any) {
-							output.data.forEach((value: any, i: number) => {
-								if (
-									typeof value === "object" &&
-									value !== null &&
-									value.__type__ === "update"
-								) {
-									for (const [update_key, update_value] of Object.entries(
-										value
-									)) {
-										if (update_key === "__type__") {
-											continue;
-										} else {
-											instance_map[outputs[i]].props[update_key] = update_value;
-										}
-									}
-									rootNode = rootNode;
-								} else {
-									instance_map[outputs[i]].props.value = value;
-								}
-							});
-						}
-
-						if (!handled_dependencies[i]) handled_dependencies[i] = [];
-						handled_dependencies[i].push(id);
-					});
+			// page events
+			if (
+				targets.length === 0 &&
+				!handled_dependencies[i]?.includes(-1) &&
+				trigger === "load" &&
+				// check all input + output elements are on the page
+				outputs.every((v) => instance_map?.[v].instance) &&
+				inputs.every((v) => instance_map?.[v].instance)
+			) {
+				trigger_api_call(dep, i);
+				handled_dependencies[i] = [-1];
 			}
-		);
+
+			target_instances
+				.filter((v) => !!v && !!v[1])
+				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					instance?.$on(trigger, () => {
+						trigger_api_call(dep, i);
+					});
+
+					if (!handled_dependencies[i]) handled_dependencies[i] = [];
+					handled_dependencies[i].push(id);
+				});
+		});
 	}
 
 	function handle_destroy(id: number) {

@@ -20,7 +20,11 @@ Let's start with a simple demo, with no actual model. Our bot will randomly resp
 $code_chatbot_simple_demo
 $demo_chatbot_simple_demo
 
-The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. We pass the entire history of the chatbot to the function and back to the component. To clear the chatbot, we pass it `None`.
+The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. We pass the entire history of the chatbot to the function and back to the component. 
+
+When a user submits a message, we first immediately add the message to the history, and then we add the the bot response in a consecutive event listener. Note the use of `.then()` to chain these listeners. 
+
+To clear the chatbot, we pass it `None`.
 
 ### Using a Model
 

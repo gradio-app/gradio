@@ -37,6 +37,7 @@ export interface Dependency {
 	api_name: string | null;
 	cancels: Array<number>;
 	types: DependencyTypes;
+	after?: number;
 }
 
 interface TypeDescription {
