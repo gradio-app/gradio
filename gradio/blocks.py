@@ -780,7 +780,6 @@ class Blocks(BlockContext):
         processed_outputs = self.deserialize_data(fn_index, outputs)
         processed_outputs = utils.resolve_singleton(processed_outputs)
 
-
         return processed_outputs
 
     async def call_function(
