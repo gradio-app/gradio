@@ -13,6 +13,7 @@ import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
+import secrets
 from typing import Dict, Set, Tuple
 
 import aiofiles
@@ -367,11 +368,6 @@ class TempFileManager:
         prefix = utils.strip_invalid_filename_characters(prefix)
         return prefix, extension
 
-    def get_temp_url_path(self, url: str) -> Tuple[str, str]:
-        prefix, extension = self.get_prefix_and_extension(url)
-        file_hash = self.hash_url(url)
-        return file_hash, (prefix + extension)
-
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
@@ -390,30 +386,39 @@ class TempFileManager:
         return full_temp_file_path
 
     async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
-        prefix, extension = self.get_prefix_and_extension(file.filename)
-        output_file_obj = tempfile.NamedTemporaryFile(
-            delete=False, dir=upload_dir, suffix=extension, prefix=f"{prefix}_"
-        )
-        async with aiofiles.open(output_file_obj.name, "wb") as output_file:
+        temp_dir = secrets.token_hex(20)  # Since the full file is being uploaded anyways, there is no benefit to hashing the file. 
+        temp_dir = Path(upload_dir) / temp_dir
+        output_file_obj = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        
+        if file.filename:
+            file_name = Path(file.filename).name
+            output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
+        
+        full_temp_file_path = str(temp_dir / output_file_obj.name)
+        
+        async with aiofiles.open(full_temp_file_path, "wb") as output_file:
             while True:
                 content = await file.read(100 * 1024 * 1024)
                 if not content:
                     break
                 await output_file.write(content)
-        return str(utils.abspath(output_file_obj.name))
+        
+        return full_temp_file_path
 
     def download_temp_copy_if_needed(self, url: str) -> str:
         """Downloads a file and makes a temporary file path for a copy if does not already
         exist. Otherwise returns the path to the existing temp file."""
-        f = tempfile.NamedTemporaryFile()
-        temp_dir = Path(f.name).parent
+        temp_dir = self.hash_url(url)
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
+        temp_dir.mkdir(exist_ok=True, parents=True)
 
-        temp_file_path = self.get_temp_url_path(url)
-        f.name = str(temp_dir / temp_file_path)
-        full_temp_file_path = str(utils.abspath(f.name))
+        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        prefix, extension = self.get_prefix_and_extension(url)
+        file_name = prefix + extension
+        f.name = utils.strip_invalid_filename_characters(file_name)
+        full_temp_file_path = str(temp_dir / f.name)
 
         if not Path(full_temp_file_path).exists():
-            Path(full_temp_file_path).parent.mkdir(exist_ok=True, parents=True)            
             with requests.get(url, stream=True) as r:
                 with open(full_temp_file_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
