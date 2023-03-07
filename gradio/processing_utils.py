@@ -5,7 +5,6 @@ import hashlib
 import json
 import mimetypes
 import os
-import pathlib
 import secrets
 import shutil
 import subprocess
@@ -404,7 +403,7 @@ class TempFileManager:
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        
+
         f.name = utils.strip_invalid_filename_characters(Path(url).name)
         full_temp_file_path = str(temp_dir / f.name)
 
@@ -776,7 +775,7 @@ def video_is_playable(video_filepath: str) -> bool:
         .ogg -> theora
     """
     try:
-        container = pathlib.Path(video_filepath).suffix.lower()
+        container = Path(video_filepath).suffix.lower()
         probe = FFprobe(
             global_options="-show_format -show_streams -select_streams v -print_format json",
             inputs={video_filepath: None},
@@ -797,7 +796,7 @@ def video_is_playable(video_filepath: str) -> bool:
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
     try:
-        output_path = pathlib.Path(video_path).with_suffix(".mp4")
+        output_path = Path(video_path).with_suffix(".mp4")
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             shutil.copy2(video_path, tmp_file.name)
             # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
