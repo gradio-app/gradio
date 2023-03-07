@@ -141,6 +141,7 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
+        after: int | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -232,9 +233,10 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
+            "after": after,
         }
         Context.root_block.dependencies.append(dependency)
-        return dependency
+        return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
         return {

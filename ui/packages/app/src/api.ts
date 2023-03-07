@@ -239,7 +239,7 @@ export const fn =
 							!data.success ? data.output.error : null
 						);
 						if (data.success) {
-							queue_callback(data.output);
+							queue_callback(data.output, false);
 						}
 						break;
 					case "process_completed":
@@ -253,7 +253,7 @@ export const fn =
 							!data.success ? data.output.error : null
 						);
 						if (data.success) {
-							queue_callback(data.output);
+							queue_callback(data.output, true);
 						}
 						websocket.close();
 						return;
