@@ -9,7 +9,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a section on security and access when sharing Gradio apps by [@abidlabs](https://github.com/abidlabs) in [PR 3408](https://github.com/gradio-app/gradio/pull/3408) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
