@@ -17,7 +17,7 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		let response = await fetch(root + "login", {
+		let response = await fetch(root + "/login", {
 			method: "POST",
 			body: formData
 		});
