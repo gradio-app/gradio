@@ -484,6 +484,22 @@ class TestBlocksPostprocessing:
         output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
 
+    def test_blocks_does_not_del_dict_keys_inplace(self):
+        with gr.Blocks() as demo:
+            im_list = [gr.Image() for i in range(2)]
+
+            def change_visibility(value):
+                return [gr.update(visible=value)] * 2
+
+            checkbox = gr.Checkbox(value=True, label="Show image")
+            checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
+
+        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state={})
+        assert output == [
+            {"visible": False, "__type__": "update"},
+            {"visible": False, "__type__": "update"},
+        ]
+
     def test_blocks_returns_correct_output_dict_single_key(self):
         with gr.Blocks() as demo:
             num = gr.Number()
