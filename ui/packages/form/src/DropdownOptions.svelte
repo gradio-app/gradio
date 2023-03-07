@@ -43,12 +43,12 @@
 		z-index: var(--layer-5);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--radius-lg);
+		border-radius: var(--container-radius);
 		background: var(--color-background-primary);
 		width: var(--size-full);
 		max-height: var(--size-32);
 		overflow: auto;
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		list-style: none;
 	}
 

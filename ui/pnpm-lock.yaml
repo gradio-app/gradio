@@ -165,6 +165,7 @@ importers:
   packages/audio:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/button': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       extendable-media-recorder: ^7.0.2
@@ -172,6 +173,7 @@ importers:
       svelte-range-slider-pips: ^2.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/button': link:../button
       '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
       extendable-media-recorder: 7.0.2

@@ -44,13 +44,13 @@
 
 	.attention {
 		font-weight: var(--weight-bold);
-		font-size: var(--scale-3);
+		font-size: var(--text-lg);
 	}
 
 	.attention code {
 		border: none;
 		background: none;
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 		font-weight: var(--weight-bold);
 	}
 
@@ -59,11 +59,11 @@
 		top: var(--size-5);
 		right: var(--size-6);
 		width: var(--size-4);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	button:hover {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	@media (--screen-md) {

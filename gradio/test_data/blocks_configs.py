@@ -147,7 +147,6 @@ XRAY_CONFIG = {
             "props": {"type": "form", "visible": True, "style": {}},
         },
     ],
-    "theme": "default",
     "css": None,
     "title": "Gradio",
     "is_space": False,
@@ -386,7 +385,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {"type": "form", "visible": True, "style": {}},
         },
     ],
-    "theme": "default",
     "css": None,
     "title": "Gradio",
     "is_space": False,
@@ -615,7 +613,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             },
         },
     ],
-    "theme": "default",
     "layout": {
         "id": 0,
         "children": [

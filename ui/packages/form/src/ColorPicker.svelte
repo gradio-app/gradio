@@ -30,8 +30,7 @@
 <style>
 	input {
 		position: relative;
-		background: var(--color-background-tertiary);
-		font-size: var(--scale-00);
+		background: var(--color-background-primary);
 		line-height: var(--line-sm);
 	}
 </style>

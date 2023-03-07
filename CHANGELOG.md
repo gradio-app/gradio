@@ -14,12 +14,15 @@ No changes to highlight.
 No changes to highlight.
 
 ## Breaking Changes:
-No changes to highlight.
+
+Add Chinese Readme.md by [@uanu2002](https://github.com/uanu2002) in [PR 3394](https://github.com/gradio-app/gradio/pull/3394)
 
 ## Full Changelog:
+
 No changes to highlight.
 
 ## Contributors Shoutout:
+
 No changes to highlight.
 
 # 3.20.1
@@ -27,7 +30,9 @@ No changes to highlight.
 ## New Features:
 - Add `height` kwarg to style in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3369](https://github.com/gradio-app/gradio/pull/3369)
 
-    ```chatbot = gr.Chatbot().style(height=500)```
+```python
+chatbot = gr.Chatbot().style(height=500)
+```
 
 ## Bug Fixes:
 - Ensure uploaded images are always shown in the sketch tool by [@pngwn](https://github.com/pngwn) in [PR 3386](https://github.com/gradio-app/gradio/pull/3386)
@@ -154,7 +159,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Added backend support for themes by [@aliabid94](https://github.com/aliabid94) in [PR 2931](https://github.com/gradio-app/gradio/pull/2931)
+* Added support for button sizes "lg" (default) and "sm".
 
 ## Contributors Shoutout:
 No changes to highlight.
