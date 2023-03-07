@@ -80,7 +80,7 @@ fetch("https://pypi.org/pypi/gradio/json"
 });
 </script>
 
-You can see examples of web components look <a href="https://www.gradio.app">on the Gradio landing page</a>.
+You can see examples of how web components look <a href="https://www.gradio.app">on the Gradio landing page</a>.
 
 You can also customize the appearance and behavior of your web component with attributes that you pass into the `<gradio-app>` tag:
 
@@ -96,7 +96,8 @@ You can also customize the appearance and behavior of your web component with at
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
 
 ```html
-&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" initial_height="0px">&lt;/gradio-app>
+&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
+initial_height="0px">&lt;/gradio-app>
 ```
 
 _Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
