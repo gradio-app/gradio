@@ -1707,8 +1707,7 @@ class Image(
         # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        Streamable.stream(
-            self,
+        super().stream(
             fn,
             inputs,
             outputs,
@@ -2230,8 +2229,7 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        Streamable.stream(
-            self,
+        super().stream(
             fn,
             inputs,
             outputs,
