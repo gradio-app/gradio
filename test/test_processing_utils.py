@@ -1,8 +1,8 @@
 import os
-import pathlib
 import shutil
 import tempfile
 from copy import deepcopy
+from pathlib import Path
 from unittest.mock import patch
 
 import ffmpy
@@ -156,6 +156,7 @@ class TestTempFileManager:
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         assert mock_copy.called
         assert len(temp_file_manager.temp_files) == 1
+        assert Path(f).name == "cheetah1.jpg"
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         assert len(temp_file_manager.temp_files) == 1
@@ -164,6 +165,7 @@ class TestTempFileManager:
             "gradio/test_data/cheetah1-copy.jpg"
         )
         assert len(temp_file_manager.temp_files) == 2
+        assert Path(f).name == "cheetah1-copy.jpg"
 
     def test_base64_to_temp_file_if_needed(self):
         temp_file_manager = processing_utils.TempFileManager()
@@ -323,7 +325,7 @@ class TestVideoProcessing:
                 tmp_not_playable_vid.name
             )
             # If the conversion succeeded it'd be .mp4
-            assert pathlib.Path(playable_vid).suffix == ".avi"
+            assert Path(playable_vid).suffix == ".avi"
 
 
 def test_download_private_file():
