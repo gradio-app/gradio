@@ -2,7 +2,6 @@ import gradio as gr
 import random
 import time
 
-
 def xray_model(diseases, img):
     time.sleep(4)
     return [{disease: random.random() for disease in diseases}]
@@ -25,6 +24,7 @@ With this model you can lorem ipsum
         info="Select the diseases you want to scan for.",
         choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
     )
+    slider = gr.Slider(0, 100)
 
     with gr.Tab("X-ray") as x_tab:
         with gr.Row():
@@ -50,7 +50,7 @@ With this model you can lorem ipsum
             api_name="ct_model"
         )
 
-    upload_btn = gr.Button("Upload Results")
+    upload_btn = gr.Button("Upload Results", variant="primary")
     upload_btn.click(
         lambda ct, xr: time.sleep(5),
         inputs=[ct_results, xray_results],

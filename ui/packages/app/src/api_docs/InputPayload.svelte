@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import { Button } from "@gradio/button";
+	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
 	export let dependency_failures: boolean[][];
@@ -22,42 +23,41 @@
 	</div>
 	Input Payload
 </h4>
-<div class="payload-details">
-	&#123;
-	<br />
-	<div class="first-level">"data": [</div>
-	<br />
-	{#each dependency.inputs as component_id, component_index}
-		<div class="second-level">
-			<input
-				class=""
-				type="text"
-				bind:value={dependency_inputs[dependency_index][component_index]}
-			/>
-			{#if dependency_failures[dependency_index][component_index]}
-				<span class="error">ERROR</span>
-			{/if}
+<Block>
+	<div class="payload-details">
+		&#123;
+		<div class="first-level">"data": [</div>
+		{#each dependency.inputs as component_id, component_index}
+			<div class="second-level">
+				<input
+					class=""
+					type="text"
+					bind:value={dependency_inputs[dependency_index][component_index]}
+				/>
+				{#if dependency_failures[dependency_index][component_index]}
+					<span class="error">ERROR</span>
+				{/if}
 
-			<span class="type">
-				: {instance_map[component_id].documentation?.type?.input_payload ||
-					instance_map[component_id].documentation?.type?.payload},
-			</span>
-			<span class="desc">
-				// represents {instance_map[component_id].documentation?.description
-					?.input_payload ||
-					instance_map[component_id].documentation?.description?.payload} of
-				{format_label(instance_map[component_id].props.label)}
-				<span class="name">
-					{instance_map[component_id].props.name}
+				<span class="type">
+					: {instance_map[component_id].documentation?.type?.input_payload ||
+						instance_map[component_id].documentation?.type?.payload},
 				</span>
-				component
-			</span>
-		</div>
-		<br />
-	{/each}
-	<div class="second-level">]</div>
-	&#125;
-</div>
+				<span class="desc">
+					// represents {instance_map[component_id].documentation?.description
+						?.input_payload ||
+						instance_map[component_id].documentation?.description?.payload} of
+					{format_label(instance_map[component_id].props.label)}
+					<span class="name">
+						{instance_map[component_id].props.name}
+					</span>
+					component
+				</span>
+			</div>
+		{/each}
+		<div class="first-level">]</div>
+		&#125;
+	</div>
+</Block>
 
 <span class="space" />
 <Button
@@ -69,6 +69,10 @@
 </Button>
 
 <style>
+	.payload-details {
+		font-family: var(--font-mono);
+	}
+
 	.space {
 		display: flex;
 		flex-basis: 1;
@@ -80,7 +84,7 @@
 		align-items: center;
 		margin-top: var(--size-6);
 		margin-bottom: var(--size-3);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--weight-bold);
 	}
 
@@ -109,50 +113,40 @@
 		background: var(--color-grey-400);
 	}
 
-	.payload-details {
-		display: block;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-tertiary);
-		padding: var(--size-4);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+	.details {
 		font-family: var(--font-mono);
 	}
 
-	input {
+	input[type="text"] {
 		--ring-color: transparent;
-		margin-top: var(--size-0-5);
-		margin-bottom: var(--size-0-5);
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
-		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-sm);
-		background: var(--input-background-base) !important;
-		padding: var(--size-0-5) var(--size-1) !important;
-		width: var(--size-40);
-		font-size: var(--scale-000);
-	}
-
-	input:focus-visible {
-		--ring-color: var(--color-focus-primary);
-		outline: none;
+		margin: var(--size-1) 0;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--radius-lg);
+		background: var(--input-background);
+		padding: var(--size-1-5);
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-primary);
+		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
 	}
 
 	.error {
-		color: var(--color-functional-error-base);
+		color: var(--error-color);
 	}
 
 	.type {
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 	}
 
 	.desc {
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 	}
 
 	.name {
@@ -160,10 +154,10 @@
 	}
 
 	.first-level {
-		margin-left: 2rem;
+		margin-left: 1rem;
 	}
 
 	.second-level {
-		margin-left: 6rem;
+		margin-left: 2rem;
 	}
 </style>

@@ -159,24 +159,25 @@
 		position: relative;
 		border-bottom: 1px solid var(--color-border-primary);
 		padding: var(--size-4) var(--size-6);
-		font-size: var(--scale-00);
+		font-size: var(--text-md);
 	}
 
 	@media (--screen-md) {
 		.banner-wrap {
-			font-size: var(--scale-1);
+			font-size: var(--text-xl);
 		}
 	}
 
 	.docs-wrap {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-6);
+		gap: var(--spacing-xxl);
 	}
 
 	.endpoint {
 		border-radius: var(--radius-md);
-		background: var(--api-background);
+		background: var(--color-background-primary);
 		padding: var(--size-6);
+		font-size: var(--text-md);
 	}
 </style>

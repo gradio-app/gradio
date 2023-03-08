@@ -58,7 +58,7 @@
 		right: var(--size-2);
 		flex-direction: column;
 		justify-content: flex-end;
-		gap: var(--size-1);
+		gap: var(--spacing-sm);
 		z-index: var(--layer-5);
 	}
 	.brush {

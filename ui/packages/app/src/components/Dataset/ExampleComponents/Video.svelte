@@ -51,9 +51,10 @@
 
 	video:hover,
 	video.selected {
-		border-color: var(--color-accent-light);
+		border-color: var(--color-border-accent);
 	}
 	.table {
+		margin: 0 auto;
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;

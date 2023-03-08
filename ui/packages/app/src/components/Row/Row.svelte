@@ -23,7 +23,7 @@
 	div {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--size-4);
+		gap: var(--layout-gap);
 		width: var(--size-full);
 	}
 
@@ -36,7 +36,7 @@
 	}
 	.compact,
 	.panel {
-		border-radius: var(--radius-lg);
+		border-radius: var(--container-radius);
 		background: var(--color-background-secondary);
 		padding: var(--size-2);
 	}

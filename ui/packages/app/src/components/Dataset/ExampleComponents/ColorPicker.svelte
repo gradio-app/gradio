@@ -16,4 +16,7 @@
 		width: var(--size-10);
 		height: var(--size-10);
 	}
+	.table {
+		margin: 0 auto;
+	}
 </style>

@@ -93,7 +93,10 @@
 	svg {
 		width: var(--size-20);
 		height: var(--size-20);
-		font-size: var(--scale-2);
+	}
+
+	svg path {
+		fill: var(--loader-color);
 	}
 
 	div {

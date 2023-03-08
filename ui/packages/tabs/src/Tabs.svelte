@@ -68,8 +68,6 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		margin-top: var(--size-4);
-		margin-bottom: var(--size-4);
 	}
 
 	.hide {
@@ -80,28 +78,30 @@
 		display: flex;
 		position: relative;
 		flex-wrap: wrap;
-		border-bottom: 2px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--color-border-primary);
 		white-space: nowrap;
 	}
 
 	button {
-		margin-bottom: -2px;
-		border: 2px solid transparent;
+		margin-bottom: -1px;
+		border: 1px solid transparent;
 		border-color: transparent;
 		border-bottom: none;
-		border-top-right-radius: var(--radius-md);
-		border-top-left-radius: var(--radius-md);
+		border-top-right-radius: var(--container-radius);
+		border-top-left-radius: var(--container-radius);
 		padding: var(--size-1) var(--size-4);
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
+		font-weight: var(--section-text-weight);
+		font-size: var(--section-text-size);
 	}
 
 	button:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 	.selected {
 		border-color: var(--color-border-primary);
 		background-color: var(--color-background-primary);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.bar {

@@ -80,12 +80,12 @@
 <style>
 	.file-name {
 		padding: var(--size-6);
-		font-size: var(--scale-6);
+		font-size: var(--text-xxl);
 		word-break: break-all;
 	}
 
 	.file-size {
 		padding: var(--size-2);
-		font-size: var(--scale-4);
+		font-size: var(--text-xl);
 	}
 </style>

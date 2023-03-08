@@ -86,8 +86,7 @@
 
 	.json-node {
 		display: inline;
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		color: var(--body-text-color);
 		line-height: var(--line-sm);
 		font-family: var(--font-mono);
 	}
@@ -97,11 +96,11 @@
 		border-radius: var(--radius-sm);
 		background-color: vSar(--color-background-secondary);
 		padding: 0 var(--size-1);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.expand-array:hover {
-		background-color: var(--color-background-tertiary);
+		background-color: var(--color-background-primary);
 	}
 
 	.children {
@@ -113,7 +112,7 @@
 	}
 
 	.null {
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 	}
 
 	.string {

@@ -55,7 +55,12 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} Icon={File} label={label || "File"} />
+<BlockLabel
+	{show_label}
+	Icon={File}
+	float={value === null}
+	label={label || "File"}
+/>
 
 {#if value}
 	<ModifyUpload on:clear={handle_clear} absolute />

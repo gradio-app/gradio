@@ -25,7 +25,7 @@
 	.icon {
 		opacity: 0.5;
 		height: var(--size-5);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.small {

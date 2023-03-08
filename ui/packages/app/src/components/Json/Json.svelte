@@ -32,11 +32,13 @@
 	test_id="json"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
+	padding={false}
 >
 	{#if label}
 		<BlockLabel
 			Icon={JSONIcon}
 			{label}
+			float={false}
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}

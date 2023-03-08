@@ -151,7 +151,6 @@ demo = gr.Interface(
         ]
     ]
     * 3,
-    theme="default",
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",

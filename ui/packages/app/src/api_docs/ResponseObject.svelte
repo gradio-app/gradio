@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import Loader from "../components/StatusTracker/Loader.svelte";
+	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
 	export let dependency_index: number;
@@ -26,70 +27,69 @@
 	</div>
 	Response Object
 </h4>
-<div class="response-wrap">
-	<div class:hide={is_running}>
-		&#123;
-		<br />
-		<div class="first-level">"data": [</div>
-		<br />
-		{#each dependency.outputs as component_id, component_index}
-			<div class="second-level">
-				{#if dependency_outputs[dependency_index][component_index] !== undefined}
-					<input
-						disabled
-						type="text"
-						bind:value={dependency_outputs[dependency_index][component_index]}
-					/>
-					:
-				{/if}
-				<span class="type">
-					{instance_map[component_id].documentation?.type?.response_object ||
-						instance_map[component_id].documentation?.type?.payload},
-				</span>
-				<span class="desc">
-					// represents {format_url(
-						instance_map[component_id].documentation?.description
-							?.response_object ||
-							instance_map[component_id].documentation?.description?.payload,
-						dependency_outputs[dependency_index][component_index]
-					)} of
-					{((label) => {
-						return label ? "'" + label + "'" : "the";
-					})(instance_map[component_id].props.label)}
-					<span class="name capitalize">
-						{instance_map[component_id].props.name}
+<Block>
+	<div class="response-wrap">
+		<div class:hide={is_running}>
+			&#123;
+			<div class="first-level">"data": [</div>
+			{#each dependency.outputs as component_id, component_index}
+				<div class="second-level">
+					{#if dependency_outputs[dependency_index][component_index] !== undefined}
+						<input
+							disabled
+							type="text"
+							bind:value={dependency_outputs[dependency_index][component_index]}
+						/>
+						:
+					{/if}
+					<span class="type">
+						{instance_map[component_id].documentation?.type?.response_object ||
+							instance_map[component_id].documentation?.type?.payload},
 					</span>
-					component
-				</span>
+					<span class="desc">
+						// represents {format_url(
+							instance_map[component_id].documentation?.description
+								?.response_object ||
+								instance_map[component_id].documentation?.description?.payload,
+							dependency_outputs[dependency_index][component_index]
+						)} of
+						{((label) => {
+							return label ? "'" + label + "'" : "the";
+						})(instance_map[component_id].props.label)}
+						<span class="name capitalize">
+							{instance_map[component_id].props.name}
+						</span>
+						component
+					</span>
+				</div>
+			{/each}
+			<div class="first-level">],</div>
+			<div class="first-level">
+				"duration": (float)
+				<span class="desc">// number of seconds to run function call</span>
 			</div>
-			<br />
-		{/each}
-		<div class="second-level">],</div>
-		<br />
-		<div class="first-level">
-			"duration": (float)
-			<span class="desc">// number of seconds to run function call</span>
+			&#125;
 		</div>
-		&#125;
+		{#if is_running}
+			<div class="load-wrap">
+				<Loader margin={false} />
+			</div>
+		{/if}
 	</div>
-	{#if is_running}
-		<div class="load-wrap">
-			<Loader margin={false} />
-		</div>
-	{/if}
-</div>
+</Block>
 
 <style>
 	.load-wrap {
-		align-self: center;
-		justify-self: center;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 	h4 {
 		display: flex;
 		align-items: center;
 		margin-top: var(--size-6);
 		margin-bottom: var(--size-3);
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 		font-weight: var(--weight-bold);
 	}
 
@@ -112,46 +112,35 @@
 	}
 
 	.response-wrap {
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
-		background: var(--color-background-tertiary);
-		padding: var(--size-4);
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
 		font-family: var(--font-mono);
 	}
 
-	input {
+	input[type="text"] {
 		--ring-color: transparent;
-		margin-top: var(--size-0-5);
-		margin-bottom: var(--size-0-5);
-		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
-		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-sm);
-		background: var(--input-background-base) !important;
-		padding: var(--size-0-5) var(--size-1) !important;
-		width: var(--size-40);
-		font-size: var(--scale-000);
-	}
-
-	input:focus-visible {
-		--ring-color: var(--color-focus-primary);
-		outline: none;
+		margin: var(--size-1) 0;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--radius-lg);
+		background: var(--input-background);
+		padding: var(--size-1-5);
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
 	}
 
 	input:focus {
-		--ring-color: var(--color-focus-primary);
+		box-shadow: var(--input-shadow);
 		border-color: var(--input-border-color-focus);
 	}
 
 	.type {
-		color: var(--color-text-label);
+		color: var(--block-label-color);
 	}
 
 	.desc {
-		color: var(--color-text-subdued);
+		color: var(--text-color-subdued);
 	}
 
 	.name {
@@ -163,10 +152,10 @@
 	}
 
 	.first-level {
-		margin-left: 2rem;
+		margin-left: 1rem;
 	}
 
 	.second-level {
-		margin-left: 6rem;
+		margin-left: 2rem;
 	}
 </style>

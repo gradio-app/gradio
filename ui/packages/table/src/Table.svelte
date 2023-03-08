@@ -588,7 +588,7 @@
 		<div class="controls-wrap">
 			{#if row_count[1] === "dynamic"}
 				<span class="button-wrap">
-					<Button variant="plain" size="sm" on:click={() => add_row()}>
+					<Button variant="secondary" size="sm" on:click={() => add_row()}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -610,7 +610,7 @@
 			{/if}
 			{#if col_count[1] === "dynamic"}
 				<span class="button-wrap">
-					<Button variant="plain" size="sm" on:click={add_col}>
+					<Button variant="secondary" size="sm" on:click={add_col}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -636,7 +636,7 @@
 
 <style>
 	.button-wrap:hover svg {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	.button-wrap svg {
@@ -651,21 +651,21 @@
 		position: relative;
 		z-index: var(--layer-4);
 		margin-bottom: var(--size-2);
-		color: var(--color-text-label);
-		font-size: var(--scale-00);
+		color: var(--block-label-color);
+		font-size: var(--block-label-text-size);
 	}
 
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--table-radius);
 		overflow-x: scroll;
 		overflow-y: hidden;
 	}
 
 	.dragging {
-		border-color: var(--color-functional-success);
+		border-color: var(--color-accent);
 	}
 
 	.no-wrap {
@@ -677,8 +677,8 @@
 		width: var(--size-full);
 		table-layout: auto;
 		overflow: hidden;
-		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		color: var(--body-text-color);
+		font-size: var(--input-text-size);
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 	}
@@ -717,24 +717,24 @@
 	}
 
 	th:first-child {
-		border-top-left-radius: var(--radius-lg);
+		border-top-left-radius: var(--table-radius);
 	}
 
 	th:last-child {
-		border-top-right-radius: var(--radius-lg);
+		border-top-right-radius: var(--table-radius);
 	}
 
 	th:focus-within,
 	td:focus-within {
-		--ring-color: var(--color-accent-base);
+		--ring-color: var(--color-accent);
 	}
 
 	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--radius-lg);
+		border-bottom-left-radius: var(--table-radius);
 	}
 
 	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--radius-lg);
+		border-bottom-right-radius: var(--table-radius);
 	}
 
 	tr th {
@@ -754,12 +754,12 @@
 		transition: 150ms;
 		cursor: pointer;
 		padding: var(--size-2);
-		color: var(--color-text-subdued);
-		line-height: var(--scale-0);
+		color: var(--text-color-subdued);
+		line-height: var(--text-sm);
 	}
 
 	.sort-button:hover {
-		color: var(--color-text-body);
+		color: var(--body-text-color);
 	}
 
 	.des {
@@ -767,7 +767,7 @@
 	}
 
 	.sort-button.sorted {
-		color: var(--color-accent-base);
+		color: var(--color-accent);
 	}
 
 	tbody {
@@ -791,7 +791,7 @@
 	}
 
 	.editing {
-		background: var(--table-background-edit);
+		background: var(--table-editing);
 	}
 
 	.cell-wrap {

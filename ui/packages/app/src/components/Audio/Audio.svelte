@@ -43,7 +43,7 @@
 	variant={mode === "dynamic" && value === null && source === "upload"
 		? "dashed"
 		: "solid"}
-	color={dragging ? "green" : "grey"}
+	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
 	{visible}
