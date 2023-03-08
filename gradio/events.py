@@ -32,10 +32,7 @@ def set_cancel_events(
 
 
 class EventListener(Block):
-    def __init__(self):
-        for event_listener_class in EventListener.__subclasses__():
-            if isinstance(self, event_listener_class):
-                event_listener_class.__init__(self)
+    pass
 
 
 class EventListenerMethod(Callable):

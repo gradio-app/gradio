@@ -80,7 +80,9 @@ class Component(Block):
 
     def __init__(self, *args, **kwargs):
         Block.__init__(self, *args, **kwargs)
-        EventListener.__init__(self)
+        for event_listener_class in EventListener.__subclasses__():
+            if isinstance(self, event_listener_class):
+                event_listener_class.__init__(self)
 
     def __str__(self):
         return self.__repr__()
