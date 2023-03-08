@@ -1,2 +1,2 @@
-export { default as Component } from "./Code.svelte";
+export { default as Component } from "@gradio/code";
 export const modes = ["static", "dynamic"];
