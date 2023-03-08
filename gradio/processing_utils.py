@@ -365,7 +365,7 @@ class TempFileManager:
 
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
         f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
-        full_temp_file_path = str(temp_dir / f.name)
+        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
@@ -385,7 +385,7 @@ class TempFileManager:
             file_name = Path(file.filename).name
             output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
 
-        full_temp_file_path = str(temp_dir / output_file_obj.name)
+        full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
 
         async with aiofiles.open(full_temp_file_path, "wb") as output_file:
             while True:
@@ -405,7 +405,7 @@ class TempFileManager:
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
 
         f.name = utils.strip_invalid_filename_characters(Path(url).name)
-        full_temp_file_path = str(temp_dir / f.name)
+        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
             with requests.get(url, stream=True) as r:
@@ -433,7 +433,7 @@ class TempFileManager:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
         f.name = file_name
-        full_temp_file_path = str(temp_dir / f.name)
+        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
             data, _ = decode_base64_to_binary(base64_encoding)
