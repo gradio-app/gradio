@@ -363,7 +363,7 @@ def get_default_args(func: Callable) -> List[Any]:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: Dict, config2: Dict, root_keys: Tuple = ("mode", "theme")
+    config1: Dict, config2: Dict, root_keys: Tuple = ("mode",)
 ):
     """Allows you to test if two different Blocks configs produce the same demo.
 
@@ -371,7 +371,7 @@ def assert_configs_are_equivalent_besides_ids(
     config1 (dict): nested dict with config from the first Blocks instance
     config2 (dict): nested dict with config from the second Blocks instance
     root_keys (Tuple): an interable consisting of which keys to test for equivalence at
-        the root level of the config. By default, only "mode" and "theme" are tested,
+        the root level of the config. By default, only "mode" is tested,
         so keys like "version" are ignored.
     """
     config1 = copy.deepcopy(config1)

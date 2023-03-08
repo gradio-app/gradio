@@ -9,18 +9,15 @@
 	export let show_label: boolean = true;
 </script>
 
-<BlockLabel {show_label} Icon={File} label={label || "File"} />
+<BlockLabel
+	{show_label}
+	float={value === null}
+	Icon={File}
+	label={label || "File"}
+/>
 
 {#if value}
-	<div class="file-preview">
-		<FilePreview {value} />
-	</div>
+	<FilePreview {value} />
 {:else}
 	<Empty size="large" unpadded_box={true}><File /></Empty>
 {/if}
-
-<style>
-	.file-preview {
-		overflow-x: auto;
-	}
-</style>

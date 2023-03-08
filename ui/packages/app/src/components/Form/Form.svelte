@@ -11,8 +11,9 @@
 		display: flex;
 		flex-direction: inherit;
 		flex-wrap: wrap;
-		gap: 1px;
-		border: 1px solid var(--color-border-primary);
+		gap: var(--form-gap-width);
+		box-shadow: var(--block-shadow);
+		border: var(--block-border-width) solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 		background: var(--color-border-primary);
 		overflow: hidden;
