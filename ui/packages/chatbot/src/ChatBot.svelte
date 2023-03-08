@@ -14,7 +14,7 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 	const redirect_src_url = (src: string) =>
-		src.replace('src="/file', `src="${root}/file`);
+		src.replace('src="/file', `src="${root}file`);
 
 	$: _value = value
 		? value.map(([user_msg, bot_msg]) => [

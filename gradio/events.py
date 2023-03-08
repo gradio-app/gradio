@@ -38,24 +38,16 @@ class EventListener(Block):
                 event_listener_class.__init__(self)
 
 
-class Dependency(dict):
-    def __init__(self, trigger, dep_index, dict_attributes):
-        super().__init__(dict_attributes)
-        self.then = EventListenerMethod(trigger, "then", after=dep_index)
-
-
 class EventListenerMethod(Callable):
     def __init__(
         self,
         trigger: Component,
         event_name: str,
         show_progress: bool = True,
-        after: int | None = None,
     ):
         self.trigger = trigger
         self.event_name = event_name
         self.show_progress = show_progress
-        self.after = after
 
     def __call__(
         self,
@@ -74,7 +66,7 @@ class EventListenerMethod(Callable):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: str | None = None,
-    ) -> Dependency:
+    ) -> dict:
         """
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
@@ -96,7 +88,7 @@ class EventListenerMethod(Callable):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-        dep, dep_index = self.trigger.set_event_trigger(
+        dep = self.trigger.set_event_trigger(
             self.event_name,
             fn,
             inputs,
@@ -113,10 +105,9 @@ class EventListenerMethod(Callable):
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
-            after=self.after,
         )
         set_cancel_events(self.trigger, self.event_name, cancels)
-        return Dependency(self.trigger, dep_index, dep)
+        return dep
 
 
 class Changeable(EventListener):
