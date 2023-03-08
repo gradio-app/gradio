@@ -8,6 +8,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "ColorPicker";
+	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: string;
@@ -28,9 +29,9 @@
 	<StatusTracker {...loading_status} />
 
 	<ColorPicker
-		{style}
 		bind:value
 		{label}
+		{info}
 		{show_label}
 		on:change
 		on:submit

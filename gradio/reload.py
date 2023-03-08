@@ -8,9 +8,10 @@ $ gradio app.py my_demo, to use variable names other than "demo"
 import inspect
 import os
 import sys
+from pathlib import Path
 
 import gradio
-from gradio import networking
+from gradio import networking, utils
 
 
 def run_in_reload_mode():
@@ -23,13 +24,13 @@ def run_in_reload_mode():
         demo_name = args[1]
 
     original_path = args[0]
-    abs_original_path = os.path.abspath(original_path)
+    abs_original_path = utils.abspath(original_path)
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
     path = path.replace("\\", ".")
     filename = os.path.splitext(path)[0]
 
-    gradio_folder = os.path.dirname(inspect.getfile(gradio))
+    gradio_folder = Path(inspect.getfile(gradio)).parent
 
     port = networking.get_first_available_port(
         networking.INITIAL_PORT_VALUE,
@@ -42,16 +43,17 @@ def run_in_reload_mode():
     message = "Watching:"
 
     message_change_count = 0
-    if gradio_folder.strip():
+    if str(gradio_folder).strip():
         command += f'--reload-dir "{gradio_folder}" '
         message += f" '{gradio_folder}'"
         message_change_count += 1
 
-    if os.path.dirname(abs_original_path).strip():
-        command += f'--reload-dir "{os.path.dirname(abs_original_path)}"'
+    abs_parent = abs_original_path.parent
+    if str(abs_parent).strip():
+        command += f'--reload-dir "{abs_parent}"'
         if message_change_count == 1:
             message += ","
-        message += f" '{os.path.dirname(abs_original_path)}'"
+        message += f" '{abs_parent}'"
 
     print(message + "\n")
     os.system(command)

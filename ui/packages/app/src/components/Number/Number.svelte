@@ -6,6 +6,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "Number";
+	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let style: Styles = {};
@@ -26,6 +27,7 @@
 	<Number
 		bind:value
 		{label}
+		{info}
 		{show_label}
 		disabled={mode === "static"}
 		on:change

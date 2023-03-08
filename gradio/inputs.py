@@ -1,3 +1,4 @@
+# type: ignore
 """
 This module defines various classes that can serve as the `input` to an interface. Each class must inherit from
 `InputComponent`, and each class must define a path to its template. All of the subclasses of `InputComponent` are
@@ -19,7 +20,7 @@ class Textbox(components.Textbox):
         placeholder: Optional[str] = None,
         default: str = "",
         numeric: Optional[bool] = False,
-        type: Optional[str] = "str",
+        type: Optional[str] = "text",
         label: Optional[str] = None,
         optional: bool = False,
     ):

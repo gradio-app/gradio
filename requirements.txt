@@ -1,15 +1,15 @@
 aiohttp
-h11<0.13,>=0.11
+altair>=4.2.0
 fastapi
 ffmpy
-markdown-it-py[linkify,plugins]
+markdown-it-py[linkify]>=2.0.0
+mdit-py-plugins<=0.3.3
+markupsafe
 matplotlib
 numpy
 orjson
 pandas
-paramiko
 pillow
-pycryptodome
 python-multipart
 pydub
 pyyaml
@@ -20,3 +20,5 @@ fsspec
 httpx
 pydantic
 websockets>=10.0
+typing_extensions
+aiofiles

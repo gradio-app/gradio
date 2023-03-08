@@ -4,12 +4,22 @@
 	export let elem_id: string = "";
 	export let value: string;
 	export let visible: boolean = true;
+	export let min_height = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
 </script>
 
-<div class="output-html min-h-[4rem]" id={elem_id} class:!hidden={!visible}>
+<div class="prose" class:min={min_height} id={elem_id} class:hide={!visible}>
 	{@html value}
 </div>
+
+<style>
+	.min {
+		min-height: var(--size-24);
+	}
+	.hide {
+		display: none;
+	}
+</style>

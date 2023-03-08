@@ -12,8 +12,14 @@ export interface ComponentMeta {
 	props: Record<string, unknown>;
 	instance: SvelteComponentDev;
 	component: ComponentType<SvelteComponentDev>;
+	documentation?: Documentation;
 	children?: Array<ComponentMeta>;
 	value?: any;
+}
+
+export interface DependencyTypes {
+	continuous: boolean;
+	generator: boolean;
 }
 
 export interface Dependency {
@@ -29,8 +35,20 @@ export interface Dependency {
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;
-	documentation?: Array<Array<Array<string>>>;
 	cancels: Array<number>;
+	types: DependencyTypes;
+}
+
+interface TypeDescription {
+	input_payload?: string;
+	response_object?: string;
+	payload?: string;
+}
+
+export interface Documentation {
+	type?: TypeDescription;
+	description?: TypeDescription;
+	example_data?: string;
 }
 
 export interface LayoutNode {

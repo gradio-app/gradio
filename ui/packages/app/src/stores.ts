@@ -1,15 +1,22 @@
-import { writable } from "svelte/store";
+import { writable, get } from "svelte/store";
 
 export interface LoadingStatus {
 	eta: number | null;
 	status: "pending" | "error" | "complete" | "generating";
 	queue: boolean;
 	queue_position: number | null;
-	queue_size: number | null;
+	queue_size?: number;
 	fn_index: number;
 	message?: string | null;
 	scroll_to_output?: boolean;
 	visible?: boolean;
+	progress?: Array<{
+		progress: number | null;
+		index: number | null;
+		length: number | null;
+		unit: string | null;
+		desc: string | null;
+	}>;
 }
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;
@@ -25,15 +32,25 @@ export function create_loading_status_store() {
 	const inputs_to_update = new Map<number, string>();
 	const fn_status: Array<LoadingStatus["status"]> = [];
 
-	function update(
-		fn_index: LoadingStatus["fn_index"],
-		status: LoadingStatus["status"],
-		queue: LoadingStatus["queue"],
-		size: LoadingStatus["queue_size"],
-		position: LoadingStatus["queue_position"],
-		eta: LoadingStatus["eta"],
-		message: LoadingStatus["message"]
-	) {
+	function update({
+		fn_index,
+		status,
+		queue = true,
+		size,
+		position = null,
+		eta = null,
+		message = null,
+		progress
+	}: {
+		fn_index: LoadingStatus["fn_index"];
+		status: LoadingStatus["status"];
+		queue?: LoadingStatus["queue"];
+		size?: LoadingStatus["queue_size"];
+		position?: LoadingStatus["queue_position"];
+		eta?: LoadingStatus["eta"];
+		message?: LoadingStatus["message"];
+		progress?: LoadingStatus["progress"];
+	}) {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
 		const last_status = fn_status[fn_index];
@@ -69,7 +86,8 @@ export function create_loading_status_store() {
 				queue_size: size,
 				eta: eta,
 				status: new_status,
-				message: message
+				message: message,
+				progress: progress
 			};
 		});
 
@@ -89,15 +107,24 @@ export function create_loading_status_store() {
 			}
 		});
 
-		store.update((outputs) => {
+		store.update((outputs: LoadingStatusCollection) => {
 			outputs_to_update.forEach(
-				({ id, queue_position, queue_size, eta, status, message }) => {
+				({
+					id,
+					queue_position,
+					queue_size,
+					eta,
+					status,
+					message,
+					progress
+				}) => {
 					outputs[id] = {
 						queue: queue,
 						queue_size: queue_size,
 						queue_position: queue_position,
 						eta: eta,
-						message,
+						message: message,
+						progress,
 						status,
 						fn_index
 					};
@@ -106,7 +133,6 @@ export function create_loading_status_store() {
 
 			return outputs;
 		});
-
 		fn_status[fn_index] = status;
 	}
 

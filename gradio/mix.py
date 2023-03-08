@@ -3,15 +3,11 @@ Ways to transform interfaces to produce new interfaces
 """
 import asyncio
 import warnings
-from typing import TYPE_CHECKING, List
 
 import gradio
 from gradio.documentation import document, set_documentation_group
 
 set_documentation_group("mix_interface")
-
-if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import IOComponent
 
 
 @document()
@@ -32,7 +28,7 @@ class Parallel(gradio.Interface):
         Returns:
             an Interface object comparing the given models
         """
-        outputs: List[IOComponent] = []
+        outputs = []
 
         for interface in interfaces:
             if not (isinstance(interface, gradio.Interface)):
@@ -44,7 +40,7 @@ class Parallel(gradio.Interface):
 
         async def parallel_fn(*args):
             return_values_with_durations = await asyncio.gather(
-                *[interface.call_function(0, args) for interface in interfaces]
+                *[interface.call_function(0, list(args)) for interface in interfaces]
             )
             return_values = [rv["prediction"] for rv in return_values_with_durations]
             combined_list = []
@@ -97,7 +93,7 @@ class Series(gradio.Interface):
                     ]
 
                 # run all of predictions sequentially
-                data = (await interface.call_function(0, data))["prediction"]
+                data = (await interface.call_function(0, list(data)))["prediction"]
                 if len(interface.output_components) == 1:
                     data = [data]
 
@@ -110,7 +106,7 @@ class Series(gradio.Interface):
                         )
                     ]
 
-            if len(interface.output_components) == 1:
+            if len(interface.output_components) == 1:  # type: ignore
                 return data[0]
             return data
 

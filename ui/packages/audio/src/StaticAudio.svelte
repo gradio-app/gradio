@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { Empty } from "@gradio/atoms";
 	export interface AudioData extends FileData {
 		crop_min?: number;
 		crop_max?: number;
@@ -15,7 +16,7 @@
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let name: string;
-	export let show_label: boolean;
+	export let show_label: boolean = true;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -31,15 +32,13 @@
 		});
 </script>
 
-<BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
+<BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
 {#if value === null}
-	<div class="h-full min-h-[8rem] flex justify-center items-center">
-		<!-- <img src={audio_icon} alt="" class="h-6 opacity-20" /> -->
-		<div class="h-5 dark:text-white opacity-50"><Music /></div>
-	</div>
+	<Empty size="small" unpadded_box={true}>
+		<Music />
+	</Empty>
 {:else}
 	<audio
-		class="w-full h-14 p-2 mt-7"
 		controls
 		preload="metadata"
 		src={value.data}
@@ -48,3 +47,11 @@
 		on:ended
 	/>
 {/if}
+
+<style>
+	audio {
+		padding: var(--size-2);
+		width: var(--size-full);
+		height: var(--size-14);
+	}
+</style>

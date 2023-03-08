@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { Button } from "@gradio/button";
 	export interface AudioData extends FileData {
 		crop_min?: number;
 		crop_max?: number;
@@ -18,14 +19,11 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
-	export let show_label: boolean;
-	export let name: string;
+	export let show_label: boolean = true;
+	export let name: string = "";
 	export let source: "microphone" | "upload" | "none";
 	export let pending: boolean = false;
 	export let streaming: boolean = false;
-	export let drop_text: string = "Drop an audio file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -251,40 +249,35 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
+<BlockLabel
+	{show_label}
+	Icon={Music}
+	float={source === "upload" && value === null}
+	label={label || "Audio"}
+/>
 {#if value === null || streaming}
 	{#if source === "microphone"}
-		<div class="mt-6 p-2">
+		<div class="mic-wrap">
 			{#if recording}
-				<button class="gr-button !bg-red-500/10" on:click={stop}>
-					<span class="flex h-1.5 w-1.5 relative mr-2 ">
-						<span
-							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-						/>
-						<span
-							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-						/>
+				<Button size="sm" on:click={stop}>
+					<span class="record-icon">
+						<span class="pinger" />
+						<span class="dot" />
 					</span>
-					<div class="whitespace-nowrap text-red-500">Stop recording</div>
-				</button>
+					Stop recording
+				</Button>
 			{:else}
-				<button class="gr-button text-gray-800" on:click={record}>
-					<span class="flex h-1.5 w-1.5 relative mr-2">
-						<span
-							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-						/>
+				<Button size="sm" on:click={record}>
+					<span class="record-icon">
+						<span class="dot" />
 					</span>
-					<div class="whitespace-nowrap">Record from microphone</div>
-				</button>
+					Record from microphone
+				</Button>
 			{/if}
 		</div>
 	{:else if source === "upload"}
 		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
-			<div class="flex flex-col">
-				{drop_text}
-				<span class="text-gray-300">- {or_text} -</span>
-				{upload_text}
-			</div>
+			<slot />
 		</Upload>
 	{/if}
 {:else}
@@ -292,12 +285,11 @@
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
 		editable
-		absolute={false}
+		absolute={true}
 	/>
 
 	<audio
 		use:loaded
-		class="w-full h-14 p-2"
 		controls
 		bind:this={player}
 		preload="metadata"
@@ -318,3 +310,52 @@
 		/>
 	{/if}
 {/if}
+
+<style>
+	.mic-wrap {
+		position: absolute;
+		padding: var(--size-2);
+	}
+
+	.record-icon {
+		display: flex;
+		position: relative;
+		margin-right: var(--size-2);
+		width: 6px;
+		height: 6px;
+	}
+
+	.dot {
+		display: inline-flex;
+		position: relative;
+		border-radius: var(--radius-full);
+		background: var(--color-red-500);
+		width: 6px;
+		height: 6px;
+	}
+
+	.pinger {
+		display: inline-flex;
+		position: absolute;
+		opacity: 0.9;
+		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+		border-radius: var(--radius-full);
+		background: var(--color-red-500);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	@keyframes ping {
+		75%,
+		100% {
+			transform: scale(2);
+			opacity: 0;
+		}
+	}
+
+	audio {
+		padding: var(--size-2);
+		width: var(--size-full);
+		height: var(--size-14);
+	}
+</style>

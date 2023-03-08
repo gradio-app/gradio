@@ -22,10 +22,22 @@
 
 <div
 	id={elem_id}
-	class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex"
+	class="tabitem"
 	style:display={$selected_tab === id ? "block" : "none"}
 >
 	<Column>
 		<slot />
 	</Column>
 </div>
+
+<style>
+	div {
+		display: flex;
+		position: relative;
+		border: 1px solid var(--color-border-primary);
+		border-top: none;
+		border-bottom-right-radius: var(--container-radius);
+		border-bottom-left-radius: var(--container-radius);
+		padding: var(--block-padding);
+	}
+</style>

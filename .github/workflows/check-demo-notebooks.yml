@@ -1,0 +1,43 @@
+# This workflow will check if the run.py files in every demo match the run.ipynb notebooks.
+
+name: Check Demos Match Notebooks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+        - 'demo/**'
+
+jobs:
+  check-notebooks:
+    name: Generate Notebooks and Check 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Generate Notebooks
+        run: |
+          pip install nbformat && cd demo && python generate_notebooks.py
+      - name: Print Git Status
+        run: echo $(git status) && echo $(git diff)
+      - name: Assert Notebooks Match 
+        id: assertNotebooksMatch
+        run: git status | grep "nothing to commit, working tree clean"
+      - name: Get PR Number
+        if: always()
+        run: |
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+      - name: Upload PR Number
+        if: always()
+        run: |
+          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
+      - name: Upload metadata
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: metadata.json
+          path: metadata.json

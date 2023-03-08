@@ -27,12 +27,7 @@ def get_count_ride_type():
     """,
         con=connection_string,
     )
-    fig_m, ax = plt.subplots()
-    ax.bar(x=df["rideable_type"], height=df["n"])
-    ax.set_title("Number of rides by bycycle type")
-    ax.set_ylabel("Number of Rides")
-    ax.set_xlabel("Bicycle Type")
-    return fig_m
+    return df
 
 
 def get_most_popular_stations():
@@ -48,15 +43,7 @@ def get_most_popular_stations():
     """,
         con=connection_string,
     )
-    fig_m, ax = plt.subplots()
-    ax.bar(x=df["station"], height=df["n"])
-    ax.set_title("Most popular stations")
-    ax.set_ylabel("Number of Rides")
-    ax.set_xlabel("Station Name")
-    ax.set_xticklabels(df["station"], rotation=45, ha="right", rotation_mode="anchor")
-    ax.tick_params(axis="x", labelsize=8)
-    fig_m.tight_layout()
-    return fig_m
+    return df
 
 
 with gr.Blocks() as demo:
@@ -78,8 +65,28 @@ with gr.Blocks() as demo:
     """
     )
     with gr.Row():
-        bike_type = gr.Plot()
-        station = gr.Plot()
+        bike_type = gr.BarPlot(
+            x="rideable_type",
+            y='n',
+            title="Number of rides per bicycle type",
+            y_title="Number of Rides",
+            x_title="Bicycle Type",
+            vertical=False,
+            tooltip=['rideable_type', "n"],
+            height=300,
+            width=300,
+        )
+        station = gr.BarPlot(
+            x='station',
+            y='n',
+            title="Most Popular Stations",
+            y_title="Number of Rides",
+            x_title="Station Name",
+            vertical=False,
+            tooltip=['station', 'n'],
+            height=300,
+            width=300
+        )
 
     demo.load(get_count_ride_type, inputs=None, outputs=bike_type)
     demo.load(get_most_popular_stations, inputs=None, outputs=station)

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
+	import type { client } from "@gradio/client";
 
 	import { component_map } from "./components/directory";
 	import {
@@ -12,33 +13,34 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode
+		LayoutNode,
+		Documentation
 	} from "./components/types";
-	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
-	import ApiDocs from "./ApiDocs.svelte";
+	import { ApiDocs } from "./api_docs/";
 
 	import logo from "./images/logo.svg";
+	import api_logo from "/static/img/api-logo.svg";
 
 	setupi18n();
 
 	export let root: string;
-	export let fn: ReturnType<typeof api_fn>;
 	export let components: Array<ComponentMeta>;
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
 
-	export let enable_queue: boolean;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let id: number = 0;
-	export let autoscroll: boolean = false;
+	export let autoscroll: boolean;
 	export let show_api: boolean = true;
+	export let show_footer: boolean = true;
 	export let control_page_title = false;
+	export let app_mode: boolean;
+	export let theme: string;
+	export let app: Awaited<ReturnType<typeof client>>;
 
-	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
@@ -57,11 +59,14 @@
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
+			const wrap = d.backend_fn
+				? d.inputs.length === 1
+				: d.outputs.length === 1;
 			try {
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
 					`let result = await (${d.js})(...__fn_args);
-					return ${d.outputs.length} === 1 ? [result] : result;`
+					return ${wrap} ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
@@ -69,7 +74,19 @@
 			}
 		}
 	});
-	let api_docs_visible = false;
+
+	let params = new URLSearchParams(window.location.search);
+	let api_docs_visible = params.get("view") === "api";
+	const set_api_docs_visible = (visible: boolean) => {
+		api_docs_visible = visible;
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "api");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+	};
 
 	function is_dep(
 		id: number,
@@ -126,6 +143,7 @@
 	type LoadedComponent = {
 		Component: ComponentMeta["component"];
 		modes?: Array<string>;
+		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
 	function load_component<T extends ComponentMeta["type"]>(
@@ -161,6 +179,9 @@
 		let instance = instance_map[node.id];
 		const _component = (await _component_map.get(instance.type))!.component;
 		instance.component = _component.Component;
+		if (_component.document) {
+			instance.documentation = _component.document(instance.props);
+		}
 		if (_component.modes && _component.modes.length > 1) {
 			instance.has_modes = true;
 		}
@@ -177,19 +198,45 @@
 		_component_map.set(c.type, _c);
 	});
 
-	let ready = false;
+	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
 				ready = true;
-
-				await tick();
-				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				window.__gradio_loader__[id].$set({ status: "error" });
 			});
+	});
+
+	function handle_update(data: any, fn_index: number) {
+		const outputs = dependencies[fn_index].outputs;
+		data.forEach((value: any, i: number) => {
+			if (
+				typeof value === "object" &&
+				value !== null &&
+				value.__type__ === "update"
+			) {
+				for (const [update_key, update_value] of Object.entries(value)) {
+					if (update_key === "__type__") {
+						continue;
+					} else {
+						instance_map[outputs[i]].props[update_key] = update_value;
+					}
+				}
+				rootNode = rootNode;
+			} else {
+				instance_map[outputs[i]].props.value = value;
+			}
+		});
+	}
+
+	app.on("data", ({ data, fn_index }) => {
+		handle_update(data, fn_index);
+	});
+
+	app.on("status", ({ fn_index, ...status }) => {
+		loading_status.update({ ...status, fn_index });
 	});
 
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
@@ -199,7 +246,6 @@
 		obj.props[prop] = val;
 		rootNode = rootNode;
 	}
-
 	let handled_dependencies: Array<number[]> = [];
 
 	async function handle_mount() {
@@ -241,45 +287,36 @@
 					outputs.every((v) => instance_map?.[v].instance) &&
 					inputs.every((v) => instance_map?.[v].instance)
 				) {
-					const req = fn({
-						action: "predict",
-						backend_fn,
-						frontend_fn,
-						payload: {
-							fn_index: i,
-							data: inputs.map((id) => instance_map[id].props.value)
-						},
-						queue: queue === null ? enable_queue : queue,
-						queue_callback: handle_update,
-						loading_status: loading_status,
-						cancels
-					});
+					cancels &&
+						cancels.forEach((fn_index) => {
+							app.cancel("/predict", fn_index);
+						});
 
-					function handle_update(output: any) {
-						output.data.forEach((value: any, i: number) => {
-							if (
-								typeof value === "object" &&
-								value !== null &&
-								value.__type__ === "update"
-							) {
-								for (const [update_key, update_value] of Object.entries(
-									value
-								)) {
-									if (update_key === "__type__") {
-										continue;
-									} else {
-										instance_map[outputs[i]].props[update_key] = update_value;
-									}
-								}
-								rootNode = rootNode;
+					let payload = {
+						fn_index: i,
+						data: inputs.map((id) => instance_map[id].props.value)
+					};
+
+					if (frontend_fn) {
+						frontend_fn(
+							payload.data.concat(
+								outputs.map((id) => instance_map[id].props.value)
+							)
+						).then((v: []) => {
+							if (backend_fn) {
+								payload.data = v;
+								make_prediction();
 							} else {
-								instance_map[outputs[i]].props.value = value;
+								handle_update(v, i);
 							}
 						});
+					} else {
+						if (backend_fn) {
+							make_prediction();
+						}
 					}
-
-					if (!(queue === null ? enable_queue : queue)) {
-						req.then(handle_update);
+					function make_prediction() {
+						app.predict("/predict", payload);
 					}
 
 					handled_dependencies[i] = [-1];
@@ -290,53 +327,48 @@
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
-							if (loading_status.get_status_for_fn(i) === "pending") {
+							const current_status = loading_status.get_status_for_fn(i);
+							if (
+								current_status === "pending" ||
+								current_status === "generating"
+							) {
 								return;
 							}
 
-							// page events
-							const req = fn({
-								action: "predict",
-								backend_fn,
-								frontend_fn,
-								payload: {
-									fn_index: i,
-									data: inputs.map((id) => instance_map[id].props.value)
-								},
-								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue,
-								queue_callback: handle_update,
-								loading_status: loading_status,
-								cancels
-							});
+							if (cancels) {
+								cancels.forEach((fn_index) => {
+									app.cancel("/predict", fn_index);
+								});
+							}
 
-							if (!(queue === null ? enable_queue : queue)) {
-								req.then(handle_update);
+							let payload = {
+								fn_index: i,
+								data: inputs.map((id) => instance_map[id].props.value)
+							};
+
+							if (frontend_fn) {
+								frontend_fn(
+									payload.data.concat(
+										outputs.map((id) => instance_map[id].props.value)
+									)
+								).then((v: []) => {
+									if (backend_fn) {
+										payload.data = v;
+										make_prediction();
+									} else {
+										handle_update(v, i);
+									}
+								});
+							} else {
+								if (backend_fn) {
+									make_prediction();
+								}
+							}
+
+							function make_prediction() {
+								app.predict("/predict", payload);
 							}
 						});
-
-						function handle_update(output: any) {
-							output.data.forEach((value: any, i: number) => {
-								if (
-									typeof value === "object" &&
-									value !== null &&
-									value.__type__ === "update"
-								) {
-									for (const [update_key, update_value] of Object.entries(
-										value
-									)) {
-										if (update_key === "__type__") {
-											continue;
-										} else {
-											instance_map[outputs[i]].props[update_key] = update_value;
-										}
-									}
-									rootNode = rootNode;
-								} else {
-									instance_map[outputs[i]].props.value = value;
-								}
-							});
-						}
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
@@ -371,54 +403,6 @@
 			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
 	}
-
-	function handle_darkmode() {
-		let url = new URL(window.location.toString());
-
-		const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
-			"__theme"
-		) as "light" | "dark" | "system" | null;
-
-		if (color_mode !== null) {
-			if (color_mode === "dark") {
-				darkmode();
-			} else if (color_mode === "system") {
-				use_system_theme();
-			}
-			// light is default, so we don't need to do anything else
-		} else if (url.searchParams.get("__dark-theme") === "true") {
-			darkmode();
-		} else {
-			use_system_theme();
-		}
-	}
-
-	function use_system_theme() {
-		update_scheme();
-		window
-			?.matchMedia("(prefers-color-scheme: dark)")
-			?.addEventListener("change", update_scheme);
-
-		function update_scheme() {
-			const is_dark =
-				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
-
-			if (is_dark) {
-				darkmode();
-			}
-		}
-	}
-
-	function darkmode() {
-		target.classList.add("dark");
-		if (app_mode) {
-			document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
-		}
-	}
-
-	if (window.__gradio_mode__ !== "website") {
-		handle_darkmode();
-	}
 </script>
 
 <svelte:head>
@@ -433,14 +417,9 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full flex flex-col" class:min-h-screen={app_mode}>
-	<div
-		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={app_mode}
-	>
-		{#if api_docs_visible}
-			<ApiDocs {components} {dependencies} {root} />
-		{:else if ready}
+<div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
+	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
+		{#if ready}
 			<Render
 				has_modes={rootNode.has_modes}
 				component={rootNode.component}
@@ -451,37 +430,144 @@
 				{instance_map}
 				{root}
 				{target}
+				{theme}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
 		{/if}
 	</div>
-	<footer
-		class="flex justify-center pb-6 text-gray-300 dark:text-gray-500 font-semibold"
-	>
-		{#if show_api}
-			<div
-				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
-				on:click={() => {
-					api_docs_visible = !api_docs_visible;
-				}}
+
+	{#if show_footer}
+		<footer>
+			{#if show_api}
+				<button
+					on:click={() => {
+						set_api_docs_visible(!api_docs_visible);
+					}}
+					class="show-api"
+				>
+					Use via API <img src={api_logo} alt="" />
+				</button>
+				<div>·</div>
+			{/if}
+			<a
+				href="https://gradio.app"
+				class="built-with"
+				target="_blank"
+				rel="noreferrer"
 			>
-				{#if api_docs_visible}hide{:else}view{/if} api
-			</div>
-			&nbsp; &bull; &nbsp;
-		{/if}
-		<a
-			href="https://gradio.app"
-			target="_blank"
-			rel="noreferrer"
-			class="group hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
-		>
-			{$_("interface.built_with_Gradio")}
-			<img
-				class="h-[22px] ml-0.5 inline-block pb-0.5 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition"
-				src={logo}
-				alt="logo"
-			/>
-		</a>
-	</footer>
+				Built with Gradio
+				<img src={logo} alt="logo" />
+			</a>
+		</footer>
+	{/if}
 </div>
+
+{#if api_docs_visible && ready}
+	<div class="api-docs">
+		<div
+			class="backdrop"
+			on:click={() => {
+				set_api_docs_visible(false);
+			}}
+		/>
+		<div class="api-docs-wrap ">
+			<ApiDocs
+				on:close={() => {
+					set_api_docs_visible(false);
+				}}
+				{instance_map}
+				{dependencies}
+				{root}
+			/>
+		</div>
+	</div>
+{/if}
+
+<style>
+	.wrap {
+		display: flex;
+		flex-grow: 1;
+		flex-direction: column;
+		width: var(--size-full);
+		font-weight: var(--body-text-weight);
+		font-size: var(--body-text-size);
+	}
+
+	footer {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--size-4);
+		color: var(--text-color-subdued);
+	}
+
+	footer > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+	.show-api:hover {
+		color: var(--body-text-color);
+	}
+
+	.show-api img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
+	}
+
+	.built-with {
+		display: flex;
+		align-items: center;
+	}
+
+	.built-with:hover {
+		color: var(--body-text-color);
+	}
+
+	.built-with img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
+	}
+
+	.api-docs {
+		display: flex;
+		position: fixed;
+		top: 0;
+		right: 0;
+		z-index: var(--layer-5);
+		background: rgba(0, 0, 0, 0.5);
+		width: var(--size-screen);
+		height: var(--size-screen-h);
+	}
+
+	.backdrop {
+		flex: 1 1 0%;
+		backdrop-filter: blur(4px);
+	}
+
+	.api-docs-wrap {
+		box-shadow: var(--shadow-drop-lg);
+		background: var(--color-background-primary);
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+
+	@media (--screen-md) {
+		.api-docs-wrap {
+			border-top-left-radius: var(--radius-lg);
+			border-bottom-left-radius: var(--radius-lg);
+			width: 950px;
+		}
+	}
+
+	@media (--screen-xxl) {
+		.api-docs-wrap {
+			width: 1150px;
+		}
+	}
+</style>

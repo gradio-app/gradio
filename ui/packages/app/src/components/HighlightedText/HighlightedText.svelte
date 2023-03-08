@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { HighlightedText } from "@gradio/highlighted-text";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { TextHighlight } from "@gradio/icons";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -10,6 +10,7 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: Array<[string, string | number]>;
+	let old_value: Array<[string, string | number]>;
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label: string;
@@ -23,7 +24,12 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
-	$: value, dispatch("change");
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block
@@ -44,8 +50,8 @@
 	{#if value}
 		<HighlightedText {value} {show_legend} color_map={style.color_map} />
 	{:else}
-		<div class="h-full min-h-[6rem] flex justify-center items-center">
-			<div class="h-5 dark:text-white opacity-50"><TextHighlight /></div>
-		</div>
+		<Empty>
+			<TextHighlight />
+		</Empty>
 	{/if}
 </Block>

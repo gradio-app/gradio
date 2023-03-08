@@ -2,8 +2,9 @@
 	import { createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Chart } from "@gradio/chart";
+	import UploadText from "../UploadText.svelte";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -118,7 +119,6 @@
 
 	function handle_load(v: string | FileData | (string | FileData)[] | null) {
 		value = { data: v as string };
-		// setValue({ data: v as string });
 		return v;
 	}
 
@@ -138,7 +138,6 @@
 <Block
 	{visible}
 	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
-	color={"grey"}
 	padding={false}
 	{elem_id}
 >
@@ -149,14 +148,12 @@
 		{#if static_data}
 			<Chart value={static_data} {colors} />
 		{:else}
-			<div class="h-full min-h-[15rem] flex justify-center items-center">
-				<div class="h-5 dark:text-white opacity-50"><ChartIcon /></div>
-			</div>
+			<Empty size="large" unpadded_box={true}>
+				<ChartIcon />
+			</Empty>
 		{/if}
 	{:else if _value}
-		<div
-			class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-		>
+		<div class="chart">
 			<ModifyUpload on:clear={handle_clear} />
 			<Chart
 				value={_value}
@@ -167,16 +164,24 @@
 			/>
 		</div>
 	{:else if value === undefined || value === null}
-		<div class="h-full min-h-[8rem]">
-			<Upload
-				filetype="text/csv"
-				on:load={({ detail }) => handle_load(detail)}
-				include_file_metadata={false}
-			>
-				{$_("interface.drop_csv")}
-				<br />- {$_("or")} -<br />
-				{$_("interface.click_to_upload")}
-			</Upload>
-		</div>
+		<Upload
+			filetype="text/csv"
+			on:load={({ detail }) => handle_load(detail)}
+			include_file_metadata={false}
+		>
+			<UploadText type="csv" />
+		</Upload>
 	{/if}
 </Block>
+
+<style>
+	.chart {
+		display: flex;
+		display: relative;
+		justify-content: center;
+		align-items: center;
+		background-color: var(--color-background-primary);
+		width: var(--size-full);
+		height: var(--size-64);
+	}
+</style>

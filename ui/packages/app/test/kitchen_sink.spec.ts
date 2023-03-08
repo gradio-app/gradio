@@ -13,7 +13,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/run/predict/", (route) => {
+	return page.route("**/run/predict", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -28,7 +28,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 
 test("test inputs", async ({ page }) => {
 	await mock_demo(page, "kitchen_sink");
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	const textbox = await page.getByLabel("Textbox").nth(0);
 	await expect(textbox).toHaveValue("Lorem ipsum");
@@ -209,13 +209,13 @@ test("test outputs", async ({ page }) => {
 		]
 	]);
 
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
 
 	await Promise.all([
 		submit_button.click(),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 
 	const textbox = await page.getByLabel("Textbox").nth(2);

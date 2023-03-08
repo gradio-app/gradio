@@ -4,32 +4,80 @@
 	export let value: boolean;
 	export let disabled: boolean = false;
 	export let label: string;
-	// export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
-	function handle_change(
-		evt: Event & {
-			currentTarget: EventTarget & HTMLInputElement;
-		}
-	) {
-		value = evt.currentTarget.checked;
+	function handle_change(value: boolean) {
 		dispatch("change", value);
 	}
+
+	$: handle_change(value);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label
-	class:!cursor-not-allowed={disabled}
-	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer dark:bg-transparent "
->
+<label class:disabled>
 	<input
-		on:change={(evt) => handle_change(evt)}
+		bind:checked={value}
 		{disabled}
-		checked={value}
 		type="checkbox"
 		name="test"
-		class="gr-check-radio gr-checkbox"
+		data-testid="checkbox"
 	/>
-	<span class="ml-2">{label}</span></label
->
+	<span class="ml-2">{label}</span>
+</label>
+
+<style>
+	label {
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		color: var(--body-text-color);
+		font-weight: var(--checkbox-label-text-weight);
+		font-size: var(--checkbox-label-text-size);
+		line-height: var(--line-md);
+	}
+
+	label > * + * {
+		margin-left: var(--size-2);
+	}
+
+	input {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow: var(--input-shadow);
+		border: 1px solid var(--checkbox-border-color);
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background);
+		line-height: var(--line-sm);
+	}
+
+	input:checked {
+		border-color: var(--checkbox-border-color-selected);
+		background-color: var(--checkbox-background-selected);
+	}
+
+	input:hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-hover);
+	}
+
+	input:focus {
+		border-color: var(--checkbox-border-color-focus);
+		background-color: var(--checkbox-background-focus);
+	}
+
+	input:checked:focus {
+		border-color: var(--checkbox-background-selected);
+		background-color: var(--checkbox-background-selected);
+	}
+
+	input:checked:hover {
+		border-color: var(--checkbox-background-selected);
+		background-color: var(--checkbox-background-selected);
+	}
+
+	input[disabled],
+	.disabled {
+		cursor: not-allowed;
+	}
+</style>

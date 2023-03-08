@@ -1,3 +1,4 @@
+# type: ignore
 """
 This module defines various classes that can serve as the `output` to an interface. Each class must inherit from
 `OutputComponent`, and each class must define a path to its template. All of the subclasses of `OutputComponent` are
@@ -15,7 +16,7 @@ from gradio import components
 class Textbox(components.Textbox):
     def __init__(
         self,
-        type: str = "auto",
+        type: str = "text",
         label: Optional[str] = None,
     ):
         warnings.warn(

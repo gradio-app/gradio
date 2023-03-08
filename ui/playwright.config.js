@@ -3,5 +3,6 @@ export default {
 		screenshot: "only-on-failure",
 		trace: "retain-on-failure"
 	},
-	globalSetup: "./playwright-setup.js"
+	globalSetup: "./playwright-setup.js",
+	workers: 1
 };

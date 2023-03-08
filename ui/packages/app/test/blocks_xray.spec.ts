@@ -12,7 +12,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/run/predict/", (route) => {
+	return page.route("**/run/predict", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -27,9 +27,9 @@ function mock_api(page: Page, body: Array<unknown>) {
 
 test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_xray");
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
-	const description = await page.locator(".output-markdown");
+	const description = await page.getByTestId("markdown");
 	await expect(description).toContainText("Detect Disease From Scan");
 
 	const checkboxes = await page.getByTestId("checkbox-group");
@@ -56,7 +56,7 @@ test("can run an api request and display the data", async ({ page }) => {
 		]
 	]);
 
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	await page.getByLabel("Covid").check();
 	await page.getByLabel("Lung Cancer").check();
@@ -65,7 +65,7 @@ test("can run an api request and display the data", async ({ page }) => {
 
 	await Promise.all([
 		run_button.click(),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 
 	const json = await page.getByTestId("json").first();

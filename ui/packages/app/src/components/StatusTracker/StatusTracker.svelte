@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { fade } from "svelte/transition";
+	import { prettySI } from "../utils/helpers";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -48,6 +49,7 @@
 	import { onDestroy } from "svelte";
 	import { app_state } from "../../stores";
 	import Loader from "./Loader.svelte";
+	import type { LoadingStatus } from "./types";
 
 	export let eta: number | null = null;
 	export let queue: boolean = false;
@@ -58,7 +60,10 @@
 	export let timer: boolean = true;
 	export let visible: boolean = true;
 	export let message: string | null = null;
+	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
+	export let loading_text: string = "Loading...";
+	export let absolute: boolean = true;
 
 	let el: HTMLDivElement;
 
@@ -67,18 +72,54 @@
 	let timer_diff = 0;
 	let old_eta: number | null = null;
 	let message_visible: boolean = false;
+	let eta_level: number | null = 0;
+	let progress_level: Array<number | undefined> | null = null;
+	let last_progress_level: number | undefined = undefined;
+	let progress_bar: HTMLElement | null = null;
+	let show_eta_bar: boolean = true;
 
-	$: progress =
+	$: eta_level =
 		eta === null || eta <= 0 || !timer_diff
 			? null
 			: Math.min(timer_diff / eta, 1);
+	$: if (progress != null) {
+		show_eta_bar = false;
+	}
+
+	$: {
+		if (progress != null) {
+			progress_level = progress.map((p) => {
+				if (p.index != null && p.length != null) {
+					return p.index / p.length;
+				} else if (p.progress != null) {
+					return p.progress;
+				} else {
+					return undefined;
+				}
+			});
+		} else {
+			progress_level = null;
+		}
+
+		if (progress_level) {
+			last_progress_level = progress_level[progress_level.length - 1];
+			if (progress_bar) {
+				if (last_progress_level === 0) {
+					progress_bar.style.transition = "0";
+				} else {
+					progress_bar.style.transition = "150ms";
+				}
+			}
+		} else {
+			last_progress_level = undefined;
+		}
+	}
 
 	const start_timer = () => {
 		timer_start = performance.now();
 		timer_diff = 0;
 		_timer = true;
 		run();
-		// timer = setInterval(, 100);
 	};
 
 	function run() {
@@ -141,65 +182,117 @@
 </script>
 
 <div
-	class="wrap"
-	class:inset-0={variant === "default"}
-	class:inset-x-0={variant === "center"}
-	class:top-0={variant === "center"}
-	class:opacity-0={!status || status === "complete"}
-	class:cover-bg={variant === "default" &&
+	class="wrap {variant}"
+	class:hide={!status || status === "complete" || !visible}
+	class:translucent={variant === "center" &&
 		(status === "pending" || status === "error")}
 	class:generating={status === "generating"}
-	class:!hidden={!visible}
+	style:position={absolute ? "absolute" : "static"}
+	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default"}
-			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+		{#if variant === "default" && show_eta_bar}
+			<div
+				class="eta-bar"
+				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
+			/>
 		{/if}
 		<div
-			class="dark:text-gray-400"
 			class:meta-text-center={variant === "center"}
 			class:meta-text={variant === "default"}
 		>
-			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
+			{#if progress}
+				{#each progress as p}
+					{#if p.index != null}
+						{#if p.length != null}
+							{prettySI(p.index || 0)}/{prettySI(p.length)}
+						{:else}
+							{prettySI(p.index || 0)}
+						{/if}
+						{p.unit} | {" "}
+					{/if}
+				{/each}
+			{:else if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
 				processing |
 			{/if}
 
 			{#if timer}
-				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+				{formatted_timer}{eta ? `/${formatted_eta}` : ""}s
 			{/if}
 		</div>
 
-		<Loader margin={variant === "default"} />
+		{#if last_progress_level != null}
+			<div class="progress-level">
+				<div class="progress-level-inner">
+					{#if progress != null}
+						{#each progress as p, i}
+							{#if p.desc != null || (progress_level && progress_level[i] != null)}
+								{#if i !== 0}
+									&nbsp;/
+								{/if}
+								{#if p.desc != null}
+									{p.desc}
+								{/if}
+								{#if p.desc != null && progress_level && progress_level[i] != null}
+									-
+								{/if}
+								{#if progress_level != null}
+									{(100 * (progress_level[i] || 0)).toFixed(1)}%
+								{/if}
+							{/if}
+						{/each}
+					{/if}
+				</div>
+
+				<div class="progress-bar-wrap">
+					<div
+						bind:this={progress_bar}
+						class="progress-bar"
+						style:width="{last_progress_level * 100}%"
+					/>
+				</div>
+			</div>
+		{:else}
+			<Loader margin={variant === "default"} />
+		{/if}
 
 		{#if !timer}
-			<p class="timer">Loading...</p>
+			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
+		<slot name="error" />
 		{#if message_visible}
-			<div class="fixed inset-0 z-[100]">
+			<div class="toast">
 				<div
-					class="absolute left-0 md:left-auto border-black right-0 top-0 h-96 md:w-1/2 bg-gradient-to-b md:bg-gradient-to-bl from-red-500/5 via-transparent to-transparent"
-				/>
-				<div
-					class="absolute bg-white top-7 left-4 right-4 md:right-8 md:left-auto rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-2xl shadow-red-500/10 md:w-96 pointer-events-auto"
+					class="toast-body"
 					on:click|stopPropagation
 					in:fade={{ duration: 100 }}
 				>
-					<div
-						class="flex items-center bg-gradient-to-r from-red-500/10 to-red-200/10 px-3 py-1 text-lg font-bold text-red-500"
-					>
-						Error
-						<button
-							on:click={close_message}
-							class="ml-auto text-gray-900 text-2xl pr-1">×</button
+					<button on:click={close_message} class="toast-close">
+						<svg
+							width="100%"
+							height="100%"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							stroke="currentColor"
+							stroke-width="3"
+							stroke-linecap="round"
+							stroke-linejoin="round"
 						>
-					</div>
-					<div class="px-3 py-3 text-base font-mono">
-						{message}
+							<line x1="18" y1="6" x2="6" y2="18" />
+							<line x1="6" y1="6" x2="18" y2="18" />
+						</svg>
+					</button>
+
+					<div class="toast-details">
+						<div class="toast-title">Something went wrong</div>
+						<div class="toast-text">
+							{message || ""}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -207,44 +300,212 @@
 	{/if}
 </div>
 
-<style lang="postcss">
+<style>
 	.wrap {
-		@apply absolute  z-50 flex flex-col justify-center items-center dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		z-index: var(--layer-5);
+		border-radius: var(--block-radius);
+		background-color: var(--color-background-primary);
+		padding: 0 var(--size-6);
+		max-height: var(--size-screen-h);
+		overflow: hidden;
 	}
 
-	:global(.dark) .cover-bg {
-		@apply bg-gray-800;
+	.wrap.center {
+		top: 0;
+		right: 0px;
+		left: 0px;
 	}
 
-	.cover-bg {
-		@apply bg-white;
+	.wrap.default {
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+	}
+
+	.hide {
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	.generating {
-		@apply border-2 border-orange-500 animate-pulse;
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		border: 2px solid var(--color-accent);
+		background: transparent;
 	}
 
+	.translucent {
+		background: none;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
+	}
+
+	.loading {
+		z-index: var(--layer-2);
+		color: var(--body-text-color);
+	}
+	.eta-bar {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		transform-origin: left;
+		opacity: 0.8;
+		z-index: var(--layer-1);
+		transition: 10ms;
+		background: var(--color-background-secondary);
+	}
+	.progress-bar-wrap {
+		border: 1px solid var(--color-border-primary);
+		background: var(--color-background-primary);
+		width: 55.5%;
+		height: var(--size-4);
+	}
 	.progress-bar {
-		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
+		transform-origin: left;
+		background-color: var(--loader-color);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.progress-level {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1;
+		z-index: var(--layer-2);
+		width: var(--size-full);
+	}
+
+	.progress-level-inner {
+		margin: var(--size-2) auto;
+		color: var(--body-text-color);
+		font-size: var(--text-sm);
+		font-family: var(--font-mono);
 	}
 
 	.meta-text {
-		@apply absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs;
+		position: absolute;
+		top: 0;
+		right: 0;
+		z-index: var(--layer-2);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--text-sm);
+		font-family: var(--font-mono);
 	}
 
 	.meta-text-center {
-		@apply absolute inset-0 font-mono z-20 text-xs text-center flex justify-center items-center translate-y-6;
-	}
-
-	.timer {
-		@apply -translate-y-16;
-	}
-
-	:global(.dark) .error {
-		@apply bg-red-500/10 text-red-600;
+		display: flex;
+		position: absolute;
+		top: 0;
+		right: 0;
+		justify-content: center;
+		align-items: center;
+		transform: translateY(var(--size-6));
+		z-index: var(--layer-2);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--text-sm);
+		font-family: var(--font-mono);
+		text-align: center;
 	}
 
 	.error {
-		@apply text-red-400 font-sans font-semibold text-lg bg-red-500/5 rounded-full px-4;
+		box-shadow: var(--shadow-drop);
+		border: solid 1px var(--error-border-color);
+		border-radius: var(--radius-full);
+		background-color: var(--color-background-primary);
+		background: var(--error-background);
+		padding-right: var(--size-4);
+		padding-left: var(--size-4);
+		color: var(--error-color);
+		font-weight: var(--weight-semibold);
+		font-size: var(--text-lg);
+		line-height: var(--line-lg);
+		font-family: var(--font-sans);
+	}
+
+	.toast {
+		position: fixed;
+		top: 0;
+		right: var(--size-4);
+		left: var(--size-4);
+		z-index: var(--layer-top);
+		padding: var(--size-4);
+	}
+
+	.toast-body {
+		display: flex;
+		position: absolute;
+		top: var(--size-8);
+		right: 0;
+		left: 0;
+		align-items: center;
+		margin: var(--size-6) var(--size-4);
+		margin: auto;
+		box-shadow: var(--shadow-drop-lg);
+		border: 1px solid var(--error-border-color);
+		border-radius: var(--container-radius);
+		background: var(--error-background);
+		padding: var(--size-4) var(--size-6);
+		max-width: 1200px;
+		max-width: 610px;
+		overflow: hidden;
+		pointer-events: auto;
+	}
+
+	.toast-title {
+		display: flex;
+		align-items: center;
+		padding: var(--size-1) var(--size-3);
+		color: var(--error-color);
+		color: var(--color-red-500);
+		font-weight: var(--weight-bold);
+		font-size: var(--text-lg);
+		line-height: var(--line-xs);
+	}
+
+	.toast-close {
+		display: flex;
+		flex-shrink: 0;
+		justify-content: center;
+		align-items: center;
+		border-radius: var(--radius-full);
+		background: var(--color-red-600);
+		padding: var(--size-2);
+		padding-left: calc(var(--size-2) - 1px);
+		width: var(--size-10);
+		height: var(--size-10);
+		color: white;
+	}
+
+	.toast-text {
+		padding: var(--size-1) var(--size-3);
+		color: var(--body-text-color);
+		font-family: var(--font-mono);
+	}
+
+	.toast-details {
+		padding-left: var(--size-3);
+		width: 100%;
+	}
+
+	@media (--screen-md) {
+		.toast-body {
+			right: var(--size-4);
+			left: auto;
+		}
 	}
 </style>

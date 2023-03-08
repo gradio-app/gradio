@@ -2,8 +2,10 @@ import copy
 import ipaddress
 import json
 import os
+import sys
 import unittest.mock as mock
 import warnings
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
@@ -12,13 +14,15 @@ from httpx import AsyncClient, Response
 from pydantic import BaseModel
 from typing_extensions import Literal
 
+from gradio.context import Context
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
     XRAY_CONFIG_DIFF_IDS,
     XRAY_CONFIG_WITH_MISTAKE,
 )
 from gradio.utils import (
-    Request,
+    AsyncRequest,
+    abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
@@ -27,10 +31,14 @@ from gradio.utils import (
     format_ner_list,
     get_local_ip_address,
     ipython_check,
+    kaggle_check,
     launch_analytics,
     readme_to_html,
+    sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
+    strip_invalid_filename_characters,
+    validate_url,
     version_check,
 )
 
@@ -62,12 +70,12 @@ class TestUtils:
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
         mock_post.side_effect = requests.ConnectionError()
-        error_analytics("placeholder", "placeholder")
+        error_analytics("placeholder")
         mock_post.assert_called()
 
     @mock.patch("requests.post")
     def test_error_analytics_successful(self, mock_post):
-        error_analytics("placeholder", "placeholder")
+        error_analytics("placeholder")
         mock_post.assert_called()
 
     @mock.patch("requests.post")
@@ -99,19 +107,60 @@ class TestUtils:
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
 
+    def test_sagemaker_check_false(self):
+        assert not sagemaker_check()
+
+    def test_sagemaker_check_false_if_boto3_not_installed(self):
+        with mock.patch.dict(sys.modules, {"boto3": None}, clear=True):
+            assert not sagemaker_check()
+
+    @mock.patch("boto3.session.Session.client")
+    def test_sagemaker_check_true(self, mock_client):
+        mock_client().get_caller_identity = MagicMock(
+            return_value={
+                "Arn": "arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker"
+            }
+        )
+        assert sagemaker_check()
+
+    def test_kaggle_check_false(self):
+        assert not kaggle_check()
+
+    def test_kaggle_check_true_when_run_type_set(self):
+        with mock.patch.dict(
+            os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_true_when_both_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
+            clear=True,
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_false_when_neither_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
+            clear=True,
+        ):
+            assert not kaggle_check()
+
 
 class TestIPAddress:
+    @pytest.mark.flaky
     def test_get_ip(self):
+        Context.ip_address = None
         ip = get_local_ip_address()
         if ip == "No internet connection":
             return
-        try:  # check whether ip is valid
-            ipaddress.ip_address(ip)
-        except ValueError:
-            self.fail("Invalid IP address")
+        ipaddress.ip_address(ip)
 
     @mock.patch("requests.get")
     def test_get_ip_without_internet(self, mock_get):
+        Context.ip_address = None
         mock_get.side_effect = requests.ConnectionError()
         ip = get_local_ip_address()
         assert ip == "No internet connection"
@@ -180,7 +229,6 @@ class TestAssertConfigsEquivalent:
                     },
                 },
             ],
-            "theme": "default",
             "css": None,
             "enable_queue": False,
             "layout": {"id": 0, "children": [{"id": 1}, {"id": 2}, {"id": 3}]},
@@ -245,7 +293,16 @@ class TestDeleteNone:
                 None: 123,
             },
         }
-        truth = {"a": 12, "b": 34, "k": {"d": 34, "m": [{"k": 23}, [1, 2, 3], {1, 2}]}}
+        truth = {
+            "a": 12,
+            "b": 34,
+            "k": {
+                "d": 34,
+                "t": None,
+                "m": [{"k": 23, "t": None}, [None, 1, 2, 3], {1, 2, None}],
+                None: 123,
+            },
+        }
         assert delete_none(input) == truth
 
 
@@ -255,15 +312,15 @@ async def client():
     A fixture to mock the async client object.
     """
     async with AsyncClient() as mock_client:
-        with mock.patch("gradio.utils.Request.client", mock_client):
+        with mock.patch("gradio.utils.AsyncRequest.client", mock_client):
             yield
 
 
 class TestRequest:
     @pytest.mark.asyncio
     async def test_get(self):
-        client_response: Request = await Request(
-            method=Request.Method.GET,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.GET,
             url="http://headers.jsontest.com/",
         )
         validated_data = client_response.get_validated_data()
@@ -272,8 +329,8 @@ class TestRequest:
 
     @pytest.mark.asyncio
     async def test_post(self):
-        client_response: Request = await Request(
-            method=Request.Method.POST,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
         )
@@ -290,8 +347,8 @@ class TestRequest:
             id: str
             createdAt: str
 
-        client_response: Request = await Request(
-            method=Request.Method.POST,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
             validation_model=TestModel,
@@ -304,8 +361,8 @@ class TestRequest:
             name: Literal["John"] = "John"
             job: str
 
-        client_response: Request = await Request(
-            method=Request.Method.POST,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
             validation_model=TestModel,
@@ -329,8 +386,8 @@ async def test_get(respx_mock):
         make_mock_response({"Host": "headers.jsontest.com"})
     )
 
-    client_response: Request = await Request(
-        method=Request.Method.GET,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
     )
     validated_data = client_response.get_validated_data()
@@ -344,8 +401,8 @@ async def test_post(respx_mock):
     payload = {"name": "morpheus", "job": "leader"}
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response(payload))
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json=payload,
     )
@@ -374,8 +431,8 @@ async def test_validate_with_model(respx_mock):
         id: str
         createdAt: str
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json={"name": "morpheus", "job": "leader"},
         validation_model=TestModel,
@@ -386,14 +443,14 @@ async def test_validate_with_model(respx_mock):
 @pytest.mark.asyncio
 async def test_validate_and_fail_with_model(respx_mock):
     class TestModel(BaseModel):
-        name: Literal[str] = "John"
+        name: Literal["John"]
         job: str
 
     payload = {"name": "morpheus", "job": "leader"}
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response(payload))
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json=payload,
         validation_model=TestModel,
@@ -404,7 +461,7 @@ async def test_validate_and_fail_with_model(respx_mock):
     assert isinstance(client_response.exception, Exception)
 
 
-@mock.patch("gradio.utils.Request._validate_response_data")
+@mock.patch("gradio.utils.AsyncRequest._validate_response_data")
 @pytest.mark.asyncio
 async def test_exception_type(validate_response_data, respx_mock):
     class ResponseValidationException(Exception):
@@ -414,8 +471,8 @@ async def test_exception_type(validate_response_data, respx_mock):
 
     respx_mock.get(MOCK_REQUEST_URL).mock(Response(201))
 
-    client_response: Request = await Request(
-        method=Request.Method.GET,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
         exception_type=ResponseValidationException,
     )
@@ -434,8 +491,8 @@ async def test_validate_with_function(respx_mock):
             return response
         raise Exception
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json={"name": "morpheus", "job": "leader"},
         validation_function=has_name,
@@ -456,8 +513,8 @@ async def test_validate_and_fail_with_function(respx_mock):
 
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response({"name": "morpheus"}))
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json={"name": "morpheus", "job": "leader"},
         validation_function=has_name,
@@ -488,6 +545,21 @@ class TestSanitizeForCSV:
         assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
 
 
+class TestValidateURL:
+    @pytest.mark.flaky
+    def test_valid_urls(self):
+        assert validate_url("https://www.gradio.app")
+        assert validate_url("http://gradio.dev")
+        assert validate_url(
+            "https://upload.wikimedia.org/wikipedia/commons/b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg"
+        )
+
+    def test_invalid_urls(self):
+        assert not (validate_url("C:/Users/"))
+        assert not (validate_url("C:\\Users\\"))
+        assert not (validate_url("/home/user"))
+
+
 class TestAppendUniqueSuffix:
     def test_no_suffix(self):
         name = "test"
@@ -503,3 +575,34 @@ class TestAppendUniqueSuffix:
         name = "test"
         list_of_names = ["test", "test_1", "test_2", "test_3"]
         assert append_unique_suffix(name, list_of_names) == "test_4"
+
+
+@pytest.mark.parametrize(
+    "orig_filename, new_filename",
+    [
+        ("abc", "abc"),
+        ("$$AAabc&3", "AAabc3"),
+        ("$$AAabc&3", "AAabc3"),
+        ("$$AAa..b-c&3_", "AAa..b-c3_"),
+        ("$$AAa..b-c&3_", "AAa..b-c3_"),
+        (
+            "ゆかりです｡私､こんなかわいい服は初めて着ました…｡なんだかうれしくって､楽しいです｡歌いたくなる気分って､初めてです｡これがｱｲﾄﾞﾙってことなのかもしれませんね",
+            "ゆかりです私こんなかわいい服は初めて着ましたなんだかうれしくって楽しいです歌いたくなる気分って初めてですこれがｱｲﾄﾞﾙってことなの",
+        ),
+    ],
+)
+def test_strip_invalid_filename_characters(orig_filename, new_filename):
+    assert strip_invalid_filename_characters(orig_filename) == new_filename
+
+
+class TestAbspath:
+    def test_abspath_no_symlink(self):
+        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
+        assert ".." not in resolved_path
+
+    @mock.patch(
+        "pathlib.Path.is_symlink", return_value=True
+    )  # Have to patch since Windows doesn't allow creation of sym links without administrative privileges
+    def test_abspath_symlink(self, mock_islink):
+        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
+        assert ".." in resolved_path

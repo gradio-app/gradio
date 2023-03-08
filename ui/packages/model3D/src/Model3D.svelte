@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import { BlockLabel } from "@gradio/atoms";
-	import { File } from "@gradio/icons";
+	import { BlockLabel, IconButton } from "@gradio/atoms";
+	import { File, Download } from "@gradio/icons";
 
 	export let value: FileData | null;
-	export let clearColor: Array<number>;
+	export let clearColor: Array<number> = [0, 0, 0, 0];
 	export let label: string = "";
 	export let show_label: boolean;
 
@@ -26,7 +26,7 @@
 	});
 
 	afterUpdate(() => {
-		if (scene) {
+		if (scene && !scene.isDisposed) {
 			scene.dispose();
 			engine?.stopRenderLoop();
 			engine?.dispose();
@@ -42,14 +42,8 @@
 	function addNewModel() {
 		scene = new BABYLON.Scene(engine!);
 		scene.createDefaultCameraOrLight();
-		scene.clearColor = clearColor
-			? (scene.clearColor = new BABYLON.Color4(
-					clearColor[0],
-					clearColor[1],
-					clearColor[2],
-					clearColor[3]
-			  ))
-			: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+
+		scene.clearColor = new BABYLON.Color4(...clearColor);
 
 		engine?.runRenderLoop(() => {
 			scene.render();
@@ -82,11 +76,37 @@
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
-
 {#if value}
-	<canvas class="w-full h-full object-contain" bind:this={canvas} />
-{:else}
-	<div class="h-full min-h-[16rem] flex justify-center items-center">
-		<div class="h-10 dark:text-white opacity-50"><File /></div>
+	<div class="model3D">
+		<div class="download">
+			<a
+				href={value.data}
+				target={window.__is_colab__ ? "_blank" : null}
+				download={window.__is_colab__ ? null : value.orig_name || value.name}
+			>
+				<IconButton Icon={Download} label="Download" />
+			</a>
+		</div>
+
+		<canvas bind:this={canvas} />
 	</div>
 {/if}
+
+<style>
+	.model3D {
+		display: flex;
+		position: relative;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+	canvas {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+	.download {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+	}
+</style>

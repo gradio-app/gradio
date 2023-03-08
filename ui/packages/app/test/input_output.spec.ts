@@ -12,7 +12,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/run/predict/", (route) => {
+	return page.route("**/run/predict", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -28,14 +28,14 @@ function mock_api(page: Page, body: Array<unknown>) {
 test("a component acts as both input and output", async ({ page }) => {
 	await mock_demo(page, "input_output");
 	await mock_api(page, [["tset"]]);
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	const textbox = await page.getByLabel("Input-Output");
 
 	await textbox.fill("test");
 	await Promise.all([
 		page.click("button"),
-		page.waitForResponse("**/run/predict/")
+		page.waitForResponse("**/run/predict")
 	]);
 	await expect(await textbox).toHaveValue("tset");
 });

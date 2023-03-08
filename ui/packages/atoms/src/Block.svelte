@@ -7,21 +7,14 @@
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let variant: "solid" | "dashed" | "none" = "solid";
-	export let color: "grey" | "green" = "grey";
+	export let border_mode: "base" | "focus" = "base";
 	export let padding: boolean = true;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
 	export let disable: boolean = false;
 	export let explicit_call: boolean = false;
 	export let visible = true;
-
-	const styles = {
-		dashed: "border-dashed border border-gray-300",
-		solid: "border-solid border",
-		grey: "border-gray-200",
-		green: "border-green-400",
-		none: "!border-0"
-	};
+	export let allow_overflow = true;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
@@ -29,11 +22,11 @@
 
 	$: _parent = parent === "column" || parent == "row" ? parent : "column";
 
-	$: ({ classes } = explicit_call
+	$: ({ styles } = explicit_call
 		? get_styles(style, [])
 		: disable
 		? get_styles({ container: false }, ["container"])
-		: { classes: "" });
+		: { styles: "" });
 	$: size_style =
 		"" +
 		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
@@ -44,12 +37,39 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class:!hidden={visible === false}
-	class="gr-block gr-box relative w-full overflow-hidden {styles[
-		variant
-	]} {styles[color]} {classes}"
-	class:gr-padded={padding}
-	style={size_style || null}
+	class:hidden={visible === false}
+	class="block"
+	class:padded={padding}
+	class:border_focus={border_mode === "focus"}
+	style="{styles} {size_style || null}"
+	style:border-style={variant}
+	style:overflow={allow_overflow ? "visible" : "hidden"}
 >
 	<slot />
 </svelte:element>
+
+<style>
+	.block {
+		position: relative;
+		margin: 0;
+		box-shadow: var(--block-shadow);
+		border-width: var(--block-border-width);
+		border-color: var(--block-border-color);
+		border-radius: var(--block-radius);
+		background: var(--block-background);
+		width: 100%;
+		line-height: var(--line-sm);
+	}
+
+	.block.border_focus {
+		border-color: var(--color-accent);
+	}
+
+	.padded {
+		padding: var(--block-padding);
+	}
+
+	.hidden {
+		display: none;
+	}
+</style>

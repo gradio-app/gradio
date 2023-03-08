@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% with title="Gradio Demos", url="https://gradio.app/demos", image="/assets/img/meta-image.png", description="Play Around with Gradio Demos" %}
+    {% with title="Gradio Demos", url="https://gradio.app/demos", image="/assets/img/meta-image.png", description="Play Around with Gradio Demos", canonical="https://gradio.app/demos" %}
       {% include "templates/meta.html" %}
     {% endwith %}
     <link rel="stylesheet" href="/style.css">
@@ -31,6 +31,9 @@
               <div class="demo-content px-4 {% if not ((category_loop.index==1) and (loop.index==1)) %}hidden{% endif %} {% if (category_loop.index==1) and (loop.index==1) %}selected-demo-window{% endif %}" name="{{ demo['dir'] }}">
                 <p class="my-4 text-lg text-gray-600">{{ demo['text'] }}</p>
                 <div class="codeblock" id="{{ demo['dir']}}_code">
+                  <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{{demo['dir']}}/run.ipynb" target="_blank" style="right:30px">
+                    <img src="https://colab.research.google.com/assets/colab-badge.svg">
+                  </a>
                   <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
                 </div>
                 {% if 'external_space' in demo %}
@@ -50,13 +53,12 @@
     <script>
       window.__gradio_mode__ = "website";
     </script>
-    <script type="module" src="/assets/index.js"></script>
-
-    <script>{% include 'templates/add_copy.js' %}</script>
 
     {% include 'templates/footer.html' %}
-    
+    <script>{% include 'templates/load_latest_stable.js' %}</script>
+
     <script>
+
     const show_demo = (demo) => {
       document.querySelectorAll(`.demo-btn.selected-demo-tab`).forEach(n => n.classList.remove('selected-demo-tab'));
       document.querySelector(`.demo-btn[name=${demo}]`).classList.add('selected-demo-tab');

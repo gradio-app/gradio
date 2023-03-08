@@ -6,9 +6,11 @@
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
+	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
+	export let type: "text" | "password" | "email" = "text";
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 
@@ -89,26 +91,54 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label class="block w-full">
-	<BlockTitle {show_label}>{label}</BlockTitle>
+<label>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	{#if lines === 1 && max_lines === 1}
-		<input
-			data-testid="textbox"
-			type="text"
-			class="scroll-hide block gr-box gr-input w-full gr-text-input"
-			bind:value
-			bind:this={el}
-			{placeholder}
-			{disabled}
-			on:keypress={handle_keypress}
-			on:blur={handle_blur}
-		/>
+		{#if type === "text"}
+			<input
+				data-testid="textbox"
+				type="text"
+				class="scroll-hide"
+				bind:value
+				bind:this={el}
+				{placeholder}
+				{disabled}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+			/>
+		{:else if type === "password"}
+			<input
+				data-testid="password"
+				type="password"
+				class="scroll-hide"
+				bind:value
+				bind:this={el}
+				{placeholder}
+				{disabled}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+				autocomplete=""
+			/>
+		{:else if type === "email"}
+			<input
+				data-testid="textbox"
+				type="email"
+				class="scroll-hide"
+				bind:value
+				bind:this={el}
+				{placeholder}
+				{disabled}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+				autocomplete="email"
+			/>
+		{/if}
 	{:else}
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={value}
-			class="scroll-hide block gr-box gr-input w-full gr-text-input"
+			class="scroll-hide"
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -119,3 +149,40 @@
 		/>
 	{/if}
 </label>
+
+<style>
+	label {
+		display: block;
+		width: 100%;
+	}
+
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
+	textarea {
+		display: block;
+		position: relative;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--input-radius);
+		background: var(--input-background);
+		padding: var(--input-padding);
+		width: 100%;
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
+	}
+
+	input:focus,
+	textarea:focus {
+		box-shadow: var(--input-shadow-focus);
+		border-color: var(--input-border-color-focus);
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--input-placeholder-color);
+	}
+</style>

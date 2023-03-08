@@ -1,5 +1,9 @@
+"""Contains methods that generate documentation for Gradio functions and classes."""
+
+from __future__ import annotations
+
 import inspect
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Tuple
 
 classes_to_document = {}
 documentation_group = None
@@ -30,7 +34,7 @@ def document(*fns):
     return inner_doc
 
 
-def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
+def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, str | None]:
     """
     Generates documentation for any function.
     Parameters:
@@ -41,7 +45,7 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
         return: A dict storing data for the returned annotation and doc
         example: Code for an example use of the fn
     """
-    doc_str = inspect.getdoc(fn)
+    doc_str = inspect.getdoc(fn) or ""
     doc_lines = doc_str.split("\n")
     signature = inspect.signature(fn)
     description, parameters, returns, examples = [], {}, [], []
@@ -58,8 +62,8 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
-            assert line.startswith(
-                "    "
+            assert (
+                line.startswith("    ") or line.strip() == ""
             ), f"Documentation format for {fn.__name__} has format error in line: {line}"
             line = line[4:]
             if mode == "parameter":
@@ -187,25 +191,3 @@ def generate_documentation():
                 )
             documentation[mode].append(cls_documentation)
     return documentation
-
-
-def document_component_api(component_cls, target):
-    """
-    Used for the view API page in the app itself. Generates documentation based on the pre/postprocess methods of the Component.
-    Parameters:
-        component_cls: The IOComponent in the app to document
-        target: Either "input" or "output", which sets whether to return input or output Component documentation
-    Returns:
-        doc: Description of value expected / returned by Component
-        annotation: Type expected / returned by Component
-    """
-    if target == "input":
-        _, parameter_docs, _, _ = document_fn(component_cls.preprocess)
-        if len(parameter_docs) > 1:
-            return parameter_docs[1]["doc"], str(parameter_docs[1]["annotation"])
-        return None, None
-    elif target == "output":
-        _, _, return_docs, _ = document_fn(component_cls.postprocess)
-        return return_docs.get("doc"), str(return_docs.get("annotation"))
-    else:
-        raise ValueError("Invalid doumentation target.")

@@ -1,29 +1,112 @@
 <script lang="ts">
+	import { Component as Form } from "./components/Form";
+	import { Component as Textbox } from "./components/Textbox";
+	import { Button } from "@gradio/button";
+	import { Component as Column } from "./components/Column";
 	export let root: string;
-	export let id: number;
 	export let auth_message: string | null;
+	export let app_mode: boolean;
+	export let is_space: boolean;
 
-	window.__gradio_loader__[id].$set({ status: "complete" });
+	let username = "";
+	let password = "";
+	let incorrect_credentials = false;
+
+	const submit = async () => {
+		const formData = new FormData();
+		formData.append("username", username);
+		formData.append("password", password);
+
+		let response = await fetch(root + "/login", {
+			method: "POST",
+			body: formData
+		});
+		if (response.status === 400) {
+			incorrect_credentials = true;
+			username = "";
+			password = "";
+		} else if (response.status == 200) {
+			location.reload();
+		}
+	};
 </script>
 
-<div class="login container mt-8">
-	<form
-		class="mx-auto p-4 bg-gray-50 shadow-md w-1/2"
-		id="login"
-		method="POST"
-		action={root + "login"}
-	>
-		<h2 class="text-2xl font-semibold my-2">login</h2>
+<div class="wrap" class:min-h-screen={app_mode}>
+	<Column variant="panel" min_width={480}>
+		<h2>Login</h2>
 		{#if auth_message}
-			<p class="my-4">{auth_message}</p>
+			<p class="auth">{auth_message}</p>
 		{/if}
-		<label class="block uppercase mt-4" for="username">username</label>
-		<input class="p-2 block" type="text" name="username" />
-		<label class="block uppercase mt-4" for="password">password</label>
-		<input class="p-2 block" type="password" name="password" />
-		<input
-			type="submit"
-			class="block bg-amber-500 hover:bg-amber-400 dark:hover:bg-amber-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
-		/>
-	</form>
+		{#if is_space}
+			<p class="auth">
+				If you are visiting a HuggingFace Space in Incognito mode, you must
+				enable third party cookies.
+			</p>
+		{/if}
+		{#if incorrect_credentials}
+			<p class="creds">Incorrect Credentials</p>
+		{/if}
+		<Form>
+			<Textbox
+				label="username"
+				lines={1}
+				show_label={true}
+				max_lines={1}
+				mode="dynamic"
+				on:submit={submit}
+				bind:value={username}
+			/>
+			<Textbox
+				label="password"
+				lines={1}
+				show_label={true}
+				max_lines={1}
+				mode="dynamic"
+				type="password"
+				on:submit={submit}
+				bind:value={password}
+			/>
+		</Form>
+
+		<Button
+			size="lg"
+			variant="primary"
+			style={{ full_width: true }}
+			on:click={submit}
+		>
+			Login
+		</Button>
+	</Column>
 </div>
+
+<style>
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin-top: var(--size-3);
+		background: var(--color-background-primary);
+		width: var(--size-full);
+	}
+
+	h2 {
+		margin-bottom: var(--size-3);
+		color: var(--body-text-color);
+		font-weight: var(--header-text-weight);
+		font-size: var(--text-xl);
+	}
+
+	.auth {
+		margin-top: var(--size-1);
+		margin-bottom: var(--size-1);
+		color: var(--body-text-color);
+	}
+
+	.creds {
+		margin-top: var(--size-4);
+		margin-bottom: var(--size-4);
+		color: var(--error-color);
+		font-weight: var(--weight-semibold);
+	}
+</style>

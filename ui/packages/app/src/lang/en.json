@@ -7,8 +7,8 @@
 		"drop_csv": "Drop CSV Here",
 		"click_to_upload": "Click to Upload",
 		"view_api": "view the api",
-		"built_with_Gradio": "built with gradio",
-		"copy_to_clipboard": "copy to clipboard",
+		"built_with_Gradio": "Built with gradio",
+		"copy_to_clipboard": "copy json",
 		"loading": "Loading",
 		"error": "ERROR",
 		"empty": "Empty"

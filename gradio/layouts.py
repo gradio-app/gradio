@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, List, Type
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
@@ -30,7 +30,7 @@ class Row(BlockContext):
         *,
         variant: str = "default",
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -49,7 +49,7 @@ class Row(BlockContext):
 
     @staticmethod
     def update(
-        visible: Optional[bool] = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
@@ -59,8 +59,8 @@ class Row(BlockContext):
     def style(
         self,
         *,
-        equal_height: Optional[bool] = None,
-        mobile_collapse: Optional[bool] = None,
+        equal_height: bool | None = None,
+        mobile_collapse: bool | None = None,
         **kwargs,
     ):
         """
@@ -100,7 +100,7 @@ class Column(BlockContext):
         min_width: int = 320,
         variant: str = "default",
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -129,8 +129,8 @@ class Column(BlockContext):
 
     @staticmethod
     def update(
-        variant: Optional[str] = None,
-        visible: Optional[bool] = None,
+        variant: str | None = None,
+        visible: bool | None = None,
     ):
         return {
             "variant": variant,
@@ -147,9 +147,9 @@ class Tabs(BlockContext):
     def __init__(
         self,
         *,
-        selected: Optional[int | str] = None,
+        selected: int | str | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -164,8 +164,9 @@ class Tabs(BlockContext):
     def get_config(self):
         return {"selected": self.selected, **super().get_config()}
 
+    @staticmethod
     def update(
-        selected: Optional[int | str] = None,
+        selected: int | str | None = None,
     ):
         return {
             "selected": selected,
@@ -183,15 +184,27 @@ class Tabs(BlockContext):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
-class TabItem(BlockContext):
-    expected_parent = Tabs
+@document()
+class Tab(BlockContext):
+    """
+    Tab (or its alias TabItem) is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
+    Example:
+        with gradio.Blocks() as demo:
+            with gradio.Tab("Lion"):
+                gr.Image("lion.jpg")
+                gr.Button("New Lion")
+            with gradio.Tab("Tiger"):
+                gr.Image("tiger.jpg")
+                gr.Button("New Tiger")
+    Guides: controlling_layout
+    """
 
     def __init__(
         self,
         label: str,
         *,
-        id: Optional[int | str] = None,
-        elem_id: Optional[str] = None,
+        id: int | str | None = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -221,26 +234,14 @@ class TabItem(BlockContext):
         """
         self.set_event_trigger("select", fn, inputs, outputs)
 
+    def get_expected_parent(self) -> Type[Tabs]:
+        return Tabs
 
-@document()
-class Tab(TabItem):
-    """
-    Tab is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
-    Example:
-        with gradio.Blocks() as demo:
-            with gradio.Tab("Lion"):
-                gr.Image("lion.jpg")
-                gr.Button("New Lion")
-            with gradio.Tab("Tiger"):
-                gr.Image("tiger.jpg")
-                gr.Button("New Tiger")
-    Guides: controlling_layout
-    """
-
-    pass
+    def get_block_name(self):
+        return "tabitem"
 
 
-Tab = TabItem  # noqa: F811
+TabItem = Tab
 
 
 class Group(BlockContext):
@@ -257,7 +258,7 @@ class Group(BlockContext):
         self,
         *,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -272,7 +273,7 @@ class Group(BlockContext):
 
     @staticmethod
     def update(
-        visible: Optional[bool] = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
@@ -295,7 +296,7 @@ class Box(BlockContext):
         self,
         *,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -310,7 +311,7 @@ class Box(BlockContext):
 
     @staticmethod
     def update(
-        visible: Optional[bool] = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
@@ -341,7 +342,7 @@ class Accordion(BlockContext):
         *,
         open: bool = True,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -364,11 +365,13 @@ class Accordion(BlockContext):
 
     @staticmethod
     def update(
-        open: Optional[bool] = None,
-        visible: Optional[bool] = None,
+        open: bool | None = None,
+        label: str | None = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
+            "label": label,
             "open": open,
             "__type__": "update",
         }

@@ -3,13 +3,14 @@ import tempfile
 from unittest.mock import patch
 
 import pytest
+from starlette.testclient import TestClient
 
 import gradio as gr
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamples:
     def test_handle_single_input(self):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
@@ -42,6 +43,12 @@ class TestExamples:
             [gr.media_data.BASE64_IMAGE, "hello"],
             [gr.media_data.BASE64_IMAGE, "hi"],
         ]
+        for sample in examples.dataset.samples:
+            assert os.path.isabs(sample[0])
+
+    def test_examples_per_page(self):
+        examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
+        assert examples.dataset.get_config()["samples_per_page"] == 2
 
     @pytest.mark.asyncio
     async def test_no_preprocessing(self):
@@ -80,10 +87,10 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0][0]["data"] == gr.media_data.BASE64_IMAGE
+        assert prediction[0][0][0]["data"] == gr.media_data.BASE64_IMAGE
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamplesDataset:
     def test_no_headers(self):
         examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
@@ -103,7 +110,7 @@ class TestExamplesDataset:
         assert examples.dataset.headers == ["im", ""]
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching(self):
@@ -151,7 +158,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(1)
-        assert prediction[0] == {"visible": False, "__type__": "update"}
+        assert prediction[0] == {
+            "visible": False,
+            "__type__": "update",
+        }
 
     @pytest.mark.asyncio
     async def test_caching_with_mix_update(self):
@@ -163,7 +173,11 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(1)
-        assert prediction[0] == {"lines": 4, "value": "hello", "__type__": "update"}
+        assert prediction[0] == {
+            "lines": 4,
+            "value": "hello",
+            "__type__": "update",
+        }
 
     @pytest.mark.asyncio
     async def test_caching_with_dict(self):
@@ -171,14 +185,18 @@ class TestProcessExamples:
         out = gr.Label()
 
         io = gr.Interface(
-            lambda _: {text: gr.update(lines=4), out: "lion"},
+            lambda _: {text: gr.update(lines=4, interactive=False), out: "lion"},
             "textbox",
             [text, out],
             examples=["abc"],
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        assert prediction == [{"lines": 4, "__type__": "update"}, {"label": "lion"}]
+        assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
+        assert prediction == [
+            {"lines": 4, "__type__": "update", "mode": "static"},
+            {"label": "lion"},
+        ]
 
     def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
         def foo(a, b):
@@ -276,3 +294,65 @@ class TestProcessExamples:
         )
         prediction = await io.examples_handler.load_from_cache(0)
         assert prediction == ["hel", "3"]
+
+    @pytest.mark.asyncio
+    async def test_caching_with_non_io_component(self):
+        def predict(name):
+            return name, gr.update(visible=True)
+
+        with gr.Blocks():
+            t1 = gr.Textbox()
+            with gr.Column(visible=False) as c:
+                t2 = gr.Textbox()
+
+            examples = gr.Examples(
+                [["John"], ["Mary"]],
+                fn=predict,
+                inputs=[t1],
+                outputs=[t2, c],
+                cache_examples=True,
+            )
+
+        prediction = await examples.load_from_cache(0)
+        assert prediction == ["John", {"visible": True, "__type__": "update"}]
+
+    def test_end_to_end(self):
+        def concatenate(str1, str2):
+            return str1 + str2
+
+        io = gr.Interface(
+            concatenate,
+            inputs=[gr.Textbox(), gr.Textbox()],
+            outputs=gr.Textbox(),
+            examples=[["Hello,", None], ["Michael", None]],
+        )
+
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
+        assert response.json()["data"] == ["Hello,"]
+
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
+        assert response.json()["data"] == ["Michael"]
+
+    def test_end_to_end_cache_examples(self):
+        def concatenate(str1, str2):
+            return str1 + " " + str2
+
+        io = gr.Interface(
+            concatenate,
+            inputs=[gr.Textbox(), gr.Textbox()],
+            outputs=gr.Textbox(),
+            examples=[["Hello,", "World"], ["Michael", "Jordan"]],
+            cache_examples=True,
+        )
+
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
+        assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
+
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
+        assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]

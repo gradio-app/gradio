@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { fade } from "svelte/transition";
+	import { JSON as JSONIcon } from "@gradio/icons";
+	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 
 	export let value: any = {};
-	export let copy_to_clipboard: string = "copy to clipboard";
+	export let copy_to_clipboard: string = "copy json";
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -24,24 +26,70 @@
 		}
 	}
 
+	function is_empty(obj: object) {
+		return (
+			obj &&
+			Object.keys(obj).length === 0 &&
+			Object.getPrototypeOf(obj) === Object.prototype
+		);
+	}
+
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
 </script>
 
-<button
-	on:click={handle_copy}
-	class="transition-color overflow-hidden font-sans absolute right-0 top-0  rounded-bl-lg shadow-sm text-xs text-gray-500 flex items-center  bg-white z-20 border-l border-b border-gray-100 dark:text-slate-200"
->
-	<span class="py-1 px-2">{copy_to_clipboard}</span>
-	{#if copied}
-		<span
-			in:fade={{ duration: 100 }}
-			out:fade={{ duration: 350 }}
-			class="font-bold dark:text-green-400 text-green-600 py-1 px-2 absolute block w-full text-left bg-white dark:bg-gray-900"
-			>COPIED</span
-		>
-	{/if}
-</button>
+{#if value && value !== '""' && !is_empty(value)}
+	<button on:click={handle_copy}>
+		<span class="copy-text">{copy_to_clipboard}</span>
+		{#if copied}
+			<span
+				in:fade={{ duration: 100 }}
+				out:fade={{ duration: 350 }}
+				class="copy-success "
+			>
+				copied!
+			</span>
+		{/if}
+	</button>
+	<div class="json-holder">
+		<JSONNode {value} depth={0} />
+	</div>
+{:else}
+	<Empty>
+		<JSONIcon />
+	</Empty>
+{/if}
 
-<JSONNode {value} depth={0} />
+<style>
+	.json-holder {
+		padding: var(--size-2);
+	}
+	button {
+		display: flex;
+		position: absolute;
+		top: var(--block-label-margin);
+		right: var(--block-label-margin);
+		align-items: center;
+		transition: 150ms;
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--color-border-primary);
+		border-top: none;
+		border-right: none;
+		border-radius: var(--block-label-right-radius);
+		background: var(--block-label-background);
+		padding: var(--block-label-padding);
+		overflow: hidden;
+		color: var(--block-label-color);
+		font: var(--font-sans);
+		font-size: var(--button-small-text-size);
+	}
+
+	.copy-success {
+		display: block;
+		position: absolute;
+		background: var(--block-label-background);
+		width: var(--size-full);
+		text-align: left;
+	}
+</style>

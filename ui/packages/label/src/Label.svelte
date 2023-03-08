@@ -4,39 +4,29 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let show_label: boolean;
+	export let show_label: boolean = true;
+	export let color: string | undefined = undefined;
 </script>
 
-<div class="output-label">
+<div>
 	<div
 		class:sr-only={!show_label}
-		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center dark:text-slate-200"
+		class="output-class"
 		class:no-confidence={!("confidences" in value)}
+		style:background-color={color || "transparent"}
 	>
 		{value.label}
 	</div>
 	{#if typeof value === "object" && value.confidences}
 		{#each value.confidences as confidence_set}
-			<div
-				class="flex items-start justify-between font-mono text-sm leading-none group mb-2 last:mb-0 dark:text-slate-300"
-			>
-				<div class="flex-1">
-					<div
-						class="h-1 mb-1 rounded bg-gradient-to-r 
-						group-hover:from-orange-500
-					from-orange-400 
-					to-orange-200
-					dark:from-orange-400 
-					dark:to-orange-600"
-						style="width: {confidence_set.confidence * 100}%"
-					/>
-					<div
-						class="flex items-baseline space-x-2 group-hover:text-orange-500"
-					>
-						<div class="leading-snug">{confidence_set.label}</div>
+			<div class="confidence-set group">
+				<div class="inner-wrap ">
+					<div class="bar" style="width: {confidence_set.confidence * 100}%" />
+					<div class="label">
+						<div class="text">{confidence_set.label}</div>
 						{#if value.confidences}
-							<div class="flex-1 border border-dashed border-gray-100 px-4" />
-							<div class="text-right ml-auto">
+							<div class="line" />
+							<div class="confidence">
 								{Math.round(confidence_set.confidence * 100)}%
 							</div>
 						{/if}
@@ -46,3 +36,69 @@
 		{/each}
 	{/if}
 </div>
+
+<style>
+	.output-class {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: var(--size-6) var(--size-4);
+		color: var(--body-text-color);
+		font-weight: var(--weight-bold);
+		font-size: var(--text-xxl);
+	}
+
+	.confidence-set {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: var(--size-2);
+		color: var(--body-text-color);
+		line-height: var(--line-none);
+		font-family: var(--font-mono);
+	}
+
+	.confidence-set:last-child {
+		margin-bottom: 0;
+	}
+
+	.inner-wrap {
+		flex: 1 1 0%;
+	}
+
+	.bar {
+		margin-bottom: var(--size-1);
+		border-radius: var(--radius-md);
+		background: var(--stat-color-background);
+		height: var(--size-1);
+	}
+
+	.label {
+		display: flex;
+		align-items: baseline;
+	}
+
+	.label > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.confidence-set:hover .label {
+		color: var(--color-accent);
+	}
+
+	.text {
+		line-height: var(--line-md);
+	}
+
+	.line {
+		flex: 1 1 0%;
+		border: 1px dashed var(--color-border-primary);
+		padding-right: var(--size-4);
+		padding-left: var(--size-4);
+	}
+
+	.confidence {
+		margin-left: auto;
+		text-align: right;
+	}
+</style>

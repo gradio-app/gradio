@@ -3,8 +3,6 @@ export const component_map = {
 	audio: () => import("./Audio"),
 	box: () => import("./Box"),
 	button: () => import("./Button"),
-	carousel: () => import("./Carousel"),
-	carouselitem: () => import("./CarouselItem"),
 	chatbot: () => import("./Chatbot"),
 	checkbox: () => import("./Checkbox"),
 	checkboxgroup: () => import("./CheckboxGroup"),
@@ -37,5 +35,6 @@ export const component_map = {
 	tabitem: () => import("./TabItem"),
 	textbox: () => import("./Textbox"),
 	timeseries: () => import("./TimeSeries"),
+	uploadbutton: () => import("./UploadButton"),
 	video: () => import("./Video")
 };

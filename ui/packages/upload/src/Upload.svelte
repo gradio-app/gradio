@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "./types";
+	import { blobToBase64 } from "./utils";
 
-	export let filetype: string | undefined = undefined;
+	export let filetype: string | null = null;
 	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight: boolean = true;
@@ -10,6 +11,7 @@
 	export let flex: boolean = true;
 	export let file_count: string = "single";
 	export let disable_click = false;
+	export let parse_to_data_url = true;
 
 	let hidden_upload: HTMLInputElement;
 
@@ -25,7 +27,7 @@
 		hidden_upload.click();
 	};
 
-	const loadFiles = (files: FileList) => {
+	const loadFiles = async (files: FileList) => {
 		let _files: Array<File> = Array.from(files);
 		if (!files.length || !window.FileReader) {
 			return;
@@ -33,49 +35,61 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: Array<FileData | string> = [];
-		_files.forEach((f, i) => {
-			let ReaderObj = new FileReader();
-			ReaderObj.readAsDataURL(f);
-			ReaderObj.onloadend = function () {
-				all_file_data[i] = include_file_metadata
-					? {
-							name: f.name,
-							size: f.size,
-							data: this.result as string
-					  }
-					: (this.result as string);
-				if (
-					all_file_data.filter((x) => x !== undefined).length === files.length
-				) {
-					dispatch(
-						"load",
-						file_count == "single" ? all_file_data[0] : all_file_data
-					);
-				}
-			};
-		});
+
+		if (include_file_metadata) {
+			var file_metadata: Array<{ name: string; size: number }> = _files.map(
+				(f) => ({
+					name: f.name,
+					size: f.size
+				})
+			);
+		}
+		var load_file_data = [];
+		var file_data: Array<string> | Array<File> = [];
+		if (parse_to_data_url) {
+			file_data = await Promise.all(_files.map((f) => blobToBase64(f)));
+		} else {
+			file_data = _files;
+		}
+		if (include_file_metadata) {
+			if (parse_to_data_url) {
+				load_file_data = file_data.map((data, i) => ({
+					data,
+					...file_metadata[i]
+				}));
+			} else {
+				load_file_data = file_data.map((data, i) => ({
+					data: "",
+					blob: data,
+					...file_metadata[i]
+				}));
+			}
+		} else {
+			load_file_data = file_data;
+		}
+		dispatch(
+			"load",
+			file_count === "single" ? load_file_data[0] : load_file_data
+		);
 	};
 
-	const loadFilesFromUpload = (e: Event) => {
+	const loadFilesFromUpload = async (e: Event) => {
 		const target = e.target as HTMLInputElement;
 
 		if (!target.files) return;
-		loadFiles(target.files);
+		await loadFiles(target.files);
 	};
 
-	const loadFilesFromDrop = (e: DragEvent) => {
+	const loadFilesFromDrop = async (e: DragEvent) => {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-		loadFiles(e.dataTransfer.files);
+		await loadFiles(e.dataTransfer.files);
 	};
 </script>
 
 <div
-	class="w-full cursor-pointer h-full  items-center justify-center text-gray-400 md:text-xl {boundedheight
-		? 'min-h-[10rem] md:min-h-[15rem] max-h-[15rem] xl:max-h-[18rem] 2xl:max-h-[20rem]'
-		: ''}"
-	class:text-center={center}
+	class:center
+	class:boundedheight
 	class:flex
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
@@ -91,7 +105,6 @@
 >
 	<slot />
 	<input
-		class="hidden-upload hidden"
 		type="file"
 		bind:this={hidden_upload}
 		on:change={loadFilesFromUpload}
@@ -101,3 +114,24 @@
 		mozdirectory={file_count === "directory" || undefined}
 	/>
 </div>
+
+<style>
+	div {
+		cursor: pointer;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.center {
+		text-align: center;
+	}
+	.flex {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	input {
+		display: none;
+	}
+</style>
