@@ -29,13 +29,13 @@ from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
+    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
     delete_none,
     get_cancel_function,
     get_continuous_fn,
-    GRADIO_VERSION,
 )
 
 set_documentation_group("blocks")

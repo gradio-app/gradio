@@ -127,9 +127,9 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
             )
         except Exception as e:
             pass
+
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
     threading.Thread(target=initiated_telemetry_thread, args=(data,)).start()
-    
 
 
 def launch_analytics(data: Dict[str, Any]) -> None:
@@ -190,6 +190,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     }
 
     data.update(additional_data)
+
     def launched_telemtry_thread(data: Dict[str, Any]) -> None:
         try:
             send_telemetry(
@@ -200,8 +201,9 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
             )
         except Exception as e:
             print("Error while sending telemetry: {}".format(e))
-    
+
     threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
+
 
 def integration_analytics(data: Dict[str, Any]) -> None:
     data.update({"ip_address": get_local_ip_address()})
@@ -224,6 +226,7 @@ def integration_analytics(data: Dict[str, Any]) -> None:
             )
         except Exception as e:
             print("Error while sending telemetry: {}".format(e))
+
     threading.Thread(target=integration_analytics_thread, args=(data,)).start()
     threading.Thread(target=integration_telemetry_thread, args=(data,)).start()
 
@@ -254,6 +257,7 @@ def error_analytics(message: str) -> None:
             )
         except Exception as e:
             print("Error while sending telemetry: {}".format(e))
+
     threading.Thread(target=error_analytics_thread, args=(data,)).start()
     threading.Thread(target=error_telemetry_thread, args=(data,)).start()
 
