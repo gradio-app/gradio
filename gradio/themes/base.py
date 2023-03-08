@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+import os
+
+import huggingface_hub
+from huggingface_hub import CommitOperationAdd
+import json
+from pathlib import Path
 import re
+import requests
+import tempfile
+import textwrap
 
 from gradio.themes.utils import colors, sizes
-
+from gradio.themes.utils.readme_content import README_CONTENT
 
 class ThemeClass:
     def _get_theme_css(self):
@@ -31,6 +40,112 @@ class ThemeClass:
         css += "}"
         dark_css += "}"
         return css + "\n" + dark_css
+
+    def to_dict(self,):
+        """Hacky implementation for now."""
+        schema = {"theme": {}}
+        for prop in dir(self):
+            if not prop.startswith("_") and isinstance(getattr(self, prop), str):
+                schema['theme'][prop] = getattr(self, prop)
+        return schema
+
+    @classmethod
+    def load(cls, path: str) -> "ThemeClass":
+        theme = json.load(open(path))
+        return cls.from_dict(theme)
+
+    @classmethod
+    def from_dict(cls, theme):
+        base = cls()
+        for prop, value in theme['theme'].items():
+            setattr(base, prop, value)
+        return base
+
+    def dump(self, path: str, filename: str):
+        as_dict = self.to_dict()
+        json.dump(as_dict, open(Path(path) / Path(filename), "w"))
+
+    @classmethod
+    def from_hub(cls, repo_name: str):
+        name, version = repo_name.split("@")
+        url = huggingface_hub.hf_hub_url(
+            repo_id=name, repo_type="space",
+            filename=f"themes/theme_schema@{version}.json",
+        )
+        download = requests.get(url)
+        if download.ok:
+            return cls.from_dict(download.json())
+        else:
+            raise ValueError(f"Can't load {repo_name}!")
+
+    def to_hub(self,
+               repo_name: str,
+               version: str,
+               hf_token: str,
+               theme_name: str | None = None,
+               description: str | None = None,):
+
+        from gradio import __version__
+        from gradio.themes import app, files
+
+        api = huggingface_hub.HfApi()
+
+        author = api.whoami(hf_token)['name']
+
+        huggingface_hub.create_repo(
+            f"{author}/{repo_name}",
+            repo_type="space",
+            space_sdk="gradio",
+            token=hf_token,
+            exist_ok=True
+        )
+
+        theme_name = theme_name or repo_name
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as css_file:
+            contents = self.to_dict()
+            contents['version'] = version
+            json.dump(contents, css_file)
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
+            readme_content = README_CONTENT.format(
+                theme_name=theme_name,
+                description=description or "Add a description of this theme here!",
+                author=author,
+                gradio_version=__version__
+            )
+            readme_file.write(textwrap.dedent(readme_content))
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
+            contents = open(app.__file__).read()
+            contents = re.sub("theme=gr.themes.Default\(\)", f"theme='{author}/{repo_name}@{version}'", contents)
+            app_file.write(contents)
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as req_file:
+            req_file.write(
+                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-3/gradio-3.20.1-py3-none-any.whl")
+
+        operations = [
+            CommitOperationAdd(path_in_repo=f"themes/theme_schema@{version}.json",
+                               path_or_fileobj=css_file.name),
+            CommitOperationAdd(
+                path_in_repo="README.md", path_or_fileobj=readme_file.name
+            ),
+            CommitOperationAdd(
+                path_in_repo="app.py", path_or_fileobj=app_file.name),
+            CommitOperationAdd(
+                path_in_repo="requirements.txt", path_or_fileobj=req_file.name
+            )
+        ] + [CommitOperationAdd(path_in_repo=f"files/{file}", path_or_fileobj=file) for file in os.listdir(files.__dir__)]
+
+
+        api.create_commit(
+            repo_id=f"{author}/{repo_name}",
+            commit_message="Updating theme",
+            repo_type="space",
+            operations=operations,
+            token=hf_token,
+        )
+        url = f"https://huggingface.co/spaces/{author}/{repo_name}"
+        print(f"See your theme here! {url}")
+        return url
 
 
 class Base(ThemeClass):

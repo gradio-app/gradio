@@ -21,6 +21,7 @@ keywords = ["machine learning", "reproducibility", "visualization"]
 
 [project.scripts]
 gradio = "gradio.reload:run_in_reload_mode"
+upload_theme = "gradio.themes.upload_theme:main"
 
 [project.urls]
 Homepage = "https://github.com/gradio-app/gradio"
@@ -49,7 +50,10 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<
 [tool.hatch.build]
 artifacts = [
   "/gradio/templates",
+  "/gradio/themes/files"
 ]
+
+[tool.hatch.build.hooks.custom]
 
 [tool.hatch.build.targets.sdist]
 include = [
