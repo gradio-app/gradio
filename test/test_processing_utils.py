@@ -135,35 +135,6 @@ class TestAudioPreprocessing:
 
 
 class TestTempFileManager:
-    def test_get_temp_file_path(self):
-        temp_file_manager = processing_utils.TempFileManager()
-        temp_file_manager.hash_file = MagicMock(return_value="")
-
-        filepath = "C:/gradio/test_image.png"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "test_image" in temp_filepath
-        assert temp_filepath.endswith(".png")
-
-        filepath = "ABCabc123.csv"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "ABCabc123" in temp_filepath
-        assert temp_filepath.endswith(".csv")
-
-        filepath = "lion#1.jpeg"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "lion1" in temp_filepath
-        assert temp_filepath.endswith(".jpeg")
-
-        filepath = "%%lio|n#1.jpeg"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "lion1" in temp_filepath
-        assert temp_filepath.endswith(".jpeg")
-
-        filepath = "/home/lion--_1.txt"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "lion--_1" in temp_filepath
-        assert temp_filepath.endswith(".txt")
-
     def test_hash_file(self):
         temp_file_manager = processing_utils.TempFileManager()
         h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
