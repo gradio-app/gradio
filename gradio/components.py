@@ -5333,22 +5333,19 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 @document("change")
 class Code(Changeable, IOComponent, JSONSerializable):
     """
-    Used to display arbitrary HTML output.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid HTML {str}.
-
-    Demos: text_analysis
-    Guides: key_features
+    Creates a Code editor for entering, editing or viewing code.
+    Preprocessing: expects somethjing.
+    Postprocessing: expects something.
     """
 
     def __init__(
         self,
-        value: Optional[Dict[str]] = None,
+        value: Dict[str] | None = None,
         *,
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -5375,12 +5372,28 @@ class Code(Changeable, IOComponent, JSONSerializable):
             **IOComponent.get_config(self),
         }
 
+    def postprocess(self, y):
+        if y is None or not isinstance(y, dict):
+            return {"code": "", "lang": None}
+        if y.get("path") is not None:
+            file_path = y.get("path")
+            with open(file_path, "rb") as file_data:
+                f = file_data.read()
+                return {"lang": Path(file_path).suffix.removeprefix("."), "code": f}
+        if y.get("code") is not None:
+            if y.get("lang") is None:
+                raise ValueError("Must provide a lang when passing code as a string.")
+            else:
+                return {"code": y.get("code"), "lang": y.get("lang")}
+
+        raise ValueError("Could not process code data.")
+
     @staticmethod
     def update(
-        value: Optional[Any] = _Keywords.NO_VALUE,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        visible: Optional[bool] = None,
+        value: Dict[str] | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        visible: bool | None = None,
     ):
         updated_config = {
             "label": label,

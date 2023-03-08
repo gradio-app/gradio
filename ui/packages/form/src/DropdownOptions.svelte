@@ -8,6 +8,7 @@
 	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher();
+	$: console.log(filtered, value);
 </script>
 
 {#if showOptions && !disabled}
@@ -28,7 +29,12 @@
 				data-value={choice}
 				aria-label={choice}
 			>
-				<span class:hide={!value?.includes(choice)} class="inner-item pr-1">
+				<span
+					class:hide={!(Array.isArray(value) ? value : [value])?.includes(
+						choice
+					)}
+					class="inner-item pr-1"
+				>
 					✓
 				</span>
 				{choice}

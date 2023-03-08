@@ -33,12 +33,12 @@ import { lintKeymap } from "@codemirror/lint";
 
 export const basicSetup: Extension = /*@__PURE__*/ (() => [
 	lineNumbers(),
-	highlightActiveLineGutter(),
+	// highlightActiveLineGutter(),
 	highlightSpecialChars(),
 	history(),
 	foldGutter(),
 	drawSelection(),
-	dropCursor(),
+	// dropCursor(),
 	EditorState.allowMultipleSelections.of(true),
 	indentOnInput(),
 	syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
@@ -47,7 +47,9 @@ export const basicSetup: Extension = /*@__PURE__*/ (() => [
 	autocompletion(),
 	rectangularSelection(),
 	crosshairCursor(),
-	highlightActiveLine(),
+	// highlightActiveLine(),
+	// editable.of(false),
+
 	keymap.of([
 		...closeBracketsKeymap,
 		...defaultKeymap,

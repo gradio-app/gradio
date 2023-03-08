@@ -14,8 +14,6 @@
 
 	import { basicLight } from "cm6-theme-basic-light";
 
-	// import IconSpin from "../Icons/IconSpin.svelte";
-
 	import { basicSetup } from "./extensions";
 	import { getLanguageExtension, type CodeMirrorLanguage } from "./language";
 
@@ -29,7 +27,7 @@
 
 	export let useTab = true;
 
-	export let editable = true;
+	// export let editable = true;
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 
@@ -38,8 +36,14 @@
 	let element: HTMLDivElement;
 	let view: EditorView;
 
-	$: lang_extension = getLanguageExtension(lang);
-	$: reconfigure(), lang;
+	$: get_lang(lang);
+
+	async function get_lang(val: string) {
+		const ext = await getLanguageExtension(lang);
+		lang_extension = ext;
+	}
+
+	$: reconfigure(), lang_extension;
 	$: setDoc(value);
 
 	function setDoc(newDoc: string) {
@@ -65,7 +69,6 @@
 		if (vu.docChanged) {
 			const doc = vu.state.doc;
 			const text = doc.toString();
-			console.log(text);
 			value = text;
 			dispatch("change", text);
 		}
@@ -77,7 +80,7 @@
 				basic,
 				useTab,
 				placeholder,
-				editable,
+				// editable,
 				readonly,
 				lang_extension
 			),
@@ -98,13 +101,14 @@
 		basic: boolean,
 		useTab: boolean,
 		placeholder: string | HTMLElement | null | undefined,
-		editable: boolean,
+		// editable: boolean,
 		readonly: boolean,
 		lang: Extension | null | undefined
 	): Extension[] {
 		const extensions: Extension[] = [
-			EditorView.editable.of(editable),
+			EditorView.editable.of(!readonly),
 			EditorState.readOnly.of(readonly)
+			// EditorView.editable.of(readonly)
 		];
 
 		if (basic) {

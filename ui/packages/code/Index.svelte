@@ -8,10 +8,11 @@
 	import Code from "./interactive/Code.svelte";
 	// import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import { Code as CodeIcon } from "@gradio/icons";
+	import { Code as CodeIcon, Download, Copy } from "@gradio/icons";
 	// import type { Styles } from "@gradio/utils";
 	// export let style: Styles = {};
 
+	import Widget from "./interactive/Widgets.svelte";
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		stream: typeof value;
@@ -37,9 +38,6 @@
 
 	// export let loading_status: LoadingStatus;
 	let dark_mode = target.classList.contains("dark");
-	console.log(dark_mode);
-
-	$: console.log({ label, value });
 </script>
 
 <Block
@@ -52,6 +50,7 @@
 	{visible}
 >
 	<!-- <StatusTracker {...loading_status} /> -->
+	<Widget />
 
 	<BlockLabel Icon={CodeIcon} {label} />
 
@@ -65,41 +64,39 @@
 
 <style>
 	:global(.ͼ1.cm-editor) {
+		background-color: var(--color-border-secondary);
 		padding-top: 25px;
-		/* background-color: rgb(31 41 55 / var(--tw-bg-opacity)); */
+		max-height: 500px;
 	}
 
-	:global(.cm-cursor) {
-		/* border-color: white !important; */
-		/* background-color: white !important; */
-		/* opacity: 1 !important; */
-		/* color: white !important; */
+	:global(.ͼ1.cm-editor:focus-visible) {
+		outline: none;
 	}
 
-	:global(.ͼo .cm-cursor) {
-		/* background-color: white; */
+	:global(.ͼ1.cm-editor.cm-focused) {
+		outline: none;
 	}
 
 	:global(.ͼ1.cm-editor:focus-visible, div) {
-		/* outline: none; */
+		outline: none;
 	}
 	:global(.ͼ1 .cm-editor, .ͼ1 .cm-gutter) {
 		min-height: 150px;
 	}
 	:global(.ͼ1 .cm-gutters) {
 		margin-right: 1px;
+		border-right: 1px solid var(--color-border-primary);
 		background-color: transparent;
-		/* color: #ccc; */
-		border-color: #79b9ff2e;
+		color: var(--text-color-subdued);
 	}
 	:global(.ͼ1 .cm-scroller) {
-		/* overflow: auto; */
+		overflow: auto;
 	}
 	:global(.ͼ1 .cm-wrap) {
-		/* border: 1px solid silver; */
+		border: 1px solid silver;
 	}
 
-	:global(.cm-activeLineGutter, .cm-activeLine) {
-		/* background-color: #79b9ff2e !important; */
+	:global(.cm-selectionBackground) {
+		background-color: #b9d2ff30 !important;
 	}
 </style>

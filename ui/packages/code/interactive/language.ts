@@ -1,5 +1,5 @@
 import type { Extension } from "@codemirror/state";
-import { StreamLanguage, indentUnit } from "@codemirror/language";
+import { StreamLanguage } from "@codemirror/language";
 import { python } from "@codemirror/lang-python";
 import { markdown } from "@codemirror/lang-markdown";
 import { json } from "@codemirror/lang-json";
@@ -12,7 +12,7 @@ import { r } from "@codemirror/legacy-modes/mode/r";
 import { shell } from "@codemirror/legacy-modes/mode/shell";
 import { frontmatter } from "./frontmatter";
 
-const CODE_MIRROR_EXTS = [
+const possible_langs = [
 	"py",
 	"python",
 	"md",
@@ -30,36 +30,74 @@ const CODE_MIRROR_EXTS = [
 	"sh",
 	"shell",
 	"r"
-] as const;
-export type CodeMirrorLanguage = typeof CODE_MIRROR_EXTS[number];
+];
+export type Lang = typeof possible_langs[number];
 
-const CODE_MIRROR_LANG: Record<CodeMirrorLanguage, Extension> = {
-	py: [indentUnit.of(" ".repeat(4)), python()],
-	python: [indentUnit.of(" ".repeat(4)), python()],
-	md: [markdown({ extensions: [frontmatter] })], // md with yaml frontmatter
-	markdown: [markdown({ extensions: [frontmatter] })], // md with yaml frontmatter
-	json: json(),
-	html: html(),
-	css: css(),
-	js: javascript(),
-	javascript: javascript(),
-	ts: javascript({ typescript: true }),
-	typescript: javascript({ typescript: true }),
-	yaml: StreamLanguage.define(yaml),
-	yml: StreamLanguage.define(yaml),
-	dockerfile: StreamLanguage.define(dockerFile),
-	sh: StreamLanguage.define(shell),
-	shell: StreamLanguage.define(shell),
-	r: StreamLanguage.define(r)
-} as const;
+const lang_map: Record<Lang, () => Promise<Extension>> = {
+	py: () => import("@codemirror/lang-python").then((m) => m.python()), //[python()],
+	md: async () => {
+		const [md, frontmatter] = await Promise.all([
+			import("@codemirror/lang-markdown"),
+			import("./frontmatter")
+		]);
 
-const RE_FILE_EXTENSION = /\.([0-9a-z]+)$/i;
+		return md.markdown({ extensions: [frontmatter.frontmatter] });
+	},
+	json: () => import("@codemirror/lang-json").then((m) => m.json()), //json(),
+	html: () => import("@codemirror/lang-html").then((m) => m.html()), //html(),
+	css: () => import("@codemirror/lang-css").then((m) => m.css()), //css(),
+	js: () => import("@codemirror/lang-javascript").then((m) => m.javascript()), //javascript(),
+	ts: () =>
+		import("@codemirror/lang-javascript").then((m) =>
+			m.javascript({ typescript: true })
+		), //javascript({ typescript: true }),
+	yml: () =>
+		import("@codemirror/legacy-modes/mode/yaml").then((m) =>
+			StreamLanguage.define(m.yaml)
+		), //StreamLanguage.define(yaml),
+	dockerfile: () =>
+		import("@codemirror/legacy-modes/mode/dockerfile").then((m) =>
+			StreamLanguage.define(m.dockerFile)
+		), //StreamLanguage.define(dockerFile),
+	sh: () =>
+		import("@codemirror/legacy-modes/mode/shell").then((m) =>
+			StreamLanguage.define(m.shell)
+		), //StreamLanguage.define(shell),
+	r: () =>
+		import("@codemirror/legacy-modes/mode/r").then((m) =>
+			StreamLanguage.define(m.r)
+		) //StreamLanguage.define(r)
+};
 
-export function getLanguageExtension(
-	lang: CodeMirrorLanguage
-): Extension | undefined {
-	if (lang && CODE_MIRROR_EXTS.includes(lang)) {
-		return CODE_MIRROR_LANG[lang];
+function register_alias(lang: Lang, alias: Lang[]) {
+	alias.forEach((a) => {
+		Object.defineProperty(lang_map, a, {
+			enumerable: true,
+			get: function () {
+				return this[lang];
+			}
+		});
+	});
+}
+
+const aliases: Record<Lang, Lang[]> = {
+	py: ["python"],
+	md: ["markdown"],
+	js: ["javascript"],
+	ts: ["typescript"],
+	sh: ["shell"]
+};
+
+Object.entries(aliases).forEach(([lang, aliases]) => {
+	register_alias(lang, aliases);
+});
+
+console.log(lang_map);
+export async function getLanguageExtension(
+	lang: Lang
+): Promise<Extension | undefined> {
+	if (lang && possible_langs.includes(lang)) {
+		return await lang_map[lang]();
 	}
 	return undefined;
 }
