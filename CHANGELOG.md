@@ -27,7 +27,7 @@ No changes to highlight.
 - Prevent in-place updates of `generic_update` by shallow copying by [@gitgithan](https://github.com/gitgithan) in [PR 3405](https://github.com/gradio-app/gradio/pull/3405) to fix [#3282](https://github.com/gradio-app/gradio/issues/3282)
 - Fix markdown embedded component in docs by [@aliabd](https://github.com/aliabd) in [PR 3410](https://github.com/gradio-app/gradio/pull/3410)
 - Remove codecov from the repo [@aliabd](https://github.com/aliabd) in [PR 3415](https://github.com/gradio-app/gradio/pull/3415)
-- Clean up event listeners code by [@aliabid94](https://github.com/aliabid94) in [PR 3414](https://github.com/gradio-app/gradio/pull/3414) 
+- Clean up event listeners code by [@aliabid94](https://github.com/aliabid94) in [PR 3420](https://github.com/gradio-app/gradio/pull/3420) 
 
 ## Contributors Shoutout:
 
