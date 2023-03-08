@@ -5379,7 +5379,7 @@ class Code(Changeable, IOComponent, JSONSerializable):
             file_path = y.get("path")
             with open(file_path, "rb") as file_data:
                 f = file_data.read()
-                return {"lang": Path(file_path).suffix.removeprefix("."), "code": f}
+                return {"lang": Path(file_path).suffix[1:], "code": f}
         if y.get("code") is not None:
             if y.get("lang") is None:
                 raise ValueError("Must provide a lang when passing code as a string.")
