@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
 
 from gradio.blocks import Block
 from gradio.utils import get_cancel_function
