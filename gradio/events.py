@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, cast
 
 from gradio.blocks import Block
 from gradio.utils import get_cancel_function
@@ -32,13 +32,16 @@ def set_cancel_events(
 
 
 class EventListener(Block):
-    pass
+    def __init__(self: Block):
+        for event_listener_class in EventListener.__subclasses__():
+            if isinstance(self, event_listener_class):
+                event_listener_class.__init__(self)
 
 
 class EventListenerMethod(Callable):
     def __init__(
         self,
-        trigger: Component,
+        trigger: Block,
         event_name: str,
         show_progress: bool = True,
     ):
@@ -54,7 +57,7 @@ class EventListenerMethod(Callable):
         api_name: str | None = None,
         status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
-        show_progress: bool = None,
+        show_progress: bool | None = None,
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -108,7 +111,7 @@ class EventListenerMethod(Callable):
 
 
 class Changeable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.change = EventListenerMethod(self, "change")
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
@@ -117,7 +120,7 @@ class Changeable(EventListener):
 
 
 class Clickable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.click = EventListenerMethod(self, "click")
         """
         This event is triggered when the component (e.g. a button) is clicked.
@@ -126,7 +129,7 @@ class Clickable(EventListener):
 
 
 class Submittable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.submit = EventListenerMethod(self, "submit")
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
@@ -135,7 +138,7 @@ class Submittable(EventListener):
 
 
 class Editable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.edit = EventListenerMethod(self, "edit")
         """
         This event is triggered when the user edits the component (e.g. image) using the
@@ -144,7 +147,7 @@ class Editable(EventListener):
 
 
 class Clearable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.clear = EventListenerMethod(self, "clear")
         """
         This event is triggered when the user clears the component (e.g. image or audio)
@@ -153,7 +156,7 @@ class Clearable(EventListener):
 
 
 class Playable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.play = EventListenerMethod(self, "play")
         """
         This event is triggered when the user plays the component (e.g. audio or video).
@@ -174,7 +177,7 @@ class Playable(EventListener):
 
 
 class Streamable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.stream = EventListenerMethod(self, "stream", show_progress=False)
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -183,7 +186,7 @@ class Streamable(EventListener):
 
 
 class Blurrable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.blur = EventListenerMethod(self, "blur")
         """
         This event is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). This method can be used when this component is in a Gradio Blocks.
@@ -191,7 +194,7 @@ class Blurrable(EventListener):
 
 
 class Uploadable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.upload = EventListenerMethod(self, "upload")
         """
         This event is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component). This method can be used when this component is in a Gradio Blocks.
@@ -199,7 +202,7 @@ class Uploadable(EventListener):
 
 
 class Releaseable(EventListener):
-    def __init__(self):
+    def __init__(self: Block):
         self.release = EventListenerMethod(self, "release")
         """
         This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider). This method can be used when this component is in a Gradio Blocks.

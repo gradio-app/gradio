@@ -16,7 +16,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Type, cast
 
 import altair as alt
 import matplotlib.figure
@@ -80,9 +80,7 @@ class Component(Block):
 
     def __init__(self, *args, **kwargs):
         Block.__init__(self, *args, **kwargs)
-        for event_listener_class in EventListener.__subclasses__():
-            if isinstance(self, event_listener_class):
-                event_listener_class.__init__(self)
+        EventListener.__init__(self)
 
     def __str__(self):
         return self.__repr__()
