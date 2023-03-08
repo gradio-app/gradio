@@ -1689,7 +1689,6 @@ class TestChatbot:
         ]
         assert chatbot.get_config() == {
             "value": [],
-            "color_map": None,
             "label": None,
             "show_label": True,
             "interactive": None,
