@@ -29,8 +29,9 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
-from gradio.utils import GRADIO_VERSION
 from gradio.themes import ThemeClass as Theme
+from gradio.utils import GRADIO_VERSION
+
 set_documentation_group("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -315,7 +316,7 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For allow_flagging: (1) first check for parameter, 
+        # For allow_flagging: (1) first check for parameter,
         # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
