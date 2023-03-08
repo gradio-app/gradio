@@ -425,13 +425,14 @@ class TempFileManager:
         temp_dir.mkdir(exist_ok=True, parents=True)
 
         guess_extension = get_extension(base64_encoding)
-        if not file_name and guess_extension:
-            suffix = "." + guess_extension
-        else:
-            suffix = ""
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, suffix=suffix)
         if file_name:
-            f.name = utils.strip_invalid_filename_characters(Path(file_name).name)
+            file_name = utils.strip_invalid_filename_characters(file_name)
+        elif guess_extension:
+            file_name = "file." + guess_extension
+        else:
+            file_name = "file"
+        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        f.name = file_name
         full_temp_file_path = str(temp_dir / f.name)
 
         if not Path(full_temp_file_path).exists():
@@ -440,7 +441,6 @@ class TempFileManager:
                 fb.write(data)
 
         self.temp_files.add(full_temp_file_path)
-        print("full_temp_file_path", full_temp_file_path)
         return full_temp_file_path
 
 
