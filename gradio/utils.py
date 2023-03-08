@@ -125,7 +125,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
                 library_version=GRADIO_VERSION,
                 user_agent=data,
             )
-        except Exception as e:
+        except Exception:
             pass
 
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
