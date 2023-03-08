@@ -7,7 +7,7 @@ Tests for all of the components defined in components.py. Tests are divided into
 import filecmp
 import json
 import os
-import pathlib
+import pathlib  # noqa: F401
 import shutil
 import tempfile
 from copy import deepcopy
