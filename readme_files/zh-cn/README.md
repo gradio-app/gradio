@@ -8,7 +8,6 @@
 
   [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
   [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
-  [<img src="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg" alt="codecov">](https://app.codecov.io/gh/gradio-app/gradio)
   [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
   [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
   ![Python version](https://img.shields.io/badge/python-3.7+-important)
