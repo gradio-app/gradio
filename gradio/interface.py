@@ -8,7 +8,6 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import pkgutil
 import re
 import warnings
 import weakref
@@ -30,15 +29,8 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
-<<<<<<< HEAD
-<<<<<<< HEAD
 from gradio.utils import GRADIO_VERSION
-=======
-=======
->>>>>>> main
 from gradio.themes import ThemeClass as Theme
-
->>>>>>> 608d3b625 (Python backend to theming (#2931))
 set_documentation_group("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
