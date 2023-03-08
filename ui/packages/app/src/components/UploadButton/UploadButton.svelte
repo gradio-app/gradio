@@ -3,7 +3,7 @@
 	import type { Styles } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { UploadButton } from "@gradio/upload-button";
-	import { upload_files } from "../../api";
+	import { upload_files } from "@gradio/client";
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
