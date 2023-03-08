@@ -777,12 +777,12 @@ class TestAudio:
         output1 = audio_input.preprocess(x_wav)
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
-        
+
         x_wav["is_file"] = True
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
         assert Path(output1).name == "audio_sample-0-100.wav"
-        
+
         assert filecmp.cmp(
             "test/test_files/audio_sample.wav",
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
@@ -1318,9 +1318,7 @@ class TestVideo:
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             _ = gr.Video().postprocess(tmp_not_playable_vid.name)
             # The original video gets converted to .mp4 format
-            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(
-                ".mp4"
-            )
+            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
         # This file has a playable codec but not a playable container
@@ -1331,9 +1329,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(
-                ".mp4"
-            )
+            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
     @patch("Path.exists", MagicMock(return_value=False))
@@ -1917,9 +1913,7 @@ class TestGallery:
         gallery = gr.Gallery()
         test_file_dir = Path(Path(__file__).parent, "test_files")
         data = [
-            gr.processing_utils.encode_file_to_base64(
-                Path(test_file_dir, "bus.png")
-            ),
+            gr.processing_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
             gr.processing_utils.encode_file_to_base64(
                 Path(test_file_dir, "cheetah1.jpg")
             ),
