@@ -7,6 +7,7 @@ Tests for all of the components defined in components.py. Tests are divided into
 import filecmp
 import json
 import os
+import pathlib
 import shutil
 import tempfile
 from copy import deepcopy
@@ -1332,7 +1333,7 @@ class TestVideo:
             full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
-    @patch("Path.exists", MagicMock(return_value=False))
+    @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
