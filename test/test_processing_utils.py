@@ -3,7 +3,7 @@ import pathlib
 import shutil
 import tempfile
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import ffmpy
 import matplotlib.pyplot as plt
