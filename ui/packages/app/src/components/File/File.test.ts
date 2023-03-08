@@ -3,7 +3,7 @@ import { cleanup, render } from "@gradio/tootils";
 
 import File from "./File.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
-import { upload_files } from "../../api";
+import { upload_files } from "@gradio/client";
 
 const loading_status = {
 	eta: 0,
@@ -22,13 +22,13 @@ describe("File", () => {
 	});
 
 	test("Uploads with blob", async () => {
-		vi.mock("../../api", async () => {
+		vi.mock("@gradio/client", async () => {
 			return {
 				upload_files: vi.fn((f) => new Promise((res) => res({})))
 			};
 		});
 
-		const api = await import("../../api");
+		const api = await import("@gradio/client");
 
 		render(File, {
 			loading_status,

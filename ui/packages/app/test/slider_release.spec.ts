@@ -32,19 +32,44 @@ async function changeSlider(
 	await page.mouse.up();
 }
 
+function mock_demo(page: Page, demo: string) {
+	return page.route("**/config", (route) => {
+		return route.fulfill({
+			headers: {
+				"Access-Control-Allow-Origin": "*"
+			},
+			path: `../../../demo/${demo}/config.json`
+		});
+	});
+}
+
+function mock_api(page: Page) {
+	return page.route("**/run/predict", (route) => {
+		return route.fulfill({
+			headers: {
+				"Access-Control-Allow-Origin": "*"
+			},
+			body: JSON.stringify({
+				data: [70, null, 1]
+			})
+		});
+	});
+}
+
 test("slider release", async ({ page }) => {
-	await page.goto("http://127.0.0.1:7888/");
+	await mock_demo(page, "slider_release");
+	await mock_api(page);
+	await page.goto("http://localhost:9876");
 
 	const slider = page.getByLabel("Slider");
 
-	const responsePromise = page.waitForResponse(
-		"http://127.0.0.1:7888/run/predict/"
-	);
 	await changeSlider(page, slider, slider, 0.7);
-	const response = await responsePromise;
-	const responseData = await response.json();
 
-	expect(responseData.data[0]).toBeGreaterThan(69.5);
-	expect(responseData.data[0]).toBeLessThan(71.0);
-	expect(responseData.data[2]).toEqual(1);
+	const value = page.getByLabel("On release");
+	const events = page.getByLabel("Number of events fired");
+
+	const val = await slider.inputValue();
+	expect(parseInt(val)).toBeCloseTo(70);
+	expect(value).toHaveValue("70");
+	expect(events).toHaveValue("1");
 });
