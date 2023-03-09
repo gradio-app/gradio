@@ -19,7 +19,7 @@ def set_documentation_group(m):
 
 def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
-    lines = [l.strip() for l in code.split("\n")]
+    lines = [line.strip() for line in code.split("\n")]
     found_attr = False
     for i, line in enumerate(lines):
         if line.startswith("self." + attr):
