@@ -28,11 +28,7 @@ def extract_instance_attr_doc(cls, attr):
             break
     assert found_attr, f"Could not find {attr} in {cls.__name__}"
     start_line = lines.index('"""', i)
-    assert start_line != -1, f"Could not find docstring for {attr} in {cls.__name__}"
     end_line = lines.index('"""', start_line + 1)
-    assert (
-        end_line != -1
-    ), f"Could not find end of docstring for {attr} in {cls.__name__}"
     doc_string = " ".join(lines[start_line + 1 : end_line])
     return doc_string
 
