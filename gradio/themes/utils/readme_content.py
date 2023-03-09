@@ -1,11 +1,11 @@
 README_CONTENT = """
 ---
 tags: [gradio-theme]
-title: {theme_name} 
-colorFrom: orange 
+title: {theme_name}
+colorFrom: orange
 colorTo: purple
 sdk: gradio
-sdk_version: {gradio_version} 
+sdk_version: {gradio_version}
 app_file: app.py
 pinned: false
 license: apache-2.0

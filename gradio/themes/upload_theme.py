@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from gradio.themes import ThemeClass
 import argparse
+
+from gradio.themes import ThemeClass
 
 
 def main():
     parser = argparse.ArgumentParser(description="Upload a demo to a space")
     parser.add_argument("theme", type=str, help="Theme json file")
-    parser.add_argument(
-        "repo_name", type=str, help="HF repo name to store the theme"
-    )
+    parser.add_argument("repo_name", type=str, help="HF repo name to store the theme")
     parser.add_argument("version", type=str, help="Semver version")
     parser.add_argument("hf_token", type=str, help="HF Token")
     parser.add_argument(
@@ -24,8 +23,12 @@ def main():
     )
     args = parser.parse_args()
     upload_theme(
-        args.theme, args.repo_name,
-        args.version, args.hf_token, args.theme_name, args.description
+        args.theme,
+        args.repo_name,
+        args.version,
+        args.hf_token,
+        args.theme_name,
+        args.description,
     )
 
 
