@@ -48,7 +48,7 @@ from gradio.events import (
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 from gradio.processing_utils import TempFileManager
-from gradio.serializing import (
+from gradio_client.serializing import (
     FileSerializable,
     ImgSerializable,
     JSONSerializable,
