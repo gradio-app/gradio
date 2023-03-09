@@ -2,7 +2,20 @@
 
 ## New Features:
 
-No changes to highlight.
+### The `Chatbot` component now supports audio, video, and images
+
+The `Chatbot` component now supports audio, video, and images with a simple syntax: simply
+pass in the name of the file as a standalone string, and the image/audio/video will be displayed:
+
+```python
+gr.Chatbot([
+    ("driving.mp4", "cool video"),
+    ("cantina.wav", "cool audio"),
+    ("lion.jpg", "cool pic"),
+]).style(height=800)
+```
+
+Note: images were previously supported via Markdown syntax and that is still supported for backwards compatibility. By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3413](https://github.com/gradio-app/gradio/pull/3413)
 
 ## Bug Fixes:
 - Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventually to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
