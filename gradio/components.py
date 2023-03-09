@@ -5400,6 +5400,9 @@ class Code(Changeable, IOComponent, SimpleSerializable):
                 return file_data.read()
         return y
 
+    def generate_sample(self) -> str:
+        return "def fn(a):/n    return a"
+
     @staticmethod
     def update(
         value: str | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
