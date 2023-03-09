@@ -7,10 +7,13 @@ import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
 
 from gradio.blocks import Block
+from gradio.documentation import document, set_documentation_group
 from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component, StatusTracker
+
+set_documentation_group("events")
 
 
 def set_cancel_events(
@@ -39,6 +42,10 @@ class EventListener(Block):
 
 
 class EventListenerMethod:
+    """
+    Triggered on an event deployment.
+    """
+
     def __init__(
         self,
         trigger: Block,
@@ -50,6 +57,7 @@ class EventListenerMethod:
         self.event_name = event_name
         self.show_progress = show_progress
         self.callback = callback
+        # self.__call__.__doc__ = self.trigger.__doc__ + self.__call__.__doc__
 
     def __call__(
         self,
@@ -114,6 +122,7 @@ class EventListenerMethod:
         return dep
 
 
+@document("*change", inherit=True)
 class Changeable(EventListener):
     def __init__(self):
         self.change = EventListenerMethod(self, "change")
@@ -123,6 +132,7 @@ class Changeable(EventListener):
         """
 
 
+@document("*click", inherit=True)
 class Clickable(EventListener):
     def __init__(self):
         self.click = EventListenerMethod(self, "click")
@@ -132,6 +142,7 @@ class Clickable(EventListener):
         """
 
 
+@document("*submit", inherit=True)
 class Submittable(EventListener):
     def __init__(self):
         self.submit = EventListenerMethod(self, "submit")
@@ -141,6 +152,7 @@ class Submittable(EventListener):
         """
 
 
+@document("*edit", inherit=True)
 class Editable(EventListener):
     def __init__(self):
         self.edit = EventListenerMethod(self, "edit")
@@ -150,6 +162,7 @@ class Editable(EventListener):
         """
 
 
+@document("*clear", inherit=True)
 class Clearable(EventListener):
     def __init__(self):
         self.clear = EventListenerMethod(self, "clear")
@@ -159,6 +172,7 @@ class Clearable(EventListener):
         """
 
 
+@document("*play", "*pause", "*stop", inherit=True)
 class Playable(EventListener):
     def __init__(self):
         self.play = EventListenerMethod(self, "play")
@@ -180,6 +194,7 @@ class Playable(EventListener):
         """
 
 
+@document("*stream", inherit=True)
 class Streamable(EventListener):
     def __init__(self):
         self.streaming: bool
@@ -195,6 +210,7 @@ class Streamable(EventListener):
         """
 
 
+@document("*blur", inherit=True)
 class Blurrable(EventListener):
     def __init__(self):
         self.blur = EventListenerMethod(self, "blur")
@@ -203,6 +219,7 @@ class Blurrable(EventListener):
         """
 
 
+@document("*upload", inherit=True)
 class Uploadable(EventListener):
     def __init__(self):
         self.upload = EventListenerMethod(self, "upload")
@@ -211,6 +228,7 @@ class Uploadable(EventListener):
         """
 
 
+@document("*release", inherit=True)
 class Releaseable(EventListener):
     def __init__(self):
         self.release = EventListenerMethod(self, "release")
