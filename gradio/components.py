@@ -155,6 +155,7 @@ class Component(Block, Serializable):
             "output": "value",
         }
 
+
 class IOComponent(Component):
     """
     A base class for defining methods that all input/output components should have.
@@ -315,7 +316,7 @@ class Textbox(
         self.cleared_value = ""
         self.test_input = value
         self.type = type
-        
+
     def serialize_info(self):
         return {
             "input": "(str) value",

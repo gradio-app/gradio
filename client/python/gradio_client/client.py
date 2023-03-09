@@ -4,14 +4,14 @@ from __future__ import annotations
 import concurrent.futures
 import json
 import re
-from concurrent.futures import Future
-from packaging import version
-from typing import Callable, Dict, List
 import uuid
-import websockets
+from concurrent.futures import Future
+from typing import Callable, Dict, List
 
 import requests
-from gradio_client import utils, serializing
+import websockets
+from gradio_client import serializing, utils
+from packaging import version
 
 
 class Client:
@@ -47,32 +47,45 @@ class Client:
         self.predict_fns = self._setup_predict_fns()
         self.serialize_fns = self._setup_serialize_fn()
         self.deserialize_fns = self._setup_deserialize_fn()
-        
+
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
-    def predict(self, *args, api_name: str | None = None, fn_index: int = 0, callbacks: List[Callable] | None = None) -> Future:
+    def predict(
+        self,
+        *args,
+        api_name: str | None = None,
+        fn_index: int = 0,
+        callbacks: List[Callable] | None = None,
+    ) -> Future:
         complete_fn = self._get_complete_fn(api_name, fn_index)
         future = self.executor.submit(complete_fn, *args)
         job = Job(future)
-        if callbacks:            
+        if callbacks:
+
             def create_fn(callback) -> Callable:
                 def fn(future):
                     if isinstance(future.result(), tuple):
                         callback(*future.result())
                     else:
                         callback(future.result())
+
                 return fn
-            
+
             for callback in callbacks:
                 job.add_done_callback(create_fn(callback))
         return job
-    
+
     def info(self, api_name: str | None = None) -> Dict:
         if api_name:
             fn_index = self._infer_fn_index(api_name)
             dependency = self.config["dependencies"][fn_index]
-            return {api_name: {"input_parameters": ["(str) value"], "output_values": ["(str) value"]}}
+            return {
+                api_name: {
+                    "input_parameters": ["(str) value"],
+                    "output_values": ["(str) value"],
+                }
+            }
         else:
             api_info = {"named_endpoints": {}}
             for dependency in self.config["dependencies"]:
@@ -81,15 +94,14 @@ class Client:
                     api_info["named_endpoints"] = self.info(api_name)
             api_info["num_named_endpoints"] = len(api_info)  # type: ignore
             return api_info
-        
+
     def pprint(self, api_name: str | None = None) -> None:
         print(json.dumps(self.info(api_name), indent=2))
-        
 
     ##################################
     # Private helper methods
     ##################################
-    
+
     def _infer_fn_index(self, api_name: str) -> int:
         inferred_fn_index = next(
             (
@@ -102,17 +114,16 @@ class Client:
         if inferred_fn_index is None:
             raise ValueError(f"Cannot find a function with api_name: {api_name}")
         return inferred_fn_index
-        
-        
+
     def _get_complete_fn(self, api_name: str | None, fn_index: int) -> Callable:
         if api_name is not None:
-            fn_index = self._infer_fn_index(api_name)        
-        
+            fn_index = self._infer_fn_index(api_name)
+
         predict_fn = self._get_predict_fn(fn_index)
         serialize_fn = self._get_serialize_fn(fn_index)
         deserialize_fn = self._get_deserialize_fn(fn_index)
-        
-        return lambda *args: deserialize_fn(*predict_fn(*serialize_fn(*args)))        
+
+        return lambda *args: deserialize_fn(*predict_fn(*serialize_fn(*args)))
 
     def _use_websocket(self, dependency: Dict) -> bool:
         queue_enabled = self.config.get("enable_queue", False)
@@ -121,7 +132,7 @@ class Client:
         ) >= version.Version("3.2")
         dependency_uses_queue = dependency.get("queue", False) is not False
         return queue_enabled and queue_uses_websocket and dependency_uses_queue
-    
+
     async def _ws_fn(self, data, hash_data):
         async with websockets.connect(  # type: ignore
             self.ws_url, open_timeout=10, extra_headers=self.headers
@@ -130,12 +141,13 @@ class Client:
 
     def _get_predict_fn(self, fn_index: int) -> Callable:
         return self.predict_fns[fn_index]
-    
-    def _setup_predict_fns(self) -> List[Callable]:        
+
+    def _setup_predict_fns(self) -> List[Callable]:
         def create_fn(fn_index, dependency: Dict) -> Callable:
             if not dependency["backend_fn"]:
                 return lambda *args: args
             use_ws = self._use_websocket(dependency)
+
             def predict_fn(*data):
                 if not dependency["backend_fn"]:
                     return None
@@ -147,7 +159,9 @@ class Client:
                     result = utils.synchronize_async(self._ws_fn, data, hash_data)
                     output = result["data"]
                 else:
-                    response = requests.post(self.api_url, headers=self.headers, data=data)
+                    response = requests.post(
+                        self.api_url, headers=self.headers, data=data
+                    )
                     result = json.loads(response.content.decode("utf-8"))
                     try:
                         output = result["data"]
@@ -160,8 +174,9 @@ class Client:
                             f"Could not find 'data' key in response. Response received: {result}"
                         )
                 return tuple(output)
-            return predict_fn            
-        
+
+            return predict_fn
+
         fns = []
         for fn_index, dependency in enumerate(self.config["dependencies"]):
             fns.append(create_fn(fn_index, dependency))
@@ -169,68 +184,82 @@ class Client:
 
     def _get_serialize_fn(self, fn_index: int) -> Callable:
         return self.serialize_fns[fn_index]
-    
+
     def _setup_serialize_fn(self) -> List[Callable]:
         def create_fn(dependency: Dict) -> Callable:
             if not dependency["backend_fn"]:
                 return lambda *args: args
             inputs = dependency["inputs"]
             serializers = []
-            
+
             for i in inputs:
                 for component in self.config["components"]:
                     if component["id"] == i:
                         if component.get("serializer"):
                             serializer_name = component["serializer"]
-                            assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                            assert (
+                                serializer_name in serializing.SERIALIZER_MAPPING
+                            ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                             serializer = serializing.SERIALIZER_MAPPING[serializer_name]
                         else:
                             component_name = component["type"]
-                            assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                            assert (
+                                component_name in serializing.COMPONENT_MAPPING
+                            ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
                             serializer = serializing.COMPONENT_MAPPING[component_name]
                         serializers.append(serializer())  # type: ignore
-            
+
             def serialize_fn(*data):
-                assert len(data) == len(serializers), f"Expected {len(serializers)} arguments, got {len(data)}"
+                assert len(data) == len(
+                    serializers
+                ), f"Expected {len(serializers)} arguments, got {len(data)}"
                 return [s.serialize(d) for s, d in zip(serializers, data)]
+
             return serialize_fn
-        
+
         fns = []
         for dependency in self.config["dependencies"]:
             fns.append(create_fn(dependency))
         return fns
-    
+
     def _get_deserialize_fn(self, fn_index: int) -> Callable:
         return self.deserialize_fns[fn_index]
-    
+
     def _setup_deserialize_fn(self) -> List[Callable]:
         def create_fn(dependency: Dict) -> Callable:
             if not dependency["backend_fn"]:
                 return lambda *args: args
-            
+
             outputs = dependency["outputs"]
             deserializers = []
-            
+
             for i in outputs:
                 for component in self.config["components"]:
                     if component["id"] == i:
                         if component.get("serializer"):
                             serializer_name = component["serializer"]
-                            assert serializer_name in serializing.SERIALIZER_MAPPING, f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                            deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                            assert (
+                                serializer_name in serializing.SERIALIZER_MAPPING
+                            ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                            deserializer = serializing.SERIALIZER_MAPPING[
+                                serializer_name
+                            ]
                         else:
                             component_name = component["type"]
-                            assert component_name in serializing.COMPONENT_MAPPING, f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                            assert (
+                                component_name in serializing.COMPONENT_MAPPING
+                            ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
                             deserializer = serializing.COMPONENT_MAPPING[component_name]
                         deserializers.append(deserializer())  # type: ignore
-            
+
             def deserialize_fn(*data):
                 result = [s.deserialize(d) for s, d in zip(deserializers, data)]
                 if len(outputs) == 1:
                     result = result[0]
                 return result
+
             return deserialize_fn
-        
+
         fns = []
         for dependency in self.config["dependencies"]:
             fns.append(create_fn(dependency))
@@ -268,23 +297,21 @@ class Client:
 
 class Job(Future):
     """A Job is a thin wrapper over the Future class that can be cancelled."""
+
     def __init__(self, future: Future):
         self.future = future
-        
+
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
         return getattr(self.future, name)
-    
+
     def cancel(self) -> bool:
         """Cancels the job."""
         if self.future.cancelled() or self.future.done():
             pass
             return False
         elif self.future.running():
-            pass # TODO: Handle this case
+            pass  # TODO: Handle this case
             return True
         else:
             return self.future.cancel()
-    
-        
-    

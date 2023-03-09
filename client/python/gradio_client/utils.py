@@ -1,20 +1,24 @@
 import json
-from typing import Callable, Any, Dict
-from websockets.legacy.protocol import WebSocketCommonProtocol
+from typing import Any, Callable, Dict
 
 import fsspec.asyn
+from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "{}/api/predict/"
 WS_URL = "{}/queue/join"
 
+
 class TooManyRequestsError(Exception):
     """Raised when the API returns a 429 status code."""
+
     pass
 
 
 class QueueError(Exception):
     """Raised when the queue is full or there is an issue adding a job to the queue."""
+
     pass
+
 
 async def get_pred_from_ws(
     websocket: WebSocketCommonProtocol, data: str, hash_data: str
