@@ -23,3 +23,4 @@ pydantic
 websockets>=10.0
 typing_extensions
 aiofiles
+gradio_client
