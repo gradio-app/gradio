@@ -5359,7 +5359,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         language: str | None = None,
         *,
         label: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
