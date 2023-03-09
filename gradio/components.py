@@ -5335,7 +5335,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
-    Preprocessing: passes a {str} of code.
+    Preprocessing: passes a {str} of code into the function.
     Postprocessing: expects the function to return a {str} filepath or a {str} of code.
     """
 
@@ -5366,8 +5366,8 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     ):
         """
         Parameters:
-            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            language: The language to display the code as. Supported languages listed on `gr.Code.languages`.
+            value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -5392,7 +5392,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         }
 
     def postprocess(self, y):
-        if y is not None and os.path.exists(y):
+        if y is not None and os.path.isfile(y):
             with open(y) as file_data:
                 return file_data.read()
         return y

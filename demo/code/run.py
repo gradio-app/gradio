@@ -17,7 +17,6 @@ def set_lang_from_path():
 
 
 def code(language, code):
-    print(code)
     return gr.Code.update(code, language=language)
 
 
@@ -34,7 +33,6 @@ with gr.Blocks() as demo:
     lang.change(set_lang, inputs=lang, outputs=code_in)
     btn.click(code, inputs=[lang, code_in], outputs=code_out)
     btn_two.click(set_lang_from_path, inputs=None, outputs=code_out)
-    gr.Code.languages
     io.render()
 
 if __name__ == "__main__":
