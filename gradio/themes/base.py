@@ -8,9 +8,10 @@ from pathlib import Path
 
 import huggingface_hub
 import requests
+import semantic_version as semver
 from huggingface_hub import CommitOperationAdd
 
-from gradio.themes.utils import colors, sizes
+from gradio.themes.utils import colors, get_matching_version, get_theme_assets, sizes
 from gradio.themes.utils.readme_content import README_CONTENT
 
 
@@ -69,17 +70,32 @@ class ThemeClass:
 
     @classmethod
     def from_hub(cls, repo_name: str):
-        name, version = repo_name.split("@")
+        if "@" not in repo_name:
+            name, version = repo_name, None
+        else:
+            name, version = repo_name.split("@")
+
+        assets = get_theme_assets(name)
+        matching_version = get_matching_version(assets, version)
+
+        if not matching_version:
+            raise ValueError(
+                f"Cannot find a matching version for expression {version} "
+                f"from files {[f.filename for f in assets]}"
+            )
+
         url = huggingface_hub.hf_hub_url(
             repo_id=name,
             repo_type="space",
-            filename=f"themes/theme_schema@{version}.json",
+            filename=f"themes/theme_schema@{matching_version.version}.json",
         )
         download = requests.get(url)
         if download.ok:
             return cls.from_dict(download.json())
         else:
-            raise ValueError(f"Can't load theme from {repo_name}!")
+            raise ValueError(
+                f"Error downloading vile themes/theme_schema@{matching_version}.json from {repo_name}!"
+            )
 
     def to_hub(
         self,
@@ -89,6 +105,9 @@ class ThemeClass:
         theme_name: str | None = None,
         description: str | None = None,
     ):
+
+        # To check if version is valid string
+        _ = semver.Version(version)
 
         from gradio import __version__
         from gradio.themes import app
@@ -125,15 +144,17 @@ class ThemeClass:
             contents = open(app.__file__).read()
             contents = re.sub(
                 r"theme=gr.themes.Default\(\)",
-                f"theme='{author}/{repo_name}@{version}'",
+                f"theme='{author}/{repo_name}'",
                 contents,
             )
             contents = re.sub(r"{THEME}", theme_name or repo_name, contents)
+            contents = re.sub(r"{AUTHOR}", author, contents)
+            contents = re.sub(r"{SPACE_NAME}", repo_name, contents)
             app_file.write(contents)
         # TODO: Delete this once we publish this to PyPi
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as req_file:
             req_file.write(
-                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-6/gradio-3.20.1-py3-none-any.whl"
+                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-8/gradio-3.20.1-py3-none-any.whl"
             )
 
         operations = [

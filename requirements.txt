@@ -24,3 +24,4 @@ websockets>=10.0
 typing_extensions
 aiofiles
 huggingface_hub
+semantic_version

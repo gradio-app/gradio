@@ -3,7 +3,16 @@ import time
 import gradio as gr
 
 with gr.Blocks(theme=gr.themes.Default()) as demo:
-    gr.Markdown("# {THEME} Preview")
+    gr.Markdown(
+        """
+    # {THEME} Preview
+
+    To use this theme, set `theme='{AUTHOR}/{SPACE_NAME}'` in `gr.Blocks()` or `gr.Interface`.
+
+    You can append an `@` and a semantic version expression, e.g. @>=1.0.0,<2.0.0 to pin to a given version
+    of this theme.
+    """
+    )
     toggle_dark = gr.Button("Toggle Dark").style(full_width=False)
     toggle_dark.click(
         None,
