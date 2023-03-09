@@ -187,4 +187,8 @@
 	:global(.cm-selectionBackground) {
 		background-color: #b9d2ff30 !important;
 	}
+
+	:global(.cm-focused) {
+		outline: none !important;
+	}
 </style>
