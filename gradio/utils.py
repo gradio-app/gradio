@@ -154,6 +154,8 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
         [],
     )
 
+    from gradio.blocks import BlockContext
+
     for x in list(blocks.blocks.values()):
         blocks_telemetry.append(x.get_block_name()) if isinstance(
             x, BlockContext
