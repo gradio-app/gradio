@@ -4,7 +4,6 @@ import copy
 import inspect
 import json
 import os
-import pkgutil
 import random
 import secrets
 import sys
@@ -30,6 +29,7 @@ from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
+    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
@@ -39,7 +39,6 @@ from gradio.utils import (
 )
 
 set_documentation_group("blocks")
-
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -251,6 +250,7 @@ class Block:
 
     @classmethod
     def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+        generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
@@ -484,7 +484,8 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-
+        if not self.analytics_enabled:
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
@@ -521,9 +522,8 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "theme": self.theme,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
@@ -1355,6 +1355,8 @@ class Blocks(BlockContext):
         self.show_api = self.api_open if self.enable_queue else show_api
 
         self.file_directories = file_directories if file_directories is not None else []
+        if not isinstance(self.file_directories, list):
+            raise ValueError("file_directories must be a list of directories.")
 
         if not self.enable_queue and self.progress_tracking:
             raise ValueError("Progress tracking requires queuing to be enabled.")
@@ -1576,6 +1578,7 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            utils.launched_telemetry(self, data)
 
         utils.show_tip(self)
 
