@@ -45,7 +45,7 @@ def document(*fns, inherit=False):
     Usage examples:
     - Put @document() above a class to document the class and its constructor.
     - Put @document("fn1", "fn2") above a class to also document methods fn1 and fn2.
-    - Put @document("*fn3") with an asterisk above a class to document the instance attribute methods fn1 and fn2.
+    - Put @document("*fn3") with an asterisk above a class to document the instance attribute methods f3.
     """
 
     def inner_doc(cls):
