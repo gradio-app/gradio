@@ -5418,10 +5418,9 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             "visible": visible,
             "value": value,
             "language": language,
-            "interactive": interactive,
             "__type__": "update",
         }
-        return updated_config
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(self):
         return self
