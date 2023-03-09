@@ -1,0 +1,4 @@
+requests
+websockets
+packaging
+fsspec
