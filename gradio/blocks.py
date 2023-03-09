@@ -404,7 +404,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("load")
+@document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -1228,8 +1228,14 @@ class Blocks(BlockContext):
             default_enabled: Deprecated and has no effect.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-        Example:
-            demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
+        Example: (Blocks)
+            with gr.Blocks() as demo:
+                button = gr.Button(label="Generate Image")
+                button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
+            demo.queue(concurrency_count=3)
+            demo.launch()
+        Example: (Interface)
+            demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
             demo.queue(concurrency_count=3)
             demo.launch()
         """
@@ -1312,7 +1318,15 @@ class Blocks(BlockContext):
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
             share_url: Publicly accessible link to the demo (if share=True, otherwise None)
-        Example:
+        Example: (Blocks)
+            import gradio as gr
+            def reverse(text):
+                return text[::-1]
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Reverse")
+                button.click(reverse, gr.Textbox(), gr.Textbox())
+            demo.launch(share=True, auth=("username", "password"))
+        Example:  (Interface)
             import gradio as gr
             def reverse(text):
                 return text[::-1]
