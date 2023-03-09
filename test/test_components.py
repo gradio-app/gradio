@@ -1727,7 +1727,6 @@ class TestJSON:
         """
 
         def get_avg_age_per_gender(data):
-            print(data)
             return {
                 "M": int(data[data["gender"] == "M"].mean()),
                 "F": int(data[data["gender"] == "F"].mean()),
@@ -2546,5 +2545,4 @@ class TestCode:
             "interactive": None,
             "root_url": None,
         }
-        print(code.generate_sample())
         assert isinstance(code.generate_sample(), str)
