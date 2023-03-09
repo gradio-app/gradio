@@ -57,7 +57,6 @@ class EventListenerMethod:
         self.event_name = event_name
         self.show_progress = show_progress
         self.callback = callback
-        # self.__call__.__doc__ = self.trigger.__doc__ + self.__call__.__doc__
 
     def __call__(
         self,
