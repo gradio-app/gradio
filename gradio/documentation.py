@@ -21,6 +21,7 @@ def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
     lines = [line.strip() for line in code.split("\n")]
     found_attr = False
+    i = 0
     for i, line in enumerate(lines):
         if line.startswith("self." + attr):
             found_attr = True
