@@ -1,4 +1,3 @@
-<!-- original from: https://github.com/touchifyapp/svelte-codemirror-editor/blob/main/src/lib/CodeMirror.svelte -->
 <script lang="ts">
 	import type { ViewUpdate } from "@codemirror/view";
 	import { createEventDispatcher, onMount } from "svelte";
@@ -77,7 +76,6 @@
 				basic,
 				useTab,
 				placeholder,
-				// editable,
 				readonly,
 				lang_extension
 			),
@@ -125,14 +123,12 @@
 		basic: boolean,
 		useTab: boolean,
 		placeholder: string | HTMLElement | null | undefined,
-		// editable: boolean,
 		readonly: boolean,
 		lang: Extension | null | undefined
 	): Extension[] {
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
 			EditorState.readOnly.of(readonly)
-			// EditorView.editable.of(readonly)
 		];
 
 		if (basic) {

@@ -59,7 +59,6 @@ const alias_map: Record<string, string> = {
 	sh: "shell"
 };
 
-console.log(lang_map);
 export async function getLanguageExtension(
 	lang: string
 ): Promise<Extension | undefined> {

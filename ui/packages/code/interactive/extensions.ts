@@ -1,5 +1,3 @@
-/// Identical to https://codemirror.net/docs/ref/#codemirror.basicSetup
-/// with only one difference: no search extension so that default browser cmd+f behaviour can be used
 import type { Extension } from "@codemirror/state";
 import {
 	lineNumbers,

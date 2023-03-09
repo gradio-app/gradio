@@ -27,8 +27,6 @@
 	let dark_mode = target.classList.contains("dark");
 
 	$: dispatch("change", value);
-
-	$: console.log(value, language);
 </script>
 
 {#if mode === "static"}

@@ -1,4 +1,3 @@
-// original: https://github.com/retronav/ixora/blob/main/src/plugins/frontmatter.ts
 import type {
 	Element,
 	MarkdownExtension,
@@ -10,14 +9,8 @@ import { yaml } from "@codemirror/legacy-modes/mode/yaml";
 import { foldInside, foldNodeProp, StreamLanguage } from "@codemirror/language";
 import { styleTags, tags } from "@lezer/highlight";
 
-// A frontmatter fence usually consists of a seperator used three times.
-// These can be: ---, +++, ===, etc.
-// FIXME: make this configurable
 const frontMatterFence = /^---\s*$/m;
 
-/**
- * Ixora frontmatter plugin for Markdown.
- */
 export const frontmatter: MarkdownExtension = {
 	defineNodes: [{ name: "Frontmatter", block: true }, "FrontmatterMark"],
 	props: [
@@ -27,7 +20,6 @@ export const frontmatter: MarkdownExtension = {
 		}),
 		foldNodeProp.add({
 			Frontmatter: foldInside,
-			// Marks don't need to be folded
 			FrontmatterMark: () => null
 		})
 	],
@@ -50,7 +42,6 @@ export const frontmatter: MarkdownExtension = {
 				let end: number | undefined = undefined;
 				const children = new Array<Element>();
 				if (cx.lineStart === 0 && frontMatterFence.test(line.text)) {
-					// 4 is the length of the frontmatter fence (---\n).
 					children.push(cx.elt("FrontmatterMark", 0, 4));
 					while (cx.nextLine()) {
 						if (frontMatterFence.test(line.text)) {
