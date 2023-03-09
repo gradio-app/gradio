@@ -30,7 +30,6 @@ No changes to highlight.
 - Persist file names of files uploaded through any Gradio component by [@abidlabs](https://github.com/abidlabs) in [PR 3412](https://github.com/gradio-app/gradio/pull/3412)
 - Fix markdown embedded component in docs by [@aliabd](https://github.com/aliabd) in [PR 3410](https://github.com/gradio-app/gradio/pull/3410)
 - Fix css issue with spaces logo by [@aliabd](https://github.com/aliabd) in [PR 3422](https://github.com/gradio-app/gradio/pull/3422)
-- Adds a Python client class `Client()` that makes makes it easier to connect to hosted Gradio apps and make predictions from them, by [@abidlabs](https://github.com/abidlabs) in [PR 3300](https://github.com/gradio-app/gradio/pull/3300) 
 
 ## Contributors Shoutout:
 
