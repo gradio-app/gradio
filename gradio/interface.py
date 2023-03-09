@@ -8,7 +8,6 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import pkgutil
 import re
 import warnings
 import weakref
@@ -31,6 +30,7 @@ from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
+from gradio.utils import GRADIO_VERSION
 
 set_documentation_group("interface")
 
@@ -316,13 +316,8 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For analytics_enabled and allow_flagging: (1) first check for
-        # parameter, (2) check for env variable, (3) default to True/"manual"
-        self.analytics_enabled = (
-            analytics_enabled
-            if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
-        )
+        # For allow_flagging: (1) first check for parameter,
+        # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
         if allow_flagging is True:
@@ -388,9 +383,8 @@ class Interface(Blocks):
                 "interpretation": interpretation,
                 "allow_flagging": allow_flagging,
                 "custom_css": self.css is not None,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "theme": self.theme,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
