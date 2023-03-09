@@ -2,7 +2,68 @@
 
 ## New Features:
 
-No changes to highlight.
+### Theme Sharing 🎨 🤝
+
+You can now share your gradio themes with the world!
+
+After creating a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it!
+
+### Uploading
+There are two ways to upload a theme, via the theme class instance or the command line.
+
+1. Via the class instance
+```python
+my_theme.to_hub(repo_name="my_theme",
+                version="0.2.0",
+                hf_token="...")
+```
+
+2. Via the command line
+
+First save the theme to disk
+```python
+my_theme.dump(path="./", filename="my_theme.json")
+```
+
+Then use the `upload_theme` command:
+
+```bash
+upload_theme\
+"my_theme.json"\
+"my_theme"\
+"0.2.0"\
+"<hf-token>"
+```
+
+The `version` must be a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string.
+
+This creates a space on the huggingface hub to host the theme files and show potential users a preview of your theme.
+
+An example theme space is here: https://huggingface.co/spaces/freddyaboulton/dracula_revamped 
+
+### Downloading
+To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
+
+```python
+my_theme = ThemeClass.from_hub("freddyaboulton/my_theme")
+
+with gr.Blocks(theme=my_theme) as demo:
+    ....
+```
+
+You can also pass the theme string directly to `Blocks` or `Interface` (`gr.Blocks(theme="freddyaboulton/my_theme")`)
+
+You can pin your app to an upstream theme version by using semantic versioning expressions.
+
+For example, the following would ensure the theme we load from the `my_theme` repo was between versions `0.1.0` and `0.2.0`:
+
+```python
+with gr.Blocks(theme="freddyaboulton/my_theme@>=0.1.0,<0.2.0") as demo:
+    ....
+```
+
+by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3428](https://github.com/gradio-app/gradio/pull/3428)  
+
 
 ## Bug Fixes:
 - Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventually to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
