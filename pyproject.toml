@@ -50,10 +50,8 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<
 [tool.hatch.build]
 artifacts = [
   "/gradio/templates",
-  "/gradio/themes/files"
 ]
 
-[tool.hatch.build.hooks.custom]
 
 [tool.hatch.build.targets.sdist]
 include = [
