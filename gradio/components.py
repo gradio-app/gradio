@@ -8,6 +8,7 @@ import inspect
 import json
 import math
 import operator
+import os
 import random
 import tempfile
 import uuid
@@ -5331,16 +5332,31 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("change")
-class Code(Changeable, IOComponent, JSONSerializable):
+class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
-    Preprocessing: expects somethjing.
-    Postprocessing: expects something.
+    Preprocessing: passes a {str} of code.
+    Postprocessing: expects the function to return a {str} filepath or a {str} of code.
     """
+
+    languages = [
+        "python",
+        "markdown",
+        "json",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+        "yaml",
+        "dockerfile",
+        "shell",
+        "r",
+    ]
 
     def __init__(
         self,
-        value: Dict[str] | None = None,
+        value: str | None = None,
+        language: str = None,
         *,
         label: str | None = None,
         show_label: bool = True,
@@ -5351,11 +5367,13 @@ class Code(Changeable, IOComponent, JSONSerializable):
         """
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            language: The language to display the code as. Supported languages listed on `gr.Code.languages`.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.language = language
         IOComponent.__init__(
             self,
             label=label,
@@ -5369,24 +5387,15 @@ class Code(Changeable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
+            "language": self.language,
             **IOComponent.get_config(self),
         }
 
     def postprocess(self, y):
-        if y is None or not isinstance(y, dict):
-            return {"code": "", "lang": None}
-        if y.get("path") is not None:
-            file_path = y.get("path")
-            with open(file_path, "rb") as file_data:
-                f = file_data.read()
-                return {"lang": Path(file_path).suffix[1:], "code": f}
-        if y.get("code") is not None:
-            if y.get("lang") is None:
-                raise ValueError("Must provide a lang when passing code as a string.")
-            else:
-                return {"code": y.get("code"), "lang": y.get("lang")}
-
-        raise ValueError("Could not process code data.")
+        if y is not None and os.path.exists(y):
+            with open(y) as file_data:
+                return file_data.read()
+        return y
 
     @staticmethod
     def update(
@@ -5394,12 +5403,14 @@ class Code(Changeable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        language: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "language": language,
             "__type__": "update",
         }
         return updated_config

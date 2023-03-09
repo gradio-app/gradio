@@ -4,7 +4,7 @@
 	import { Copy, Check } from "@gradio/icons";
 
 	let copied = false;
-	let value: string;
+	export let value: string;
 	let timer: NodeJS.Timeout;
 
 	function copy_feedback() {
@@ -17,7 +17,7 @@
 
 	async function handle_copy() {
 		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(JSON.stringify(value, null, 2));
+			await navigator.clipboard.writeText(value);
 			copy_feedback();
 		}
 	}
@@ -40,19 +40,20 @@
 	button {
 		position: relative;
 		cursor: pointer;
-		width: 12px;
-		height: 12px;
+		padding: 5px;
+		width: 22px;
+		height: 22px;
 	}
 
 	.check {
 		position: absolute;
-		top: calc(var(--size-1) * -1);
-		right: calc(var(--size-1) * -1);
+		top: 0;
+		right: 0;
 		z-index: var(--layer-top);
 		background: var(--color-green-500);
 		padding: var(--size-1);
-		width: calc(100% + var(--size-1) * 2);
-		height: calc(100% + var(--size-1) * 2);
+		width: 100%;
+		height: 100%;
 		color: white;
 	}
 </style>
