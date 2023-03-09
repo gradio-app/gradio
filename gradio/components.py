@@ -5356,7 +5356,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     def __init__(
         self,
         value: str | None = None,
-        language: str = None,
+        language: str | None = None,
         *,
         label: str | None = None,
         show_label: bool = True,
@@ -5399,7 +5399,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Dict[str] | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        value: str | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
