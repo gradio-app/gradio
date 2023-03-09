@@ -6,6 +6,7 @@ import inspect
 from typing import Callable, Dict, List, Tuple
 
 classes_to_document = {}
+classes_inherit_documentation = {}
 documentation_group = None
 
 
@@ -16,18 +17,37 @@ def set_documentation_group(m):
         classes_to_document[m] = []
 
 
-def document(*fns):
+def extract_instance_attr_doc(cls, attr):
+    code = inspect.getsource(cls.__init__)
+    lines = [line.strip() for line in code.split("\n")]
+    found_attr = False
+    i = 0
+    for i, line in enumerate(lines):
+        if line.startswith("self." + attr):
+            found_attr = True
+            break
+    assert found_attr, f"Could not find {attr} in {cls.__name__}"
+    start_line = lines.index('"""', i)
+    end_line = lines.index('"""', start_line + 1)
+    doc_string = " ".join(lines[start_line + 1 : end_line])
+    return doc_string
+
+
+def document(*fns, inherit=False):
     """
     Defines the @document decorator which adds classes or functions to the Gradio
     documentation at www.gradio.app/docs.
 
     Usage examples:
     - Put @document() above a class to document the class and its constructor.
-    - Put @document(fn1, fn2) above a class to also document the class methods fn1 and fn2.
+    - Put @document("fn1", "fn2") above a class to also document methods fn1 and fn2.
+    - Put @document("*fn3") with an asterisk above a class to document the instance attribute methods f3.
     """
 
     def inner_doc(cls):
         global documentation_group
+        if inherit:
+            classes_inherit_documentation[cls] = None
         classes_to_document[documentation_group].append((cls, fns))
         return cls
 
@@ -175,13 +195,20 @@ def generate_documentation():
                 "fns": [],
             }
             for fn_name in fns:
-                fn = getattr(cls, fn_name)
+                instance_attribute_fn = fn_name.startswith("*")
+                if instance_attribute_fn:
+                    fn_name = fn_name[1:]
+                    fn = getattr(cls(), fn_name)
+                else:
+                    fn = getattr(cls, fn_name)
                 (
                     description_doc,
                     parameter_docs,
                     return_docs,
                     examples_doc,
                 ) = document_fn(fn, cls)
+                if instance_attribute_fn:
+                    description_doc = extract_instance_attr_doc(cls, fn_name)
                 cls_documentation["fns"].append(
                     {
                         "fn": fn,
@@ -194,4 +221,17 @@ def generate_documentation():
                     }
                 )
             documentation[mode].append(cls_documentation)
+            if cls in classes_inherit_documentation:
+                classes_inherit_documentation[cls] = cls_documentation["fns"]
+    for mode, class_list in classes_to_document.items():
+        for i, (cls, _) in enumerate(class_list):
+            for super_class in classes_inherit_documentation:
+                if (
+                    inspect.isclass(cls)
+                    and issubclass(cls, super_class)
+                    and cls != super_class
+                ):
+                    documentation[mode][i]["fns"] += classes_inherit_documentation[
+                        super_class
+                    ]
     return documentation
