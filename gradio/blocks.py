@@ -4,7 +4,6 @@ import copy
 import inspect
 import json
 import os
-import pkgutil
 import random
 import secrets
 import sys
@@ -30,6 +29,7 @@ from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
+    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
@@ -39,7 +39,6 @@ from gradio.utils import (
 )
 
 set_documentation_group("blocks")
-
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -485,7 +484,8 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-
+        if not self.analytics_enabled:
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
@@ -522,9 +522,8 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "theme": self.theme,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
@@ -1579,6 +1578,7 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            utils.launched_telemetry(self, data)
 
         utils.show_tip(self)
 
