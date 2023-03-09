@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import { post_data } from "../api";
+	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 
 	import { represent_value } from "./utils";
@@ -72,7 +72,7 @@
 			return;
 		}
 		let [response, status_code] = await post_data(
-			`${root}run/${dependency.api_name}`,
+			`${root}/run/${dependency.api_name}`,
 			{
 				data: inputs
 			}

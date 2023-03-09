@@ -7,7 +7,6 @@
 
   [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
   [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
-  [<img src="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg" alt="codecov">](https://app.codecov.io/gh/gradio-app/gradio)
   [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
   [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
   ![Python version](https://img.shields.io/badge/python-3.7+-important)
@@ -18,6 +17,7 @@
   | [Guides](https://gradio.app/guides/)
   | [Getting Started](https://gradio.app/getting_started/)
   | [Examples](demo/)
+  | [中文](readme_files/zh-cn#readme)
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python
@@ -66,6 +66,7 @@ def greet(name):
     return "Hello " + name + "!"
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+    
 demo.launch()
 ```
 
@@ -73,6 +74,14 @@ demo.launch()
 3\. The demo below will appear automatically within the Jupyter Notebook, or pop in a browser on [http://localhost:7860](http://localhost:7860) if running from a script:
 
 ![`hello_world` demo](demo/hello_world/screenshot.gif)
+
+When developing locally, if you want to run the code as a Python script, you can use the Gradio CLI to launch the application **in reload mode**, which will provide seamless and fast development. Learn more about reloading in the [Auto-Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
+
+```bash
+gradio app.py
+```
+
+Note: you can also do `python app.py`, but it won't provide the automatic reload mechanism.
 
 ### The `Interface` Class
 
@@ -212,34 +221,39 @@ Here's an app to give you a taste of what's possible with `Blocks`:
 import numpy as np
 import gradio as gr
 
+
 def flip_text(x):
     return x[::-1]
+
 
 def flip_image(x):
     return np.fliplr(x)
 
+
 with gr.Blocks() as demo:
     gr.Markdown("Flip text or image files using this demo.")
-    with gr.Tabs():
-        with gr.TabItem("Flip Text"):
-            text_input = gr.Textbox()
-            text_output = gr.Textbox()
-            text_button = gr.Button("Flip")
-        with gr.TabItem("Flip Image"):
-            with gr.Row():
-                image_input = gr.Image()
-                image_output = gr.Image()
-            image_button = gr.Button("Flip")
-    
+    with gr.Tab("Flip Text"):
+        text_input = gr.Textbox()
+        text_output = gr.Textbox()
+        text_button = gr.Button("Flip")
+    with gr.Tab("Flip Image"):
+        with gr.Row():
+            image_input = gr.Image()
+            image_output = gr.Image()
+        image_button = gr.Button("Flip")
+
+    with gr.Accordion("Open for More!"):
+        gr.Markdown("Look at me...")
+
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
-    
+
 demo.launch()
 ```
 
 ![`blocks_flipper` demo](demo/blocks_flipper/screenshot.gif)
 
-A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://github.com/gradio-app/gradio/tree/main/guides/3\)building_with_blocks) section for you.
+A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://gradio.app/building_with_blocks) section for you.
 
 Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
 
@@ -273,7 +287,3 @@ Also check out the paper *[Gradio: Hassle-Free Sharing and Testing of ML Models 
   year = {2019},
 }
 ```
-
-## See Also
-
-* The [Gradio Discord Bot](https://github.com/gradio-app/gradio-discord-bot), a Discord bot that allows you to try any [Hugging Face Space](https://huggingface.co/spaces) that is running a Gradio demo as a Discord bot.

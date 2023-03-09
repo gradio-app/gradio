@@ -31,7 +31,6 @@ from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
@@ -182,7 +181,8 @@ class IOComponent(Component):
         self.show_label = show_label
         self.interactive = interactive
 
-        self.load_event = None
+        # load_event is set in the Blocks.attach_load_events method
+        self.load_event: None | Dict[str, Any] = None
         self.load_event_to_attach = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = (
@@ -191,7 +191,7 @@ class IOComponent(Component):
             else self.postprocess(initial_value)
         )
         if callable(load_fn):
-            self.load_event = self.attach_load_event(load_fn, every)
+            self.attach_load_event(load_fn, every)
 
     def get_config(self):
         config = {
@@ -228,16 +228,7 @@ class IOComponent(Component):
 
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
-        if Context.root_block:
-            return Context.root_block.load(
-                callable,
-                None,
-                self,
-                no_target=True,
-                every=every,
-            )
-        else:
-            self.load_event_to_attach = (callable, every)
+        self.load_event_to_attach = (callable, every)
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
@@ -2310,7 +2301,7 @@ class File(
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
-            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
+            type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -2474,10 +2465,8 @@ class File(
                 "is_file": True,
             }
 
-    def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
+        serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
             return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
@@ -3068,7 +3057,7 @@ class UploadButton(
         """
         Parameters:
             value: Default text for the button to display.
-            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
+            type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             label: Text to display on the button. Defaults to "Upload a File".
@@ -3174,10 +3163,8 @@ class UploadButton(
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
+        serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
             return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
@@ -3901,7 +3888,6 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         self,
         x: Any,
         save_dir: str = "",
-        encryption_key: bytes | None = None,
         root_url: str | None = None,
     ) -> None | str:
         if x is None:
