@@ -34,7 +34,7 @@ def document(*fns):
     return inner_doc
 
 
-def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, str | None]:
+def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
     """
     Generates documentation for any function.
     Parameters:
@@ -54,8 +54,12 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, str | None]:
         line = line.rstrip()
         if line == "Parameters:":
             mode = "parameter"
-        elif line == "Example:":
+        elif line.startswith("Example:"):
             mode = "example"
+            if "(" in line and ")" in line:
+                c = line.split("(")[1].split(")")[0]
+                if c != cls.__name__:
+                    mode = "ignore"
         elif line == "Returns:":
             mode = "return"
         else:
@@ -158,7 +162,7 @@ def generate_documentation():
         documentation[mode] = []
         for cls, fns in class_list:
             fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
-            _, parameter_doc, return_doc, _ = document_fn(fn_to_document)
+            _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
             cls_description, cls_tags, cls_example = document_cls(cls)
             cls_documentation = {
                 "class": cls,
@@ -177,7 +181,7 @@ def generate_documentation():
                     parameter_docs,
                     return_docs,
                     examples_doc,
-                ) = document_fn(fn)
+                ) = document_fn(fn, cls)
                 cls_documentation["fns"].append(
                     {
                         "fn": fn,
