@@ -5359,6 +5359,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         language: str | None = None,
         *,
         label: str | None = None,
+        interactive: bool | None = True,
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
@@ -5369,6 +5370,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
             label: component name in interface.
+            interactive: Whether user should be able to enter code or only view it.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -5377,6 +5379,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         IOComponent.__init__(
             self,
             label=label,
+            interactive=interactive,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
@@ -5404,6 +5407,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         show_label: bool | None = None,
         visible: bool | None = None,
         language: str | None = None,
+        interactive: bool | None = True,
     ):
         updated_config = {
             "label": label,
@@ -5411,6 +5415,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             "visible": visible,
             "value": value,
             "language": language,
+            "interactive": interactive,
             "__type__": "update",
         }
         return updated_config
