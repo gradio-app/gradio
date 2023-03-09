@@ -16,7 +16,7 @@ with gr.Blocks() as demo:
         with gr.Column(scale=0.85):
             txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter, or upload an image").style(container=False)
         with gr.Column(scale=0.15, min_width=0):
-            btn = gr.UploadButton("🖼️", file_types=["image", "video", "audio"])
+            btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
     txt.submit(add_text, [chatbot, txt], [chatbot])
     txt.submit(lambda :"", None, txt, queue=False)
     btn.upload(add_file, [chatbot, btn], [chatbot])
