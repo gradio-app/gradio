@@ -404,7 +404,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("load")
+@document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
