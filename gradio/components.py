@@ -38,6 +38,7 @@ from gradio.events import (
     Clearable,
     Clickable,
     Editable,
+    EventListener,
     Playable,
     Releaseable,
     Streamable,
@@ -76,6 +77,10 @@ class Component(Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
     """
+
+    def __init__(self, *args, **kwargs):
+        Block.__init__(self, *args, **kwargs)
+        EventListener.__init__(self)
 
     def __str__(self):
         return self.__repr__()
@@ -175,7 +180,7 @@ class IOComponent(Component):
         every: float | None = None,
         **kwargs,
     ):
-        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
+        Component.__init__(self, elem_id=elem_id, visible=visible, **kwargs)
 
         self.label = label
         self.info = info
@@ -241,7 +246,7 @@ class FormComponent:
         return Form
 
 
-@document("change", "submit", "blur", "style")
+@document("style")
 class Textbox(
     FormComponent,
     Changeable,
@@ -437,7 +442,7 @@ class Textbox(
         return result
 
 
-@document("change", "submit", "style")
+@document("style")
 class Number(
     FormComponent,
     Changeable,
@@ -618,7 +623,7 @@ class Number(
         return self._round_to_precision(1, self.precision)
 
 
-@document("change", "style")
+@document("style")
 class Slider(
     FormComponent,
     Changeable,
@@ -782,7 +787,7 @@ class Slider(
         )
 
 
-@document("change", "style")
+@document("style")
 class Checkbox(
     FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
 ):
@@ -875,7 +880,7 @@ class Checkbox(
             return None, scores[0]
 
 
-@document("change", "style")
+@document("style")
 class CheckboxGroup(
     FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
 ):
@@ -1047,7 +1052,7 @@ class CheckboxGroup(
         return Component.style(self, container=container, **kwargs)
 
 
-@document("change", "style")
+@document("style")
 class Radio(
     FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
 ):
@@ -1196,7 +1201,7 @@ class Radio(
         return Component.style(self, container=container, **kwargs)
 
 
-@document("change", "style")
+@document("style")
 class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
@@ -1359,7 +1364,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         return Component.style(self, container=container, **kwargs)
 
 
-@document("edit", "clear", "change", "stream", "style")
+@document("style")
 class Image(
     Editable,
     Clearable,
@@ -1720,8 +1725,7 @@ class Image(
         # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        Streamable.stream(
-            self,
+        super().stream(
             fn,
             inputs,
             outputs,
@@ -1741,7 +1745,7 @@ class Image(
         return str(utils.abspath(input_data))
 
 
-@document("change", "clear", "play", "pause", "stop", "style")
+@document("style")
 class Video(
     Changeable,
     Clearable,
@@ -1959,7 +1963,7 @@ class Video(
         )
 
 
-@document("change", "clear", "play", "pause", "stop", "stream", "style")
+@document("style")
 class Audio(
     Changeable,
     Clearable,
@@ -2243,8 +2247,7 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        Streamable.stream(
-            self,
+        super().stream(
             fn,
             inputs,
             outputs,
@@ -2270,7 +2273,7 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
 
-@document("change", "clear", "style")
+@document("style")
 class File(
     Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileManager
 ):
@@ -2494,7 +2497,7 @@ class File(
             return Path(input_data).name
 
 
-@document("change", "style")
+@document("style")
 class Dataframe(Changeable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -2764,7 +2767,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         return input_data
 
 
-@document("change", "style")
+@document("style")
 class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
@@ -2947,7 +2950,7 @@ class Variable(State):
         return "state"
 
 
-@document("click", "style")
+@document("style")
 class Button(Clickable, IOComponent, SimpleSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
@@ -3031,7 +3034,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         return Component.style(self, **kwargs)
 
 
-@document("click", "upload", "style")
+@document("style")
 class UploadButton(
     Clickable, Uploadable, IOComponent, FileSerializable, TempFileManager
 ):
@@ -3192,7 +3195,7 @@ class UploadButton(
         return Component.style(self, **kwargs)
 
 
-@document("change", "submit", "style")
+@document("style")
 class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
     """
     Creates a color picker for user to select a color as string input.
@@ -3299,7 +3302,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 ############################
 
 
-@document("change", "style")
+@document("style")
 class Label(Changeable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
@@ -3434,7 +3437,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         return Component.style(self, container=container)
 
 
-@document("change", "style")
+@document("style")
 class HighlightedText(Changeable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
@@ -3598,7 +3601,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         return Component.style(self, container=container, **kwargs)
 
 
-@document("change", "style")
+@document("style")
 class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
@@ -3685,7 +3688,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         return Component.style(self, container=container, **kwargs)
 
 
-@document("change")
+@document()
 class HTML(Changeable, IOComponent, SimpleSerializable):
     """
     Used to display arbitrary HTML output.
@@ -3937,7 +3940,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
         )
 
 
-@document("change", "style")
+@document("style")
 class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
@@ -4044,7 +4047,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         )
 
 
-@document("change", "edit", "clear", "style")
+@document("style")
 class Model3D(
     Changeable, Editable, Clearable, IOComponent, FileSerializable, TempFileManager
 ):
@@ -4168,7 +4171,7 @@ class Model3D(
         return Path(input_data).name if input_data else ""
 
 
-@document("change", "clear")
+@document()
 class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
@@ -4288,7 +4291,7 @@ class AltairPlot:
         return alt.Scale(domain=limit) if limit else alt.Undefined
 
 
-@document("change", "clear")
+@document()
 class ScatterPlot(Plot):
     """
     Create a scatter plot.
@@ -4631,7 +4634,7 @@ class ScatterPlot(Plot):
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 
 
-@document("change", "clear")
+@document()
 class LinePlot(Plot):
     """
     Create a line plot.
@@ -4966,7 +4969,7 @@ class LinePlot(Plot):
         return {"type": "altair", "plot": chart.to_json(), "chart": "line"}
 
 
-@document("change", "clear")
+@document()
 class BarPlot(Plot):
     """
     Create a bar plot.
@@ -5280,7 +5283,7 @@ class BarPlot(Plot):
         return {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
 
 
-@document("change")
+@document()
 class Markdown(IOComponent, Changeable, SimpleSerializable):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
@@ -5353,7 +5356,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 ############################
 
 
-@document("click", "style")
+@document("style")
 class Dataset(Clickable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
