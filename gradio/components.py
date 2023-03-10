@@ -5324,7 +5324,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Component):
+class Dataset(Clickable, Component, SimpleSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -5427,7 +5427,7 @@ class Dataset(Clickable, Component):
 
 
 @document()
-class Interpretation(Component):
+class Interpretation(Component, SimpleSerializable):
     """
     Used to create an interpretation widget for a component.
     Preprocessing: this component does *not* accept input.
