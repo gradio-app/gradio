@@ -10,11 +10,11 @@ let guides_by_category = guides_json.guides_by_category;
 
 export async function load() {
     for (const guide of guides) {
-        // console.log(guide.content)
-        const compiled = await compile(`${guide.content}`,
+        const compiled = await compile(guide.content,
             {});
         guide.new_html = await compiled.code;
     }
+
     return {
         guides
     }

@@ -4,7 +4,7 @@ import shutil
 import re
 import json
 
-DIR = os.path.dirname(__file__)
+# DIR = os.path.dirname(__file__)
 
 GRADIO_DIR = "../../../../"
 GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -73,7 +73,7 @@ for guide_folder in guide_folders:
         
         guide_content = re.sub(
             r"\$code_([a-z _\-0-9]+)",
-            lambda x: f"{demos[x.group(1)]}",
+            lambda x: f"```python\n{demos[x.group(1)]}\n```",
             guide_content,
         )
         guide_content = re.sub(
