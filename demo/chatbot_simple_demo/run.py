@@ -1,5 +1,6 @@
 import gradio as gr
 import random
+import time
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
@@ -12,6 +13,7 @@ with gr.Blocks() as demo:
     def bot_message(history):
         response = random.choice(["Yes", "No"])
         history[-1][1] = response
+        time.sleep(1)
         return history
 
     msg.submit(user_message, [msg, chatbot], chatbot).then(

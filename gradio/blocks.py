@@ -140,7 +140,8 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
-        after: int | None = None,
+        triggered_after: int | None = None,
+        trigger_only_on_success: bool = False,
     ) -> Tuple[Dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -232,7 +233,8 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
-            "after": after,
+            "triggered_after": triggered_after,
+            "trigger_only_on_success": trigger_only_on_success,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency, len(Context.root_block.dependencies) - 1

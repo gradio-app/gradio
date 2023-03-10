@@ -45,11 +45,21 @@ class Dependency(dict):
     def __init__(self, trigger, key_vals, dep_index):
         super().__init__(key_vals)
         self.trigger = trigger
-        self.then = EventListenerMethod(self.trigger, "then", after=dep_index)
+        self.then = EventListenerMethod(
+            self.trigger,
+            "then",
+            triggered_after=dep_index,
+            trigger_only_on_success=False,
+        )
         """
         Triggered after directly preceding event is completed, regardless of success or failure.
         """
-        self.success = EventListenerMethod(self.trigger, "success", after=dep_index)
+        self.success = EventListenerMethod(
+            self.trigger,
+            "success",
+            triggered_after=dep_index,
+            trigger_only_on_success=True,
+        )
         """
         Triggered after directly preceding event is completed, if it was successful.
         """
@@ -66,13 +76,15 @@ class EventListenerMethod:
         event_name: str,
         show_progress: bool = True,
         callback: Callable | None = None,
-        after=None,
+        triggered_after: int | None = None,
+        trigger_only_on_success: bool = False,
     ):
         self.trigger = trigger
         self.event_name = event_name
         self.show_progress = show_progress
         self.callback = callback
-        self.after = after
+        self.triggered_after = triggered_after
+        self.trigger_only_on_success = trigger_only_on_success
 
     def __call__(
         self,
@@ -130,7 +142,8 @@ class EventListenerMethod:
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
-            after=self.after,
+            triggered_after=self.triggered_after,
+            trigger_only_on_success=self.trigger_only_on_success,
         )
         set_cancel_events(self.trigger, self.event_name, cancels)
         if self.callback:
