@@ -1727,7 +1727,6 @@ class TestJSON:
         """
 
         def get_avg_age_per_gender(data):
-            print(data)
             return {
                 "M": int(data[data["gender"] == "M"].mean()),
                 "F": int(data[data["gender"] == "F"].mean()),
@@ -2512,3 +2511,38 @@ class TestBarPlot:
         )
         assert isinstance(plot.value, dict)
         assert isinstance(plot.value["plot"], str)
+
+
+class TestCode:
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, get_config
+        """
+        code = gr.Code()
+
+        assert code.preprocess("# hello friends") == "# hello friends"
+        assert code.preprocess("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        assert code.postprocess("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        path = str(Path(test_file_dir, "test_label_json.json"))
+        with open(path) as f:
+            assert code.postprocess(path) == f.read()
+
+        assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
+        assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        assert code.get_config() == {
+            "value": None,
+            "language": None,
+            "name": "code",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert isinstance(code.generate_sample(), str)

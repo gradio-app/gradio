@@ -208,7 +208,7 @@ def generate_documentation():
                     parameter_docs = {}
                     return_docs = {}
                     examples_doc = ""
-                    override_signature = f"gr.{cls}.{fn}"
+                    override_signature = f"gr.{cls.__name__}.{fn_name}"
                 else:
                     (
                         description_doc,
