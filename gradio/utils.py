@@ -572,7 +572,6 @@ class AsyncRequest:
     You can see example usages in test_utils.py.
     """
 
-    ResponseJson = NewType("ResponseJson", Json)
     client = httpx.AsyncClient()
 
     class Method(str, Enum):
@@ -675,9 +674,7 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(
-        self, response: ResponseJson
-    ) -> Union[BaseModel, ResponseJson | None]:
+    def _validate_response_data(self, response):
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -706,7 +703,7 @@ class AsyncRequest:
 
         return validated_response
 
-    def _validate_response_by_model(self, response: ResponseJson) -> BaseModel:
+    def _validate_response_by_model(self, response) -> BaseModel:
         """
         Validate response json using the validation model.
         Args:
@@ -719,9 +716,7 @@ class AsyncRequest:
             validated_data = parse_obj_as(self._validation_model, response)
         return validated_data
 
-    def _validate_response_by_validation_function(
-        self, response: ResponseJson
-    ) -> ResponseJson | None:
+    def _validate_response_by_validation_function(self, response):
         """
         Validate response json using the validation function.
         Args:
