@@ -37,7 +37,7 @@ def load(
     name: str,
     src: str | None = None,
     api_key: str | None = None,
-    alias: str | None = None,    
+    alias: str | None = None,
     **kwargs,
 ) -> Blocks:
     """
@@ -58,7 +58,9 @@ def load(
         demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
         demo.launch()
     """
-    return load_blocks_from_repo(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+    return load_blocks_from_repo(
+        name=name, src=src, api_key=api_key, alias=alias, **kwargs
+    )
 
 
 def load_blocks_from_repo(
