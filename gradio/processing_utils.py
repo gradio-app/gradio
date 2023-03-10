@@ -3,8 +3,6 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-import mimetypes
-import os
 import secrets
 import shutil
 import subprocess
@@ -13,7 +11,7 @@ import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Dict, Set
 
 import aiofiles
 import numpy as np
@@ -21,6 +19,7 @@ import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps, PngImagePlugin
+from gradio_client import utils as client_utils
 
 from gradio import utils
 
@@ -40,7 +39,7 @@ def to_binary(x: str | Dict) -> bytes:
         if x.get("data"):
             base64str = x["data"]
         else:
-            base64str = encode_url_or_file_to_base64(x["name"])
+            base64str = client_utils.encode_url_or_file_to_base64(x["name"])
     else:
         base64str = x
     return base64.b64decode(base64str.split(",")[1])
@@ -60,14 +59,6 @@ def decode_base64_to_image(encoding: str) -> Image.Image:
     if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
         img = ImageOps.exif_transpose(img)
     return img
-
-
-def encode_url_or_file_to_base64(path: str | Path):
-    path = str(path)
-    if utils.validate_url(path):
-        return encode_url_to_base64(path)
-    else:
-        return encode_file_to_base64(path)
 
 
 def encode_plot_to_base64(plt):
@@ -267,7 +258,7 @@ class TempFileManager:
         temp_dir.mkdir(exist_ok=True, parents=True)
 
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
+        f.name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
@@ -286,7 +277,7 @@ class TempFileManager:
 
         if file.filename:
             file_name = Path(file.filename).name
-            output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
+            output_file_obj.name = client_utils.strip_invalid_filename_characters(file_name)
 
         full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
 
@@ -307,7 +298,7 @@ class TempFileManager:
         temp_dir.mkdir(exist_ok=True, parents=True)
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
 
-        f.name = utils.strip_invalid_filename_characters(Path(url).name)
+        f.name = client_utils.strip_invalid_filename_characters(Path(url).name)
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
@@ -327,9 +318,9 @@ class TempFileManager:
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        guess_extension = get_extension(base64_encoding)
+        guess_extension = client_utils.get_extension(base64_encoding)
         if file_name:
-            file_name = utils.strip_invalid_filename_characters(file_name)
+            file_name = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
             file_name = "file." + guess_extension
         else:
@@ -339,7 +330,7 @@ class TempFileManager:
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
-            data, _ = decode_base64_to_binary(base64_encoding)
+            data, _ = client_utils.decode_base64_to_binary(base64_encoding)
             with open(full_temp_file_path, "wb") as fb:
                 fb.write(data)
 

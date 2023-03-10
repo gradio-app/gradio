@@ -28,6 +28,7 @@ from ffmpy import FFmpeg
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
+from gradio_client import utils as client_utils
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -1589,7 +1590,7 @@ class Image(
         elif isinstance(y, _Image.Image):
             return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            return processing_utils.encode_url_or_file_to_base64(y)
+            return client_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
 
@@ -2153,7 +2154,7 @@ class Audio(
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
             processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
-            out_data = processing_utils.encode_file_to_base64(file.name)
+            out_data = client_utils.encode_file_to_base64(file.name)
             leave_one_out_sets.append(out_data)
             file.close()
             Path(file.name).unlink()
@@ -2164,7 +2165,7 @@ class Audio(
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
             processing_utils.audio_to_file(sample_rate, token, file.name)
-            token_data = processing_utils.encode_file_to_base64(file.name)
+            token_data = client_utils.encode_file_to_base64(file.name)
             file.close()
             Path(file.name).unlink()
 
@@ -2195,7 +2196,7 @@ class Audio(
                 masked_input = masked_input + t * int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
             processing_utils.audio_to_file(sample_rate, masked_input, file.name)
-            masked_data = processing_utils.encode_file_to_base64(file.name)
+            masked_data = client_utils.encode_file_to_base64(file.name)
             file.close()
             Path(file.name).unlink()
             masked_inputs.append(masked_data)
@@ -2405,7 +2406,7 @@ class File(
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore
                 else:
-                    file = processing_utils.decode_base64_to_file(
+                    file = client_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
@@ -2417,7 +2418,7 @@ class File(
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
-                return processing_utils.decode_base64_to_binary(data)[0]
+                return client_utils.decode_base64_to_binary(data)[0]
             else:
                 raise ValueError(
                     "Unknown type: "
@@ -3136,7 +3137,7 @@ class UploadButton(
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore
                 else:
-                    file = processing_utils.decode_base64_to_file(
+                    file = client_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
@@ -3146,7 +3147,7 @@ class UploadButton(
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
-                return processing_utils.decode_base64_to_binary(data)[0]
+                return client_utils.decode_base64_to_binary(data)[0]
             else:
                 raise ValueError(
                     "Unknown type: "
