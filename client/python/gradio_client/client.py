@@ -253,7 +253,7 @@ class Client:
                         deserializers.append(deserializer())  # type: ignore
 
             def deserialize_fn(*data):
-                result = [s.deserialize(d) for s, d in zip(deserializers, data)]
+                result = [s.deserialize(d, access_token=self.access_token) for s, d in zip(deserializers, data)]
                 if len(outputs) == 1:
                     result = result[0]
                 return result
