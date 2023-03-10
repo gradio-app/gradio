@@ -3959,7 +3959,6 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been deprecated.",
             )
         self.md = utils.get_markdown_parser()
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -3994,8 +3993,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         return updated_config
 
     def _process_chat_messages(self, chat_message: str | Dict | None):
-        if isinstance(chat_message, str) and os.path.exists(chat_message):
-            file_path = self.make_temp_copy_if_needed(chat_message)
+        if isinstance(chat_message, tuple) and os.path.exists(chat_message[0]):
             mime_type = processing_utils.get_mimetype(file_path)
             return {
                 "name": file_path,
@@ -4019,11 +4017,14 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         if y is None:
             return []
-        for i, (message, response) in enumerate(y):
-            y[i] = (
-                self._process_chat_messages(message),
-                self._process_chat_messages(response),
-            )
+        processed_messages = []
+        for message_pair in y:
+            assert isinstance(message_pair, (tuple, list)), "Expected a list of lists or list of tuples."
+            assert len(message_pair) == 2, "Expected a list of lists of length 2 or list of tuples of length 2."
+            processed_messages.append((
+                self._process_chat_messages(message_pair[0]),
+                self._process_chat_messages(message_pair[1]),
+            ))
         return y
 
     def style(self, height: int | None = None, **kwargs):
