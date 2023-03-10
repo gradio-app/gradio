@@ -8,6 +8,7 @@ import inspect
 import json
 import math
 import operator
+import os
 import random
 import tempfile
 import uuid
@@ -5331,6 +5332,101 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def as_example(self, input_data: str | None) -> str:
         postprocessed = self.postprocess(input_data)
         return postprocessed if postprocessed else ""
+
+
+@document("languages")
+class Code(Changeable, IOComponent, SimpleSerializable):
+    """
+    Creates a Code editor for entering, editing or viewing code.
+    Preprocessing: passes a {str} of code into the function.
+    Postprocessing: expects the function to return a {str} filepath or a {str} of code.
+    """
+
+    languages = [
+        "python",
+        "markdown",
+        "json",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+        "yaml",
+        "dockerfile",
+        "shell",
+        "r",
+    ]
+
+    def __init__(
+        self,
+        value: str | None = None,
+        language: str | None = None,
+        *,
+        label: str | None = None,
+        interactive: bool | None = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: str | None = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
+            label: component name in interface.
+            interactive: Whether user should be able to enter code or only view it.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.language = language
+        IOComponent.__init__(
+            self,
+            label=label,
+            interactive=interactive,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            value=value,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            "language": self.language,
+            **IOComponent.get_config(self),
+        }
+
+    def postprocess(self, y):
+        if y is not None and os.path.isfile(y):
+            with open(y) as file_data:
+                return file_data.read()
+        return y
+
+    def generate_sample(self) -> str:
+        return "def fn(a):/n    return a"
+
+    @staticmethod
+    def update(
+        value: str | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        label: str | None = None,
+        show_label: bool | None = None,
+        visible: bool | None = None,
+        language: str | None = None,
+        interactive: bool | None = True,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "language": language,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    def style(self):
+        return self
 
 
 ############################

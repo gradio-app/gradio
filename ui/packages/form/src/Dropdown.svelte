@@ -77,6 +77,7 @@
 			if (!multiselect) {
 				value = option;
 				inputValue = "";
+				showOptions = false;
 				dispatch("change", value);
 				return;
 			}
