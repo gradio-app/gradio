@@ -1,5 +1,5 @@
 import tempfile
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import huggingface_hub
 import pytest
@@ -216,6 +216,13 @@ class TestGetThemeAssets:
 
 
 class TestThemeUploadDownload:
+    @patch("gradio.themes.base.get_theme_assets", return_value=assets)
+    def test_get_next_version(self, mock):
+        next_version = gr.themes.Base._get_next_version(
+            "freddyaboulton/dracula_revamped"
+        )
+        assert next_version == "3.20.2"
+
     @pytest.mark.flaky
     def test_theme_download(self):
 
@@ -229,7 +236,18 @@ class TestThemeUploadDownload:
 
         assert demo.theme.to_dict() == dracula.to_dict()
 
-    def test_upload_fails_if_not_valid_semver(self):
+    @pytest.mark.flaky
+    @patch("gradio.themes.base.huggingface_hub")
+    def test_theme_upload_fails_if_duplicate_version(self, mock_1):
+
+        mock_1.hf_hub_url = MagicMock(side_effect=["https://www.google.com/"])
+
+        with pytest.raises(ValueError, match="already has a theme with version 0.2.1"):
+            dracula.push_to_hub("dracula_revamped", "0.2.1", hf_token="foo")
+
+    @patch("gradio.themes.base.huggingface_hub")
+    @patch("gradio.themes.base.huggingface_hub.HfApi")
+    def test_upload_fails_if_not_valid_semver(self, mock_1, mock_2):
         with pytest.raises(ValueError, match="Invalid version string: '3.0'"):
             dracula.push_to_hub("dracula_revamped", version="3.0", hf_token="s")
 

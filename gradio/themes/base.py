@@ -118,8 +118,14 @@ class ThemeClass:
             return cls.from_dict(download.json())
         else:
             raise ValueError(
-                f"Error downloading vile themes/theme_schema@{matching_version}.json from {repo_name}!"
+                f"Error downloading file themes/theme_schema@{matching_version}.json from {repo_name}!"
             )
+
+    @staticmethod
+    def _get_next_version(space_id: str) -> str:
+        assets = get_theme_assets(space_id)
+        latest_version = max(assets, key=lambda asset: asset.version).version
+        return str(latest_version.next_patch())
 
     def push_to_hub(
         self,
@@ -141,9 +147,6 @@ class ThemeClass:
             description: A long form description to your theme.
         """
 
-        # To check if version is valid string
-        _ = semver.Version(version)
-
         from gradio import __version__
         from gradio.themes import app
 
@@ -151,13 +154,34 @@ class ThemeClass:
 
         author = api.whoami(hf_token)["name"]
 
+        space_id = f"{author}/{repo_name}"
+
         huggingface_hub.create_repo(
-            f"{author}/{repo_name}",
+            space_id,
             repo_type="space",
             space_sdk="gradio",
             token=hf_token,
             exist_ok=True,
         )
+
+        # If no version, set the version to next patch release
+        if not version:
+            version = self._get_next_version(space_id)
+        else:
+            _ = semver.Version(version)
+
+        url = huggingface_hub.hf_hub_url(
+            repo_id=space_id,
+            repo_type="space",
+            filename=f"themes/theme_schema@{version}.json",
+        )
+        download = requests.get(url)
+        if download.ok:
+            raise ValueError(
+                f"The space {space_id} already has a "
+                f"theme with version {version}. See: themes/theme_schema@{version}.json. "
+                "To manually override this version, use the HuggingFace hub UI."
+            )
 
         theme_name = theme_name or repo_name
 
