@@ -3759,7 +3759,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent, TempFileManager, FileSerializable):
+class Gallery(IOComponent, TempFileManager, GallerySerializable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -3889,41 +3889,6 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             self._style["preview"] = preview
 
         return Component.style(self, container=container, **kwargs)
-
-    def deserialize(
-        self,
-        x: Any,
-        save_dir: str = "",
-        root_url: str | None = None,
-    ) -> None | str:
-        if x is None:
-            return None
-        gallery_path = Path(save_dir) / str(uuid.uuid4())
-        gallery_path.mkdir(exist_ok=True, parents=True)
-        captions = {}
-        for img_data in x:
-            if isinstance(img_data, list) or isinstance(img_data, tuple):
-                img_data, caption = img_data
-            else:
-                caption = None
-            name = FileSerializable.deserialize(
-                self, img_data, gallery_path, root_url=root_url, access_token=Context.access_token
-            )
-            captions[name] = caption
-            captions_file = gallery_path / "captions.json"
-            with captions_file.open("w") as captions_json:
-                json.dump(captions, captions_json)
-        return str(utils.abspath(gallery_path))
-
-    def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
-        files = []
-        captions_file = Path(x) / "captions.json"
-        with captions_file.open("r") as captions_json:
-            captions = json.load(captions_json)
-        for file_name, caption in captions.items():
-            img = FileSerializable.serialize(self, file_name)
-            files.append([img, caption])
-        return files
 
 
 class Carousel(IOComponent, Changeable, SimpleSerializable):

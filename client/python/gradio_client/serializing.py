@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import os
 from pathlib import Path
-from typing import Any, Dict
+import json
+from typing import Any, Dict, List
+import uuid
 
 from gradio_client import utils
 
@@ -196,6 +199,50 @@ class JSONSerializable(Serializable):
         return utils.dict_or_str_to_json_file(x, dir=save_dir).name
 
 
+class GallerySerializable(Serializable):
+    def serialize(
+        self, 
+        x: str | None,
+        load_dir: str | Path = ""
+    ) -> List[List[str]] | None:
+        if x is None or x == "":
+            return None        
+        files = []
+        captions_file = Path(x) / "captions.json"
+        with captions_file.open("r") as captions_json:
+            captions = json.load(captions_json)
+        for file_name, caption in captions.items():
+            img = FileSerializable().serialize(file_name)
+            files.append([img, caption])
+        return files    
+
+    def deserialize(
+        self,
+        x: Any,
+        save_dir: str = "",
+        root_url: str | None = None,
+        access_token: str | None = None,
+    ) -> None | str:
+        if x is None:
+            return None
+        gallery_path = Path(save_dir) / str(uuid.uuid4())
+        gallery_path.mkdir(exist_ok=True, parents=True)
+        captions = {}
+        for img_data in x:
+            if isinstance(img_data, list) or isinstance(img_data, tuple):
+                img_data, caption = img_data
+            else:
+                caption = None
+            name = FileSerializable().deserialize(
+                img_data, gallery_path, root_url=root_url, access_token=access_token
+            )
+            captions[name] = caption
+            captions_file = gallery_path / "captions.json"
+            with captions_file.open("w") as captions_json:
+                json.dump(captions, captions_json)
+        return os.path.abspath(gallery_path)
+
+
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
 
 COMPONENT_MAPPING = {
@@ -220,10 +267,11 @@ COMPONENT_MAPPING = {
     "highlightedtext": JSONSerializable,
     "json": JSONSerializable,
     "html": SimpleSerializable,
-    "gallery": SimpleSerializable,  # TODO: Make this a proper Serializable class
+    "gallery": GallerySerializable,  # TODO: Make this a proper Serializable class
     "chatbot": JSONSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
     "markdown": SimpleSerializable,
     "dataset": SimpleSerializable,
+    "code": SimpleSerializable,
 }
