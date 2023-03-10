@@ -8,7 +8,7 @@
 
 <div class="obj" id={ parent + fn.name.toLowerCase() }>
     <div class="flex flex-row items-center justify-between"> 
-        <h3 id="{ fn.name.toLowerCase }-header" class="text-3xl font-light py-4">{ fn.name }</h3>
+        <h3 id="{ fn.slug }-header" class="text-3xl font-light py-4">{ fn.name }</h3>
     </div>
 
     {#if fn.override_signature }

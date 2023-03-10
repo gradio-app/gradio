@@ -66,7 +66,7 @@
             <div class="obj" id={ obj.name.toLowerCase() }>
                 
                 <div class="flex flex-row items-center justify-between"> 
-                    <h3 id="{ obj.name.toLowerCase }-header" class="text-3xl font-light py-4">{ obj.name }</h3>
+                    <h3 id="{ obj.slug }-header" class="text-3xl font-light py-4">{ obj.name }</h3>
                 </div>
                 
                 {#if obj.override_signature }
