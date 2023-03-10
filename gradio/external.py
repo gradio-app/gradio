@@ -6,7 +6,6 @@ from __future__ import annotations
 import json
 import re
 import warnings
-from copy import deepcopy
 from typing import TYPE_CHECKING, Callable, Dict
 
 import requests

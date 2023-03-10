@@ -25,19 +25,13 @@ import pandas as pd
 import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
-from gradio_client.serializing import (
-    FileSerializable,
-    ImgSerializable,
-    JSONSerializable,
-    Serializable,
-    SimpleSerializable,
-)
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
+from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
@@ -55,6 +49,13 @@ from gradio.events import (
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 from gradio.processing_utils import TempFileManager
+from gradio_client.serializing import (
+    FileSerializable,
+    ImgSerializable,
+    JSONSerializable,
+    Serializable,
+    SimpleSerializable,
+)
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -3905,7 +3906,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             else:
                 caption = None
             name = FileSerializable.deserialize(
-                self, img_data, gallery_path, root_url=root_url
+                self, img_data, gallery_path, root_url=root_url, access_token=Context.access_token
             )
             captions[name] = caption
             captions_file = gallery_path / "captions.json"
