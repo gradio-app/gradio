@@ -198,9 +198,7 @@
 
 		let [top, , bottom] = x.map((s) => s.trim());
 		if (!bottom) bottom = top;
-		console.log(top, bottom, f);
 
-		console.log(m, p, x, m);
 		const _margin = !m || m == "0" ? "" : ` ${m} +`;
 		const _height = /[a-zA-Z%]/.test(l) ? l : `(${f} * ${l})`;
 

@@ -9,7 +9,6 @@
 	$: ext = get_ext_for_type(language);
 
 	function get_ext_for_type(type: string) {
-		console;
 		const exts: Record<string, string> = {
 			py: "py",
 			python: "py",

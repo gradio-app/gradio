@@ -8,7 +8,6 @@
 	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher();
-	$: console.log(filtered, value);
 </script>
 
 {#if showOptions && !disabled}
