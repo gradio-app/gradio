@@ -82,10 +82,10 @@
 		top: 0;
 		right: 0;
 		z-index: var(--layer-top);
-		background: var(--color-green-500);
+		background: var(--color-background-primary);
 		padding: var(--size-1);
 		width: 100%;
 		height: 100%;
-		color: white;
+		color: var(--body-text-color);
 	}
 </style>
