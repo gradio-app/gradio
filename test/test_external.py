@@ -18,7 +18,6 @@ from gradio.external import (
     TooManyRequestsError,
     cols_to_rows,
     get_tabular_examples,
-    use_websocket,
 )
 from gradio.external_utils import get_pred_from_ws
 
@@ -475,25 +474,6 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
         io = gr.Interface.load("models/scikit-learn/tabular-playground")
         check_dataframe(io.config)
         check_dataset(io.config, hypothetical_readme)
-
-
-@pytest.mark.parametrize(
-    "config, dependency, answer",
-    [
-        ({"version": "3.3", "enable_queue": True}, {"queue": True}, True),
-        ({"version": "3.3", "enable_queue": False}, {"queue": None}, False),
-        ({"version": "3.3", "enable_queue": True}, {"queue": None}, True),
-        ({"version": "3.3", "enable_queue": True}, {"queue": False}, False),
-        ({"enable_queue": True}, {"queue": False}, False),
-        ({"version": "3.2", "enable_queue": False}, {"queue": None}, False),
-        ({"version": "3.2", "enable_queue": True}, {"queue": None}, True),
-        ({"version": "3.2", "enable_queue": True}, {"queue": False}, False),
-        ({"version": "3.1.3", "enable_queue": True}, {"queue": None}, False),
-        ({"version": "3.1.3", "enable_queue": False}, {"queue": True}, False),
-    ],
-)
-def test_use_websocket_after_315(config, dependency, answer):
-    assert use_websocket(config, dependency) == answer
 
 
 class AsyncMock(MagicMock):

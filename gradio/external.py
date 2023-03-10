@@ -19,11 +19,9 @@ from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
     get_tabular_examples,
-    get_ws_fn,
     postprocess_label,
     rows_to_cols,
     streamline_spaces_interface,
-    use_websocket,
 )
 from gradio.processing_utils import to_binary
 

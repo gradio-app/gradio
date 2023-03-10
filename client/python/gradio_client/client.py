@@ -296,8 +296,8 @@ class Client:
                 f"Gradio 2.x is not supported by this client. Please upgrade this app to Gradio 3.x."
             )
         return config
-
-
+    
+    
 class Job(Future):
     """A Job is a thin wrapper over the Future class that can be cancelled."""
 
