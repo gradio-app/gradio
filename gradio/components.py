@@ -3993,8 +3993,8 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def _process_chat_messages(self, chat_message: str | Dict | None):
-        if isinstance(chat_message, str) and os.path.exists(chat_message):
+    def _process_chat_messages(self, chat_message: str | None):
+        if chat_message and os.path.isfile(chat_message):
             file_path = self.make_temp_copy_if_needed(chat_message)
             mime_type = processing_utils.get_mimetype(file_path)
             return {
