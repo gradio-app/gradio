@@ -1081,15 +1081,16 @@ class Blocks(BlockContext):
         config["layout"] = getLayout(self)
 
         for _id, block in self.blocks.items():
-            config["components"].append(
-                {
-                    "id": _id,
-                    "type": (block.get_block_name()),
-                    "props": utils.delete_none(block.get_config())
-                    if hasattr(block, "get_config")
-                    else {},
-                }
-            )
+            props = block.get_config() if hasattr(block, "get_config") else {}
+            block_config = {
+                "id": _id,
+                "type": block.get_block_name(),
+                "props": utils.delete_none(props)
+            }
+            serializer = utils.get_serializer_name(block)
+            if serializer:
+                block_config["serializer"] = serializer
+            config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
 
