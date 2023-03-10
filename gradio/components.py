@@ -10,7 +10,6 @@ import math
 import operator
 import random
 import tempfile
-import uuid
 import warnings
 from copy import deepcopy
 from enum import Enum
@@ -56,6 +55,7 @@ from gradio_client.serializing import (
     JSONSerializable,
     Serializable,
     SimpleSerializable,
+    GallerySerializable,
 )
 
 if TYPE_CHECKING:
