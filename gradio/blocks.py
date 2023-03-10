@@ -140,7 +140,8 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
-    ) -> Dict[str, Any]:
+        after: int | None = None,
+    ) -> Tuple[Dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -158,7 +159,7 @@ class Block:
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-        Returns: None
+        Returns: dependency information, dependency index
         """
         # Support for singular parameter
         if isinstance(inputs, set):
@@ -231,9 +232,10 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
+            "after": after,
         }
         Context.root_block.dependencies.append(dependency)
-        return dependency
+        return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
         return {
