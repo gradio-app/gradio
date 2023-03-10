@@ -198,15 +198,25 @@ def generate_documentation():
                 instance_attribute_fn = fn_name.startswith("*")
                 if instance_attribute_fn:
                     fn_name = fn_name[1:]
-                    fn = getattr(cls(), fn_name)
+                    # Instance attribute fns are classes
+                    # whose __call__ method determines their behavior
+                    fn = getattr(cls(), fn_name).__call__
                 else:
                     fn = getattr(cls, fn_name)
-                (
-                    description_doc,
-                    parameter_docs,
-                    return_docs,
-                    examples_doc,
-                ) = document_fn(fn, cls)
+                if not callable(fn):
+                    description_doc = str(fn)
+                    parameter_docs = {}
+                    return_docs = {}
+                    examples_doc = ""
+                    override_signature = f"gr.{cls}.{fn}"
+                else:
+                    (
+                        description_doc,
+                        parameter_docs,
+                        return_docs,
+                        examples_doc,
+                    ) = document_fn(fn, cls)
+                    override_signature = None
                 if instance_attribute_fn:
                     description_doc = extract_instance_attr_doc(cls, fn_name)
                 cls_documentation["fns"].append(
@@ -218,6 +228,7 @@ def generate_documentation():
                         "parameters": parameter_docs,
                         "returns": return_docs,
                         "example": examples_doc,
+                        "override_signature": override_signature
                     }
                 )
             documentation[mode].append(cls_documentation)
