@@ -33,6 +33,34 @@ if TYPE_CHECKING:
     from gradio.interface import Interface
 
 
+def load(
+    name: str,
+    src: str | None = None,
+    api_key: str | None = None,
+    alias: str | None = None,    
+    **kwargs,
+) -> Blocks:
+    """
+    Class method that constructs an Interface from a Hugging Face repo. Can accept
+    model repos (if src is "models") or Space repos (if src is "spaces"). The input
+    and output components are automatically loaded from the repo.
+    Parameters:
+        name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+        src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+        api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+        alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
+    Returns:
+        a Gradio Interface object for the given model
+    Example:
+        import gradio as gr
+        description = "Story generation with GPT"
+        examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
+        demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
+        demo.launch()
+    """
+    return load_blocks_from_repo(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+
+
 def load_blocks_from_repo(
     name: str,
     src: str | None = None,

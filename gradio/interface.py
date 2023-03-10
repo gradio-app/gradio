@@ -96,6 +96,7 @@ class Interface(Blocks):
             demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
             demo.launch()
         """
+        warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")
         return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
 
     @classmethod

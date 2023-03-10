@@ -1177,6 +1177,7 @@ class Blocks(BlockContext):
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
+            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"

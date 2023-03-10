@@ -52,6 +52,7 @@ from gradio.components import (
     component,
 )
 from gradio.exceptions import Error
+from gradio.external import load
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
