@@ -6,6 +6,8 @@
 
 ![](https://user-images.githubusercontent.com/12937446/224116643-5cfb94b3-93ce-43ee-bb7b-c25c3b66e0a1.png)
 
+- Adds a new lightweight library `gradio_client` which can be used to make predictions via API to 
+hosted Gradio apps. See `client/python/README.md` for more info. By [@abidlabs](https://github.com/abidlabs) in [PR 3300](https://github.com/gradio-app/gradio/pull/3300) 
 
 ## Bug Fixes:
 - Use `huggingface_hub` to send telemetry on `interface` and `blocks`; eventually to replace segment by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3342](https://github.com/gradio-app/gradio/pull/3342)
