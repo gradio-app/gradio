@@ -160,6 +160,9 @@ class Block:
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            triggered_after: if set, this event will be triggered after 'triggered_after' function index
+            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -621,7 +624,7 @@ class Blocks(BlockContext):
                 for target in targets:
                     dependency = original_mapping[target].set_event_trigger(
                         event_name=trigger, fn=fn, **dependency
-                    )
+                    )[0]
                     if first_dependency is None:
                         first_dependency = dependency
 
@@ -1201,7 +1204,7 @@ class Blocks(BlockContext):
                 max_batch_size=max_batch_size,
                 every=every,
                 no_target=True,
-            )
+            )[0]
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1719,7 +1722,7 @@ class Blocks(BlockContext):
                         # without queue
                         queue=False if every is None else None,
                         every=every,
-                    )
+                    )[0]
                     component.load_event = dep
 
     def startup_events(self):
