@@ -3992,26 +3992,24 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def _process_chat_messages(self, chat_message: str | Dict | None):
-        if isinstance(chat_message, tuple) and os.path.exists(chat_message[0]):
-            mime_type = processing_utils.get_mimetype(file_path)
+    def _process_chat_messages(self, chat_message: str | Tuple | List | None):
+        if chat_message is None:
+            return None
+        elif isinstance(chat_message, (tuple, list)) and os.path.isfile(chat_message[0]):
+            mime_type = processing_utils.get_mimetype(chat_message[0])
             return {
-                "name": file_path,
-                "data": None,
-                "is_file": True,
+                "data": chat_message[0],
                 "mime_type": mime_type,
             }
-        elif isinstance(chat_message, dict) or chat_message is None:
-            return chat_message
-        else:
+        elif isinstance(chat_message, str):
             return self.md.renderInline(chat_message)
 
     def postprocess(
-        self, y: List[Tuple[str | None | Dict, str | None | Dict]]
+        self, y: List[Tuple[str | Tuple | List | None, str | Tuple | List | None]]
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
-            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a string filepath or URL to an image/video/audio in which case the file is displayed. It can also be None, in which case that message is displayed.
         Returns:
             List of tuples representing the message and response. Each message and response will be a string of HTML.
         """
