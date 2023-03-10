@@ -230,4 +230,4 @@ class TestThemeUploadDownload:
 
     def test_upload_fails_if_not_valid_semver(self):
         with pytest.raises(ValueError, match="Invalid version string: '3.0'"):
-            dracula.to_hub("dracula_revamped", version="3.0", hf_token="s")
+            dracula.push_to_hub("dracula_revamped", version="3.0", hf_token="s")

@@ -42,4 +42,4 @@ def upload_theme(
 ):
     theme = ThemeClass.load(theme)
 
-    return theme.to_hub(repo_name, version, hf_token, theme_name, description)
+    return theme.push_to_hub(repo_name, version, hf_token, theme_name, description)

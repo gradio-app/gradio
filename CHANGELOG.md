@@ -12,17 +12,18 @@ After creating a theme, you can upload it to the HuggingFace Hub to let others v
 There are two ways to upload a theme, via the theme class instance or the command line.
 
 1. Via the class instance
+
 ```python
-my_theme.to_hub(repo_name="my_theme",
-                version="0.2.0",
-                hf_token="...")
+my_theme.push_to_hub(repo_name="my_theme",
+                     version="0.2.0",
+                     hf_token="...")
 ```
 
 2. Via the command line
 
 First save the theme to disk
 ```python
-my_theme.dump(path="./", filename="my_theme.json")
+my_theme.dump(filename="my_theme.json")
 ```
 
 Then use the `upload_theme` command:

@@ -7,7 +7,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
         """
     # {THEME} Preview
 
-    To use this theme, set `theme='{AUTHOR}/{SPACE_NAME}'` in `gr.Blocks()` or `gr.Interface`.
+    To use this theme, set `theme='{AUTHOR}/{SPACE_NAME}'` in `gr.Blocks()` or `gr.Interface()`.
 
     You can append an `@` and a semantic version expression, e.g. @>=1.0.0,<2.0.0 to pin to a given version
     of this theme.

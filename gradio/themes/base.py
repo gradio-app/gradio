@@ -5,6 +5,7 @@ import re
 import tempfile
 import textwrap
 from pathlib import Path
+from typing import Dict
 
 import huggingface_hub
 import requests
@@ -45,9 +46,7 @@ class ThemeClass:
         dark_css += "}"
         return css + "\n" + dark_css
 
-    def to_dict(
-        self,
-    ):
+    def to_dict(self):
         """Convert the theme into a python dictionary."""
         schema = {"theme": {}}
         for prop in dir(self):
@@ -57,22 +56,34 @@ class ThemeClass:
 
     @classmethod
     def load(cls, path: str) -> "ThemeClass":
-        """Load a theme from a json file"""
+        """Load a theme from a json file.
+
+        Parameters:
+            path: The filepath to read.
+        """
         theme = json.load(open(path))
         return cls.from_dict(theme)
 
     @classmethod
-    def from_dict(cls, theme) -> "ThemeClass":
-        """Create a theme instance from a dictionary representation."""
+    def from_dict(cls, theme: Dict[str, Dict[str, str]]) -> "ThemeClass":
+        """Create a theme instance from a dictionary representation.
+
+        Parameters:
+            theme: The dictionary representation of the theme.
+        """
         base = cls()
         for prop, value in theme["theme"].items():
             setattr(base, prop, value)
         return base
 
-    def dump(self, path: str, filename: str):
-        """Write the theme to a json file"""
+    def dump(self, filename: str):
+        """Write the theme to a json file.
+
+        Parameters:
+            filename: The path to write the theme too
+        """
         as_dict = self.to_dict()
-        json.dump(as_dict, open(Path(path) / Path(filename), "w"))
+        json.dump(as_dict, open(Path(filename), "w"))
 
     @classmethod
     def from_hub(cls, repo_name: str):
@@ -110,7 +121,7 @@ class ThemeClass:
                 f"Error downloading vile themes/theme_schema@{matching_version}.json from {repo_name}!"
             )
 
-    def to_hub(
+    def push_to_hub(
         self,
         repo_name: str,
         version: str,
@@ -207,7 +218,7 @@ class ThemeClass:
         return url
 
 
-@document("to_hub", "from_hub", "load", "dump", "from_dict", "to_dict")
+@document("push_to_hub", "from_hub", "load", "dump", "from_dict", "to_dict")
 class Base(ThemeClass):
     def __init__(
         self,
