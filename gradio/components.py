@@ -4013,7 +4013,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
-            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a string filepath or URL to an image/video/audio in which case the file is displayed. It can also be None, in which case that message is displayed.
         Returns:
             List of tuples representing the message and response. Each message and response will be a string of HTML.
         """
