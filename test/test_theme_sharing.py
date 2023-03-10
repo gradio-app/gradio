@@ -1,3 +1,4 @@
+import tempfile
 from unittest.mock import patch
 
 import huggingface_hub
@@ -223,7 +224,7 @@ class TestThemeUploadDownload:
             == dracula.to_dict()
         )
 
-        with gr.Blocks(theme="freddyaboulton/dracula_revamped") as demo:
+        with gr.Blocks(theme="freddyaboulton/dracula_revamped@0.1.1") as demo:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
@@ -231,3 +232,8 @@ class TestThemeUploadDownload:
     def test_upload_fails_if_not_valid_semver(self):
         with pytest.raises(ValueError, match="Invalid version string: '3.0'"):
             dracula.push_to_hub("dracula_revamped", version="3.0", hf_token="s")
+
+    def test_dump_and_load(self):
+        with tempfile.NamedTemporaryFile(suffix=".json") as path:
+            dracula.dump(str(path))
+            assert gr.themes.Base.load(str(path)).to_dict() == dracula.to_dict()

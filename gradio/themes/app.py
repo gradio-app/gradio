@@ -108,7 +108,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                     "tower",
                 ),
             ]
-        )
+        ).style(height="200px", grid=2)
 
     with gr.Row():
         with gr.Column(scale=2):
