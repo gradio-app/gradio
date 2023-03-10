@@ -46,7 +46,7 @@ An example theme space is here: https://huggingface.co/spaces/freddyaboulton/dra
 To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
 
 ```python
-my_theme = gr.Themes.Base.from_hub("freddyaboulton/my_theme")
+my_theme = gr.themes.Base.from_hub("freddyaboulton/my_theme")
 
 with gr.Blocks(theme=my_theme) as demo:
     ....
