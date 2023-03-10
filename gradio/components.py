@@ -5331,7 +5331,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
         return postprocessed if postprocessed else ""
 
 
-@document("change")
+@document()
 class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
