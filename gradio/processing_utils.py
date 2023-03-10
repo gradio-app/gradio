@@ -425,8 +425,6 @@ class TempFileManager:
         return full_temp_file_path
 
 
-
-
 def _convert(image, dtype, force_copy=False, uniform=False):
     """
     Adapted from: https://github.com/scikit-image/scikit-image/blob/main/skimage/util/dtype.py#L510-L531

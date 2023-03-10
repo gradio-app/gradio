@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+import base64
 import json
-from typing import Any, Callable, Dict, Tuple
+import mimetypes
+import os
+import shutil
 import tempfile
 from pathlib import Path
-import os
-import base64
-import shutil
-import mimetypes
-import requests
+from typing import Any, Callable, Dict, Tuple
+
 import fsspec.asyn
+import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "{}/api/predict/"
@@ -27,9 +28,11 @@ class QueueError(Exception):
 
     pass
 
+
 ########################
 # Network utils
 ########################
+
 
 def is_valid_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
@@ -40,6 +43,7 @@ def is_valid_url(possible_url: str) -> bool:
         return head_request.ok
     except Exception:
         return False
+
 
 async def get_pred_from_ws(
     websocket: WebSocketCommonProtocol, data: str, hash_data: str
@@ -58,9 +62,11 @@ async def get_pred_from_ws(
         completed = resp["msg"] == "process_completed"
     return resp["output"]
 
+
 ########################
 # Data processing utils
 ########################
+
 
 def download_tmp_copy_of_file(
     url_path: str, access_token: str | None = None, dir: str | None = None
@@ -117,6 +123,7 @@ def get_extension(encoding: str) -> str | None:
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
     return extension
+
 
 def encode_file_to_base64(f):
     with open(f, "rb") as file:
@@ -221,10 +228,11 @@ def file_to_json(file_path: str | Path) -> Dict:
 # Misc utils
 ########################
 
+
 def synchronize_async(func: Callable, *args, **kwargs) -> Any:
     """
     Runs async functions in sync scopes. Can be used in any scope.
-    
+
     Example:
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)

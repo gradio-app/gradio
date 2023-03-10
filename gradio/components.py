@@ -25,6 +25,13 @@ import pandas as pd
 import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
+from gradio_client.serializing import (
+    FileSerializable,
+    ImgSerializable,
+    JSONSerializable,
+    Serializable,
+    SimpleSerializable,
+)
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
@@ -48,13 +55,6 @@ from gradio.events import (
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 from gradio.processing_utils import TempFileManager
-from gradio_client.serializing import (
-    FileSerializable,
-    ImgSerializable,
-    JSONSerializable,
-    Serializable,
-    SimpleSerializable,
-)
 
 if TYPE_CHECKING:
     from typing import TypedDict
