@@ -5,12 +5,12 @@ from __future__ import annotations
 
 import json
 import re
-import uuid
 import warnings
 from copy import deepcopy
 from typing import TYPE_CHECKING, Callable, Dict
 
 import requests
+from gradio_client import Client
 
 import gradio
 from gradio import components, utils
@@ -55,7 +55,7 @@ def load(
         import gradio as gr
         description = "Story generation with GPT"
         examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
-        demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
+        demo = gr.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
         demo.launch()
     """
     return load_blocks_from_repo(
@@ -441,58 +441,12 @@ def from_spaces(
                 "Blocks or Interface locally. You may find this Guide helpful: "
                 "https://gradio.app/using_blocks_like_functions/"
             )
-        return from_spaces_blocks(config, api_key, iframe_url)
+        return from_spaces_blocks(space=space_name, api_key=api_key)
 
 
-def from_spaces_blocks(config: Dict, api_key: str | None, iframe_url: str) -> Blocks:
-    api_url = "{}/api/predict/".format(iframe_url)
-
-    headers = {"Content-Type": "application/json"}
-    if api_key is not None:
-        headers["Authorization"] = f"Bearer {api_key}"
-    ws_url = "{}/queue/join".format(iframe_url).replace("https", "wss")
-
-    ws_fn = get_ws_fn(ws_url, headers)
-
-    fns = []
-    for d, dependency in enumerate(config["dependencies"]):
-        if dependency["backend_fn"]:
-
-            def get_fn(outputs, fn_index, use_ws):
-                def fn(*data):
-                    data = json.dumps({"data": data, "fn_index": fn_index})
-                    hash_data = json.dumps(
-                        {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
-                    )
-                    if use_ws:
-                        result = utils.synchronize_async(ws_fn, data, hash_data)
-                        output = result["data"]
-                    else:
-                        response = requests.post(api_url, headers=headers, data=data)
-                        result = json.loads(response.content.decode("utf-8"))
-                        try:
-                            output = result["data"]
-                        except KeyError:
-                            if "error" in result and "429" in result["error"]:
-                                raise TooManyRequestsError(
-                                    "Too many requests to the Hugging Face API"
-                                )
-                            raise KeyError(
-                                f"Could not find 'data' key in response from external Space. Response received: {result}"
-                            )
-                    if len(outputs) == 1:
-                        output = output[0]
-                    return output
-
-                return fn
-
-            fn = get_fn(
-                deepcopy(dependency["outputs"]), d, use_websocket(config, dependency)
-            )
-            fns.append(fn)
-        else:
-            fns.append(None)
-    return gradio.Blocks.from_config(config, fns, iframe_url)
+def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
+    client = Client(space=space, access_token=api_key)
+    return gradio.Blocks.from_config(client.config, client.predict_fns, client.src)
 
 
 def from_spaces_interface(
