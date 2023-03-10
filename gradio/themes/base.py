@@ -11,8 +11,11 @@ import requests
 import semantic_version as semver
 from huggingface_hub import CommitOperationAdd
 
+from gradio.documentation import document, set_documentation_group
 from gradio.themes.utils import colors, get_matching_version, get_theme_assets, sizes
 from gradio.themes.utils.readme_content import README_CONTENT
+
+set_documentation_group("themes")
 
 
 class ThemeClass:
@@ -45,7 +48,7 @@ class ThemeClass:
     def to_dict(
         self,
     ):
-        """Hacky implementation for now."""
+        """Convert the theme into a python dictionary."""
         schema = {"theme": {}}
         for prop in dir(self):
             if not prop.startswith("_") and isinstance(getattr(self, prop), str):
@@ -54,22 +57,32 @@ class ThemeClass:
 
     @classmethod
     def load(cls, path: str) -> "ThemeClass":
+        """Load a theme from a json file"""
         theme = json.load(open(path))
         return cls.from_dict(theme)
 
     @classmethod
     def from_dict(cls, theme) -> "ThemeClass":
+        """Create a theme instance from a dictionary representation."""
         base = cls()
         for prop, value in theme["theme"].items():
             setattr(base, prop, value)
         return base
 
     def dump(self, path: str, filename: str):
+        """Write the theme to a json file"""
         as_dict = self.to_dict()
         json.dump(as_dict, open(Path(path) / Path(filename), "w"))
 
     @classmethod
     def from_hub(cls, repo_name: str):
+        """Load a theme from the hub.
+
+        This DOES NOT require a HuggingFace account.
+
+        Parameters:
+            repo_name: string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.
+        """
         if "@" not in repo_name:
             name, version = repo_name, None
         else:
@@ -105,6 +118,17 @@ class ThemeClass:
         theme_name: str | None = None,
         description: str | None = None,
     ):
+        """Upload a theme to the HuggingFace hub.
+
+        This requires a HuggingFace account.
+
+        Parameters:
+            repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'
+            version: A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.
+            hf_token: API token for your HuggingFace account
+            theme_name: Name for the name. If None, defaults to repo_name
+            description: A long form description to your theme.
+        """
 
         # To check if version is valid string
         _ = semver.Version(version)
@@ -183,6 +207,7 @@ class ThemeClass:
         return url
 
 
+@document("to_hub", "from_hub", "load", "dump", "from_dict", "to_dict")
 class Base(ThemeClass):
     def __init__(
         self,
