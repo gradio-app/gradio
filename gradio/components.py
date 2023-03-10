@@ -4009,7 +4009,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             return self.md.renderInline(chat_message)
 
     def postprocess(
-        self, y: List[Tuple[str | None | Dict, str | None | Dict]]
+        self, y: List[Tuple[str | None, str | None]]
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
