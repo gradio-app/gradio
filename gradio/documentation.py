@@ -198,6 +198,8 @@ def generate_documentation():
                 instance_attribute_fn = fn_name.startswith("*")
                 if instance_attribute_fn:
                     fn_name = fn_name[1:]
+                    # Instance attribute fns are classes
+                    # whose __call__ method determines their behavior
                     fn = getattr(cls(), fn_name).__call__
                 else:
                     fn = getattr(cls, fn_name)
