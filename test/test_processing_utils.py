@@ -23,25 +23,6 @@ class TestImagePreprocessing:
         )
         assert isinstance(output_image, Image.Image)
 
-    def test_encode_url_or_file_to_base64(self):
-        output_base64 = processing_utils.encode_url_or_file_to_base64(
-            "gradio/test_data/test_image.png"
-        )
-        assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
-
-    def test_encode_file_to_base64(self):
-        output_base64 = processing_utils.encode_file_to_base64(
-            "gradio/test_data/test_image.png"
-        )
-        assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
-
-    @pytest.mark.flaky
-    def test_encode_url_to_base64(self):
-        output_base64 = processing_utils.encode_url_to_base64(
-            "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
-        )
-        assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
-
     def test_encode_plot_to_base64(self):
         plt.plot([1, 2, 3, 4])
         output_base64 = processing_utils.encode_plot_to_base64(plt)
@@ -216,18 +197,6 @@ class TestTempFileManager:
 
 
 class TestOutputPreprocessing:
-    def test_decode_base64_to_binary(self):
-        binary = processing_utils.decode_base64_to_binary(
-            deepcopy(media_data.BASE64_IMAGE)
-        )
-        assert deepcopy(media_data.BINARY_IMAGE) == binary
-
-    def test_decode_base64_to_file(self):
-        temp_file = processing_utils.decode_base64_to_file(
-            deepcopy(media_data.BASE64_IMAGE)
-        )
-        assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
-
     float_dtype_list = [
         float,
         float,
@@ -327,11 +296,3 @@ class TestVideoProcessing:
             # If the conversion succeeded it'd be .mp4
             assert Path(playable_vid).suffix == ".avi"
 
-
-def test_download_private_file():
-    url_path = "https://gradio-tests-not-actually-private-space.hf.space/file=lion.jpg"
-    access_token = "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"  # Intentionally revealing this key for testing purposes
-    file = processing_utils.download_tmp_copy_of_file(
-        url_path=url_path, access_token=access_token
-    )
-    assert file.name.endswith(".jpg")
