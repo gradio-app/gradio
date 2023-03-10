@@ -169,18 +169,60 @@
 		view = createEditorView();
 		return () => view?.destroy();
 	});
+
+	let padding = "";
+
+	const label_margin_var = "--block-label-margin";
+	const label_padding_var = "--block-label-padding";
+	const label_font_var = "--block-label-text-size";
+	const label_line_height = "--line-sm";
+
+	const RE = /(?:([0-9\.]+[a-zA-Z%]+)\s*)/g;
+	function get_padding_for_label() {
+		const m = getComputedStyle(document.documentElement)
+			.getPropertyValue(label_margin_var)
+			.trim();
+		const p = getComputedStyle(document.documentElement).getPropertyValue(
+			label_padding_var
+		);
+
+		const f = getComputedStyle(document.documentElement)
+			.getPropertyValue(label_font_var)
+			.trim();
+		const l = getComputedStyle(document.documentElement)
+			.getPropertyValue(label_line_height)
+			.trim();
+
+		const x = p.match(RE);
+		if (!x) return;
+
+		let [top, , bottom] = x.map((s) => s.trim());
+		if (!bottom) bottom = top;
+		console.log(top, bottom, f);
+
+		console.log(m, p, x, m);
+		const _margin = !m || m == "0" ? "" : ` ${m} +`;
+		const _height = /[a-zA-Z%]/.test(l) ? l : `(${f} * ${l})`;
+
+		padding = `padding-top: calc(${top} + ${bottom} +${_margin} ${_height});`;
+	}
+
+	get_padding_for_label();
 </script>
 
 <div class="wrap">
-	<div class="codemirror-wrapper {classNames}" bind:this={element} />
+	<div
+		class="codemirror-wrapper {classNames}"
+		style={padding}
+		bind:this={element}
+	/>
 </div>
 
 <style>
 	.codemirror-wrapper {
-		padding-top: 25px;
 		min-height: 250px;
 		max-height: 480px;
-		overflow: scroll;
+		overflow: auto;
 	}
 
 	/* Dunno why this doesn't work through the theme API -- don't remove*/
