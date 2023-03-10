@@ -6,7 +6,7 @@ def add_text(history, text):
     return history
 
 def add_file(history, file):
-    history = history + [(file.name, None)]
+    history = history + [((file.name,), "Cool file!")]
     return history
 
 with gr.Blocks() as demo:
