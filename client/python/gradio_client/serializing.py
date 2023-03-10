@@ -9,20 +9,14 @@ from gradio_client import utils
 
 class Serializable(ABC):
     @abstractmethod
-    def serialize(self, x: Any, load_dir: str | Path = ""):
+    def serialize(self):
         """
         Convert data from human-readable format to serialized format for a browser.
         """
         pass
 
     @abstractmethod
-    def deserialize(
-        self,
-        x: Any,
-        save_dir: str | Path | None = None,
-        root_url: str | None = None,
-        access_token: str | None = None,
-    ):
+    def deserialize(self):
         """
         Convert data from serialized format for a browser to human-readable format.
         """
