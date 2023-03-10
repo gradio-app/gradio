@@ -9,6 +9,8 @@
     let guides = data.guides;
     let guides_by_category = guides_json.guides_by_category;
     let guide;
+    let nav = data.guide_slugs;
+    console.log(nav)
 
     const COLORS = ["bg-green-50", "bg-yellow-50", "bg-red-50", "bg-pink-50", "bg-purple-50"];
 
@@ -71,6 +73,11 @@
                     style="max-width: 12rem"
                     href="{ guide.url }">{guide.pretty_name}</a>
 
+                    <div class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
+                        {#each nav[guide_page.name] as heading} 
+                            <a class="subheading block thin-link -indent-2 ml-4 mr-2" href="{heading.href}">{heading.text}</a>
+                        {/each}
+                    </div>
                 {:else}
                 <a
                 class:hidden={!show_all && i === guides_by_category.length - 1 && guides.category !== guide_page.category}
@@ -80,12 +87,12 @@
                     href="{ guide.url }">{guide.pretty_name}</a>
                 {/if}
 
-                {#if guide.name == guide_page.name}
+                <!-- {#if guide.name == guide_page.name}
                     <div 
                     bind:this={navigation}
                     class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
                     </div>
-                {/if}
+                {/if} -->
             {/each}
         {/each}
     </div>

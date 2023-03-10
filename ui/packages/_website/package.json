@@ -25,6 +25,7 @@
 	"type": "module",
 	"dependencies": {
 		"@sindresorhus/slugify": "^2.2.0",
+		"hast-util-to-string": "^2.0.0",
 		"mdsvex": "^0.10.6",
 		"postcss": ">=8.3.3 <9.0.0"
 	}
