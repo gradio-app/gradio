@@ -8,7 +8,7 @@ with gr.Blocks() as demo:
     clear = gr.Button("Clear")
 
     def user_message(message, history):
-        return history + [[message, None]]
+        return "", history + [[message, None]]
 
     def bot_message(history):
         response = random.choice(["Yes", "No"])
