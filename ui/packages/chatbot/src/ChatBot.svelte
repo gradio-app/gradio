@@ -67,7 +67,7 @@
 									{/each}
 								</div>
 							{/if}
-						{:else if message !== null && message.mime_type.includes("audio")}
+						{:else if message !== null && message.mime_type?.includes("audio")}
 							<audio
 								controls
 								preload="metadata"
@@ -77,7 +77,7 @@
 								on:pause
 								on:ended
 							/>
-						{:else if message !== null && message.mime_type.includes("video")}
+						{:else if message !== null && message.mime_type?.includes("video")}
 							<video
 								controls
 								src={message.data}
@@ -89,7 +89,7 @@
 							>
 								<track kind="captions" />
 							</video>
-						{:else if message !== null && message.mime_type.includes("image")}
+						{:else if message !== null && message.mime_type?.includes("image")}
 							<img src={message.data} alt={message.alt_text} />
 						{/if}
 					</div>
