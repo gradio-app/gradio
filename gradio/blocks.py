@@ -693,6 +693,8 @@ class Blocks(BlockContext):
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
                 ]
+                if dependency.get("triggered_after") is not None:
+                    dependency["triggered_after"] += dependency_offset 
                 # Recreate the cancel function so that it has the latest
                 # dependency fn indices. This is necessary to properly cancel
                 # events in the backend
