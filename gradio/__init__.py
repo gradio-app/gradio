@@ -61,7 +61,7 @@ from gradio.flagging import (
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
-from gradio.helpers import EventData, Progress, GalleryData
+from gradio.helpers import EventData, Progress
 from gradio.helpers import create_examples as Examples
 from gradio.helpers import make_waveform, skip, update
 from gradio.interface import Interface, TabbedInterface, close_all

@@ -825,10 +825,3 @@ class EventData:
     def __init__(self, target: Block | None, data: Any):
         self.target = target
         self.data = data
-
-
-class GalleryData(EventData):
-
-    def __init__(self, target: Block | None, data: Any):
-        self.target = target
-        self.index = data["index"]
