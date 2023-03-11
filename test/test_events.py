@@ -29,7 +29,7 @@ class TestEvent:
 
         with gr.Blocks() as parent:
             txt0 = gr.Textbox()
-            txt0.submit(lambda x:x , txt0, txt0)
+            txt0.submit(lambda x: x, txt0, txt0)
             with gr.Blocks() as demo:
                 txt1 = gr.Textbox()
                 txt2 = gr.Textbox()
