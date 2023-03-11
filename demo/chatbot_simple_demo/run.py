@@ -16,7 +16,7 @@ with gr.Blocks() as demo:
         time.sleep(1)
         return history
 
-    msg.submit(user_message, [msg, chatbot], chatbot).then(
+    msg.submit(user_message, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot_message, chatbot, chatbot
     )
     clear.click(lambda: None, None, chatbot, queue=False)
