@@ -12,6 +12,7 @@
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
 	> = [];
+	let _value: Array<[string | FileData | null, string | FileData | null]>;
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
@@ -46,7 +47,6 @@
 	{/if}
 	<ChatBot
 		{style}
-		{root}
 		value={_value}
 		pending_message={loading_status?.status === "pending"}
 		on:change
