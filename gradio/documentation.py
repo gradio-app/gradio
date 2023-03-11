@@ -228,7 +228,7 @@ def generate_documentation():
                         "parameters": parameter_docs,
                         "returns": return_docs,
                         "example": examples_doc,
-                        "override_signature": override_signature
+                        "override_signature": override_signature,
                     }
                 )
             documentation[mode].append(cls_documentation)

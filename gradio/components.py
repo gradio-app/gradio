@@ -3992,20 +3992,33 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def _process_chat_messages(self, chat_message: str | Tuple | List | None):
+    def _process_chat_messages(
+        self, chat_message: str | Tuple | List | Dict | None
+    ) -> str | Dict | None:
         if chat_message is None:
             return None
-        elif isinstance(chat_message, (tuple, list)) and os.path.isfile(chat_message[0]):
+        elif isinstance(chat_message, (tuple, list)):
             mime_type = processing_utils.get_mimetype(chat_message[0])
             return {
-                "data": chat_message[0],
+                "name": chat_message[0],
                 "mime_type": mime_type,
+                "data": None,  # These last two fields are filled in by the frontend
+                "is_file": True,
             }
+        elif isinstance(
+            chat_message, dict
+        ):  # This happens for previously processed messages
+            return chat_message
         elif isinstance(chat_message, str):
             return self.md.renderInline(chat_message)
+        else:
+            raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def postprocess(
-        self, y: List[Tuple[str | Tuple | List | None, str | Tuple | List | None]]
+        self,
+        y: List[
+            Tuple[str | Tuple | List | Dict | None, str | Tuple | List | Dict | None]
+        ],
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
@@ -4017,13 +4030,19 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             return []
         processed_messages = []
         for message_pair in y:
-            assert isinstance(message_pair, (tuple, list)), "Expected a list of lists or list of tuples."
-            assert len(message_pair) == 2, "Expected a list of lists of length 2 or list of tuples of length 2."
-            processed_messages.append((
-                self._process_chat_messages(message_pair[0]),
-                self._process_chat_messages(message_pair[1]),
-            ))
-        return y
+            assert isinstance(
+                message_pair, (tuple, list)
+            ), "Expected a list of lists or list of tuples."
+            assert (
+                len(message_pair) == 2
+            ), "Expected a list of lists of length 2 or list of tuples of length 2."
+            processed_messages.append(
+                (
+                    self._process_chat_messages(message_pair[0]),
+                    self._process_chat_messages(message_pair[1]),
+                )
+            )
+        return processed_messages
 
     def style(self, height: int | None = None, **kwargs):
         """
