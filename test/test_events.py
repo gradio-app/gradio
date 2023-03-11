@@ -27,21 +27,24 @@ class TestEvent:
         def clear():
             return ""
 
-        with gr.Blocks() as demo:
-            txt1 = gr.Textbox()
-            txt2 = gr.Textbox()
-            txt3 = gr.Textbox()
+        with gr.Blocks() as parent:
+            txt0 = gr.Textbox()
+            txt0.submit(lambda x:x , txt0, txt0)
+            with gr.Blocks() as demo:
+                txt1 = gr.Textbox()
+                txt2 = gr.Textbox()
+                txt3 = gr.Textbox()
 
-            txt1.submit(double, txt1, txt2).then(reverse, txt2, txt3).success(
-                clear, None, txt1
-            )
+                txt1.submit(double, txt1, txt2).then(reverse, txt2, txt3).success(
+                    clear, None, txt1
+                )
 
-        assert demo.config["dependencies"][0]["trigger_after"] == None
-        assert demo.config["dependencies"][1]["trigger_after"] == 0
-        assert demo.config["dependencies"][2]["trigger_after"] == 1
+        assert parent.config["dependencies"][1]["trigger_after"] == None
+        assert parent.config["dependencies"][2]["trigger_after"] == 1
+        assert parent.config["dependencies"][3]["trigger_after"] == 2
 
-        assert demo.config["dependencies"][1]["trigger_only_on_success"] == False
-        assert demo.config["dependencies"][2]["trigger_only_on_success"] == True
+        assert parent.config["dependencies"][2]["trigger_only_on_success"] == False
+        assert parent.config["dependencies"][3]["trigger_only_on_success"] == True
 
 
 class TestEventErrors:
