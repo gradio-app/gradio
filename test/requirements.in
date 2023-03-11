@@ -11,7 +11,7 @@ scikit-image
 shap
 pytest
 wandb
-huggingface_hub
+huggingface_hub>=0.13.0
 pytest-cov
 pytest-asyncio
 black

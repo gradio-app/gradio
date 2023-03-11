@@ -21,6 +21,8 @@
 		"@gradio/button": "workspace:^0.0.1",
 		"@gradio/chart": "workspace:^0.0.1",
 		"@gradio/chatbot": "workspace:^0.0.1",
+		"@gradio/code": "workspace:^0.0.1",
+		"@gradio/client": "workspace:^0.0.1",
 		"@gradio/file": "workspace:^0.0.1",
 		"@gradio/form": "workspace:^0.0.1",
 		"@gradio/gallery": "workspace:^0.0.1",

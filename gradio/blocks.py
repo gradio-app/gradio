@@ -4,7 +4,6 @@ import copy
 import inspect
 import json
 import os
-import pkgutil
 import random
 import secrets
 import sys
@@ -30,6 +29,7 @@ from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
+    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
@@ -39,7 +39,6 @@ from gradio.utils import (
 )
 
 set_documentation_group("blocks")
-
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -267,6 +266,7 @@ class Block:
 
     @classmethod
     def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+        generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
@@ -422,7 +422,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("load")
+@document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -502,7 +502,8 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-
+        if not self.analytics_enabled:
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
@@ -539,9 +540,8 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "theme": self.theme,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
@@ -1244,8 +1244,14 @@ class Blocks(BlockContext):
             default_enabled: Deprecated and has no effect.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-        Example:
-            demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
+        Example: (Blocks)
+            with gr.Blocks() as demo:
+                button = gr.Button(label="Generate Image")
+                button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
+            demo.queue(concurrency_count=3)
+            demo.launch()
+        Example: (Interface)
+            demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
             demo.queue(concurrency_count=3)
             demo.launch()
         """
@@ -1328,7 +1334,15 @@ class Blocks(BlockContext):
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
             share_url: Publicly accessible link to the demo (if share=True, otherwise None)
-        Example:
+        Example: (Blocks)
+            import gradio as gr
+            def reverse(text):
+                return text[::-1]
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Reverse")
+                button.click(reverse, gr.Textbox(), gr.Textbox())
+            demo.launch(share=True, auth=("username", "password"))
+        Example:  (Interface)
             import gradio as gr
             def reverse(text):
                 return text[::-1]
@@ -1373,6 +1387,8 @@ class Blocks(BlockContext):
         self.show_api = self.api_open if self.enable_queue else show_api
 
         self.file_directories = file_directories if file_directories is not None else []
+        if not isinstance(self.file_directories, list):
+            raise ValueError("file_directories must be a list of directories.")
 
         if not self.enable_queue and self.progress_tracking:
             raise ValueError("Progress tracking requires queuing to be enabled.")
@@ -1594,6 +1610,7 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            utils.launched_telemetry(self, data)
 
         utils.show_tip(self)
 

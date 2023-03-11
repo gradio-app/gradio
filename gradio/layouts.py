@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Callable, List, Type
+from typing import TYPE_CHECKING, Type
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
+from gradio.events import Changeable, Selectable
 
 set_documentation_group("layout")
 
@@ -139,7 +140,7 @@ class Column(BlockContext):
         }
 
 
-class Tabs(BlockContext):
+class Tabs(BlockContext, Changeable):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
@@ -173,19 +174,9 @@ class Tabs(BlockContext):
             "__type__": "update",
         }
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("change", fn, inputs, outputs)
-
 
 @document()
-class Tab(BlockContext):
+class Tab(BlockContext, Selectable):
     """
     Tab (or its alias TabItem) is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
     Example:
@@ -223,16 +214,6 @@ class Tab(BlockContext):
             "id": self.id,
             **super().get_config(),
         }
-
-    def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("select", fn, inputs, outputs)
 
     def get_expected_parent(self) -> Type[Tabs]:
         return Tabs
