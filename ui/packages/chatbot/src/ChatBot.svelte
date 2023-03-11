@@ -8,7 +8,7 @@
 	> | null;
 	let old_value: Array<
 		[string | FileData | null, string | FileData | null]
-	> | null;
+	> | null = null;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};

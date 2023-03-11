@@ -32,7 +32,7 @@
 					: normalise_file(bot_msg, root, root_url)
 		  ])
 		: [];
-	export let loading_status: LoadingStatus | undefined;
+	export let loading_status: LoadingStatus | undefined = undefined;
 </script>
 
 <Block {elem_id} {visible} padding={false}>
