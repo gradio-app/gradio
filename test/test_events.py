@@ -17,6 +17,32 @@ class TestEvent:
 
         assert demo.config["dependencies"][0]["trigger"] == "clear"
 
+    def test_consecutive_events(self):
+        def double(x):
+            return x + x
+
+        def reverse(x):
+            return x[::-1]
+
+        def clear():
+            return ""
+
+        with gr.Blocks() as demo:
+            txt1 = gr.Textbox()
+            txt2 = gr.Textbox()
+            txt3 = gr.Textbox()
+
+            txt1.submit(double, txt1, txt2).then(reverse, txt2, txt3).success(
+                clear, None, txt1
+            )
+
+        assert demo.config["dependencies"][0]["trigger_after"] == None
+        assert demo.config["dependencies"][1]["trigger_after"] == 0
+        assert demo.config["dependencies"][2]["trigger_after"] == 1
+
+        assert demo.config["dependencies"][1]["trigger_only_on_success"] == False
+        assert demo.config["dependencies"][2]["trigger_only_on_success"] == True
+
 
 class TestEventErrors:
     def test_event_defined_invalid_scope(self):

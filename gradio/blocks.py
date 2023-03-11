@@ -140,7 +140,7 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
-        triggered_after: int | None = None,
+        trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
     ) -> Tuple[Dict[str, Any], int]:
         """
@@ -161,8 +161,8 @@ class Block:
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
-            triggered_after: if set, this event will be triggered after 'triggered_after' function index
-            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `triggered_after` is set)
+            trigger_after: if set, this event will be triggered after 'trigger_after' function index
+            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -236,7 +236,7 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
-            "triggered_after": triggered_after,
+            "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
         }
         Context.root_block.dependencies.append(dependency)
@@ -693,8 +693,8 @@ class Blocks(BlockContext):
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
                 ]
-                if dependency.get("triggered_after") is not None:
-                    dependency["triggered_after"] += dependency_offset 
+                if dependency.get("trigger_after") is not None:
+                    dependency["trigger_after"] += dependency_offset
                 # Recreate the cancel function so that it has the latest
                 # dependency fn indices. This is necessary to properly cancel
                 # events in the backend
