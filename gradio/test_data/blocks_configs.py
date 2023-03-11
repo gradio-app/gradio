@@ -197,6 +197,8 @@ XRAY_CONFIG = {
             "cancels": [],
             "every": None,
             "types": {"continuous": False, "generator": False},
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
         {
             "targets": [39],
@@ -214,6 +216,8 @@ XRAY_CONFIG = {
             "cancels": [],
             "every": None,
             "types": {"continuous": False, "generator": False},
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
         {
             "targets": [],
@@ -231,6 +235,8 @@ XRAY_CONFIG = {
             "cancels": [],
             "every": None,
             "types": {"continuous": False, "generator": False},
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
     ],
 }
@@ -435,6 +441,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "cancels": [],
             "every": None,
             "types": {"continuous": False, "generator": False},
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
         {
             "targets": [933],
@@ -452,6 +460,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "cancels": [],
             "every": None,
             "types": {"continuous": False, "generator": False},
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
         {
             "targets": [],
@@ -469,6 +479,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "cancels": [],
             "every": None,
             "types": {"continuous": False, "generator": False},
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
     ],
 }
@@ -650,6 +662,8 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "scroll_to_output": False,
             "show_progress": True,
             "cancels": [],
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
         {
             "targets": [13],
@@ -660,6 +674,8 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "scroll_to_output": False,
             "show_progress": True,
             "cancels": [],
+            "triggered_after": None,
+            "trigger_only_on_success": False,
         },
     ],
 }
