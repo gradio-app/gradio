@@ -5,13 +5,13 @@
 ### The `Chatbot` component now supports audio, video, and images
 
 The `Chatbot` component now supports audio, video, and images with a simple syntax: simply
-pass in the name of the file as a standalone string, and the image/audio/video will be displayed:
+pass in a tuple with the URL or filepath (the second optional element of the tuple is alt text), and the image/audio/video will be displayed:
 
 ```python
 gr.Chatbot([
-    ("driving.mp4", "cool video"),
-    ("cantina.wav", "cool audio"),
-    ("lion.jpg", "cool pic"),
+    (("driving.mp4",), "cool video"),
+    (("cantina.wav",), "cool audio"),
+    (("lion.jpg", "A lion"), "cool pic"),
 ]).style(height=800)
 ```
 
