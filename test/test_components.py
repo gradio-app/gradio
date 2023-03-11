@@ -7,11 +7,12 @@ Tests for all of the components defined in components.py. Tests are divided into
 import filecmp
 import json
 import os
-import pathlib
+import pathlib  # noqa: F401
 import shutil
 import tempfile
 from copy import deepcopy
 from difflib import SequenceMatcher
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import matplotlib
@@ -777,6 +778,12 @@ class TestAudio:
         output1 = audio_input.preprocess(x_wav)
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
+
+        x_wav["is_file"] = True
+        audio_input = gr.Audio(type="filepath")
+        output1 = audio_input.preprocess(x_wav)
+        assert Path(output1).name == "audio_sample-0-100.wav"
+
         assert filecmp.cmp(
             "test/test_files/audio_sample.wav",
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
@@ -842,12 +849,11 @@ class TestAudio:
 
     def test_serialize(self):
         audio_input = gr.Audio()
-        assert audio_input.serialize("test/test_files/audio_sample.wav") == {
-            "data": media_data.BASE64_AUDIO["data"],
-            "is_file": False,
-            "orig_name": "audio_sample.wav",
-            "name": "test/test_files/audio_sample.wav",
-        }
+        serialized_input = audio_input.serialize("test/test_files/audio_sample.wav")
+        assert serialized_input["data"] == media_data.BASE64_AUDIO["data"]
+        assert os.path.basename(serialized_input["name"]) == "audio_sample.wav"
+        assert serialized_input["orig_name"] == "audio_sample.wav"
+        assert not serialized_input["is_file"]
 
     def test_tokenize(self):
         """
@@ -916,6 +922,7 @@ class TestFile:
         input1 = file_input.preprocess(x_file)
         input2 = file_input.preprocess(x_file)
         assert input1.name == input2.name
+        assert Path(input1.name).name == "sample_file.pdf"
 
         assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
@@ -1175,8 +1182,8 @@ class TestDataframe:
 
 class TestDataset:
     def test_preprocessing(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = str(pathlib.Path(test_file_dir, "bus.png").resolve())
+        test_file_dir = Path(__file__).parent / "test_files"
+        bus = str(Path(test_file_dir, "bus.png").resolve())
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
@@ -1206,8 +1213,8 @@ class TestDataset:
         assert dataset.preprocess(1) == 1
 
     def test_postprocessing(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = pathlib.Path(test_file_dir, "bus.png")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        bus = Path(test_file_dir, "bus.png")
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"], type="index"
@@ -1302,7 +1309,7 @@ class TestVideo:
         assert iface(x_audio).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
             suffix="bad_video.mp4", delete=False
@@ -1312,9 +1319,7 @@ class TestVideo:
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             _ = gr.Video().postprocess(tmp_not_playable_vid.name)
             # The original video gets converted to .mp4 format
-            full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
-                ".mp4"
-            )
+            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
         # This file has a playable codec but not a playable container
@@ -1325,9 +1330,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-            full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
-                ".mp4"
-            )
+            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
@@ -1486,8 +1489,8 @@ class TestLabel:
         with pytest.raises(ValueError):
             label_output.postprocess([1, 2, 3])
 
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        path = str(Path(test_file_dir, "test_label_json.json"))
         label_dict = label_output.postprocess(path)
         assert label_dict["label"] == "web site"
 
@@ -1724,7 +1727,6 @@ class TestJSON:
         """
 
         def get_avg_age_per_gender(data):
-            print(data)
             return {
                 "M": int(data[data["gender"] == "M"].mean()),
                 "F": int(data[data["gender"] == "F"].mean()),
@@ -1890,9 +1892,9 @@ class TestColorPicker:
 
 class TestCarousel:
     def test_deprecation(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         with pytest.raises(DeprecationWarning):
-            gr.Carousel([pathlib.Path(test_file_dir, "bus.png")])
+            gr.Carousel([Path(test_file_dir, "bus.png")])
 
     def test_deprecation_in_interface(self):
         with pytest.raises(DeprecationWarning):
@@ -1909,13 +1911,11 @@ class TestGallery:
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
         gallery = gr.Gallery()
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         data = [
+            gr.processing_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
             gr.processing_utils.encode_file_to_base64(
-                pathlib.Path(test_file_dir, "bus.png")
-            ),
-            gr.processing_utils.encode_file_to_base64(
-                pathlib.Path(test_file_dir, "cheetah1.jpg")
+                Path(test_file_dir, "cheetah1.jpg")
             ),
         ]
 
@@ -2511,3 +2511,38 @@ class TestBarPlot:
         )
         assert isinstance(plot.value, dict)
         assert isinstance(plot.value["plot"], str)
+
+
+class TestCode:
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, get_config
+        """
+        code = gr.Code()
+
+        assert code.preprocess("# hello friends") == "# hello friends"
+        assert code.preprocess("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        assert code.postprocess("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        path = str(Path(test_file_dir, "test_label_json.json"))
+        with open(path) as f:
+            assert code.postprocess(path) == f.read()
+
+        assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
+        assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        assert code.get_config() == {
+            "value": None,
+            "language": None,
+            "name": "code",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert isinstance(code.generate_sample(), str)

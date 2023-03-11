@@ -8,7 +8,6 @@
 
   [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
   [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
-  [<img src="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg" alt="codecov">](https://app.codecov.io/gh/gradio-app/gradio)
   [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
   [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
   ![Python version](https://img.shields.io/badge/python-3.7+-important)
@@ -239,7 +238,7 @@ demo.launch()
 
 ![`blocks_flipper` demo](../../demo/blocks_flipper/screenshot.gif)
 
-还有很多事情可以做！我们将在[使用blocks构建](https://github.com/gradio-app/gradio/tree/main/guides/3\)部分为您介绍如何创建像这样复杂的 `Blocks` 应用程序。
+还有很多事情可以做！我们将在[使用blocks构建](https://gradio.app/building_with_blocks)部分为您介绍如何创建像这样复杂的 `Blocks` 应用程序。
 
 恭喜你，你现在已经熟悉了Gradio的基础使用！🥳 去我们的[下一章](https://gradio.app/key_features) 了解Gradio的更多功能。
 
