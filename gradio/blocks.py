@@ -162,7 +162,7 @@ class Block:
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
             triggered_after: if set, this event will be triggered after 'triggered_after' function index
-            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful
+            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `triggered_after` is set)
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
