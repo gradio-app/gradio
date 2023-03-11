@@ -20,7 +20,7 @@ import numpy as np
 import PIL
 import PIL.Image
 
-from gradio import components, processing_utils, routes, utils
+from gradio import processing_utils, routes, utils
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
@@ -221,6 +221,8 @@ class Examples:
                     )
                     break
 
+        from gradio import components
+
         with utils.set_directory(working_directory):
             self.dataset = components.Dataset(
                 components=inputs_with_examples,
@@ -290,7 +292,7 @@ class Examples:
             cache_logger = CSVLogger()
 
             # create a fake dependency to process the examples and get the predictions
-            dependency = Context.root_block.set_event_trigger(
+            dependency, fn_index = Context.root_block.set_event_trigger(
                 event_name="fake_event",
                 fn=self.fn,
                 inputs=self.inputs_with_examples,  # type: ignore
@@ -300,7 +302,6 @@ class Examples:
                 batch=self.batch,
             )
 
-            fn_index = Context.root_block.dependencies.index(dependency)
             assert self.outputs is not None
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):

@@ -38,6 +38,8 @@ export interface Dependency {
 	cancels: Array<number>;
 	types: DependencyTypes;
 	collects_event_data: boolean;
+	triggered_after?: number;
+	triggered_only_on_success?: boolean;
 }
 
 interface TypeDescription {

@@ -1,10 +1,11 @@
 # Upcoming Release
 
 ## New Features:
+
+- Allow consecutive function triggers with `.then` and `.success` by [@aliabid94](https://github.com/aliabid94) in [PR 3430](https://github.com/gradio-app/gradio/pull/3430) 
 - New code component allows you to enter, edit and display code with full syntax highlighting by [@pngwn](https://github.com/pngwn) in [PR 3421](https://github.com/gradio-app/gradio/pull/3421)
 
 ![](https://user-images.githubusercontent.com/12937446/224116643-5cfb94b3-93ce-43ee-bb7b-c25c3b66e0a1.png)
-
 - Added the `.select()` event listener to the Gallery component. This event listener has EventData, data that is passed along the API to provide additional information about the event trigger. The EventData for the select event listener is the index of the item that was clicked. By [@aliabid94](https://github.com/aliabid94) in [PR 3399](https://github.com/gradio-app/gradio/pull/3399)
 
 
