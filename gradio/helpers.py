@@ -623,10 +623,10 @@ def special_args(
         elif param.annotation == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif param.annotation == EventData:
+        elif issubclass(param.annotation, EventData):
             event_data_index = i
             if inputs is not None:
-                inputs.insert(i, event_data)
+                inputs.insert(i, param.annotation(event_data.target, event_data.data))
     if inputs is not None:
         while len(inputs) < len(positional_args):
             i = len(inputs)
@@ -825,3 +825,10 @@ class EventData:
     def __init__(self, target: Block | None, data: Any):
         self.target = target
         self.data = data
+
+
+class GalleryData(EventData):
+
+    def __init__(self, target: Block | None, data: Any):
+        self.target = target
+        self.index = data["index"]

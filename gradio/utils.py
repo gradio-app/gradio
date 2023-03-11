@@ -924,7 +924,10 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         from gradio.routes import Request
 
         """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
-        return parameter_types.get(name, "") in [Request, EventData]
+        is_request = parameter_types.get(name, "") == Request
+        # use int in the fall-back as that will always be false
+        is_event_data = issubclass(parameter_types.get(name, int), EventData)
+        return is_request or is_event_data
 
     signature = inspect.signature(fn)
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
