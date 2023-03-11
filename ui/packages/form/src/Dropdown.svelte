@@ -14,6 +14,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
+		select: number | null;
 	}>();
 
 	let inputValue: string,
@@ -37,6 +38,7 @@
 	// cause infinite loops in the non-multiselect case
 	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
+		dispatch("select", value ? choices.indexOf(value) : null);
 	}
 
 	function add(option: string) {

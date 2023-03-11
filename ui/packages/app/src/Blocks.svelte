@@ -240,7 +240,7 @@
 					dep.triggered_after === fn_index &&
 					(!dep.triggered_only_on_success || status === "complete")
 				) {
-					trigger_api_call(i);
+					trigger_api_call(i, null);
 				}
 			});
 		}
@@ -259,7 +259,7 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	const trigger_api_call = (dep_index: number) => {
+	const trigger_api_call = (dep_index: number, event_data: unknown) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -274,7 +274,8 @@
 
 		let payload = {
 			fn_index: dep_index,
-			data: dep.inputs.map((id) => instance_map[id].props.value)
+			data: dep.inputs.map((id) => instance_map[id].props.value),
+			event_data: dep.collects_event_data ? event_data : null
 		};
 
 		if (dep.frontend_fn) {
@@ -329,7 +330,7 @@
 				outputs.every((v) => instance_map?.[v].instance) &&
 				inputs.every((v) => instance_map?.[v].instance)
 			) {
-				trigger_api_call(i);
+				trigger_api_call(i, null);
 				handled_dependencies[i] = [-1];
 			}
 
@@ -337,8 +338,8 @@
 				.filter((v) => !!v && !!v[1])
 				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 					if (handled_dependencies[i]?.includes(id) || !instance) return;
-					instance?.$on(trigger, () => {
-						trigger_api_call(i);
+					instance?.$on(trigger, (event_data) => {
+						trigger_api_call(i, event_data.detail);
 					});
 
 					if (!handled_dependencies[i]) handled_dependencies[i] = [];

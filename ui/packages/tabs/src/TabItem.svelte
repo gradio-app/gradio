@@ -6,8 +6,9 @@
 	export let elem_id: string = "";
 	export let name: string;
 	export let id: string | number | object = {};
+	export let tab_index: number;
 
-	const dispatch = createEventDispatcher<{ select: undefined }>();
+	const dispatch = createEventDispatcher<{ select: number }>();
 
 	const { register_tab, unregister_tab, selected_tab } = getContext(TABS);
 
@@ -17,7 +18,7 @@
 		return () => unregister_tab({ name, id });
 	});
 
-	$: $selected_tab === id && tick().then(() => dispatch("select"));
+	$: $selected_tab === id && tick().then(() => dispatch("select", tab_index));
 </script>
 
 <div

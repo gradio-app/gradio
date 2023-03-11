@@ -31,10 +31,10 @@ with gr.Blocks() as demo:
     
     btn.click(generate_images, None, [gallery, imgs])
 
-    def get_focus_index(evt: gr.EventData):
-        return evt.data["index"]
+    def get_select_index(evt: gr.SelectEvent):
+        return evt.index
 
-    gallery.focus(get_focus_index, None, selected)
+    gallery.select(get_select_index, None, selected)
 
     def darken_img(imgs, index):
         index = int(index)

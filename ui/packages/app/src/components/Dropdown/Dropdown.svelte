@@ -42,6 +42,7 @@
 		{info}
 		{show_label}
 		on:change
+		on:select
 		disabled={mode === "static"}
 	/>
 </Block>

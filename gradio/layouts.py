@@ -140,7 +140,7 @@ class Column(BlockContext):
         }
 
 
-class Tabs(BlockContext, Changeable):
+class Tabs(BlockContext, Changeable, Selectable):
     """
     Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
@@ -159,11 +159,13 @@ class Tabs(BlockContext, Changeable):
             visible: If False, Tabs will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        Changeable.__init__(self)
+        Selectable.__init__(self)
         self.selected = selected
 
     def get_config(self):
-        return {"selected": self.selected, **super().get_config()}
+        return {"selected": self.selected, **super(BlockContext, self).get_config()}
 
     @staticmethod
     def update(
@@ -204,7 +206,8 @@ class Tab(BlockContext, Selectable):
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(elem_id=elem_id, **kwargs)
+        BlockContext.__init__(self, elem_id=elem_id, **kwargs)
+        Selectable.__init__(self)
         self.label = label
         self.id = id
 
@@ -212,7 +215,7 @@ class Tab(BlockContext, Selectable):
         return {
             "label": self.label,
             "id": self.id,
-            **super().get_config(),
+            **super(BlockContext, self).get_config(),
         }
 
     def get_expected_parent(self) -> Type[Tabs]:

@@ -17,7 +17,7 @@
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = { grid: [2], height: "auto" };
 
-	const dispatch = createEventDispatcher<{ focus: { index: number | null } }>();
+	const dispatch = createEventDispatcher<{ select: { index: number | null } }>();
 
 	// tracks whether the value of the gallery was reset
 	let was_reset: boolean = true;
@@ -82,7 +82,7 @@
 	$: {
 		if (selected_image !== old_selected_image) {
 			old_selected_image = selected_image;
-			dispatch("focus", { index: selected_image });
+			dispatch("select", { index: selected_image });
 		}
 	}
 

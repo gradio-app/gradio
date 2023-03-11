@@ -7,6 +7,7 @@ import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
 
 from gradio.blocks import Block
+from gradio.helpers import EventData
 from gradio.documentation import document, set_documentation_group
 from gradio.utils import get_cancel_function
 
@@ -271,5 +272,13 @@ class Selectable(EventListener):
         self.select = EventListenerMethod(self, "select")
         """
         This event is triggered when the user selects an item from within the Component.
-        This event has EventData that carries attributes `index` and `value` that refer to the index and value of the selected item.
+        This event has EventData of type gradio.SelectEvent that carries attribute `index` thats refer to the index of the selected item.
+        """
+
+class SelectEvent(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index = data["index"]
+        """
+        The index of the selected item.
         """

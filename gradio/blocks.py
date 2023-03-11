@@ -292,7 +292,7 @@ class BlockContext(Block):
             render: If False, this will not be included in the Blocks config file at all.
         """
         self.children: List[Block] = []
-        super().__init__(visible=visible, render=render, **kwargs)
+        Block.__init__(self, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block

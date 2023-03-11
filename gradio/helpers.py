@@ -819,7 +819,7 @@ class EventData:
         def on_focus(evt: gr.EventData):
             return evt.data["index"]
 
-        gallery.focus(on_focus, None, focused)
+        gallery.select(on_focus, None, focused)
     """
 
     def __init__(self, target: Block | None, data: Any):

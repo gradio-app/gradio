@@ -4,7 +4,7 @@
 	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 
-	export let value: string;
+	export let value: string | null;
 	export let style: Styles = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
@@ -16,6 +16,7 @@
 	const dispatch = createEventDispatcher();
 
 	$: dispatch("change", value);
+	$: dispatch("select", value ? choices.indexOf(value) : null);
 
 	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>

@@ -42,6 +42,7 @@ from gradio.events import (
     EventListener,
     Playable,
     Releaseable,
+    Selectable,
     Streamable,
     Submittable,
     Uploadable,
@@ -770,10 +771,11 @@ class Slider(
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return Component.style(
+        Component.style(
             self,
             container=container,
         )
+        return self
 
 
 @document("style")
@@ -1038,12 +1040,13 @@ class CheckboxGroup(
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
 class Radio(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent, Selectable, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
 ):
     """
     Creates a set of radio buttons of which only one can be selected.
@@ -1187,11 +1190,12 @@ class Radio(
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
-class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1350,7 +1354,8 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
@@ -1682,10 +1687,11 @@ class Image(
         """
         self._style["height"] = height
         self._style["width"] = width
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def stream(
         self,
@@ -1940,10 +1946,11 @@ class Video(
         """
         self._style["height"] = height
         self._style["width"] = width
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
 
 @document("style")
@@ -2247,10 +2254,11 @@ class Audio(
         """
         This method can be used to change the appearance of the audio component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
@@ -2466,10 +2474,11 @@ class File(
         """
         This method can be used to change the appearance of the file component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | List | None) -> str:
         if input_data is None:
@@ -2735,10 +2744,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the DataFrame component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: pd.DataFrame | np.ndarray | str | None):
         if input_data is None:
@@ -2884,10 +2894,11 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the TimeSeries component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
@@ -3014,7 +3025,8 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         if size is not None:
             self._style["size"] = size
 
-        return Component.style(self, **kwargs)
+        Component.style(self, **kwargs)
+        return self
 
 
 @document("style")
@@ -3175,7 +3187,8 @@ class UploadButton(
         if size is not None:
             self._style["size"] = size
 
-        return Component.style(self, **kwargs)
+        Component.style(self, **kwargs)
+        return self
 
 
 @document("style")
@@ -3417,7 +3430,8 @@ class Label(Changeable, IOComponent, JSONSerializable):
         Parameters:
             container: If True, will add a container to the label - providing some extra padding around the border.
         """
-        return Component.style(self, container=container)
+        Component.style(self, container=container)
+        return self
 
 
 @document("style")
@@ -3581,7 +3595,8 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
@@ -3668,7 +3683,8 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         Parameters:
             container: If True, will place the JSON in a container - providing some extra padding around the border.
         """
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document()
@@ -3871,7 +3887,8 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
         if preview is not None:
             self._style["preview"] = preview
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
     def deserialize(
         self,
@@ -4026,10 +4043,11 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if kwargs.get("color_map") is not None:
             warnings.warn("The 'color_map' parameter has been deprecated.")
 
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
 
 @document("style")
@@ -4147,10 +4165,11 @@ class Model3D(
         """
         This method can be used to change the appearance of the Model3D component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
@@ -4254,10 +4273,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         return {"type": dtype, "plot": out_y}
 
     def style(self, container: bool | None = None):
-        return Component.style(
+        Component.style(
             self,
             container=container,
         )
+        return self
 
 
 class AltairPlot:
@@ -5536,7 +5556,8 @@ class Dataset(Clickable, Component):
         """
         This method can be used to change the appearance of the Dataset component.
         """
-        return Component.style(self, **kwargs)
+        Component.style(self, **kwargs)
+        return self
 
 
 @document()
