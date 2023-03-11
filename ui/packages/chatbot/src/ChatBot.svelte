@@ -72,6 +72,7 @@
 								controls
 								preload="metadata"
 								src={message.data}
+								title={message.alt_text}
 								on:play
 								on:pause
 								on:ended
@@ -80,6 +81,7 @@
 							<video
 								controls
 								src={message.data}
+								title={message.alt_text}
 								preload="auto"
 								on:play
 								on:pause
@@ -88,7 +90,7 @@
 								<track kind="captions" />
 							</video>
 						{:else if message !== null && message.mime_type.includes("image")}
-							<img src={message.data} alt="" />
+							<img src={message.data} alt={message.alt_text} />
 						{/if}
 					</div>
 				{/each}

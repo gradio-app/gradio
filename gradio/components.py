@@ -3928,7 +3928,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects function to return a {List[Tuple[str | None, str | None]]}, a list of tuples with user inputs and responses as strings of HTML or Nones. Messages that are `None` are not displayed.
+    Postprocessing: expects function to return a {List[Tuple[str | None | Tuple, str | None | Tuple]]}, a list of tuples with user message and response messages. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_demo, chatbot_multimodal
     """
@@ -4002,6 +4002,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             return {
                 "name": chat_message[0],
                 "mime_type": mime_type,
+                "alt_text": chat_message[1] if len(chat_message) > 1 else None,
                 "data": None,  # These last two fields are filled in by the frontend
                 "is_file": True,
             }
@@ -4022,9 +4023,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
-            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a string filepath or URL to an image/video/audio in which case the file is displayed. It can also be None, in which case that message is displayed.
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
         Returns:
-            List of tuples representing the message and response. Each message and response will be a string of HTML.
+            List of tuples representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information.
         """
         if y is None:
             return []
