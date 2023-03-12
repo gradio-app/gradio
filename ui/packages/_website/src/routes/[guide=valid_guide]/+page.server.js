@@ -11,7 +11,7 @@ function plugin() {
 	return function transform(tree) {
 		tree.children.forEach((n) => {
 			if (n.type === "heading") {
-				console.log(n);
+				// console.log(n);
 			}
 		});
 	};
@@ -41,12 +41,14 @@ export async function load() {
 						});
 
 						if (!n.children) n.children = [];
+						n.properties.className = ["group"]
 						n.properties.id = [slug];
 						n.children.push({
 							type: "element",
 							tagName: "a",
 							properties: {
-								href: `#${slug}`
+								href: `#${slug}`,
+								className: ["invisible", "group-hover-visible"]
 							},
 							children: [
 								{

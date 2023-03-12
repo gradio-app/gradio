@@ -10,7 +10,6 @@
     let guides_by_category = guides_json.guides_by_category;
     let guide;
     let nav = data.guide_slugs;
-    console.log(nav)
 
     const COLORS = ["bg-green-50", "bg-yellow-50", "bg-red-50", "bg-pink-50", "bg-purple-50"];
 
@@ -36,7 +35,7 @@
     //     });
     //   })
         
-    $: console.log(navigation?.children)
+    // $: console.log(navigation?.children)
     $: guide_page = guides.filter(guide => guide.name === $page.params.guide)[0];
 </script> 
 
