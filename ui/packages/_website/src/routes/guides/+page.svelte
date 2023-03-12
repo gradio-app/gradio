@@ -37,7 +37,7 @@
         Search through
         <span id="counter">{ data.total_guides }</span>
         Guides. <a class="link text-gray-600"
-    href="https://github.com/gradio-app/gradio/tree/main/guides">Contribute here</a>
+    href="https://github.com/gradio-app/gradio/tree/main/guides/CONTRIBUTING.md">Contribute here</a>
       </div>
     {#each data.guides_by_category as {category, guides}, i (category)}
     <div class="category mb-8">
