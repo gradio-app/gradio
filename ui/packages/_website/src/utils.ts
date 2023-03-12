@@ -46,3 +46,21 @@ export const media_query = () => {
 
 	return { subscribe };
 };
+
+import slugify from "@sindresorhus/slugify";
+
+export function make_slug_processor() {
+	const seen_slugs = new Map();
+
+	return function (name: string) {
+		const slug = slugify(name, { separator: "-", lowercase: true });
+		let count = seen_slugs.get(slug);
+		if (count) {
+			seen_slugs.set(slug, count + 1);
+			return `${slug}-${count + 1}`;
+		} else {
+			seen_slugs.set(slug, 1);
+			return slug;
+		}
+	};
+}
