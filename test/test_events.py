@@ -26,7 +26,7 @@ class TestEvent:
             def fn_img_index(evt: gr.EventData):
                 return evt.data["index"]
 
-            gallery.focus(fn_img_index, None, text)
+            gallery.select(fn_img_index, None, text)
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)

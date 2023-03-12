@@ -623,7 +623,9 @@ def special_args(
         elif param.annotation == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif issubclass(param.annotation, EventData):
+        elif isinstance(param.annotation, type) and issubclass(
+            param.annotation, EventData
+        ):
             event_data_index = i
             if inputs is not None and event_data is not None:
                 inputs.insert(i, param.annotation(event_data.target, event_data._data))

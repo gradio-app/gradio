@@ -938,6 +938,7 @@ class TestFile:
             "value": None,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -1506,6 +1507,7 @@ class TestLabel:
             "interactive": None,
             "root_url": None,
             "color": None,
+            "selectable": False,
         }
 
     def test_color_argument(self):
@@ -1644,6 +1646,7 @@ class TestHighlightedText:
             "value": None,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
         }
 
     def test_in_interface(self):
@@ -1698,6 +1701,7 @@ class TestChatbot:
             "elem_id": None,
             "style": {},
             "root_url": None,
+            "selectable": False,
         }
 
 
