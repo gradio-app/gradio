@@ -92,7 +92,7 @@ If you wish for the user to provide a reason for flagging, you can pass a list o
 
 ## Preprocessing and Postprocessing
 
-![annotated](/assets/img/dataflow.svg)
+![](https://github.com/gradio-app/gradio/blob/main/ui/packages/_website/src/assets/img/dataflow.svg?raw=true)
 
 As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
 

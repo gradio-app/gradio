@@ -9,7 +9,6 @@ export async function load({fetch}) {
     let star_count = j.stargazers_count;
 
     return {
-        gradio_banner,
         logos,
         tweets,
         star_count

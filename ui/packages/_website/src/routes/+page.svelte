@@ -1,6 +1,7 @@
 <script lang="ts">
     import DemosLanding from "../components/DemosLanding.svelte";
 	import MetaTags from "../components/MetaTags.svelte";
+	import gradio_banner from "../assets/img/header-image.jpg";
 	export let data;
 </script>
 
@@ -12,7 +13,7 @@
 		<img
 			id="gradio-banner"
 			class="mb-12 lg:flex-1"
-			src={data.gradio_banner}
+			src={gradio_banner}
 			alt="Gradio Banner"
 		/>
 		<div class="text-left">

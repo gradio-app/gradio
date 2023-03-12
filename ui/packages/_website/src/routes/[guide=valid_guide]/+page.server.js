@@ -42,7 +42,6 @@ const langs = {
 function highlight(code, lang) {
 	const _lang = langs[lang] || "";
 
-	console.log(code, lang, _lang);
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
 				code,
