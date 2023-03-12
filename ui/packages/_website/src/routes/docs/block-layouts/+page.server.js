@@ -18,6 +18,14 @@ export async function load() {
                 docs.building.tab,
                 docs.building.box, 
                 docs.building.accordion];
+
+    for (let obj of objs) {
+        if ("demos" in obj) {
+            obj.demos.forEach(demo => {
+                demo.push(Prism.highlight(demo[1], Prism.languages[language]));
+            })
+        }
+    }
     let mode = "block-layouts";
 
     let description = `Customize the layout of your Blocks UI with the layout classes below.`;

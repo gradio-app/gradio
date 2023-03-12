@@ -1,6 +1,7 @@
 <script>
     export let fn;
     export let parent;
+    import anchor from "../assets/img/anchor.svg";
 </script>
 
 
@@ -8,7 +9,10 @@
 
 <div class="obj" id={ parent + fn.name.toLowerCase() }>
     <div class="flex flex-row items-center justify-between"> 
-        <h3 id="{ fn.slug }-header" class="text-3xl font-light py-4">{ fn.name }</h3>
+        <h3 id="{ fn.slug }-header" class="group text-3xl font-light py-4">{ fn.name }
+        <a href="#{ fn.slug }-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+        </h3>
+        
     </div>
 
     {#if fn.override_signature }

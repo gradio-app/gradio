@@ -16,6 +16,13 @@ export async function load() {
     let objs = [docs.building.tabbedinterface, 
                 docs.building.parallel, 
                 docs.building.series];
+    for (let obj of objs) {
+        if ("demos" in obj) {
+            obj.demos.forEach(demo => {
+                demo.push(Prism.highlight(demo[1], Prism.languages[language]));
+            })
+        }
+    }
     let mode = "combining-interfaces";
 
     let description = `Once you have created several Interfaces, we provide several classes that let you start combining them together. For example, you can chain them in <em>Series</em> or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.`;
