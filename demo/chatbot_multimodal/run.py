@@ -2,7 +2,7 @@ import gradio as gr
 
 def add_text(history, text):
     history = history + [(text, None)]
-    return history
+    return history, ""
 
 def add_file(history, file):
     history = history + [((file.name,), None)]
