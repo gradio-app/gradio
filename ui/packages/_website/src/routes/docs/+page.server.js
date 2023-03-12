@@ -34,12 +34,24 @@ export async function load() {
 			if (o == name) {
 				obj = docs[key][o];
                 mode = key;
-                if ("demos" in obj) {
-                    obj.demos.forEach(demo => {
-                        demo.push(Prism.highlight(demo[1], Prism.languages[language]));
-                    })
+
+            if (docs[key][o].demos) {
+                docs[key][o].demos.forEach(demo => {
+                    demo.push(Prism.highlight(demo[1], Prism.languages[language]));
+                })
+            }
+            if (docs[key][o].example) {
+                docs[key][o].highlighted_example = Prism.highlight(docs[key][o].example, Prism.languages[language]);
+            }
+
+            if (docs[key][o].fns && docs[key][o].fns.length > 0) {
+                for (const fn of docs[key][o].fns) {
+                    if (fn.example) {
+                        fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language]);
+                    }
                 }
             }
+        }
         }
     }
 

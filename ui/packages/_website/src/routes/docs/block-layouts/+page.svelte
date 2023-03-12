@@ -107,7 +107,7 @@
                 {#if obj.example }
                     <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
                     <div class="codeblock bg-gray-50 mx-auto p-3">
-                        <pre><code class="code language-python">{  obj.example }</code></pre>
+                        <pre><code class="code language-python">{@html obj.highlighted_example }</code></pre>
                     </div>
                 {/if}
 

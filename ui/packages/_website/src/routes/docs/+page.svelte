@@ -1,9 +1,10 @@
 <script>
     import { page } from '$app/stores';
-	import Demos from '../../components/Demos.svelte';
+	  import Demos from '../../components/Demos.svelte';
     import DocsNav from '../../components/DocsNav.svelte';
     import FunctionDoc from '../../components/FunctionDoc.svelte';
     import MetaTags from "../../components/MetaTags.svelte";
+    import anchor from "../../assets/img/anchor.svg";
 
     export let data;
 
@@ -62,7 +63,9 @@
         <div class="obj" id={ obj.name.toLowerCase() }>
             
             <div class="flex flex-row items-center justify-between"> 
-                <h3 id="{ obj.slug }-header" class="text-3xl font-light py-4">{ obj.name }</h3>
+                <h3 id="{ obj.slug }-header" class="group text-3xl font-light py-4">{ obj.name }
+                <a href="#{ obj.slug }-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+                </h3>
             </div>
             
             {#if obj.override_signature }
@@ -99,7 +102,7 @@
             {#if obj.example }
                 <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
                 <div class="codeblock bg-gray-50 mx-auto p-3">
-                    <pre><code class="code language-python">{  obj.example }</code></pre>
+                    <pre><code class="code language-python">{@html obj.highlighted_example}</code></pre>
                 </div>
             {/if}
 
@@ -179,7 +182,9 @@
           {#if obj.demos }
 
             <div class="category my-8" id="examples">
-              <h2 class="mb-4 text-2xl font-thin block">✨ {obj.name} Examples</h2>
+              <h2 class="group mb-4 text-2xl font-thin block" id="{obj.name}-examples">✨ {obj.name} Examples
+              <a href="#{obj.name}-examples" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+              </h2>
               <div>
                 <div class="demo-window overflow-y-auto h-full w-full my-4">
                   <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">

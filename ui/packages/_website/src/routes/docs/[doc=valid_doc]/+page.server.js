@@ -34,6 +34,18 @@ export async function load({params}) {
                         demo.push(Prism.highlight(demo[1], Prism.languages[language]));
                     })
                 }
+
+                if (obj.example) {
+                    obj.highlighted_example = Prism.highlight(obj.example, Prism.languages[language]);
+                }
+
+                if ("fns" in obj && obj.fns.length > 0) {
+                    for (const fn of obj.fns) {
+                        if (fn.example) {
+                            fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language]);
+                        }
+                    }
+                }
             }
         }
     }
