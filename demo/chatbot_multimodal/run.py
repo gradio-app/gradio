@@ -9,10 +9,7 @@ def add_file(history, file):
     return history
 
 def bot(history):
-    if isinstance(history[-1][0], str):
-        response = "Cool!"
-    else:
-        response = "Cool file!"
+    response = "**That's cool!**"
     history[-1][1] = response
     return history
 
