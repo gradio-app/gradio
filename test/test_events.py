@@ -26,7 +26,7 @@ class TestEvent:
 
         def clear():
             return ""
-        
+
         with gr.Blocks() as child:
             txt1 = gr.Textbox()
             txt2 = gr.Textbox()
@@ -34,7 +34,7 @@ class TestEvent:
 
             txt1.submit(double, txt1, txt2).then(reverse, txt2, txt3).success(
                 clear, None, txt1
-            )        
+            )
 
         with gr.Blocks() as parent:
             txt0 = gr.Textbox()
