@@ -1,52 +1,44 @@
 # How to Create a Chatbot
 
-Related spaces: https://huggingface.co/spaces/dawood/chatbot-guide, https://huggingface.co/spaces/dawood/chatbot-guide-multimodal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
-Tags: NLP, TEXT, HTML
+Related spaces: 
+Tags: NLP, TEXT, CHAT
 
 ## Introduction
 
-Chatbots are widely studied in natural language processing (NLP) research and are a common use case of NLP in industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts. 
+Chatbots are widely used in natural language processing (NLP) research and industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts. 
 
 Using `gradio`, you can easily build a demo of your chatbot model and share that with a testing team, or test it yourself using an intuitive chatbot GUI.
 
-This tutorial will show how to take a pretrained chatbot model and deploy it with a Gradio interface in 4 steps. The live chatbot interface that we create will look something like this (try it!):
+This tutorial will show how to take a pretrained chatbot model and deploy it with a Gradio interface. The live chatbot interface that we create will look something like this:
 
-<iframe src="https://dawood-chatbot-guide.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+$demo_chatbot_simple
 
 ## A Simple Chatbot Demo
 
-Let's start with a simple demo, with no actual model. Our bot will randomly respond "yes" or "no" to any input. 
+Let's start with recreating the simple demo above. As you may have noticed, our bot simply randomly responds "yes" or "no" to any input. 
 
 $code_chatbot_simple
-$demo_chatbot_simple
 
 The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. Note that we chain two event event listeners with `.then` after a user triggers a submit:
 
 1. The first method updates the chatbot with the user message and clears the input field. Because we want this to happen instantly, we set `queue=False`, which would skip any queue if it had been enabled.
 2. The second method waits for the bot to respond, and then updates the chatbot with the bot response.
 
-The reason we split these events is so that the user can see their message appear in the chatbot before the bot responds, which can take time to process.
+The reason we split these events is so that the user can see their message appear in the chatbot immediately before the bot responds, which can take some time to process.
 
 Note we pass the entire history of the chatbot to these functions and back to the component. To clear the chatbot, we pass it `None`.
 
-### Using a Model
+## Using a Model or API
 
-Chatbots are *stateful*, meaning we need to track how the user has previously interacted with the model. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
+What if you'd like to build a real chatbot, capable of responding in human-like language? You need to use a language model. There are lots of great open-source language models you can download and run locally, or you can access one via an API. We'll use the former approach (a model).
 
 ### Prerequisites
 
 Make sure you have the `gradio` Python package already [installed](/quickstart). To use a pretrained chatbot model, also install `transformers` and `torch`. 
 
-Let's get started! Here's how to build your own chatbot: 
+### 1. Set up the Chatbot Model
 
-  [1. Set up the Chatbot Model](#1-set-up-the-chatbot-model)
-  [2. Define a `predict` function](#2-define-a-predict-function)
-  [3. Create a Gradio Demo using Blocks](#3-create-a-gradio-demo-using-blocks)
-  [4. Chatbot Markdown Support](#4-chatbot-markdown-support)
-
-## 1. Set up the Chatbot Model
-
-First, you will need to have a chatbot model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will use a pretrained chatbot model, `DialoGPT`, and its tokenizer from the [Hugging Face Hub](https://huggingface.co/microsoft/DialoGPT-medium), but you can replace this with your own model. 
+In this tutorial, you will use a pretrained chatbot model, `DialoGPT`, and its tokenizer from the [Hugging Face Hub](https://huggingface.co/microsoft/DialoGPT-medium), but you can replace this with your own model or API as well. 
 
 Here is the code to load `DialoGPT` from Hugging Face `transformers`.
 
@@ -58,7 +50,7 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 ```
 
-## 2. Define a `predict` function
+### 2. Define a `predict` function
 
 Next, you will need to define a function that takes in the *user input* as well as the previous *chat history* to generate a response.
 
@@ -120,10 +112,10 @@ This produces the following demo, which you can try right here in your browser (
 
 
 
-## 4. Chatbot Markdown Support
+## 4. Adding Markdown, Images, Audio, or Videos 
 
 
-The `gr.Chatbot` also supports a subset of markdown including bold, italics, code, and images. Let's take a look at how we can use the markdown support to allow a user to submit images to the chatbot component.
+The `gr.Chatbot` also supports a subset of markdown including bold, italics, and code. In addition, it can also handle media files, such as images, audio, and video. 
 
 ```python
 def add_image(state, image):
