@@ -1,11 +1,11 @@
 import gradio as gr
 
 def add_text(history, text):
-    history = history + [(text, text + "?")]
+    history = history + [(text, None)]
     return history
 
 def add_file(history, file):
-    history = history + [((file.name,), "Cool file!")]
+    history = history + [((file.name,), None)]
     return history
 
 def bot_response(history):
@@ -17,7 +17,7 @@ def bot_response(history):
     return history
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(elem_id="chatbot").style(height=750)
+    chatbot = gr.Chatbot([], elem_id="chatbot").style(height=750)
     
     with gr.Row():
         with gr.Column(scale=0.85):

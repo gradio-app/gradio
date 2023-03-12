@@ -2901,7 +2901,7 @@ class State(IOComponent, SimpleSerializable):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: chatbot_demo, blocks_simple_squares
+    Demos: blocks_simple_squares
     Guides: creating_a_chatbot, real_time_speech_recognition
     """
 
@@ -3930,7 +3930,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects function to return a {List[Tuple[str | None | Tuple, str | None | Tuple]]}, a list of tuples with user message and response messages. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
-    Demos: chatbot_demo, chatbot_multimodal
+    Demos: chatbot_simple, chatbot_multimodal
     """
 
     def __init__(
@@ -4033,10 +4033,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         for message_pair in y:
             assert isinstance(
                 message_pair, (tuple, list)
-            ), "Expected a list of lists or list of tuples."
+            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
             assert (
                 len(message_pair) == 2
-            ), "Expected a list of lists of length 2 or list of tuples of length 2."
+            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
             processed_messages.append(
                 (
                     self._process_chat_messages(message_pair[0]),
