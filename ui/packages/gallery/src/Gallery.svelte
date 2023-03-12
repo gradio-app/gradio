@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
+	import type { SelectEvent } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
@@ -18,7 +19,7 @@
 	export let style: Styles = { grid: [2], height: "auto" };
 
 	const dispatch = createEventDispatcher<{
-		select: { index: number | null };
+		select: SelectEvent;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -84,7 +85,12 @@
 	$: {
 		if (selected_image !== old_selected_image) {
 			old_selected_image = selected_image;
-			dispatch("select", { index: selected_image });
+			if (selected_image !== null) {
+				dispatch("select", {
+					index: selected_image,
+					value: _value?.[selected_image][1]
+				});
+			}
 		}
 	}
 

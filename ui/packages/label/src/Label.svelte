@@ -1,11 +1,17 @@
 <script lang="ts">
+	import type { SelectEvent } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
+
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
+	const dispatch = createEventDispatcher<{ select: SelectEvent }>();
+
 	export let show_label: boolean = true;
 	export let color: string | undefined = undefined;
+	export let selectable: boolean = false;
 </script>
 
 <div>
@@ -18,8 +24,14 @@
 		{value.label}
 	</div>
 	{#if typeof value === "object" && value.confidences}
-		{#each value.confidences as confidence_set}
-			<div class="confidence-set group">
+		{#each value.confidences as confidence_set, i}
+			<div
+				class="confidence-set group"
+				class:selectable
+				on:click={() => {
+					dispatch("select", { index: i, value: confidence_set.label });
+				}}
+			>
 				<div class="inner-wrap ">
 					<div class="bar" style="width: {confidence_set.confidence * 100}%" />
 					<div class="label">
@@ -100,5 +112,8 @@
 	.confidence {
 		margin-left: auto;
 		text-align: right;
+	}
+	.selectable {
+		cursor: pointer;
 	}
 </style>

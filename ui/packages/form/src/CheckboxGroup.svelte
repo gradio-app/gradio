@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle, Info } from "@gradio/atoms";
 	import { get_styles } from "@gradio/utils";
-	import type { Styles } from "@gradio/utils";
+	import type { Styles, SelectEvent } from "@gradio/utils";
 
 	export let value: Array<string> = [];
 	export let style: Styles = {};
@@ -12,7 +12,10 @@
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 
-	const dispatch = createEventDispatcher<{ change: Array<string> }>();
+	const dispatch = createEventDispatcher<{
+		change: Array<string>;
+		select: SelectEvent;
+	}>();
 
 	const toggleChoice = (choice: string) => {
 		if (value.includes(choice)) {
@@ -39,6 +42,12 @@
 			<input
 				{disabled}
 				on:change={() => toggleChoice(choice)}
+				on:input={(evt) =>
+					dispatch("select", {
+						index: choices.indexOf(choice),
+						value: choice,
+						selected: evt.currentTarget.checked
+					})}
 				checked={value.includes(choice)}
 				type="checkbox"
 				name="test"

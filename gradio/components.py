@@ -780,7 +780,12 @@ class Slider(
 
 @document("style")
 class Checkbox(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Changeable,
+    Selectable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a checkbox that can be set to `True` or `False`.
@@ -873,7 +878,12 @@ class Checkbox(
 
 @document("style")
 class CheckboxGroup(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Changeable,
+    Selectable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a set of checkboxes of which a subset can be checked.
@@ -2271,7 +2281,13 @@ class Audio(
 
 @document("style")
 class File(
-    Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileManager
+    Changeable,
+    Selectable,
+    Clearable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
+    TempFileManager,
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
@@ -2352,6 +2368,7 @@ class File(
             "file_count": self.file_count,
             "file_types": self.file_types,
             "value": self.value,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -2495,7 +2512,7 @@ class File(
 
 
 @document("style")
-class Dataframe(Changeable, IOComponent, JSONSerializable):
+class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -3304,7 +3321,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Label(Changeable, IOComponent, JSONSerializable):
+class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -3358,6 +3375,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
             "num_top_classes": self.num_top_classes,
             "value": self.value,
             "color": self.color,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -3440,7 +3458,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
 
 @document("style")
-class HighlightedText(Changeable, IOComponent, JSONSerializable):
+class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -3502,6 +3520,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
             "color_map": self.color_map,
             "show_legend": self.show_legend,
             "value": self.value,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -3948,7 +3967,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("style")
-class Chatbot(Changeable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
@@ -4000,6 +4019,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         return {
             "value": self.value,
             "color_map": self.color_map,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -5462,7 +5482,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Component):
+class Dataset(Clickable, Selectable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.

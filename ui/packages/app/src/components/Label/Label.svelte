@@ -19,6 +19,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
+	export let selectable: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -40,7 +41,7 @@
 		/>
 	{/if}
 	{#if typeof value === "object" && value !== undefined && value !== null}
-		<Label {value} {show_label} {color} />
+		<Label on:select {selectable} {value} {show_label} {color} />
 	{:else}
 		<Empty><LabelIcon /></Empty>
 	{/if}

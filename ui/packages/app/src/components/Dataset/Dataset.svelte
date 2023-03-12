@@ -3,6 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
+	import type { SelectEvent } from "@gradio/utils";
 
 	export let components: Array<keyof typeof component_map>;
 	export let label: string = "Examples";
@@ -15,7 +16,10 @@
 	export let root_url: null | string;
 	export let samples_per_page: number = 10;
 
-	const dispatch = createEventDispatcher<{ click: number }>();
+	const dispatch = createEventDispatcher<{
+		click: number;
+		select: SelectEvent;
+	}>();
 
 	let samples_dir: string = root_url
 		? "proxy=" + root_url + "/file="
@@ -100,6 +104,7 @@
 					on:click={() => {
 						value = i + page * samples_per_page;
 						dispatch("click", value);
+						dispatch("select", { index: value, value: sample_row });
 					}}
 					on:mouseenter={() => handle_mouseenter(i)}
 					on:mouseleave={() => handle_mouseleave()}

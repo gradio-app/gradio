@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple
 
 from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
@@ -270,7 +270,10 @@ class Releaseable(EventListener):
 @document("*select", inherit=True)
 class Selectable(EventListener):
     def __init__(self):
-        self.select = EventListenerMethod(self, "select")
+        self.selectable: bool = False
+        self.select = EventListenerMethod(
+            self, "select", callback=lambda: setattr(self, "selectable", True)
+        )
         """
         This event is triggered when the user selects an item from within the Component.
         This event has EventData of type gradio.SelectEvent that carries attribute `index` thats refer to the index of the selected item.
@@ -280,7 +283,15 @@ class Selectable(EventListener):
 class SelectEvent(EventData):
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
-        self.index = data["index"]
+        self.index: int | Tuple[int, int] = data["index"]
         """
-        The index of the selected item.
+        The index of the selected item, is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the selected item.
+        """
+        self.selected: bool = data.get("selected", True)
+        """
+        True if the item was selected, False if deselected.
         """

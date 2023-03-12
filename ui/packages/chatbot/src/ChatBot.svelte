@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { Styles } from "@gradio/utils";
+	import type { Styles, SelectEvent } from "@gradio/utils";
 
 	export let value: Array<[string | null, string | null]> | null;
 	let old_value: Array<[string | null, string | null]> | null;
@@ -8,11 +8,15 @@
 	export let root: string;
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
+	export let selectable: boolean = false;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		select: SelectEvent;
+	}>();
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}/file`);
 
@@ -58,6 +62,9 @@
 				data-testid="user"
 				class="message user"
 				class:hide={message[0] === null}
+				class:selectable
+				on:click={() =>
+					dispatch("select", { index: [i, 0], value: message[0] })}
 			>
 				{@html message[0]}
 			</div>
@@ -65,6 +72,9 @@
 				data-testid="bot"
 				class="message bot"
 				class:hide={message[1] === null}
+				class:selectable
+				on:click={() =>
+					dispatch("select", { index: [i, 1], value: message[1] })}
 			>
 				{@html message[1]}
 				{#if feedback}
@@ -160,6 +170,9 @@
 	}
 	.feedback button:hover {
 		color: var(--body-text-color);
+	}
+	.selectable {
+		cursor: pointer;
 	}
 
 	.pending {

@@ -13,6 +13,7 @@
 	export let show_label: boolean = true;
 	export let color_map: Record<string, string> = {};
 	export let root: string;
+	export let selectable: boolean = false;
 
 	$: if (!style.color_map && Object.keys(color_map).length) {
 		style.color_map = color_map;
@@ -35,7 +36,9 @@
 		{style}
 		{root}
 		{value}
+		{selectable}
 		pending_message={loading_status?.status === "pending"}
 		on:change
+		on:select
 	/>
 </Block>

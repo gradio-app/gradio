@@ -3,6 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
+	import type { SelectEvent } from "@gradio/utils";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
@@ -14,7 +15,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
-		select: number | null;
+		select: SelectEvent;
 	}>();
 
 	let inputValue: string,
@@ -38,13 +39,17 @@
 	// cause infinite loops in the non-multiselect case
 	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
-		dispatch("select", value ? choices.indexOf(value) : null);
 	}
 
 	function add(option: string) {
 		if (Array.isArray(value)) {
 			if (!max_choices || value.length < max_choices) {
 				value.push(option);
+				dispatch("select", {
+					index: choices.indexOf(option),
+					value: option,
+					selected: true
+				});
 				dispatch("change", value);
 			}
 			showOptions = !(value.length === max_choices);
@@ -55,6 +60,11 @@
 	function remove(option: string) {
 		if (Array.isArray(value)) {
 			value = value.filter((v: string) => v !== option);
+			dispatch("select", {
+				index: choices.indexOf(option),
+				value: option,
+				selected: false
+			});
 			dispatch("change", value);
 		}
 	}
@@ -80,6 +90,11 @@
 				value = option;
 				inputValue = "";
 				showOptions = false;
+				dispatch("select", {
+					index: choices.indexOf(option),
+					value: option,
+					selected: true
+				});
 				dispatch("change", value);
 				return;
 			}

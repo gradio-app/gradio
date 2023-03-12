@@ -626,7 +626,7 @@ def special_args(
         elif issubclass(param.annotation, EventData):
             event_data_index = i
             if inputs is not None:
-                inputs.insert(i, param.annotation(event_data.target, event_data.data))
+                inputs.insert(i, param.annotation(event_data.target, event_data._data))
     if inputs is not None:
         while len(inputs) < len(positional_args):
             i = len(inputs)
@@ -824,4 +824,4 @@ class EventData:
 
     def __init__(self, target: Block | None, data: Any):
         self.target = target
-        self.data = data
+        self._data = data

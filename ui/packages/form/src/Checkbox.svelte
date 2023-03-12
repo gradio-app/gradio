@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { SelectEvent } from "@gradio/utils";
 
 	export let value: boolean;
 	export let disabled: boolean = false;
 	export let label: string;
 
-	const dispatch = createEventDispatcher<{ change: boolean }>();
+	const dispatch = createEventDispatcher<{
+		change: boolean;
+		select: SelectEvent;
+	}>();
 
 	function handle_change(value: boolean) {
 		dispatch("change", value);
@@ -18,6 +22,12 @@
 <label class:disabled>
 	<input
 		bind:checked={value}
+		on:input={(evt) =>
+			dispatch("select", {
+				index: 0,
+				value: label,
+				selected: evt.currentTarget.checked
+			})}
 		{disabled}
 		type="checkbox"
 		name="test"

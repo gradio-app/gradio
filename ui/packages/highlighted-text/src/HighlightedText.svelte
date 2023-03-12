@@ -2,10 +2,13 @@
 	const browser = typeof document !== "undefined";
 	import { colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
+	import type { SelectEvent } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
+	export let selectable: boolean = false;
 
 	let ctx: CanvasRenderingContext2D;
 
@@ -23,6 +26,10 @@
 		ctx.clearRect(0, 0, 1, 1);
 		return `rgba(${r}, ${g}, ${b}, ${255 / a})`;
 	}
+
+	const dispatch = createEventDispatcher<{
+		select: SelectEvent;
+	}>();
 
 	let mode: "categories" | "scores";
 
@@ -102,7 +109,7 @@
 		</div>
 	{/if}
 	<div class="textfield">
-		{#each value as [text, category]}
+		{#each value as [text, category], i}
 			<span
 				class="textspan"
 				style:background-color={category === null ||
@@ -111,6 +118,10 @@
 					: _color_map[category].secondary}
 				class:no-cat={category === null || (active && active !== category)}
 				class:hl={category !== null}
+				class:selectable
+				on:click={() => {
+					dispatch("select", { index: i, value: [text, category] });
+				}}
 			>
 				<span class:no-label={!_color_map[category]} class="text">{text}</span>
 				{#if !show_legend && category !== null}
@@ -194,10 +205,10 @@
 
 	.textfield {
 		box-sizing: border-box;
-		margin-top: var(--size-7);
 		border-radius: var(--radius-xs);
 		background: var(--color-background-primary);
 		background-color: transparent;
+		padding: var(--block-padding);
 		max-width: var(--size-full);
 		line-height: var(--scale-4);
 		word-break: break-all;
@@ -245,5 +256,9 @@
 
 	.no-label {
 		color: var(--body-text-color);
+	}
+
+	.selectable {
+		cursor: pointer;
 	}
 </style>

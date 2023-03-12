@@ -6,6 +6,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Button } from "@gradio/button";
 	import EditableCell from "./EditableCell.svelte";
+	import type { SelectEvent } from "@gradio/utils";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -37,10 +38,19 @@
 
 	const dispatch = createEventDispatcher<{
 		change: { data: Array<Array<string | number>>; headers: Array<string> };
+		select: SelectEvent;
 	}>();
 
-	let editing: boolean | string = false;
-	let selected: boolean | string = false;
+	let editing: false | string = false;
+	let selected: false | string = false;
+	$: {
+		if (selected !== false) {
+			const loc = selected.split("-");
+			const row = parseInt(loc[0]);
+			const col = parseInt(loc[1]);
+			dispatch("select", { index: [row, col], value: data[row][col].value });
+		}
+	}
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
@@ -329,7 +339,7 @@
 		sort(col, sort_direction);
 	}
 
-	let header_edit: string | boolean;
+	let header_edit: string | false;
 
 	function update_headers_data() {
 		if (typeof selected === "string") {
