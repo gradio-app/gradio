@@ -160,7 +160,7 @@ because on Hugging Face Spaces, `allow_flagging` is set to `"never"` by default.
 
 You can now see all the examples flagged above in this [public Hugging Face dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo).
 
-![flagging callback hf](/assets/guides/flagging-callback-hf.png)
+![flagging callback hf](https://github.com/gradio-app/gradio/blob/main/guides/assets/flagging-callback-hf.png?raw=true)
 
 We created the `gradio.HuggingFaceDatasetSaver` class, but you can pass your own custom class as long as it inherits from `FLaggingCallback` defined in [this file](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py). If you create a cool callback, contribute it to the repo! 
 

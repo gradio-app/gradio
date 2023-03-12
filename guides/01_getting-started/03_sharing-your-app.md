@@ -23,7 +23,7 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
-<img style="width: 40%" src="/assets/guides/sharing.svg">
+<img style="width: 40%" src="https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true">
 
 Share links expire after 72 hours.
 
@@ -34,7 +34,7 @@ If you'd like to have a permanent link to your Gradio demo on the internet, use 
 You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
 
 <video autoplay muted loop>
-  <source src="/assets/guides/hf_demo.mp4" type="video/mp4" />
+  <source src="https://github.com/gradio-app/gradio/blob/main/guides/assets/hf_demo.mp4?raw=true" type="video/mp4" />
 </video>
 
 ## Embedding Hosted Spaces
@@ -43,7 +43,7 @@ Once you have hosted your app on Hugging Face Spaces, you may want to embed the 
 
 There are two ways to embed your Gradio demos, hosted on Hugging Face Spaces. You can find quick links to both options directly on the Space page, in the "Embed this Space" dropdown option:
 
-![Embed this Space dropdown option](/assets/guides/embed_this_space.png)
+![Embed this Space dropdown option](https://github.com/gradio-app/gradio/blob/main/guides/assets/embed_this_space.png?raw=true)
 
 ### Embedding with Web Components
 

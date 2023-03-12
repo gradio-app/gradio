@@ -121,7 +121,7 @@ shutil.copyfile("./data/reviews.db", DB_FILE)
 Note that you'll have to get an access token from the "Settings" tab of your HuggingFace for the above code to work.
 In the script, the token is securely accessed via an environment variable.
 
-![access_token](/assets/guides/access_token.png)
+![access_token](https://github.com/gradio-app/gradio/blob/main/guides/assets/access_token.png?raw=true)
 
 Now we will create a background task to synch our local database to the dataset hub every 60 seconds.
 We will use the [AdvancedPythonScheduler](https://apscheduler.readthedocs.io/en/3.x/) to handle the scheduling.

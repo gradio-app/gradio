@@ -38,7 +38,7 @@ There are three arguments in the `Interface` constructor to specify where this c
 * `description`: which accepts text, markdown or HTML and places it right under the title.
 * `article`: which also accepts text, markdown or HTML and places it below the interface.
 
-![annotated](/assets/guides/annotated.png)
+![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
 
 If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
 
