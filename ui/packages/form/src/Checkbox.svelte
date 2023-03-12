@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { SelectEvent } from "@gradio/utils";
+	import type { SelectEvent } from "@gradio/utils";
 
 	export let value: boolean;
 	export let disabled: boolean = false;
