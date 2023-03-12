@@ -23,8 +23,8 @@ class TestEvent:
             text = gr.Textbox()
             gallery = gr.Gallery()
 
-            def fn_img_index(evt: gr.EventData):
-                return evt.data["index"]
+            def fn_img_index(evt: gr.SelectEvent):
+                return evt.index
 
             gallery.select(fn_img_index, None, text)
 
@@ -33,7 +33,7 @@ class TestEvent:
 
         resp = client.post(
             f"{demo.local_url}run/predict",
-            json={"fn_index": 0, "data": [], "event_data": {"index": 1}},
+            json={"fn_index": 0, "data": [], "event_data": {"index": 1, "value": None}},
         )
         assert resp.status_code == 200
         assert resp.json()["data"][0] == "1"

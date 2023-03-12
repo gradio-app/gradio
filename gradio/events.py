@@ -275,8 +275,9 @@ class Selectable(EventListener):
             self, "select", callback=lambda: setattr(self, "selectable", True)
         )
         """
-        This event is triggered when the user selects an item from within the Component.
-        This event has EventData of type gradio.SelectEvent that carries information about the event.
+        This event is triggered when the user selects from within the Component.
+        This event has EventData of type gradio.SelectEvent that carries information, accessible through SelectEvent.index and SelectEvent.value.
+        See EventData documentation on how to use this event data.
         """
 
 

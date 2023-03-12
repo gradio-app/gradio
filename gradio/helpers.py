@@ -811,15 +811,15 @@ def make_waveform(
 @document()
 class EventData:
     """
-    When added to the arguments of an event listener method, this object will be passed into that method.
+    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed into that method.
     It contains information about the event that triggered the listener, including the target object and any other optional data.
 
     Example:
         gallery = gr.Gallery()
         focused = gr.Textbox()
 
-        def on_focus(evt: gr.EventData):
-            return evt.data["index"]
+        def on_focus(evt: gr.SelectEvent):  # SelectEvent is a subclass of EventData
+            return evt.index
 
         gallery.select(on_focus, None, focused)
     """
