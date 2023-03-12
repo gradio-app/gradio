@@ -17,8 +17,8 @@ This tutorial will show how to take a pretrained chatbot model and deploy it wit
 
 Let's start with a simple demo, with no actual model. Our bot will randomly respond "yes" or "no" to any input. 
 
-$code_chatbot_simple_demo
-$demo_chatbot_simple_demo
+$code_chatbot_simple
+$demo_chatbot_simple
 
 The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. Note that we chain two event event listeners with `.then` after a user triggers a submit:
 
