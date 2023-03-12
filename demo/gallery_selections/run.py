@@ -26,6 +26,7 @@ with gr.Blocks() as demo:
     gallery.select(get_select_index, None, selected)
 
     def darken_img(imgs, index):
+        index = int(index)
         imgs[index] = np.round(imgs[index] * 0.8).astype(np.uint8)
         return imgs, imgs
 
