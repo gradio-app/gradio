@@ -24,7 +24,6 @@ export async function load() {
 
 		guide_slugs[guide.name] = guide_slug;
 		const get_slug = make_slug_processor();
-		console.log(to_string);
 		function plugin() {
 			return function transform(tree) {
 				tree.children.forEach((n) => {
@@ -72,8 +71,6 @@ export async function load() {
 		guide.new_html = await compiled.code;
 	}
 
-	// these are the slugs that we can use to build the navigation
-	console.log(guide_slugs);
 	return {
 		guides,
 		guide_slugs

@@ -19,7 +19,6 @@
     if (browser) {
       window.__gradio_mode__ = "website";
     }
-	
 </script>
 
 <svelte:head>
