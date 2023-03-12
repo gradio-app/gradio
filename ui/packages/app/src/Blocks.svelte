@@ -237,8 +237,8 @@
 		if (status === "complete" || status === "error") {
 			dependencies.forEach((dep, i) => {
 				if (
-					dep.triggered_after === fn_index &&
-					(!dep.triggered_only_on_success || status === "complete")
+					dep.trigger_after === fn_index &&
+					(!dep.trigger_only_on_success || status === "complete")
 				) {
 					trigger_api_call(i, null);
 				}

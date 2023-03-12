@@ -7,8 +7,8 @@ import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
 
 from gradio.blocks import Block
-from gradio.helpers import EventData
 from gradio.documentation import document, set_documentation_group
+from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -49,7 +49,7 @@ class Dependency(dict):
         self.then = EventListenerMethod(
             self.trigger,
             "then",
-            triggered_after=dep_index,
+            trigger_after=dep_index,
             trigger_only_on_success=False,
         )
         """
@@ -58,7 +58,7 @@ class Dependency(dict):
         self.success = EventListenerMethod(
             self.trigger,
             "success",
-            triggered_after=dep_index,
+            trigger_after=dep_index,
             trigger_only_on_success=True,
         )
         """
@@ -77,14 +77,14 @@ class EventListenerMethod:
         event_name: str,
         show_progress: bool = True,
         callback: Callable | None = None,
-        triggered_after: int | None = None,
+        trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
     ):
         self.trigger = trigger
         self.event_name = event_name
         self.show_progress = show_progress
         self.callback = callback
-        self.triggered_after = triggered_after
+        self.trigger_after = trigger_after
         self.trigger_only_on_success = trigger_only_on_success
 
     def __call__(
@@ -143,7 +143,7 @@ class EventListenerMethod:
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
-            triggered_after=self.triggered_after,
+            trigger_after=self.trigger_after,
             trigger_only_on_success=self.trigger_only_on_success,
         )
         set_cancel_events(self.trigger, self.event_name, cancels)
@@ -266,6 +266,7 @@ class Releaseable(EventListener):
         This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider). This method can be used when this component is in a Gradio Blocks.
         """
 
+
 @document("*select", inherit=True)
 class Selectable(EventListener):
     def __init__(self):
@@ -274,6 +275,7 @@ class Selectable(EventListener):
         This event is triggered when the user selects an item from within the Component.
         This event has EventData of type gradio.SelectEvent that carries attribute `index` thats refer to the index of the selected item.
         """
+
 
 class SelectEvent(EventData):
     def __init__(self, target: Block | None, data: Any):

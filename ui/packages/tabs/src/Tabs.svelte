@@ -18,7 +18,10 @@
 	let tabs: Array<Tab> = [];
 
 	const selected_tab = writable<false | object | number | string>(false);
-	const dispatch = createEventDispatcher<{ change: undefined, select: number }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		select: number;
+	}>();
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
@@ -54,10 +57,12 @@
 					{t.name}
 				</button>
 			{:else}
-				<button on:click={() => {
-					change_tab(t.id);
-					dispatch("select", i);
-				}}>
+				<button
+					on:click={() => {
+						change_tab(t.id);
+						dispatch("select", i);
+					}}
+				>
 					{t.name}
 				</button>
 			{/if}

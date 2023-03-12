@@ -132,6 +132,8 @@ For example, in the chatbot example below, we first update the chatbot with the 
 $code_chatbot_simple_demo
 $demo_chatbot_simple_demo
 
+The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
+
 ## Running Events Continuously
 
 You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event

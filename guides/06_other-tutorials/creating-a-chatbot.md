@@ -20,7 +20,14 @@ Let's start with a simple demo, with no actual model. Our bot will randomly resp
 $code_chatbot_simple_demo
 $demo_chatbot_simple_demo
 
-The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. We pass the entire history of the chatbot to the function and back to the component. To clear the chatbot, we pass it `None`.
+The chatbot value stores the entire history of the conversation, as a list of response pairs between the user and bot. Note that we chain two event event listeners with `.then` after a user triggers a submit:
+
+1. The first method updates the chatbot with the user message and clears the input field. Because we want this to happen instantly, we set `queue=False`, which would skip any queue if it had been enabled.
+2. The second method waits for the bot to respond, and then updates the chatbot with the bot response.
+
+The reason we split these events is so that the user can see their message appear in the chatbot before the bot responds, which can take time to process.
+
+Note we pass the entire history of the chatbot to these functions and back to the component. To clear the chatbot, we pass it `None`.
 
 ### Using a Model
 
@@ -112,7 +119,6 @@ This produces the following demo, which you can try right here in your browser (
 <iframe src="https://dawood-chatbot-guide.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
-----------
 
 ## 4. Chatbot Markdown Support
 

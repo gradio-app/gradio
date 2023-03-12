@@ -52,8 +52,8 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.exceptions import Error
 from gradio.events import SelectEvent
+from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

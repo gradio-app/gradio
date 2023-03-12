@@ -17,7 +17,9 @@
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = { grid: [2], height: "auto" };
 
-	const dispatch = createEventDispatcher<{ select: { index: number | null } }>();
+	const dispatch = createEventDispatcher<{
+		select: { index: number | null };
+	}>();
 
 	// tracks whether the value of the gallery was reset
 	let was_reset: boolean = true;

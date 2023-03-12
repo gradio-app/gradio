@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Type
+from typing import Type
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Selectable
 
 set_documentation_group("layout")
-
-if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.components import Component
 
 
 @document()

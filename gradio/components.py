@@ -1046,7 +1046,12 @@ class CheckboxGroup(
 
 @document("style")
 class Radio(
-    FormComponent, Selectable, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Selectable,
+    Changeable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a set of radio buttons of which only one can be selected.
