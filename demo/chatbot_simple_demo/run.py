@@ -1,16 +1,24 @@
 import gradio as gr
 import random
-
-def respond(chat_history, message):
-  response = random.choice(["Yes", "No"])
-  return chat_history + [[message, response]]
+import time
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 
-    msg.submit(respond, [chatbot, msg], chatbot)
+    def user_message(message, history):
+        return "", history + [[message, None]]
+
+    def bot_message(history):
+        response = random.choice(["Yes", "No"])
+        history[-1][1] = response
+        time.sleep(1)
+        return history
+
+    msg.submit(user_message, [msg, chatbot], [msg, chatbot], queue=False).then(
+        bot_message, chatbot, chatbot
+    )
     clear.click(lambda: None, None, chatbot, queue=False)
 
 if __name__ == "__main__":
