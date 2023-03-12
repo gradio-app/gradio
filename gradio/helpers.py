@@ -625,7 +625,7 @@ def special_args(
                 inputs.insert(i, request)
         elif issubclass(param.annotation, EventData):
             event_data_index = i
-            if inputs is not None:
+            if inputs is not None and event_data is not None:
                 inputs.insert(i, param.annotation(event_data.target, event_data._data))
     if inputs is not None:
         while len(inputs) < len(positional_args):
