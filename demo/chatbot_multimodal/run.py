@@ -8,7 +8,7 @@ def add_file(history, file):
     history = history + [((file.name,), None)]
     return history
 
-def bot_response(history):
+def bot(history):
     if isinstance(history[-1][0], str):
         response = "Cool!"
     else:
@@ -29,10 +29,10 @@ with gr.Blocks() as demo:
             btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
             
     txt.submit(add_text, [chatbot, txt], [chatbot, txt]).then(
-        bot_response, chatbot, chatbot
+        bot, chatbot, chatbot
     )
     btn.upload(add_file, [chatbot, btn], [chatbot]).then(
-        bot_response, chatbot, chatbot
+        bot, chatbot, chatbot
     )
 
 if __name__ == "__main__":
