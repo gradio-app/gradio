@@ -145,3 +145,14 @@ Here is an example of a sine curve that updates every second!
 
 $code_sine_curve
 $demo_sine_curve
+
+## Gathering Event Data
+
+You can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. 
+
+For example, event data for `.select()` can be type hinted by a `gradio.SelectEvent` argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a `Textbox`, a specific image in a `Gallery`, or a specific cell in a `DataFrame`, the event data argument would contain information about the specific selection.
+
+In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. 
+
+$code_tictactoe
+$demo_tictactoe

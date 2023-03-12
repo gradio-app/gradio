@@ -276,7 +276,7 @@ class Selectable(EventListener):
         )
         """
         This event is triggered when the user selects an item from within the Component.
-        This event has EventData of type gradio.SelectEvent that carries attribute `index` thats refer to the index of the selected item.
+        This event has EventData of type gradio.SelectEvent that carries information about the event.
         """
 
 
@@ -285,7 +285,7 @@ class SelectEvent(EventData):
         super().__init__(target, data)
         self.index: int | Tuple[int, int] = data["index"]
         """
-        The index of the selected item, is a tuple if the component is two dimensional.
+        The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
         """
         self.value: Any = data["value"]
         """

@@ -70,7 +70,7 @@ with gr.Blocks() as demo:
     )
 
     name = gr.Textbox(
-        label="Name",
+        label="Name (select)",
         info="Full name, including middle name. No special characters.",
         placeholder="John Doe",
         value="John Doe",
@@ -214,6 +214,7 @@ with gr.Blocks() as demo:
                 select_selected = gr.Textbox(label="Selected")
 
                 selectables = [
+                    name,
                     checkboxes,
                     radio,
                     drop_2,

@@ -246,6 +246,7 @@ class FormComponent:
 class Textbox(
     FormComponent,
     Changeable,
+    Selectable,
     Submittable,
     Blurrable,
     IOComponent,

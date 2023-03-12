@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
+	import type { SelectEvent } from "@gradio/utils";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -21,14 +22,27 @@
 		change: string;
 		submit: undefined;
 		blur: undefined;
+		select: SelectEvent;
 	}>();
 
 	function handle_change(val: string) {
 		dispatch("change", val);
 	}
 
-	function handle_blur(e: FocusEvent) {
+	function handle_blur() {
 		dispatch("blur");
+	}
+
+	function handle_select(event: Event) {
+		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
+			| HTMLTextAreaElement
+			| HTMLInputElement;
+		const text = target.value;
+		const index: [number, number] = [
+			target.selectionStart as number,
+			target.selectionEnd as number
+		];
+		dispatch("select", { value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent) {
@@ -106,6 +120,7 @@
 				{disabled}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
+				on:select={handle_select}
 			/>
 		{:else if type === "password"}
 			<input
@@ -118,6 +133,7 @@
 				{disabled}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
+				on:select={handle_select}
 				autocomplete=""
 			/>
 		{:else if type === "email"}
@@ -131,6 +147,7 @@
 				{disabled}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
+				on:select={handle_select}
 				autocomplete="email"
 			/>
 		{/if}
@@ -146,6 +163,7 @@
 			{disabled}
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
+			on:select={handle_select}
 		/>
 	{/if}
 </label>
