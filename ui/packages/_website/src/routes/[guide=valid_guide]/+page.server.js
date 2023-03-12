@@ -5,6 +5,15 @@ import { make_slug_processor } from "../../utils";
 import { toString as to_string } from "hast-util-to-string";
 let guides = guides_json.guides;
 let guides_by_category = guides_json.guides_by_category;
+import Prism from "prismjs";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-csv";
+import "prismjs/components/prism-markup";
+
+
 // let guide;
 
 function plugin() {
@@ -15,6 +24,34 @@ function plugin() {
 			}
 		});
 	};
+}
+
+
+const langs = {
+	python: "python",
+	py: "python",
+	bash: "bash",
+	csv: "csv",
+	html: "html",
+	shell: "bash",
+	json: "json",
+	typescript: "typescript",
+	directory: "json",
+};
+
+function highlight(code, lang) {
+	const _lang = langs[lang] || "";
+
+	console.log(code, lang, _lang);
+	const highlighted = _lang
+		? `<pre class="language-${lang}"><code>${Prism.highlight(
+				code,
+				Prism.languages[_lang],
+				_lang
+		  )}</code></pre>`
+		: code;
+
+	return highlighted;
 }
 
 export async function load() {
@@ -68,7 +105,10 @@ export async function load() {
 		}
 
 		const compiled = await compile(guide.content, {
-			rehypePlugins: [plugin]
+			rehypePlugins: [plugin],
+			highlight: {
+				highlighter: highlight
+			}
 		});
 		guide.new_html = await compiled.code;
 	}

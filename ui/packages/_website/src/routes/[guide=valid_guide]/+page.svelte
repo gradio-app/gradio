@@ -27,15 +27,6 @@
         sidebar.scrollTop = target_link?.offsetTop;
     }
 
-    // afterUpdate(() => {
-    //     document.querySelectorAll(".prose h2").forEach(subheader => {
-    //     navigation.innerHTML += `
-    //       <a class='subheading block thin-link -indent-2 ml-4 mr-2' href='#${subheader.id}'>${subheader.innerText}</a>
-    //     `
-    //     });
-    //   })
-        
-    // $: console.log(navigation?.children)
     $: guide_page = guides.filter(guide => guide.name === $page.params.guide)[0];
 </script> 
 
@@ -85,13 +76,6 @@
                     style="max-width: 12rem"
                     href="{ guide.url }">{guide.pretty_name}</a>
                 {/if}
-
-                <!-- {#if guide.name == guide_page.name}
-                    <div 
-                    bind:this={navigation}
-                    class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
-                    </div>
-                {/if} -->
             {/each}
         {/each}
     </div>
