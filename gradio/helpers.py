@@ -815,21 +815,25 @@ class EventData:
     It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
 
     Example:
-        gallery = gr.Gallery()
-        index = gr.Number()
-        caption = gr.Textbox()
+        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+        textbox = gr.Textbox("Hello World!")
+
+        statement = gr.Textbox()
 
         def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected image number {evt.index}", evt.value
+            return f"You selected {evt.value} at {evt.index} from {evt.target}"
 
-        gallery.select(on_select, None, [index, caption])
+        table.select(on_select, None, statement)
+        gallery.select(on_select, None, statement)
+        textbox.select(on_select, None, statement)
     Demos: gallery_selections, tictactoe
     """
 
     def __init__(self, target: Block | None, data: Any):
         """
         Parameters:
-            target: The target object that triggered the event
+            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
         """
         self.target = target
         self._data = data
