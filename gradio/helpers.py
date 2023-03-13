@@ -818,7 +818,7 @@ class EventData:
         gallery = gr.Gallery()
         focused = gr.Textbox()
 
-        def on_focus(evt: gr.SelectEvent):  # SelectEvent is a subclass of EventData
+        def on_focus(evt: gr.SelectData):  # SelectData is a subclass of EventData
             return evt.index
 
         gallery.select(on_focus, None, focused)

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { Styles, SelectEvent } from "@gradio/utils";
+	import type { Styles, SelectData } from "@gradio/utils";
 
 	export let value: Array<[string | null, string | null]> | null;
 	let old_value: Array<[string | null, string | null]> | null;
@@ -15,7 +15,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}/file`);

@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let components: Array<keyof typeof component_map>;
 	export let label: string = "Examples";
@@ -18,7 +18,7 @@
 
 	const dispatch = createEventDispatcher<{
 		click: number;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	let samples_dir: string = root_url

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let value: boolean;
 	export let disabled: boolean = false;
@@ -8,7 +8,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	function handle_change(value: boolean) {

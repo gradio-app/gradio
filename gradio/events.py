@@ -276,12 +276,12 @@ class Selectable(EventListener):
         )
         """
         This event is triggered when the user selects from within the Component.
-        This event has EventData of type gradio.SelectEvent that carries information, accessible through SelectEvent.index and SelectEvent.value.
+        This event has EventData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value.
         See EventData documentation on how to use this event data.
         """
 
 
-class SelectEvent(EventData):
+class SelectData(EventData):
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.index: int | Tuple[int, int] = data["index"]

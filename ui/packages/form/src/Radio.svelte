@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { get_styles } from "@gradio/utils";
-	import type { Styles, SelectEvent } from "@gradio/utils";
+	import type { Styles, SelectData } from "@gradio/utils";
 
 	export let value: string | null;
 	export let style: Styles = {};
@@ -15,7 +15,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | null;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	$: dispatch("change", value);

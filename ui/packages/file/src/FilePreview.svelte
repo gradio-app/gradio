@@ -2,10 +2,10 @@
 	import type { FileData } from "@gradio/upload";
 	import { display_file_name, display_file_size } from "./utils";
 	import { createEventDispatcher } from "svelte";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	const dispatch = createEventDispatcher<{
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable: boolean = false;

@@ -52,7 +52,7 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.events import SelectEvent
+from gradio.events import SelectData
 from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,

@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { setContext, createEventDispatcher, tick } from "svelte";
 	import { writable } from "svelte/store";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	interface Tab {
 		name: string;
@@ -21,7 +21,7 @@
 	const selected_tab = writable<false | object | number | string>(false);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	setContext(TABS, {

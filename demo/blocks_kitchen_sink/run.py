@@ -207,7 +207,7 @@ with gr.Blocks() as demo:
         with gr.Column(scale=1):
             with gr.Accordion("Select Info"):
                 gr.Markdown(
-                    "Click on any part of any component with '(select)' in the label and see the SelectEvent data here."
+                    "Click on any part of any component with '(select)' in the label and see the SelectData data here."
                 )
                 select_index = gr.Textbox(label="Index")
                 select_value = gr.Textbox(label="Value")
@@ -226,7 +226,7 @@ with gr.Blocks() as demo:
                     gallery
                 ]
 
-                def select_data(evt: gr.SelectEvent):
+                def select_data(evt: gr.SelectData):
                     return [
                         evt.index,
                         evt.value,

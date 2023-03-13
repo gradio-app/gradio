@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -22,7 +22,7 @@
 		change: string;
 		submit: undefined;
 		blur: undefined;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	function handle_change(val: string) {

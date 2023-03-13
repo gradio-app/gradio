@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle, Info } from "@gradio/atoms";
 	import { get_styles } from "@gradio/utils";
-	import type { Styles, SelectEvent } from "@gradio/utils";
+	import type { Styles, SelectData } from "@gradio/utils";
 
 	export let value: Array<string> = [];
 	export let style: Styles = {};
@@ -14,7 +14,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: Array<string>;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	const toggleChoice = (choice: string) => {

@@ -23,7 +23,7 @@ class TestEvent:
             text = gr.Textbox()
             gallery = gr.Gallery()
 
-            def fn_img_index(evt: gr.SelectEvent):
+            def fn_img_index(evt: gr.SelectData):
                 return evt.index
 
             gallery.select(fn_img_index, None, text)

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
 	export let value: {
@@ -7,7 +7,7 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	const dispatch = createEventDispatcher<{ select: SelectEvent }>();
+	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
 	export let show_label: boolean = true;
 	export let color: string | undefined = undefined;

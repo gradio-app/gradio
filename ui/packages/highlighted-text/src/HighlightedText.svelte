@@ -2,7 +2,7 @@
 	const browser = typeof document !== "undefined";
 	import { colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
 	export let value: Array<[string, string | number]> = [];
@@ -28,7 +28,7 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	let mode: "categories" | "scores";

@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
@@ -15,7 +15,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	let inputValue: string,

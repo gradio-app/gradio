@@ -8,7 +8,7 @@ export const debounce = (callback: Function, wait = 250) => {
 	};
 };
 
-export interface SelectEvent {
+export interface SelectData {
 	index: number | [number, number];
 	value: any;
 	selected?: boolean;

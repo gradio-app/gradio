@@ -6,7 +6,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Button } from "@gradio/button";
 	import EditableCell from "./EditableCell.svelte";
-	import type { SelectEvent } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
@@ -38,7 +38,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: { data: Array<Array<string | number>>; headers: Array<string> };
-		select: SelectEvent;
+		select: SelectData;
 	}>();
 
 	let editing: false | string = false;
