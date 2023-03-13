@@ -20,8 +20,8 @@ Another type of data persistence Gradio supports is session **state**, where dat
 
 A chatbot is an example where you would need session state - you want access to a users previous submissions, but you cannot store chat history in a global variable, because then chat history would get jumbled between different users. 
 
-$code_chatbot_demo
-$demo_chatbot_demo
+$code_chatbot_dialogpt
+$demo_chatbot_dialogpt
 
 Notice how the state persists across submits within each page, but if you load this demo in another tab (or refresh the page), the demos will not share chat history. 
 

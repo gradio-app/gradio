@@ -129,8 +129,8 @@ You can also run events consecutively by using the `then` method of an event lis
 
 For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.
 
-$code_chatbot_simple_demo
-$demo_chatbot_simple_demo
+$code_chatbot_simple
+$demo_chatbot_simple
 
 The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
 
