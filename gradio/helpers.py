@@ -816,12 +816,13 @@ class EventData:
 
     Example:
         gallery = gr.Gallery()
-        focused = gr.Textbox()
+        index = gr.Number()
+        caption = gr.Textbox()
 
-        def on_focus(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return evt.index
+        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
+            return f"You selected image: {evt.index}", evt.value
 
-        gallery.select(on_focus, None, focused)
+        gallery.select(on_select, None, [index, caption])
     """
 
     def __init__(self, target: Block | None, data: Any):
