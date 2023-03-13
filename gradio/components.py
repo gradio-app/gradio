@@ -5367,7 +5367,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} of code or a {tuple} consisting of (string filepath, optional string language).
+    Postprocessing: expects the function to return a {str} of code or a single-elment {tuple}: (string filepath,)
     """
 
     languages = [
@@ -5430,9 +5430,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     def postprocess(self, y):
         if y is not None and isinstance(y, tuple):
             with open(y[0]) as file_data:
-                code = file_data.read()
-                language = y[1] if len(y) > 1 else None
-                return self.update(value=code, language=language)
+                return file_data.read()
         return y
 
     def generate_sample(self) -> str:

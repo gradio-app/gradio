@@ -2566,12 +2566,9 @@ class TestCode:
 
         test_file_dir = Path(Path(__file__).parent, "test_files")
         path = str(Path(test_file_dir, "test_label_json.json"))
-        with open(path):
-            assert code.postprocess(path) == path
-
-        code = gr.Code(accepts="filepath")
         with open(path) as f:
-            assert code.postprocess(path) == f.read()
+            assert code.postprocess(path) == path
+            assert code.postprocess((path, )) == f.read()
 
         assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
         assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"

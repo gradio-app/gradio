@@ -6,15 +6,16 @@
 	export let selected: boolean = false;
 </script>
 
-<div
+<pre
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
->
-	{value}
-</div>
+>{value}</pre>
 
 <style>
+	pre {
+		text-align: left;
+	}
 	.gallery {
 		padding: var(--size-1) var(--size-2);
 	}
