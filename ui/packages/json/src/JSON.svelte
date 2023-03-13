@@ -4,9 +4,9 @@
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
+	import { Copy, Check } from "@gradio/icons";
 
 	export let value: any = {};
-	export let copy_to_clipboard: string = "copy json";
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -41,15 +41,12 @@
 
 {#if value && value !== '""' && !is_empty(value)}
 	<button on:click={handle_copy}>
-		<span class="copy-text">{copy_to_clipboard}</span>
 		{#if copied}
-			<span
-				in:fade={{ duration: 100 }}
-				out:fade={{ duration: 350 }}
-				class="copy-success "
-			>
-				copied!
+			<span in:fade={{ duration: 300 }}>
+				<Check />
 			</span>
+		{:else}
+			<span class="copy-text"><Copy /></span>
 		{/if}
 	</button>
 	<div class="json-holder">
@@ -71,25 +68,18 @@
 		top: var(--block-label-margin);
 		right: var(--block-label-margin);
 		align-items: center;
-		transition: 150ms;
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
 		background: var(--block-label-background);
-		padding: var(--block-label-padding);
+		padding: 5px;
+		width: 22px;
+		height: 22px;
 		overflow: hidden;
 		color: var(--block-label-color);
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
-	}
-
-	.copy-success {
-		display: block;
-		position: absolute;
-		background: var(--block-label-background);
-		width: var(--size-full);
-		text-align: left;
 	}
 </style>

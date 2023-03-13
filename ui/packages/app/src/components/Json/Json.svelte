@@ -15,6 +15,7 @@
 	let old_value: any;
 	export let loading_status: LoadingStatus;
 	export let label: string;
+	export let show_label: boolean;
 	export let style: Styles = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
@@ -37,6 +38,7 @@
 	{#if label}
 		<BlockLabel
 			Icon={JSONIcon}
+			{show_label}
 			{label}
 			float={false}
 			disable={typeof style.container === "boolean" && !style.container}
@@ -45,5 +47,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<JSON {value} copy_to_clipboard={$_("interface.copy_to_clipboard")} />
+	<JSON {value} />
 </Block>
