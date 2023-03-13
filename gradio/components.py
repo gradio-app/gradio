@@ -5407,7 +5407,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            accepts: When the component is used to display code, this parameter sets whether the value should be a code string or a string filepath to a file containing code.
+            accepts: When the component is used to view code, this parameter sets whether the value it accepts should be a code string or a string filepath to a file containing code.
         """
         self.language = language
         self.accepts = accepts
