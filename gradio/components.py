@@ -5368,7 +5368,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} filepath or a {str} of code.
+    Postprocessing: expects the function to return a {str} of code or a {tuple} consisting of (string filepath, optional string language).
     """
 
     languages = [
@@ -5395,7 +5395,6 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
-        accepts: Literal["code", "filepath"] = "code",
         **kwargs,
     ):
         """
@@ -5407,10 +5406,8 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            accepts: When the component is used to view code, this parameter sets whether the value it accepts should be a code string or a string filepath to a file containing code.
         """
         self.language = language
-        self.accepts = accepts
         IOComponent.__init__(
             self,
             label=label,
@@ -5430,9 +5427,11 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         }
 
     def postprocess(self, y):
-        if y is not None and self.accepts == "filepath":
-            with open(y) as file_data:
-                return file_data.read()
+        if y is not None and isinstance(y, tuple):
+            with open(y[0]) as file_data:
+                code = file_data.read()
+                language = y[1] if len(y) > 1 else None
+                return self.update(value=code, language=language)
         return y
 
     def generate_sample(self) -> str:
