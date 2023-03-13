@@ -8,7 +8,6 @@ import inspect
 import json
 import math
 import operator
-import os
 import random
 import tempfile
 import uuid
@@ -5368,7 +5367,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} filepath or a {str} of code.
+    Postprocessing: expects the function to return a {str} of code or a single-elment {tuple}: (string filepath,)
     """
 
     languages = [
@@ -5383,6 +5382,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         "dockerfile",
         "shell",
         "r",
+        None,
     ]
 
     def __init__(
@@ -5407,6 +5407,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        assert language in Code.languages, f"Language {language} not supported."
         self.language = language
         IOComponent.__init__(
             self,
@@ -5427,8 +5428,8 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         }
 
     def postprocess(self, y):
-        if y is not None and os.path.isfile(y):
-            with open(y) as file_data:
+        if y is not None and isinstance(y, tuple):
+            with open(y[0]) as file_data:
                 return file_data.read()
         return y
 
