@@ -47,5 +47,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<JSON {value} copy_to_clipboard={$_("interface.copy_to_clipboard")} />
+	<JSON {value} />
 </Block>
