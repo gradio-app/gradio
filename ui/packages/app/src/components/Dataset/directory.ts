@@ -15,6 +15,7 @@ import ExampleColorPicker from "./ExampleComponents/ColorPicker.svelte";
 import ExampleTimeSeries from "./ExampleComponents/TimeSeries.svelte";
 import ExampleMarkdown from "./ExampleComponents/Markdown.svelte";
 import ExampleHTML from "./ExampleComponents/HTML.svelte";
+import ExampleCode from "./ExampleComponents/Code.svelte";
 
 export const component_map = {
 	dropdown: ExampleDropdown,
@@ -33,5 +34,6 @@ export const component_map = {
 	colorpicker: ExampleColorPicker,
 	timeseries: ExampleTimeSeries,
 	markdown: ExampleMarkdown,
-	html: ExampleHTML
+	html: ExampleHTML,
+	code: ExampleCode
 };

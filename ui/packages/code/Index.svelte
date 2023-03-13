@@ -22,6 +22,7 @@
 	export let visible: boolean = true;
 	export let mode: "static" | "dynamic";
 	export let label: string = "Code";
+	export let show_label: boolean = true;
 	export let loading_status: LoadingStatus;
 
 	let dark_mode = target.classList.contains("dark");
@@ -33,7 +34,7 @@
 	<Block variant={"solid"} padding={false} {elem_id} {visible}>
 		<StatusTracker {...loading_status} />
 
-		<BlockLabel Icon={CodeIcon} {label} />
+		<BlockLabel Icon={CodeIcon} {show_label} {label} />
 
 		{#if !value}
 			<Empty size="large" unpadded_box={true}>
@@ -49,7 +50,7 @@
 	<Block variant={"solid"} padding={false} {elem_id} {visible}>
 		<StatusTracker {...loading_status} />
 
-		<BlockLabel Icon={CodeIcon} {label} />
+		<BlockLabel Icon={CodeIcon} {show_label} {label} />
 
 		<Code bind:value {language} {dark_mode} />
 	</Block>
