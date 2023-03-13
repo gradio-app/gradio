@@ -25,8 +25,8 @@ from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.themes import Base as Theme
 from gradio.themes import Default as DefaultTheme
-from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     GRADIO_VERSION,
@@ -469,7 +469,12 @@ class Blocks(BlockContext):
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
-            theme = Theme.from_hub(theme)
+            try:
+                theme = Theme.from_hub(theme)
+            except Exception as e:
+                breakpoint()
+                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                theme = DefaultTheme()
         if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
