@@ -14,12 +14,10 @@
 </script>
 
 
-<svelte:head>
   <MetaTags title={"Gradio Component Docs"} 
             url={"https://gradio.app/docs/components"} 
             canonical={"https://gradio.app/docs/components"}
             description={"Gradio includes pre-built components that can be used as inputs or outputs in your Interface or Blocks with a single line of code."}/>
-</svelte:head>
 
 <main class="container mx-auto px-4 flex gap-4">
 

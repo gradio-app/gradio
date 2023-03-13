@@ -14,12 +14,10 @@
     // }
 </script> 
 
-<svelte:head>
     <MetaTags title={"Gradio Changelog"}
               url={"https://gradio.app/changelog"}
               canonical={"https://gradio.app/changelog"}
               description="Gradio Changelog and Release Notes"/>
-</svelte:head>
 
 <div class="container mx-auto px-4 flex gap-4 relative">
     <div class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"

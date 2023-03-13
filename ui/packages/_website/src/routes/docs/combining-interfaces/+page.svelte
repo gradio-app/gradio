@@ -19,12 +19,10 @@
 </script>
 
 
-<svelte:head>
   <MetaTags title={"Gradio Combining Interfaces Docs"} 
             url={"https://gradio.app/docs/combining-interface"} 
             canonical={"https://gradio.app/docs/combining-interfaces"}
             description={description}/>
-</svelte:head>
 
 <main class="container mx-auto px-4 flex gap-4">
 

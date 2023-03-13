@@ -31,12 +31,10 @@
 </script>
 
 
-<svelte:head>
   <MetaTags title={"Gradio " + obj.name + " Docs"} 
             url={"https://gradio.app/docs/" + name} 
             canonical={"https://gradio.app/docs/" + name}
             description={obj.description}/>
-</svelte:head>
 
 <main class="container mx-auto px-4 flex gap-4">
 

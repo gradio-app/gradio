@@ -8,13 +8,10 @@
     let current_selection = 0;
 </script>
 
-<svelte:head>
     <MetaTags title="Gradio Demos"
               url="https://gradio.app/demos"
               canonical="https://gradio.app/demos"
               description="Play Around with Gradio Demos"/>
-</svelte:head>
-
 
 <main class="container mx-auto px-4 gap-4">
     <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500 group">Demos</h2>

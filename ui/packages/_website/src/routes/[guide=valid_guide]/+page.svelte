@@ -30,12 +30,10 @@
     $: guide_page = guides.filter(guide => guide.name === $page.params.guide)[0];
 </script> 
 
-<svelte:head>
     <MetaTags title={guide_page.pretty_name}
               url={"https://gradio.app/" + guide_page.name}
               canonical={"https://gradio.app/" + guide_page.name}
               description="A Step-by-Step Gradio Tutorial"/>
-</svelte:head>
 
 <div class="container mx-auto px-4 flex gap-4 relative">
     <div
