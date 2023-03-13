@@ -306,7 +306,7 @@ class Textbox(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
-        Uses event data gradio.SelectData to carry `value` referring to selected subtring, and `index` tuple referring to selected range endpoints
+        Uses event data gradio.SelectData to carry `value` referring to selected subtring, and `index` tuple referring to selected range endpoints.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -832,7 +832,7 @@ class Checkbox(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects Checkbox.
-        Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox
+        Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -947,7 +947,7 @@ class CheckboxGroup(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects within CheckboxGroup.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected checkbox, `index` to refer to index, and `selected` to refer to state of checkbox
+        Uses event data gradio.SelectData to carry `value` referring to label of selected checkbox, `index` to refer to index, and `selected` to refer to state of checkbox.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -1131,7 +1131,7 @@ class Radio(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Radio option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index
+        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -1298,7 +1298,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Dropdown option.
-        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index
+        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -2385,7 +2385,7 @@ class File(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects file from list.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index
+        Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
         TempFileManager.__init__(self)
@@ -3406,7 +3406,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         self.select: EventListenerMethod
         """
         Event listener for when the user selects a category from Label.
-        Uses event data gradio.SelectData to carry `value` referring to name of selected category, and `index` to refer to index
+        Uses event data gradio.SelectData to carry `value` referring to name of selected category, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -3557,7 +3557,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Highlighted text span.
-        Uses event data gradio.SelectData to carry `value` referring to selected [text, label] tuple, and `index` to refer to span index
+        Uses event data gradio.SelectData to carry `value` referring to selected [text, label] tuple, and `index` to refer to span index.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -3868,7 +3868,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
         self.select: EventListenerMethod
         """
         Event listener for when the user selects image within Gallery.
-        Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index
+        Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
         TempFileManager.__init__(self)
@@ -4068,7 +4068,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.
-        Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index
+        Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
         See EventData documentation on how to use this event data.
         """
 
