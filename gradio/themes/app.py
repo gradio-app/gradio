@@ -5,7 +5,7 @@ import gradio as gr
 with gr.Blocks(theme=gr.themes.Default()) as demo:
     gr.Markdown(
         """
-    # {THEME} Preview
+    # Theme preview: `{THEME}`
 
     To use this theme, set `theme='{AUTHOR}/{SPACE_NAME}'` in `gr.Blocks()` or `gr.Interface()`.
 
