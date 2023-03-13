@@ -140,7 +140,9 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
-    ) -> Dict[str, Any]:
+        trigger_after: int | None = None,
+        trigger_only_on_success: bool = False,
+    ) -> Tuple[Dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -158,7 +160,10 @@ class Block:
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-        Returns: None
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            trigger_after: if set, this event will be triggered after 'trigger_after' function index
+            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
+        Returns: dependency information, dependency index
         """
         # Support for singular parameter
         if isinstance(inputs, set):
@@ -231,9 +236,11 @@ class Block:
                 "continuous": bool(every),
                 "generator": inspect.isgeneratorfunction(fn) or bool(every),
             },
+            "trigger_after": trigger_after,
+            "trigger_only_on_success": trigger_only_on_success,
         }
         Context.root_block.dependencies.append(dependency)
-        return dependency
+        return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
         return {
@@ -619,7 +626,7 @@ class Blocks(BlockContext):
                 for target in targets:
                     dependency = original_mapping[target].set_event_trigger(
                         event_name=trigger, fn=fn, **dependency
-                    )
+                    )[0]
                     if first_dependency is None:
                         first_dependency = dependency
 
@@ -688,6 +695,8 @@ class Blocks(BlockContext):
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
                 ]
+                if dependency.get("trigger_after") is not None:
+                    dependency["trigger_after"] += dependency_offset
                 # Recreate the cancel function so that it has the latest
                 # dependency fn indices. This is necessary to properly cancel
                 # events in the backend
@@ -1199,7 +1208,7 @@ class Blocks(BlockContext):
                 max_batch_size=max_batch_size,
                 every=every,
                 no_target=True,
-            )
+            )[0]
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1717,7 +1726,7 @@ class Blocks(BlockContext):
                         # without queue
                         queue=False if every is None else None,
                         every=every,
-                    )
+                    )[0]
                     component.load_event = dep
 
     def startup_events(self):

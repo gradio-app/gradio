@@ -233,6 +233,17 @@
 
 	app.on("data", ({ data, fn_index }) => {
 		handle_update(data, fn_index);
+		let status = loading_status.get_status_for_fn(fn_index);
+		if (status === "complete" || status === "error") {
+			dependencies.forEach((dep, i) => {
+				if (
+					dep.trigger_after === fn_index &&
+					(!dep.trigger_only_on_success || status === "complete")
+				) {
+					trigger_api_call(i);
+				}
+			});
+		}
 	});
 
 	app.on("status", ({ fn_index, ...status }) => {
@@ -248,6 +259,50 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
+	const trigger_api_call = (dep_index: number) => {
+		let dep = dependencies[dep_index];
+		const current_status = loading_status.get_status_for_fn(dep_index);
+		if (current_status === "pending" || current_status === "generating") {
+			return;
+		}
+
+		if (dep.cancels) {
+			dep.cancels.forEach((fn_index) => {
+				app.cancel("/predict", fn_index);
+			});
+		}
+
+		let payload = {
+			fn_index: dep_index,
+			data: dep.inputs.map((id) => instance_map[id].props.value)
+		};
+
+		if (dep.frontend_fn) {
+			dep
+				.frontend_fn(
+					payload.data.concat(
+						dep.outputs.map((id) => instance_map[id].props.value)
+					)
+				)
+				.then((v: []) => {
+					if (dep.backend_fn) {
+						payload.data = v;
+						make_prediction();
+					} else {
+						handle_update(v, dep_index);
+					}
+				});
+		} else {
+			if (dep.backend_fn) {
+				make_prediction();
+			}
+		}
+
+		function make_prediction() {
+			app.predict("/predict", payload);
+		}
+	};
+
 	async function handle_mount() {
 		await tick();
 
@@ -258,123 +313,38 @@
 			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
 		}
 
-		dependencies.forEach(
-			(
-				{
-					targets,
-					trigger,
-					inputs,
-					outputs,
-					queue,
-					backend_fn,
-					frontend_fn,
-					cancels,
-					...rest
-				},
-				i
-			) => {
-				const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-					t,
-					instance_map[t]
-				]);
+		dependencies.forEach((dep, i) => {
+			let { targets, trigger, inputs, outputs } = dep;
+			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
+				t,
+				instance_map[t]
+			]);
 
-				// page events
-				if (
-					targets.length === 0 &&
-					!handled_dependencies[i]?.includes(-1) &&
-					trigger === "load" &&
-					// check all input + output elements are on the page
-					outputs.every((v) => instance_map?.[v].instance) &&
-					inputs.every((v) => instance_map?.[v].instance)
-				) {
-					cancels &&
-						cancels.forEach((fn_index) => {
-							app.cancel("/predict", fn_index);
-						});
-
-					let payload = {
-						fn_index: i,
-						data: inputs.map((id) => instance_map[id].props.value)
-					};
-
-					if (frontend_fn) {
-						frontend_fn(
-							payload.data.concat(
-								outputs.map((id) => instance_map[id].props.value)
-							)
-						).then((v: []) => {
-							if (backend_fn) {
-								payload.data = v;
-								make_prediction();
-							} else {
-								handle_update(v, i);
-							}
-						});
-					} else {
-						if (backend_fn) {
-							make_prediction();
-						}
-					}
-					function make_prediction() {
-						app.predict("/predict", payload);
-					}
-
-					handled_dependencies[i] = [-1];
-				}
-
-				target_instances
-					.filter((v) => !!v && !!v[1])
-					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-						if (handled_dependencies[i]?.includes(id) || !instance) return;
-						instance?.$on(trigger, () => {
-							const current_status = loading_status.get_status_for_fn(i);
-							if (
-								current_status === "pending" ||
-								current_status === "generating"
-							) {
-								return;
-							}
-
-							if (cancels) {
-								cancels.forEach((fn_index) => {
-									app.cancel("/predict", fn_index);
-								});
-							}
-
-							let payload = {
-								fn_index: i,
-								data: inputs.map((id) => instance_map[id].props.value)
-							};
-
-							if (frontend_fn) {
-								frontend_fn(
-									payload.data.concat(
-										outputs.map((id) => instance_map[id].props.value)
-									)
-								).then((v: []) => {
-									if (backend_fn) {
-										payload.data = v;
-										make_prediction();
-									} else {
-										handle_update(v, i);
-									}
-								});
-							} else {
-								if (backend_fn) {
-									make_prediction();
-								}
-							}
-
-							function make_prediction() {
-								app.predict("/predict", payload);
-							}
-						});
-
-						if (!handled_dependencies[i]) handled_dependencies[i] = [];
-						handled_dependencies[i].push(id);
-					});
+			// page events
+			if (
+				targets.length === 0 &&
+				!handled_dependencies[i]?.includes(-1) &&
+				trigger === "load" &&
+				// check all input + output elements are on the page
+				outputs.every((v) => instance_map?.[v].instance) &&
+				inputs.every((v) => instance_map?.[v].instance)
+			) {
+				trigger_api_call(i);
+				handled_dependencies[i] = [-1];
 			}
-		);
+
+			target_instances
+				.filter((v) => !!v && !!v[1])
+				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					instance?.$on(trigger, () => {
+						trigger_api_call(i);
+					});
+
+					if (!handled_dependencies[i]) handled_dependencies[i] = [];
+					handled_dependencies[i].push(id);
+				});
+		});
 	}
 
 	function handle_destroy(id: number) {
