@@ -9,8 +9,7 @@
 <pre
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
-	class:selected
->{value}</pre>
+	class:selected>{value}</pre>
 
 <style>
 	pre {
