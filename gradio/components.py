@@ -8,7 +8,6 @@ import inspect
 import json
 import math
 import operator
-import os
 import random
 import tempfile
 import uuid
@@ -2978,7 +2977,7 @@ class State(IOComponent, SimpleSerializable):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: chatbot_demo, blocks_simple_squares
+    Demos: blocks_simple_squares
     Guides: creating_a_chatbot, real_time_speech_recognition
     """
 
@@ -3684,7 +3683,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid JSON {str} -- or a {list} or {dict} that is JSON serializable.
+    Postprocessing: expects a {str} filepath to a file containing valid JSON -- or a {list} or {dict} that is valid JSON
 
     Demos: zip_to_json, blocks_xray
     """
@@ -3732,7 +3731,6 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
-        interactive: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -3746,9 +3744,9 @@ class JSON(Changeable, IOComponent, JSONSerializable):
     def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
         """
         Parameters:
-            y: JSON output
+            y: either a string filepath to a JSON file, or a Python list or dict that can be converted to JSON
         Returns:
-            JSON output
+            JSON output in Python list or dict format
         """
         if y is None:
             return None
@@ -4033,9 +4031,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects function to return a {List[Tuple[str | None, str | None]]}, a list of tuples with user inputs and responses as strings of HTML or Nones. Messages that are `None` are not displayed.
+    Postprocessing: expects function to return a {List[Tuple[str | None | Tuple, str | None | Tuple]]}, a list of tuples with user message and response messages. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
-    Demos: chatbot_demo, chatbot_multimodal
+    Demos: chatbot_simple, chatbot_multimodal
     """
 
     def __init__(
@@ -4061,9 +4059,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         if color_map is not None:
             warnings.warn(
-                "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
+                "The 'color_map' parameter has been deprecated.",
             )
-        self.color_map = color_map
         self.md = utils.get_markdown_parser()
         self.select: EventListenerMethod
         """
@@ -4086,21 +4083,22 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
+<<<<<<< HEAD
             "color_map": self.color_map,
             "selectable": self.selectable,
+=======
+>>>>>>> origin
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        color_map: Tuple[str, str] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
     ):
         updated_config = {
-            "color_map": color_map,
             "label": label,
             "show_label": show_label,
             "visible": visible,
@@ -4109,23 +4107,58 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         }
         return updated_config
 
+    def _process_chat_messages(
+        self, chat_message: str | Tuple | List | Dict | None
+    ) -> str | Dict | None:
+        if chat_message is None:
+            return None
+        elif isinstance(chat_message, (tuple, list)):
+            mime_type = processing_utils.get_mimetype(chat_message[0])
+            return {
+                "name": chat_message[0],
+                "mime_type": mime_type,
+                "alt_text": chat_message[1] if len(chat_message) > 1 else None,
+                "data": None,  # These last two fields are filled in by the frontend
+                "is_file": True,
+            }
+        elif isinstance(
+            chat_message, dict
+        ):  # This happens for previously processed messages
+            return chat_message
+        elif isinstance(chat_message, str):
+            return self.md.renderInline(chat_message)
+        else:
+            raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
+
     def postprocess(
-        self, y: List[Tuple[str | None, str | None]]
-    ) -> List[Tuple[str | None, str | None]]:
+        self,
+        y: List[
+            Tuple[str | Tuple | List | Dict | None, str | Tuple | List | Dict | None]
+        ],
+    ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
-            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
         Returns:
-            List of tuples representing the message and response. Each message and response will be a string of HTML.
+            List of tuples representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information.
         """
         if y is None:
             return []
-        for i, (message, response) in enumerate(y):
-            y[i] = (
-                None if message is None else self.md.renderInline(message),
-                None if response is None else self.md.renderInline(response),
+        processed_messages = []
+        for message_pair in y:
+            assert isinstance(
+                message_pair, (tuple, list)
+            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
+            assert (
+                len(message_pair) == 2
+            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            processed_messages.append(
+                (
+                    self._process_chat_messages(message_pair[0]),
+                    self._process_chat_messages(message_pair[1]),
+                )
             )
-        return y
+        return processed_messages
 
     def style(self, height: int | None = None, **kwargs):
         """
@@ -5454,7 +5487,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} filepath or a {str} of code.
+    Postprocessing: expects the function to return a {str} of code or a single-elment {tuple}: (string filepath,)
     """
 
     languages = [
@@ -5469,6 +5502,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         "dockerfile",
         "shell",
         "r",
+        None,
     ]
 
     def __init__(
@@ -5493,6 +5527,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        assert language in Code.languages, f"Language {language} not supported."
         self.language = language
         IOComponent.__init__(
             self,
@@ -5513,8 +5548,8 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         }
 
     def postprocess(self, y):
-        if y is not None and os.path.isfile(y):
-            with open(y) as file_data:
+        if y is not None and isinstance(y, tuple):
+            with open(y[0]) as file_data:
                 return file_data.read()
         return y
 

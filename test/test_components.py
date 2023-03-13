@@ -1690,9 +1690,48 @@ class TestChatbot:
         assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
             ("You are <strong>cool</strong>", "so are <em>you</em>")
         ]
+
+        multimodal_msg = [
+            (("driving.mp4",), "cool video"),
+            (("cantina.wav",), "cool audio"),
+            (("lion.jpg", "A lion"), "cool pic"),
+        ]
+        processed_multimodal_msg = [
+            (
+                {
+                    "name": "driving.mp4",
+                    "mime_type": "video/mp4",
+                    "alt_text": None,
+                    "data": None,
+                    "is_file": True,
+                },
+                "cool video",
+            ),
+            (
+                {
+                    "name": "cantina.wav",
+                    "mime_type": "audio/wav",
+                    "alt_text": None,
+                    "data": None,
+                    "is_file": True,
+                },
+                "cool audio",
+            ),
+            (
+                {
+                    "name": "lion.jpg",
+                    "mime_type": "image/jpeg",
+                    "alt_text": "A lion",
+                    "data": None,
+                    "is_file": True,
+                },
+                "cool pic",
+            ),
+        ]
+
+        assert chatbot.postprocess(multimodal_msg) == processed_multimodal_msg
         assert chatbot.get_config() == {
             "value": [],
-            "color_map": None,
             "label": None,
             "show_label": True,
             "interactive": None,
@@ -2532,7 +2571,8 @@ class TestCode:
         test_file_dir = Path(Path(__file__).parent, "test_files")
         path = str(Path(test_file_dir, "test_label_json.json"))
         with open(path) as f:
-            assert code.postprocess(path) == f.read()
+            assert code.postprocess(path) == path
+            assert code.postprocess((path,)) == f.read()
 
         assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
         assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
