@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
+	import { Copy, Check } from "@gradio/icons";
+	import { fade } from "svelte/transition";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -13,6 +15,8 @@
 	export let type: "text" | "password" | "email" = "text";
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
+	let copied = false;
+	let timer: NodeJS.Timeout;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 	$: handle_change(value);
@@ -29,6 +33,21 @@
 
 	function handle_blur(e: FocusEvent) {
 		dispatch("blur");
+	}
+
+	async function handle_copy() {
+		if ("clipboard" in navigator) {
+			await navigator.clipboard.writeText(value);
+			copy_feedback();
+		}
+	}
+
+	function copy_feedback() {
+		copied = true;
+		if (timer) clearTimeout(timer);
+		timer = setTimeout(() => {
+			copied = false;
+		}, 1000);
 	}
 
 	async function handle_keypress(e: KeyboardEvent) {
@@ -135,6 +154,13 @@
 			/>
 		{/if}
 	{:else}
+		{#if show_label}
+			{#if copied}
+				<button in:fade={{ duration: 300 }}><Check /></button>
+			{:else}
+				<button on:click={handle_copy} class="copy-text"><Copy /></button>
+			{/if}
+		{/if}
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={value}
@@ -185,4 +211,25 @@
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
 	}
+	button {
+		display: flex;
+		position: absolute;
+		top: var(--block-label-margin);
+		right: var(--block-label-margin);
+		align-items: center;
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--color-border-primary);
+		border-top: none;
+		border-right: none;
+		border-radius: var(--block-label-right-radius);
+		background: var(--block-label-background);
+		padding: 5px;
+		width: 22px;
+		height: 22px;
+		overflow: hidden;
+		color: var(--block-label-color);
+		font: var(--font-sans);
+		font-size: var(--button-small-text-size);
+	}
+
 </style>
