@@ -5382,6 +5382,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         "dockerfile",
         "shell",
         "r",
+        None,
     ]
 
     def __init__(
@@ -5406,6 +5407,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        assert language in Code.languages, f"Language {language} not supported."
         self.language = language
         IOComponent.__init__(
             self,
