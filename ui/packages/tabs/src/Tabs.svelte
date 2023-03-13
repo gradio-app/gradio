@@ -19,6 +19,7 @@
 	let tabs: Array<Tab> = [];
 
 	const selected_tab = writable<false | object | number | string>(false);
+	const selected_tab_index = writable<number>(0);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
@@ -29,6 +30,7 @@
 			tabs.push({ name: tab.name, id: tab.id });
 			selected_tab.update((current) => current ?? tab.id);
 			tabs = tabs;
+			return tabs.length - 1;
 		},
 		unregister_tab: (tab: Tab) => {
 			const i = tabs.findIndex((t) => t.id === tab.id);
@@ -37,13 +39,14 @@
 				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current
 			);
 		},
-
-		selected_tab
+		selected_tab,
+		selected_tab_index
 	});
 
 	function change_tab(id: object | string | number) {
 		selected = id;
 		$selected_tab = id;
+		$selected_tab_index = tabs.findIndex((t) => t.id === id);
 		dispatch("change");
 	}
 

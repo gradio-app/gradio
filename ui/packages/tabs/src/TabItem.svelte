@@ -2,25 +2,25 @@
 	import { getContext, onMount, createEventDispatcher, tick } from "svelte";
 	import { TABS } from "./Tabs.svelte";
 	import { Component as Column } from "./../../app/src/components/Column";
-	import type { SelectData } from "@gradio/utils";
+	import { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let name: string;
 	export let id: string | number | object = {};
-	export let tab_index: number;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
-	const { register_tab, unregister_tab, selected_tab } = getContext(TABS);
+	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
+		getContext(TABS);
 
-	register_tab({ name, id });
+	let tab_index = register_tab({ name, id });
 
 	onMount(() => {
 		return () => unregister_tab({ name, id });
 	});
 
-	$: $selected_tab === id &&
-		tick().then(() => dispatch("select", { value: id, index: tab_index }));
+	$: $selected_tab_index === tab_index &&
+		tick().then(() => dispatch("select", { value: name, index: tab_index }));
 </script>
 
 <div

@@ -150,16 +150,17 @@ with gr.Blocks() as demo:
 
     gr.Markdown("## Media Files")
 
-    with gr.Tab("Audio"):
-        with gr.Row():
-            gr.Audio()
-            gr.Audio(source="microphone")
-            gr.Audio(join(KS_FILES, "cantina.wav"))
-    with gr.Tab("Other"):
-        # gr.Image(source="webcam")
-        gr.HTML(
-            "<div style='width: 100px; height: 100px; background-color: blue;'></div>"
-        )
+    with gr.Tabs():
+        with gr.Tab("Audio") as tabs:
+            with gr.Row():
+                gr.Audio()
+                gr.Audio(source="microphone")
+                gr.Audio(join(KS_FILES, "cantina.wav"))
+        with gr.Tab("Other"):
+            # gr.Image(source="webcam")
+            gr.HTML(
+                "<div style='width: 100px; height: 100px; background-color: blue;'></div>"
+            )
     with gr.Row():
         dataframe = gr.Dataframe(
             value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe (select)"
@@ -223,7 +224,8 @@ with gr.Blocks() as demo:
                     file,
                     highlight,
                     chatbot,
-                    gallery
+                    gallery,
+                    tabs
                 ]
 
                 def select_data(evt: gr.SelectData):

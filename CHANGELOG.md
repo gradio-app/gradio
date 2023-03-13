@@ -6,7 +6,22 @@
 - New code component allows you to enter, edit and display code with full syntax highlighting by [@pngwn](https://github.com/pngwn) in [PR 3421](https://github.com/gradio-app/gradio/pull/3421)
 
 ![](https://user-images.githubusercontent.com/12937446/224116643-5cfb94b3-93ce-43ee-bb7b-c25c3b66e0a1.png)
-- Added the `.select()` event listener to the Gallery component. This event listener has EventData, data that is passed along the API to provide additional information about the event trigger. The EventData for the select event listener is the index of the item that was clicked. By [@aliabid94](https://github.com/aliabid94) in [PR 3399](https://github.com/gradio-app/gradio/pull/3399)
+- Added the `.select()` event listener, which also includes event data that can be passed as an argument to a function with type hint `gr.SelectData`. The following components support the `.select()` event listener: Chatbot, CheckboxGroup, Dataframe, Dropdown, File, Gallery, HighlightedText, Label, Radio, TabItem, Tab, Textbox. Example usage:
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gallery = gr.Gallery(["images/1.jpg", "images/2.jpg", "images/3.jpg"])
+    selected_index = gr.Textbox()
+
+    def on_select(evt: gr.SelectData):
+        return evt.index
+    
+    gallery.select(on_select, None, selected_index)
+```
+
+By [@aliabid94](https://github.com/aliabid94) in [PR 3399](https://github.com/gradio-app/gradio/pull/3399)
 
 
 ## Bug Fixes:
