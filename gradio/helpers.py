@@ -811,8 +811,8 @@ def make_waveform(
 @document()
 class EventData:
     """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed into that method.
-    It contains information about the event that triggered the listener, including the target object and any other optional data.
+    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
+    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
 
     Example:
         gallery = gr.Gallery()
@@ -820,9 +820,10 @@ class EventData:
         caption = gr.Textbox()
 
         def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected image: {evt.index}", evt.value
+            return f"You selected image number {evt.index}", evt.value
 
         gallery.select(on_select, None, [index, caption])
+    Demos: gallery_selections, tictactoe
     """
 
     def __init__(self, target: Block | None, data: Any):
