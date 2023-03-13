@@ -4083,11 +4083,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
-<<<<<<< HEAD
-            "color_map": self.color_map,
             "selectable": self.selectable,
-=======
->>>>>>> origin
             **IOComponent.get_config(self),
         }
 
