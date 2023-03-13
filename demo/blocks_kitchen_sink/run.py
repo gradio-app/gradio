@@ -150,8 +150,8 @@ with gr.Blocks() as demo:
 
     gr.Markdown("## Media Files")
 
-    with gr.Tabs():
-        with gr.Tab("Audio") as tabs:
+    with gr.Tabs() as tabs:
+        with gr.Tab("Audio"):
             with gr.Row():
                 gr.Audio()
                 gr.Audio(source="microphone")
