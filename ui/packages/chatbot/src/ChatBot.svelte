@@ -18,7 +18,7 @@
 	let autoscroll: Boolean;
 
 	const dispatch = createEventDispatcher<{
-		change: undefine;
+		change: undefined;
 		select: SelectData;
 	}>();
 
@@ -63,7 +63,7 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() =>
-							dispatch("select", { index: [i, j], value: message[1] })}
+							dispatch("select", { index: [i, j], value: message })}
 					>
 						{#if typeof message === "string"}
 							{@html message}

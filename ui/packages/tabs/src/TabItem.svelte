@@ -2,7 +2,7 @@
 	import { getContext, onMount, createEventDispatcher, tick } from "svelte";
 	import { TABS } from "./Tabs.svelte";
 	import { Component as Column } from "./../../app/src/components/Column";
-	import { SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let name: string;
