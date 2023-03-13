@@ -42,10 +42,8 @@
 {#if value && value !== '""' && !is_empty(value)}
 	<button on:click={handle_copy}>
 		{#if copied}
-			<span
-				in:fade={{ duration: 300 }}
-			>
-			<Check />
+			<span in:fade={{ duration: 300 }}>
+				<Check />
 			</span>
 		{:else}
 			<span class="copy-text"><Copy /></span>
@@ -76,12 +74,12 @@
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
 		background: var(--block-label-background);
+		padding: 5px;
+		width: 22px;
+		height: 22px;
 		overflow: hidden;
 		color: var(--block-label-color);
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
-		width: 22px;
-		height: 22px;
-		padding: 5px;
 	}
 </style>
