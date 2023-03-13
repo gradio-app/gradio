@@ -231,5 +231,4 @@
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
 	}
-
 </style>
