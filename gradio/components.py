@@ -5392,6 +5392,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         *,
         label: str | None = None,
         interactive: bool | None = None,
+        show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
         accepts: Literal["code", "filepath"] = "code",
@@ -5403,6 +5404,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
             label: component name in interface.
             interactive: Whether user should be able to enter code or only view it.
+            show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             accepts: When the component is used to view code, this parameter sets whether the value it accepts should be a code string or a string filepath to a file containing code.
@@ -5413,6 +5415,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             self,
             label=label,
             interactive=interactive,
+            show_label=show_label,
             visible=visible,
             elem_id=elem_id,
             value=value,
