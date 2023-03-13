@@ -827,5 +827,9 @@ class EventData:
     """
 
     def __init__(self, target: Block | None, data: Any):
+        """
+        Parameters:
+            target: The target object that triggered the event
+        """
         self.target = target
         self._data = data
