@@ -830,10 +830,10 @@ class EventData:
     Demos: gallery_selections, tictactoe
     """
 
-    def __init__(self, target: Block | None, data: Any):
+    def __init__(self, target: Block | None, _data: Any):
         """
         Parameters:
             target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
         """
         self.target = target
-        self._data = data
+        self._data = _data
