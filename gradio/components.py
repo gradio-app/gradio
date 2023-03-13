@@ -3588,7 +3588,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid JSON {str} -- or a {list} or {dict} that is JSON serializable.
+    Postprocessing: expects a {str} filepath to a file containing valid JSON -- or a {list} or {dict} that is valid JSON
 
     Demos: zip_to_json, blocks_xray
     """
@@ -3636,7 +3636,6 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
-        interactive: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -3650,9 +3649,9 @@ class JSON(Changeable, IOComponent, JSONSerializable):
     def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
         """
         Parameters:
-            y: JSON output
+            y: either a string filepath to a JSON file, or a Python list or dict that can be converted to JSON
         Returns:
-            JSON output
+            JSON output in Python list or dict format
         """
         if y is None:
             return None
