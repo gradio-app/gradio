@@ -11,7 +11,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Document gr.Error in the docs by [@aliabd](https://github.com/aliabd) in [PR 3465](https://github.com/gradio-app/gradio/pull/3465) 
 
 ## Testing and Infrastructure Changes:
 
