@@ -2,6 +2,7 @@
 
 <div align="center">
 
+
   [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
   <em>Build & share delightful machine learning apps easily</em>
 
