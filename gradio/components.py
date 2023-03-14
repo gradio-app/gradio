@@ -39,8 +39,10 @@ from gradio.events import (
     Clickable,
     Editable,
     EventListener,
+    EventListenerMethod,
     Playable,
     Releaseable,
+    Selectable,
     Streamable,
     Submittable,
     Uploadable,
@@ -244,6 +246,7 @@ class FormComponent:
 class Textbox(
     FormComponent,
     Changeable,
+    Selectable,
     Submittable,
     Blurrable,
     IOComponent,
@@ -299,6 +302,12 @@ class Textbox(
         self.lines = lines
         self.max_lines = max_lines if type == "text" else 1
         self.placeholder = placeholder
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects text in the Textbox.
+        Uses event data gradio.SelectData to carry `value` referring to selected subtring, and `index` tuple referring to selected range endpoints.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -769,15 +778,21 @@ class Slider(
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return Component.style(
+        Component.style(
             self,
             container=container,
         )
+        return self
 
 
 @document("style")
 class Checkbox(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Changeable,
+    Selectable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a checkbox that can be set to `True` or `False`.
@@ -813,6 +828,12 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects or deselects Checkbox.
+        Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -870,7 +891,12 @@ class Checkbox(
 
 @document("style")
 class CheckboxGroup(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Changeable,
+    Selectable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a set of checkboxes of which a subset can be checked.
@@ -917,6 +943,12 @@ class CheckboxGroup(
             )
         self.type = type
         self.test_input = self.choices
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects or deselects within CheckboxGroup.
+        Uses event data gradio.SelectData to carry `value` referring to label of selected checkbox, `index` to refer to index, and `selected` to refer to state of checkbox.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -1037,12 +1069,18 @@ class CheckboxGroup(
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
 class Radio(
-    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+    FormComponent,
+    Selectable,
+    Changeable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a set of radio buttons of which only one can be selected.
@@ -1089,6 +1127,12 @@ class Radio(
             )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects Radio option.
+        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -1186,11 +1230,12 @@ class Radio(
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
-class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1249,6 +1294,12 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects Dropdown option.
+        Uses event data gradio.SelectData to carry `value` referring to label of selected option, and `index` to refer to index.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -1349,7 +1400,8 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
@@ -1681,10 +1733,11 @@ class Image(
         """
         self._style["height"] = height
         self._style["width"] = width
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def stream(
         self,
@@ -1939,10 +1992,11 @@ class Video(
         """
         self._style["height"] = height
         self._style["width"] = width
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
 
 @document("style")
@@ -2246,10 +2300,11 @@ class Audio(
         """
         This method can be used to change the appearance of the audio component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
@@ -2257,7 +2312,13 @@ class Audio(
 
 @document("style")
 class File(
-    Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileManager
+    Changeable,
+    Selectable,
+    Clearable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
+    TempFileManager,
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
@@ -2320,6 +2381,12 @@ class File(
             )
         self.type = type
         self.test_input = None
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects file from list.
+        Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
+        See EventData documentation on how to use this event data.
+        """
         TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
@@ -2338,6 +2405,7 @@ class File(
             "file_count": self.file_count,
             "file_types": self.file_types,
             "value": self.value,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -2465,10 +2533,11 @@ class File(
         """
         This method can be used to change the appearance of the file component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | List | None) -> str:
         if input_data is None:
@@ -2480,7 +2549,7 @@ class File(
 
 
 @document("style")
-class Dataframe(Changeable, IOComponent, JSONSerializable):
+class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -2571,6 +2640,12 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects cell within Dataframe.
+        Uses event data gradio.SelectData to carry `value` referring to value of selected cell, and `index` tuple to refer to index row and column.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -2734,10 +2809,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the DataFrame component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: pd.DataFrame | np.ndarray | str | None):
         if input_data is None:
@@ -2883,10 +2959,11 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the TimeSeries component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
@@ -3013,7 +3090,8 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         if size is not None:
             self._style["size"] = size
 
-        return Component.style(self, **kwargs)
+        Component.style(self, **kwargs)
+        return self
 
 
 @document("style")
@@ -3174,7 +3252,8 @@ class UploadButton(
         if size is not None:
             self._style["size"] = size
 
-        return Component.style(self, **kwargs)
+        Component.style(self, **kwargs)
+        return self
 
 
 @document("style")
@@ -3285,7 +3364,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Label(Changeable, IOComponent, JSONSerializable):
+class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -3323,6 +3402,12 @@ class Label(Changeable, IOComponent, JSONSerializable):
         """
         self.num_top_classes = num_top_classes
         self.color = color
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects a category from Label.
+        Uses event data gradio.SelectData to carry `value` referring to name of selected category, and `index` to refer to index.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -3339,6 +3424,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
             "num_top_classes": self.num_top_classes,
             "value": self.value,
             "color": self.color,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -3416,11 +3502,12 @@ class Label(Changeable, IOComponent, JSONSerializable):
         Parameters:
             container: If True, will add a container to the label - providing some extra padding around the border.
         """
-        return Component.style(self, container=container)
+        Component.style(self, container=container)
+        return self
 
 
 @document("style")
-class HighlightedText(Changeable, IOComponent, JSONSerializable):
+class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -3466,6 +3553,12 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects Highlighted text span.
+        Uses event data gradio.SelectData to carry `value` referring to selected [text, label] tuple, and `index` to refer to span index.
+        See EventData documentation on how to use this event data.
+        """
         IOComponent.__init__(
             self,
             label=label,
@@ -3482,6 +3575,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
             "color_map": self.color_map,
             "show_legend": self.show_legend,
             "value": self.value,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -3580,7 +3674,8 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document("style")
@@ -3666,7 +3761,8 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         Parameters:
             container: If True, will place the JSON in a container - providing some extra padding around the border.
         """
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
 
 @document()
@@ -3738,7 +3834,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent, TempFileManager, FileSerializable):
+class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -3767,8 +3863,15 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects image within Gallery.
+        Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
+        See EventData documentation on how to use this event data.
+        """
         TempFileManager.__init__(self)
-        super().__init__(
+        IOComponent.__init__(
+            self,
             label=label,
             every=every,
             show_label=show_label,
@@ -3859,6 +3962,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
             grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
+            preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
         """
         if grid is not None:
             self._style["grid"] = grid
@@ -3867,7 +3971,8 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         if preview is not None:
             self._style["preview"] = preview
 
-        return Component.style(self, container=container, **kwargs)
+        Component.style(self, container=container, **kwargs)
+        return self
 
     def deserialize(
         self,
@@ -3922,7 +4027,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("style")
-class Chatbot(Changeable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
@@ -3957,6 +4062,13 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been deprecated.",
             )
         self.md = utils.get_markdown_parser()
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects message from Chatbot.
+        Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
+        See EventData documentation on how to use this event data.
+        """
+
         IOComponent.__init__(
             self,
             label=label,
@@ -3971,6 +4083,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -4052,10 +4165,11 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if kwargs.get("color_map") is not None:
             warnings.warn("The 'color_map' parameter has been deprecated.")
 
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
 
 @document("style")
@@ -4173,10 +4287,11 @@ class Model3D(
         """
         This method can be used to change the appearance of the Model3D component.
         """
-        return Component.style(
+        Component.style(
             self,
             **kwargs,
         )
+        return self
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
@@ -4280,10 +4395,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         return {"type": dtype, "plot": out_y}
 
     def style(self, container: bool | None = None):
-        return Component.style(
+        Component.style(
             self,
             container=container,
         )
+        return self
 
 
 class AltairPlot:
@@ -5465,7 +5581,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Component):
+class Dataset(Clickable, Selectable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -5564,7 +5680,8 @@ class Dataset(Clickable, Component):
         """
         This method can be used to change the appearance of the Dataset component.
         """
-        return Component.style(self, **kwargs)
+        Component.style(self, **kwargs)
+        return self
 
 
 @document()

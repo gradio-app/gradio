@@ -25,5 +25,11 @@
 	{#if info}
 		<Info>{info}</Info>
 	{/if}
-	<Checkbox {label} bind:value on:change disabled={mode === "static"} />
+	<Checkbox
+		{label}
+		bind:value
+		on:change
+		on:select
+		disabled={mode === "static"}
+	/>
 </Block>
