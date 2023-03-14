@@ -7,7 +7,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+* Fixes the File.upload() event trigger which broke as part of the change in how we uploaded files by [@abidlabs](https://github.com/abidlabs) in [PR 3462](https://github.com/gradio-app/gradio/pull/3462)
 
 ## Documentation Changes:
 
