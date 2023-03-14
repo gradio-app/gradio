@@ -10,7 +10,7 @@ monochrome_theme = gr.themes.Monochrome()
 soft_theme = gr.themes.Soft()
 glass_theme = gr.themes.Glass()
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=base_theme) as demo:
     gr.Markdown(
         """
     # Blocks Kitchen Sink
@@ -37,7 +37,7 @@ with gr.Blocks() as demo:
     )
     theme_selector = gr.Radio(
         ["Base", "Default", "Monochrome", "Soft", "Glass"],
-        value="Default",
+        value="Base",
         label="Theme",
     )
     theme_selector.change(
@@ -52,6 +52,7 @@ with gr.Blocks() as demo:
                 document.head.appendChild(theme_elem);
             }} else {{
                 var theme_elem = document.querySelector('.theme-css');
+
             }}
             if (theme == "Base") {{
                 var theme_css = `{base_theme._get_theme_css()}`;

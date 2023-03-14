@@ -62,4 +62,8 @@ class Default(Base):
             button_cancel_background_dark=f"linear-gradient(to bottom right, {colors.red.c600}, {colors.red.c700})",
             button_cancel_background_hover=f"linear-gradient(to bottom right, {colors.red.c100}, {colors.red.c100})",
             button_cancel_background_hover_dark=f"linear-gradient(to bottom right, {colors.red.c600}, {colors.red.c600})",
+            button_cancel_border_color=colors.red.c200,
+            button_cancel_border_color_dark=colors.red.c600,
+            button_cancel_text_color=colors.red.c600,
+            button_cancel_text_color_dark="white",
         )
