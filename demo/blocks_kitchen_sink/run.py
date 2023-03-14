@@ -70,7 +70,7 @@ with gr.Blocks() as demo:
     )
 
     name = gr.Textbox(
-        label="Name",
+        label="Name (select)",
         info="Full name, including middle name. No special characters.",
         placeholder="John Doe",
         value="John Doe",
@@ -80,14 +80,14 @@ with gr.Blocks() as demo:
     with gr.Row():
         slider1 = gr.Slider(label="Slider 1")
         slider2 = gr.Slider(label="Slider 2")
-    gr.CheckboxGroup(["A", "B", "C"], label="Checkbox Group")
+    checkboxes = gr.CheckboxGroup(["A", "B", "C"], label="Checkbox Group (select)")
 
     with gr.Row():
         with gr.Column(variant="panel", scale=1):
             gr.Markdown("## Panel 1")
             radio = gr.Radio(
                 ["A", "B", "C"],
-                label="Radio",
+                label="Radio (select)",
                 info="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
             )
             drop = gr.Dropdown(["Option 1", "Option 2", "Option 3"], show_label=False)
@@ -95,7 +95,7 @@ with gr.Blocks() as demo:
                 ["Option A", "Option B", "Option C"],
                 multiselect=True,
                 value=["Option A"],
-                label="Dropdown",
+                label="Dropdown (select)",
                 interactive=True,
             )
             check = gr.Checkbox(label="Go")
@@ -145,46 +145,59 @@ with gr.Blocks() as demo:
             ],
         ],
         inputs=[radio, drop, drop_2, check, img],
+        label="Examples (select)",
     )
 
     gr.Markdown("## Media Files")
 
-    with gr.Tab("Audio"):
-        with gr.Row():
-            gr.Audio()
-            gr.Audio(source="microphone")
-            gr.Audio(join(KS_FILES, "cantina.wav"))
-    with gr.Tab("Other"):
-        # gr.Image(source="webcam")
-        gr.HTML(
-            "<div style='width: 100px; height: 100px; background-color: blue;'></div>"
-        )
+    with gr.Tabs() as tabs:
+        with gr.Tab("Audio"):
+            with gr.Row():
+                gr.Audio()
+                gr.Audio(source="microphone")
+                gr.Audio(join(KS_FILES, "cantina.wav"))
+        with gr.Tab("Other"):
+            # gr.Image(source="webcam")
+            gr.HTML(
+                "<div style='width: 100px; height: 100px; background-color: blue;'></div>"
+            )
     with gr.Row():
-        gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
+        dataframe = gr.Dataframe(
+            value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe (select)"
+        )
         gr.JSON(
             value={"a": 1, "b": 2, "c": {"test": "a", "test2": [1, 2, 3]}}, label="JSON"
         )
-        gr.Label(value={"cat": 0.7, "dog": 0.2, "fish": 0.1})
-        gr.File()
+        label = gr.Label(
+            value={"cat": 0.7, "dog": 0.2, "fish": 0.1}, label="Label (select)"
+        )
+        file = gr.File(label="File (select)")
     with gr.Row():
         gr.ColorPicker()
         gr.Video(join(KS_FILES, "world.mp4"))
-        gr.Gallery(
+        gallery = gr.Gallery(
             [
                 (join(KS_FILES, "lion.jpg"), "lion"),
                 (join(KS_FILES, "logo.png"), "logo"),
                 (join(KS_FILES, "tower.jpg"), "tower"),
-            ]
+            ],
+            label="Gallery (select)",
         )
 
     with gr.Row():
         with gr.Column(scale=2):
-            chatbot = gr.Chatbot([["Hello", "Hi"]], label="Chatbot")
+            highlight = gr.HighlightedText(
+                [["The", "art"], ["dog", "noun"], ["is", None], ["fat", "adj"]],
+                label="Highlighted Text (select)",
+            )
+            chatbot = gr.Chatbot([["Hello", "Hi"]], label="Chatbot (select)")
             chat_btn = gr.Button("Add messages")
+
             def chat(history):
                 time.sleep(2)
                 yield [["How are you?", "I am good."]]
                 time
+
             chat_btn.click(
                 lambda history: history
                 + [["How are you?", "I am good."]]
@@ -193,11 +206,41 @@ with gr.Blocks() as demo:
                 chatbot,
             )
         with gr.Column(scale=1):
-            with gr.Accordion("Advanced Settings"):
-                gr.Markdown("Hello")
-                gr.Number(label="Chatbot control 1")
-                gr.Number(label="Chatbot control 2")
-                gr.Number(label="Chatbot control 3")
+            with gr.Accordion("Select Info"):
+                gr.Markdown(
+                    "Click on any part of any component with '(select)' in the label and see the SelectData data here."
+                )
+                select_index = gr.Textbox(label="Index")
+                select_value = gr.Textbox(label="Value")
+                select_selected = gr.Textbox(label="Selected")
+
+                selectables = [
+                    name,
+                    checkboxes,
+                    radio,
+                    drop_2,
+                    dataframe,
+                    label,
+                    file,
+                    highlight,
+                    chatbot,
+                    gallery,
+                    tabs
+                ]
+
+                def select_data(evt: gr.SelectData):
+                    return [
+                        evt.index,
+                        evt.value,
+                        evt.selected,
+                    ]
+
+                for selectable in selectables:
+                    selectable.select(
+                        select_data,
+                        None,
+                        [select_index, select_value, select_selected],
+                    )
 
     gr.Markdown("## Dataset Examples")
 
@@ -230,4 +273,4 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    demo.queue().launch(file_directories=[KS_FILES])
+    demo.launch(file_directories=[KS_FILES])

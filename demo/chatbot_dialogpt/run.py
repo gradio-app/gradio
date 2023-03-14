@@ -5,9 +5,21 @@ import torch
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 
-def predict(input, history=[]):
-    # tokenize the new input sentence
-    new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
+def user(message, history):
+    return "", history + [[message, None]]
+
+
+#     bot_message = random.choice(["Yes", "No"])
+#     history[-1][1] = bot_message
+#     time.sleep(1)
+#     return history
+
+# def predict(input, history=[]):
+#     # tokenize the new input sentence
+
+def bot(history):
+    user_message = history[-1][0]
+    new_user_input_ids = tokenizer.encode(user_message + tokenizer.eos_token, return_tensors='pt')
 
     # append the new user input tokens to the chat history
     bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
@@ -18,16 +30,17 @@ def predict(input, history=[]):
     # convert the tokens to text, and then split the responses into lines
     response = tokenizer.decode(history[0]).split("<|endoftext|>")
     response = [(response[i], response[i+1]) for i in range(0, len(response)-1, 2)]  # convert to tuples of list
-    return response, history
+    return history
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
-    state = gr.State([])
+    msg = gr.Textbox()
+    clear = gr.Button("Clear")
 
-    with gr.Row():
-        txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter").style(container=False)
+    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        bot, chatbot, chatbot
+    )
+    clear.click(lambda: None, None, chatbot, queue=False)
 
-    txt.submit(predict, [txt, state], [chatbot, state])
-            
 if __name__ == "__main__":
     demo.launch()

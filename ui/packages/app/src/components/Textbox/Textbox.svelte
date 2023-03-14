@@ -46,6 +46,7 @@
 		on:change
 		on:submit
 		on:blur
+		on:select
 		disabled={mode === "static"}
 	/>
 </Block>

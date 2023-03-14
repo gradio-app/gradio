@@ -4,10 +4,11 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple
 
 from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
+from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -41,6 +42,30 @@ class EventListener(Block):
                 event_listener_class.__init__(self)
 
 
+class Dependency(dict):
+    def __init__(self, trigger, key_vals, dep_index):
+        super().__init__(key_vals)
+        self.trigger = trigger
+        self.then = EventListenerMethod(
+            self.trigger,
+            "then",
+            trigger_after=dep_index,
+            trigger_only_on_success=False,
+        )
+        """
+        Triggered after directly preceding event is completed, regardless of success or failure.
+        """
+        self.success = EventListenerMethod(
+            self.trigger,
+            "success",
+            trigger_after=dep_index,
+            trigger_only_on_success=True,
+        )
+        """
+        Triggered after directly preceding event is completed, if it was successful.
+        """
+
+
 class EventListenerMethod:
     """
     Triggered on an event deployment.
@@ -52,11 +77,15 @@ class EventListenerMethod:
         event_name: str,
         show_progress: bool = True,
         callback: Callable | None = None,
+        trigger_after: int | None = None,
+        trigger_only_on_success: bool = False,
     ):
         self.trigger = trigger
         self.event_name = event_name
         self.show_progress = show_progress
         self.callback = callback
+        self.trigger_after = trigger_after
+        self.trigger_only_on_success = trigger_only_on_success
 
     def __call__(
         self,
@@ -75,7 +104,7 @@ class EventListenerMethod:
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: str | None = None,
-    ) -> dict:
+    ) -> Dependency:
         """
         Parameters:
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
@@ -97,7 +126,7 @@ class EventListenerMethod:
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-        dep = self.trigger.set_event_trigger(
+        dep, dep_index = self.trigger.set_event_trigger(
             self.event_name,
             fn,
             inputs,
@@ -114,11 +143,13 @@ class EventListenerMethod:
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
+            trigger_after=self.trigger_after,
+            trigger_only_on_success=self.trigger_only_on_success,
         )
         set_cancel_events(self.trigger, self.event_name, cancels)
         if self.callback:
             self.callback()
-        return dep
+        return Dependency(self.trigger, dep, dep_index)
 
 
 @document("*change", inherit=True)
@@ -233,4 +264,35 @@ class Releaseable(EventListener):
         self.release = EventListenerMethod(self, "release")
         """
         This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider). This method can be used when this component is in a Gradio Blocks.
+        """
+
+
+@document("*select", inherit=True)
+class Selectable(EventListener):
+    def __init__(self):
+        self.selectable: bool = False
+        self.select = EventListenerMethod(
+            self, "select", callback=lambda: setattr(self, "selectable", True)
+        )
+        """
+        This event is triggered when the user selects from within the Component.
+        This event has EventData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value.
+        See EventData documentation on how to use this event data.
+        """
+
+
+class SelectData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | Tuple[int, int] = data["index"]
+        """
+        The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the selected item.
+        """
+        self.selected: bool = data.get("selected", True)
+        """
+        True if the item was selected, False if deselected.
         """

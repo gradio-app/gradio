@@ -52,6 +52,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.events import SelectData
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (
@@ -61,7 +62,7 @@ from gradio.flagging import (
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
-from gradio.helpers import Progress
+from gradio.helpers import EventData, Progress
 from gradio.helpers import create_examples as Examples
 from gradio.helpers import make_waveform, skip, update
 from gradio.interface import Interface, TabbedInterface, close_all

@@ -33,6 +33,7 @@
 		{info}
 		{style}
 		{show_label}
+		on:select
 		on:change
 		disabled={mode === "static"}
 	/>
