@@ -2447,7 +2447,6 @@ class File(
                 f["data"],
                 f.get("is_file", False),
             )
-            print(f)
             if self.type == "file":
                 if is_file:
                     temp_file_path = self.make_temp_copy_if_needed(file_name)
