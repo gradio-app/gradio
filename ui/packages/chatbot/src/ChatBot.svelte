@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { Styles } from "@gradio/utils";
+	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 
 	export let value: Array<
@@ -12,11 +12,15 @@
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
+	export let selectable: boolean = false;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		select: SelectData;
+	}>();
 
 	beforeUpdate(() => {
 		autoscroll =
@@ -57,6 +61,9 @@
 						class:latest={i === value.length - 1}
 						class="message {j == 0 ? 'user' : 'bot'}"
 						class:hide={message === null}
+						class:selectable
+						on:click={() =>
+							dispatch("select", { index: [i, j], value: message })}
 					>
 						{#if typeof message === "string"}
 							{@html message}
@@ -184,6 +191,9 @@
 	}
 	.feedback button:hover {
 		color: var(--body-text-color);
+	}
+	.selectable {
+		cursor: pointer;
 	}
 
 	.pending {

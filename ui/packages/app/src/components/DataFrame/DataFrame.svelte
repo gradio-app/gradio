@@ -45,6 +45,7 @@
 		values={value}
 		{headers}
 		on:change={({ detail }) => handle_change(detail)}
+		on:select
 		editable={mode === "dynamic"}
 		{wrap}
 		{datatype}

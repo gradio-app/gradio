@@ -2,9 +2,9 @@
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { get_styles } from "@gradio/utils";
-	import type { Styles } from "@gradio/utils";
+	import type { Styles, SelectData } from "@gradio/utils";
 
-	export let value: string;
+	export let value: string | null;
 	export let style: Styles = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
@@ -13,7 +13,10 @@
 	export let show_label: boolean = true;
 	export let elem_id: string;
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{
+		change: string | null;
+		select: SelectData;
+	}>();
 
 	$: dispatch("change", value);
 
@@ -32,6 +35,7 @@
 			<input
 				{disabled}
 				bind:group={value}
+				on:input={() => dispatch("select", { value: choice, index: i })}
 				type="radio"
 				name="radio-{elem_id}"
 				value={choice}

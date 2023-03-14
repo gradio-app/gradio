@@ -9,7 +9,7 @@
 	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: string = "";
+	export let value: string | null = null;
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
 	export let show_label: boolean;
@@ -35,5 +35,6 @@
 		{style}
 		disabled={mode === "static"}
 		on:change
+		on:select
 	/>
 </Block>

@@ -4,10 +4,11 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple
 
 from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
+from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -263,4 +264,35 @@ class Releaseable(EventListener):
         self.release = EventListenerMethod(self, "release")
         """
         This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider). This method can be used when this component is in a Gradio Blocks.
+        """
+
+
+@document("*select", inherit=True)
+class Selectable(EventListener):
+    def __init__(self):
+        self.selectable: bool = False
+        self.select = EventListenerMethod(
+            self, "select", callback=lambda: setattr(self, "selectable", True)
+        )
+        """
+        This event is triggered when the user selects from within the Component.
+        This event has EventData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value.
+        See EventData documentation on how to use this event data.
+        """
+
+
+class SelectData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | Tuple[int, int] = data["index"]
+        """
+        The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the selected item.
+        """
+        self.selected: bool = data.get("selected", True)
+        """
+        True if the item was selected, False if deselected.
         """

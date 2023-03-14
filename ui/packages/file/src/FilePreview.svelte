@@ -1,17 +1,29 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import { Download } from "@gradio/icons";
-	import { IconButton } from "@gradio/atoms";
 	import { display_file_name, display_file_size } from "./utils";
+	import { createEventDispatcher } from "svelte";
+	import type { SelectData } from "@gradio/utils";
 
+	const dispatch = createEventDispatcher<{
+		select: SelectData;
+	}>();
 	export let value: FileData | FileData[];
+	export let selectable: boolean = false;
 </script>
 
 <div class="file-preview-holder">
 	<table class="file-preview">
 		<tbody>
-			{#each Array.isArray(value) ? value : [value] as file}
-				<tr class="file">
+			{#each Array.isArray(value) ? value : [value] as file, i}
+				<tr
+					class="file"
+					class:selectable
+					on:click={() =>
+						dispatch("select", {
+							value: file.orig_name || file.name,
+							index: i
+						})}
+				>
 					<td>
 						{display_file_name(file)}
 					</td>
@@ -82,5 +94,8 @@
 	}
 	.download > a:active {
 		color: var(--text-color-link-active);
+	}
+	.selectable {
+		cursor: pointer;
 	}
 </style>

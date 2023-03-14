@@ -18,6 +18,7 @@
 	export let show_label: boolean = true;
 	export let root: string;
 	export let root_url: null | string;
+	export let selectable: boolean = false;
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
@@ -47,8 +48,10 @@
 	{/if}
 	<ChatBot
 		{style}
+		{selectable}
 		value={_value}
 		pending_message={loading_status?.status === "pending"}
 		on:change
+		on:select
 	/>
 </Block>

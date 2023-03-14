@@ -13,6 +13,7 @@
 	export let show_label: boolean = true;
 	export let file_count: string = "single";
 	export let file_types: string[] | null = null;
+	export let selectable: boolean = false;
 
 	async function handle_upload({
 		detail
@@ -64,7 +65,7 @@
 
 {#if value}
 	<ModifyUpload on:clear={handle_clear} absolute />
-	<FilePreview {value} />
+	<FilePreview on:select {selectable} {value} />
 {:else}
 	<Upload
 		on:load={handle_upload}

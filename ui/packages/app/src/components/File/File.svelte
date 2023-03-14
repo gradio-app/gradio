@@ -24,6 +24,7 @@
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let root_url: null | string;
+	export let selectable: boolean = false;
 
 	export let loading_status: LoadingStatus;
 
@@ -108,14 +109,16 @@
 			value={_value}
 			{file_count}
 			{file_types}
+			{selectable}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:clear
 			on:upload
+			on:select
 		>
 			<UploadText type="file" />
 		</FileUpload>
 	{:else}
-		<FileComponent value={_value} {label} {show_label} />
+		<FileComponent on:select {selectable} value={_value} {label} {show_label} />
 	{/if}
 </Block>

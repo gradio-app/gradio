@@ -45,6 +45,7 @@ from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
+from gradio.helpers import EventData
 from gradio.processing_utils import TempFileManager
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
@@ -378,7 +379,14 @@ class App(FastAPI):
             event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
-            batch = app.get_blocks().dependencies[fn_index_inferred]["batch"]
+
+            dependency = app.get_blocks().dependencies[fn_index_inferred]
+            target = dependency["targets"][0] if len(dependency["targets"]) else None
+            event_data = EventData(
+                app.get_blocks().blocks[target] if target else None,
+                body.event_data,
+            )
+            batch = dependency["batch"]
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
@@ -389,6 +397,7 @@ class App(FastAPI):
                     state=session_state,
                     iterators=iterators,
                     event_id=event_id,
+                    event_data=event_data,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):

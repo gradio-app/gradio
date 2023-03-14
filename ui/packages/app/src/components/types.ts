@@ -37,6 +37,7 @@ export interface Dependency {
 	api_name: string | null;
 	cancels: Array<number>;
 	types: DependencyTypes;
+	collects_event_data: boolean;
 	trigger_after?: number;
 	trigger_only_on_success?: boolean;
 }
