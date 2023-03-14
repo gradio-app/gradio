@@ -663,6 +663,15 @@ class Obj:
                 return True
         return False
 
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
+
+    def items(self):
+        return self.__dict__.items()
+
     def __str__(self) -> str:
         return str(self.__dict__)
 

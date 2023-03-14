@@ -442,6 +442,10 @@ class TestPassingRequest:
     def test_request_get_headers(self):
         def identity(name, request: gr.Request):
             assert isinstance(request.headers["user-agent"], str)
+            assert isinstance(request.headers.items(), list)
+            assert isinstance(request.headers.keys(), list)
+            assert isinstance(request.headers.values(), list)
+            assert isinstance(dict(request.headers), dict)
             user_agent = request.headers["user-agent"]
             assert "testclient" in user_agent
             return name
