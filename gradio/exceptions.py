@@ -2,6 +2,7 @@ from gradio.documentation import document, set_documentation_group
 
 set_documentation_group("helpers")
 
+
 class DuplicateBlockError(ValueError):
     """Raised when a Blocks contains more than one Block with the same id"""
 
@@ -17,13 +18,15 @@ class TooManyRequestsError(Exception):
 class InvalidApiName(ValueError):
     pass
 
+
 @document()
 class Error(Exception):
     """
-    This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo. 
-    
+    This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo.
+
     Demos: calculator
     """
+
     def __init__(self, message: str):
         """
         Parameters:
