@@ -5,6 +5,7 @@
 	import { fade } from "svelte/transition";
 	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -29,13 +30,14 @@
 		change: string;
 		submit: undefined;
 		blur: undefined;
+		select: SelectData;
 	}>();
 
 	function handle_change(val: string) {
 		dispatch("change", val);
 	}
 
-	function handle_blur(e: FocusEvent) {
+	function handle_blur() {
 		dispatch("blur");
 	}
 
@@ -52,6 +54,18 @@
 		timer = setTimeout(() => {
 			copied = false;
 		}, 1000);
+	}
+	
+	function handle_select(event: Event) {
+		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
+			| HTMLTextAreaElement
+			| HTMLInputElement;
+		const text = target.value;
+		const index: [number, number] = [
+			target.selectionStart as number,
+			target.selectionEnd as number
+		];
+		dispatch("select", { value: text.substring(...index), index: index });
 	}
 
 	async function handle_keypress(e: KeyboardEvent) {
@@ -129,6 +143,7 @@
 				{disabled}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
+				on:select={handle_select}
 			/>
 		{:else if type === "password"}
 			<input
@@ -141,6 +156,7 @@
 				{disabled}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
+				on:select={handle_select}
 				autocomplete=""
 			/>
 		{:else if type === "email"}
@@ -154,6 +170,7 @@
 				{disabled}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
+				on:select={handle_select}
 				autocomplete="email"
 			/>
 		{/if}
@@ -176,6 +193,7 @@
 			{disabled}
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
+			on:select={handle_select}
 		/>
 	{/if}
 </label>
