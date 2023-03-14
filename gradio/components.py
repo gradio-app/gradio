@@ -289,7 +289,7 @@ class Textbox(
             label: component name in interface.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
-            show_label: if True, will display label and copy-to-clipboard button.
+            show_label: if True, will display label.
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -448,7 +448,7 @@ class Textbox(
         """
         This method can be used to change the appearance of the Textbox component.
         Parameters:
-            show_copy_button: includes a copy button to copy the text in the textbox.
+            show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if show_copy_button is not None:

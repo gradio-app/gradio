@@ -17,7 +17,6 @@
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
 	export let style: Styles = {};
-	console.log("show_copy_button", style.show_copy_button);
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -55,7 +54,7 @@
 			copied = false;
 		}, 1000);
 	}
-	
+
 	function handle_select(event: Event) {
 		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
 			| HTMLTextAreaElement
