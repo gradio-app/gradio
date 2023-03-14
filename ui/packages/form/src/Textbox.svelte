@@ -3,6 +3,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
 	import { fade } from "svelte/transition";
+	import { get_styles } from "@gradio/utils";
+	import type { Styles } from "@gradio/utils";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -13,6 +15,8 @@
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
+	export let style: Styles = {};
+	console.log("show_copy_button", style.show_copy_button);
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -154,7 +158,7 @@
 			/>
 		{/if}
 	{:else}
-		{#if show_label}
+		{#if show_label && style.show_copy_button}
 			{#if copied}
 				<button in:fade={{ duration: 300 }}><Check /></button>
 			{:else}
