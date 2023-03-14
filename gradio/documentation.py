@@ -20,15 +20,22 @@ def set_documentation_group(m):
 def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
     lines = [line.strip() for line in code.split("\n")]
-    found_attr = False
-    i = 0
+    i = None
     for i, line in enumerate(lines):
-        if line.startswith("self." + attr):
-            found_attr = True
+        if line.startswith("self." + attr + ":") or line.startswith(
+            "self." + attr + " ="
+        ):
             break
-    assert found_attr, f"Could not find {attr} in {cls.__name__}"
+    assert i is not None, f"Could not find {attr} in {cls.__name__}"
     start_line = lines.index('"""', i)
     end_line = lines.index('"""', start_line + 1)
+    for j in range(i + 1, start_line):
+        assert not lines[j].startswith("self."), (
+            f"Found another attribute before docstring for {attr} in {cls.__name__}: "
+            + lines[j]
+            + "\n start:"
+            + lines[i]
+        )
     doc_string = " ".join(lines[start_line + 1 : end_line])
     return doc_string
 
@@ -242,7 +249,13 @@ def generate_documentation():
                     and issubclass(cls, super_class)
                     and cls != super_class
                 ):
-                    documentation[mode][i]["fns"] += classes_inherit_documentation[
-                        super_class
-                    ]
+                    for inherited_fn in classes_inherit_documentation[super_class]:
+                        inherited_fn = dict(inherited_fn)
+                        try:
+                            inherited_fn["description"] = extract_instance_attr_doc(
+                                cls, inherited_fn["name"]
+                            )
+                        except (ValueError, AssertionError):
+                            pass
+                        documentation[mode][i]["fns"].append(inherited_fn)
     return documentation

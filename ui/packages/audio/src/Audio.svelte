@@ -313,7 +313,6 @@
 
 <style>
 	.mic-wrap {
-		position: absolute;
 		padding: var(--size-2);
 	}
 

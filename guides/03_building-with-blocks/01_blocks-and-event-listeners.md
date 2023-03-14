@@ -30,18 +30,6 @@ $demo_blocks_hello
 
 Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
 
-## Running Events Continuously
-
-You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
-`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.
-Note that this does not take into account the runtime of the event itself. So a function
-with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
-
-Here is an example of a sine curve that updates every second!
-
-$code_sine_curve
-$demo_sine_curve
-
 ## Multiple Data Flows
 
 A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:
@@ -135,3 +123,36 @@ $demo_blocks_essay_update
 
 See how we can configure the Textbox itself through the `gr.update()` method. The `value=` argument can still be used to update the value along with Component configuration.
 
+## Running Events Consecutively
+
+You can also run events consecutively by using the `then` method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps. 
+
+For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.
+
+$code_chatbot_simple
+$demo_chatbot_simple
+
+The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
+
+## Running Events Continuously
+
+You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
+`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.
+Note that this does not take into account the runtime of the event itself. So a function
+with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
+
+Here is an example of a sine curve that updates every second!
+
+$code_sine_curve
+$demo_sine_curve
+
+## Gathering Event Data
+
+You can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. 
+
+For example, event data for `.select()` can be type hinted by a `gradio.SelectData` argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a `Textbox`, a specific image in a `Gallery`, or a specific cell in a `DataFrame`, the event data argument would contain information about the specific selection.
+
+In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. 
+
+$code_tictactoe
+$demo_tictactoe

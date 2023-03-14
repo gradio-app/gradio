@@ -5,6 +5,7 @@
 <script lang="ts">
 	import { setContext, createEventDispatcher, tick } from "svelte";
 	import { writable } from "svelte/store";
+	import type { SelectData } from "@gradio/utils";
 
 	interface Tab {
 		name: string;
@@ -18,13 +19,18 @@
 	let tabs: Array<Tab> = [];
 
 	const selected_tab = writable<false | object | number | string>(false);
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const selected_tab_index = writable<number>(0);
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		select: SelectData;
+	}>();
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
 			tabs.push({ name: tab.name, id: tab.id });
 			selected_tab.update((current) => current ?? tab.id);
 			tabs = tabs;
+			return tabs.length - 1;
 		},
 		unregister_tab: (tab: Tab) => {
 			const i = tabs.findIndex((t) => t.id === tab.id);
@@ -33,13 +39,14 @@
 				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current
 			);
 		},
-
-		selected_tab
+		selected_tab,
+		selected_tab_index
 	});
 
 	function change_tab(id: object | string | number) {
 		selected = id;
 		$selected_tab = id;
+		$selected_tab_index = tabs.findIndex((t) => t.id === id);
 		dispatch("change");
 	}
 
@@ -54,7 +61,12 @@
 					{t.name}
 				</button>
 			{:else}
-				<button on:click={() => change_tab(t.id)}>
+				<button
+					on:click={() => {
+						change_tab(t.id);
+						dispatch("select", { value: t.name, index: i });
+					}}
+				>
 					{t.name}
 				</button>
 			{/if}
