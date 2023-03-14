@@ -186,7 +186,7 @@ class TestNumber:
         Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
 
         """
-        numeric_input = gr.Number()
+        numeric_input = gr.Number(elem_id="num", elem_classes="first")
         assert numeric_input.preprocess(3) == 3.0
         assert numeric_input.preprocess(None) is None
         assert numeric_input.postprocess(3) == 3
@@ -211,8 +211,8 @@ class TestNumber:
             "show_label": True,
             "label": None,
             "style": {},
-            "elem_id": None,
-            "elem_classes": None,
+            "elem_id": "num",
+            "elem_classes": ["first"],
             "visible": True,
             "interactive": None,
             "root_url": None,
