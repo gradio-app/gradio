@@ -7,3 +7,9 @@ export const debounce = (callback: Function, wait = 250) => {
 		timeout = setTimeout(next, wait);
 	};
 };
+
+export interface SelectData {
+	index: number | [number, number];
+	value: any;
+	selected?: boolean;
+}
