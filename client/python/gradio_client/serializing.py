@@ -1,22 +1,18 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-import os
-from pathlib import Path
 import json
-from typing import Any, Dict, List
+import os
 import uuid
+from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any, Dict, List
 
 from gradio_client import utils
 
 
 class Serializable(ABC):
     @abstractmethod
-    def serialize(
-        self, 
-        x: Any, 
-        load_dir: str | Path = ""
-    ):
+    def serialize(self, x: Any, load_dir: str | Path = ""):
         """
         Convert data from human-readable format to serialized format for a browser.
         """
@@ -24,11 +20,11 @@ class Serializable(ABC):
 
     @abstractmethod
     def deserialize(
-        self, 
-        x: Any, 
+        self,
+        x: Any,
         save_dir: str | Path | None = None,
         root_url: str | None = None,
-        access_token: str | None = None,        
+        access_token: str | None = None,
     ):
         """
         Convert data from serialized format for a browser to human-readable format.
@@ -211,12 +207,10 @@ class JSONSerializable(Serializable):
 
 class GallerySerializable(Serializable):
     def serialize(
-        self, 
-        x: str | None,
-        load_dir: str | Path = ""
+        self, x: str | None, load_dir: str | Path = ""
     ) -> List[List[str]] | None:
         if x is None or x == "":
-            return None        
+            return None
         files = []
         captions_file = Path(x) / "captions.json"
         with captions_file.open("r") as captions_json:
@@ -224,7 +218,7 @@ class GallerySerializable(Serializable):
         for file_name, caption in captions.items():
             img = FileSerializable().serialize(file_name)
             files.append([img, caption])
-        return files    
+        return files
 
     def deserialize(
         self,

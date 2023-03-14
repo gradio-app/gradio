@@ -14,11 +14,7 @@ import gradio as gr
 from gradio import media_data
 from gradio.context import Context
 from gradio.exceptions import InvalidApiName
-from gradio.external import (
-    TooManyRequestsError,
-    cols_to_rows,
-    get_tabular_examples,
-)
+from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
 from gradio.external_utils import get_pred_from_ws
 
 """

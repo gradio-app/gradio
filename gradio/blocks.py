@@ -1085,7 +1085,7 @@ class Blocks(BlockContext):
             block_config = {
                 "id": _id,
                 "type": block.get_block_name(),
-                "props": utils.delete_none(props)
+                "props": utils.delete_none(props),
             }
             serializer = utils.get_serializer_name(block)
             if serializer:

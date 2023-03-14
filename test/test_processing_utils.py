@@ -295,4 +295,3 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert Path(playable_vid).suffix == ".avi"
-

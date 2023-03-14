@@ -18,8 +18,8 @@ import numpy as np
 import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
-from PIL import Image, ImageOps, PngImagePlugin
 from gradio_client import utils as client_utils
+from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import utils
 
@@ -211,7 +211,6 @@ def convert_to_16_bit_wav(data):
 ##################
 
 
-
 class TempFileManager:
     """
     A class that should be inherited by any Component that needs to manage temporary files.
@@ -277,7 +276,9 @@ class TempFileManager:
 
         if file.filename:
             file_name = Path(file.filename).name
-            output_file_obj.name = client_utils.strip_invalid_filename_characters(file_name)
+            output_file_obj.name = client_utils.strip_invalid_filename_characters(
+                file_name
+            )
 
         full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
 

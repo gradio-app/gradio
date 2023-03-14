@@ -996,22 +996,28 @@ def get_serializer_name(block: Block) -> str | None:
         # Adapted from: https://stackoverflow.com/a/25959545/5209347
         if isinstance(meth, functools.partial):
             return get_class_that_defined_method(meth.func)
-        if inspect.ismethod(meth) or (inspect.isbuiltin(meth) and getattr(meth, '__self__', None) is not None and getattr(meth.__self__, '__class__', None)):
+        if inspect.ismethod(meth) or (
+            inspect.isbuiltin(meth)
+            and getattr(meth, "__self__", None) is not None
+            and getattr(meth.__self__, "__class__", None)
+        ):
             for cls in inspect.getmro(meth.__self__.__class__):
                 if meth.__name__ in cls.__dict__:
                     return cls
-            meth = getattr(meth, '__func__', meth)  # fallback to __qualname__ parsing
+            meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
         if inspect.isfunction(meth):
-            cls = getattr(inspect.getmodule(meth),
-                        meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0],
-                        None)
+            cls = getattr(
+                inspect.getmodule(meth),
+                meth.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[0],
+                None,
+            )
             if isinstance(cls, type):
                 return cls
-        return getattr(meth, '__objclass__', None)
-    
+        return getattr(meth, "__objclass__", None)
+
     cls = get_class_that_defined_method(block.serialize)  # type: ignore
     if cls:
-        return cls.__name__ 
+        return cls.__name__
 
 
 def get_markdown_parser() -> MarkdownIt:

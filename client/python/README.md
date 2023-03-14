@@ -19,7 +19,7 @@ job.result()
 
 ## Installation
 
-The lightweit `gradio_client` package can be installed from pip:
+If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency. Otherwise, the lightweight `gradio_client` package can be installed from pip (or pip3) and works with Python versions 3.7 or higher:
 
 ```bash
 $ pip install gradio_client

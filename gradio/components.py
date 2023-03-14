@@ -25,10 +25,18 @@ import pandas as pd
 import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
+from gradio_client import utils as client_utils
+from gradio_client.serializing import (
+    FileSerializable,
+    GallerySerializable,
+    ImgSerializable,
+    JSONSerializable,
+    Serializable,
+    SimpleSerializable,
+)
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
-from gradio_client import utils as client_utils
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -50,14 +58,6 @@ from gradio.events import (
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 from gradio.processing_utils import TempFileManager
-from gradio_client.serializing import (
-    FileSerializable,
-    ImgSerializable,
-    JSONSerializable,
-    Serializable,
-    SimpleSerializable,
-    GallerySerializable,
-)
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -2407,9 +2407,7 @@ class File(
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore
                 else:
-                    file = client_utils.decode_base64_to_file(
-                        data, file_path=file_name
-                    )
+                    file = client_utils.decode_base64_to_file(data, file_path=file_name)
                     file.orig_name = file_name  # type: ignore
                     self.temp_files.add(str(utils.abspath(file.name)))
                 return file
@@ -3138,9 +3136,7 @@ class UploadButton(
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore
                 else:
-                    file = client_utils.decode_base64_to_file(
-                        data, file_path=file_name
-                    )
+                    file = client_utils.decode_base64_to_file(data, file_path=file_name)
                     file.orig_name = file_name  # type: ignore
                     self.temp_files.add(str(utils.abspath(file.name)))
                 return file
