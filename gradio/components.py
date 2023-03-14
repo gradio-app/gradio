@@ -430,6 +430,24 @@ class Textbox(
             result.append((self.interpretation_separator, 0))
         return result
 
+    def style(
+        self,
+        *,
+        show_copy_button: bool | None = None,
+        container: bool | None = None,
+        **kwargs,
+    ):
+        """
+        This method can be used to change the appearance of the Textbox component.
+        Parameters:
+            show_copy_button: includes a copy button to copy the text in the textbox.
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
+        if show_copy_button is not None:
+            self._style["show_copy_button"] = show_copy_button
+
+        return Component.style(self, container=container, **kwargs)
+
 
 @document("style")
 class Number(
@@ -2918,9 +2936,6 @@ class State(IOComponent, SimpleSerializable):
         """
         self.stateful = True
         IOComponent.__init__(self, value=deepcopy(value), **kwargs)
-
-    def style(self):
-        return self
 
 
 class Variable(State):
