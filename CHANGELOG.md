@@ -23,7 +23,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+- Revert primary button background color in dark mode by [@aliabid94](https://github.com/aliabid94) in [PR 3468](https://github.com/gradio-app/gradio/pull/3468)
 
 ## Contributors Shoutout:
 
