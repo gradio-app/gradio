@@ -194,17 +194,15 @@ class TestGetThemeAssets:
             tags=["gradio-theme", "gradio"],
         )
 
-        with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
-            assert get_theme_assets("freddyaboulton/dracula") == [
-                ThemeAsset("themes/theme_schema@0.1.0.json"),
-                ThemeAsset("themes/theme_schema@0.1.1.json"),
-                ThemeAsset("themes/theme_schema@0.2.5.json"),
-                ThemeAsset("themes/theme_schema@1.5.9.json"),
-            ]
+        assert get_theme_assets(space_info) == [
+            ThemeAsset("themes/theme_schema@0.1.0.json"),
+            ThemeAsset("themes/theme_schema@0.1.1.json"),
+            ThemeAsset("themes/theme_schema@0.2.5.json"),
+            ThemeAsset("themes/theme_schema@1.5.9.json"),
+        ]
 
-        with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
-            assert gr.Theme._theme_version_exists("freddyaboulton/dracula", "0.1.1")
-            assert not gr.Theme._theme_version_exists("freddyaboulton/dracula", "2.0.0")
+        assert gr.Theme._theme_version_exists(space_info, "0.1.1")
+        assert not gr.Theme._theme_version_exists(space_info, "2.0.0")
 
     def test_raises_if_space_not_properly_tagged(self):
         space_info = huggingface_hub.hf_api.SpaceInfo(
@@ -216,7 +214,7 @@ class TestGetThemeAssets:
             match="freddyaboulton/dracula is not a valid gradio-theme space!",
         ):
             with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
-                get_theme_assets("freddyaboulton/dracula")
+                get_theme_assets(space_info)
 
 
 class TestThemeUploadDownload:
@@ -240,6 +238,13 @@ class TestThemeUploadDownload:
 
         assert demo.theme.to_dict() == dracula.to_dict()
 
+    def test_theme_download_raises_error_if_theme_does_not_exist(self):
+
+        with pytest.raises(
+            ValueError, match="The space freddyaboulton/nonexistent does not exist"
+        ):
+            gr.themes.Base.from_hub("freddyaboulton/nonexistent").to_dict()
+
     @patch("gradio.themes.base.huggingface_hub")
     @patch("gradio.themes.base.Base._theme_version_exists", return_value=True)
     def test_theme_upload_fails_if_duplicate_version(self, mock_1, mock_2):
@@ -254,8 +259,8 @@ class TestThemeUploadDownload:
 
     def test_dump_and_load(self):
         with tempfile.NamedTemporaryFile(suffix=".json") as path:
-            dracula.dump(str(path))
-            assert gr.themes.Base.load(str(path)).to_dict() == dracula.to_dict()
+            dracula.dump(path.name)
+            assert gr.themes.Base.load(path.name).to_dict() == dracula.to_dict()
 
     @patch("gradio.themes.base.Base._get_next_version", return_value="0.1.3")
     @patch("gradio.themes.base.Base._theme_version_exists", return_value=False)
@@ -268,6 +273,21 @@ class TestThemeUploadDownload:
         assert repo_call_args["repo_id"] == "freddyaboulton/my_monochrome"
         assert any(
             o.path_in_repo == "themes/theme_schema@0.1.3.json"
+            for o in repo_call_args["operations"]
+        )
+        mock_1.whoami.assert_called_with()
+
+    @patch("gradio.themes.base.huggingface_hub")
+    def test_first_upload_no_version(self, mock_1):
+        mock_1.whoami.return_value = {"name": "freddyaboulton"}
+
+        mock_1.HfApi().space_info.side_effect = huggingface_hub.hf_api.HTTPError("Foo")
+
+        gr.themes.Monochrome().push_to_hub(repo_name="does_not_exist")
+        repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
+        assert repo_call_args["repo_id"] == "freddyaboulton/does_not_exist"
+        assert any(
+            o.path_in_repo == "themes/theme_schema@0.0.1.json"
             for o in repo_call_args["operations"]
         )
         mock_1.whoami.assert_called_with()
@@ -290,7 +310,7 @@ class TestThemeUploadDownload:
         mock_1.whoami.assert_called_with(token="foo")
 
     @patch("gradio.themes.base.huggingface_hub")
-    def raise_error_if_no_token_and_not_logged_in(self, mock_1, mock_2, mock_3):
+    def test_raise_error_if_no_token_and_not_logged_in(self, mock_1):
         mock_1.whoami.side_effect = OSError("not logged in")
 
         with pytest.raises(
@@ -298,5 +318,5 @@ class TestThemeUploadDownload:
             match="In order to push to hub, log in via `huggingface-cli login`",
         ):
             gr.themes.Monochrome().push_to_hub(
-                repo_name="my_monochrome", version="0.1.5", hf_token="foo"
+                repo_name="my_monochrome", version="0.1.5"
             )

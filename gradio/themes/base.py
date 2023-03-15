@@ -99,7 +99,14 @@ class ThemeClass:
         else:
             name, version = repo_name.split("@")
 
-        assets = get_theme_assets(name)
+        api = huggingface_hub.HfApi()
+
+        try:
+            space_info = api.space_info(name)
+        except requests.HTTPError as e:
+            raise ValueError(f"The space {name} does not exist") from e
+
+        assets = get_theme_assets(space_info)
         matching_version = get_matching_version(assets, version)
 
         if not matching_version:
@@ -122,14 +129,16 @@ class ThemeClass:
             )
 
     @staticmethod
-    def _get_next_version(space_id: str) -> str:
-        assets = get_theme_assets(space_id)
+    def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
+        assets = get_theme_assets(space_info)
         latest_version = max(assets, key=lambda asset: asset.version).version
         return str(latest_version.next_patch())
 
     @staticmethod
-    def _theme_version_exists(space_id: str, version: str) -> bool:
-        assets = get_theme_assets(space_id)
+    def _theme_version_exists(
+        space_info: huggingface_hub.hf_api.SpaceInfo, version: str
+    ) -> bool:
+        assets = get_theme_assets(space_info)
         return any(a.version == semver.Version(version) for a in assets)
 
     def push_to_hub(
@@ -153,7 +162,6 @@ class ThemeClass:
         """
 
         from gradio import __version__
-        from gradio.themes import app
 
         api = huggingface_hub.HfApi()
 
@@ -171,21 +179,23 @@ class ThemeClass:
 
         space_id = f"{author}/{repo_name}"
 
-        huggingface_hub.create_repo(
-            space_id,
-            repo_type="space",
-            space_sdk="gradio",
-            token=hf_token,
-            exist_ok=True,
-        )
+        try:
+            space_info = api.space_info(space_id)
+        except requests.HTTPError:
+            space_info = None
+
+        space_exists = space_info is not None
 
         # If no version, set the version to next patch release
         if not version:
-            version = self._get_next_version(space_id)
+            if space_exists:
+                version = self._get_next_version(space_info)
+            else:
+                version = "0.0.1"
         else:
             _ = semver.Version(version)
 
-        if self._theme_version_exists(space_id, version):
+        if space_exists and self._theme_version_exists(space_info, version):
             raise ValueError(
                 f"The space {space_id} already has a "
                 f"theme with version {version}. See: themes/theme_schema@{version}.json. "
@@ -209,7 +219,7 @@ class ThemeClass:
             )
             readme_file.write(textwrap.dedent(readme_content))
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
-            contents = open(app.__file__).read()
+            contents = open(str(Path(__file__).parent / "app.py")).read()
             contents = re.sub(
                 r"theme=gr.themes.Default\(\)",
                 f"theme='{author}/{repo_name}'",
@@ -222,7 +232,7 @@ class ThemeClass:
         # TODO: Delete this once we publish this to PyPi
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as req_file:
             req_file.write(
-                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-8/gradio-3.20.1-py3-none-any.whl"
+                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-8/gradio-3.21.0-py3-none-any.whl"
             )
 
         operations = [
@@ -237,7 +247,22 @@ class ThemeClass:
             CommitOperationAdd(
                 path_in_repo="requirements.txt", path_or_fileobj=req_file.name
             ),
+            CommitOperationAdd(
+                path_in_repo="theme_dropdown.py",
+                path_or_fileobj=str(
+                    Path(__file__).parent / "utils" / "theme_dropdown.py"
+                ),
+            ),
         ]
+
+        huggingface_hub.create_repo(
+            space_id,
+            repo_type="space",
+            space_sdk="gradio",
+            token=hf_token,
+            exist_ok=True,
+        )
+
         api.create_commit(
             repo_id=f"{author}/{repo_name}",
             commit_message="Updating theme",

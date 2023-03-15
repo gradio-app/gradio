@@ -1,19 +1,28 @@
 import time
 
+from theme_dropdown import create_theme_dropdown
+
 import gradio as gr
 
+dropdown, js = create_theme_dropdown()
+
 with gr.Blocks(theme=gr.themes.Default()) as demo:
-    gr.Markdown(
-        """
-    # Theme preview: `{THEME}@{Version}`
+    with gr.Row().style(equal_height=True):
+        with gr.Column(scale=10):
+            gr.Markdown(
+                """
+                # Theme preview: `{THEME}`
+                To use this theme, set `theme='{AUTHOR}/{SPACE_NAME}'` in `gr.Blocks()` or `gr.Interface()`.
+                You can append an `@` and a semantic version expression, e.g. @>=1.0.0,<2.0.0 to pin to a given version
+                of this theme.
+                """
+            )
+        with gr.Column(scale=3):
+            with gr.Box():
+                dropdown.render()
+                toggle_dark = gr.Button(value="Toggle Dark").style(full_width=True)
 
-    To use this theme, set `theme='{AUTHOR}/{SPACE_NAME}'` in `gr.Blocks()` or `gr.Interface()`.
-
-    You can append an `@` and a semantic version expression, e.g. @>=1.0.0,<2.0.0 to pin to a given version
-    of this theme.
-    """
-    )
-    toggle_dark = gr.Button("Toggle Dark").style(full_width=False)
+    dropdown.change(None, dropdown, None, _js=js)
     toggle_dark.click(
         None,
         _js="""

@@ -17,11 +17,9 @@ class ThemeAsset:
         self.version = semver.Version(self.filename.split("@")[1].replace(".json", ""))
 
 
-def get_theme_assets(space_id: str) -> List[ThemeAsset]:
-    api = huggingface_hub.HfApi()
-    space_info = api.space_info(space_id)
+def get_theme_assets(space_info: huggingface_hub.hf_api.SpaceInfo) -> List[ThemeAsset]:
     if "gradio-theme" not in getattr(space_info, "tags", []):
-        raise ValueError(f"{space_id} is not a valid gradio-theme space!")
+        raise ValueError(f"{space_info.id} is not a valid gradio-theme space!")
 
     return [
         ThemeAsset(filename.rfilename)
