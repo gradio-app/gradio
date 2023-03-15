@@ -25,6 +25,8 @@ export async function load({params}) {
     let name = params.doc;
     let obj;
     let mode;
+    let headers = [];
+    let method_headers = []
     for (const key in docs) {
         for (const o in docs[key]) {
             if (o == name) {
@@ -38,6 +40,12 @@ export async function load({params}) {
                     obj.next_obj = "Block-Layouts"
                 }
 
+                if ("description" in obj) {
+                    headers.push(["Description", "description"])
+                }
+                
+
+
                 if ("demos" in obj) {
                     obj.demos.forEach(demo => {
                         demo.push(Prism.highlight(demo[1], Prism.languages[language]));
@@ -46,10 +54,27 @@ export async function load({params}) {
 
                 if (obj.example) {
                     obj.highlighted_example = Prism.highlight(obj.example, Prism.languages[language]);
+                    headers.push(["Example Usage", "example-usage"])
+                }
+                if (mode === "components") {
+                    headers.push(["Behavior", "behavior"])
+                }
+                if ((obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1) {
+                    headers.push(["Initialization", "initialization"])
+                }
+                if (mode === "components" && obj.string_shortcuts) {
+                    headers.push(["Shortcuts", "shortcuts"])
                 }
 
+                if ("demos" in obj) {
+                    headers.push(["Demos", "demos"])
+                }
+                
+
                 if ("fns" in obj && obj.fns.length > 0) {
+                    headers.push(["Methods", "methods"])
                     for (const fn of obj.fns) {
+                        method_headers.push([fn.name, fn.slug + "-header"])
                         if (fn.example) {
                             fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language]);
                         }
@@ -67,7 +92,9 @@ export async function load({params}) {
         components,
         helpers,
         routes,
-        COLOR_SETS
+        COLOR_SETS,
+        headers,
+        method_headers
     }
 
 }

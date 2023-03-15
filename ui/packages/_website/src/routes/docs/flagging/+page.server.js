@@ -26,6 +26,13 @@ export async function load() {
     let objs = [docs.building.simplecsvlogger, 
                 docs.building.csvlogger, 
                 docs.building.huggingfacedatasetsaver];
+    let headers = [
+        ["SimpleCSVLogger", "simple-csv-logger-header"],
+        ["CSVLogger", "csv-logger-header"],
+        ["HuggingFaceDatasetSaver", "hugging-face-dataset-saver-header"],
+    ];
+    let method_headers = [];
+    
 
     for (let obj of objs) {
         if ("demos" in obj) {
@@ -58,7 +65,9 @@ export async function load() {
         components,
         helpers,
         routes,
-        COLOR_SETS
+        COLOR_SETS,
+        headers,
+        method_headers
     }
 
 }

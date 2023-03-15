@@ -27,6 +27,8 @@ export async function load() {
 	let name = "interface";
 	let obj;
 	let mode;
+    let headers = [];
+    let method_headers = []
 
     const get_slug = make_slug_processor();
 
@@ -44,6 +46,9 @@ export async function load() {
 			if (o == name) {
 				obj = docs[key][o];
                 mode = key;
+                if ("description" in obj) {
+                    headers.push(["Description", "description"])
+                }
 
             if (docs[key][o].demos) {
                 docs[key][o].demos.forEach(demo => {
@@ -52,10 +57,29 @@ export async function load() {
             }
             if (docs[key][o].example) {
                 docs[key][o].highlighted_example = Prism.highlight(docs[key][o].example, Prism.languages[language]);
+                headers.push(["Example Usage", "example-usage"])
+
+            }
+            if (mode === "components") {
+                headers.push(["Behavior", "behavior"])
+            }
+            if ((obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1) {
+                headers.push(["Initialization", "initialization"])
+            }
+            if (mode === "components" && obj.string_shortcuts) {
+                headers.push(["Shortcuts", "shortcuts"])
             }
 
+            if ("demos" in obj) {
+                headers.push(["Demos", "demos"])
+            }
+
+
             if (docs[key][o].fns && docs[key][o].fns.length > 0) {
+                headers.push(["Methods", "methods"])
+
                 for (const fn of docs[key][o].fns) {
+                    method_headers.push([fn.name, fn.slug + "-header"])
                     if (fn.example) {
                         fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language]);
                     }
@@ -73,7 +97,9 @@ export async function load() {
         components,
         helpers,
         routes,
-        COLOR_SETS
+        COLOR_SETS,
+        headers,
+        method_headers
     }
 
 }

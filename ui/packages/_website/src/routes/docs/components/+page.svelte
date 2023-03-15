@@ -43,7 +43,10 @@
             <div class="text-lg">Audio <span class="text-orange-500">&#8594;</span></div>
             </a>
         </div>
+        <div class="flex flex-row">
 
+        
+        <div class="lg:w-3/4 lg:ml-10 lg:mr-24">
         <div class="obj" id="components">
 
         <h2 id="components-header"
@@ -109,6 +112,8 @@
                 {/each}
               </tbody>
             </table>
+          </div>
+          </div>
           </div>
           <div class="flex justify-between my-4">
             <a href="/docs/block-layouts"

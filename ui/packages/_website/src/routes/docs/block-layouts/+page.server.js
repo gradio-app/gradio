@@ -29,6 +29,15 @@ export async function load() {
                 docs.building.box, 
                 docs.building.accordion];
 
+    let headers = [
+        ["Row", "row-header"],
+        ["Column", "column-header"],
+        ["Tab", "tab-header"],
+        ["Box", "box-header"],
+        ["Accordion", "accordion-header"],
+    ];
+    let method_headers = [];
+
     for (let obj of objs) {
         if ("demos" in obj) {
             obj.demos.forEach(demo => {
@@ -59,7 +68,9 @@ export async function load() {
         components,
         helpers,
         routes,
-        COLOR_SETS
+        COLOR_SETS,
+        headers,
+        method_headers
     }
 
 }

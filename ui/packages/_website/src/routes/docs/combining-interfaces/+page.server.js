@@ -26,6 +26,12 @@ export async function load() {
     let objs = [docs.building.tabbedinterface, 
                 docs.building.parallel, 
                 docs.building.series];
+    let headers = [
+        ["Tabbed Interface", "tabbed-interface-header"],
+        ["Parallel", "parallel-header"],
+        ["Series", "series-header"]
+    ];
+    let method_headers = [];
     for (let obj of objs) {
         if ("demos" in obj) {
             obj.demos.forEach(demo => {
@@ -56,7 +62,9 @@ export async function load() {
         components,
         helpers,
         routes,
-        COLOR_SETS
+        COLOR_SETS,
+        headers,
+        method_headers
     }
 
 }

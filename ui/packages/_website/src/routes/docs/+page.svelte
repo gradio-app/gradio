@@ -15,6 +15,8 @@
     let components = data.components;
     let helpers = data.helpers;
     let routes = data.routes;
+    let headers = data.headers;
+    let method_headers = data.method_headers;
 
     let current_selection = 0;
 
@@ -57,6 +59,11 @@
                 <div class="text-lg">Flagging <span class="text-orange-500">&#8594;</span></div>
               </a>
         </div>
+
+        <div class="flex flex-row">
+
+        
+          <div class="lg:w-3/4 lg:ml-10 lg:mr-24">
         
         <div class="obj" id={ obj.name.toLowerCase() }>
             
@@ -245,6 +252,41 @@
           {/if}
         
         </div>
+
+      </div>
+
+      <div class="float-right mt-10 hidden lg:block ">
+        <div class='fixed'>
+          <div class="px-8">
+            <a class="thin-link my-2 block text-lg" href="{obj.slug}">{obj.name}</a>
+            {#if headers.length > 0}
+            <ul class="text-slate-700 text-lg leading-6">
+              {#each headers as header}
+              <li>
+                <a href="#{header[1]}" class="thin-link block my-2 font-light">{header[0]}</a>
+              </li>
+              {/each}
+              {#if method_headers.length > 0}
+              {#each method_headers as method_header}
+              <li class="ml-4">
+                <a href="#{method_header[1]}" class="thin-link block my-2 font-light">{method_header[0]}</a>
+              </li>
+              {/each}
+              {/if}
+            {#if obj.guides && obj.guides.length > 0  }
+              <li>
+                <a href="#guides" class="thin-link block my-2 font-light">Guides</a>
+              </li>
+            {/if}
+          </ul>
+          {/if}
+          </div>
+        </div>
+       </div>
+      
+      
+      </div>
+
 
         <div class="flex justify-between my-4">
           {#if obj.prev_obj}
