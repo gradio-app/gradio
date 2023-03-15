@@ -79,14 +79,14 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
     ):
-        updated_config = {
+        return {
             "value": value,
             "label": label,
             "show_label": show_label,
             "visible": visible,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     # Input Functionalities
     def preprocess(self, x: str | None) -> Any:

@@ -213,12 +213,6 @@ class IOComponent(Component, Serializable):
         pass
 
     @staticmethod
-    def add_interactive_to_config(config, interactive):
-        if interactive is not None:
-            config["mode"] = "dynamic" if interactive else "static"
-        return config
-
-    @staticmethod
     def get_load_fn_and_initial_value(value):
         if callable(value):
             initial_value = value()
@@ -347,7 +341,7 @@ class Textbox(
         interactive: bool | None = None,
         type: str | None = None,
     ):
-        updated_config = {
+        return {
             "lines": lines,
             "max_lines": max_lines,
             "placeholder": placeholder,
@@ -356,9 +350,9 @@ class Textbox(
             "visible": visible,
             "value": value,
             "type": type,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def generate_sample(self) -> str:
         return "Hello World"
@@ -534,14 +528,14 @@ class Number(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: float | None) -> float | None:
         """
@@ -727,7 +721,7 @@ class Slider(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "minimum": minimum,
             "maximum": maximum,
             "step": step,
@@ -736,9 +730,9 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def generate_sample(self) -> float:
         return self.maximum
@@ -862,15 +856,15 @@ class Checkbox(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def generate_sample(self):
         return True
@@ -982,16 +976,16 @@ class CheckboxGroup(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def generate_sample(self):
         return self.choices
@@ -1164,16 +1158,16 @@ class Radio(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def generate_sample(self):
         return self.choices[0]
@@ -1333,16 +1327,16 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def generate_sample(self):
         return self.choices[0]
@@ -1525,16 +1519,16 @@ class Image(
         visible: bool | None = None,
         brush_radius: int | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def _format_image(
         self, im: _Image.Image | None
@@ -1874,16 +1868,16 @@ class Video(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "source": source,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
@@ -2097,16 +2091,16 @@ class Audio(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "source": source,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: Dict[str, Any] | None
@@ -2417,15 +2411,15 @@ class File(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
@@ -2682,7 +2676,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "max_rows": max_rows,
             "max_cols": max_cols,
             "label": label,
@@ -2690,9 +2684,9 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: DataframeData):
         """
@@ -2898,16 +2892,16 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "colors": colors,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
@@ -3064,13 +3058,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
-        updated_config = {
+        return {
             "variant": variant,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(
         self,
@@ -3160,13 +3154,13 @@ class UploadButton(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
@@ -3319,14 +3313,14 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
-        updated_config = {
+        return {
             "value": value,
             "label": label,
             "show_label": show_label,
             "visible": visible,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: str | None) -> str | None:
         """
@@ -3482,7 +3476,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         # e.g. no background default state.
         elif color is None:
             color = "transparent"
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
@@ -3490,7 +3484,6 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             "color": color,
             "__type__": "update",
         }
-        return updated_config
 
     def style(
         self,
@@ -5561,15 +5554,15 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         language: str | None = None,
         interactive: bool | None = True,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "language": language,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(self):
         return self
