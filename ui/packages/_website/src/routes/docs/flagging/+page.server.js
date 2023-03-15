@@ -12,6 +12,16 @@ let components = docs_json.docs.components;
 let helpers = docs_json.docs.helpers;
 let routes = docs_json.docs.routes;
 
+const COLOR_SETS = [
+    ["from-green-100", "to-green-50"],
+    ["from-yellow-100", "to-yellow-50"],
+    ["from-red-100", "to-red-50"],
+    ["from-blue-100", "to-blue-50"],
+    ["from-pink-100", "to-pink-50"],
+    ["from-purple-100", "to-purple-50"],
+]
+
+
 export async function load() {
     let objs = [docs.building.simplecsvlogger, 
                 docs.building.csvlogger, 
@@ -47,7 +57,8 @@ export async function load() {
         docs,
         components,
         helpers,
-        routes
+        routes,
+        COLOR_SETS
     }
 
 }

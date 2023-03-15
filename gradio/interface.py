@@ -59,7 +59,7 @@ class Interface(Blocks):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
-    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features, setting_up_a_gradio_demo_for_maximum_performance
+    Guides: quickstart, key-features, sharing-your-app, interface-state, reactive-interfaces, advanced-interface-features, setting-up-a-gradio-demo-for-maximum-performance
     """
 
     # stores references to all currently existing Interface instances

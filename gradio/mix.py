@@ -17,7 +17,7 @@ class Parallel(gradio.Interface):
     The Interfaces to put in Parallel must share the same input components (but can have different output components).
 
     Demos: interface_parallel, interface_parallel_load
-    Guides: advanced_interface_features
+    Guides: advanced-interface-features
     """
 
     def __init__(self, *interfaces: gradio.Interface, **options):
@@ -71,7 +71,7 @@ class Series(gradio.Interface):
     and so the input and output components must agree between the interfaces).
 
     Demos: interface_series, interface_series_load
-    Guides: advanced_interface_features
+    Guides: advanced-interface-features
     """
 
     def __init__(self, *interfaces: gradio.Interface, **options):

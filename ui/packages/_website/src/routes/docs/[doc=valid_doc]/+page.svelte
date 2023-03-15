@@ -237,6 +237,26 @@
               <div class="ml-12"> </div>
             </div>
           {/if}
+
+          {#if obj.guides && obj.guides.length > 0  }
+
+          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="guides">Guides
+            <a href="#guides" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+          </h4>
+
+          <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4 pb-3 px-3">
+
+            {#each obj.guides as guide, i}
+              <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}" target="_blank" href="{ guide.url }">
+                <div class="flex flex-col p-4 h-min">
+                  <p class="group-hover:underline text-l">{ guide.pretty_name }</p>
+                </div>
+              </a>
+            {/each}
+            </div>
+          {/if}
+
+
         
         </div>
 
@@ -258,6 +278,7 @@
             <div></div>
           {/if}
       </div>
+      
 
     </div> 
 
