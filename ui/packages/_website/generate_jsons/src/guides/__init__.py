@@ -69,7 +69,7 @@ for guide_folder in guide_folders:
         spaces = get_labeled_metadata("Related spaces:")
         contributor = get_labeled_metadata("Contributed by", is_list=False)
 
-        url = f"/{guide_name}/"
+        url = f"/guides/{guide_name}/"
         
         guide_content = re.sub(
             r"\$code_([a-z _\-0-9]+)",

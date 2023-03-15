@@ -1,7 +1,7 @@
-import guides_json from "../guides/guides.json";
+import guides_json from "../../guides/guides.json";
 import { compile } from "mdsvex";
-import anchor from "../../assets/img/anchor.svg";
-import { make_slug_processor } from "../../utils";
+import anchor from "../../../assets/img/anchor.svg";
+import { make_slug_processor } from "../../../utils";
 import { toString as to_string } from "hast-util-to-string";
 let guides = guides_json.guides;
 let guides_by_category = guides_json.guides_by_category;

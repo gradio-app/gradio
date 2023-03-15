@@ -1,8 +1,8 @@
 <script>
     import { page } from '$app/stores';
-    import guides_json from "../guides/guides.json";
-    import space_logo from "../../assets/img/spaces-logo.svg";
-    import MetaTags from "../../components/MetaTags.svelte";
+    import guides_json from "../guides.json";
+    import space_logo from "../../../assets/img/spaces-logo.svg";
+    import MetaTags from "../../../components/MetaTags.svelte";
 
     export let data;
 
@@ -31,8 +31,8 @@
 </script> 
 
     <MetaTags title={guide_page.pretty_name}
-              url={"https://gradio.app/" + guide_page.name}
-              canonical={"https://gradio.app/" + guide_page.name}
+              url={"https://gradio.app/guides/" + guide_page.name}
+              canonical={"https://gradio.app/guides/" + guide_page.name}
               description="A Step-by-Step Gradio Tutorial"/>
 
 <div class="container mx-auto px-4 flex gap-4 relative">
