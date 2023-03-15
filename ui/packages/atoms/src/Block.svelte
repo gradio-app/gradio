@@ -6,6 +6,7 @@
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let variant: "solid" | "dashed" | "none" = "solid";
 	export let border_mode: "base" | "focus" = "base";
 	export let padding: boolean = true;
@@ -38,7 +39,7 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:hidden={visible === false}
-	class="block"
+	class="block {elem_classes.join(' ')}"
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
 	style="{styles} {size_style || null}"

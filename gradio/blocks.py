@@ -54,6 +54,7 @@ class Block:
         *,
         render: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         visible: bool = True,
         root_url: str | None = None,  # URL that is prepended to all file paths
         _skip_init_processing: bool = False,  # Used for loading from Spaces
@@ -63,6 +64,9 @@ class Block:
         Context.id += 1
         self.visible = visible
         self.elem_id = elem_id
+        self.elem_classes = (
+            [elem_classes] if isinstance(elem_classes, str) else elem_classes
+        )
         self.root_url = root_url
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
@@ -264,6 +268,7 @@ class Block:
         return {
             "visible": self.visible,
             "elem_id": self.elem_id,
+            "elem_classes": self.elem_classes,
             "style": self._style,
             "root_url": self.root_url,
         }

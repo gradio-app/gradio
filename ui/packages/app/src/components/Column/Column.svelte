@@ -5,6 +5,7 @@
 	export let scale: number = 1;
 	export let min_width: number = 0;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let variant: "default" | "panel" | "compact" = "default";
 	export let style: Styles = {};
@@ -12,6 +13,7 @@
 
 <div
 	id={elem_id}
+	class={elem_classes.join(" ")}
 	class:gap={style.gap !== false}
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}

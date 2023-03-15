@@ -10,6 +10,7 @@
 	export let label: string = "Textbox";
 	export let info: string | undefined = undefined;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string = "";
 	export let lines: number;
@@ -28,6 +29,7 @@
 <Block
 	{visible}
 	{elem_id}
+	{elem_classes}
 	disable={typeof style.container === "boolean" && !style.container}
 >
 	{#if loading_status}
@@ -43,6 +45,7 @@
 		{type}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
+		{style}
 		on:change
 		on:submit
 		on:blur
