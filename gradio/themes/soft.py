@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 from gradio.themes.base import Base
-from gradio.themes.utils import colors, sizes
+from gradio.themes.utils import colors, fonts, sizes
 
 
 class Soft(Base):
@@ -14,6 +16,22 @@ class Soft(Base):
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
+        font: fonts.Font
+        | str
+        | Iterable[fonts.Font | str] = (
+            fonts.GoogleFont("Montserrat"),
+            "ui-sans-serif",
+            "system-ui",
+            "sans-serif",
+        ),
+        font_mono: fonts.Font
+        | str
+        | Iterable[fonts.Font | str] = (
+            fonts.GoogleFont("IBM Plex Mono"),
+            "ui-monospace",
+            "Consolas",
+            "monospace",
+        ),
     ):
         super().__init__(
             primary_hue=primary_hue,
@@ -22,10 +40,12 @@ class Soft(Base):
             spacing_size=spacing_size,
             radius_size=radius_size,
             text_size=text_size,
+            font=font,
+            font_mono=font_mono,
         )
         super().set(
             # Colors
-            color_background_primary="*neutral_50",
+            background_primary="*neutral_50",
             slider_color="*primary_500",
             slider_color_dark="*primary_600",
             # Shadows
@@ -39,14 +59,14 @@ class Soft(Base):
             block_label_radius="*radius_md",
             block_label_text_size="*text_md",
             block_label_text_weight="600",
-            block_label_color="*primary_500",
-            block_label_color_dark="*white",
+            block_label_text_color="*primary_500",
+            block_label_text_color_dark="*white",
             block_title_radius="*block_label_radius",
             block_title_padding="*block_label_padding",
             block_title_background="*block_label_background",
             block_title_text_weight="600",
-            block_title_color="*primary_500",
-            block_title_color_dark="*white",
+            block_title_text_color="*primary_500",
+            block_title_text_color_dark="*white",
             block_label_margin="*spacing_md",
             # Inputs
             input_background="white",

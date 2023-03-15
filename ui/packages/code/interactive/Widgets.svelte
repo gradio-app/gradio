@@ -22,14 +22,14 @@
 		z-index: var(--layer-2);
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
 		background: var(--block-label-background);
 		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
+		color: var(--block-label-text-color);
+		font: var(--font);
 		font-size: var(--button-small-text-size);
 	}
 </style>

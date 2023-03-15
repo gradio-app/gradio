@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 from gradio.themes.base import Base
-from gradio.themes.utils import colors, sizes
+from gradio.themes.utils import colors, fonts, sizes
 
 
 class Default(Base):
@@ -14,6 +16,22 @@ class Default(Base):
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
+        font: fonts.Font
+        | str
+        | Iterable[fonts.Font | str] = (
+            fonts.GoogleFont("Source Sans Pro"),
+            "ui-sans-serif",
+            "system-ui",
+            "sans-serif",
+        ),
+        font_mono: fonts.Font
+        | str
+        | Iterable[fonts.Font | str] = (
+            fonts.GoogleFont("IBM Plex Mono"),
+            "ui-monospace",
+            "Consolas",
+            "monospace",
+        ),
     ):
         super().__init__(
             primary_hue=primary_hue,
@@ -22,6 +40,8 @@ class Default(Base):
             spacing_size=spacing_size,
             radius_size=radius_size,
             text_size=text_size,
+            font=font,
+            font_mono=font_mono,
         )
         super().set(
             # Colors
@@ -44,8 +64,8 @@ class Default(Base):
             # Gradients
             stat_color_background="linear-gradient(to right, *primary_400, *primary_200)",
             stat_color_background_dark="linear-gradient(to right, *primary_400, *primary_600)",
-            error_background=f"linear-gradient(to right, {colors.red.c100}, *color_background_secondary)",
-            error_background_dark="*color_background_primary",
+            error_background=f"linear-gradient(to right, {colors.red.c100}, *background_secondary)",
+            error_background_dark="*background_primary",
             checkbox_label_background="linear-gradient(to top, *neutral_50, white)",
             checkbox_label_background_dark="linear-gradient(to top, *neutral_900, *neutral_800)",
             checkbox_label_background_hover="linear-gradient(to top, *neutral_100, white)",

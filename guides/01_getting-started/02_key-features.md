@@ -119,7 +119,13 @@ Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-
 
 ## Styling
 
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Interface` constructor. For example:
 
+```python
+demo = gr.Interface(..., theme=gr.themes.Monochrome())
+```
+
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
 
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.

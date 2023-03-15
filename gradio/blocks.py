@@ -1097,6 +1097,7 @@ class Blocks(BlockContext):
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
+            "stylesheets": self.theme._stylesheets,
         }
 
         def getLayout(block):

@@ -1,0 +1,177 @@
+# Theming
+Tags: THEMES
+
+## Introduction
+
+Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
+
+```python
+with gr.Blocks(theme=gr.themes.Glass()):
+    ...
+```
+
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
+
+You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
+
+## Extending Themes via the Constructor
+
+Although each theme has hundreds of CSS variables, the values for most these variables are drawn from 8 core variables which can be set through the constructor of each prebuilt theme. Modifying these 8 arguments allows you to quickly change the look and feel of your app.
+
+### Core Colors
+
+The first 3 constructor arguments set the colors of the theme and are gradio.themes.Color objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
+
+The 3 color constructor arguments are:
+- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to gradio.themes.Orange.
+- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to gradio.themes.Blue.
+- `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to gradio.themes.Gray.
+
+You could modify these values using their string shortcuts, such as
+
+```python
+with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")):
+    ...
+```
+
+or you could use the Color object directly, such as
+
+```python
+with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=gr.themes.Pink)):
+    ...
+```
+You could also create your own custom Color objects and pass them in.
+
+### Core Sizing
+
+The next 3 constructor arguments set the sizing of the theme and are gradio.themes.Size objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
+
+- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to gradio.themes.spacing_md.
+- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to gradio.themes.radius_md.
+- `text_size`: This sets the font size of text. In the default theme, this is set to gradio.themes.font_md.
+
+You could modify these values using their string shortcuts, such as
+
+```python
+with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="lg")):
+    ...
+```
+
+or you could use the Size object directly, such as
+
+```python
+with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius_size=gr.themes.radius_lg)):
+    ...
+```
+
+You could also create your own custom Size objects and pass them in.
+
+### Core Fonts
+
+The final 2 constructor arguments set the fonts of the theme. You can pass a list of fonts to each of these arguments to specify fallbacks. If you provide a string, it will be loaded as a system font. If you provide a gradio.themes.GoogleFont, the font will be loaded from Google Fonts.
+
+- `font`: This sets the primary font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("Source Sans Pro")`.
+- `font_mono`: This sets the monospace font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("IBM Plex Mono")`.
+
+You could modify these values such as the following:
+
+```python
+with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Roboto"), "Arial", "sans-serif"])):
+    ...
+```
+
+## Extending Themes via `.set()`
+
+You can also modify the values of CSS variables after the theme has been loaded. To do so, use the `.set()` method of the theme object to get access to the CSS variables. For example:
+
+```python
+theme = gr.themes.Default(primary_color="blue").set(
+    loader_color="#FF0000",
+    slider_color="#FF0000",
+)
+
+with gr.Blocks(theme=theme):
+    ...
+```
+
+In the example above, we've set the `loader_color` and `slider_color` variables to `#FF0000`, despite the overall `primary_color` using the blue color palette. You can set any CSS variable that is defined in the theme in this manner. 
+
+Your IDE type hinting should help you navigate these variables. Since there are so many CSS variables, let's take a look at how these variables are named and organized.
+
+### CSS Variable Naming Conventions
+
+CSS variable names can get quite long, like `button_primary_background_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Seperated by underscores, the variable name is made up of:
+
+1. The target element, such as `button`, `slider`, or `block`.
+2. The target element type or sub-element, such as `button_primary`, or `block_label`.
+3. The property, such as `button_primary_background`, or `block_label_border_width`.
+4. Any relevant state, such as `button_primary_background_hover`.
+5. If the value is different in dark mode, the suffix `_dark`. For example, `input_border_color_focus_dark`.
+
+Of course, many CSS variable names are shorter than this, such as `table_border_color`, or `input_shadow`. 
+
+### CSS Variable Organization
+
+Though there are hundreds of CSS variables, they do not all have to have individual values. They draw their values by referencing a set of core variables and referencing each other. This allows us to only have to modify a few variables to change the look and feel of the entire theme, while also getting finer control of individual elements that we may want to modify.
+
+#### Referencing Core Variables
+
+To reference one of the core constructor variables, precede the variable name with an asterisk. To reference a core color, use the `*primary_`, `*secondary_`, or `*neutral_` prefix, followed by the brightness value. For example:
+
+```python
+theme = gr.themes.Default(primary_color="blue").set(
+    button_primary_background="*primary_200",
+    button_primary_background_hover="*primary_300",
+)
+```
+
+In the example above, we've set the `button_primary_background` and `button_primary_background_hover` variables to `*primary_200` and `*primary_300`. These variables will be set to the 200 and 300 brightness values of the blue primary color palette, respectively.
+
+Similarly, to reference a core size, use the `*spacing_`, `*radius_`, or `*text_` prefix, followed by the size value. For example:
+
+```python
+theme = gr.themes.Default(radius_size="md").set(
+    button_primary_border_radius="*radius_xl",
+)
+```
+
+In the example above, we've set the `button_primary_border_radius` variable to `*radius_xl`. This variable will be set to the `xl` setting of the medium radius size range.
+
+#### Referencing Other Variables
+
+Variables can also reference each other. For example, look at the example below:
+
+```python
+theme = gr.themes.Default().set(
+    button_primary_background="#FF0000",
+    button_primary_background_hover="#FF0000",
+    button_primary_border="#FF0000",
+)
+```
+
+Having to set these values to a common color is a bit tedious. Instead, we can reference the `button_primary_background` variable in the `button_primary_background_hover` and `button_primary_border` variables, using a `*` prefix. 
+
+```python
+theme = gr.themes.Default().set(
+    button_primary_background="#FF0000",
+    button_primary_background_hover="*button_primary_background",
+    button_primary_border="*button_primary_background",
+)
+```
+
+Now, if we change the `button_primary_background` variable, the `button_primary_background_hover` and `button_primary_border` variables will automatically update as well.
+
+This is particularly useful if you intend to share your theme - it makes it easy to modify the theme without having to change every variable.
+
+Note that dark mode variables automatically reference each other. For example:
+
+```python
+theme = gr.themes.Default().set(
+    button_primary_background="#FF0000",
+    button_primary_background_dark="#AAAAAA",
+    button_primary_border="*button_primary_background",
+    button_primary_border_dark="*button_primary_background",
+)
+```
+
+`button_primary_border_dark` will draw its value from `button_primary_background_dark`, because dark mode always draw from the dark version of the variable.
