@@ -11,6 +11,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: null | FileData = null;
 	export let mode: "static" | "dynamic";
@@ -34,6 +35,7 @@
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
+	{elem_classes}
 >
 	<StatusTracker {...loading_status} />
 

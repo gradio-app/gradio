@@ -3,10 +3,10 @@
 	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
-	import { type } from "@testing-library/user-event/dist/type";
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let size: "sm" | "lg" = style.size || "lg";
 	export let file_count: string;
@@ -85,6 +85,7 @@
 	{size}
 	variant="secondary"
 	{elem_id}
+	{elem_classes}
 	{visible}
 	on:click={openFileUpload}
 	{style}

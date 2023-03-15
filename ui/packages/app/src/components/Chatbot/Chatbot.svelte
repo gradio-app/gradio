@@ -8,6 +8,7 @@
 	import { normalise_file } from "@gradio/upload";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -36,7 +37,7 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 </script>
 
-<Block {elem_id} {visible} padding={false}>
+<Block {elem_id} {elem_classes} {visible} padding={false}>
 	{#if show_label}
 		<BlockLabel
 			{show_label}

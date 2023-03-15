@@ -14,6 +14,7 @@
 
 	export let visible: boolean = true;
 	export let elem_id: string = "id";
+	export let elem_classes: Array<string> = [];
 	export let selected: number | string | object;
 
 	let tabs: Array<Tab> = [];
@@ -53,7 +54,7 @@
 	$: selected !== null && change_tab(selected);
 </script>
 
-<div class="tabs" class:hide={!visible} id={elem_id}>
+<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
 			{#if t.id === $selected_tab}

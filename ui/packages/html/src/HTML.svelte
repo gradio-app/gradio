@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let value: string;
 	export let visible: boolean = true;
 	export let min_height = false;
@@ -11,7 +12,12 @@
 	$: value, dispatch("change");
 </script>
 
-<div class="prose" class:min={min_height} id={elem_id} class:hide={!visible}>
+<div
+	class="prose {elem_classes.join(' ')}"
+	class:min={min_height}
+	id={elem_id}
+	class:hide={!visible}
+>
 	{@html value}
 </div>
 

@@ -4,6 +4,7 @@
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = style.size || "lg";
@@ -15,7 +16,7 @@
 <button
 	on:click
 	class:hide={!visible}
-	class="{size} {variant}"
+	class="{size} {variant} {elem_classes.join(' ')}"
 	style={styles}
 	id={elem_id}
 	{disabled}

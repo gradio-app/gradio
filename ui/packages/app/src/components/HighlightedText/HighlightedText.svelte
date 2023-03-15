@@ -8,6 +8,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: Array<[string, string | number]>;
 	let old_value: Array<[string, string | number]>;
@@ -37,6 +38,7 @@
 	test_id="highlighted-text"
 	{visible}
 	{elem_id}
+	{elem_classes}
 	padding={false}
 	disable={typeof style.container === "boolean" && !style.container}
 >
