@@ -10,6 +10,7 @@
 	export let headers: Array<string>;
 	export let samples: Array<Array<any>>;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: number | null = null;
 	export let root: string;
@@ -77,7 +78,7 @@
 	);
 </script>
 
-<div id={elem_id} class="wrap" class:hide={!visible}>
+<div id={elem_id} class="wrap {elem_classes.join(' ')}" class:hide={!visible}>
 	<div class="label">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
