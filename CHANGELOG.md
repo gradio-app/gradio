@@ -3,19 +3,21 @@
 
 ## New Features:
 
-No changes to highlight.
+- Add keyword argument `elem_classes` to Components to control class names of components, in the same manner as existing `elem_id`. 
+By [@aliabid94](https://github.com/aliabid94) in [PR 3466](https://github.com/gradio-app/gradio/pull/3466)
 
 ## Bug Fixes:
 
-Fixed issue with `gr.Request` object failing to handle dictionaries when nested keys couldn't be converted to variable names [#3454](https://github.com/gradio-app/gradio/issues/3454) by [@radames](https://github.com/radames) in [PR 3459](https://github.com/gradio-app/gradio/pull/3459)
+- Fixes the File.upload() event trigger which broke as part of the change in how we uploaded files by [@abidlabs](https://github.com/abidlabs) in [PR 3462](https://github.com/gradio-app/gradio/pull/3462)
+- Fixed issue with `gr.Request` object failing to handle dictionaries when nested keys couldn't be converted to variable names [#3454](https://github.com/gradio-app/gradio/issues/3454) by [@radames](https://github.com/radames) in [PR 3459](https://github.com/gradio-app/gradio/pull/3459)
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Document gr.Error in the docs by [@aliabd](https://github.com/aliabd) in [PR 3465](https://github.com/gradio-app/gradio/pull/3465) 
 
 ## Testing and Infrastructure Changes:
 
-No changes to highlight.
+- Pinned `pyright==1.1.298` for stability by [@abidlabs](https://github.com/abidlabs) in [PR 3475](https://github.com/gradio-app/gradio/pull/3475)
 
 ## Breaking Changes:
 
@@ -23,7 +25,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+- Revert primary button background color in dark mode by [@aliabid94](https://github.com/aliabid94) in [PR 3468](https://github.com/gradio-app/gradio/pull/3468)
 
 ## Contributors Shoutout:
 

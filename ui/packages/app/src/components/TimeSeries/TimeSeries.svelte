@@ -33,6 +33,7 @@
 	}
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: null | Data;
 	export let y: Array<string>;
@@ -140,6 +141,7 @@
 	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
 	padding={false}
 	{elem_id}
+	{elem_classes}
 >
 	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />

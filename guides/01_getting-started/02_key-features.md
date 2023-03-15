@@ -26,7 +26,7 @@ Continue learning about examples in the [More On Examples](https://gradio.app/mo
 
 ## Errors
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#errors).
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
 
 ## Descriptive Content
 
