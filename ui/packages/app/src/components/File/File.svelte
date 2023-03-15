@@ -37,6 +37,7 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		error: string;
+		upload: undefined;
 	}>();
 
 	$: {
@@ -83,6 +84,7 @@
 						_value = normalise_file(value, root, root_url);
 					}
 					dispatch("change");
+					dispatch("upload");
 				});
 			}
 		}
@@ -115,7 +117,6 @@
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:clear
-			on:upload
 			on:select
 		>
 			<UploadText type="file" />
