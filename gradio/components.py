@@ -4357,7 +4357,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         """
         if y is None:
             return None
-        if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
+        if isinstance(y, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif "bokeh" in y.__module__:
