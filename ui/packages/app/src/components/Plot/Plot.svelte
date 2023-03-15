@@ -11,6 +11,7 @@
 
 	export let value: null | string = null;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 
 	export let loading_status: LoadingStatus;
@@ -26,6 +27,7 @@
 <Block
 	padding={false}
 	{elem_id}
+	{elem_classes}
 	{visible}
 	disable={typeof style.container === "boolean" && !style.container}
 >

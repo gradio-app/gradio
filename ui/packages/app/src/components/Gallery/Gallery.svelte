@@ -12,6 +12,7 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = {};
@@ -22,6 +23,7 @@
 	variant="solid"
 	padding={false}
 	{elem_id}
+	{elem_classes}
 	disable={typeof style.container === "boolean" && !style.container}
 >
 	<StatusTracker {...loading_status} />

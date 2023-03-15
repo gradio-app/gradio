@@ -30,17 +30,17 @@ with gr.Blocks(css=".gradio-container {background-image: url('file=clouds.jpg')}
 
 You can also pass the filepath to a CSS file to the `css` argument.
 
-## The `elem_id` Argument
+## The `elem_id` amd `elem_classes` Arguments
 
-You can `elem_id` to add an HTML element `id` to any component. This will allow you to select elements more easily with CSS.
+You can `elem_id` to add an HTML element `id` to any component, and `elem_classes` to add a class or list of classes. This will allow you to select elements more easily with CSS.
 
 ```python
-with gr.Blocks(css="#warning {color: red}") as demo:
-    box1 = gr.Textbox(value="Good Job")
-    box2 = gr.Textbox(value="Failure", elem_id="warning")
+with gr.Blocks(css="#warning {color: red} .feedback {font-size: 24px}") as demo:
+    box1 = gr.Textbox(value="Good Job", elem_class="feedback")
+    box2 = gr.Textbox(value="Failure", elem_id="warning", elem_class="feedback")
 ```
 
-The CSS ruleset will only target the second Textbox here.
+The CSS `#warning` ruleset will only target the second Textbox, while the `.feedback` ruleset will target both.
 
 ## Custom JS
 

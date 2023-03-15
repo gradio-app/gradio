@@ -13,6 +13,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: null | FileData | Array<FileData>;
 	let old_value: null | FileData | Array<FileData>;
@@ -36,6 +37,7 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		error: string;
+		upload: undefined;
 	}>();
 
 	$: {
@@ -82,6 +84,7 @@
 						_value = normalise_file(value, root, root_url);
 					}
 					dispatch("change");
+					dispatch("upload");
 				});
 			}
 		}
@@ -94,6 +97,7 @@
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
+	{elem_classes}
 >
 	<StatusTracker
 		{...loading_status}
@@ -113,7 +117,6 @@
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:clear
-			on:upload
 			on:select
 		>
 			<UploadText type="file" />
