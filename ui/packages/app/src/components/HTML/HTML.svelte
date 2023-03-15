@@ -7,6 +7,7 @@
 
 	export let label: string;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string = "";
 	export let loading_status: LoadingStatus;
@@ -16,13 +17,14 @@
 	$: label, dispatch("change");
 </script>
 
-<Block {visible} {elem_id} disable={true}>
+<Block {visible} {elem_id} {elem_classes} disable={true}>
 	<StatusTracker {...loading_status} variant="center" />
 	<div class:pending={loading_status?.status === "pending"}>
 		<HTML
 			min_height={loading_status && loading_status?.status !== "complete"}
 			{value}
 			{elem_id}
+			{elem_classes}
 			{visible}
 			on:change
 		/>

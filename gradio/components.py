@@ -172,11 +172,14 @@ class IOComponent(Component, Serializable):
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         load_fn: Callable | None = None,
         every: float | None = None,
         **kwargs,
     ):
-        Component.__init__(self, elem_id=elem_id, visible=visible, **kwargs)
+        Component.__init__(
+            self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
+        )
 
         self.label = label
         self.info = info
@@ -277,6 +280,7 @@ class Textbox(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         type: str = "text",
         **kwargs,
     ):
@@ -293,6 +297,7 @@ class Textbox(
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
         """
         if type not in ["text", "password", "email"]:
@@ -317,6 +322,7 @@ class Textbox(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -469,6 +475,7 @@ class Number(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         precision: int | None = None,
         **kwargs,
     ):
@@ -482,6 +489,7 @@ class Number(
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
         """
         self.precision = precision
@@ -494,6 +502,7 @@ class Number(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -653,6 +662,7 @@ class Slider(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         randomize: bool = False,
         **kwargs,
     ):
@@ -669,6 +679,7 @@ class Slider(
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
         self.minimum = minimum
@@ -690,6 +701,7 @@ class Slider(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -814,6 +826,7 @@ class Checkbox(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -826,6 +839,7 @@ class Checkbox(
             interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
         self.select: EventListenerMethod
@@ -843,6 +857,7 @@ class Checkbox(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -919,6 +934,7 @@ class CheckboxGroup(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -933,6 +949,7 @@ class CheckboxGroup(
             interactive: if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         self.cleared_value = []
@@ -958,6 +975,7 @@ class CheckboxGroup(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -1104,6 +1122,7 @@ class Radio(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -1118,6 +1137,7 @@ class Radio(
             interactive: if True, choices in this radio group will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1142,6 +1162,7 @@ class Radio(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -1259,6 +1280,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -1275,6 +1297,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             interactive: if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1309,6 +1332,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -1441,6 +1465,7 @@ class Image(
         visible: bool = True,
         streaming: bool = False,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         mirror_webcam: bool = True,
         brush_radius: int | None = None,
         **kwargs,
@@ -1461,6 +1486,7 @@ class Image(
             visible: If False, component will be hidden.
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
         """
@@ -1498,6 +1524,7 @@ class Image(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -1814,6 +1841,7 @@ class Video(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         **kwargs,
@@ -1829,6 +1857,7 @@ class Video(
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
         """
@@ -1852,6 +1881,7 @@ class Video(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -2033,6 +2063,7 @@ class Audio(
         visible: bool = True,
         streaming: bool = False,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -2047,6 +2078,7 @@ class Audio(
             visible: If False, component will be hidden.
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
@@ -2075,6 +2107,7 @@ class Audio(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -2341,6 +2374,7 @@ class File(
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -2355,6 +2389,7 @@ class File(
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.file_count = file_count
         self.file_types = file_types
@@ -2396,6 +2431,7 @@ class File(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -2578,6 +2614,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         wrap: bool = False,
         **kwargs,
     ):
@@ -2599,6 +2636,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
         """
 
@@ -2654,6 +2692,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -2848,6 +2887,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -2862,6 +2902,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             interactive: if True, will allow users to upload a timeseries csv; if False, can only be used to display timeseries data. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.x = x
         if isinstance(y, str):
@@ -2876,6 +2917,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -3027,6 +3069,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         visible: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -3035,11 +3078,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(
             self,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             interactive=interactive,
             **kwargs,
@@ -3113,6 +3158,7 @@ class UploadButton(
         *,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         type: str = "file",
         file_count: str = "single",
         file_types: List[str] | None = None,
@@ -3127,6 +3173,7 @@ class UploadButton(
             label: Text to display on the button. Defaults to "Upload a File".
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.type = type
         self.file_count = file_count
@@ -3142,7 +3189,13 @@ class UploadButton(
         self.label = label
         TempFileManager.__init__(self)
         IOComponent.__init__(
-            self, label=label, visible=visible, elem_id=elem_id, value=value, **kwargs
+            self,
+            label=label,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
         )
 
     def get_config(self):
@@ -3277,6 +3330,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -3289,6 +3343,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.cleared_value = "#000000"
         self.test_input = value
@@ -3301,6 +3356,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -3386,6 +3442,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         color: str | None = None,
         **kwargs,
     ):
@@ -3398,6 +3455,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             color: The background color of the label (either a valid css color name or hexadecimal string).
         """
         self.num_top_classes = num_top_classes
@@ -3415,6 +3473,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -3531,6 +3590,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -3544,6 +3604,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.color_map = color_map
         if color_map is not None:
@@ -3566,6 +3627,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -3697,6 +3759,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -3707,6 +3770,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(
             self,
@@ -3715,6 +3779,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -3785,6 +3850,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -3795,6 +3861,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(
             self,
@@ -3803,6 +3870,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -3852,6 +3920,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -3862,6 +3931,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.select: EventListenerMethod
         """
@@ -3877,6 +3947,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -4046,6 +4117,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -4056,6 +4128,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         if color_map is not None:
             warnings.warn(
@@ -4076,6 +4149,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -4195,6 +4269,7 @@ class Model3D(
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -4206,6 +4281,7 @@ class Model3D(
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
         TempFileManager.__init__(self)
@@ -4216,6 +4292,7 @@ class Model3D(
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -4317,6 +4394,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -4327,6 +4405,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(
             self,
@@ -4335,6 +4414,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -4460,6 +4540,7 @@ class ScatterPlot(Plot):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
     ):
         """
         Parameters:
@@ -4489,7 +4570,8 @@ class ScatterPlot(Plot):
             every:  If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
-            elem_id: Unique id used for custom css targetting.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.x = x
         self.y = y
@@ -4519,6 +4601,7 @@ class ScatterPlot(Plot):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
         )
 
     def get_config(self):
@@ -4800,6 +4883,7 @@ class LinePlot(Plot):
         every: float | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
     ):
         """
         Parameters:
@@ -4827,7 +4911,8 @@ class LinePlot(Plot):
             show_label: Whether the label should be displayed.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
-            elem_id: Unique id used for custom css targetting.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.x = x
         self.y = y
@@ -4854,6 +4939,7 @@ class LinePlot(Plot):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             every=every,
         )
 
@@ -5133,6 +5219,7 @@ class BarPlot(Plot):
         every: float | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
     ):
         """
         Parameters:
@@ -5158,7 +5245,8 @@ class BarPlot(Plot):
             show_label: Whether the label should be displayed.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
-            elem_id: Unique id used for custom css targetting.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.x = x
         self.y = y
@@ -5184,6 +5272,7 @@ class BarPlot(Plot):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             every=every,
         )
 
@@ -5427,6 +5516,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
         *,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -5434,10 +5524,16 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.md = utils.get_markdown_parser()
         IOComponent.__init__(
-            self, visible=visible, elem_id=elem_id, value=value, **kwargs
+            self,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
         )
 
     def postprocess(self, y: str | None) -> str | None:
@@ -5511,6 +5607,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -5522,6 +5619,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
@@ -5532,6 +5630,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
             value=value,
             **kwargs,
         )
@@ -5600,6 +5699,7 @@ class Dataset(Clickable, Selectable, Component):
         samples_per_page: int = 10,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -5611,8 +5711,11 @@ class Dataset(Clickable, Selectable, Component):
             samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        Component.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
         self.components = [get_component_instance(c, render=False) for c in components]
 
         # Narrow type to IOComponent
@@ -5700,6 +5803,7 @@ class Interpretation(Component):
         *,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         **kwargs,
     ):
         """
@@ -5707,8 +5811,11 @@ class Interpretation(Component):
             component: Which component to show in the interpretation widget.
             visible: Whether or not the interpretation is visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        Component.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
         self.component = component
 
     def get_config(self):

@@ -3,18 +3,19 @@
 
 	export let style: Styles = {};
 	export let elem_id: string;
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let variant: "default" | "panel" | "compact" = "default";
 </script>
 
 <div
-	class="flex"
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
 	class:unequal-height={style.equal_height === false}
 	class:stretch={style.equal_height}
 	class:hide={!visible}
 	id={elem_id}
+	class={elem_classes.join(" ")}
 >
 	<slot />
 </div>

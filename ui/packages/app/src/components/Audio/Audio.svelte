@@ -19,6 +19,7 @@
 	}>();
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
@@ -46,6 +47,7 @@
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
+	{elem_classes}
 	{visible}
 >
 	<StatusTracker {...loading_status} />

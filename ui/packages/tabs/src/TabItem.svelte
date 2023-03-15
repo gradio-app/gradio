@@ -5,6 +5,7 @@
 	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let name: string;
 	export let id: string | number | object = {};
 
@@ -25,7 +26,7 @@
 
 <div
 	id={elem_id}
-	class="tabitem"
+	class="tabitem {elem_classes.join(' ')}"
 	style:display={$selected_tab === id ? "block" : "none"}
 >
 	<Column>
