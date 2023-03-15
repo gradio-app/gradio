@@ -242,4 +242,4 @@ def synchronize_async(func: Callable, *args, **kwargs) -> Any:
         *args:
         **kwargs:
     """
-    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
+    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)  # type: ignore

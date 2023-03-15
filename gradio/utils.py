@@ -498,24 +498,6 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args, **kwargs) -> Any:
-    """
-    Runs async functions in sync scopes.
-
-    Can be used in any scope. See run_coro_in_background for more details.
-
-    Example:
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
-
-    Args:
-        func:
-        *args:
-        **kwargs:
-    """
-    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
-
-
 def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     Runs coroutines in background.

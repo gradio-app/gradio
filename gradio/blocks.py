@@ -18,6 +18,7 @@ import anyio
 import requests
 from anyio import CapacityLimiter
 from typing_extensions import Literal
+from gradio_client import utils as client_utils
 
 from gradio import components, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
@@ -792,7 +793,7 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(
+        outputs = client_utils.synchronize_async(
             self.process_api,
             fn_index=fn_index,
             inputs=processed_inputs,

@@ -4089,7 +4089,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            mime_type = processing_utils.get_mimetype(chat_message[0])
+            mime_type = client_utils.get_mimetype(chat_message[0])
             return {
                 "name": chat_message[0],
                 "mime_type": mime_type,

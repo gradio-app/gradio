@@ -321,13 +321,13 @@ class TempFileManager:
 
         guess_extension = client_utils.get_extension(base64_encoding)
         if file_name:
-            file_name = client_utils.strip_invalid_filename_characters(file_name)
+            file_name_ = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
-            file_name = "file." + guess_extension
+            file_name_ = "file." + guess_extension
         else:
-            file_name = "file"
+            file_name_ = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = file_name
+        f.name = file_name_
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
