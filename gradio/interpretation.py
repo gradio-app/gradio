@@ -140,7 +140,9 @@ async def run_interpret(interface: Interface, raw_input: List):
                     (
                         neighbor_values,
                         interpret_kwargs,
-                    ) = input_component.get_interpretation_neighbors(x)  # type: ignore
+                    ) = input_component.get_interpretation_neighbors(
+                        x
+                    )  # type: ignore
                     interface_scores = []
                     alternative_output = []
                     for neighbor_input in neighbor_values:

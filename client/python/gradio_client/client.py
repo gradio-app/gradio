@@ -30,9 +30,8 @@ class Client:
         if space is None and src is None:
             raise ValueError("Either `space` or `src` must be provided")
         elif space and src:
-            raise ValueError("Only one of `space` or `src` must be provided")
-        self.space = space
-        self.src = src or self._space_name_to_src()
+            raise ValueError("Only one of `space` or `src` should be provided")
+        self.src = src or self._space_name_to_src(space)
         if self.src is None:
             raise ValueError(
                 f"Could not find Space: {space}. If it is a private Space, please provide an access_token."
@@ -272,10 +271,10 @@ class Client:
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
 
-    def _space_name_to_src(self) -> str | None:
+    def _space_name_to_src(self, space) -> str | None:
         return (
             requests.get(
-                f"https://huggingface.co/api/spaces/{self.space}/host",
+                f"https://huggingface.co/api/spaces/{space}/host",
                 headers=self.headers,
             )
             .json()

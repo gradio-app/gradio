@@ -11,32 +11,32 @@ data = {
 }
 
 
-def test_encode_url_or_file_to_base64(self):
+def test_encode_url_or_file_to_base64():
     output_base64 = utils.encode_url_or_file_to_base64(
         "gradio/test_data/test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
-def test_encode_file_to_base64(self):
+def test_encode_file_to_base64():
     output_base64 = utils.encode_file_to_base64(
         "gradio/test_data/test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 @pytest.mark.flaky
-def test_encode_url_to_base64(self):
+def test_encode_url_to_base64():
     output_base64 = utils.encode_url_to_base64(
         "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
-def test_decode_base64_to_binary(self):
+def test_decode_base64_to_binary():
     binary = utils.decode_base64_to_binary(
         deepcopy(media_data.BASE64_IMAGE)
     )
     assert deepcopy(media_data.BINARY_IMAGE) == binary
 
-def test_decode_base64_to_file(self):
+def test_decode_base64_to_file():
     temp_file = utils.decode_base64_to_file(
         deepcopy(media_data.BASE64_IMAGE)
     )

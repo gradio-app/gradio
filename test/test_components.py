@@ -22,6 +22,7 @@ import pandas as pd
 import PIL
 import pytest
 import vega_datasets
+from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 import gradio as gr
@@ -676,7 +677,7 @@ class TestImage:
     @pytest.mark.flaky
     def test_serialize_url(self):
         img = "https://gradio.app/assets/img/header-image.jpg"
-        expected = processing_utils.encode_url_or_file_to_base64(img)
+        expected = client_utils.encode_url_or_file_to_base64(img)
         assert gr.Image().serialize(img) == expected
 
     def test_in_interface_as_input(self):
@@ -817,7 +818,7 @@ class TestAudio:
             gr.Audio(type="unknown")
 
         # Output functionalities
-        y_audio = gr.processing_utils.decode_base64_to_file(
+        y_audio = client_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
         audio_output = gr.Audio(type="filepath")
@@ -875,7 +876,7 @@ class TestAudio:
         iface = gr.Interface(reverse_audio, "audio", "audio")
         reversed_file = iface("test/test_files/audio_sample.wav")
         reversed_reversed_file = iface(reversed_file)
-        reversed_reversed_data = gr.processing_utils.encode_url_or_file_to_base64(
+        reversed_reversed_data = client_utils.encode_url_or_file_to_base64(
             reversed_reversed_file
         )
         similarity = SequenceMatcher(
@@ -1956,10 +1957,8 @@ class TestGallery:
         gallery = gr.Gallery()
         test_file_dir = Path(Path(__file__).parent, "test_files")
         data = [
-            gr.processing_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
-            gr.processing_utils.encode_file_to_base64(
-                Path(test_file_dir, "cheetah1.jpg")
-            ),
+            client_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
+            client_utils.encode_file_to_base64(Path(test_file_dir, "cheetah1.jpg")),
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:

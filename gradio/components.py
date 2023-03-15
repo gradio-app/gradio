@@ -5712,7 +5712,7 @@ class Interpretation(Component, SimpleSerializable):
         return self
 
 
-class StatusTracker(Component):
+class StatusTracker(Component, SimpleSerializable):
     def __init__(
         self,
         **kwargs,
