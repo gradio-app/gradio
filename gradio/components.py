@@ -39,7 +39,6 @@ from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,

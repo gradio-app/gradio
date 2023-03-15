@@ -30,7 +30,6 @@ from typing import (
     Dict,
     Generator,
     List,
-    NewType,
     Tuple,
     Type,
     TypeVar,
@@ -46,7 +45,7 @@ from huggingface_hub.utils import send_telemetry
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
-from pydantic import BaseModel, Json, parse_obj_as
+from pydantic import BaseModel, parse_obj_as
 
 import gradio
 from gradio.context import Context
