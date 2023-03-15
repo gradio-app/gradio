@@ -11,6 +11,6 @@
 	$: dispatch("prop_change", { selected });
 </script>
 
-<Tabs {visible} {elem_id} bind:selected on:change>
+<Tabs {visible} {elem_id} bind:selected on:change on:select>
 	<slot />
 </Tabs>

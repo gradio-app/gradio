@@ -45,6 +45,7 @@ from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
+from gradio.helpers import EventData
 from gradio.processing_utils import TempFileManager
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
@@ -378,7 +379,14 @@ class App(FastAPI):
             event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
-            batch = app.get_blocks().dependencies[fn_index_inferred]["batch"]
+
+            dependency = app.get_blocks().dependencies[fn_index_inferred]
+            target = dependency["targets"][0] if len(dependency["targets"]) else None
+            event_data = EventData(
+                app.get_blocks().blocks[target] if target else None,
+                body.event_data,
+            )
+            batch = dependency["batch"]
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
@@ -389,6 +397,7 @@ class App(FastAPI):
                     state=session_state,
                     iterators=iterators,
                     event_id=event_id,
+                    event_data=event_data,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
@@ -626,8 +635,42 @@ class Obj:
     Credit: https://www.geeksforgeeks.org/convert-nested-python-dictionary-to-object/
     """
 
-    def __init__(self, dict1):
-        self.__dict__.update(dict1)
+    def __init__(self, dict_):
+        self.__dict__.update(dict_)
+        for key, value in dict_.items():
+            if isinstance(value, (dict, list)):
+                value = Obj(value)
+            setattr(self, key, value)
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    def __setitem__(self, item, value):
+        self.__dict__[item] = value
+
+    def __iter__(self):
+        for key, value in self.__dict__.items():
+            if isinstance(value, Obj):
+                yield (key, dict(value))
+            else:
+                yield (key, value)
+
+    def __contains__(self, item) -> bool:
+        if item in self.__dict__:
+            return True
+        for value in self.__dict__.values():
+            if isinstance(value, Obj) and item in value:
+                return True
+        return False
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
+
+    def items(self):
+        return self.__dict__.items()
 
     def __str__(self) -> str:
         return str(self.__dict__)

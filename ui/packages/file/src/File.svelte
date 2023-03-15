@@ -7,6 +7,7 @@
 	export let value: FileData | FileData[] | null = null;
 	export let label: string;
 	export let show_label: boolean = true;
+	export let selectable: boolean = false;
 </script>
 
 <BlockLabel
@@ -17,7 +18,7 @@
 />
 
 {#if value}
-	<FilePreview {value} />
+	<FilePreview {selectable} on:select {value} />
 {:else}
 	<Empty size="large" unpadded_box={true}><File /></Empty>
 {/if}
