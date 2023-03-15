@@ -1,5 +1,5 @@
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import huggingface_hub
 import pytest
@@ -202,6 +202,10 @@ class TestGetThemeAssets:
                 ThemeAsset("themes/theme_schema@1.5.9.json"),
             ]
 
+        with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
+            assert gr.Theme._theme_version_exists("freddyaboulton/dracula", "0.1.1")
+            assert not gr.Theme._theme_version_exists("freddyaboulton/dracula", "2.0.0")
+
     def test_raises_if_space_not_properly_tagged(self):
         space_info = huggingface_hub.hf_api.SpaceInfo(
             id="freddyaboulton/dracula", tags=["gradio"]
@@ -236,12 +240,9 @@ class TestThemeUploadDownload:
 
         assert demo.theme.to_dict() == dracula.to_dict()
 
-    @pytest.mark.flaky
     @patch("gradio.themes.base.huggingface_hub")
-    def test_theme_upload_fails_if_duplicate_version(self, mock_1):
-
-        mock_1.hf_hub_url = MagicMock(side_effect=["https://www.google.com/"])
-
+    @patch("gradio.themes.base.Base._theme_version_exists", return_value=True)
+    def test_theme_upload_fails_if_duplicate_version(self, mock_1, mock_2):
         with pytest.raises(ValueError, match="already has a theme with version 0.2.1"):
             dracula.push_to_hub("dracula_revamped", "0.2.1", hf_token="foo")
 
@@ -255,3 +256,47 @@ class TestThemeUploadDownload:
         with tempfile.NamedTemporaryFile(suffix=".json") as path:
             dracula.dump(str(path))
             assert gr.themes.Base.load(str(path)).to_dict() == dracula.to_dict()
+
+    @patch("gradio.themes.base.Base._get_next_version", return_value="0.1.3")
+    @patch("gradio.themes.base.Base._theme_version_exists", return_value=False)
+    @patch("gradio.themes.base.huggingface_hub")
+    def test_version_and_token_optional(self, mock_1, mock_2, mock_3):
+        mock_1.whoami.return_value = {"name": "freddyaboulton"}
+
+        gr.themes.Monochrome().push_to_hub(repo_name="my_monochrome")
+        repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
+        assert repo_call_args["repo_id"] == "freddyaboulton/my_monochrome"
+        assert any(
+            o.path_in_repo == "themes/theme_schema@0.1.3.json"
+            for o in repo_call_args["operations"]
+        )
+        mock_1.whoami.assert_called_with()
+
+    @patch("gradio.themes.base.Base._get_next_version", return_value="0.1.3")
+    @patch("gradio.themes.base.Base._theme_version_exists", return_value=False)
+    @patch("gradio.themes.base.huggingface_hub")
+    def test_can_pass_version_and_theme(self, mock_1, mock_2, mock_3):
+        mock_1.whoami.return_value = {"name": "freddyaboulton"}
+
+        gr.themes.Monochrome().push_to_hub(
+            repo_name="my_monochrome", version="0.1.5", hf_token="foo"
+        )
+        repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
+        assert repo_call_args["repo_id"] == "freddyaboulton/my_monochrome"
+        assert any(
+            o.path_in_repo == "themes/theme_schema@0.1.5.json"
+            for o in repo_call_args["operations"]
+        )
+        mock_1.whoami.assert_called_with(token="foo")
+
+    @patch("gradio.themes.base.huggingface_hub")
+    def raise_error_if_no_token_and_not_logged_in(self, mock_1, mock_2, mock_3):
+        mock_1.whoami.side_effect = OSError("not logged in")
+
+        with pytest.raises(
+            ValueError,
+            match="In order to push to hub, log in via `huggingface-cli login`",
+        ):
+            gr.themes.Monochrome().push_to_hub(
+                repo_name="my_monochrome", version="0.1.5", hf_token="foo"
+            )

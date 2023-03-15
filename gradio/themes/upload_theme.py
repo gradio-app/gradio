@@ -9,8 +9,8 @@ def main():
     parser = argparse.ArgumentParser(description="Upload a demo to a space")
     parser.add_argument("theme", type=str, help="Theme json file")
     parser.add_argument("repo_name", type=str, help="HF repo name to store the theme")
-    parser.add_argument("version", type=str, help="Semver version")
-    parser.add_argument("hf_token", type=str, help="HF Token")
+    parser.add_argument("--version", type=str, help="Semver version")
+    parser.add_argument("--hf_token", type=str, help="HF Token")
     parser.add_argument(
         "--theme-name",
         type=str,
@@ -35,8 +35,8 @@ def main():
 def upload_theme(
     theme: str,
     repo_name: str,
-    version: str,
-    hf_token: str,
+    version: str | None = None,
+    hf_token: str | None = None,
     theme_name: str | None = None,
     description: str | None = None,
 ):

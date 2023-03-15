@@ -127,11 +127,16 @@ class ThemeClass:
         latest_version = max(assets, key=lambda asset: asset.version).version
         return str(latest_version.next_patch())
 
+    @staticmethod
+    def _theme_version_exists(space_id: str, version: str) -> bool:
+        assets = get_theme_assets(space_id)
+        return any(a.version == semver.Version(version) for a in assets)
+
     def push_to_hub(
         self,
         repo_name: str,
-        version: str,
-        hf_token: str,
+        version: str | None = None,
+        hf_token: str | None = None,
         theme_name: str | None = None,
         description: str | None = None,
     ):
@@ -140,7 +145,7 @@ class ThemeClass:
         This requires a HuggingFace account.
 
         Parameters:
-            repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'
+            repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'.
             version: A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.
             hf_token: API token for your HuggingFace account
             theme_name: Name for the name. If None, defaults to repo_name
@@ -152,7 +157,17 @@ class ThemeClass:
 
         api = huggingface_hub.HfApi()
 
-        author = api.whoami(hf_token)["name"]
+        if not hf_token:
+            try:
+                author = huggingface_hub.whoami()["name"]
+            except OSError as e:
+                raise ValueError(
+                    "In order to push to hub, log in via `huggingface-cli login` "
+                    "or provide a theme_token to push_to_hub. For more information "
+                    "see https://huggingface.co/docs/huggingface_hub/quick-start#login"
+                ) from e
+        else:
+            author = huggingface_hub.whoami(token=hf_token)["name"]
 
         space_id = f"{author}/{repo_name}"
 
@@ -170,13 +185,7 @@ class ThemeClass:
         else:
             _ = semver.Version(version)
 
-        url = huggingface_hub.hf_hub_url(
-            repo_id=space_id,
-            repo_type="space",
-            filename=f"themes/theme_schema@{version}.json",
-        )
-        download = requests.get(url)
-        if download.ok:
+        if self._theme_version_exists(space_id, version):
             raise ValueError(
                 f"The space {space_id} already has a "
                 f"theme with version {version}. See: themes/theme_schema@{version}.json. "
@@ -229,7 +238,6 @@ class ThemeClass:
                 path_in_repo="requirements.txt", path_or_fileobj=req_file.name
             ),
         ]
-
         api.create_commit(
             repo_id=f"{author}/{repo_name}",
             commit_message="Updating theme",
