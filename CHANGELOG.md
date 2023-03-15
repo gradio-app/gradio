@@ -17,7 +17,7 @@ By [@aliabid94](https://github.com/aliabid94) in [PR 3466](https://github.com/gr
 
 ## Testing and Infrastructure Changes:
 
-No changes to highlight.
+- Pinned `pyright==1.1.298` for stability by [@abidlabs](https://github.com/abidlabs) in [PR 3475](https://github.com/gradio-app/gradio/pull/3475)
 
 ## Breaking Changes:
 
