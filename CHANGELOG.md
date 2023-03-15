@@ -16,7 +16,7 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-No changes to highlight.
+- Pinned `pyright==1.1.298` for stability by [@abidlabs](https://github.com/abidlabs) in [PR 3474](https://github.com/gradio-app/gradio/pull/3474)
 
 ## Breaking Changes:
 
