@@ -12,6 +12,7 @@ export interface Styles {
 	gap?: boolean;
 	size?: "sm" | "lg";
 	preview?: boolean;
+	show_copy_button?: boolean;
 }
 
 type PartialRecord<K extends keyof any, T> = {
