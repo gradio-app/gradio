@@ -8,7 +8,7 @@ from gradio.themes.utils import colors, fonts, sizes
 
 class ThemeClass:
     def __init__(self):
-        self._header = None
+        self._stylesheets = []
 
     def _get_theme_css(self):
         css = {}
