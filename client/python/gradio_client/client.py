@@ -102,17 +102,10 @@ class Client:
     ##################################
 
     def _infer_fn_index(self, api_name: str) -> int:
-        inferred_fn_index = next(
-            (
-                i
-                for i, d in enumerate(self.config["dependencies"])
-                if d.get("api_name") == api_name
-            ),
-            None,
-        )
-        if inferred_fn_index is None:
-            raise ValueError(f"Cannot find a function with api_name: {api_name}")
-        return inferred_fn_index
+        for i, d in enumerate(self.config["dependencies"]):
+            if d.get("api_name") == api_name:
+                return i
+        raise ValueError(f"Cannot find a function with api_name: {api_name}")
 
     def _get_complete_fn(self, api_name: str | None, fn_index: int) -> Callable:
         if api_name is not None:
