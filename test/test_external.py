@@ -22,7 +22,7 @@ WARNING: These tests have an external dependency: namely that Hugging Face's
 Hub and Space APIs do not change, and they keep their most famous models up.
 So if, e.g. Spaces is down, then these test will not pass.
 
-These tests actually test gr.Interface.load() and gr.Blocks.load() but are
+These tests actually test gr.load() and gr.Blocks.load() but are
 included in a separate file because of the above-mentioned dependency.
 """
 
@@ -35,7 +35,7 @@ pytestmark = pytest.mark.flaky
 class TestLoadInterface:
     def test_audio_to_audio(self):
         model_type = "audio-to-audio"
-        interface = gr.Interface.load(
+        interface = gr.load(
             name="speechbrain/mtl-mimic-voicebank",
             src="models",
             alias=model_type,
@@ -57,7 +57,7 @@ class TestLoadInterface:
 
     def test_text_generation(self):
         model_type = "text_generation"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/gpt2", alias=model_type, description="This is a test description"
         )
         assert interface.__name__ == model_type
@@ -70,7 +70,7 @@ class TestLoadInterface:
 
     def test_summarization(self):
         model_type = "summarization"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/facebook/bart-large-cnn", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -79,7 +79,7 @@ class TestLoadInterface:
 
     def test_translation(self):
         model_type = "translation"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/facebook/bart-large-cnn", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -88,7 +88,7 @@ class TestLoadInterface:
 
     def test_text2text_generation(self):
         model_type = "text2text-generation"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/sshleifer/tiny-mbart", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -97,7 +97,7 @@ class TestLoadInterface:
 
     def test_text_classification(self):
         model_type = "text-classification"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/distilbert-base-uncased-finetuned-sst-2-english",
             api_key=None,
             alias=model_type,
@@ -108,7 +108,7 @@ class TestLoadInterface:
 
     def test_fill_mask(self):
         model_type = "fill-mask"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/bert-base-uncased", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -117,7 +117,7 @@ class TestLoadInterface:
 
     def test_zero_shot_classification(self):
         model_type = "zero-shot-classification"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/facebook/bart-large-mnli", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -128,7 +128,7 @@ class TestLoadInterface:
 
     def test_automatic_speech_recognition(self):
         model_type = "automatic-speech-recognition"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/facebook/wav2vec2-base-960h", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -137,7 +137,7 @@ class TestLoadInterface:
 
     def test_image_classification(self):
         model_type = "image-classification"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/google/vit-base-patch16-224", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -146,7 +146,7 @@ class TestLoadInterface:
 
     def test_feature_extraction(self):
         model_type = "feature-extraction"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/sentence-transformers/distilbert-base-nli-mean-tokens",
             api_key=None,
             alias=model_type,
@@ -157,7 +157,7 @@ class TestLoadInterface:
 
     def test_sentence_similarity(self):
         model_type = "text-to-speech"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
             api_key=None,
             alias=model_type,
@@ -168,7 +168,7 @@ class TestLoadInterface:
 
     def test_text_to_speech(self):
         model_type = "text-to-speech"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
             api_key=None,
             alias=model_type,
@@ -179,7 +179,7 @@ class TestLoadInterface:
 
     def test_text_to_image(self):
         model_type = "text-to-image"
-        interface = gr.Interface.load(
+        interface = gr.load(
             "models/osanseviero/BigGAN-deep-128", api_key=None, alias=model_type
         )
         assert interface.__name__ == model_type
@@ -188,12 +188,12 @@ class TestLoadInterface:
 
     def test_english_to_spanish(self):
         with pytest.warns(UserWarning):
-            io = gr.Interface.load("spaces/abidlabs/english_to_spanish", title="hi")
+            io = gr.load("spaces/abidlabs/english_to_spanish", title="hi")
         assert isinstance(io.input_components[0], gr.Textbox)
         assert isinstance(io.output_components[0], gr.Textbox)
 
     def test_sentiment_model(self):
-        io = gr.Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english")
+        io = gr.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
             output = io("I am happy, I love you")
             assert json.load(open(output))["label"] == "POSITIVE"
@@ -217,7 +217,7 @@ class TestLoadInterface:
             pass
 
     def test_numerical_to_label_space(self):
-        io = gr.Interface.load("spaces/abidlabs/titanic-survival")
+        io = gr.load("spaces/abidlabs/titanic-survival")
         try:
             output = io("male", 77, 10)
             assert json.load(open(output))["label"] == "Perishes"
@@ -225,7 +225,7 @@ class TestLoadInterface:
             pass
 
     def test_image_to_text(self):
-        io = gr.Interface.load("models/nlpconnect/vit-gpt2-image-captioning")
+        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning")
         try:
             output = io("gradio/test_data/lion.jpg")
             assert isinstance(output, str)
@@ -233,7 +233,7 @@ class TestLoadInterface:
             pass
 
     def test_conversational(self):
-        io = gr.Interface.load("models/microsoft/DialoGPT-medium")
+        io = gr.load("models/microsoft/DialoGPT-medium")
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
         assert app.state_holder == {}
@@ -247,7 +247,7 @@ class TestLoadInterface:
         assert isinstance(app.state_holder["foo"], dict)
 
     def test_speech_recognition_model(self):
-        io = gr.Interface.load("models/facebook/wav2vec2-base-960h")
+        io = gr.load("models/facebook/wav2vec2-base-960h")
         try:
             output = io("gradio/test_data/test_audio.wav")
             assert output is not None
@@ -276,7 +276,7 @@ class TestLoadInterface:
             io.close()
 
     def test_text_to_image_model(self):
-        io = gr.Interface.load("models/osanseviero/BigGAN-deep-128")
+        io = gr.load("models/osanseviero/BigGAN-deep-128")
         try:
             filename = io("chest")
             assert filename.endswith(".jpg") or filename.endswith(".jpeg")
@@ -285,7 +285,7 @@ class TestLoadInterface:
 
     def test_private_space(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
-        io = gr.Interface.load(
+        io = gr.load(
             "spaces/gradio-tests/not-actually-private-space", api_key=api_key
         )
         try:
@@ -296,7 +296,7 @@ class TestLoadInterface:
 
     def test_private_space_audio(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
-        io = gr.Interface.load(
+        io = gr.load(
             "spaces/gradio-tests/not-actually-private-space-audio", api_key=api_key
         )
         try:
@@ -308,17 +308,17 @@ class TestLoadInterface:
     def test_multiple_spaces_one_private(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
-            gr.Interface.load(
+            gr.load(
                 "spaces/gradio-tests/not-actually-private-space", api_key=api_key
             )
-            gr.Interface.load(
+            gr.load(
                 "spaces/gradio/test-loading-examples",
             )
         assert Context.access_token == api_key
 
     def test_loading_files_via_proxy_works(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
-        io = gr.Interface.load(
+        io = gr.load(
             "spaces/gradio-tests/test-loading-examples-private", api_key=api_key
         )
         app, _, _ = io.launch(prevent_thread_lock=True)
@@ -333,7 +333,7 @@ class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
         test_file_dir = Path(Path(__file__).parent, "test_files")
         with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
-            gr.Interface.load(
+            gr.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
                 cache_examples=False,
@@ -342,14 +342,14 @@ class TestLoadInterfaceWithExamples:
     def test_interface_load_cache_examples(self, tmp_path):
         test_file_dir = Path(Path(__file__).parent, "test_files")
         with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
-            gr.Interface.load(
+            gr.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
                 cache_examples=True,
             )
 
     def test_root_url(self):
-        demo = gr.Interface.load("spaces/gradio/test-loading-examples")
+        demo = gr.load("spaces/gradio/test-loading-examples")
         assert all(
             [
                 c["props"]["root_url"]
@@ -359,17 +359,17 @@ class TestLoadInterfaceWithExamples:
         )
 
     def test_root_url_deserialization(self):
-        demo = gr.Interface.load("spaces/gradio/simple_gallery")
+        demo = gr.load("spaces/gradio/simple_gallery")
         path_to_files = demo("test")
         assert (Path(path_to_files) / "captions.json").exists()
 
     def test_interface_with_examples(self):
         # This demo has the "fake_event" correctly removed
-        demo = gr.Interface.load("spaces/freddyaboulton/calculator")
+        demo = gr.load("spaces/freddyaboulton/calculator")
         assert demo(2, "add", 3) == 5
 
         # This demo still has the "fake_event". both should work
-        demo = gr.Interface.load("spaces/abidlabs/test-calculator-2")
+        demo = gr.load("spaces/abidlabs/test-calculator-2")
         assert demo(2, "add", 4) == 6
 
 
@@ -440,13 +440,13 @@ def check_dataset(config, readme_examples):
 
 
 def test_load_blocks_with_default_values():
-    io = gr.Interface.load("spaces/abidlabs/min-dalle")
+    io = gr.load("spaces/abidlabs/min-dalle")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.Interface.load("spaces/abidlabs/min-dalle-later")
+    io = gr.load("spaces/abidlabs/min-dalle-later")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.Interface.load("spaces/freddyaboulton/dataframe_load")
+    io = gr.load("spaces/freddyaboulton/dataframe_load")
     assert io.get_config_file()["components"][0]["props"]["value"] == {
         "headers": ["a", "b"],
         "data": [[1, 4], [2, 5], [3, 6]],
@@ -467,7 +467,7 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
     with patch(
         "gradio.external.get_tabular_examples", return_value=hypothetical_readme
     ):
-        io = gr.Interface.load("models/scikit-learn/tabular-playground")
+        io = gr.load("models/scikit-learn/tabular-playground")
         check_dataframe(io.config)
         check_dataset(io.config, hypothetical_readme)
 
@@ -514,7 +514,7 @@ def test_respect_queue_when_load_from_config():
         with patch(
             "gradio.external_utils.get_pred_from_ws", return_value={"data": ["foo"]}
         ):
-            interface = gr.Interface.load("spaces/freddyaboulton/saymyname")
+            interface = gr.load("spaces/freddyaboulton/saymyname")
             assert interface("bob") == "foo"
 
 

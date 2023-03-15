@@ -93,7 +93,7 @@ class Interface(Blocks):
             import gradio as gr
             description = "Story generation with GPT"
             examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
-            demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
+            demo = gr.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
             demo.launch()
         """
         warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")

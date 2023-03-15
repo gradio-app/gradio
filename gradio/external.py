@@ -1,5 +1,5 @@
 """This module should not be used directly as its API is subject to change. Instead,
-use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
+use the `gr.Blocks.load()` or `gr.load()` functions."""
 
 from __future__ import annotations
 

@@ -166,7 +166,6 @@ class Client:
                             f"Could not find 'data' key in response. Response received: {result}"
                         )
                 return tuple(output)
-
             return predict_fn
 
         fns = []
