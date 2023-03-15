@@ -10,6 +10,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: any;
 	let old_value: any;
@@ -32,6 +33,7 @@
 	{visible}
 	test_id="json"
 	{elem_id}
+	{elem_classes}
 	disable={typeof style.container === "boolean" && !style.container}
 	padding={false}
 >
