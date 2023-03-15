@@ -17,8 +17,8 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tupl
 import anyio
 import requests
 from anyio import CapacityLimiter
-from typing_extensions import Literal
 from gradio_client import utils as client_utils
+from typing_extensions import Literal
 
 from gradio import components, external, networking, queueing, routes, strings, utils
 from gradio.context import Context

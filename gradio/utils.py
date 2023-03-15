@@ -37,7 +37,6 @@ from typing import (
 )
 
 import aiohttp
-import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
 import requests
