@@ -112,7 +112,7 @@ XRAY_CONFIG = {
             "serializer": "ImgSerializable",
         },
         {
-            "id": 1212,
+            "id": 12,
             "type": "json",
             "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
             "serializer": "JSONSerializable",
@@ -181,7 +181,7 @@ XRAY_CONFIG = {
                     {
                         "id": 9,
                         "children": [
-                            {"id": 10, "children": [{"id": 11}, {"id": 1212}]},
+                            {"id": 10, "children": [{"id": 11}, {"id": 12}]},
                             {"id": 13},
                         ],
                     },
@@ -215,7 +215,7 @@ XRAY_CONFIG = {
             "targets": [13],
             "trigger": "click",
             "inputs": [2, 11],
-            "outputs": [1212],
+            "outputs": [12],
             "backend_fn": True,
             "js": None,
             "queue": None,
