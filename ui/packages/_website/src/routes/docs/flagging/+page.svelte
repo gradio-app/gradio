@@ -52,10 +52,15 @@
         <div class="obj" id="flagging">
 
         <div class="flex flex-row items-center justify-between"> 
-            <h3 id="flagging-header" class="text-4xl font-light pt-4">Flagging</h3>
+            <h3 id="flagging-header" class="group text-3xl font-light py-4">Flagging
+                <a href="#flagging-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+            </h3>
         </div>
 
-        <p class="mt-8 mb-2 text-lg">{@html description }</p>
+        <h4 class="mt-2 text-xl text-orange-500 font-light group" id="description">Description
+            <a href="#description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+          </h4>
+        <p class="mb-2 text-lg text-gray-600">{@html description }</p>
         
         </div>
         
@@ -64,7 +69,9 @@
             <div class="obj" id={ obj.name.toLowerCase() }>
                 
                 <div class="flex flex-row items-center justify-between"> 
-                    <h3 id="{ obj.slug }-header" class="text-3xl font-light py-4">{ obj.name }</h3>
+                    <h3 id="{ obj.slug }-header" class="group text-3xl font-light py-4">{ obj.name }
+                        <a href="#{ obj.slug }-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+                    </h3>
                 </div>
                 
                 {#if obj.override_signature }
@@ -85,8 +92,11 @@
                     </div>
                 {/if}
 
-                <p class="mt-8 mb-2 text-lg">{@html obj.description }</p>
-
+                <h4 class="mt-8 text-xl text-orange-500 font-light group" id="{obj.name}-description">Description
+                    <a href="#{obj.name}-description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                </h4>
+                <p class="mb-2 text-lg text-gray-600">{@html obj.description }</p>
+                
                 {#if mode === "components" }
                         <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {@html obj.preprocessing }</p>
                         <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {@html obj.postprocessing }</p>
@@ -99,18 +109,24 @@
                 {/if}
 
                 {#if obj.example }
-                    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
-                    <div class="codeblock bg-gray-50 mx-auto p-3">
+                    <h4 class="mt-4 text-xl text-orange-500 font-light group" id="{obj.name}-example-usage">Example Usage
+                        <a href="#{obj.name}-example-usage" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                    </h4>
+                      <div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
                         <pre><code class="code language-python">{@html  obj.highlighted_example }</code></pre>
                     </div>
                 {/if}
 
             {#if (obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1 }
-            <table class="table-fixed w-full mt-6 leading-loose">
+            <h4 class="mt-6 text-xl text-orange-500 font-light group" id="{obj.name}-initialization">Initialization
+            <a href="#{obj.name}-initialization" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+            </h4>
+
+            <table class="table-fixed w-full leading-loose">
             <thead class="text-left">
                 <tr>
-                <th class="p-3 font-semibold w-2/5">Parameter</th>
-                <th class="p-3 font-semibold">Description</th>
+                <th class="px-3 pb-3 font-semibold w-2/5">Parameter</th>
+                <th class="px-3 pb-3 font-semibold">Description</th>
                 </tr>
             </thead>
             <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
@@ -181,11 +197,11 @@
             {#if obj.demos }
 
                 <div class="category my-8" id="examples">
-                <h2 class="group mb-4 text-2xl font-thin block" id="{obj.name}-examples">✨ {obj.name} Examples
-                <a href="#{obj.name}-examples" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
-                </h2>
-                <div>
-                    <div class="demo-window overflow-y-auto h-full w-full my-4">
+                    <h4 class="text-xl text-orange-500 font-light group"  id="{obj.name}-demos">Demos
+                        <a href="#{obj.name}-demos" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                    </h4>
+                        <div>
+                    <div class="demo-window overflow-y-auto h-full w-full mb-4">
                     <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
                         <div class="flex overflow-auto pt-4">
                         {#each obj.demos as demo, i }

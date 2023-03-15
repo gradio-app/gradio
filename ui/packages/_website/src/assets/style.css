@@ -110,6 +110,9 @@ code.language-bash {
 .anchor-img {
   @apply w-7 max-w-full inline-block m-0 ml-2;
 }
+.anchor-img-small {
+  @apply w-5 max-w-full inline-block m-0 ml-0.5;
+}
 .selected-version {
   @apply font-semibold text-orange-500;
 }

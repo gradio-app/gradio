@@ -27,21 +27,31 @@
         -->···<span>&rpar;</span></code></pre></div> 
     {/if}
 
-    <p class="mt-8 mb-2 text-lg">{@html fn.description }</p>
+    <h4 class="mt-8 text-xl text-orange-500 font-light group" id="{fn.slug}-description">Description
+      <a href="#{fn.slug}-description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+    </h4>
+    <p class="mb-2 text-lg">{@html fn.description }</p>
+
 
     {#if fn.example }
-                <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
-                <div class="codeblock bg-gray-50 mx-auto p-3">
+                <h4 class="mt-4 text-xl text-orange-500 font-light group"  id="{fn.slug}-example-usage">Example Usage
+                  <a href="#{fn.slug}-example-usage" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                </h4>
+                <div class="mt-2 codeblock bg-gray-50 mx-auto p-3">
                     <pre><code class="code language-python">{@html  fn.highlighted_example }</code></pre>
                 </div>
     {/if}
 
     {#if (fn.parameters.length > 0 && fn.parameters[0].name != "self") || fn.parameters.length > 1 }
-        <table class="table-fixed w-full mt-6 leading-loose">
+    <h4 class="mt-6 text-xl text-orange-500 font-light group" id="{fn.slug}-arguments">Agruments
+      <a href="#{fn.slug}-arguments" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+    </h4>
+
+        <table class="table-fixed w-full leading-loose">
           <thead class="text-left">
             <tr>
-              <th class="p-3 font-semibold w-2/5">Parameter</th>
-              <th class="p-3 font-semibold">Description</th>
+              <th class="px-3 pb-3 font-semibold text-gray-700 w-2/5">Parameter</th>
+              <th class="px-3 pb-3 font-semibold text-gray-700">Description</th>
             </tr>
           </thead>
           <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">

@@ -95,33 +95,44 @@
                     <gradio-app space={"gradio/" + obj.name.toLowerCase() + "_component"} />
                 </div>
             {/if}
-
-            <p class="mt-8 mb-2 text-lg">{@html obj.description }</p>
+            
+            <h4 class="mt-8 text-xl text-orange-500 font-light group" id="description">Description
+              <a href="#description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+            </h4>
+            <p class="mb-2 text-lg text-gray-600">{@html obj.description }</p>
 
             {#if mode === "components" }
-                    <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {@html obj.preprocessing }</p>
-                    <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {@html obj.postprocessing }</p>
+                    <h4 class="mt-4 text-xl text-orange-500 font-light group" id="behavior">Behavior
+                      <a href="#behavior" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                    </h4>
+                    <p class="text-lg text-gray-500"> <span class="text-gray-700">As input: </span> {@html obj.preprocessing }</p>
+                    <p class="text-lg text-gray-500"> <span class="text-gray-700">As output:</span> {@html obj.postprocessing }</p>
                     {#if obj.examples_format }
-                    <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {@html obj.examples_format }}</p>
+                    <p class="text-lg text-gray-500"> <span class="text-gray-700">Format expected for examples:</span> {@html obj.examples_format }}</p>
                     {/if}
                     {#if obj.events && obj.events.length > 0}
-                    <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{@html obj.events }</em></p>
+                    <p class="text-lg text-gray-500"><span class="text-gray-700">Supported events:</span> <em>{@html obj.events }</em></p>
                     {/if}
             {/if}
 
             {#if obj.example }
-                <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
-                <div class="codeblock bg-gray-50 mx-auto p-3">
+                <h4 class="mt-4 text-xl text-orange-500 font-light group" id="example-usage">Example Usage
+                  <a href="#example-usage" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                </h4>
+                <div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
                     <pre><code class="code language-python">{@html obj.highlighted_example }</code></pre>
                 </div>
             {/if}
 
         {#if (obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1 }
-        <table class="table-fixed w-full mt-6 leading-loose">
+        <h4 class="mt-6 text-xl text-orange-500 font-light group" id="initialization">Initialization
+          <a href="#initialization" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+        </h4>
+        <table class="table-fixed w-full leading-loose">
           <thead class="text-left">
             <tr>
-              <th class="p-3 font-semibold w-2/5">Parameter</th>
-              <th class="p-3 font-semibold">Description</th>
+              <th class="px-3 pb-3 w-2/5 text-gray-700 font-semibold">Parameter</th>
+              <th class="px-3 pb-3 text-gray-700 font-semibold">Description</th>
             </tr>
           </thead>
           <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
@@ -150,12 +161,15 @@
         {/if}
 
         {#if mode === "components" && obj.string_shortcuts }
-        <table class="mb-4 table-fixed w-full mt-6">
+        <h4 class="mt-6 text-xl text-orange-500 font-light group" id="shortcuts">Shortcuts
+          <a href="#shortcuts" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+        </h4>
+        <table class="mb-4 table-fixed w-full">
           <thead class="text-left">
             <tr>
-              <th class="p-3 font-semibold w-2/5">Class</th>
-              <th class="p-3 font-semibold">Interface String Shortcut</th>
-              <th class="p-3 font-semibold">Initialization</th>
+              <th class="px-3 pb-3 text-gray-700 font-semibold w-2/5">Class</th>
+              <th class="px-3 pb-3 text-gray-700 font-semibold">Interface String Shortcut</th>
+              <th class="px-3 pb-3 text-gray-700 font-semibold">Initialization</th>
             </tr>
           </thead>
           <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
@@ -176,27 +190,14 @@
         </table>
          {/if}
 
-         {#if obj.fns && obj.fns.length > 0 }
-            <h4 class="mt-4 p-3 font-semibold">Methods</h4>
-              <div class="flex flex-col gap-8 pl-12">
-                {#each obj.fns as fn}
-
-                  <FunctionDoc fn={fn} parent={obj.name} />
-               
-                {/each}
-              <div class="ml-12"> </div>
-            </div>
-          {/if}
-
-          
-          {#if obj.demos }
+         {#if obj.demos }
 
             <div class="category my-8" id="examples">
-              <h2 class="group mb-4 text-2xl font-thin block" id="{obj.name}-examples">✨ {obj.name} Examples
-              <a href="#{obj.name}-examples" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
-              </h2>
+              <h4 class="text-xl text-orange-500 font-light group"  id="demos">Demos
+                <a href="#demos" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+              </h4>
               <div>
-                <div class="demo-window overflow-y-auto h-full w-full my-4">
+                <div class="demo-window overflow-y-auto h-full w-full mb-4">
                   <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
                     <div class="flex overflow-auto pt-4">
                       {#each obj.demos as demo, i }
@@ -222,6 +223,20 @@
 
           {/if}
 
+
+         {#if obj.fns && obj.fns.length > 0 }
+            <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="methods">Methods
+              <a href="#methods" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+            </h4>
+              <div class="flex flex-col gap-8 pl-12">
+                {#each obj.fns as fn}
+
+                  <FunctionDoc fn={fn} parent={obj.name} />
+               
+                {/each}
+              <div class="ml-12"> </div>
+            </div>
+          {/if}
         
         </div>
 
