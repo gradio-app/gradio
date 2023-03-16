@@ -157,12 +157,6 @@ class Component(Block, Serializable):
                 self.parent.variant = "compact"
         return self
 
-    def serialize_info(self):
-        return {
-            "input": "value",
-            "output": "value",
-        }
-
 
 class IOComponent(Component):
     """
@@ -337,12 +331,6 @@ class Textbox(
         self.cleared_value = ""
         self.test_input = value
         self.type = type
-
-    def serialize_info(self):
-        return {
-            "input": "(str) value",
-            "output": "(str) value",
-        }
 
     def get_config(self):
         return {
@@ -1572,12 +1560,6 @@ class Image(
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
             **IOComponent.get_config(self),
-        }
-
-    def serialize_info(self):
-        return {
-            "input": "(str) filepath or URL to image",
-            "output": "(str) filepath or URL to image",
         }
 
     @staticmethod
