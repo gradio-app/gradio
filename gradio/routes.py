@@ -755,7 +755,7 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
-    blocks.root = path[: path.rindex("/")] if path.endswith("/") else path
+    blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
     gradio_app = App.create_app(blocks)
 
