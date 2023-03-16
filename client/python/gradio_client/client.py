@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import pkgutil
 import re
 import uuid
 from concurrent.futures import Future
@@ -10,6 +11,7 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import requests
 import websockets
+from huggingface_hub.utils import build_hf_headers
 from packaging import version
 
 from gradio_client import serializing, utils
@@ -25,8 +27,13 @@ class Client:
         max_workers: int = 40,
     ):
         self.access_token = access_token
-        self.headers = (
-            {"Authorization": f"Bearer {access_token}"} if access_token else {}
+        library_version = (
+            (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+        )
+        self.headers = build_hf_headers(
+            token=access_token,
+            library_name="gradio_client",
+            library_version=library_version,
         )
 
         if space is None and src is None:
