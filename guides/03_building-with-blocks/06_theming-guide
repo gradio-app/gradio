@@ -35,7 +35,7 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink"))
     ...
 ```
 
-or you could use the Color object directly, such as
+or you could use the `Color` object directly, such as
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=gr.themes.Pink)):
