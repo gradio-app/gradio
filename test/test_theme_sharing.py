@@ -249,7 +249,7 @@ class TestThemeUploadDownload:
     @patch("gradio.themes.base.Base._theme_version_exists", return_value=True)
     def test_theme_upload_fails_if_duplicate_version(self, mock_1, mock_2):
         with pytest.raises(ValueError, match="already has a theme with version 0.2.1"):
-            dracula.push_to_hub("dracula_revamped", "0.2.1", hf_token="foo")
+            dracula.push_to_hub("dracula_revamped", version="0.2.1", hf_token="foo")
 
     @patch("gradio.themes.base.huggingface_hub")
     @patch("gradio.themes.base.huggingface_hub.HfApi")
@@ -320,3 +320,38 @@ class TestThemeUploadDownload:
             gr.themes.Monochrome().push_to_hub(
                 repo_name="my_monochrome", version="0.1.5"
             )
+
+    @patch("gradio.themes.base.Base._get_next_version", return_value="0.1.3")
+    @patch("gradio.themes.base.Base._theme_version_exists", return_value=False)
+    @patch("gradio.themes.base.huggingface_hub")
+    def test_can_upload_to_org(self, mock_1, mock_2, mock_3):
+        mock_1.whoami.return_value = {"name": "freddyaboulton"}
+
+        gr.themes.Monochrome().push_to_hub(
+            repo_name="my_monochrome", version="0.1.9", org_name="gradio"
+        )
+        repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]
+        assert repo_call_args["repo_id"] == "gradio/my_monochrome"
+        assert any(
+            o.path_in_repo == "themes/theme_schema@0.1.9.json"
+            for o in repo_call_args["operations"]
+        )
+        mock_1.whoami.assert_called_with()
+
+    @patch("gradio.themes.base.Base._get_next_version", return_value="0.1.3")
+    @patch("gradio.themes.base.Base._theme_version_exists", return_value=False)
+    @patch("gradio.themes.base.huggingface_hub")
+    def test_can_make_private(self, mock_1, mock_2, mock_3):
+        mock_1.whoami.return_value = {"name": "freddyaboulton"}
+
+        gr.themes.Monochrome().push_to_hub(
+            repo_name="my_monochrome", version="0.1.9", org_name="gradio", private=True
+        )
+        mock_1.create_repo.assert_called_with(
+            "gradio/my_monochrome",
+            repo_type="space",
+            space_sdk="gradio",
+            token=None,
+            exist_ok=True,
+            private=True,
+        )

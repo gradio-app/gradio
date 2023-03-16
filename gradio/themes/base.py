@@ -86,20 +86,21 @@ class ThemeClass:
         json.dump(as_dict, open(Path(filename), "w"))
 
     @classmethod
-    def from_hub(cls, repo_name: str):
+    def from_hub(cls, repo_name: str, hf_token: str | None = None):
         """Load a theme from the hub.
 
-        This DOES NOT require a HuggingFace account.
+        This DOES NOT require a HuggingFace account for downloading publicly available themes.
 
         Parameters:
             repo_name: string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.
+            hf_token: HuggingFace Token. Only needed to download private themes.
         """
         if "@" not in repo_name:
             name, version = repo_name, None
         else:
             name, version = repo_name.split("@")
 
-        api = huggingface_hub.HfApi()
+        api = huggingface_hub.HfApi(token=hf_token)
 
         try:
             space_info = api.space_info(name)
@@ -115,18 +116,12 @@ class ThemeClass:
                 f"from files {[f.filename for f in assets]}"
             )
 
-        url = huggingface_hub.hf_hub_url(
+        theme_file = huggingface_hub.hf_hub_download(
             repo_id=name,
             repo_type="space",
             filename=f"themes/theme_schema@{matching_version.version}.json",
         )
-        download = requests.get(url)
-        if download.ok:
-            return cls.from_dict(download.json())
-        else:
-            raise ValueError(
-                f"Error downloading file themes/theme_schema@{matching_version}.json from {repo_name}!"
-            )
+        return cls.load(theme_file)
 
     @staticmethod
     def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
@@ -144,10 +139,12 @@ class ThemeClass:
     def push_to_hub(
         self,
         repo_name: str,
+        org_name: str | None = None,
         version: str | None = None,
         hf_token: str | None = None,
         theme_name: str | None = None,
         description: str | None = None,
+        private: bool = False,
     ):
         """Upload a theme to the HuggingFace hub.
 
@@ -155,6 +152,7 @@ class ThemeClass:
 
         Parameters:
             repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'.
+            org_name: The name of the org to save the space in. If None (the default), the username corresponding to the logged in user, or hƒ_token is used.
             version: A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.
             hf_token: API token for your HuggingFace account
             theme_name: Name for the name. If None, defaults to repo_name
@@ -177,7 +175,7 @@ class ThemeClass:
         else:
             author = huggingface_hub.whoami(token=hf_token)["name"]
 
-        space_id = f"{author}/{repo_name}"
+        space_id = f"{org_name or author}/{repo_name}"
 
         try:
             space_info = api.space_info(space_id)
@@ -222,7 +220,7 @@ class ThemeClass:
             contents = open(str(Path(__file__).parent / "app.py")).read()
             contents = re.sub(
                 r"theme=gr.themes.Default\(\)",
-                f"theme='{author}/{repo_name}'",
+                f"theme='{space_id}'",
                 contents,
             )
             contents = re.sub(r"{THEME}", theme_name or repo_name, contents)
@@ -261,16 +259,17 @@ class ThemeClass:
             space_sdk="gradio",
             token=hf_token,
             exist_ok=True,
+            private=private,
         )
 
         api.create_commit(
-            repo_id=f"{author}/{repo_name}",
+            repo_id=space_id,
             commit_message="Updating theme",
             repo_type="space",
             operations=operations,
             token=hf_token,
         )
-        url = f"https://huggingface.co/spaces/{author}/{repo_name}"
+        url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your theme here! {url}")
         return url
 
