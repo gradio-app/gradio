@@ -399,7 +399,7 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict = block.get_specific_update(update_dict)
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
-    interactive = update_dict.get("interactive")
+    interactive = update_dict.pop("interactive", None)
     if interactive is not None:
         update_dict["mode"] = "dynamic" if interactive else "static"
     prediction_value = delete_none(update_dict, skip_value=True)
