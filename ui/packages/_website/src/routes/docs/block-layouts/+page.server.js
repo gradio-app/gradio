@@ -30,11 +30,11 @@ export async function load() {
                 docs.building.accordion];
 
     let headers = [
-        ["Row", "row-header"],
-        ["Column", "column-header"],
-        ["Tab", "tab-header"],
-        ["Box", "box-header"],
-        ["Accordion", "accordion-header"],
+        ["Row", "row"],
+        ["Column", "column"],
+        ["Tab", "tab"],
+        ["Box", "box"],
+        ["Accordion", "accordion"],
     ];
     let method_headers = [];
 

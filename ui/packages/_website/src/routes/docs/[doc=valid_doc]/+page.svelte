@@ -5,6 +5,7 @@
     import FunctionDoc from '../../../components/FunctionDoc.svelte';
     import MetaTags from "../../../components/MetaTags.svelte";
     import anchor from "../../../assets/img/anchor.svg";
+	  import { onDestroy } from 'svelte';
 
 
     export let data;
@@ -35,6 +36,23 @@
       })
     }
 
+    let y;
+    let header_targets = {};
+    let target_elem;
+
+    onDestroy(() => {
+      header_targets = {};
+    });
+
+    $: for (const target in header_targets) {
+        target_elem = document.querySelector(`#${target}`);
+        if (y > target_elem?.offsetTop - 50 && y < target_elem?.offsetTop + target_elem?.offsetHeight) {
+          header_targets[target]?.classList.add("current-nav-link");
+        } else {
+          header_targets[target]?.classList.remove("current-nav-link");
+        }
+    }
+
 
     $: for (const key in docs) {
         for (const o in docs[key]) {
@@ -52,6 +70,8 @@
             url={"https://gradio.app/docs/" + obj.name.toLowerCase()} 
             canonical={"https://gradio.app/docs/" + obj.name.toLowerCase()}
             description={obj.description}/>
+
+<svelte:window bind:scrollY={y}/>
 
 <main class="container mx-auto px-4 flex gap-4">
 
@@ -116,13 +136,16 @@
                 </div>
             {/if}
             
-            <h4 class="mt-8 text-xl text-orange-500 font-light group" id="description">Description
+            <div id="description">            
+            <h4 class="mt-8 text-xl text-orange-500 font-light group">Description
               <a href="#description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
             </h4>
             <p class="mb-2 text-lg text-gray-600">{@html obj.description }</p>
+            </div>
 
             {#if mode === "components" }
-                    <h4 class="mt-4 text-xl text-orange-500 font-light group" id="behavior">Behavior
+            <div id="behavior">
+                    <h4 class="mt-4 text-xl text-orange-500 font-light group">Behavior
                       <a href="#behavior" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
                     </h4>
                     <p class="text-lg text-gray-500"> <span class="text-gray-700">As input: </span> {@html obj.preprocessing }</p>
@@ -133,19 +156,23 @@
                     {#if obj.events && obj.events.length > 0}
                     <p class="text-lg text-gray-500"><span class="text-gray-700">Supported events:</span> <em>{@html obj.events }</em></p>
                     {/if}
+            </div>
             {/if}
 
             {#if obj.example }
-                <h4 class="mt-4 text-xl text-orange-500 font-light group" id="example-usage">Example Usage
+            <div id="example-usage">
+                <h4 class="mt-4 text-xl text-orange-500 font-light group">Example Usage
                   <a href="#example-usage" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
                 </h4>
                 <div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
                     <pre><code class="code language-python">{@html obj.highlighted_example }</code></pre>
                 </div>
+            </div>
             {/if}
 
         {#if (obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1 }
-        <h4 class="mt-6 text-xl text-orange-500 font-light group" id="initialization">Initialization
+        <div id="initialization">         
+        <h4 class="mt-6 text-xl text-orange-500 font-light group">Initialization
           <a href="#initialization" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
         </h4>
         <table class="table-fixed w-full leading-loose">
@@ -178,10 +205,12 @@
             {/each}
           </tbody>
         </table>
+      </div>
         {/if}
 
         {#if mode === "components" && obj.string_shortcuts }
-        <h4 class="mt-6 text-xl text-orange-500 font-light group" id="shortcuts">Shortcuts
+        <div id="shortcuts">
+        <h4 class="mt-6 text-xl text-orange-500 font-light group">Shortcuts
           <a href="#shortcuts" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
         </h4>
         <table class="mb-4 table-fixed w-full">
@@ -208,12 +237,13 @@
           {/each}
           </tbody>
         </table>
+        </div>
          {/if}
 
          {#if obj.demos }
-
+         <div id="demos">
             <div class="category my-8" id="examples">
-              <h4 class="text-xl text-orange-500 font-light group"  id="demos">Demos
+              <h4 class="text-xl text-orange-500 font-light group">Demos
                 <a href="#demos" class="invisible group-hover-visible"  on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
               </h4>
               <div>
@@ -240,12 +270,14 @@
                 </div>
               </div>
             </div>
+            </div>
 
           {/if}
 
 
          {#if obj.fns && obj.fns.length > 0 }
-            <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="methods">Methods
+         <div id="methods">
+            <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">Methods
               <a href="#methods" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
             </h4>
               <div class="flex flex-col gap-8 pl-12">
@@ -256,11 +288,12 @@
                 {/each}
               <div class="ml-12"> </div>
             </div>
+            </div>
           {/if}
 
           {#if obj.guides && obj.guides.length > 0  }
-
-          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="guides">Guides
+          <div id="guides">
+          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">Guides
             <a href="#guides" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
 
@@ -274,6 +307,7 @@
               </a>
             {/each}
             </div>
+            </div>
           {/if}
         </div>
       </div>
@@ -281,24 +315,31 @@
       <div class="float-right mt-10 hidden lg:block ">
         <div class='fixed'>
           <div class="mx-8">
-            <a class="thin-link py-2 block text-lg second-nav-link current-nav-link" href="#{obj.slug}" on:click={handleAnchorClick}>{obj.name}</a>
+            <a 
+            class="thin-link py-2 block text-lg" href="#{obj.slug}" on:click={handleAnchorClick}>{obj.name}</a>
             {#if headers.length > 0}
             <ul class="text-slate-700 text-lg leading-6">
               {#each headers as header}
               <li>
-                <a href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
+                <a 
+                bind:this={header_targets[header[1]]}
+                href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
               </li>
               {/each}
               {#if method_headers.length > 0}
               {#each method_headers as method_header}
               <li class="">
-                <a href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a>
+                <a 
+                bind:this={header_targets[method_header[1]]}
+                href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link sub-link" on:click={handleAnchorClick}>&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a>
               </li>
               {/each}
               {/if}
             {#if obj.guides && obj.guides.length > 0  }
               <li>
-                <a href="#guides" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>Guides</a>
+                <a 
+                bind:this={header_targets["guides"]}
+                href="#guides" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>Guides</a>
               </li>
             {/if}
           </ul>
@@ -334,3 +375,8 @@
 
     </main>
 
+    <style>
+      .sub-link {
+        border-color: #f3f4f6 !important;
+      }
+    </style>

@@ -74,7 +74,7 @@ export async function load({params}) {
                 if ("fns" in obj && obj.fns.length > 0) {
                     headers.push(["Methods", "methods"])
                     for (const fn of obj.fns) {
-                        method_headers.push([fn.name, fn.slug + "-header"])
+                        method_headers.push([fn.name, fn.slug])
                         if (fn.example) {
                             fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language]);
                         }

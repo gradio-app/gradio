@@ -4,6 +4,8 @@
     import FunctionDoc from '../../../components/FunctionDoc.svelte';
     import MetaTags from "../../../components/MetaTags.svelte";
     import anchor from "../../../assets/img/anchor.svg";
+    import { onDestroy } from 'svelte';
+
 
     export let data;
 
@@ -29,6 +31,24 @@
         behavior: 'smooth'
       })
     }
+
+
+    let y;
+    let header_targets = {};
+    let target_elem;
+
+    onDestroy(() => {
+      header_targets = {};
+    });
+
+    $: for (const target in header_targets) {
+        target_elem = document.querySelector(`#${target}`);
+        if (y > target_elem?.offsetTop - 50 && y < target_elem?.offsetTop + target_elem?.offsetHeight) {
+          header_targets[target]?.classList.add("current-nav-link");
+        } else {
+          header_targets[target]?.classList.remove("current-nav-link");
+        }
+    }
 </script>
 
 
@@ -36,6 +56,9 @@
             url={"https://gradio.app/docs/flagging"} 
             canonical={"https://gradio.app/docs/flagging"}
             description={description}/>
+
+            <svelte:window bind:scrollY={y}/>
+
 
 <main class="container mx-auto px-4 flex gap-4">
 
@@ -72,7 +95,7 @@
 
         <div class="flex flex-row items-center justify-between"> 
             <h3 id="flagging-header" class="group text-3xl font-light py-4">Flagging
-                <a href="#flagging-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
+                <a href="#flagging" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
             </h3>
         </div>
 
@@ -85,7 +108,7 @@
         
         {#each objs as obj}
         
-            <div class="obj" id={ obj.name.toLowerCase() }>
+            <div class="obj" id={obj.slug}>
                 
                 <div class="flex flex-row items-center justify-between"> 
                     <h3 id="{ obj.slug }-header" class="group text-3xl font-light py-4">{ obj.name }
@@ -272,12 +295,14 @@
 <div class="float-right mt-10 hidden lg:block ">
     <div class='fixed'>
       <div class="mx-8">
-        <a class="thin-link py-2 block text-lg second-nav-link current-nav-link" href="#flagging" on:click={handleAnchorClick}>Flagging</a>
+        <a class="thin-link py-2 block text-lg" href="#flagging" on:click={handleAnchorClick}>Flagging</a>
         {#if headers.length > 0}
         <ul class="text-slate-700 text-lg leading-6">
           {#each headers as header}
           <li>
-            <a href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
+            <a 
+            bind:this={header_targets[header[1]]}
+            href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
           </li>
           {/each}
           {#if method_headers.length > 0}

@@ -27,9 +27,9 @@ export async function load() {
                 docs.building.parallel, 
                 docs.building.series];
     let headers = [
-        ["Tabbed Interface", "tabbed-interface-header"],
-        ["Parallel", "parallel-header"],
-        ["Series", "series-header"]
+        ["Tabbed Interface", "tabbed-interface"],
+        ["Parallel", "parallel"],
+        ["Series", "series"],
     ];
     let method_headers = [];
     for (let obj of objs) {

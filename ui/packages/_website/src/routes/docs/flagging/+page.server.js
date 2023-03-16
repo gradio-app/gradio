@@ -27,9 +27,9 @@ export async function load() {
                 docs.building.csvlogger, 
                 docs.building.huggingfacedatasetsaver];
     let headers = [
-        ["SimpleCSVLogger", "simple-csv-logger-header"],
-        ["CSVLogger", "csv-logger-header"],
-        ["HuggingFaceDatasetSaver", "hugging-face-dataset-saver-header"],
+        ["SimpleCSVLogger", "simple-csv-logger"],
+        ["CSVLogger", "csv-logger"],
+        ["HuggingFaceDatasetSaver", "hugging-face-dataset-saver"],
     ];
     let method_headers = [];
     

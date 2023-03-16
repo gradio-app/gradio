@@ -28,7 +28,7 @@
 		class:hidden={!show_nav}
 		class="w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:gap-8"
 	>
-		<a class="thin-link flex items-center gap-3" href="/quickstart"
+		<a class="thin-link flex items-center gap-3" href="/guides/quickstart"
 			><span>⚡</span> <span>Quickstart</span>
 		</a>
 		<a class="thin-link flex items-center gap-3" href="/docs"

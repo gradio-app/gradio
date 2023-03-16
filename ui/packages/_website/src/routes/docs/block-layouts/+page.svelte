@@ -4,6 +4,8 @@
     import FunctionDoc from '../../../components/FunctionDoc.svelte';
     import MetaTags from "../../../components/MetaTags.svelte";
     import anchor from "../../../assets/img/anchor.svg";
+    import { onDestroy } from 'svelte';
+
 
     export let data;
 
@@ -29,6 +31,25 @@
         behavior: 'smooth'
       })
     }
+
+    let y;
+    let header_targets = {};
+    let target_elem;
+
+    onDestroy(() => {
+      header_targets = {};
+    });
+
+    $: for (const target in header_targets) {
+        target_elem = document.querySelector(`#${target}`);
+        if (y > target_elem?.offsetTop - 50 && y < target_elem?.offsetTop + target_elem?.offsetHeight) {
+          header_targets[target]?.classList.add("current-nav-link");
+        } else {
+          header_targets[target]?.classList.remove("current-nav-link");
+        }
+    }
+
+
 </script>
 
 
@@ -36,6 +57,9 @@
             url={"https://gradio.app/docs/block-layouts"} 
             canonical={"https://gradio.app/docs/block-layouts"}
             description={description}/>
+
+<svelte:window bind:scrollY={y}/>
+
 
 <main class="container mx-auto px-4 flex gap-4">
 
@@ -77,18 +101,20 @@
             </h3>
         </div>
 
-        <h4 class="mt-4 text-xl text-orange-500 font-light group" id="description">Description
+        <div id="description">            
+        <h4 class="mt-4 text-xl text-orange-500 font-light group">Description
             <a href="#description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
         <p class="mb-2 text-lg text-gray-600">{@html description }</p>
+        </div>
 
         {#each objs as obj}
         
-            <div class="obj" id={ obj.name.toLowerCase() }>
+            <div class="obj" id={ obj.slug }>
                 
                 <div class="flex flex-row items-center justify-between"> 
-                    <h3 id="{ obj.slug }-header" class="group text-3xl font-light py-4">{ obj.name }
-                    <a href="#{ obj.slug }-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
+                    <h3 id="{ obj.slug }" class="group text-3xl font-light py-4">{ obj.name }
+                    <a href="#{ obj.slug }" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
                     </h3>
                 </div>
                 
@@ -211,10 +237,12 @@
             {/if}
 
             {#if obj.guides && obj.guides.length > 0  }
-
-          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="guides">Guides
+        
+        <div id="guides">
+          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">Guides
             <a href="#guides" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
+        
 
           <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4 pb-3 px-3">
 
@@ -226,11 +254,12 @@
               </a>
             {/each}
           </div>
+        </div>
           {/if}
 
             
             {#if obj.demos }
-
+                <div id="examples">
                 <div class="category my-8" id="examples">
                 <h2 class="group mb-4 text-2xl font-thin block" id="{obj.name}-examples">✨ {obj.name} Examples
                 <a href="#{obj.name}-examples" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
@@ -259,6 +288,7 @@
                     </div>
                 </div>
                 </div>
+                </div>
 
             {/if}
 
@@ -270,12 +300,14 @@
     <div class="float-right mt-10 hidden lg:block ">
         <div class='fixed'>
           <div class="px-8">
-            <a class="thin-link py-2 block text-lg second-nav-link current-nav-link" href="#block-layouts" on:click={handleAnchorClick}>Block Layouts</a>
+            <a class="thin-link py-2 block text-lg" href="#block-layouts" on:click={handleAnchorClick}>Block Layouts</a>
             {#if headers.length > 0}
             <ul class="text-slate-700 text-lg leading-6">
               {#each headers as header}
               <li>
-                <a href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
+                <a 
+                bind:this={header_targets[header[1]]}
+                href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
               </li>
               {/each}
               {#if method_headers.length > 0}

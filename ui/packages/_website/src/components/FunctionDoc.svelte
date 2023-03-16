@@ -19,10 +19,10 @@
 
 <!-- name, signature, description, params -->
 
-<div class="obj" id={ parent + fn.name.toLowerCase() }>
+<div class="obj" id="{fn.slug}">
     <div class="flex flex-row items-center justify-between"> 
-        <h3 id="{ fn.slug }-header" class="group text-3xl font-light py-4">{ fn.name }
-        <a href="#{ fn.slug }-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
+        <h3 class="group text-3xl font-light py-4">{ fn.name }
+        <a href="#{ fn.slug }" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
         </h3>
         
     </div>
