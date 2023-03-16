@@ -45,6 +45,7 @@
 		{type}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
+		{style}
 		on:change
 		on:submit
 		on:blur
