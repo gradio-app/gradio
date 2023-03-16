@@ -15,6 +15,7 @@ export interface Config {
 	is_space: boolean;
 	is_colab: boolean;
 	show_api: boolean;
+	path: string;
 }
 
 export interface Payload {
