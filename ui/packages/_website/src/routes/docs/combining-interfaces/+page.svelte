@@ -18,6 +18,17 @@
     let method_headers = data.method_headers;
 
     let current_selection = 0;
+    function handleAnchorClick (event) {
+      event.preventDefault()
+      const link = event.currentTarget
+      console.log(link)
+      const anchorId = new URL(link.href).hash.replace('#', '')
+      const anchor = document.getElementById(anchorId)
+      window.scrollTo({
+        top: anchor.offsetTop,
+        behavior: 'smooth'
+      })
+    }
 </script>
 
 
@@ -61,11 +72,11 @@
 
         <div class="flex flex-row items-center justify-between"> 
             <h3 id="combining-interfaces-header" class="group text-3xl font-light pt-4">Combining Interfaces
-            <a href="#combining-interfaces-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+            <a href="#combining-interfaces-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
             </h3>
         </div>
         <h4 class="mt-2 text-xl text-orange-500 font-light group" id="description">Description
-            <a href="#description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+            <a href="#description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
         <p class="mb-2 text-lg text-gray-600">{@html description }</p>
         
@@ -78,7 +89,7 @@
                 
                 <div class="flex flex-row items-center justify-between"> 
                     <h3 id="{ obj.slug }-header" class="group text-3xl font-light py-4">{ obj.name }
-                        <a href="#{ obj.slug }-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+                        <a href="#{ obj.slug }-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
                     </h3>
                 </div>
                 
@@ -101,7 +112,7 @@
                 {/if}
 
                 <h4 class="mt-8 text-xl text-orange-500 font-light group" id="{obj.name}-description">Description
-                    <a href="#{obj.name}-description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                    <a href="#{obj.name}-description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
                 </h4>
                 <p class="mb-2 text-lg text-gray-600">{@html obj.description }</p>
                 
@@ -118,7 +129,7 @@
 
                 {#if obj.example }
                 <h4 class="mt-4 text-xl text-orange-500 font-light group" id="{obj.name}-example-usage">Example Usage
-                    <a href="#{obj.name}-example-usage" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                    <a href="#{obj.name}-example-usage" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
                 </h4>                    
                 <div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
                         <pre><code class="code language-python">{@html obj.highlighted_example }</code></pre>
@@ -127,7 +138,7 @@
 
             {#if (obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1 }
             <h4 class="mt-6 text-xl text-orange-500 font-light group" id="{obj.name}-initialization">Initialization
-            <a href="#{obj.name}-initialization" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+            <a href="#{obj.name}-initialization" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
             </h4>
             <table class="table-fixed w-full leading-loose">
             <thead class="text-left">
@@ -203,7 +214,7 @@
             {#if obj.guides && obj.guides.length > 0  }
 
           <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="guides">Guides
-            <a href="#guides" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+            <a href="#guides" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
 
           <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4 pb-3 px-3">
@@ -223,7 +234,7 @@
 
                 <div class="category my-8" id="examples">
                     <h4 class="text-xl text-orange-500 font-light group"  id="{obj.name}-demos">Demos
-                        <a href="#{obj.name}-demos" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                        <a href="#{obj.name}-demos" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
                     </h4>
                         <div>
                     <div class="demo-window overflow-y-auto h-full w-full mb-4">
@@ -260,18 +271,18 @@
 <div class="float-right mt-10 hidden lg:block ">
     <div class='fixed'>
       <div class="px-8">
-        <a class="thin-link py-2 block text-lg second-nav-link current-nav-link" href="combining-interfaces">Combining Interfaces</a>
+        <a class="thin-link py-2 block text-lg second-nav-link current-nav-link" href="#combining-interfaces" on:click={handleAnchorClick}>Combining Interfaces</a>
         {#if headers.length > 0}
         <ul class="text-slate-700 text-lg leading-6">
           {#each headers as header}
           <li>
-            <a href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link">{header[0]}</a>
+            <a href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
           </li>
           {/each}
           {#if method_headers.length > 0}
           {#each method_headers as method_header}
           <li class="ml-4">
-            <a href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link">{method_header[0]}</a>
+            <a href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{method_header[0]}</a>
           </li>
           {/each}
           {/if}

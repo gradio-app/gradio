@@ -2,6 +2,18 @@
     export let fn;
     export let parent;
     import anchor from "../assets/img/anchor.svg";
+
+    function handleAnchorClick (event) {
+      event.preventDefault()
+      const link = event.currentTarget
+      console.log(link)
+      const anchorId = new URL(link.href).hash.replace('#', '')
+      const anchor = document.getElementById(anchorId)
+      window.scrollTo({
+        top: anchor.offsetTop,
+        behavior: 'smooth'
+      })
+    }
 </script>
 
 
@@ -10,7 +22,7 @@
 <div class="obj" id={ parent + fn.name.toLowerCase() }>
     <div class="flex flex-row items-center justify-between"> 
         <h3 id="{ fn.slug }-header" class="group text-3xl font-light py-4">{ fn.name }
-        <a href="#{ fn.slug }-header" class="invisible group-hover-visible"><img class="anchor-img" src="{anchor}"/></a>
+        <a href="#{ fn.slug }-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
         </h3>
         
     </div>
@@ -28,14 +40,14 @@
     {/if}
 
     <h4 class="mt-8 text-xl text-orange-500 font-light group" id="{fn.slug}-description">Description
-      <a href="#{fn.slug}-description" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+      <a href="#{fn.slug}-description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
     </h4>
     <p class="mb-2 text-lg">{@html fn.description }</p>
 
 
     {#if fn.example }
                 <h4 class="mt-4 text-xl text-orange-500 font-light group"  id="{fn.slug}-example-usage">Example Usage
-                  <a href="#{fn.slug}-example-usage" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+                  <a href="#{fn.slug}-example-usage" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
                 </h4>
                 <div class="mt-2 codeblock bg-gray-50 mx-auto p-3">
                     <pre><code class="code language-python">{@html  fn.highlighted_example }</code></pre>
@@ -44,7 +56,7 @@
 
     {#if (fn.parameters.length > 0 && fn.parameters[0].name != "self") || fn.parameters.length > 1 }
     <h4 class="mt-6 text-xl text-orange-500 font-light group" id="{fn.slug}-arguments">Agruments
-      <a href="#{fn.slug}-arguments" class="invisible group-hover-visible"><img class="anchor-img-small" src="{anchor}"/></a>
+      <a href="#{fn.slug}-arguments" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
     </h4>
 
         <table class="table-fixed w-full leading-loose">

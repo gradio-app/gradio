@@ -84,7 +84,7 @@ export async function load() {
 							tagName: "a",
 							properties: {
 								href: `#${slug}`,
-								className: ["invisible", "group-hover-visible"]
+								className: ["invisible", "group-hover-visible"],
 							},
 							children: [
 								{

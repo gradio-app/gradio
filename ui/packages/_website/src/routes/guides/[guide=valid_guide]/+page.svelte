@@ -20,6 +20,18 @@
     let navigation;
     let y;
 
+    function handleAnchorClick (event) {
+      event.preventDefault()
+      const link = event.currentTarget
+      console.log(link)
+      const anchorId = new URL(link.href).hash.replace('#', '')
+      const anchor = document.getElementById(anchorId)
+      window.scrollTo({
+        top: anchor.offsetTop,
+        behavior: 'smooth'
+      })
+    }
+
     $: if (sidebar) {
         if (target_link?.previousElementSibling.classList.contains("category-link")) {
             target_link = target_link.previousElementSibling;
@@ -59,11 +71,12 @@
                 class:current-nav-link={guide.name == guide_page.name}
                 class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
                     style="max-width: 12rem"
-                    href="{ guide.url }">{guide.pretty_name}</a>
+                    href="{ guide.url }"
+                    on:click={handleAnchorClick}>{guide.pretty_name}</a>
 
                     <div class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
                         {#each nav[guide_page.name] as heading} 
-                            <a class="subheading block thin-link -indent-2 ml-4 mr-2" href="{heading.href}">{heading.text}</a>
+                            <a class="subheading block thin-link -indent-2 ml-4 mr-2" href="{heading.href}" on:click={handleAnchorClick}>{heading.text}</a>
                         {/each}
                     </div>
                 {:else}
