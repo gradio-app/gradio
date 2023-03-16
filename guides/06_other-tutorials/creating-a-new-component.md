@@ -84,7 +84,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
             "label": label,
             "show_label": show_label,
             "visible": visible,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 

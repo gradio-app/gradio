@@ -356,7 +356,7 @@ class Textbox(
             "visible": visible,
             "value": value,
             "type": type,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -560,7 +560,7 @@ class Number(
             "show_label": show_label,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -760,7 +760,7 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -895,7 +895,7 @@ class Checkbox(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1019,7 +1019,7 @@ class CheckboxGroup(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1204,7 +1204,7 @@ class Radio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1376,7 +1376,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1571,7 +1571,7 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1923,7 +1923,7 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2149,7 +2149,7 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2471,7 +2471,7 @@ class File(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2741,7 +2741,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2959,7 +2959,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3122,7 +3122,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             "variant": variant,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3226,7 +3226,7 @@ class UploadButton(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3389,7 +3389,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             "label": label,
             "show_label": show_label,
             "visible": visible,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -5674,7 +5674,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             "visible": visible,
             "value": value,
             "language": language,
-            "mode": "dynamic" if interactive else "static",
+            "interactive": interactive,
             "__type__": "update",
         }
 
