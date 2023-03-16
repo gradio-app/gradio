@@ -41,7 +41,6 @@ import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
 import requests
-from huggingface_hub.utils import send_telemetry
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
@@ -117,19 +116,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
-    def initiated_telemetry_thread(data: Dict[str, Any]) -> None:
-        try:
-            send_telemetry(
-                topic="gradio/initiated",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=data,
-            )
-        except Exception:
-            pass
-
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
-    threading.Thread(target=initiated_telemetry_thread, args=(data,)).start()
 
 
 def launch_analytics(data: Dict[str, Any]) -> None:
@@ -195,11 +182,8 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
 
     def launched_telemtry_thread(data: Dict[str, Any]) -> None:
         try:
-            send_telemetry(
-                topic="gradio/launched",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=data,
+            requests.post(
+                analytics_url + "gradio-launched-telemetry/", data=data, timeout=3
             )
         except Exception as e:
             print("Error while sending telemetry: {}".format(e))
@@ -218,19 +202,7 @@ def integration_analytics(data: Dict[str, Any]) -> None:
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
-    def integration_telemetry_thread(data: Dict[str, Any]) -> None:
-        try:
-            send_telemetry(
-                topic="gradio/integration",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=data,
-            )
-        except Exception as e:
-            print("Error while sending telemetry: {}".format(e))
-
     threading.Thread(target=integration_analytics_thread, args=(data,)).start()
-    threading.Thread(target=integration_telemetry_thread, args=(data,)).start()
 
 
 def error_analytics(message: str) -> None:
@@ -249,19 +221,7 @@ def error_analytics(message: str) -> None:
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
-    def error_telemetry_thread(data: Dict[str, Any]) -> None:
-        try:
-            send_telemetry(
-                topic="gradio/error",
-                library_name="gradio",
-                library_version=GRADIO_VERSION,
-                user_agent=message,
-            )
-        except Exception as e:
-            print("Error while sending telemetry: {}".format(e))
-
     threading.Thread(target=error_analytics_thread, args=(data,)).start()
-    threading.Thread(target=error_telemetry_thread, args=(data,)).start()
 
 
 async def log_feature_analytics(feature: str) -> None:
