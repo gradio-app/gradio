@@ -97,7 +97,7 @@
                 {#each Object.entries(components) as  [name, obj] ( name ) }
                 <tr class="group hover:bg-gray-200/60">
                   <td class="p-3 w-1/5 bg-white">
-                    { obj.name }
+                    <a href="{obj.name.toLowerCase()}" class="thin-link" >{ obj.name }</a>
                   </td>
                   {#each ordered_events as event}
                     <td class="p-3 text-gray-700 break-words text-center">
