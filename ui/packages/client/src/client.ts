@@ -361,8 +361,8 @@ async function resolve_config(endpoint?: string): Promise<Config> {
 
 		if (response.status === 200) {
 			const config = await response.json();
-			config.path = config.root;
-			config.root = endpoint + config.root;
+			config.path = config.path ?? "";
+			config.root = endpoint;
 			return config;
 		} else {
 			throw new Error("Could not get config.");
