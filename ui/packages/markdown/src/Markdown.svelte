@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string;
 	export let min_height = false;
@@ -15,7 +16,7 @@
 <div
 	id={elem_id}
 	class:min={min_height}
-	class="prose"
+	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
 	bind:this={target}
 	data-testid="markdown"
