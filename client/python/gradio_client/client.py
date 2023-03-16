@@ -61,12 +61,13 @@ class Client:
     ) -> Future:
         if api_name:
             fn_index = self._infer_fn_index(api_name)
-        
+
         end_to_end_fn = self.endpoints[fn_index].end_to_end_fn
         future = self.executor.submit(end_to_end_fn, *args)
         job = Job(future)
 
         if result_callbacks:
+
             def create_fn(callback) -> Callable:
                 def fn(future):
                     if isinstance(future.result(), tuple):
@@ -195,13 +196,13 @@ class Endpoint:
                     f"Could not find 'data' key in response. Response received: {result}"
                 )
         return tuple(output)
-    
+
     def _predict_resolve(self, *data) -> Any:
         """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
         outputs = self.predict(*data)
         if len(self.dependency["outputs"]) == 1:
             return outputs[0]
-        return outputs       
+        return outputs
 
     def serialize(self, *data) -> Tuple:
         assert len(data) == len(
