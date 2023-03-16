@@ -268,25 +268,25 @@
 
       <div class="float-right mt-10 hidden lg:block ">
         <div class='fixed'>
-          <div class="px-8">
-            <a class="thin-link my-2 block text-lg" href="{obj.slug}">{obj.name}</a>
+          <div class="mx-8">
+            <a class="thin-link py-2 block text-lg second-nav-link current-nav-link" href="{obj.slug}">{obj.name}</a>
             {#if headers.length > 0}
             <ul class="text-slate-700 text-lg leading-6">
               {#each headers as header}
               <li>
-                <a href="#{header[1]}" class="thin-link block my-2 font-light">{header[0]}</a>
+                <a href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link">{header[0]}</a>
               </li>
               {/each}
               {#if method_headers.length > 0}
               {#each method_headers as method_header}
-              <li class="ml-4">
-                <a href="#{method_header[1]}" class="thin-link block my-2 font-light">{method_header[0]}</a>
+              <li class="">
+                <a href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link">&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a>
               </li>
               {/each}
               {/if}
             {#if obj.guides && obj.guides.length > 0  }
               <li>
-                <a href="#guides" class="thin-link block my-2 font-light">Guides</a>
+                <a href="#guides" class="thin-link block py-2 font-light second-nav-link">Guides</a>
               </li>
             {/if}
           </ul>

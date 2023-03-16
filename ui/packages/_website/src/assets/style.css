@@ -92,6 +92,12 @@
 .thinner-link.current-nav-link {
   @apply border-orange-500 text-orange-500;
 }
+.second-nav-link {
+  @apply border-l-2 border-gray-100 px-3;
+}
+.current-nav-link {
+  @apply border-orange-500 text-orange-500;
+}
 
 /* docs */
 .selected-demo {
