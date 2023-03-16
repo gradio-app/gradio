@@ -25,7 +25,7 @@ The first 3 constructor arguments set the colors of the theme and are gradio.the
 The 3 color constructor arguments are:
 
 - `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.Orange`.
-- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to gradio.themes.Blue.
+- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to `gradio.themes.Blue`.
 - `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to `gradio.themes.Gray`.
 
 You could modify these values using their string shortcuts, such as
