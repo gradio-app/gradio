@@ -133,6 +133,7 @@ By [@aliabid94](https://github.com/aliabid94) in [PR 3466](https://github.com/gr
 - Pinned `pyright==1.1.298` for stability by [@abidlabs](https://github.com/abidlabs) in [PR 3475](https://github.com/gradio-app/gradio/pull/3475)
 - Removed `IOComponent.add_interactive_to_config()` by [@space-nuko](https://github.com/space-nuko) in [PR 3476](https://github.com/gradio-app/gradio/pull/3476)
 - Removed `IOComponent.generate_sample()` by [@space-nuko](https://github.com/space-nuko) in [PR 3475](https://github.com/gradio-app/gradio/pull/3483)
+- Updated test `requirements.txt`/script by [@space-nuko](https://github.com/space-nuko) in [PR 3487](https://github.com/gradio-app/gradio/pull/3487)
 
 ## Breaking Changes:
 
