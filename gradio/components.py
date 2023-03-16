@@ -210,12 +210,6 @@ class IOComponent(Component):
             config["info"] = self.info
         return config
 
-    def generate_sample(self) -> Any:
-        """
-        Returns a sample value of the input that would be accepted by the api. Used for api documentation.
-        """
-        pass
-
     @staticmethod
     def add_interactive_to_config(config, interactive):
         if interactive is not None:
@@ -366,9 +360,6 @@ class Textbox(
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-
-    def generate_sample(self) -> str:
-        return "Hello World"
 
     def preprocess(self, x: str | None) -> str | None:
         """
@@ -644,9 +635,6 @@ class Number(
         interpretation.insert(int(len(interpretation) / 2), (x, None))
         return interpretation
 
-    def generate_sample(self) -> float:
-        return self._round_to_precision(1, self.precision)
-
 
 @document("style")
 class Slider(
@@ -770,9 +758,6 @@ class Slider(
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-
-    def generate_sample(self) -> float:
-        return self.maximum
 
     def postprocess(self, y: float | None) -> float | None:
         """
@@ -906,9 +891,6 @@ class Checkbox(
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def generate_sample(self):
-        return True
-
     def get_interpretation_neighbors(self, x):
         return [not x], {}
 
@@ -1029,9 +1011,6 @@ class CheckboxGroup(
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-
-    def generate_sample(self):
-        return self.choices
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
@@ -1215,9 +1194,6 @@ class Radio(
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def generate_sample(self):
-        return self.choices[0]
-
     def preprocess(self, x: str | None) -> str | int | None:
         """
         Parameters:
@@ -1386,9 +1362,6 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-
-    def generate_sample(self):
-        return self.choices[0]
 
     def preprocess(
         self, x: str | List[str]
@@ -1606,9 +1579,6 @@ class Image(
                 + str(self.type)
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
-
-    def generate_sample(self):
-        return deepcopy(media_data.BASE64_IMAGE)
 
     def preprocess(
         self, x: str | Dict[str, str]
@@ -1984,10 +1954,6 @@ class Video(
         else:
             return str(file_name)
 
-    def generate_sample(self):
-        """Generates a random video for testing the API."""
-        return deepcopy(media_data.BASE64_VIDEO)
-
     def postprocess(self, y: str | None) -> Dict[str, Any] | None:
         """
         Processes a video to ensure that it is in the correct format before
@@ -2288,9 +2254,6 @@ class Audio(
             masked_inputs.append(masked_data)
         return masked_inputs
 
-    def generate_sample(self):
-        return deepcopy(media_data.BASE64_AUDIO)
-
     def postprocess(self, y: Tuple[int, np.ndarray] | str | None) -> str | Dict | None:
         """
         Parameters:
@@ -2538,9 +2501,6 @@ class File(
             else:
                 return process_single_file(x)
 
-    def generate_sample(self):
-        return deepcopy(media_data.BASE64_FILE)
-
     def postprocess(
         self, y: str | List[str] | None
     ) -> Dict[str, Any] | List[Dict[str, Any]] | None:
@@ -2773,9 +2733,6 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def generate_sample(self):
-        return [[1, 2, 3], [4, 5, 6]]
-
     def postprocess(
         self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]] | Dict
     ) -> Dict:
@@ -2985,12 +2942,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
         return dataframe
-
-    def generate_sample(self):
-        return {
-            "data": [[1] + [2] * len(self.y or [])] * 4,
-            "headers": [self.x] + (self.y or []),
-        }
 
     def postprocess(self, y: str | pd.DataFrame | None) -> Dict | None:
         """
@@ -3289,9 +3240,6 @@ class UploadButton(
             else:
                 return process_single_file(x)
 
-    def generate_sample(self):
-        return deepcopy(media_data.BASE64_FILE)
-
     def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
         serialized = FileSerializable.serialize(self, x, load_dir)
         if serialized is None:
@@ -3408,9 +3356,6 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             return None
         else:
             return str(x)
-
-    def generate_sample(self) -> str:
-        return "#000000"
 
     def postprocess(self, y: str | None) -> str | None:
         """
@@ -4317,9 +4262,6 @@ class Model3D(
             temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
 
         return temp_file_path
-
-    def generate_sample(self):
-        return media_data.BASE64_MODEL3D
 
     def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
@@ -5624,9 +5566,6 @@ class Code(Changeable, IOComponent, SimpleSerializable):
             with open(y[0]) as file_data:
                 return file_data.read()
         return y
-
-    def generate_sample(self) -> str:
-        return "def fn(a):/n    return a"
 
     @staticmethod
     def update(
