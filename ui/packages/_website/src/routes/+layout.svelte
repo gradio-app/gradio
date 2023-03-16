@@ -19,6 +19,9 @@
     if (browser) {
       window.__gradio_mode__ = "website";
     }
+	import version_json from "./version.json";
+	let version = version_json.version;
+
 </script>
 
 <svelte:head>
@@ -41,7 +44,7 @@
 
 	<script
 		type="module"
-		src="https://gradio.s3-us-west-2.amazonaws.com/3.19.1/gradio.js"></script>
+		src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"></script>
 </svelte:head>
 
 <Header />
