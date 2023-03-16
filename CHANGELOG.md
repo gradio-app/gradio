@@ -76,8 +76,6 @@ with gr.Blocks() as demo:
 
 By [@aliabid94](https://github.com/aliabid94) in [PR 3399](https://github.com/gradio-app/gradio/pull/3399)
 
-- Adds a new lightweight library `gradio_client` which can be used to make predictions via API to 
-hosted Gradio apps. See `client/python/README.md` for more info. By [@abidlabs](https://github.com/abidlabs) in [PR 3300](https://github.com/gradio-app/gradio/pull/3300) 
 
 - The `Textbox` component now includes a copy button by [@abidlabs](https://github.com/abidlabs) in [PR 3452](https://github.com/gradio-app/gradio/pull/3452)
 
