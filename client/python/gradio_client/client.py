@@ -90,28 +90,6 @@ class Client:
 
         return job
 
-    def info(self, api_name: str | None = None) -> Dict:
-        if api_name:
-            fn_index = self._infer_fn_index(api_name)
-            dependency = self.config["dependencies"][fn_index]
-            return {
-                api_name: {
-                    "input_parameters": ["(str) value"],
-                    "output_values": ["(str) value"],
-                }
-            }
-        else:
-            api_info = {"named_endpoints": {}}
-            for dependency in self.config["dependencies"]:
-                if dependency.get("api_name") and dependency["backend_fn"]:
-                    api_name = dependency["api_name"]
-                    api_info["named_endpoints"] = self.info(api_name)
-            api_info["num_named_endpoints"] = len(api_info)  # type: ignore
-            return api_info
-
-    def pprint(self, api_name: str | None = None) -> None:
-        print(json.dumps(self.info(api_name), indent=2))
-
     ##################################
     # Private helper methods
     ##################################
