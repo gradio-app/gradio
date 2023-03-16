@@ -111,9 +111,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         else:
             return str(x)
 
-    def generate_sample(self) -> str:
-        return "#000000"
-
     # Output Functionalities
     def postprocess(self, y: str | None):
         """
@@ -156,7 +153,7 @@ When developing new components, you should also write a suite of unit tests for 
 class TestColorPicker(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, get_config
         """
         color_picker_input = gr.ColorPicker()
         self.assertEqual(color_picker_input.preprocess("#000000"), "#000000")
@@ -180,7 +177,6 @@ class TestColorPicker(unittest.TestCase):
                 "name": "colorpicker",
             },
         )
-        self.assertIsInstance(color_picker_input.generate_sample(), str)
 
     def test_in_interface_as_input(self):
         """

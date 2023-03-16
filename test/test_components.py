@@ -50,7 +50,7 @@ def test_raise_warnings():
 class TestTextbox:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, tokenize, get_config
         """
         text_input = gr.Textbox()
         assert text_input.preprocess("Hello World!") == "Hello World!"
@@ -98,7 +98,6 @@ class TestTextbox:
             "interactive": None,
             "root_url": None,
         }
-        assert isinstance(text_input.generate_sample(), str)
 
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
@@ -183,7 +182,7 @@ class TestTextbox:
 class TestNumber:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
+        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_config
 
         """
         numeric_input = gr.Number(elem_id="num", elem_classes="first")
@@ -194,7 +193,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.14) == 2.14
         assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
-        assert isinstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
         assert numeric_input.get_interpretation_neighbors(1) == (
             [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
@@ -220,7 +218,7 @@ class TestNumber:
 
     def test_component_functions_integer(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
         numeric_input = gr.Number(precision=0, value=42)
@@ -231,7 +229,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.85) == 3
         assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
-        assert isinstance(numeric_input.generate_sample(), int)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
         assert numeric_input.get_interpretation_neighbors(1) == (
             [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
@@ -266,7 +263,7 @@ class TestNumber:
 
     def test_component_functions_precision(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
@@ -354,7 +351,7 @@ class TestNumber:
 class TestSlider:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         slider_input = gr.Slider()
         assert slider_input.preprocess(3.0) == 3.0
@@ -363,7 +360,6 @@ class TestSlider:
         assert slider_input.postprocess(None) == 0
         assert slider_input.serialize(3, True) == 3
 
-        assert isinstance(slider_input.generate_sample(), int)
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
         assert slider_input.get_config() == {
             "minimum": 10,
@@ -431,14 +427,13 @@ class TestSlider:
 class TestCheckbox:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         bool_input = gr.Checkbox()
         assert bool_input.preprocess(True)
         assert bool_input.postprocess(True)
         assert bool_input.postprocess(True)
         assert bool_input.serialize(True, True)
-        assert isinstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
             "value": True,
@@ -472,13 +467,12 @@ class TestCheckbox:
 class TestCheckboxGroup:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.serialize(["a", "c"], True) == ["a", "c"]
-        assert isinstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
             choices=["a", "b", "c"],
@@ -518,14 +512,13 @@ class TestCheckboxGroup:
 class TestRadio:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
 
         """
         radio_input = gr.Radio(["a", "b", "c"])
         assert radio_input.preprocess("c") == "c"
         assert radio_input.postprocess("a") == "a"
         assert radio_input.serialize("a", True) == "a"
-        assert isinstance(radio_input.generate_sample(), str)
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
@@ -565,7 +558,7 @@ class TestRadio:
 class TestDropdown:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
@@ -575,7 +568,6 @@ class TestDropdown:
         assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
-        assert isinstance(dropdown_input_multiselect.generate_sample(), str)
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
             choices=["a", "b", "c"],
@@ -619,7 +611,7 @@ class TestDropdown:
 class TestImage:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
+        Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
         """
         img = deepcopy(media_data.BASE64_IMAGE)
@@ -632,7 +624,6 @@ class TestImage:
         assert image_input.postprocess("test/test_files/bus.png") == img
         assert image_input.serialize("test/test_files/bus.png") == img
 
-        assert isinstance(image_input.generate_sample(), str)
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
@@ -779,7 +770,7 @@ class TestPlot:
 class TestAudio:
     def test_component_functions(self):
         """
-        Preprocess, postprocess serialize, generate_sample, get_config, deserialize
+        Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
         """
         x_wav = deepcopy(media_data.BASE64_AUDIO)
@@ -798,7 +789,6 @@ class TestAudio:
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
         )
 
-        assert isinstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "source": "upload",
@@ -915,7 +905,7 @@ class TestAudio:
 class TestFile:
     def test_component_functions(self):
         """
-        Preprocess, serialize, generate_sample, get_config, value
+        Preprocess, serialize, get_config, value
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
@@ -935,7 +925,6 @@ class TestFile:
         assert input1.name == input2.name
         assert Path(input1.name).name == "sample_file.pdf"
 
-        assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
             "file_count": "single",
@@ -1025,7 +1014,7 @@ class TestUploadButton:
 class TestDataframe:
     def test_component_functions(self):
         """
-        Preprocess, serialize, generate_sample, get_config
+        Preprocess, serialize, get_config
         """
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
@@ -1037,7 +1026,6 @@ class TestDataframe:
         assert not output["Member"][0]
         assert dataframe_input.postprocess(x_data) == x_data
 
-        assert isinstance(dataframe_input.generate_sample(), list)
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
@@ -1254,7 +1242,7 @@ class TestDataset:
 class TestVideo:
     def test_component_functions(self):
         """
-        Preprocess, serialize, deserialize, generate_sample, get_config
+        Preprocess, serialize, deserialize, get_config
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
@@ -1263,7 +1251,6 @@ class TestVideo:
         output2 = video_input.preprocess(x_video)
         assert output1 == output2
 
-        assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "source": "upload",
@@ -1398,7 +1385,7 @@ class TestVideo:
 class TestTimeseries:
     def test_component_functions(self):
         """
-        Preprocess, postprocess,  generate_sample, get_config,
+        Preprocess, postprocess,  get_config,
         """
         timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
         x_timeseries = {
@@ -1408,7 +1395,6 @@ class TestTimeseries:
         output = timeseries_input.preprocess(x_timeseries)
         assert isinstance(output, pd.core.frame.DataFrame)
 
-        assert isinstance(timeseries_input.generate_sample(), dict)
         timeseries_input = gr.Timeseries(
             x="time", y="retail", label="Upload Your Timeseries"
         )
@@ -1909,7 +1895,7 @@ class TestModel3D:
 class TestColorPicker:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, tokenize, get_config
         """
         color_picker_input = gr.ColorPicker()
         assert color_picker_input.preprocess("#000000") == "#000000"
@@ -1932,7 +1918,6 @@ class TestColorPicker:
             "root_url": None,
             "name": "colorpicker",
         }
-        assert isinstance(color_picker_input.generate_sample(), str)
 
     def test_in_interface_as_input(self):
         """
@@ -2617,4 +2602,3 @@ class TestCode:
             "interactive": None,
             "root_url": None,
         }
-        assert isinstance(code.generate_sample(), str)
