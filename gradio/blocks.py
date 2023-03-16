@@ -71,6 +71,7 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
+        self.root = ""
 
         if render:
             self.render()
@@ -1108,6 +1109,7 @@ class Blocks(BlockContext):
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
+            "root": self.root
         }
 
         def getLayout(block):
