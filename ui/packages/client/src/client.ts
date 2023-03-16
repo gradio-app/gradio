@@ -149,6 +149,7 @@ export async function client(
 			if (space_status_callback) space_status_callback(status);
 			if (status.status === "running")
 				try {
+					console.log(host)
 					config = await resolve_config(`${http_protocol}//${host}`);
 					res(config_success(config));
 				} catch (e) {
