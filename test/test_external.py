@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import textwrap
 import warnings
 from pathlib import Path
@@ -9,13 +8,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-import gradio
 import gradio as gr
 from gradio import media_data
 from gradio.context import Context
 from gradio.exceptions import InvalidApiName
 from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
-from gradio.external_utils import get_pred_from_ws
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -464,52 +461,6 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
         io = gr.load("models/scikit-learn/tabular-playground")
         check_dataframe(io.config)
         check_dataset(io.config, hypothetical_readme)
-
-
-class AsyncMock(MagicMock):
-    async def __call__(self, *args, **kwargs):
-        return super(AsyncMock, self).__call__(*args, **kwargs)
-
-
-@pytest.mark.asyncio
-async def test_get_pred_from_ws():
-    mock_ws = AsyncMock(name="ws")
-    messages = [
-        json.dumps({"msg": "estimation"}),
-        json.dumps({"msg": "send_data"}),
-        json.dumps({"msg": "process_generating"}),
-        json.dumps({"msg": "process_completed", "output": {"data": ["result!"]}}),
-    ]
-    mock_ws.recv.side_effect = messages
-    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
-    output = await get_pred_from_ws(mock_ws, data, hash_data)
-    assert output == {"data": ["result!"]}
-    mock_ws.send.assert_called_once_with(data)
-
-
-@pytest.mark.asyncio
-async def test_get_pred_from_ws_raises_if_queue_full():
-    mock_ws = AsyncMock(name="ws")
-    messages = [json.dumps({"msg": "queue_full"})]
-    mock_ws.recv.side_effect = messages
-    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
-    with pytest.raises(gradio.Error, match="Queue is full!"):
-        await get_pred_from_ws(mock_ws, data, hash_data)
-
-
-@pytest.mark.skipif(
-    sys.version_info < (3, 8),
-    reason="Mocks of async context manager don't work for 3.7",
-)
-def test_respect_queue_when_load_from_config():
-    with patch("websockets.connect"):
-        with patch(
-            "gradio.external_utils.get_pred_from_ws", return_value={"data": ["foo"]}
-        ):
-            interface = gr.load("spaces/freddyaboulton/saymyname")
-            assert interface("bob") == "foo"
 
 
 def test_raise_value_error_when_api_name_invalid():

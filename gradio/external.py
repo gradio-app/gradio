@@ -443,7 +443,8 @@ def from_spaces(
 
 def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
     client = Client(space=space, access_token=api_key)
-    return gradio.Blocks.from_config(client.config, client.predict_fns, client.src)
+    predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
+    return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
 
 def from_spaces_interface(

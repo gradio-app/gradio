@@ -1,14 +1,12 @@
 from copy import deepcopy
 import tempfile
+from unittest.mock import MagicMock, patch
+import json
 
 import pytest
-from gradio import media_data
+from gradio import media_data, exceptions
 
 from gradio_client import utils
-
-data = {
-    
-}
 
 
 def test_encode_url_or_file_to_base64():
@@ -68,4 +66,37 @@ def test_download_private_file():
 )
 def test_strip_invalid_filename_characters(orig_filename, new_filename):
     assert utils.strip_invalid_filename_characters(orig_filename) == new_filename
+
+
+class AsyncMock(MagicMock):
+    async def __call__(self, *args, **kwargs):
+        return super(AsyncMock, self).__call__(*args, **kwargs)
+
+
+@pytest.mark.asyncio
+async def test_get_pred_from_ws():
+    mock_ws = AsyncMock(name="ws")
+    messages = [
+        json.dumps({"msg": "estimation"}),
+        json.dumps({"msg": "send_data"}),
+        json.dumps({"msg": "process_generating"}),
+        json.dumps({"msg": "process_completed", "output": {"data": ["result!"]}}),
+    ]
+    mock_ws.recv.side_effect = messages
+    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
+    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
+    output = await utils.get_pred_from_ws(mock_ws, data, hash_data)
+    assert output == {"data": ["result!"]}
+    mock_ws.send.assert_called_once_with(data)
+
+
+@pytest.mark.asyncio
+async def test_get_pred_from_ws_raises_if_queue_full():
+    mock_ws = AsyncMock(name="ws")
+    messages = [json.dumps({"msg": "queue_full"})]
+    mock_ws.recv.side_effect = messages
+    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
+    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
+    with pytest.raises(exceptions.Error, match="Queue is full!"):
+        await utils.get_pred_from_ws(mock_ws, data, hash_data)
 
