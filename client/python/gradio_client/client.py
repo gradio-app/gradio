@@ -148,17 +148,27 @@ class Endpoint:
         self.config = client.config
         self.use_ws = self._use_websocket(self.dependency)
         self.access_token = client.access_token
-        self.serializers, self.deserializers = self._setup_serializers()
+        try:
+            self.serializers, self.deserializers = self._setup_serializers()
+            self.is_valid = self.dependency["backend_fn"]  # Only a real API endpoint if backend_fn is True
+        except AssertionError:
+            self.is_valid = False
         
     def end_to_end_fn(self, *data):
-        outputs = self.deserialize(self.predict(self.serialize(*data)))
+        if not self.is_valid:
+            raise utils.InvalidAPIEndpointError()
+        print("data", data)
+        inputs = self.serialize(*data)
+        print("inputs", inputs)
+        predictions = self.predict(*inputs)
+        print("predictions", predictions)
+        outputs = self.deserialize(*predictions)
+        print("outputs", outputs)
         if len(self.dependency["outputs"]) == 1:
             return outputs[0]
         return outputs
         
     def predict(self, *data) -> Tuple:
-        if not self.dependency["backend_fn"]:
-            return data
         data = json.dumps({"data": data, "fn_index": self.fn_index})
         hash_data = json.dumps(
             {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
@@ -221,7 +231,6 @@ class Endpoint:
         
         outputs = self.dependency["outputs"]
         deserializers = []
-
         for i in outputs:
             for component in self.config["components"]:
                 if component["id"] == i:

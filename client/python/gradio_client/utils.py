@@ -29,6 +29,11 @@ class QueueError(Exception):
     pass
 
 
+class InvalidAPIEndpointError(Exception):
+    """Raised when the API endpoint is invalid."""
+
+    pass
+
 ########################
 # Network utils
 ########################
