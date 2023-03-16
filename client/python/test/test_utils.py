@@ -2,6 +2,7 @@ from copy import deepcopy
 import tempfile
 from unittest.mock import MagicMock
 import json
+from pathlib import Path
 
 import pytest
 from gradio import media_data
@@ -11,13 +12,13 @@ from gradio_client import utils
 
 def test_encode_url_or_file_to_base64():
     output_base64 = utils.encode_url_or_file_to_base64(
-        "gradio/test_data/test_image.png"
+        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 def test_encode_file_to_base64():
     output_base64 = utils.encode_file_to_base64(
-        "gradio/test_data/test_image.png"
+        Path(__file__).parent / "../../../gradio/test_data/test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
