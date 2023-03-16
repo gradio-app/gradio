@@ -58,7 +58,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="lg")):
     ...
 ```
 
-or you could use the Size object directly, such as
+or you could use the `Size` object directly, such as
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius_size=gr.themes.radius_lg)):
