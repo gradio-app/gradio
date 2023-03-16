@@ -1,10 +1,10 @@
 from copy import deepcopy
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import json
 
 import pytest
-from gradio import media_data, exceptions
+from gradio import media_data
 
 from gradio_client import utils
 
@@ -97,6 +97,6 @@ async def test_get_pred_from_ws_raises_if_queue_full():
     mock_ws.recv.side_effect = messages
     data = json.dumps({"data": ["foo"], "fn_index": "foo"})
     hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
-    with pytest.raises(exceptions.Error, match="Queue is full!"):
+    with pytest.raises(utils.QueueError, match="Queue is full!"):
         await utils.get_pred_from_ws(mock_ws, data, hash_data)
 
