@@ -23,7 +23,8 @@ Although each theme has hundreds of CSS variables, the values for most these var
 The first 3 constructor arguments set the colors of the theme and are gradio.themes.Color objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
 
 The 3 color constructor arguments are:
-- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to gradio.themes.Orange.
+
+- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.Orange`.
 - `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to gradio.themes.Blue.
 - `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to gradio.themes.Gray.
 
