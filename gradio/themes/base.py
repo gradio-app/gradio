@@ -224,7 +224,7 @@ class ThemeClass:
                 contents,
             )
             contents = re.sub(r"{THEME}", theme_name or repo_name, contents)
-            contents = re.sub(r"{AUTHOR}", author, contents)
+            contents = re.sub(r"{AUTHOR}", org_name or author, contents)
             contents = re.sub(r"{SPACE_NAME}", repo_name, contents)
             app_file.write(contents)
         # TODO: Delete this once we publish this to PyPi
