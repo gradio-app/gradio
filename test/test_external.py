@@ -108,9 +108,7 @@ class TestLoadInterface:
 
     def test_fill_mask(self):
         model_type = "fill-mask"
-        interface = gr.load(
-            "models/bert-base-uncased", api_key=None, alias=model_type
-        )
+        interface = gr.load("models/bert-base-uncased", api_key=None, alias=model_type)
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Label)
@@ -285,9 +283,7 @@ class TestLoadInterface:
 
     def test_private_space(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
-        io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space", api_key=api_key
-        )
+        io = gr.load("spaces/gradio-tests/not-actually-private-space", api_key=api_key)
         try:
             output = io("abc")
             assert output == "abc"
@@ -308,9 +304,7 @@ class TestLoadInterface:
     def test_multiple_spaces_one_private(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
-            gr.load(
-                "spaces/gradio-tests/not-actually-private-space", api_key=api_key
-            )
+            gr.load("spaces/gradio-tests/not-actually-private-space", api_key=api_key)
             gr.load(
                 "spaces/gradio/test-loading-examples",
             )
