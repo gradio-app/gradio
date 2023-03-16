@@ -65,7 +65,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius
     ...
 ```
 
-You could also create your own custom Size objects and pass them in.
+You could also create your own custom `Size` objects and pass them in.
 
 ### Core Fonts
 
