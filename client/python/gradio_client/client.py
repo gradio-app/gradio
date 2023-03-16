@@ -6,11 +6,12 @@ import json
 import re
 import uuid
 from concurrent.futures import Future
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Tuple
 
 import requests
 import websockets
 from gradio_client import serializing, utils
+from gradio_client.serializing import Serializable
 from packaging import version
 
 
@@ -42,11 +43,9 @@ class Client:
         self.api_url = utils.API_URL.format(self.src)
         self.ws_url = utils.WS_URL.format(self.src).replace("https", "wss")
         self.config = self._get_config()
-
-        self.predict_fns = self._setup_predict_fns()
-        self.serialize_fns = self._setup_serialize_fn()
-        self.deserialize_fns = self._setup_deserialize_fn()
-
+        
+        self.endpoints = [Endpoint(self, fn_index, dependency) for fn_index, dependency in enumerate(self.config["dependencies"])]
+        
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
@@ -55,24 +54,25 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int = 0,
-        callbacks: List[Callable] | None = None,
+        result_callbacks: List[Callable] | None = None,
     ) -> Future:
-        complete_fn = self._get_complete_fn(api_name, fn_index)
-        future = self.executor.submit(complete_fn, *args)
+        if api_name:
+            fn_index = self._infer_fn_index(api_name)
+        end_to_end_fn = self.endpoints[fn_index].end_to_end_fn
+        future = self.executor.submit(end_to_end_fn, *args)
         job = Job(future)
-        if callbacks:
-
+        
+        if result_callbacks:
             def create_fn(callback) -> Callable:
                 def fn(future):
                     if isinstance(future.result(), tuple):
                         callback(*future.result())
                     else:
                         callback(future.result())
-
                 return fn
-
-            for callback in callbacks:
+            for callback in result_callbacks:
                 job.add_done_callback(create_fn(callback))
+        
         return job
 
     def info(self, api_name: str | None = None) -> Dict:
@@ -107,158 +107,6 @@ class Client:
                 return i
         raise ValueError(f"Cannot find a function with api_name: {api_name}")
 
-    def _get_complete_fn(self, api_name: str | None, fn_index: int) -> Callable:
-        if api_name is not None:
-            fn_index = self._infer_fn_index(api_name)
-
-        predict_fn = self._get_predict_fn(fn_index)
-        serialize_fn = self._get_serialize_fn(fn_index)
-        deserialize_fn = self._get_deserialize_fn(fn_index)
-
-        return lambda *args: deserialize_fn(*predict_fn(*serialize_fn(*args)))
-
-    def _use_websocket(self, dependency: Dict) -> bool:
-        queue_enabled = self.config.get("enable_queue", False)
-        queue_uses_websocket = version.parse(
-            self.config.get("version", "2.0")
-        ) >= version.Version("3.2")
-        dependency_uses_queue = dependency.get("queue", False) is not False
-        return queue_enabled and queue_uses_websocket and dependency_uses_queue
-
-    async def _ws_fn(self, data, hash_data):
-        async with websockets.connect(  # type: ignore
-            self.ws_url, open_timeout=10, extra_headers=self.headers
-        ) as websocket:
-            return await utils.get_pred_from_ws(websocket, data, hash_data)
-
-    def _get_predict_fn(self, fn_index: int) -> Callable:
-        return self.predict_fns[fn_index]
-
-    def _setup_predict_fns(self) -> List[Callable]:
-        def create_fn(fn_index, dependency: Dict) -> Callable:
-            if not dependency["backend_fn"]:
-                return lambda *args: args
-            use_ws = self._use_websocket(dependency)
-
-            def predict_fn(*data):
-                if not dependency["backend_fn"]:
-                    return None
-                data = json.dumps({"data": data, "fn_index": fn_index})
-                hash_data = json.dumps(
-                    {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
-                )
-                if use_ws:
-                    result = utils.synchronize_async(self._ws_fn, data, hash_data)
-                    output = result["data"]
-                else:
-                    response = requests.post(
-                        self.api_url, headers=self.headers, data=data
-                    )
-                    result = json.loads(response.content.decode("utf-8"))
-                    try:
-                        output = result["data"]
-                    except KeyError:
-                        if "error" in result and "429" in result["error"]:
-                            raise utils.TooManyRequestsError(
-                                "Too many requests to the Hugging Face API"
-                            )
-                        raise KeyError(
-                            f"Could not find 'data' key in response. Response received: {result}"
-                        )
-                return tuple(output)
-            return predict_fn
-
-        fns = []
-        for fn_index, dependency in enumerate(self.config["dependencies"]):
-            fns.append(create_fn(fn_index, dependency))
-        return fns
-
-    def _get_serialize_fn(self, fn_index: int) -> Callable:
-        return self.serialize_fns[fn_index]
-
-    def _setup_serialize_fn(self) -> List[Callable]:
-        def create_fn(dependency: Dict) -> Callable:
-            if not dependency["backend_fn"]:
-                return lambda *args: args
-            inputs = dependency["inputs"]
-            serializers = []
-
-            for i in inputs:
-                for component in self.config["components"]:
-                    if component["id"] == i:
-                        if component.get("serializer"):
-                            serializer_name = component["serializer"]
-                            assert (
-                                serializer_name in serializing.SERIALIZER_MAPPING
-                            ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                            serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                        else:
-                            component_name = component["type"]
-                            assert (
-                                component_name in serializing.COMPONENT_MAPPING
-                            ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                            serializer = serializing.COMPONENT_MAPPING[component_name]
-                        serializers.append(serializer())  # type: ignore
-
-            def serialize_fn(*data):
-                assert len(data) == len(
-                    serializers
-                ), f"Expected {len(serializers)} arguments, got {len(data)}"
-                return [s.serialize(d) for s, d in zip(serializers, data)]
-
-            return serialize_fn
-
-        fns = []
-        for dependency in self.config["dependencies"]:
-            fns.append(create_fn(dependency))
-        return fns
-
-    def _get_deserialize_fn(self, fn_index: int) -> Callable:
-        return self.deserialize_fns[fn_index]
-
-    def _setup_deserialize_fn(self) -> List[Callable]:
-        def create_fn(dependency: Dict) -> Callable:
-            if not dependency["backend_fn"]:
-                return lambda *args: args
-
-            outputs = dependency["outputs"]
-            deserializers = []
-
-            for i in outputs:
-                for component in self.config["components"]:
-                    if component["id"] == i:
-                        if component.get("serializer"):
-                            serializer_name = component["serializer"]
-                            assert (
-                                serializer_name in serializing.SERIALIZER_MAPPING
-                            ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                            deserializer = serializing.SERIALIZER_MAPPING[
-                                serializer_name
-                            ]
-                        else:
-                            component_name = component["type"]
-                            assert (
-                                component_name in serializing.COMPONENT_MAPPING
-                            ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                            deserializer = serializing.COMPONENT_MAPPING[component_name]
-                        deserializers.append(deserializer())  # type: ignore
-
-            def deserialize_fn(*data):
-                result = [
-                    s.deserialize(d, access_token=self.access_token)
-                    for s, d in zip(deserializers, data)
-                ]
-                if len(outputs) == 1:
-                    result = result[0]
-                return result
-
-            return deserialize_fn
-
-        fns = []
-        for dependency in self.config["dependencies"]:
-            fns.append(create_fn(dependency))
-        return fns
-
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
@@ -288,6 +136,128 @@ class Client:
             )
         return config
 
+
+class Endpoint:
+    """Helper class for storing all the information about a single API endpoint."""
+    def __init__(self, client: Client, fn_index: int, dependency: Dict):
+        self.api_url = client.api_url
+        self.ws_url = client.ws_url
+        self.fn_index = fn_index
+        self.dependency = dependency
+        self.headers = client.headers
+        self.config = client.config
+        self.use_ws = self._use_websocket(self.dependency)
+        self.access_token = client.access_token
+        self.serializers, self.deserializers = self._setup_serializers()
+        
+    def end_to_end_fn(self, *data):
+        outputs = self.deserialize(self.predict(self.serialize(*data)))
+        if len(self.dependency["outputs"]) == 1:
+            return outputs[0]
+        return outputs
+        
+    def predict(self, *data) -> Tuple:
+        if not self.dependency["backend_fn"]:
+            return data
+        data = json.dumps({"data": data, "fn_index": self.fn_index})
+        hash_data = json.dumps(
+            {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
+        )
+        if self.use_ws:
+            result = utils.synchronize_async(self._ws_fn, data, hash_data)
+            output = result["data"]
+        else:
+            response = requests.post(
+                self.api_url, headers=self.headers, data=data
+            )
+            result = json.loads(response.content.decode("utf-8"))
+            try:
+                output = result["data"]
+            except KeyError:
+                if "error" in result and "429" in result["error"]:
+                    raise utils.TooManyRequestsError(
+                        "Too many requests to the Hugging Face API"
+                    )
+                raise KeyError(
+                    f"Could not find 'data' key in response. Response received: {result}"
+                )
+        return tuple(output)
+    
+    def serialize(self, *data) -> Tuple:
+        assert len(data) == len(
+            self.serializers
+        ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
+        return tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        
+    def deserialize(self, *data) -> Tuple:
+        assert len(data) == len(
+            self.deserializers
+        ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
+        return tuple([
+            s.deserialize(d, access_token=self.access_token)
+            for s, d in zip(self.deserializers, data)
+        ])
+        
+    def _setup_serializers(self) -> Tuple[List[Serializable], List[Serializable]]:
+        inputs = self.dependency["inputs"]
+        serializers = []
+
+        for i in inputs:
+            for component in self.config["components"]:
+                if component["id"] == i:
+                    if component.get("serializer"):
+                        serializer_name = component["serializer"]
+                        assert (
+                            serializer_name in serializing.SERIALIZER_MAPPING
+                        ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                        serializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                    else:
+                        component_name = component["type"]
+                        assert (
+                            component_name in serializing.COMPONENT_MAPPING
+                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                        serializer = serializing.COMPONENT_MAPPING[component_name]
+                    serializers.append(serializer())  # type: ignore
+        
+        outputs = self.dependency["outputs"]
+        deserializers = []
+
+        for i in outputs:
+            for component in self.config["components"]:
+                if component["id"] == i:
+                    if component.get("serializer"):
+                        serializer_name = component["serializer"]
+                        assert (
+                            serializer_name in serializing.SERIALIZER_MAPPING
+                        ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
+                        deserializer = serializing.SERIALIZER_MAPPING[
+                            serializer_name
+                        ]
+                    else:
+                        component_name = component["type"]
+                        assert (
+                            component_name in serializing.COMPONENT_MAPPING
+                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
+                        deserializer = serializing.COMPONENT_MAPPING[component_name]
+                    deserializers.append(deserializer())  # type: ignore
+        
+        return serializers, deserializers
+            
+    def _use_websocket(self, dependency: Dict) -> bool:
+        queue_enabled = self.config.get("enable_queue", False)
+        queue_uses_websocket = version.parse(
+            self.config.get("version", "2.0")
+        ) >= version.Version("3.2")
+        dependency_uses_queue = dependency.get("queue", False) is not False
+        return queue_enabled and queue_uses_websocket and dependency_uses_queue
+
+    async def _ws_fn(self, data, hash_data):
+        async with websockets.connect(  # type: ignore
+            self.ws_url, open_timeout=10, extra_headers=self.headers
+        ) as websocket:
+            return await utils.get_pred_from_ws(websocket, data, hash_data)
+
+    
 
 class Job(Future):
     """A Job is a thin wrapper over the Future class that can be cancelled."""
