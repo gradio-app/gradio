@@ -41,7 +41,7 @@ or you could use the Color object directly, such as
 with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=gr.themes.Pink)):
     ...
 ```
-You could also create your own custom Color objects and pass them in.
+You could also create your own custom `Color` objects and pass them in.
 
 ### Core Sizing
 
