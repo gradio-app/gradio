@@ -257,7 +257,9 @@ export async function client(
 						fn_index
 					});
 
-					const ws_endpoint = `${ws_protocol}://${host + config.path}/queue/join`;
+					const ws_endpoint = `${ws_protocol}://${
+						host + config.path
+					}/queue/join`;
 
 					const websocket = new WebSocket(ws_endpoint);
 
