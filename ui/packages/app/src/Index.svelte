@@ -208,8 +208,6 @@
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
-	$: console.log(config);
-
 	let Blocks: typeof import("./Blocks.svelte").default;
 	let Login: typeof import("./Login.svelte").default;
 
