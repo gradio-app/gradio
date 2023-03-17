@@ -452,7 +452,7 @@ class Base(ThemeClass):
         button_small_text_size=None,
         button_small_text_weight=None,
         button_transition=None,
-    ):
+    ) -> Base:
         # Core Colors
         self.background_accent = background_accent or getattr(
             self, "background_accent", "*primary_500"
