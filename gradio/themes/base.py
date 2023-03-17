@@ -711,14 +711,14 @@ class Base(ThemeClass):
         )
         self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
         # Core Colors
-        self.background_accent = background_accent or getattr(
-            self, "background_accent", "*primary_500"
+        self.color_accent = color_accent or getattr(
+            self, "color_accent", "*primary_500"
         )
-        self.background_accent_soft = background_accent_soft or getattr(
-            self, "background_accent_soft", "*primary_50"
+        self.color_accent_soft = color_accent_soft or getattr(
+            self, "color_accent_soft", "*primary_50"
         )
-        self.background_accent_soft_dark = background_accent_soft_dark or getattr(
-            self, "background_accent_soft_dark", "*neutral_700"
+        self.color_accent_soft_dark = color_accent_soft_dark or getattr(
+            self, "color_accent_soft_dark", "*neutral_700"
         )
         self.background_fill_primary = background_fill_primary or getattr(
             self, "background_primary", "white"
@@ -1246,7 +1246,7 @@ class Base(ThemeClass):
             self, "input_text_weight", "400"
         )
         self.loader_color = loader_color or getattr(
-            self, "loader_color", "*background_accent"
+            self, "loader_color", "*color_accent"
         )
         self.loader_color_dark = loader_color_dark or getattr(
             self, "loader_color_dark", None
@@ -1292,10 +1292,10 @@ class Base(ThemeClass):
         )
         self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
         self.table_row_focus = table_row_focus or getattr(
-            self, "table_row_focus", "*background_accent_soft"
+            self, "table_row_focus", "*color_accent_soft"
         )
         self.table_row_focus_dark = table_row_focus_dark or getattr(
-            self, "table_row_focus_dark", "*background_accent_soft"
+            self, "table_row_focus_dark", "*color_accent_soft"
         )
         # Buttons
         self.button_border_width = button_border_width or getattr(

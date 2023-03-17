@@ -82,7 +82,7 @@
 		box-shadow: var(--shadow-drop-lg);
 	}
 	.checkbox-item.selected {
-		background: var(--background-accent-base);
+		background: var(--color-accent-base);
 		color: white;
 	}
 </style>

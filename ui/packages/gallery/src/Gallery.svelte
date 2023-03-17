@@ -303,9 +303,9 @@
 	}
 
 	.thumbnail-small.selected {
-		--ring-color: var(--background-accent);
+		--ring-color: var(--color-accent);
 		transform: scale(1);
-		border-color: var(--background-accent);
+		border-color: var(--color-accent);
 	}
 
 	.thumbnail-small > img {

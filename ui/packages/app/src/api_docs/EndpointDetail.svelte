@@ -44,10 +44,10 @@
 		margin-right: var(--size-2);
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
-		background: var(--background-accent-soft);
+		background: var(--color-accent-soft);
 		padding-right: var(--size-1);
 		padding-left: var(--size-1);
-		color: var(--background-accent);
+		color: var(--color-accent);
 		font-weight: var(--weight-semibold);
 	}
 

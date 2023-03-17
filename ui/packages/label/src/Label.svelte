@@ -95,7 +95,7 @@
 	}
 
 	.confidence-set:hover .label {
-		color: var(--background-accent);
+		color: var(--color-accent);
 	}
 
 	.text {

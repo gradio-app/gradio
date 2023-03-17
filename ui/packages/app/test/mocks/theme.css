@@ -172,7 +172,7 @@
 		var(--shadow-inset);
 	--input-text-size: var(--text-md);
 	--input-text-weight: 400;
-	--loader-color: var(--background-accent);
+	--loader-color: var(--color-accent);
 	--prose-text-size: var(--text-md);
 	--prose-text-weight: 400;
 	--stat-background-fill: linear-gradient(
@@ -184,7 +184,7 @@
 	--table-even-background-fill: white;
 	--table-odd-background-fill: var(--neutral-50);
 	--table-radius: var(--radius-lg);
-	--table-row-focus: var(--background-accent-soft);
+	--table-row-focus: var(--color-accent-soft);
 	--button-border-width: var(--input-border-width);
 	--button-cancel-background-fill: linear-gradient(
 		to bottom right,
