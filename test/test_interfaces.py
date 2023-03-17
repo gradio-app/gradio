@@ -1,11 +1,11 @@
 import io
 import sys
 import unittest.mock as mock
+from unittest.mock import patch
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
 
-import mlflow
 import pytest
 import requests
 import wandb
@@ -176,7 +176,9 @@ class TestInterface:
         interface.share_url = None
         interface.close()
 
+    @patch.dict("sys.modules", {"mlflow": mock.MagicMock()})
     def test_integration_mlflow(self):
+        import mlflow
         mlflow.log_param = mock.MagicMock()
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(prevent_thread_lock=True)
