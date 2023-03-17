@@ -99,7 +99,7 @@
 	}
 
 	.selected td {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 	}
 
 	.table {
@@ -142,6 +142,6 @@
 	}
 
 	.button {
-		--gradient-to: var(--color-background-primary);
+		--gradient-to: var(--background-primary);
 	}
 </style>
