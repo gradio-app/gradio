@@ -14,7 +14,6 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
-import mlflow
 import pytest
 import uvicorn
 import wandb
@@ -239,7 +238,9 @@ class TestBlocksMethods:
         demo.share_url = None
         demo.close()
 
+    @patch.dict("sys.modules", {"mlflow": mock.MagicMock()})
     def test_integration_mlflow(self):
+        import mlflow
         mlflow.log_param = mock.MagicMock()
         demo = gr.Blocks()
         with demo:
