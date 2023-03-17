@@ -926,7 +926,6 @@ class TestSpecificUpdate:
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
-            "mode": "dynamic",
             "__type__": "update",
         }
 
