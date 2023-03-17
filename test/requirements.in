@@ -13,9 +13,9 @@ wandb
 huggingface_hub>=0.13.0
 pytest-cov
 pytest-asyncio
-black
+black==22.6.0
 isort
-flake8
+flake8==4.0.1
 httpx
 pydantic
 respx

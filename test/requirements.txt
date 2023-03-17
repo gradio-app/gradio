@@ -20,7 +20,7 @@ attrs==22.2.0
     #   pytest
 backcall==0.2.0
     # via ipython
-black==23.1.0
+black==22.6.0
     # via -r requirements.in
 boto3==1.26.94
     # via -r requirements.in
@@ -68,7 +68,7 @@ filelock==3.10.0
     # via
     #   huggingface-hub
     #   transformers
-flake8==5.0.4
+flake8==4.0.1
     # via -r requirements.in
 gitdb==4.0.10
     # via gitpython
@@ -132,7 +132,7 @@ markupsafe==2.1.2
     # via jinja2
 matplotlib-inline==0.1.6
     # via ipython
-mccabe==0.7.0
+mccabe==0.6.1
     # via flake8
 mypy-extensions==1.0.0
     # via black
@@ -165,7 +165,6 @@ nvidia-cudnn-cu11==8.5.0.96
     # via torch
 packaging==23.0
     # via
-    #   black
     #   huggingface-hub
     #   pytest
     #   scikit-image
@@ -204,13 +203,13 @@ psutil==5.9.4
     # via wandb
 ptyprocess==0.7.0
     # via pexpect
-pycodestyle==2.9.1
+pycodestyle==2.8.0
     # via flake8
 pydantic==1.10.6
     # via
     #   -r requirements.in
     #   fastapi
-pyflakes==2.5.0
+pyflakes==2.4.0
     # via flake8
 pygments==2.14.0
     # via ipython
