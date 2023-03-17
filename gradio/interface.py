@@ -372,22 +372,6 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
-
-        if self.analytics_enabled:
-            data = {
-                "mode": self.mode,
-                "fn": fn,
-                "inputs": inputs,
-                "outputs": outputs,
-                "live": live,
-                "interpretation": interpretation,
-                "allow_flagging": allow_flagging,
-                "custom_css": self.css is not None,
-                "theme": self.theme,
-                "version": GRADIO_VERSION,
-            }
-            utils.initiated_analytics(data)
-
         utils.version_check()
         Interface.instances.add(self)
 
