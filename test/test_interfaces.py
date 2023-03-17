@@ -1,10 +1,10 @@
 import io
 import sys
 import unittest.mock as mock
-from unittest.mock import patch
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -178,7 +178,8 @@ class TestInterface:
 
     @patch.dict("sys.modules", {"mlflow": mock.MagicMock()})
     def test_integration_mlflow(self):
-        import mlflow
+        import mlflow  # noqa: F821
+
         mlflow.log_param = mock.MagicMock()
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(prevent_thread_lock=True)
@@ -211,8 +212,11 @@ class TestInterface:
             interface.integrate(wandb=wandb)
             wandb.log.assert_called_once()
 
+    @patch.dict("sys.modules", {"mlflow": mock.MagicMock()})
     @mock.patch("requests.post")
     def test_integration_analytics(self, mock_post):
+        import mlflow  # noqa: F821
+
         mlflow.log_param = mock.MagicMock()
         interface = Interface(lambda x: x, "textbox", "label")
         interface.analytics_enabled = True
