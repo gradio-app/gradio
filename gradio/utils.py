@@ -179,7 +179,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     }
 
     data.update(additional_data)
-
+    data.update({"ip_address": get_local_ip_address()})
     def launched_telemtry_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
