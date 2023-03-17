@@ -240,7 +240,8 @@ class TestBlocksMethods:
 
     @patch.dict("sys.modules", {"mlflow": mock.MagicMock()})
     def test_integration_mlflow(self):
-        import mlflow
+        import mlflow  # noqa: F821
+
         mlflow.log_param = mock.MagicMock()
         demo = gr.Blocks()
         with demo:

@@ -20,7 +20,7 @@ attrs==22.2.0
     #   pytest
 backcall==0.2.0
     # via ipython
-black==23.1.0
+black==22.6.0
     # via -r requirements.in
 boto3==1.26.94
     # via -r requirements.in
@@ -68,7 +68,7 @@ filelock==3.10.0
     # via
     #   huggingface-hub
     #   transformers
-flake8==5.0.4
+flake8==4.0.1
     # via -r requirements.in
 gitdb==4.0.10
     # via gitpython
