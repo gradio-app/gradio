@@ -277,7 +277,7 @@ class ThemeClass:
         # TODO: Delete this once we publish this to PyPi
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as req_file:
             req_file.write(
-                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-8/gradio-3.21.0-py3-none-any.whl"
+                "https://gradio-builds.s3.amazonaws.com/theme-share/attemp-9/gradio-3.21.0-py3-none-any.whl"
             )
 
         operations = [
