@@ -448,7 +448,7 @@ class TestComponentsInBlocks:
 
 
 class TestBlocksPostprocessing:
-    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
             c()
             for c in io_components
@@ -579,7 +579,7 @@ class TestBlocksPostprocessing:
                 "__type__": "update",
                 "mode": "dynamic",
             }
-            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+            assert output["data"][1] == {"__type__": "update", "interactive": True, "mode": "dynamic"}
 
     def test_error_raised_if_num_outputs_mismatch(self):
         with gr.Blocks() as demo:
@@ -888,11 +888,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
-            "type": None,
+            "interactive": False,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "__type__": "update",
-            "mode": "static",
+            "__type__": "update"
         }
 
         specific_update = gr.Textbox.get_specific_update(
@@ -905,10 +904,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
+            "interactive": True,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "__type__": "update",
-            "mode": "dynamic",
+            "__type__": "update"
         }
 
     def test_with_generic_update(self):
@@ -926,8 +925,8 @@ class TestSpecificUpdate:
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
-            "mode": "dynamic",
             "interactive": True,
+            "mode": "dynamic",
             "__type__": "update",
         }
 
