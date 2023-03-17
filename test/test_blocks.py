@@ -579,7 +579,7 @@ class TestBlocksPostprocessing:
                 "__type__": "update",
                 "mode": "dynamic",
             }
-            assert output["data"][1] == {"__type__": "update", "interactive": True, "mode": "dynamic"}
+            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
 
     def test_error_raised_if_num_outputs_mismatch(self):
         with gr.Blocks() as demo:
