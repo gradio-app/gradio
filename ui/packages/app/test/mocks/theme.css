@@ -134,7 +134,9 @@
 		var(--neutral-100),
 		white
 	);
-	--checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
+	--checkbox-label-background-fill-selected: var(
+		--checkbox-label-background-fill
+	);
 	--checkbox-label-border-color: var(--border-color-primary);
 	--checkbox-label-border-color-hover: var(--border-color-primary);
 	--checkbox-label-border-width: var(--input-border-width);
@@ -173,7 +175,7 @@
 	--loader-color: var(--background-accent);
 	--prose-text-size: var(--text-md);
 	--prose-text-weight: 400;
-	--stat- background-fill: linear-gradient(
+	--stat-background-fill: linear-gradient(
 		to right,
 		var(--primary-400),
 		var(--primary-200)
@@ -287,7 +289,9 @@
 		var(--neutral-900),
 		var(--neutral-800)
 	);
-	--checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
+	--checkbox-label-background-fill-selected: var(
+		--checkbox-label-background-fill
+	);
 	--checkbox-label-border-color: var(--border-color-primary);
 	--checkbox-label-border-color-hover: var(--border-color-primary);
 	--checkbox-label-text-color: var(--body-text-color);
@@ -307,7 +311,7 @@
 	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--neutral-700),
 		var(--shadow-inset);
 	--loader-color: var(--loader-color);
-	--stat- background-fill: linear-gradient(
+	--stat-background-fill: linear-gradient(
 		to right,
 		var(--primary-400),
 		var(--primary-600)
