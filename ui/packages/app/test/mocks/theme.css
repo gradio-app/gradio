@@ -53,20 +53,20 @@
 	--text-lg: 16px;
 	--text-xl: 22px;
 	--text-xxl: 26px;
-	--color-accent: var(--primary-500);
-	--color-accent-soft: var(--primary-50);
-	--color-background-primary: white;
-	--color-background-secondary: var(--neutral-50);
-	--color-border-accent: var(--primary-300);
-	--color-border-primary: var(--neutral-200);
+	--background-accent: var(--primary-500);
+	--background-accent-soft: var(--primary-50);
+	--background-primary: white;
+	--background-secondary: var(--neutral-50);
+	--border-color-accent: var(--primary-300);
+	--border-color-primary: var(--neutral-200);
 	--text-color-code-background: var(--neutral-200);
-	--text-color-code-border: var(--color-border-primary);
-	--text-color-link: var(--secondary-600);
-	--text-color-link-active: var(--secondary-600);
-	--text-color-link-hover: var(--secondary-700);
-	--text-color-link-visited: var(--secondary-500);
-	--text-color-subdued: var(--neutral-400);
-	--body-background-color: var(--color-background-primary);
+	--text-color-code-border: var(--border-color-primary);
+	--link-text-color: var(--secondary-600);
+	--link-text-color-active: var(--secondary-600);
+	--link-text-color-hover: var(--secondary-700);
+	--link-text-color-visited: var(--secondary-500);
+	--body-text-color-subdued: var(--neutral-400);
+	--body-background: var(--background-primary);
 	--body-text-color: var(--neutral-800);
 	--body-text-size: var(--text-md);
 	--body-text-weight: 400;
@@ -76,17 +76,17 @@
 		0 1px 2px -1px rgb(0 0 0 / 0.1);
 	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 	--shadow-spread: 3px;
-	--block-background: var(--color-background-primary);
-	--block-border-color: var(--color-border-primary);
+	--block-background: var(--background-primary);
+	--block-border-color: var(--border-color-primary);
 	--block-border-width: 1px;
-	--block-info-color: var(--text-color-subdued);
-	--block-info-color-size: var(--text-sm);
-	--block-info-color-weight: 400;
-	--block-label-background: var(--color-background-primary);
-	--block-label-border-color: var(--color-border-primary);
+	--block-info-color: var(--body-text-color-subdued);
+	--block-info-text-size: var(--text-sm);
+	--block-info-text-weight: 400;
+	--block-label-background: var(--background-primary);
+	--block-label-border-color: var(--border-color-primary);
 	--block-label-border-width: 1px;
-	--block-label-color: var(--neutral-500);
-	--block-label-icon-color: var(--block-label-color);
+	--block-label-text-color: var(--neutral-500);
+	--block-label-icon-color: var(--block-label-text-color);
 	--block-label-margin: 0;
 	--block-label-padding: var(--spacing-sm) var(--spacing-lg);
 	--block-label-radius: calc(var(--radius-lg) - 1px) 0
@@ -101,7 +101,7 @@
 	--block-title-background: none;
 	--block-title-border-color: none;
 	--block-title-border-width: 0px;
-	--block-title-color: var(--neutral-500);
+	--block-title-text-color: var(--neutral-500);
 	--block-title-padding: 0;
 	--block-title-radius: none;
 	--block-title-text-size: var(--text-md);
@@ -109,14 +109,14 @@
 	--container-radius: var(--radius-lg);
 	--form-gap-width: 1px;
 	--layout-gap: var(--spacing-xxl);
-	--panel-background: var(--color-background-secondary);
-	--panel-border-color: var(--color-border-primary);
+	--panel-background: var(--background-secondary);
+	--panel-border-color: var(--border-color-primary);
 	--panel-border-width: 0;
-	--section-text-size: var(--text-md);
-	--section-text-weight: 400;
-	--checkbox-background: var(--color-background-primary);
-	--checkbox-background-focus: var(--color-background-primary);
-	--checkbox-background-hover: var(--color-background-primary);
+	--section-header-text-size: var(--text-md);
+	--section-header-text-weight: 400;
+	--checkbox-background: var(--background-primary);
+	--checkbox-background-focus: var(--background-primary);
+	--checkbox-background-hover: var(--background-primary);
 	--checkbox-background-selected: var(--secondary-600);
 	--checkbox-border-color: var(--neutral-300);
 	--checkbox-border-color-focus: var(--secondary-500);
@@ -135,8 +135,8 @@
 		white
 	);
 	--checkbox-label-background-selected: var(--checkbox-label-background);
-	--checkbox-label-border-color: var(--color-border-primary);
-	--checkbox-label-border-color-hover: var(--color-border-primary);
+	--checkbox-label-border-color: var(--border-color-primary);
+	--checkbox-label-border-color-hover: var(--border-color-primary);
 	--checkbox-label-border-width: var(--input-border-width);
 	--checkbox-label-gap: var(--spacing-lg);
 	--checkbox-label-padding: var(--spacing-md) calc(2 * var(--spacing-md));
@@ -149,7 +149,7 @@
 	--error-background: linear-gradient(
 		to right,
 		#fee2e2,
-		var(--color-background-secondary)
+		var(--background-secondary)
 	);
 	--error-border-color: #fecaca;
 	--error-border-width: 1px;
@@ -158,9 +158,9 @@
 	--input-background: white;
 	--input-background-focus: var(--secondary-500);
 	--input-background-hover: var(--input-background);
-	--input-border-color: var(--color-border-primary);
+	--input-border-color: var(--border-color-primary);
 	--input-border-color-focus: var(--secondary-300);
-	--input-border-color-hover: var(--color-border-primary);
+	--input-border-color-hover: var(--border-color-primary);
 	--input-border-width: 1px;
 	--input-padding: var(--spacing-xl);
 	--input-placeholder-color: var(--neutral-400);
@@ -170,7 +170,7 @@
 		var(--shadow-inset);
 	--input-text-size: var(--text-md);
 	--input-text-weight: 400;
-	--loader-color: var(--color-accent);
+	--loader-color: var(--background-accent);
 	--prose-text-size: var(--text-md);
 	--prose-text-weight: 400;
 	--stat-color-background: linear-gradient(
@@ -182,7 +182,7 @@
 	--table-even-background: white;
 	--table-odd-background: var(--neutral-50);
 	--table-radius: var(--radius-lg);
-	--table-row-focus: var(--color-accent-soft);
+	--table-row-focus: var(--background-accent-soft);
 	--button-border-width: var(--input-border-width);
 	--button-cancel-background: linear-gradient(
 		to bottom right,
@@ -240,35 +240,35 @@
 	--button-transition: none;
 }
 .dark {
-	--color-accent-soft: var(--neutral-900);
-	--color-background-primary: var(--neutral-950);
-	--color-background-secondary: var(--neutral-900);
-	--color-border-accent: var(--neutral-600);
-	--color-border-primary: var(--neutral-700);
+	--background-accent-soft: var(--neutral-900);
+	--background-primary: var(--neutral-950);
+	--background-secondary: var(--neutral-900);
+	--border-color-accent: var(--neutral-600);
+	--border-color-primary: var(--neutral-700);
 	--text-color-code-background: var(--neutral-800);
-	--text-color-link-active: var(--secondary-500);
-	--text-color-link: var(--secondary-500);
-	--text-color-link-hover: var(--secondary-400);
-	--text-color-link-visited: var(--secondary-600);
-	--text-color-subdued: var(--neutral-400);
-	--body-background-color: var(--color-background-primary);
+	--link-text-color-active: var(--secondary-500);
+	--link-text-color: var(--secondary-500);
+	--link-text-color-hover: var(--secondary-400);
+	--link-text-color-visited: var(--secondary-600);
+	--body-text-color-subdued: var(--neutral-400);
+	--body-background: var(--background-primary);
 	--body-text-color: var(--neutral-100);
 	--shadow-spread: 1px;
 	--block-background: var(--neutral-800);
-	--block-border-color: var(--color-border-primary);
+	--block-border-color: var(--border-color-primary);
 	--block-border-width: 1px;
-	--block-info-color: var(--text-color-subdued);
-	--block-label-background: var(--color-background-secondary);
-	--block-label-border-color: var(--color-border-primary);
+	--block-info-color: var(--body-text-color-subdued);
+	--block-label-background: var(--background-secondary);
+	--block-label-border-color: var(--border-color-primary);
 	--block-label-border-width: 1px;
-	--block-label-color: var(--neutral-200);
+	--block-label-text-color: var(--neutral-200);
 	--block-shadow: none;
 	--block-title-background: none;
 	--block-title-border-color: none;
 	--block-title-border-width: 0px;
-	--block-title-color: var(--neutral-200);
-	--panel-background: var(--color-background-secondary);
-	--panel-border-color: var(--color-border-primary);
+	--block-title-text-color: var(--neutral-200);
+	--panel-background: var(--background-secondary);
+	--panel-border-color: var(--border-color-primary);
 	--checkbox-background: var(--neutral-800);
 	--checkbox-background-focus: var(--checkbox-background);
 	--checkbox-background-hover: var(--checkbox-background);
@@ -288,20 +288,20 @@
 		var(--neutral-800)
 	);
 	--checkbox-label-background-selected: var(--checkbox-label-background);
-	--checkbox-label-border-color: var(--color-border-primary);
-	--checkbox-label-border-color-hover: var(--color-border-primary);
+	--checkbox-label-border-color: var(--border-color-primary);
+	--checkbox-label-border-color-hover: var(--border-color-primary);
 	--checkbox-text-color: var(--body-text-color);
 	--checkbox-text-color-selected: var(--checkbox-text-color);
-	--error-background: var(--color-background-primary);
-	--error-border-color: var(--color-border-primary);
+	--error-background: var(--background-primary);
+	--error-border-color: var(--border-color-primary);
 	--error-border-width: var(--error-border-width);
 	--error-color: #ef4444;
 	--input-background: var(--neutral-800);
 	--input-background-focus: var(--secondary-600);
 	--input-background-hover: var(--input-background);
-	--input-border-color: var(--color-border-primary);
+	--input-border-color: var(--border-color-primary);
 	--input-border-color-focus: var(--neutral-700);
-	--input-border-color-hover: var(--color-border-primary);
+	--input-border-color-hover: var(--border-color-primary);
 	--input-placeholder-color: var(--neutral-500);
 	--input-shadow: var(--input-shadow);
 	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--neutral-700),
@@ -315,7 +315,7 @@
 	--table-border-color: var(--neutral-700);
 	--table-even-background: var(--neutral-950);
 	--table-odd-background: var(--neutral-900);
-	--table-row-focus: var(--color-accent-soft);
+	--table-row-focus: var(--background-accent-soft);
 	--button-cancel-background: linear-gradient(
 		to bottom right,
 		#dc2626,

@@ -145,11 +145,11 @@ const data = await <span class="token string">response</span>.json();
 	.snippet {
 		display: flex;
 		align-items: center;
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 
 		border-radius: var(--radius-md);
 		padding: var(--size-1) var(--size-1-5);
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 		color: var(--body-text-color);
 		line-height: 1;
 		user-select: none;
@@ -157,13 +157,13 @@ const data = await <span class="token string">response</span>.json();
 	}
 
 	.current-lang {
-		border: 1px solid var(--text-color-subdued);
+		border: 1px solid var(--body-text-color-subdued);
 		color: var(--body-text-color);
 	}
 
 	.inactive-lang {
 		cursor: pointer;
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 	}
 
 	.inactive-lang:hover,
@@ -191,7 +191,7 @@ const data = await <span class="token string">response</span>.json();
 
 	.token.string {
 		display: contents;
-		color: var(--color-accent-base);
+		color: var(--background-accent-base);
 	}
 
 	code {

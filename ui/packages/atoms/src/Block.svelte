@@ -63,7 +63,7 @@
 	}
 
 	.block.border_focus {
-		border-color: var(--color-accent);
+		border-color: var(--background-accent);
 	}
 
 	.padded {
