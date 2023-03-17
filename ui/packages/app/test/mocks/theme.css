@@ -53,20 +53,20 @@
 	--text-lg: 16px;
 	--text-xl: 22px;
 	--text-xxl: 26px;
-	--background-accent: var(--primary-500);
-	--background-accent-soft: var(--primary-50);
-	--background-primary: white;
-	--background-secondary: var(--neutral-50);
+	--color-accent: var(--primary-500);
+	--color-accent-soft: var(--primary-50);
+	--background-fill-primary: white;
+	--background-fill-secondary: var(--neutral-50);
 	--border-color-accent: var(--primary-300);
 	--border-color-primary: var(--neutral-200);
-	--text-color-code-background: var(--neutral-200);
+	--text-color-code-background-fill: var(--neutral-200);
 	--text-color-code-border: var(--border-color-primary);
 	--link-text-color: var(--secondary-600);
 	--link-text-color-active: var(--secondary-600);
 	--link-text-color-hover: var(--secondary-700);
 	--link-text-color-visited: var(--secondary-500);
 	--body-text-color-subdued: var(--neutral-400);
-	--body-background: var(--background-primary);
+	--body-background-fill: var(--background-fill-primary);
 	--body-text-color: var(--neutral-800);
 	--body-text-size: var(--text-md);
 	--body-text-weight: 400;
@@ -76,13 +76,13 @@
 		0 1px 2px -1px rgb(0 0 0 / 0.1);
 	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
 	--shadow-spread: 3px;
-	--block-background: var(--background-primary);
+	--block-background-fill: var(--background-fill-primary);
 	--block-border-color: var(--border-color-primary);
 	--block-border-width: 1px;
-	--block-info-color: var(--body-text-color-subdued);
+	--block-info-text-color: var(--body-text-color-subdued);
 	--block-info-text-size: var(--text-sm);
 	--block-info-text-weight: 400;
-	--block-label-background: var(--background-primary);
+	--block-label-background-fill: var(--background-fill-primary);
 	--block-label-border-color: var(--border-color-primary);
 	--block-label-border-width: 1px;
 	--block-label-text-color: var(--neutral-500);
@@ -98,7 +98,7 @@
 	--block-padding: var(--spacing-xl) calc(var(--spacing-xl) + 2px);
 	--block-radius: var(--radius-lg);
 	--block-shadow: var(--shadow-drop);
-	--block-title-background: none;
+	--block-title-background-fill: none;
 	--block-title-border-color: none;
 	--block-title-border-width: 0px;
 	--block-title-text-color: var(--neutral-500);
@@ -109,32 +109,32 @@
 	--container-radius: var(--radius-lg);
 	--form-gap-width: 1px;
 	--layout-gap: var(--spacing-xxl);
-	--panel-background: var(--background-secondary);
+	--panel-background-fill: var(--background-fill-secondary);
 	--panel-border-color: var(--border-color-primary);
 	--panel-border-width: 0;
 	--section-header-text-size: var(--text-md);
 	--section-header-text-weight: 400;
-	--checkbox-background: var(--background-primary);
-	--checkbox-background-focus: var(--background-primary);
-	--checkbox-background-hover: var(--background-primary);
-	--checkbox-background-selected: var(--secondary-600);
+	--checkbox-background-color: var(--background-fill-primary);
+	--checkbox-background-color-focus: var(--background-fill-primary);
+	--checkbox-background-color-hover: var(--background-fill-primary);
+	--checkbox-background-color-selected: var(--secondary-600);
 	--checkbox-border-color: var(--neutral-300);
 	--checkbox-border-color-focus: var(--secondary-500);
 	--checkbox-border-color-hover: var(--neutral-300);
 	--checkbox-border-color-selected: var(--secondary-600);
 	--checkbox-border-radius: var(--radius-sm);
 	--checkbox-border-width: var(--input-border-width);
-	--checkbox-label-background: linear-gradient(
+	--checkbox-label-background-fill: linear-gradient(
 		to top,
 		var(--neutral-50),
 		white
 	);
-	--checkbox-label-background-hover: linear-gradient(
+	--checkbox-label-background-fill-hover: linear-gradient(
 		to top,
 		var(--neutral-100),
 		white
 	);
-	--checkbox-label-background-selected: var(--checkbox-label-background);
+	--checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
 	--checkbox-label-border-color: var(--border-color-primary);
 	--checkbox-label-border-color-hover: var(--border-color-primary);
 	--checkbox-label-border-width: var(--input-border-width);
@@ -144,20 +144,20 @@
 	--checkbox-label-text-size: var(--text-md);
 	--checkbox-label-text-weight: 400;
 	--checkbox-shadow: var(--input-shadow);
-	--checkbox-text-color: var(--body-text-color);
-	--checkbox-text-color-selected: var(--checkbox-text-color);
-	--error-background: linear-gradient(
+	--checkbox-label-text-color: var(--body-text-color);
+	--checkbox-label-text-color-selected: var(--checkbox-label-text-color);
+	--error-background-fill: linear-gradient(
 		to right,
 		#fee2e2,
-		var(--background-secondary)
+		var(--background-fill-secondary)
 	);
 	--error-border-color: #fecaca;
 	--error-border-width: 1px;
-	--error-color: #ef4444;
-	--header-text-weight: 600;
-	--input-background: white;
-	--input-background-focus: var(--secondary-500);
-	--input-background-hover: var(--input-background);
+	--error-text-color: #ef4444;
+	--prose-header-text-weight: 600;
+	--input-background-fill: white;
+	--input-background-fill-focus: var(--secondary-500);
+	--input-background-fill-hover: var(--input-background-fill);
 	--input-border-color: var(--border-color-primary);
 	--input-border-color-focus: var(--secondary-300);
 	--input-border-color-hover: var(--border-color-primary);
@@ -170,26 +170,26 @@
 		var(--shadow-inset);
 	--input-text-size: var(--text-md);
 	--input-text-weight: 400;
-	--loader-color: var(--background-accent);
+	--loader-color: var(--color-accent);
 	--prose-text-size: var(--text-md);
 	--prose-text-weight: 400;
-	--stat-color-background: linear-gradient(
+	--stat- background-fill: linear-gradient(
 		to right,
 		var(--primary-400),
 		var(--primary-200)
 	);
 	--table-border-color: var(--neutral-300);
-	--table-even-background: white;
-	--table-odd-background: var(--neutral-50);
+	--table-even-background-fill: white;
+	--table-odd-background-fill: var(--neutral-50);
 	--table-radius: var(--radius-lg);
-	--table-row-focus: var(--background-accent-soft);
+	--table-row-focus: var(--color-accent-soft);
 	--button-border-width: var(--input-border-width);
-	--button-cancel-background: linear-gradient(
+	--button-cancel-background-fill: linear-gradient(
 		to bottom right,
 		#fee2e2,
 		#fecaca
 	);
-	--button-cancel-background-hover: linear-gradient(
+	--button-cancel-background-fill-hover: linear-gradient(
 		to bottom right,
 		#fee2e2,
 		#fee2e2
@@ -202,12 +202,12 @@
 	--button-large-radius: var(--radius-lg);
 	--button-large-text-size: var(--text-lg);
 	--button-large-text-weight: 600;
-	--button-primary-background: linear-gradient(
+	--button-primary-background-fill: linear-gradient(
 		to bottom right,
 		var(--primary-100),
 		var(--primary-300)
 	);
-	--button-primary-background-hover: linear-gradient(
+	--button-primary-background-fill-hover: linear-gradient(
 		to bottom right,
 		var(--primary-100),
 		var(--primary-200)
@@ -216,12 +216,12 @@
 	--button-primary-border-color-hover: var(--button-primary-border-color);
 	--button-primary-text-color: var(--primary-600);
 	--button-primary-text-color-hover: var(--button-primary-text-color);
-	--button-secondary-background: linear-gradient(
+	--button-secondary-background-fill: linear-gradient(
 		to bottom right,
 		var(--neutral-100),
 		var(--neutral-200)
 	);
-	--button-secondary-background-hover: linear-gradient(
+	--button-secondary-background-fill-hover: linear-gradient(
 		to bottom right,
 		var(--neutral-100),
 		var(--neutral-100)
@@ -240,65 +240,65 @@
 	--button-transition: none;
 }
 .dark {
-	--background-accent-soft: var(--neutral-900);
-	--background-primary: var(--neutral-950);
-	--background-secondary: var(--neutral-900);
+	--color-accent-soft: var(--neutral-900);
+	--background-fill-primary: var(--neutral-950);
+	--background-fill-secondary: var(--neutral-900);
 	--border-color-accent: var(--neutral-600);
 	--border-color-primary: var(--neutral-700);
-	--text-color-code-background: var(--neutral-800);
+	--text-color-code-background-fill: var(--neutral-800);
 	--link-text-color-active: var(--secondary-500);
 	--link-text-color: var(--secondary-500);
 	--link-text-color-hover: var(--secondary-400);
 	--link-text-color-visited: var(--secondary-600);
 	--body-text-color-subdued: var(--neutral-400);
-	--body-background: var(--background-primary);
+	--body-background-fill: var(--background-fill-primary);
 	--body-text-color: var(--neutral-100);
 	--shadow-spread: 1px;
-	--block-background: var(--neutral-800);
+	--block-background-fill: var(--neutral-800);
 	--block-border-color: var(--border-color-primary);
 	--block-border-width: 1px;
-	--block-info-color: var(--body-text-color-subdued);
-	--block-label-background: var(--background-secondary);
+	--block-info-text-color: var(--body-text-color-subdued);
+	--block-label-background-fill: var(--background-fill-secondary);
 	--block-label-border-color: var(--border-color-primary);
 	--block-label-border-width: 1px;
 	--block-label-text-color: var(--neutral-200);
 	--block-shadow: none;
-	--block-title-background: none;
+	--block-title-background-fill: none;
 	--block-title-border-color: none;
 	--block-title-border-width: 0px;
 	--block-title-text-color: var(--neutral-200);
-	--panel-background: var(--background-secondary);
+	--panel-background-fill: var(--background-fill-secondary);
 	--panel-border-color: var(--border-color-primary);
-	--checkbox-background: var(--neutral-800);
-	--checkbox-background-focus: var(--checkbox-background);
-	--checkbox-background-hover: var(--checkbox-background);
-	--checkbox-background-selected: var(--secondary-600);
+	--checkbox-background-color: var(--neutral-800);
+	--checkbox-background-color-focus: var(--checkbox-background-color);
+	--checkbox-background-color-hover: var(--checkbox-background-color);
+	--checkbox-background-color-selected: var(--secondary-600);
 	--checkbox-border-color: var(--neutral-700);
 	--checkbox-border-color-focus: var(--secondary-500);
 	--checkbox-border-color-hover: var(--neutral-600);
 	--checkbox-border-color-selected: var(--secondary-600);
-	--checkbox-label-background: linear-gradient(
+	--checkbox-label-background-fill: linear-gradient(
 		to top,
 		var(--neutral-900),
 		var(--neutral-800)
 	);
-	--checkbox-label-background-hover: linear-gradient(
+	--checkbox-label-background-fill-hover: linear-gradient(
 		to top,
 		var(--neutral-900),
 		var(--neutral-800)
 	);
-	--checkbox-label-background-selected: var(--checkbox-label-background);
+	--checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
 	--checkbox-label-border-color: var(--border-color-primary);
 	--checkbox-label-border-color-hover: var(--border-color-primary);
-	--checkbox-text-color: var(--body-text-color);
-	--checkbox-text-color-selected: var(--checkbox-text-color);
-	--error-background: var(--background-primary);
+	--checkbox-label-text-color: var(--body-text-color);
+	--checkbox-label-text-color-selected: var(--checkbox-label-text-color);
+	--error-background-fill: var(--background-fill-primary);
 	--error-border-color: var(--border-color-primary);
 	--error-border-width: var(--error-border-width);
-	--error-color: #ef4444;
-	--input-background: var(--neutral-800);
-	--input-background-focus: var(--secondary-600);
-	--input-background-hover: var(--input-background);
+	--error-text-color: #ef4444;
+	--input-background-fill: var(--neutral-800);
+	--input-background-fill-focus: var(--secondary-600);
+	--input-background-fill-hover: var(--input-background-fill);
 	--input-border-color: var(--border-color-primary);
 	--input-border-color-focus: var(--neutral-700);
 	--input-border-color-hover: var(--border-color-primary);
@@ -307,21 +307,21 @@
 	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--neutral-700),
 		var(--shadow-inset);
 	--loader-color: var(--loader-color);
-	--stat-color-background: linear-gradient(
+	--stat- background-fill: linear-gradient(
 		to right,
 		var(--primary-400),
 		var(--primary-600)
 	);
 	--table-border-color: var(--neutral-700);
-	--table-even-background: var(--neutral-950);
-	--table-odd-background: var(--neutral-900);
-	--table-row-focus: var(--background-accent-soft);
-	--button-cancel-background: linear-gradient(
+	--table-even-background-fill: var(--neutral-950);
+	--table-odd-background-fill: var(--neutral-900);
+	--table-row-focus: var(--color-accent-soft);
+	--button-cancel-background-fill: linear-gradient(
 		to bottom right,
 		#dc2626,
 		#b91c1c
 	);
-	--button-cancel-background-hover: linear-gradient(
+	--button-cancel-background-fill-hover: linear-gradient(
 		to bottom right,
 		#dc2626,
 		#dc2626
@@ -330,12 +330,12 @@
 	--button-cancel-border-color-hover: var(--button-cancel-border-color);
 	--button-cancel-text-color: white;
 	--button-cancel-text-color-hover: var(--button-cancel-text-color);
-	--button-primary-background: linear-gradient(
+	--button-primary-background-fill: linear-gradient(
 		to bottom right,
 		var(--primary-600),
 		var(--primary-700)
 	);
-	--button-primary-background-hover: linear-gradient(
+	--button-primary-background-fill-hover: linear-gradient(
 		to bottom right,
 		var(--primary-600),
 		var(--primary-600)
@@ -344,12 +344,12 @@
 	--button-primary-border-color-hover: var(--button-primary-border-color);
 	--button-primary-text-color: white;
 	--button-primary-text-color-hover: var(--button-primary-text-color);
-	--button-secondary-background: linear-gradient(
+	--button-secondary-background-fill: linear-gradient(
 		to bottom right,
 		var(--neutral-600),
 		var(--neutral-700)
 	);
-	--button-secondary-background-hover: linear-gradient(
+	--button-secondary-background-fill-hover: linear-gradient(
 		to bottom right,
 		var(--neutral-600),
 		var(--neutral-600)

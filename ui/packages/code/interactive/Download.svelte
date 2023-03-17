@@ -81,7 +81,7 @@
 		top: 0;
 		right: 0;
 		z-index: var(--layer-top);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-1);
 		width: 100%;
 		height: 100%;

@@ -60,23 +60,23 @@
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color);
 		border-radius: var(--button-small-radius);
-		background: var(--checkbox-label-background);
+		background: var(--checkbox-label-background-fill);
 		padding: var(--checkbox-label-padding);
-		color: var(--checkbox-text-color);
+		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
 	}
 
 	label:hover {
-		background: var(--checkbox-label-background-hover);
+		background: var(--checkbox-label-background-fill-hover);
 	}
 	label:focus {
-		background: var(--checkbox-label-background-focus);
+		background: var(--checkbox-label-background-fill-focus);
 	}
 	label.selected {
-		background: var(--checkbox-label-background-selected);
-		color: var(--checkbox-text-color-selected);
+		background: var(--checkbox-label-background-fill-selected);
+		color: var(--checkbox-label-text-color-selected);
 	}
 
 	label > * + * {
@@ -89,33 +89,26 @@
 		box-shadow: var(--checkbox-shadow);
 		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
 		border-radius: var(--radius-full);
-		background-color: var(--checkbox-background);
+		background-image: var(--radio-circle);
+		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
 	}
 
-	input:checked {
+	input:checked,
+	input:checked:hover,
+	input:checked:focus {
 		border-color: var(--checkbox-border-color-selected);
-		background-color: var(--checkbox-background-selected);
+		background-color: var(--checkbox-background-color-selected);
 	}
 
 	input:hover {
 		border-color: var(--checkbox-border-color-hover);
-		background-color: var(--checkbox-background-hover);
+		background-color: var(--checkbox-background-color-hover);
 	}
 
 	input:focus {
 		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-focus);
-	}
-
-	input:checked:focus {
-		border-color: var(--checkbox-background-selected);
-		background-color: var(--checkbox-background-selected);
-	}
-
-	input:checked:hover {
-		border-color: var(--checkbox-background-selected);
-		background-color: var(--checkbox-background-selected);
+		background-color: var(--checkbox-background-color-focus);
 	}
 
 	input[disabled],
