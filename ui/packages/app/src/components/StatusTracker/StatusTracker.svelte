@@ -308,7 +308,7 @@
 		align-items: center;
 		z-index: var(--layer-5);
 		border-radius: var(--block-radius);
-		background-color: var(--background-fill-primary);
+		background: var(--background-fill-primary);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;

@@ -143,7 +143,7 @@
 		align-self: flex-start;
 		border-width: 1px;
 		border-radius: var(--radius-xxl);
-		background-color: var(--background-fill-secondary);
+		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
@@ -172,7 +172,7 @@
 	.bot,
 	.pending {
 		border-color: var(--border-color-primary);
-		background-color: var(--background-fill-secondary);
+		background: var(--background-fill-secondary);
 	}
 	.user {
 		border-color: var(--border-color-accent);
