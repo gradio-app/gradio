@@ -1,7 +1,7 @@
 import os
 import pathlib
 
-from gradio.themes.utils.semver_match import ThemeAsset
+from gradio.themes.utils import ThemeAsset
 
 
 def create_theme_dropdown():

@@ -97,7 +97,11 @@ class ThemeClass:
         """Convert the theme into a python dictionary."""
         schema = {"theme": {}}
         for prop in dir(self):
-            if not prop.startswith("_") and isinstance(getattr(self, prop), str):
+            if (
+                not prop.startswith("_")
+                or prop.startswith("_font")
+                or prop == "_stylesheets"
+            ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
 
@@ -108,7 +112,7 @@ class ThemeClass:
         Parameters:
             path: The filepath to read.
         """
-        theme = json.load(open(path))
+        theme = json.load(open(path), object_hook=fonts.as_font)
         return cls.from_dict(theme)
 
     @classmethod
@@ -130,7 +134,7 @@ class ThemeClass:
             filename: The path to write the theme too
         """
         as_dict = self.to_dict()
-        json.dump(as_dict, open(Path(filename), "w"))
+        json.dump(as_dict, open(Path(filename), "w"), cls=fonts.FontEncoder)
 
     @classmethod
     def from_hub(cls, repo_name: str, hf_token: str | None = None):
@@ -254,7 +258,7 @@ class ThemeClass:
         ) as css_file:
             contents = self.to_dict()
             contents["version"] = version
-            json.dump(contents, css_file)
+            json.dump(contents, css_file, cls=fonts.FontEncoder)
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
             readme_content = README_CONTENT.format(
                 theme_name=theme_name,
@@ -277,7 +281,7 @@ class ThemeClass:
         # TODO: Delete this once we publish this to PyPi
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as req_file:
             req_file.write(
-                "https://gradio-builds.s3.amazonaws.com/theme-share/attemp-9/gradio-3.21.0-py3-none-any.whl"
+                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-10/gradio-3.21.0-py3-none-any.whl"
             )
 
         operations = [

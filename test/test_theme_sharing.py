@@ -270,11 +270,11 @@ class TestThemeUploadDownload:
     def test_theme_download(self):
 
         assert (
-            gr.themes.Base.from_hub("freddyaboulton/dracula_revamped@0.3.0").to_dict()
+            gr.themes.Base.from_hub("freddyaboulton/dracula_revamped@0.3.5").to_dict()
             == dracula.to_dict()
         )
 
-        with gr.Blocks(theme="freddyaboulton/dracula_revamped@0.3.0") as demo:
+        with gr.Blocks(theme="freddyaboulton/dracula_revamped@0.3.5") as demo:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
