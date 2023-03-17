@@ -30,7 +30,6 @@ from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import GRADIO_VERSION
 
 set_documentation_group("interface")
 
