@@ -38,7 +38,7 @@
 	div {
 		display: flex;
 		position: relative;
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-top: none;
 		border-bottom-right-radius: var(--container-radius);
 		border-bottom-left-radius: var(--container-radius);

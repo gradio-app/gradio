@@ -42,12 +42,12 @@
 
 	.post {
 		margin-right: var(--size-2);
-		border: 1px solid var(--color-border-accent);
+		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
-		background: var(--color-accent-soft);
+		background: var(--background-accent-soft);
 		padding-right: var(--size-1);
 		padding-left: var(--size-1);
-		color: var(--color-accent);
+		color: var(--background-accent);
 		font-weight: var(--weight-semibold);
 	}
 

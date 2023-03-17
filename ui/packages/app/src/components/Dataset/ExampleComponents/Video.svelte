@@ -44,14 +44,14 @@
 <style>
 	video {
 		flex: none;
-		border: 2px solid var(--color-border-primary);
+		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		max-width: none;
 	}
 
 	video:hover,
 	video.selected {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 	}
 	.table {
 		margin: 0 auto;

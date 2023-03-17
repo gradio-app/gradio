@@ -503,7 +503,8 @@ class Blocks(BlockContext):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
         self.theme = theme
-        self.theme_css = self.theme._get_theme_css()
+        self.theme_css = theme._get_theme_css()
+        self.stylesheets = theme._stylesheets
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -1109,7 +1110,8 @@ class Blocks(BlockContext):
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
-            "root": self.root
+            "stylesheets": self.stylesheets,
+            "root": self.root,
         }
 
         def getLayout(block):

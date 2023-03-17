@@ -113,19 +113,60 @@ dracula_gray = gr.themes.colors.Color(
     )
 )
 
+
+dracula_pink = gr.themes.Color(
+    *(
+        [
+            "#ffd7ee",
+            "#ff79c6",
+            "#ff86cc",
+            "#ff94d1",
+            "#ffa1d7",
+            "#ffafdd",
+            "#ffbce3",
+            "#ffc9e8",
+        ][::-1]
+        + ["#e66db2", "#cc619e", "#b3558b"]
+    )
+)
+
+dracula_gray = gr.themes.colors.Color(
+    *(
+        ["#6272a4", "#7280ad", "#818eb6", "#919cbf", "#a1aac8"][::-1]
+        + ["#586794", "#4e5b83", "#455073", "#3b4462", "#313952", "#272e42"]
+    )
+)
+
 dracula = gr.themes.Base(
-    primary_hue=gr.themes.colors.pink, neutral_hue=dracula_gray
+    primary_hue=gr.themes.colors.pink,
+    neutral_hue=dracula_gray,
+    font=gr.themes.GoogleFont("Poppins"),
 ).set(
+    body_background=dracula_gray.c500,
+    background_accent_soft=dracula_gray.c100,
+    background_primary=dracula_gray.c500,
+    background_secondary=dracula_gray.c500,
+    block_background=dracula_gray.c300,
     body_text_color="#f8f8f2",
     body_text_color_dark="#f8f8f2",
-    block_label_color="#f8f8f2",
-    block_label_color_dark="#f8f8f2",
+    body_text_color_subdued="#f8f8f2",
+    block_label_text_color="#f8f8f2",
+    block_label_text_color_dark="#f8f8f2",
+    table_even_background=dracula_gray.c300,
+    border_color_accent=dracula_gray.c200,
     block_info_color_dark="#f8f8f2",
-    block_title_color="#f8f8f2",
-    block_title_color_dark="#f8f8f2",
+    block_info_color="#f8f8f2",
+    block_title_text_color="#f8f8f2",
+    block_title_text_color_dark="#f8f8f2",
     checkbox_background_selected_dark="#ff79c6",
+    checkbox_background_selected="#ff79c6",
     button_primary_background_dark="#ff79c6",
+    button_primary_background=dracula_pink.c300,
+    button_secondary_text_color="#f8f8f2",
     slider_color_dark="#ff79c6",
+    slider_color=dracula_pink.c300,
+    panel_background_dark="#31395294",
+    block_background_dark="#31395294",
 )
 
 
@@ -229,11 +270,11 @@ class TestThemeUploadDownload:
     def test_theme_download(self):
 
         assert (
-            gr.themes.Base.from_hub("freddyaboulton/dracula_revamped@0.1.1").to_dict()
+            gr.themes.Base.from_hub("freddyaboulton/dracula_revamped@0.3.0").to_dict()
             == dracula.to_dict()
         )
 
-        with gr.Blocks(theme="freddyaboulton/dracula_revamped@0.1.1") as demo:
+        with gr.Blocks(theme="freddyaboulton/dracula_revamped@0.3.0") as demo:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
