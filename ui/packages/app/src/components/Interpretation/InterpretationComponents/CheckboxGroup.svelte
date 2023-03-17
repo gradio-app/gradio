@@ -87,11 +87,11 @@
 		height: var(--size-4);
 	}
 	.checkbox-item.selected {
-		background: var(--color-accent-base);
+		background: var(--background-accent-base);
 		color: white;
 	}
 	.selected .checkbox {
-		background: var(--color-accent-base);
+		background: var(--background-accent-base);
 	}
 
 	.checkbox-item {
@@ -101,7 +101,7 @@
 	}
 
 	.checkbox-item.selected {
-		background: var(--color-accent-base);
+		background: var(--background-accent-base);
 		color: white;
 	}
 </style>

@@ -646,7 +646,7 @@
 
 <style>
 	.button-wrap:hover svg {
-		color: var(--color-accent);
+		color: var(--background-accent);
 	}
 
 	.button-wrap svg {
@@ -675,7 +675,7 @@
 	}
 
 	.dragging {
-		border-color: var(--color-accent);
+		border-color: var(--background-accent);
 	}
 
 	.no-wrap {
@@ -736,7 +736,7 @@
 
 	th:focus-within,
 	td:focus-within {
-		--ring-color: var(--color-accent);
+		--ring-color: var(--background-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -777,7 +777,7 @@
 	}
 
 	.sort-button.sorted {
-		color: var(--color-accent);
+		color: var(--background-accent);
 	}
 
 	tbody {

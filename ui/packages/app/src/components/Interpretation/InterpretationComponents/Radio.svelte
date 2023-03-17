@@ -51,7 +51,7 @@
 	}
 	.radio-item.selected {
 		box-shadow: var(--shadow-drop);
-		background: var(--color-accent-base);
+		background: var(--background-accent-base);
 		color: white;
 	}
 </style>

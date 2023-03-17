@@ -191,7 +191,7 @@ const data = await <span class="token string">response</span>.json();
 
 	.token.string {
 		display: contents;
-		color: var(--color-accent-base);
+		color: var(--background-accent-base);
 	}
 
 	code {
