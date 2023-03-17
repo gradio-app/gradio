@@ -31,14 +31,14 @@
 		align-items: center;
 		z-index: var(--layer-2);
 		box-shadow: var(--block-shadow);
-		border: var(--block-label-border-width) solid var(--color-border-primary);
+		border: var(--block-label-border-width) solid var(--border-color-primary);
 		border-top: none;
 		border-left: none;
 		border-radius: var(--block-label-radius);
 		background: var(--block-label-background);
 		padding: var(--block-label-padding);
 		pointer-events: none;
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		font-weight: var(--block-label-text-weight);
 		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);

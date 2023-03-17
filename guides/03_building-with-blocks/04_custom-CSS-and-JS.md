@@ -4,6 +4,15 @@ This guide covers how to style Blocks with more flexibility, as well as adding J
 
 ## Custom CSS
 
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` constructor. For example:
+
+```python
+with gr.Blocks(theme=gr.themes.Glass()):
+    ...
+```
+
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
+
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:

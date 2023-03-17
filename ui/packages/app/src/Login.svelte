@@ -86,7 +86,7 @@
 		justify-content: center;
 		align-items: center;
 		margin-top: var(--size-3);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		width: var(--size-full);
 	}
 

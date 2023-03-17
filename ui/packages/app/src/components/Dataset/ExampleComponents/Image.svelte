@@ -20,12 +20,12 @@
 	}
 
 	img.selected {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 	}
 
 	.table {
 		margin: 0 auto;
-		border: 2px solid var(--color-border-primary);
+		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		width: var(--size-20);
 		height: var(--size-20);
@@ -33,7 +33,7 @@
 	}
 
 	.gallery {
-		border: 2px solid var(--color-border-primary);
+		border: 2px solid var(--border-color-primary);
 		max-height: var(--size-20);
 		object-fit: cover;
 	}

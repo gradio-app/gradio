@@ -13,9 +13,9 @@
 		flex-wrap: wrap;
 		gap: var(--form-gap-width);
 		box-shadow: var(--block-shadow);
-		border: var(--block-border-width) solid var(--color-border-primary);
+		border: var(--block-border-width) solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
-		background: var(--color-border-primary);
+		background: var(--border-color-primary);
 		overflow: hidden;
 	}
 

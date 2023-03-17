@@ -50,7 +50,7 @@
 	.attention code {
 		border: none;
 		background: none;
-		color: var(--color-accent);
+		color: var(--background-accent);
 		font-weight: var(--weight-bold);
 	}
 
@@ -63,7 +63,7 @@
 	}
 
 	button:hover {
-		color: var(--color-accent);
+		color: var(--background-accent);
 	}
 
 	@media (--screen-md) {

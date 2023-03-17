@@ -27,6 +27,7 @@
 		is_space: boolean;
 		is_colab: boolean;
 		show_api: boolean;
+		stylesheets: string[];
 	}
 
 	let id = -1;
@@ -96,6 +97,14 @@
 			target.appendChild(style);
 		}
 		mount_css(config.root + "/theme.css", document.head);
+		for (let stylesheet of config.stylesheets) {
+			let absolute_link =
+				stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
+			mount_css(
+				absolute_link ? stylesheet : config.root + "/" + stylesheet,
+				document.head
+			);
+		}
 	}
 
 	async function reload_check(root: string) {
@@ -332,19 +341,19 @@
 	}
 
 	a {
-		color: var(--text-color-link);
+		color: var(--link-text-color);
 	}
 
 	a:hover {
-		color: var(--text-color-link-hover);
+		color: var(--link-text-color-hover);
 		text-decoration: underline;
 	}
 
 	a:visited {
-		color: var(--text-color-link-visited);
+		color: var(--link-text-color-visited);
 	}
 
 	a:active {
-		color: var(--text-color-link-active);
+		color: var(--link-text-color-active);
 	}
 </style>

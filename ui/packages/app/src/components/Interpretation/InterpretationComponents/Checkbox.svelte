@@ -66,8 +66,8 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: 1px solid var(--color-border-primary);
-		background: var(--color-background-primary);
+		border: 1px solid var(--border-color-primary);
+		background: var(--background-primary);
 		width: var(--size-4);
 		height: var(--size-4);
 	}
@@ -75,14 +75,14 @@
 	.checkbox-item {
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 	}
 
 	.checkbox-item:hover {
 		box-shadow: var(--shadow-drop-lg);
 	}
 	.checkbox-item.selected {
-		background: var(--color-accent-base);
+		background: var(--background-accent-base);
 		color: white;
 	}
 </style>

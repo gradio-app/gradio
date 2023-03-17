@@ -95,7 +95,7 @@
 	}
 
 	.confidence-set:hover .label {
-		color: var(--color-accent);
+		color: var(--background-accent);
 	}
 
 	.text {
@@ -104,7 +104,7 @@
 
 	.line {
 		flex: 1 1 0%;
-		border: 1px dashed var(--color-border-primary);
+		border: 1px dashed var(--border-color-primary);
 		padding-right: var(--size-4);
 		padding-left: var(--size-4);
 	}

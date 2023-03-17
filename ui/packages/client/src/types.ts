@@ -15,6 +15,7 @@ export interface Config {
 	is_space: boolean;
 	is_colab: boolean;
 	show_api: boolean;
+	stylesheets: string[];
 	path: string;
 }
 

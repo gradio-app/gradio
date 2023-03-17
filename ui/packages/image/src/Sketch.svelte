@@ -626,13 +626,13 @@
 	}
 
 	.lr {
-		border-right: 1px solid var(--color-border-primary);
-		border-left: 1px solid var(--color-border-primary);
+		border-right: 1px solid var(--border-color-primary);
+		border-left: 1px solid var(--border-color-primary);
 	}
 
 	.tb {
-		border-top: 1px solid var(--color-border-primary);
-		border-bottom: 1px solid var(--color-border-primary);
+		border-top: 1px solid var(--border-color-primary);
+		border-bottom: 1px solid var(--border-color-primary);
 	}
 
 	canvas:hover {
@@ -658,6 +658,6 @@
 		z-index: var(--layer-4);
 		touch-action: none;
 		pointer-events: none;
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 	}
 </style>

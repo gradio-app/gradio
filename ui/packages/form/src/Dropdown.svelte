@@ -195,7 +195,7 @@
 	.wrap {
 		position: relative;
 		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--color-border-primary);
+		border: var(--input-border-width) solid var(--border-color-primary);
 		border-radius: var(--input-radius);
 		background: var(--input-background);
 	}
@@ -241,9 +241,9 @@
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		border: var(--checkbox-border-width) solid var(--color-border-primary);
+		border: var(--checkbox-border-width) solid var(--border-color-primary);
 		border-radius: var(--radius-full);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;

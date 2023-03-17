@@ -157,7 +157,7 @@
 <style>
 	.banner-wrap {
 		position: relative;
-		border-bottom: 1px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--border-color-primary);
 		padding: var(--size-4) var(--size-6);
 		font-size: var(--text-md);
 	}
@@ -176,7 +176,7 @@
 
 	.endpoint {
 		border-radius: var(--radius-md);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		padding: var(--size-6);
 		font-size: var(--text-md);
 	}

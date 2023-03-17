@@ -46,7 +46,7 @@
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
 		border-radius: var(--radius-md);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		width: var(--size-full);
 		height: var(--size-3);
 	}

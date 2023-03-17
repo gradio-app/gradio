@@ -50,7 +50,7 @@
 		top: 0;
 		right: 0;
 		z-index: var(--layer-top);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		padding: var(--size-1);
 		width: 100%;
 		height: 100%;

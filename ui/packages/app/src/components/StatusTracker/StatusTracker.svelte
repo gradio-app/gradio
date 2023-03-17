@@ -308,7 +308,7 @@
 		align-items: center;
 		z-index: var(--layer-5);
 		border-radius: var(--block-radius);
-		background-color: var(--color-background-primary);
+		background-color: var(--background-primary);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
@@ -334,7 +334,7 @@
 
 	.generating {
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-		border: 2px solid var(--color-accent);
+		border: 2px solid var(--background-accent);
 		background: transparent;
 	}
 
@@ -366,11 +366,11 @@
 		opacity: 0.8;
 		z-index: var(--layer-1);
 		transition: 10ms;
-		background: var(--color-background-secondary);
+		background: var(--background-secondary);
 	}
 	.progress-bar-wrap {
-		border: 1px solid var(--color-border-primary);
-		background: var(--color-background-primary);
+		border: 1px solid var(--border-color-primary);
+		background: var(--background-primary);
 		width: 55.5%;
 		height: var(--size-4);
 	}
@@ -426,7 +426,7 @@
 		box-shadow: var(--shadow-drop);
 		border: solid 1px var(--error-border-color);
 		border-radius: var(--radius-full);
-		background-color: var(--color-background-primary);
+		background-color: var(--background-primary);
 		background: var(--error-background);
 		padding-right: var(--size-4);
 		padding-left: var(--size-4);
@@ -434,7 +434,7 @@
 		font-weight: var(--weight-semibold);
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
-		font-family: var(--font-sans);
+		font-family: var(--font);
 	}
 
 	.toast {

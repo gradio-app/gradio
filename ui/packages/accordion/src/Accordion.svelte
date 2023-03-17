@@ -15,8 +15,8 @@
 
 <style>
 	span {
-		font-weight: var(--section-text-weight);
-		font-size: var(--section-text-size);
+		font-weight: var(--section-header-text-weight);
+		font-size: var(--section-header-text-size);
 	}
 	.label-wrap {
 		display: flex;
