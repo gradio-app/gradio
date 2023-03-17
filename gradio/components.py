@@ -1790,6 +1790,7 @@ class Image(
                 compactness=10,
                 sigma=1,
                 start_label=1,
+                channel_axis=None
             )
         except TypeError:  # For skimage 0.16 and older
             segments_slic = slic(
