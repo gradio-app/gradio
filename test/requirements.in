@@ -4,7 +4,6 @@ boto3
 IPython
 comet_ml
 coverage
-mlflow
 torch
 transformers
 scikit-image
