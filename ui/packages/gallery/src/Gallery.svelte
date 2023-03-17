@@ -227,7 +227,7 @@
 		flex-direction: column;
 		z-index: var(--layer-2);
 		backdrop-filter: blur(8px);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		height: var(--size-full);
 	}
 
@@ -255,7 +255,7 @@
 	.caption {
 		padding: var(--size-2) var(--size-3);
 		overflow: hidden;
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		font-weight: var(--weight-semibold);
 		text-align: center;
 		text-overflow: ellipsis;
@@ -279,9 +279,9 @@
 		position: relative;
 		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
-		background-color: var(--color-background-secondary);
+		background-color: var(--background-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
@@ -289,9 +289,9 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--color-border-accent);
+		--ring-color: var(--border-color-accent);
 		filter: brightness(1.1);
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 	}
 
 	.thumbnail-small {
@@ -303,9 +303,9 @@
 	}
 
 	.thumbnail-small.selected {
-		--ring-color: var(--color-accent);
+		--ring-color: var(--background-accent);
 		transform: scale(1);
-		border-color: var(--color-accent);
+		border-color: var(--background-accent);
 	}
 
 	.thumbnail-small > img {
@@ -368,10 +368,10 @@
 		right: var(--block-label-margin);
 		bottom: var(--block-label-margin);
 		z-index: var(--layer-1);
-		border-top: 1px solid var(--color-border-primary);
-		border-left: 1px solid var(--color-border-primary);
+		border-top: 1px solid var(--border-color-primary);
+		border-left: 1px solid var(--border-color-primary);
 		border-radius: var(--block-label-radius);
-		background: var(--color-background-secondary);
+		background: var(--background-secondary);
 		padding: var(--block-label-padding);
 		max-width: 80%;
 		overflow: hidden;

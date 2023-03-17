@@ -83,17 +83,17 @@
 		text-decoration: underline;
 	}
 	.download > a {
-		color: var(--text-color-link);
+		color: var(--link-text-color);
 	}
 
 	.download > a:hover {
-		color: var(--text-color-link-hover);
+		color: var(--link-text-color-hover);
 	}
 	.download > a:visited {
-		color: var(--text-color-link-visited);
+		color: var(--link-text-color-visited);
 	}
 	.download > a:active {
-		color: var(--text-color-link-active);
+		color: var(--link-text-color-active);
 	}
 	.selectable {
 		cursor: pointer;
