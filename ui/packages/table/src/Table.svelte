@@ -646,7 +646,7 @@
 
 <style>
 	.button-wrap:hover svg {
-		color: var(--color-accent);
+		color: var(--background-accent);
 	}
 
 	.button-wrap svg {
@@ -661,21 +661,21 @@
 		position: relative;
 		z-index: var(--layer-4);
 		margin-bottom: var(--size-2);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
 	}
 
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		overflow-x: scroll;
 		overflow-y: hidden;
 	}
 
 	.dragging {
-		border-color: var(--color-accent);
+		border-color: var(--background-accent);
 	}
 
 	.no-wrap {
@@ -706,7 +706,7 @@
 	}
 
 	tr {
-		border-bottom: 1px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--border-color-primary);
 		text-align: left;
 	}
 
@@ -714,7 +714,7 @@
 		border-right-width: 0px;
 		border-left-width: 1px;
 		border-style: solid;
-		border-color: var(--color-border-primary);
+		border-color: var(--border-color-primary);
 	}
 
 	th,
@@ -736,7 +736,7 @@
 
 	th:focus-within,
 	td:focus-within {
-		--ring-color: var(--color-accent);
+		--ring-color: var(--background-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -764,7 +764,7 @@
 		transition: 150ms;
 		cursor: pointer;
 		padding: var(--size-2);
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 		line-height: var(--text-sm);
 	}
 
@@ -777,7 +777,7 @@
 	}
 
 	.sort-button.sorted {
-		color: var(--color-accent);
+		color: var(--background-accent);
 	}
 
 	tbody {
@@ -797,7 +797,7 @@
 	}
 
 	tbody > tr:nth-child(odd):focus {
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 	}
 
 	.editing {

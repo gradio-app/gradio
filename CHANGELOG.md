@@ -3,13 +3,20 @@
 
 ## New Features:
 
-- Add keyword argument `elem_classes` to Components to control class names of components, in the same manner as existing `elem_id`. 
+### Official Theme release
+
+Gradio now supports a new theme system, which allows you to customize the look and feel of your app. You can now use the `theme=` kwarg to pass in a prebuilt theme, or customize your own! See guides/06_other-tutorials/theming-guide for more details. By [@aliabid94](https://github.com/aliabid94) in [PR 3494](https://github.com/gradio-app/gradio/pull/3494) 
+
+### `elem_classes`
+
+Add keyword argument `elem_classes` to Components to control class names of components, in the same manner as existing `elem_id`. 
 By [@aliabid94](https://github.com/aliabid94) in [PR 3466](https://github.com/gradio-app/gradio/pull/3466)
 
 ## Bug Fixes:
 
 - Fixes the File.upload() event trigger which broke as part of the change in how we uploaded files by [@abidlabs](https://github.com/abidlabs) in [PR 3462](https://github.com/gradio-app/gradio/pull/3462)
 - Fixed issue with `gr.Request` object failing to handle dictionaries when nested keys couldn't be converted to variable names [#3454](https://github.com/gradio-app/gradio/issues/3454) by [@radames](https://github.com/radames) in [PR 3459](https://github.com/gradio-app/gradio/pull/3459)
+- Fixed bug where css and client api was not working properly when mounted in a subpath by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3482](https://github.com/gradio-app/gradio/pull/3482) 
 
 ## Documentation Changes:
 
@@ -19,6 +26,7 @@ By [@aliabid94](https://github.com/aliabid94) in [PR 3466](https://github.com/gr
 
 - Pinned `pyright==1.1.298` for stability by [@abidlabs](https://github.com/abidlabs) in [PR 3475](https://github.com/gradio-app/gradio/pull/3475)
 - Removed `IOComponent.add_interactive_to_config()` by [@space-nuko](https://github.com/space-nuko) in [PR 3476](https://github.com/gradio-app/gradio/pull/3476)
+- Removed `IOComponent.generate_sample()` by [@space-nuko](https://github.com/space-nuko) in [PR 3475](https://github.com/gradio-app/gradio/pull/3483)
 
 ## Breaking Changes:
 

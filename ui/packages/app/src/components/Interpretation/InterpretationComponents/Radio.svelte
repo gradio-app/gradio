@@ -35,7 +35,7 @@
 		transition: 150ms;
 		cursor: pointer;
 		border-radius: var(--radius-md);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		padding: var(--size-2) var(--size-3);
 		font-weight: var(--weight-semibold);
 	}
@@ -51,7 +51,7 @@
 	}
 	.radio-item.selected {
 		box-shadow: var(--shadow-drop);
-		background: var(--color-accent-base);
+		background: var(--background-accent-base);
 		color: white;
 	}
 </style>

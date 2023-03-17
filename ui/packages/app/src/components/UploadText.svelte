@@ -24,12 +24,12 @@
 		flex-direction: column;
 		justify-content: center;
 		min-height: var(--size-60);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		line-height: var(--line-md);
 	}
 
 	.or {
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 	}
 
 	@media (--screen-md) {

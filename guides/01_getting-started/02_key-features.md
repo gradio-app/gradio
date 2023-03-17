@@ -119,13 +119,14 @@ Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-
 
 ## Styling
 
-Many components can be styled through the `style()` method. For example:
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Interface` constructor. For example:
 
 ```python
-img = gr.Image("lion.jpg").style(height='24', rounded=False)
+demo = gr.Interface(..., theme=gr.themes.Monochrome())
 ```
 
-Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
+
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
@@ -134,6 +135,15 @@ The base class for the Gradio app is `gradio-container`, so here's an example th
 with gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
+
+Some components can be additionally styled through the `style()` method. For example:
+
+```python
+img = gr.Image("lion.jpg").style(height='24', rounded=False)
+```
+
+Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
+
 
 ## Queuing
 

@@ -89,7 +89,7 @@
 	const FontTheme = EditorView.theme({
 		"&": {
 			fontSize: "var(--text-sm)",
-			backgroundColor: "var(--color-border-secondary)"
+			backgroundColor: "var(--border-color-secondary)"
 		},
 		".cm-content": {
 			paddingTop: "5px",
@@ -103,9 +103,9 @@
 		},
 		".cm-gutters": {
 			marginRight: "1px",
-			borderRight: "1px solid var(--color-border-primary)",
+			borderRight: "1px solid var(--border-color-primary)",
 			backgroundColor: "transparent",
-			color: "var(--text-color-subdued)"
+			color: "var(--body-text-color-subdued)"
 		},
 		".cm-focused": {
 			outline: "none"

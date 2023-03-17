@@ -136,11 +136,11 @@
 	}
 
 	.type {
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 	}
 
 	.desc {
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 	}
 
 	.name {

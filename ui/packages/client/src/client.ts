@@ -149,6 +149,7 @@ export async function client(
 			if (space_status_callback) space_status_callback(status);
 			if (status.status === "running")
 				try {
+					console.log(host);
 					config = await resolve_config(`${http_protocol}//${host}`);
 					res(config_success(config));
 				} catch (e) {
@@ -201,7 +202,7 @@ export async function client(
 					});
 
 					post_data(
-						`${http_protocol}//${host}/run${
+						`${http_protocol}//${host + config.path}/run${
 							endpoint.startsWith("/") ? endpoint : `/${endpoint}`
 						}`,
 						{
@@ -257,7 +258,9 @@ export async function client(
 						fn_index
 					});
 
-					const ws_endpoint = `${ws_protocol}://${host}/queue/join`;
+					const ws_endpoint = `${ws_protocol}://${
+						host + config.path
+					}/queue/join`;
 
 					const websocket = new WebSocket(ws_endpoint);
 
@@ -350,12 +353,16 @@ function skip_queue(id: number, config: Config) {
 
 async function resolve_config(endpoint?: string): Promise<Config> {
 	if (window.gradio_config && location.origin !== "http://localhost:9876") {
-		return { ...window.gradio_config, root: endpoint };
+		const path = window.gradio_config.root;
+		const config = window.gradio_config;
+		config.root = endpoint + config.root;
+		return { ...config, path: path };
 	} else if (endpoint) {
 		let response = await fetch(`${endpoint}/config`);
 
 		if (response.status === 200) {
 			const config = await response.json();
+			config.path = config.path ?? "";
 			config.root = endpoint;
 			return config;
 		} else {
