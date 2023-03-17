@@ -41,6 +41,9 @@ or you could use the `Color` object directly, such as
 with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=gr.themes.Pink)):
     ...
 ```
+
+$demo_theme_extended_step_1
+
 You could also create your own custom `Color` objects and pass them in.
 
 ### Core Sizing
@@ -54,16 +57,18 @@ The next 3 constructor arguments set the sizing of the theme and are gradio.them
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="lg")):
+with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")):
     ...
 ```
 
 or you could use the `Size` object directly, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius_size=gr.themes.radius_lg)):
+with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius_size=gr.themes.radius_none)):
     ...
 ```
+
+$demo_theme_extended_step_2
 
 You could also create your own custom `Size` objects and pass them in.
 
@@ -77,16 +82,17 @@ The final 2 constructor arguments set the fonts of the theme. You can pass a lis
 You could modify these values such as the following:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Roboto"), "Arial", "sans-serif"])):
+with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])):
     ...
 ```
+$demo_theme_extended_step_3
 
 ## Extending Themes via `.set()`
 
 You can also modify the values of CSS variables after the theme has been loaded. To do so, use the `.set()` method of the theme object to get access to the CSS variables. For example:
 
 ```python
-theme = gr.themes.Default(primary_color="blue").set(
+theme = gr.themes.Default(primary_hue="blue").set(
     loader_color="#FF0000",
     slider_color="#FF0000",
 )
@@ -120,7 +126,7 @@ Though there are hundreds of CSS variables, they do not all have to have individ
 To reference one of the core constructor variables, precede the variable name with an asterisk. To reference a core color, use the `*primary_`, `*secondary_`, or `*neutral_` prefix, followed by the brightness value. For example:
 
 ```python
-theme = gr.themes.Default(primary_color="blue").set(
+theme = gr.themes.Default(primary_hue="blue").set(
     button_primary_background="*primary_200",
     button_primary_background_hover="*primary_300",
 )
@@ -181,90 +187,25 @@ theme = gr.themes.Default().set(
 
 Let's say you want to create a theme from scratch! We'll go through it step by step - you can also see the source of prebuilt themes in the gradio source repo for reference - [here's the source](https://github.com/gradio-app/gradio/blob/main/gradio/themes/monochrome.py) for the Monochrome theme.
 
-Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a lot of convenient defaults. We'll start by override the constructor. Let's we'll pass use the same constructor arguments, but change the defaults. Let's go for a green and blue colored theme. We'll keep the sizes of everything medium, and use the "Roboto" font from Google Fonts.
+Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a lot of convenient defaults. Let's make a simple demo that creates a dummy theme called Seafoam, and make a simple app that uses it.
 
-```python
-from __future__ import annotations
-from typing import Iterable
-from gradio.themes.base import Base
-from gradio.themes.utils import colors, fonts, sizes
+$code_theme_new_step_1
+$demo_theme_new_step_1
 
+The Base theme is very barebones, and uses `gr.themes.Blue` as it primary color - you'll note the primary button and the loading animation are both blue as a result. Let's change the defaults core arguments of our app. We'll overwrite the constructor and pass new defaults for the core constructor arguments.
 
-class EmeraldBlue(Base):
-    def __init__(
-        self,
-        *,
-        primary_hue: colors.Color | str = colors.green,
-        secondary_hue: colors.Color | str = colors.blue,
-        neutral_hue: colors.Color | str = colors.gray,
-        spacing_size: sizes.Size | str = sizes.spacing_md,
-        radius_size: sizes.Size | str = sizes.radius_md,
-        text_size: sizes.Size | str = sizes.text_md,
-        font: fonts.Font
-        | str
-        | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Roboto"),
-            "ui-sans-serif",
-            "sans-serif",
-        ),
-        font_mono: fonts.Font
-        | str
-        | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
-            "ui-monospace",
-            "Consolas",
-            "monospace",
-        ),
-    ):
-        super().__init__(
-            primary_hue=primary_hue,
-            secondary_hue=secondary_hue,
-            neutral_hue=neutral_hue,
-            spacing_size=spacing_size,
-            radius_size=radius_size,
-            text_size=text_size,
-            font=font,
-            font_mono=font_mono,
-        )
-```
+We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutral hues to `gr.themes.Blue`. We'll make our text larger using `text_lg`. We'll use `Quicksand` as our default font, loaded from Google Fonts. 
 
-We've overridden the constructor to set the default values for the theme. Let's make a simple demo to see what it looks like right now (assume the theme is saved in emerald_blue.py):
+$code_theme_new_step_2
+$demo_theme_new_step_2
 
-```python
-import gradio as gr
-import EmeraldBlue from emerald_blue
+See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
-theme = EmeraldBlue()
+$code_theme_new_step_3
+$demo_theme_new_step_3
 
-with gr.Blocks() as demo:
-    text = gr.Textbox(label="Name")
-    slider = gr.Slider(minimum=0, maximum=5)
-    button = gr.Button("Run", variant="primary")    
-    output = gr.Textbox(label="Output")
-    button2 = gr.Button("Dummy")
+Look how fun our theme looks now! With just a few variable changes, our theme looks completely different.
 
-    def repeat(text, slider):
-        import time
-        time.sleep(1)
-        return text * slider
+You may find it helpful to explore the [source code of the other prebuilt themes](https://github.com/gradio-app/gradio/blob/main/gradio/themes) to see how they modified the base theme. You can also find your browser's Inspector useful to select elements from the UI and see what CSS variables are being used in the styles panel. 
 
-    button.click(repeat, [text, slider], output)
-demo.launch()
-```
-
-See how to the primary button already responds to the primary color. Also when you run the app, you'll see that the loader has also picked up the green primary color. This is because the properties `button_primary_background` and `loader_color` variables are tied to the `primary_hue` variable. Note also the app is using the `Roboto` font loaded from Google Fonts.
-
-Let's override the primary button color as well as the background color of the app. We'll continue the constructor code as follows:
-
-```python
-    def __init__(...)
-        # code from above
-        self.set(
-            body_background="*primary_50",
-            body_background_dark="*primary_900",
-            button_primary_background="linear-gradient(90deg, *primary_200, *secondary_300)",
-            button_primary_background_dark="linear-gradient(90deg, *primary_600, *secondary_800)",
-        )
-```
-
-See how we've set the `body_background` and `body_background_dark` variables to the 50 and 900 brightness values of the primary color in light mode vs dark mode. We've also set the `button_primary_background` and `button_primary_background_dark` variables to a linear gradient of the primary color and secondary color. These colors respond to the primary and secondary colors of the theme, so if another user passes different primary or secondary hues, the theme will update accordingly.
+Enjoy creating your own themes! If you make one you're proud of, please share it with us on [Twitter](https://twitter.com/gradio).
