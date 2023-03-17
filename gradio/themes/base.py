@@ -1,21 +1,48 @@
 from __future__ import annotations
 
 import re
+from typing import Iterable
 
-from gradio.themes.utils import colors, sizes
+from gradio.themes.utils import colors, fonts, sizes
 
 
 class ThemeClass:
+    def __init__(self):
+        self._stylesheets = []
+
     def _get_theme_css(self):
-        css = ":root {\n"
-        dark_css = ".dark {\n"
+        css = {}
+        dark_css = {}
+
         for attr, val in self.__dict__.items():
-            val = getattr(self, attr)
-            if val is None:
+            if attr.startswith("_"):
                 continue
+            if val is None:
+                if attr.endswith("_dark"):
+                    dark_css[attr[:-5]] = None
+                    continue
+                else:
+                    raise ValueError(
+                        f"Cannot set '{attr}' to None - only dark mode variables can be None."
+                    )
+            val = str(val)
             pattern = r"(\*)([\w_]+)(\b)"
 
             def repl_func(match):
+                full_match = match.group(0)
+                if full_match.startswith("*") and full_match.endswith("_dark"):
+                    raise ValueError(
+                        f"Cannot refer '{attr}' to '{val}' - dark variable references are automatically used for dark mode attributes, so do not use the _dark suffix in the value."
+                    )
+                if (
+                    attr.endswith("_dark")
+                    and full_match.startswith("*")
+                    and attr[:-5] == full_match[1:]
+                ):
+                    raise ValueError(
+                        f"Cannot refer '{attr}' to '{val}' - if dark and light mode values are the same, set dark mode version to None."
+                    )
+
                 word = match.group(2)
                 word = word.replace("_", "-")
                 return f"var(--{word})"
@@ -23,14 +50,29 @@ class ThemeClass:
             val = re.sub(pattern, repl_func, val)
 
             attr = attr.replace("_", "-")
+
             if attr.endswith("-dark"):
                 attr = attr[:-5]
-                dark_css += f"  --{attr}: {val}; \n"
+                dark_css[attr] = val
             else:
-                css += f"  --{attr}: {val}; \n"
-        css += "}"
-        dark_css += "}"
-        return css + "\n" + dark_css
+                css[attr] = val
+
+        for attr, val in css.items():
+            if attr not in dark_css:
+                dark_css[attr] = val
+
+        css_code = (
+            ":root {\n"
+            + "\n".join([f"  --{attr}: {val};" for attr, val in css.items()])
+            + "\n}"
+        )
+        dark_css_code = (
+            ".dark {\n"
+            + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
+            + "\n}"
+        )
+
+        return css_code + "\n" + dark_css_code
 
 
 class Base(ThemeClass):
@@ -43,6 +85,22 @@ class Base(ThemeClass):
         text_size: sizes.Size | str = sizes.text_md,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
+        font: fonts.Font
+        | str
+        | Iterable[fonts.Font | str] = (
+            fonts.GoogleFont("Source Sans Pro"),
+            "ui-sans-serif",
+            "system-ui",
+            "sans-serif",
+        ),
+        font_mono: fonts.Font
+        | str
+        | Iterable[fonts.Font | str] = (
+            fonts.GoogleFont("IBM Plex Mono"),
+            "ui-monospace",
+            "Consolas",
+            "monospace",
+        ),
     ):
         """
         Parameters:
@@ -52,6 +110,8 @@ class Base(ThemeClass):
             text_size: The size of the text. Load a preset, like gradio.themes.sizes.text_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
             spacing_size: The size of the spacing. Load a preset, like gradio.themes.sizes.spacing_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
             radius_size: The radius size of corners. Load a preset, like gradio.themes.sizes.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.
+            font: The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
+            font_mono: The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
         """
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
@@ -112,6 +172,7 @@ class Base(ThemeClass):
         self.neutral_900 = neutral_hue.c900
         self.neutral_950 = neutral_hue.c950
 
+        # Spacing
         self.spacing_xxs = spacing_size.xxs
         self.spacing_xs = spacing_size.xs
         self.spacing_sm = spacing_size.sm
@@ -136,43 +197,64 @@ class Base(ThemeClass):
         self.text_xl = text_size.xl
         self.text_xxl = text_size.xxl
 
+        # Font
+        if not isinstance(font, Iterable):
+            font = [font]
+        self._font = [
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            for fontfam in font
+        ]
+        if not isinstance(font_mono, Iterable):
+            font_mono = [font_mono]
+        self._font_mono = [
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            for fontfam in font_mono
+        ]
+        self.font = ", ".join(str(font) for font in self._font)
+        self.font_mono = ", ".join(str(font) for font in self._font_mono)
+
+        self._stylesheets = []
+        for font in self._font + self._font_mono:
+            font_stylesheet = font.stylesheet()
+            if font_stylesheet:
+                self._stylesheets.append(font_stylesheet)
+
         self.set()
 
     def set(
         self,
         *,
         # Core Colors
-        color_accent=None,
-        color_accent_soft=None,
-        color_accent_soft_dark=None,
-        color_background_primary=None,
-        color_background_primary_dark=None,
-        color_background_secondary=None,
-        color_background_secondary_dark=None,
-        color_border_accent=None,
-        color_border_accent_dark=None,
-        color_border_primary=None,
-        color_border_primary_dark=None,
-        # Text Colors
-        text_color_code_background=None,
-        text_color_code_background_dark=None,
-        text_color_code_border=None,
-        text_color_link=None,
-        text_color_link_active=None,
-        text_color_link_active_dark=None,
-        text_color_link_dark=None,
-        text_color_link_hover=None,
-        text_color_link_hover_dark=None,
-        text_color_link_visited=None,
-        text_color_link_visited_dark=None,
-        text_color_subdued=None,
-        text_color_subdued_dark=None,
+        background_accent=None,
+        background_accent_soft=None,
+        background_accent_soft_dark=None,
+        background_primary=None,
+        background_primary_dark=None,
+        background_secondary=None,
+        background_secondary_dark=None,
+        border_color_accent=None,
+        border_color_accent_dark=None,
+        border_color_primary=None,
+        border_color_primary_dark=None,
+        # Text
+        link_text_color=None,
+        link_text_color_active=None,
+        link_text_color_active_dark=None,
+        link_text_color_dark=None,
+        link_text_color_hover=None,
+        link_text_color_hover_dark=None,
+        link_text_color_visited=None,
+        link_text_color_visited_dark=None,
+        prose_text_size=None,
+        prose_text_weight=None,
         # Body
-        body_background_color=None,
-        body_background_color_dark=None,
+        body_background=None,
+        body_background_dark=None,
         body_text_color=None,
         body_text_color_dark=None,
         body_text_size=None,
+        body_text_color_subdued=None,
+        body_text_color_subdued_dark=None,
         body_text_weight=None,
         embed_radius=None,
         # Shadows
@@ -190,16 +272,16 @@ class Base(ThemeClass):
         block_border_width_dark=None,
         block_info_color=None,
         block_info_color_dark=None,
-        block_info_color_size=None,
-        block_info_color_weight=None,
+        block_info_text_size=None,
+        block_info_text_weight=None,
         block_label_background=None,
         block_label_background_dark=None,
         block_label_border_color=None,
         block_label_border_color_dark=None,
         block_label_border_width=None,
         block_label_border_width_dark=None,
-        block_label_color=None,
-        block_label_color_dark=None,
+        block_label_text_color=None,
+        block_label_text_color_dark=None,
         block_label_icon_color=None,
         block_label_margin=None,
         block_label_padding=None,
@@ -217,8 +299,8 @@ class Base(ThemeClass):
         block_title_border_color_dark=None,
         block_title_border_width=None,
         block_title_border_width_dark=None,
-        block_title_color=None,
-        block_title_color_dark=None,
+        block_title_text_color=None,
+        block_title_text_color_dark=None,
         block_title_padding=None,
         block_title_radius=None,
         block_title_text_size=None,
@@ -231,8 +313,8 @@ class Base(ThemeClass):
         panel_border_color=None,
         panel_border_color_dark=None,
         panel_border_width=None,
-        section_text_size=None,
-        section_text_weight=None,
+        section_header_text_size=None,
+        section_header_text_weight=None,
         # Component Atoms
         checkbox_background=None,
         checkbox_background_dark=None,
@@ -307,8 +389,6 @@ class Base(ThemeClass):
         input_text_weight=None,
         loader_color=None,
         loader_color_dark=None,
-        prose_text_size=None,
-        prose_text_weight=None,
         slider_color=None,
         slider_color_dark=None,
         stat_color_background=None,
@@ -374,87 +454,76 @@ class Base(ThemeClass):
         button_transition=None,
     ):
         # Core Colors
-        self.color_accent = color_accent or getattr(
-            self, "color_accent", "*primary_500"
+        self.background_accent = background_accent or getattr(
+            self, "background_accent", "*primary_500"
         )
-        self.color_accent_soft = color_accent_soft or getattr(
-            self, "color_accent_soft", "*primary_50"
+        self.background_accent_soft = background_accent_soft or getattr(
+            self, "background_accent_soft", "*primary_50"
         )
-        self.color_accent_soft_dark = color_accent_soft_dark or getattr(
-            self, "color_accent_soft_dark", "*neutral_700"
+        self.background_accent_soft_dark = background_accent_soft_dark or getattr(
+            self, "background_accent_soft_dark", "*neutral_700"
         )
-        self.color_background_primary = color_background_primary or getattr(
-            self, "color_background_primary", "white"
+        self.background_primary = background_primary or getattr(
+            self, "background_primary", "white"
         )
-        self.color_background_primary_dark = color_background_primary_dark or getattr(
-            self, "color_background_primary_dark", "*neutral_950"
+        self.background_primary_dark = background_primary_dark or getattr(
+            self, "background_primary_dark", "*neutral_950"
         )
-        self.color_background_secondary = color_background_secondary or getattr(
-            self, "color_background_secondary", "*neutral_50"
+        self.background_secondary = background_secondary or getattr(
+            self, "background_secondary", "*neutral_50"
         )
-        self.color_background_secondary_dark = (
-            color_background_secondary_dark
-            or getattr(self, "color_background_secondary_dark", "*neutral_900")
+        self.background_secondary_dark = background_secondary_dark or getattr(
+            self, "background_secondary_dark", "*neutral_900"
         )
-        self.color_border_accent = color_border_accent or getattr(
-            self, "color_border_accent", "*primary_300"
+        self.border_color_accent = border_color_accent or getattr(
+            self, "border_color_accent", "*primary_300"
         )
-        self.color_border_accent_dark = color_border_accent_dark or getattr(
-            self, "color_border_accent_dark", "*neutral_600"
+        self.border_color_accent_dark = border_color_accent_dark or getattr(
+            self, "border_color_accent_dark", "*neutral_600"
         )
-        self.color_border_primary = color_border_primary or getattr(
-            self, "color_border_primary", "*neutral_200"
+        self.border_color_primary = border_color_primary or getattr(
+            self, "border_color_primary", "*neutral_200"
         )
-        self.color_border_primary_dark = color_border_primary_dark or getattr(
-            self, "color_border_primary_dark", "*neutral_700"
+        self.border_color_primary_dark = border_color_primary_dark or getattr(
+            self, "border_color_primary_dark", "*neutral_700"
         )
         # Text Colors
-        self.text_color_code_background = text_color_code_background or getattr(
-            self, "text_color_code_background", "*neutral_200"
+        self.link_text_color = link_text_color or getattr(
+            self, "link_text_color", "*secondary_600"
         )
-        self.text_color_code_background_dark = (
-            text_color_code_background_dark
-            or getattr(self, "text_color_code_background_dark", "*neutral_800")
+        self.link_text_color_active = link_text_color_active or getattr(
+            self, "link_text_color_active", "*secondary_600"
         )
-        self.text_color_code_border = text_color_code_border or getattr(
-            self, "text_color_code_border", "*color_border_primary"
+        self.link_text_color_active_dark = link_text_color_active_dark or getattr(
+            self, "link_text_color_active_dark", "*secondary_500"
         )
-        self.text_color_link = text_color_link or getattr(
-            self, "text_color_link", "*secondary_600"
+        self.link_text_color_dark = link_text_color_dark or getattr(
+            self, "link_text_color_dark", "*secondary_500"
         )
-        self.text_color_link_active = text_color_link_active or getattr(
-            self, "text_color_link_active", "*secondary_600"
+        self.link_text_color_hover = link_text_color_hover or getattr(
+            self, "link_text_color_hover", "*secondary_700"
         )
-        self.text_color_link_active_dark = text_color_link_active_dark or getattr(
-            self, "text_color_link_active_dark", "*secondary_500"
+        self.link_text_color_hover_dark = link_text_color_hover_dark or getattr(
+            self, "link_text_color_hover_dark", "*secondary_400"
         )
-        self.text_color_link_dark = text_color_link_dark or getattr(
-            self, "text_color_link_dark", "*secondary_500"
+        self.link_text_color_visited = link_text_color_visited or getattr(
+            self, "link_text_color_visited", "*secondary_500"
         )
-        self.text_color_link_hover = text_color_link_hover or getattr(
-            self, "text_color_link_hover", "*secondary_700"
+        self.link_text_color_visited_dark = link_text_color_visited_dark or getattr(
+            self, "link_text_color_visited_dark", "*secondary_600"
         )
-        self.text_color_link_hover_dark = text_color_link_hover_dark or getattr(
-            self, "text_color_link_hover_dark", "*secondary_400"
+        self.body_text_color_subdued = body_text_color_subdued or getattr(
+            self, "body_text_color_subdued", "*neutral_400"
         )
-        self.text_color_link_visited = text_color_link_visited or getattr(
-            self, "text_color_link_visited", "*secondary_500"
-        )
-        self.text_color_link_visited_dark = text_color_link_visited_dark or getattr(
-            self, "text_color_link_visited_dark", "*secondary_600"
-        )
-        self.text_color_subdued = text_color_subdued or getattr(
-            self, "text_color_subdued", "*neutral_400"
-        )
-        self.text_color_subdued_dark = text_color_subdued_dark or getattr(
-            self, "text_color_subdued_dark", "*neutral_400"
+        self.body_text_color_subdued_dark = body_text_color_subdued_dark or getattr(
+            self, "body_text_color_subdued_dark", "*neutral_400"
         )
         # Body
-        self.body_background_color = body_background_color or getattr(
-            self, "body_background_color", "*color_background_primary"
+        self.body_background = body_background or getattr(
+            self, "body_background", "*background_primary"
         )
-        self.body_background_color_dark = body_background_color_dark or getattr(
-            self, "body_background_color_dark", "*color_background_primary"
+        self.body_background_dark = body_background_dark or getattr(
+            self, "body_background_dark", "*background_primary"
         )
         self.body_text_color = body_text_color or getattr(
             self, "body_text_color", "*neutral_800"
@@ -487,61 +556,61 @@ class Base(ThemeClass):
         )
         # Layout Atoms
         self.block_background = block_background or getattr(
-            self, "block_background", "*color_background_primary"
+            self, "block_background", "*background_primary"
         )
         self.block_background_dark = block_background_dark or getattr(
             self, "block_background_dark", "*neutral_800"
         )
         self.block_border_color = block_border_color or getattr(
-            self, "block_border_color", "*color_border_primary"
+            self, "block_border_color", "*border_color_primary"
         )
         self.block_border_color_dark = block_border_color_dark or getattr(
-            self, "block_border_color_dark", "*color_border_primary"
+            self, "block_border_color_dark", "*border_color_primary"
         )
         self.block_border_width = block_border_width or getattr(
             self, "block_border_width", "1px"
         )
         self.block_border_width_dark = block_border_width_dark or getattr(
-            self, "block_border_width_dark", "1px"
+            self, "block_border_width_dark", None
         )
         self.block_info_color = block_info_color or getattr(
-            self, "block_info_color", "*text_color_subdued"
+            self, "block_info_color", "*body_text_color_subdued"
         )
         self.block_info_color_dark = block_info_color_dark or getattr(
-            self, "block_info_color_dark", "*text_color_subdued"
+            self, "block_info_color_dark", "*body_text_color_subdued"
         )
-        self.block_info_color_size = block_info_color_size or getattr(
-            self, "block_info_color_size", "*text_sm"
+        self.block_info_text_size = block_info_text_size or getattr(
+            self, "block_info_text_size", "*text_sm"
         )
-        self.block_info_color_weight = block_info_color_weight or getattr(
-            self, "block_info_color_weight", "400"
+        self.block_info_text_weight = block_info_text_weight or getattr(
+            self, "block_info_text_weight", "400"
         )
         self.block_label_background = block_label_background or getattr(
-            self, "block_label_background", "*color_background_primary"
+            self, "block_label_background", "*background_primary"
         )
         self.block_label_background_dark = block_label_background_dark or getattr(
-            self, "block_label_background_dark", "*color_background_secondary"
+            self, "block_label_background_dark", "*background_secondary"
         )
         self.block_label_border_color = block_label_border_color or getattr(
-            self, "block_label_border_color", "*color_border_primary"
+            self, "block_label_border_color", "*border_color_primary"
         )
         self.block_label_border_color_dark = block_label_border_color_dark or getattr(
-            self, "block_label_border_color_dark", "*color_border_primary"
+            self, "block_label_border_color_dark", "*border_color_primary"
         )
         self.block_label_border_width = block_label_border_width or getattr(
             self, "block_label_border_width", "1px"
         )
         self.block_label_border_width_dark = block_label_border_width_dark or getattr(
-            self, "block_label_border_width_dark", "1px"
+            self, "block_label_border_width_dark", None
         )
-        self.block_label_color = block_label_color or getattr(
-            self, "block_label_color", "*neutral_500"
+        self.block_label_text_color = block_label_text_color or getattr(
+            self, "block_label_text_color", "*neutral_500"
         )
-        self.block_label_color_dark = block_label_color_dark or getattr(
-            self, "block_label_color_dark", "*neutral_200"
+        self.block_label_text_color_dark = block_label_text_color_dark or getattr(
+            self, "block_label_text_color_dark", "*neutral_200"
         )
         self.block_label_icon_color = block_label_icon_color or getattr(
-            self, "block_label_icon_color", "*block_label_color"
+            self, "block_label_icon_color", "*block_label_text_color"
         )
         self.block_label_margin = block_label_margin or getattr(
             self, "block_label_margin", "0"
@@ -571,31 +640,31 @@ class Base(ThemeClass):
         self.block_radius = block_radius or getattr(self, "block_radius", "*radius_lg")
         self.block_shadow = block_shadow or getattr(self, "block_shadow", "none")
         self.block_shadow_dark = block_shadow_dark or getattr(
-            self, "block_shadow_dark", "none"
+            self, "block_shadow_dark", None
         )
         self.block_title_background = block_title_background or getattr(
             self, "block_title_background", "none"
         )
         self.block_title_background_dark = block_title_background_dark or getattr(
-            self, "block_title_background_dark", "none"
+            self, "block_title_background_dark", None
         )
         self.block_title_border_color = block_title_border_color or getattr(
             self, "block_title_border_color", "none"
         )
         self.block_title_border_color_dark = block_title_border_color_dark or getattr(
-            self, "block_title_border_color_dark", "none"
+            self, "block_title_border_color_dark", None
         )
         self.block_title_border_width = block_title_border_width or getattr(
             self, "block_title_border_width", "0px"
         )
         self.block_title_border_width_dark = block_title_border_width_dark or getattr(
-            self, "block_title_border_width_dark", "0px"
+            self, "block_title_border_width_dark", None
         )
-        self.block_title_color = block_title_color or getattr(
-            self, "block_title_color", "*neutral_500"
+        self.block_title_text_color = block_title_text_color or getattr(
+            self, "block_title_text_color", "*neutral_500"
         )
-        self.block_title_color_dark = block_title_color_dark or getattr(
-            self, "block_title_color_dark", "*neutral_200"
+        self.block_title_text_color_dark = block_title_text_color_dark or getattr(
+            self, "block_title_text_color_dark", "*neutral_200"
         )
         self.block_title_padding = block_title_padding or getattr(
             self, "block_title_padding", "0"
@@ -615,41 +684,41 @@ class Base(ThemeClass):
         self.form_gap_width = form_gap_width or getattr(self, "form_gap_width", "0px")
         self.layout_gap = layout_gap or getattr(self, "layout_gap", "*spacing_xxl")
         self.panel_background = panel_background or getattr(
-            self, "panel_background", "*color_background_secondary"
+            self, "panel_background", "*background_secondary"
         )
         self.panel_background_dark = panel_background_dark or getattr(
-            self, "panel_background_dark", "*color_background_secondary"
+            self, "panel_background_dark", "*background_secondary"
         )
         self.panel_border_color = panel_border_color or getattr(
-            self, "panel_border_color", "*color_border_primary"
+            self, "panel_border_color", "*border_color_primary"
         )
         self.panel_border_color_dark = panel_border_color_dark or getattr(
-            self, "panel_border_color_dark", "*color_border_primary"
+            self, "panel_border_color_dark", "*border_color_primary"
         )
         self.panel_border_width = panel_border_width or getattr(
             self, "panel_border_width", "0"
         )
-        self.section_text_size = section_text_size or getattr(
-            self, "section_text_size", "*text_md"
+        self.section_header_text_size = section_header_text_size or getattr(
+            self, "section_header_text_size", "*text_md"
         )
-        self.section_text_weight = section_text_weight or getattr(
-            self, "section_text_weight", "400"
+        self.section_header_text_weight = section_header_text_weight or getattr(
+            self, "section_header_text_weight", "400"
         )
         # Component Atoms
         self.checkbox_background = checkbox_background or getattr(
-            self, "checkbox_background", "*color_background_primary"
+            self, "checkbox_background", "*background_primary"
         )
         self.checkbox_background_dark = checkbox_background_dark or getattr(
             self, "checkbox_background_dark", "*neutral_800"
         )
         self.checkbox_background_focus = checkbox_background_focus or getattr(
-            self, "checkbox_background_focus", "*color_background_primary"
+            self, "checkbox_background_focus", "*checkbox_background"
         )
         self.checkbox_background_focus_dark = checkbox_background_focus_dark or getattr(
             self, "checkbox_background_focus_dark", "*checkbox_background"
         )
         self.checkbox_background_hover = checkbox_background_hover or getattr(
-            self, "checkbox_background_hover", "*color_background_primary"
+            self, "checkbox_background_hover", "*checkbox_background"
         )
         self.checkbox_background_hover_dark = checkbox_background_hover_dark or getattr(
             self, "checkbox_background_hover_dark", "*checkbox_background"
@@ -695,15 +764,17 @@ class Base(ThemeClass):
             self, "checkbox_border_width", "*input_border_width"
         )
         self.checkbox_label_background = checkbox_label_background or getattr(
-            self, "checkbox_label_background", "*neutral_200"
+            self, "checkbox_label_background", "*button_secondary_background"
         )
         self.checkbox_label_background_dark = checkbox_label_background_dark or getattr(
-            self, "checkbox_label_background_dark", "*neutral_600"
+            self, "checkbox_label_background_dark", "*button_secondary_background"
         )
         self.checkbox_label_background_hover = (
             checkbox_label_background_hover
             or getattr(
-                self, "checkbox_label_background_hover", "*checkbox_label_background"
+                self,
+                "checkbox_label_background_hover",
+                "*button_secondary_background_hover",
             )
         )
         self.checkbox_label_background_hover_dark = (
@@ -711,7 +782,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "checkbox_label_background_hover_dark",
-                "*checkbox_label_background",
+                "*button_secondary_background_hover",
             )
         )
         self.checkbox_label_background_selected = (
@@ -729,24 +800,28 @@ class Base(ThemeClass):
             )
         )
         self.checkbox_label_border_color = checkbox_label_border_color or getattr(
-            self, "checkbox_label_border_color", "*color_border_primary"
+            self, "checkbox_label_border_color", "*border_color_primary"
         )
         self.checkbox_label_border_color_dark = (
             checkbox_label_border_color_dark
             or getattr(
-                self, "checkbox_label_border_color_dark", "*color_border_primary"
+                self, "checkbox_label_border_color_dark", "*border_color_primary"
             )
         )
         self.checkbox_label_border_color_hover = (
             checkbox_label_border_color_hover
             or getattr(
-                self, "checkbox_label_border_color_hover", "*color_border_primary"
+                self,
+                "checkbox_label_border_color_hover",
+                "*checkbox_label_border_color",
             )
         )
         self.checkbox_label_border_color_hover_dark = (
             checkbox_label_border_color_hover_dark
             or getattr(
-                self, "checkbox_label_border_color_hover_dark", "*color_border_primary"
+                self,
+                "checkbox_label_border_color_hover_dark",
+                "*checkbox_label_border_color",
             )
         )
         self.checkbox_label_border_width = checkbox_label_border_width or getattr(
@@ -789,19 +864,19 @@ class Base(ThemeClass):
             self, "error_background", colors.red.c100
         )
         self.error_background_dark = error_background_dark or getattr(
-            self, "error_background_dark", "*color_background_primary"
+            self, "error_background_dark", "*background_primary"
         )
         self.error_border_color = error_border_color or getattr(
             self, "error_border_color", colors.red.c200
         )
         self.error_border_color_dark = error_border_color_dark or getattr(
-            self, "error_border_color_dark", "*color_border_primary"
+            self, "error_border_color_dark", "*border_color_primary"
         )
         self.error_border_width = error_border_width or getattr(
             self, "error_border_width", "1px"
         )
         self.error_border_width_dark = error_border_width_dark or getattr(
-            self, "error_border_width_dark", "*error_border_width"
+            self, "error_border_width_dark", None
         )
         self.error_color = error_color or getattr(self, "error_color", colors.red.c500)
         self.error_color_dark = error_color_dark or getattr(
@@ -829,10 +904,10 @@ class Base(ThemeClass):
             self, "input_background_hover_dark", "*input_background"
         )
         self.input_border_color = input_border_color or getattr(
-            self, "input_border_color", "*color_border_primary"
+            self, "input_border_color", "*border_color_primary"
         )
         self.input_border_color_dark = input_border_color_dark or getattr(
-            self, "input_border_color_dark", "*color_border_primary"
+            self, "input_border_color_dark", "*border_color_primary"
         )
         self.input_border_color_focus = input_border_color_focus or getattr(
             self, "input_border_color_focus", "*secondary_300"
@@ -841,10 +916,10 @@ class Base(ThemeClass):
             self, "input_border_color_focus_dark", "*neutral_700"
         )
         self.input_border_color_hover = input_border_color_hover or getattr(
-            self, "input_border_color_hover", "*color_border_primary"
+            self, "input_border_color_hover", "*input_border_color"
         )
         self.input_border_color_hover_dark = input_border_color_hover_dark or getattr(
-            self, "input_border_color_hover_dark", "*color_border_primary"
+            self, "input_border_color_hover_dark", "*input_border_color"
         )
         self.input_border_width = input_border_width or getattr(
             self, "input_border_width", "0px"
@@ -861,13 +936,13 @@ class Base(ThemeClass):
         self.input_radius = input_radius or getattr(self, "input_radius", "*radius_lg")
         self.input_shadow = input_shadow or getattr(self, "input_shadow", "none")
         self.input_shadow_dark = input_shadow_dark or getattr(
-            self, "input_shadow_dark", "*input_shadow"
+            self, "input_shadow_dark", None
         )
         self.input_shadow_focus = input_shadow_focus or getattr(
             self, "input_shadow_focus", "*input_shadow"
         )
         self.input_shadow_focus_dark = input_shadow_focus_dark or getattr(
-            self, "input_shadow_focus_dark", "*input_shadow"
+            self, "input_shadow_focus_dark", None
         )
         self.input_text_size = input_text_size or getattr(
             self, "input_text_size", "*text_md"
@@ -876,10 +951,10 @@ class Base(ThemeClass):
             self, "input_text_weight", "400"
         )
         self.loader_color = loader_color or getattr(
-            self, "loader_color", "*color_accent"
+            self, "loader_color", "*background_accent"
         )
         self.loader_color_dark = loader_color_dark or getattr(
-            self, "loader_color_dark", "*color_accent"
+            self, "loader_color_dark", None
         )
         self.prose_text_size = prose_text_size or getattr(
             self, "prose_text_size", "*text_md"
@@ -887,7 +962,7 @@ class Base(ThemeClass):
         self.prose_text_weight = prose_text_weight or getattr(
             self, "prose_text_weight", "400"
         )
-        self.slider_color = slider_color or getattr(self, "slider_color", None)
+        self.slider_color = slider_color or getattr(self, "slider_color", "")
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )
@@ -917,20 +992,20 @@ class Base(ThemeClass):
         )
         self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
         self.table_row_focus = table_row_focus or getattr(
-            self, "table_row_focus", "*color_accent_soft"
+            self, "table_row_focus", "*background_accent_soft"
         )
         self.table_row_focus_dark = table_row_focus_dark or getattr(
-            self, "table_row_focus_dark", "*color_accent_soft"
+            self, "table_row_focus_dark", "*background_accent_soft"
         )
         # Buttons
         self.button_border_width = button_border_width or getattr(
             self, "button_border_width", "*input_border_width"
         )
         self.button_cancel_background = button_cancel_background or getattr(
-            self, "button_cancel_background", colors.red.c200
+            self, "button_cancel_background", "*button_secondary_background"
         )
         self.button_cancel_background_dark = button_cancel_background_dark or getattr(
-            self, "button_cancel_background_dark", colors.red.c700
+            self, "button_cancel_background_dark", "*button_secondary_background"
         )
         self.button_cancel_background_hover = button_cancel_background_hover or getattr(
             self, "button_cancel_background_hover", "*button_cancel_background"
@@ -940,20 +1015,26 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_background_hover_dark",
-                "*button_cancel_background_hover",
+                "*button_cancel_background",
             )
         )
         self.button_cancel_border_color = button_cancel_border_color or getattr(
-            self, "button_cancel_border_color", colors.red.c200
+            self, "button_cancel_border_color", "*button_secondary_border_color"
         )
         self.button_cancel_border_color_dark = (
             button_cancel_border_color_dark
-            or getattr(self, "button_cancel_border_color_dark", colors.red.c600)
+            or getattr(
+                self,
+                "button_cancel_border_color_dark",
+                "*button_secondary_border_color",
+            )
         )
         self.button_cancel_border_color_hover = (
             button_cancel_border_color_hover
             or getattr(
-                self, "button_cancel_border_color_hover", "*button_cancel_border_color"
+                self,
+                "button_cancel_border_color_hover",
+                "*button_cancel_border_color",
             )
         )
         self.button_cancel_border_color_hover_dark = (
@@ -965,10 +1046,10 @@ class Base(ThemeClass):
             )
         )
         self.button_cancel_text_color = button_cancel_text_color or getattr(
-            self, "button_cancel_text_color", colors.red.c600
+            self, "button_cancel_text_color", "*button_secondary_text_color"
         )
         self.button_cancel_text_color_dark = button_cancel_text_color_dark or getattr(
-            self, "button_cancel_text_color_dark", "white"
+            self, "button_cancel_text_color_dark", "*button_secondary_text_color"
         )
         self.button_cancel_text_color_hover = button_cancel_text_color_hover or getattr(
             self, "button_cancel_text_color_hover", "*button_cancel_text_color"

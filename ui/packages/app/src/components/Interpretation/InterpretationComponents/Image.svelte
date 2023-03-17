@@ -79,7 +79,7 @@
 		position: relative;
 		justify-content: center;
 		align-items: center;
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		width: var(--size-full);
 		height: var(--size-60);
 	}

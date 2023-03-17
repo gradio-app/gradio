@@ -16,15 +16,15 @@
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-sm);
-		background: var(--color-background-primary);
+		background: var(--background-primary);
 		width: var(--size-5);
 		height: var(--size-5);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 	}
 
 	button:hover {
 		border: 1px solid var(--button-secondary-border-color-hover);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 	}
 
 	div {
