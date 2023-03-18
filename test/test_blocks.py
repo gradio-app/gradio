@@ -884,7 +884,7 @@ class TestSpecificUpdate:
             "interactive": False,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "__type__": "update"
+            "__type__": "update",
         }
 
         specific_update = gr.Textbox.get_specific_update(
@@ -900,7 +900,7 @@ class TestSpecificUpdate:
             "interactive": True,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "__type__": "update"
+            "__type__": "update",
         }
 
     def test_with_generic_update(self):

@@ -1217,7 +1217,7 @@ class Base(ThemeClass):
             self, "input_border_width", "0px"
         )
         self.input_border_width_dark = input_border_width_dark or getattr(
-            self, "input_border_width_dark", "0px"
+            self, "input_border_width_dark", None
         )
         self.input_padding = input_padding or getattr(
             self, "input_padding", "*spacing_xl"
