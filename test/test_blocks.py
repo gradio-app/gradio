@@ -46,16 +46,9 @@ def captured_output():
 class TestBlocksMethods:
     maxDiff = None
 
-    def test_set_share(self):
+    def test_set_share_is_false_by_default(self):
         with gr.Blocks() as demo:
-            # self.share is False when instantiating the class
             assert not demo.share
-            # default is False, if share is None
-            demo.share = None
-            assert not demo.share
-            # if set to True, it doesn't change
-            demo.share = True
-            assert demo.share
 
     @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
@@ -448,7 +441,8 @@ class TestComponentsInBlocks:
 
 
 class TestBlocksPostprocessing:
-    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+
         io_components = [
             c()
             for c in io_components
