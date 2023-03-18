@@ -11,7 +11,7 @@ with gr.Blocks(theme=gr.themes.Soft()):
 ```
 
 <iframe
-	src="https://gradio-theme-soft.hf.space"
+	src="https://gradio-theme-soft.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
