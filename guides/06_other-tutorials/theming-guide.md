@@ -9,7 +9,14 @@ Gradio features a built-in theming engine that lets you customize the look and f
 with gr.Blocks(theme=gr.themes.Soft()):
     ...
 ```
-$demo_theme_soft
+
+<iframe
+	src="https://gradio-theme-soft.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
 
@@ -43,7 +50,12 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=
     ...
 ```
 
-$demo_theme_extended_step_1
+<iframe
+	src="https://gradio-theme-extended-step-1.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
 
 You could also create your own custom `Color` objects and pass them in.
 
@@ -69,7 +81,12 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius
     ...
 ```
 
-$demo_theme_extended_step_2
+<iframe
+	src="https://gradio-theme-extended-step-2.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
 
 You could also create your own custom `Size` objects and pass them in.
 
@@ -86,7 +103,15 @@ You could modify these values such as the following:
 with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])):
     ...
 ```
-$demo_theme_extended_step_3
+
+<iframe
+	src="https://gradio-theme-extended-step-3.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
 
 ## Extending Themes via `.set()`
 
@@ -191,21 +216,41 @@ Let's say you want to create a theme from scratch! We'll go through it step by s
 Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a lot of convenient defaults. Let's make a simple demo that creates a dummy theme called Seafoam, and make a simple app that uses it.
 
 $code_theme_new_step_1
-$demo_theme_new_step_1
+
+<iframe
+	src="https://gradio-theme-new-step-1.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
 
 The Base theme is very barebones, and uses `gr.themes.Blue` as it primary color - you'll note the primary button and the loading animation are both blue as a result. Let's change the defaults core arguments of our app. We'll overwrite the constructor and pass new defaults for the core constructor arguments.
 
 We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutral hues to `gr.themes.Blue`. We'll make our text larger using `text_lg`. We'll use `Quicksand` as our default font, loaded from Google Fonts. 
 
 $code_theme_new_step_2
-$demo_theme_new_step_2
+
+<iframe
+	src="https://gradio-theme-new-step-2.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
 
 See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. 
 
 Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
 $code_theme_new_step_3
-$demo_theme_new_step_3
+
+<iframe
+	src="https://gradio-theme-new-step-3.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
 
 Look how fun our theme looks now! With just a few variable changes, our theme looks completely different.
 
