@@ -6,10 +6,10 @@ Tags: THEMES
 Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
 
 ```python
-with gr.Blocks(theme=gr.themes.Glass()):
+with gr.Blocks(theme=gr.themes.Soft()):
     ...
 ```
-$demo_theme_glass
+$demo_theme_soft
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
 
@@ -200,7 +200,9 @@ We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutra
 $code_theme_new_step_2
 $demo_theme_new_step_2
 
-See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
+See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. 
+
+Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
 $code_theme_new_step_3
 $demo_theme_new_step_3

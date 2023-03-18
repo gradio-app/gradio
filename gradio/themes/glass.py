@@ -19,9 +19,10 @@ class Glass(Base):
         font: fonts.Font
         | str
         | Iterable[fonts.Font | str] = (
-            "Verdana",
-            "ui-sans-serif",
-            "system-ui",
+            "Optima",
+            "Candara",
+            "Noto Sans",
+            "source-sans-pro",
             "sans-serif",
         ),
         font_mono: fonts.Font
