@@ -48,7 +48,7 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		background: var(--body-background);
+		background: var(--body-background-fill);
 		padding: 0;
 		min-height: 1px;
 		overflow: hidden;
@@ -163,7 +163,7 @@
 		position: absolute;
 		left: var(--size-5);
 		opacity: 0;
-		background: var(--button-secondary-background);
+		background: var(--button-secondary-background-fill);
 		padding-right: 4px;
 	}
 

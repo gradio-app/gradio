@@ -31,7 +31,7 @@
 	input {
 		display: block;
 		position: relative;
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		line-height: var(--line-sm);
 	}
 </style>
