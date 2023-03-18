@@ -232,7 +232,7 @@ We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutra
 $code_theme_new_step_2
 
 <iframe
-	src="https://gradio-theme-new-step-2.hf.space"
+	src="https://gradio-theme-new-step-2.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
