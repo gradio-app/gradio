@@ -68,7 +68,7 @@
 		cursor: pointer;
 		box-shadow: var(--shadow-drop);
 		border-radius: var(--radius-md);
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-2) var(--size-3);
 		font-weight: var(--weight-semibold);
 	}
@@ -81,8 +81,8 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: 1px solid var(--color-border-primary);
-		background: var(--color-background-primary);
+		border: 1px solid var(--border-color-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-4);
 		height: var(--size-4);
 	}
@@ -97,7 +97,7 @@
 	.checkbox-item {
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 	}
 
 	.checkbox-item.selected {

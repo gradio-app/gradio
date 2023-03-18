@@ -469,7 +469,7 @@
 		display: flex;
 		justify-content: center;
 		margin-top: var(--size-4);
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 	}
 
 	footer > * + * {
@@ -523,7 +523,7 @@
 
 	.api-docs-wrap {
 		box-shadow: var(--shadow-drop-lg);
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 		overflow-x: hidden;
 		overflow-y: auto;
 	}

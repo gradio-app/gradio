@@ -29,7 +29,7 @@
 		display: block;
 		transition: 150ms;
 		cursor: pointer;
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-2) var(--size-3);
 		white-space: nowrap;
 	}

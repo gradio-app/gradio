@@ -57,7 +57,7 @@
 		border-width: var(--block-border-width);
 		border-color: var(--block-border-color);
 		border-radius: var(--block-radius);
-		background: var(--block-background);
+		background: var(--block-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
 	}

@@ -36,13 +36,13 @@
 <style>
 	h3 {
 		color: var(--body-text-color);
-		font-weight: var(--header-text-weight);
+		font-weight: var(--section-header-text-weight);
 		font-size: var(--text-lg);
 	}
 
 	.post {
 		margin-right: var(--size-2);
-		border: 1px solid var(--color-border-accent);
+		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
 		padding-right: var(--size-1);

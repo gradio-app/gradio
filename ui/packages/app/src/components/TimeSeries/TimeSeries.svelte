@@ -182,7 +182,7 @@
 		display: relative;
 		justify-content: center;
 		align-items: center;
-		background-color: var(--color-background-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-full);
 		height: var(--size-64);
 	}

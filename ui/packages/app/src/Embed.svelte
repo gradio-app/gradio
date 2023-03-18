@@ -48,7 +48,7 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		background: var(--body-background-color);
+		background: var(--body-background-fill);
 		padding: 0;
 		min-height: 1px;
 		overflow: hidden;
@@ -117,7 +117,7 @@
 		border-top: 1px solid var(--button-secondary-border-color);
 		padding: var(--size-1) var(--size-5);
 		width: 100%;
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 		font-size: var(--text-md);
 		white-space: nowrap;
 	}
@@ -163,7 +163,7 @@
 		position: absolute;
 		left: var(--size-5);
 		opacity: 0;
-		background: var(--button-secondary-background);
+		background: var(--button-secondary-background-fill);
 		padding-right: 4px;
 	}
 

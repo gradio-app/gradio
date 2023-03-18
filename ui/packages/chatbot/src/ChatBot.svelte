@@ -143,7 +143,7 @@
 		align-self: flex-start;
 		border-width: 1px;
 		border-radius: var(--radius-xxl);
-		background-color: var(--color-background-secondary);
+		background: var(--background-fill-secondary);
 		padding: var(--spacing-xxl);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
@@ -171,11 +171,11 @@
 	/* Colors */
 	.bot,
 	.pending {
-		border-color: var(--color-border-primary);
-		background-color: var(--color-background-secondary);
+		border-color: var(--border-color-primary);
+		background: var(--background-fill-secondary);
 	}
 	.user {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 		background-color: var(--color-accent-soft);
 	}
 	.feedback {
@@ -187,7 +187,7 @@
 		font-size: var(--text-sm);
 	}
 	.feedback button {
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 	}
 	.feedback button:hover {
 		color: var(--body-text-color);

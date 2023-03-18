@@ -86,14 +86,14 @@
 		justify-content: center;
 		align-items: center;
 		margin-top: var(--size-3);
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-full);
 	}
 
 	h2 {
 		margin-bottom: var(--size-3);
 		color: var(--body-text-color);
-		font-weight: var(--header-text-weight);
+		font-weight: var(--section-header-text-weight);
 		font-size: var(--text-xl);
 	}
 
@@ -106,7 +106,7 @@
 	.creds {
 		margin-top: var(--size-4);
 		margin-bottom: var(--size-4);
-		color: var(--error-color);
+		color: var(--error-text-color);
 		font-weight: var(--weight-semibold);
 	}
 </style>

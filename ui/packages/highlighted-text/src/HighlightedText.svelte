@@ -206,7 +206,7 @@
 	.textfield {
 		box-sizing: border-box;
 		border-radius: var(--radius-xs);
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 		background-color: transparent;
 		padding: var(--block-padding);
 		max-width: var(--size-full);

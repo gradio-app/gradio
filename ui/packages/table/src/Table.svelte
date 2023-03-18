@@ -661,14 +661,14 @@
 		position: relative;
 		z-index: var(--layer-4);
 		margin-bottom: var(--size-2);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		font-size: var(--block-label-text-size);
 	}
 
 	.table-wrap {
 		position: relative;
 		transition: 150ms;
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		overflow-x: scroll;
 		overflow-y: hidden;
@@ -706,7 +706,7 @@
 	}
 
 	tr {
-		border-bottom: 1px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--border-color-primary);
 		text-align: left;
 	}
 
@@ -714,7 +714,7 @@
 		border-right-width: 0px;
 		border-left-width: 1px;
 		border-style: solid;
-		border-color: var(--color-border-primary);
+		border-color: var(--border-color-primary);
 	}
 
 	th,
@@ -748,7 +748,7 @@
 	}
 
 	tr th {
-		background: var(--table-even-background);
+		background: var(--table-even-background-fill);
 	}
 
 	th svg {
@@ -764,7 +764,7 @@
 		transition: 150ms;
 		cursor: pointer;
 		padding: var(--size-2);
-		color: var(--text-color-subdued);
+		color: var(--body-text-color-subdued);
 		line-height: var(--text-sm);
 	}
 
@@ -789,15 +789,15 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background: var(--table-even-background);
+		background: var(--table-even-background-fill);
 	}
 
 	tbody > tr:nth-child(odd) {
-		background: var(--table-odd-background);
+		background: var(--table-odd-background-fill);
 	}
 
 	tbody > tr:nth-child(odd):focus {
-		background: var(--color-background-primary);
+		background: var(--background-fill-primary);
 	}
 
 	.editing {

@@ -201,7 +201,7 @@
 		display: flex;
 		align-items: center;
 		margin-bottom: var(--size-2);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		font-weight: var(--block-label-text-weight);
 		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
@@ -218,18 +218,18 @@
 	}
 
 	.gallery-item {
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-large-radius);
 		overflow: hidden;
 	}
 
 	.gallery-item:hover {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 		background: var(--table-row-focus);
 	}
 
 	.table-wrap {
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--table-radius);
 		width: var(--size-full);
 		table-layout: auto;
@@ -242,13 +242,13 @@
 
 	.tr-head {
 		box-shadow: var(--shadow-drop-lg);
-		border-bottom: 1px solid var(--color-border-primary);
+		border-bottom: 1px solid var(--border-color-primary);
 	}
 
 	.tr-head > * + * {
 		border-right-width: 0px;
 		border-left-width: 1px;
-		border-color: var(--color-border-primary);
+		border-color: var(--border-color-primary);
 	}
 
 	th {
@@ -258,8 +258,8 @@
 
 	.tr-body {
 		cursor: pointer;
-		border-bottom: 1px solid var(--color-border-primary);
-		background: var(--table-even-background);
+		border-bottom: 1px solid var(--border-color-primary);
+		background: var(--table-even-background-fill);
 	}
 
 	.tr-body:last-child {
@@ -267,7 +267,7 @@
 	}
 
 	.tr-body:nth-child(odd) {
-		background: var(--table-odd-background);
+		background: var(--table-odd-background-fill);
 	}
 
 	.tr-body:hover {
@@ -277,11 +277,11 @@
 	.tr-body > * + * {
 		border-right-width: 0px;
 		border-left-width: 1px;
-		border-color: var(--color-border-primary);
+		border-color: var(--border-color-primary);
 	}
 
 	.tr-body:hover > * + * {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 	}
 
 	td {
@@ -295,7 +295,7 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 		margin-top: var(--size-2);
-		color: var(--block-label-color);
+		color: var(--block-label-text-color);
 		font-size: var(--text-sm);
 	}
 

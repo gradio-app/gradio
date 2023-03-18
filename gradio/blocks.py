@@ -401,6 +401,9 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict = block.get_specific_update(update_dict)
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
+    interactive = update_dict.pop("interactive", None)
+    if interactive is not None:
+        update_dict["mode"] = "dynamic" if interactive else "static"
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         assert isinstance(
@@ -498,7 +501,8 @@ class Blocks(BlockContext):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
         self.theme = theme
-        self.theme_css = self.theme._get_theme_css()
+        self.theme_css = theme._get_theme_css()
+        self.stylesheets = theme._stylesheets
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -1106,7 +1110,8 @@ class Blocks(BlockContext):
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
-            "root": self.root
+            "stylesheets": self.stylesheets,
+            "root": self.root,
         }
 
         def getLayout(block):

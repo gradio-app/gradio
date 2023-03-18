@@ -46,16 +46,9 @@ def captured_output():
 class TestBlocksMethods:
     maxDiff = None
 
-    def test_set_share(self):
+    def test_set_share_is_false_by_default(self):
         with gr.Blocks() as demo:
-            # self.share is False when instantiating the class
             assert not demo.share
-            # default is False, if share is None
-            demo.share = None
-            assert not demo.share
-            # if set to True, it doesn't change
-            demo.share = True
-            assert demo.share
 
     @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
@@ -450,6 +443,7 @@ class TestComponentsInBlocks:
 
 class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+
         io_components = [
             c()
             for c in io_components
@@ -576,7 +570,6 @@ class TestBlocksPostprocessing:
         for fn_index in range(2):
             output = await demo.process_api(fn_index, [], state={})
             assert output["data"][0] == {
-                "interactive": True,
                 "__type__": "update",
                 "mode": "dynamic",
             }
@@ -889,11 +882,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
-            "type": None,
+            "interactive": False,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "__type__": "update",
-            "mode": "static",
+            "__type__": "update"
         }
 
         specific_update = gr.Textbox.get_specific_update(
@@ -906,10 +898,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
+            "interactive": True,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
-            "__type__": "update",
-            "mode": "dynamic",
+            "__type__": "update"
         }
 
     def test_with_generic_update(self):
@@ -927,7 +919,6 @@ class TestSpecificUpdate:
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
-            "mode": "dynamic",
             "interactive": True,
             "__type__": "update",
         }

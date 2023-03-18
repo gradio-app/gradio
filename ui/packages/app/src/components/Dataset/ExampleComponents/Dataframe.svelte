@@ -99,7 +99,7 @@
 	}
 
 	.selected td {
-		border-color: var(--color-border-accent);
+		border-color: var(--border-color-accent);
 	}
 
 	.table {
@@ -134,14 +134,14 @@
 
 	/* i dont know what i've done here but it is what it is */
 	.odd {
-		--gradient-to: var(--table-even-background);
+		--gradient-to: var(--table-even-background-fill);
 	}
 
 	.even {
-		--gradient-to: var(--table-odd-background);
+		--gradient-to: var(--table-odd-background-fill);
 	}
 
 	.button {
-		--gradient-to: var(--color-background-primary);
+		--gradient-to: var(--background-fill-primary);
 	}
 </style>

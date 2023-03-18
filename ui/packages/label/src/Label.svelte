@@ -81,7 +81,7 @@
 	.bar {
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
-		background: var(--stat-color-background);
+		background: var(--stat-background-fill);
 		height: var(--size-1);
 	}
 
@@ -104,7 +104,7 @@
 
 	.line {
 		flex: 1 1 0%;
-		border: 1px dashed var(--color-border-primary);
+		border: 1px dashed var(--border-color-primary);
 		padding-right: var(--size-4);
 		padding-left: var(--size-4);
 	}
