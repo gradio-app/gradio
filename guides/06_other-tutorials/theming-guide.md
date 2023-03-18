@@ -51,7 +51,7 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=
 ```
 
 <iframe
-	src="https://gradio-theme-extended-step-1.hf.space"
+	src="https://gradio-theme-extended-step-1.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
