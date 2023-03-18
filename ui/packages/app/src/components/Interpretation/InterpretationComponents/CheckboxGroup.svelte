@@ -68,7 +68,7 @@
 		cursor: pointer;
 		box-shadow: var(--shadow-drop);
 		border-radius: var(--radius-md);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-2) var(--size-3);
 		font-weight: var(--weight-semibold);
 	}
@@ -82,26 +82,26 @@
 		justify-content: center;
 		align-items: center;
 		border: 1px solid var(--border-color-primary);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-4);
 		height: var(--size-4);
 	}
 	.checkbox-item.selected {
-		background: var(--background-accent-base);
+		background: var(--color-accent-base);
 		color: white;
 	}
 	.selected .checkbox {
-		background: var(--background-accent-base);
+		background: var(--color-accent-base);
 	}
 
 	.checkbox-item {
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 	}
 
 	.checkbox-item.selected {
-		background: var(--background-accent-base);
+		background: var(--color-accent-base);
 		color: white;
 	}
 </style>
