@@ -64,7 +64,6 @@
 	input:checked,
 	input:checked:hover,
 	input:checked:focus {
-		background-image: var(--checkbox-check);
 		border-color: var(--checkbox-border-color-selected);
 		background-image: var(--checkbox-check);
 		background-color: var(--checkbox-background-color-selected);
