@@ -42,12 +42,12 @@ class Seafoam(Base):
             font_mono=font_mono,
         )
         super().set(
-            body_background="repeating-linear-gradient(45deg, *primary_200, *primary_200 10px, *primary_50 10px, *primary_50 20px)",
-            body_background_dark="repeating-linear-gradient(45deg, *primary_800, *primary_800 10px, *primary_900 10px, *primary_900 20px)",
-            button_primary_background="linear-gradient(90deg, *primary_300, *secondary_400)",
-            button_primary_background_hover="linear-gradient(90deg, *primary_200, *secondary_300)",
+            body_background_fill="repeating-linear-gradient(45deg, *primary_200, *primary_200 10px, *primary_50 10px, *primary_50 20px)",
+            body_background_fill_dark="repeating-linear-gradient(45deg, *primary_800, *primary_800 10px, *primary_900 10px, *primary_900 20px)",
+            button_primary_background_fill="linear-gradient(90deg, *primary_300, *secondary_400)",
+            button_primary_background_fill_hover="linear-gradient(90deg, *primary_200, *secondary_300)",
             button_primary_text_color="white",
-            button_primary_background_dark="linear-gradient(90deg, *primary_600, *secondary_800)",
+            button_primary_background_fill_dark="linear-gradient(90deg, *primary_600, *secondary_800)",
             slider_color="*secondary_300",
             slider_color_dark="*secondary_600",
             block_title_text_weight="600",
