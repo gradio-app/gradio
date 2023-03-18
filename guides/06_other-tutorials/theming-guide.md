@@ -245,7 +245,7 @@ Let's modify the theme a bit more directly. We'll call the `set()` method to ove
 $code_theme_new_step_3
 
 <iframe
-	src="https://gradio-theme-new-step-3.hf.space"
+	src="https://gradio-theme-new-step-3.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
