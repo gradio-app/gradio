@@ -82,7 +82,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius
 ```
 
 <iframe
-	src="https://gradio-theme-extended-step-2.hf.space"
+	src="https://gradio-theme-extended-step-2.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
