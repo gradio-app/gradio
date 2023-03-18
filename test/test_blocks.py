@@ -575,11 +575,10 @@ class TestBlocksPostprocessing:
         for fn_index in range(2):
             output = await demo.process_api(fn_index, [], state={})
             assert output["data"][0] == {
-                "interactive": True,
                 "__type__": "update",
                 "mode": "dynamic",
             }
-            assert output["data"][1] == {"__type__": "update", "interactive": True, "mode": "dynamic"}
+            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
 
     def test_error_raised_if_num_outputs_mismatch(self):
         with gr.Blocks() as demo:
