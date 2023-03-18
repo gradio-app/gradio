@@ -105,7 +105,7 @@ with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata")
 ```
 
 <iframe
-	src="https://gradio-theme-extended-step-3.hf.space"
+	src="https://gradio-theme-extended-step-3.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
