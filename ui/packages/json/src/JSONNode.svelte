@@ -94,13 +94,13 @@
 	.expand-array {
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
-		background-color: vSar(--background-secondary);
+		background: var(--background-fill-secondary);
 		padding: 0 var(--size-1);
 		color: var(--body-text-color);
 	}
 
 	.expand-array:hover {
-		background-color: var(--background-primary);
+		background: var(--background-fill-primary);
 	}
 
 	.children {

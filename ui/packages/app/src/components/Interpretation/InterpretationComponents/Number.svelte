@@ -24,7 +24,7 @@
 	.input-number {
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		background: var(--background-secondary);
+		background: var(--background-fill-secondary);
 	}
 
 	.input-number:hover {
