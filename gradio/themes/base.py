@@ -224,32 +224,9 @@ class Base(ThemeClass):
     def set(
         self,
         *,
-        # Core Colors
-        background_accent=None,
-        background_accent_soft=None,
-        background_accent_soft_dark=None,
-        background_primary=None,
-        background_primary_dark=None,
-        background_secondary=None,
-        background_secondary_dark=None,
-        border_color_accent=None,
-        border_color_accent_dark=None,
-        border_color_primary=None,
-        border_color_primary_dark=None,
-        # Text
-        link_text_color=None,
-        link_text_color_active=None,
-        link_text_color_active_dark=None,
-        link_text_color_dark=None,
-        link_text_color_hover=None,
-        link_text_color_hover_dark=None,
-        link_text_color_visited=None,
-        link_text_color_visited_dark=None,
-        prose_text_size=None,
-        prose_text_weight=None,
         # Body
-        body_background=None,
-        body_background_dark=None,
+        body_background_fill=None,
+        body_background_fill_dark=None,
         body_text_color=None,
         body_text_color_dark=None,
         body_text_size=None,
@@ -257,6 +234,30 @@ class Base(ThemeClass):
         body_text_color_subdued_dark=None,
         body_text_weight=None,
         embed_radius=None,
+        # Core Colors
+        background_fill_primary=None,
+        background_fill_primary_dark=None,
+        background_fill_secondary=None,
+        background_fill_secondary_dark=None,
+        border_color_accent=None,
+        border_color_accent_dark=None,
+        border_color_primary=None,
+        border_color_primary_dark=None,
+        color_accent=None,
+        color_accent_soft=None,
+        color_accent_soft_dark=None,
+        # Text
+        link_text_color=None,
+        link_text_color_dark=None,
+        link_text_color_active=None,
+        link_text_color_active_dark=None,
+        link_text_color_hover=None,
+        link_text_color_hover_dark=None,
+        link_text_color_visited=None,
+        link_text_color_visited_dark=None,
+        prose_text_size=None,
+        prose_text_weight=None,
+        prose_header_text_weight=None,
         # Shadows
         shadow_drop=None,
         shadow_drop_lg=None,
@@ -264,25 +265,24 @@ class Base(ThemeClass):
         shadow_spread=None,
         shadow_spread_dark=None,
         # Layout Atoms
-        block_background=None,
-        block_background_dark=None,
+        block_background_fill=None,
+        block_background_fill_dark=None,
         block_border_color=None,
         block_border_color_dark=None,
         block_border_width=None,
         block_border_width_dark=None,
-        block_info_color=None,
-        block_info_color_dark=None,
+        block_info_text_color=None,
+        block_info_text_color_dark=None,
         block_info_text_size=None,
         block_info_text_weight=None,
-        block_label_background=None,
-        block_label_background_dark=None,
+        block_label_background_fill=None,
+        block_label_background_fill_dark=None,
         block_label_border_color=None,
         block_label_border_color_dark=None,
         block_label_border_width=None,
         block_label_border_width_dark=None,
         block_label_text_color=None,
         block_label_text_color_dark=None,
-        block_label_icon_color=None,
         block_label_margin=None,
         block_label_padding=None,
         block_label_radius=None,
@@ -293,8 +293,8 @@ class Base(ThemeClass):
         block_radius=None,
         block_shadow=None,
         block_shadow_dark=None,
-        block_title_background=None,
-        block_title_background_dark=None,
+        block_title_background_fill=None,
+        block_title_background_fill_dark=None,
         block_title_border_color=None,
         block_title_border_color_dark=None,
         block_title_border_width=None,
@@ -308,22 +308,23 @@ class Base(ThemeClass):
         container_radius=None,
         form_gap_width=None,
         layout_gap=None,
-        panel_background=None,
-        panel_background_dark=None,
+        panel_background_fill=None,
+        panel_background_fill_dark=None,
         panel_border_color=None,
         panel_border_color_dark=None,
         panel_border_width=None,
+        panel_border_width_dark=None,
         section_header_text_size=None,
         section_header_text_weight=None,
         # Component Atoms
-        checkbox_background=None,
-        checkbox_background_dark=None,
-        checkbox_background_focus=None,
-        checkbox_background_focus_dark=None,
-        checkbox_background_hover=None,
-        checkbox_background_hover_dark=None,
-        checkbox_background_selected=None,
-        checkbox_background_selected_dark=None,
+        checkbox_background_color=None,
+        checkbox_background_color_dark=None,
+        checkbox_background_color_focus=None,
+        checkbox_background_color_focus_dark=None,
+        checkbox_background_color_hover=None,
+        checkbox_background_color_hover_dark=None,
+        checkbox_background_color_selected=None,
+        checkbox_background_color_selected_dark=None,
         checkbox_border_color=None,
         checkbox_border_color_dark=None,
         checkbox_border_color_focus=None,
@@ -334,42 +335,45 @@ class Base(ThemeClass):
         checkbox_border_color_selected_dark=None,
         checkbox_border_radius=None,
         checkbox_border_width=None,
-        checkbox_label_background=None,
-        checkbox_label_background_dark=None,
-        checkbox_label_background_hover=None,
-        checkbox_label_background_hover_dark=None,
-        checkbox_label_background_selected=None,
-        checkbox_label_background_selected_dark=None,
+        checkbox_border_width_dark=None,
+        checkbox_check=None,
+        radio_circle=None,
+        checkbox_shadow=None,
+        checkbox_label_background_fill=None,
+        checkbox_label_background_fill_dark=None,
+        checkbox_label_background_fill_hover=None,
+        checkbox_label_background_fill_hover_dark=None,
+        checkbox_label_background_fill_selected=None,
+        checkbox_label_background_fill_selected_dark=None,
         checkbox_label_border_color=None,
         checkbox_label_border_color_dark=None,
         checkbox_label_border_color_hover=None,
         checkbox_label_border_color_hover_dark=None,
         checkbox_label_border_width=None,
+        checkbox_label_border_width_dark=None,
         checkbox_label_gap=None,
         checkbox_label_padding=None,
         checkbox_label_shadow=None,
         checkbox_label_text_size=None,
         checkbox_label_text_weight=None,
-        checkbox_shadow=None,
-        checkbox_text_color=None,
-        checkbox_text_color_dark=None,
-        checkbox_text_color_selected=None,
-        checkbox_text_color_selected_dark=None,
-        error_background=None,
-        error_background_dark=None,
+        checkbox_label_text_color=None,
+        checkbox_label_text_color_dark=None,
+        checkbox_label_text_color_selected=None,
+        checkbox_label_text_color_selected_dark=None,
+        error_background_fill=None,
+        error_background_fill_dark=None,
         error_border_color=None,
         error_border_color_dark=None,
         error_border_width=None,
         error_border_width_dark=None,
-        error_color=None,
-        error_color_dark=None,
-        header_text_weight=None,
-        input_background=None,
-        input_background_dark=None,
-        input_background_focus=None,
-        input_background_focus_dark=None,
-        input_background_hover=None,
-        input_background_hover_dark=None,
+        error_text_color=None,
+        error_text_color_dark=None,
+        input_background_fill=None,
+        input_background_fill_dark=None,
+        input_background_fill_focus=None,
+        input_background_fill_focus_dark=None,
+        input_background_fill_hover=None,
+        input_background_fill_hover_dark=None,
         input_border_color=None,
         input_border_color_dark=None,
         input_border_color_focus=None,
@@ -377,6 +381,7 @@ class Base(ThemeClass):
         input_border_color_hover=None,
         input_border_color_hover_dark=None,
         input_border_width=None,
+        input_border_width_dark=None,
         input_padding=None,
         input_placeholder_color=None,
         input_placeholder_color_dark=None,
@@ -391,23 +396,24 @@ class Base(ThemeClass):
         loader_color_dark=None,
         slider_color=None,
         slider_color_dark=None,
-        stat_color_background=None,
-        stat_color_background_dark=None,
+        stat_color_background_fill=None,
+        stat_color_background_fill_dark=None,
         table_border_color=None,
         table_border_color_dark=None,
-        table_even_background=None,
-        table_even_background_dark=None,
-        table_odd_background=None,
-        table_odd_background_dark=None,
+        table_even_background_fill=None,
+        table_even_background_fill_dark=None,
+        table_odd_background_fill=None,
+        table_odd_background_fill_dark=None,
         table_radius=None,
         table_row_focus=None,
         table_row_focus_dark=None,
         # Buttons
         button_border_width=None,
-        button_cancel_background=None,
-        button_cancel_background_dark=None,
-        button_cancel_background_hover=None,
-        button_cancel_background_hover_dark=None,
+        button_border_width_dark=None,
+        button_cancel_background_fill=None,
+        button_cancel_background_fill_dark=None,
+        button_cancel_background_fill_hover=None,
+        button_cancel_background_fill_hover_dark=None,
         button_cancel_border_color=None,
         button_cancel_border_color_dark=None,
         button_cancel_border_color_hover=None,
@@ -420,10 +426,10 @@ class Base(ThemeClass):
         button_large_radius=None,
         button_large_text_size=None,
         button_large_text_weight=None,
-        button_primary_background=None,
-        button_primary_background_dark=None,
-        button_primary_background_hover=None,
-        button_primary_background_hover_dark=None,
+        button_primary_background_fill=None,
+        button_primary_background_fill_dark=None,
+        button_primary_background_fill_hover=None,
+        button_primary_background_fill_hover_dark=None,
         button_primary_border_color=None,
         button_primary_border_color_dark=None,
         button_primary_border_color_hover=None,
@@ -432,10 +438,10 @@ class Base(ThemeClass):
         button_primary_text_color_dark=None,
         button_primary_text_color_hover=None,
         button_primary_text_color_hover_dark=None,
-        button_secondary_background=None,
-        button_secondary_background_dark=None,
-        button_secondary_background_hover=None,
-        button_secondary_background_hover_dark=None,
+        button_secondary_background_fill=None,
+        button_secondary_background_fill_dark=None,
+        button_secondary_background_fill_hover=None,
+        button_secondary_background_fill_hover_dark=None,
         button_secondary_border_color=None,
         button_secondary_border_color_dark=None,
         button_secondary_border_color_hover=None,
@@ -453,26 +459,277 @@ class Base(ThemeClass):
         button_small_text_weight=None,
         button_transition=None,
     ) -> Base:
+        """
+        Parameters:
+            body_background_fill: The background of the entire app.
+            body_background_fill_dark: The background of the entire app in dark mode.
+            body_text_color: The default text color.
+            body_text_color_dark: The default text color in dark mode.
+            body_text_size: The default text size.
+            body_text_color_subdued: The text color used for softer, less important text.
+            body_text_color_subdued_dark: The text color used for softer, less important text in dark mode.
+            body_text_weight: The default text weight.
+            embed_radius: The corner radius used for embedding when the app is embedded within a page.
+            background_fill_primary: The background primarily used for items placed directly on the page.
+            background_fill_primary_dark: The background primarily used for items placed directly on the page in dark mode.
+            background_fill_secondary: The background primarily used for items placed on top of another item.
+            background_fill_secondary_dark: The background primarily used for items placed on top of another item in dark mode.
+            border_color_accent: The border color used for accented items.
+            border_color_accent_dark: The border color used for accented items in dark mode.
+            border_color_primary: The border color primarily used for items placed directly on the page.
+            border_color_primary_dark: The border color primarily used for items placed directly on the page in dark mode.
+            color_accent: The color used for accented items.
+            color_accent_soft: The softer color used for accented items.
+            color_accent_soft_dark: The softer color used for accented items in dark mode.
+            link_text_color: The text color used for links.
+            link_text_color_dark: The text color used for links in dark mode.
+            link_text_color_active: The text color used for links when they are active.
+            link_text_color_active_dark: The text color used for links when they are active in dark mode.
+            link_text_color_hover: The text color used for links when they are hovered over.
+            link_text_color_hover_dark: The text color used for links when they are hovered over in dark mode.
+            link_text_color_visited: The text color used for links when they have been visited.
+            link_text_color_visited_dark: The text color used for links when they have been visited in dark mode.
+            prose_text_size: The text size used for markdown and other prose.
+            prose_text_weight: The text weight used for markdown and other prose.
+            prose_header_text_weight: The text weight of a header used for markdown and other prose.
+            shadow_drop: Drop shadow used by other shadowed items.
+            shadow_drop_lg: Larger drop shadow used by other shadowed items.
+            shadow_inset: Inset shadow used by other shadowed items.
+            shadow_spread: Size of shadow spread used by shadowed items.
+            shadow_spread_dark: Size of shadow spread used by shadowed items in dark mode.
+            block_background_fill: The background around an item.
+            block_background_fill_dark: The background around an item in dark mode.
+            block_border_color: The border color around an item.
+            block_border_color_dark: The border color around an item in dark mode.
+            block_border_width: The border width around an item.
+            block_border_width_dark: The border width around an item in dark mode.
+            block_info_text_color: The color of the info text.
+            block_info_text_color_dark: The color of the info text in dark mode.
+            block_info_text_size: The size of the info text.
+            block_info_text_weight: The weight of the info text.
+            block_label_background_fill: The background of the title label of a media element (e.g. image).
+            block_label_background_fill_dark: The background of the title label of a media element (e.g. image) in dark mode.
+            block_label_border_color: The border color of the title label of a media element (e.g. image).
+            block_label_border_color_dark: The border color of the title label of a media element (e.g. image) in dark mode.
+            block_label_border_width: The border width of the title label of a media element (e.g. image).
+            block_label_border_width_dark: The border width of the title label of a media element (e.g. image) in dark mode.
+            block_label_text_color: The text color of the title label of a media element (e.g. image).
+            block_label_text_color_dark: The text color of the title label of a media element (e.g. image) in dark mode.
+            block_label_margin: The margin of the title label of a media element (e.g. image) from its surrounding container.
+            block_label_padding: The padding of the title label of a media element (e.g. image).
+            block_label_radius: The corner radius of the title label of a media element (e.g. image).
+            block_label_right_radius: The corner radius of a right-aligned helper label.
+            block_label_text_size: The text size of the title label of a media element (e.g. image).
+            block_label_text_weight: The text weight of the title label of a media element (e.g. image).
+            block_padding: The padding around an item.
+            block_radius: The corner radius around an item.
+            block_shadow: The shadow under an item.
+            block_shadow_dark: The shadow under an item in dark mode.
+            block_title_background_fill: The background of the title of a form element (e.g. textbox).
+            block_title_background_fill_dark: The background of the title of a form element (e.g. textbox) in dark mode.
+            block_title_border_color: The border color of the title of a form element (e.g. textbox).
+            block_title_border_color_dark: The border color of the title of a form element (e.g. textbox) in dark mode.
+            block_title_border_width: The border width of the title of a form element (e.g. textbox).
+            block_title_border_width_dark: The border width of the title of a form element (e.g. textbox) in dark mode.
+            block_title_text_color: The text color of the title of a form element (e.g. textbox).
+            block_title_text_color_dark: The text color of the title of a form element (e.g. textbox) in dark mode.
+            block_title_padding: The padding of the title of a form element (e.g. textbox).
+            block_title_radius: The corner radius of the title of a form element (e.g. textbox).
+            block_title_text_size: The text size of the title of a form element (e.g. textbox).
+            block_title_text_weight: The text weight of the title of a form element (e.g. textbox).
+            container_radius: The corner radius of a layout component that holds other content.
+            form_gap_width: The border gap between form elements, (e.g. consecutive textboxes).
+            layout_gap: The gap between items within a row or column.
+            panel_background_fill: The background of a panel.
+            panel_background_fill_dark: The background of a panel in dark mode.
+            panel_border_color: The border color of a panel.
+            panel_border_color_dark: The border color of a panel in dark mode.
+            panel_border_width: The border width of a panel.
+            panel_border_width_dark: The border width of a panel in dark mode.
+            section_header_text_size: The text size of a section header (e.g. tab name).
+            section_header_text_weight: The text weight of a section header (e.g. tab name).
+            checkbox_background_color: The background of a checkbox square or radio circle.
+            checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
+            checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
+            checkbox_background_color_focus_dark: The background of a checkbox square or radio circle when focused in dark mode.
+            checkbox_background_color_hover: The background of a checkbox square or radio circle when hovered over.
+            checkbox_background_color_hover_dark: The background of a checkbox square or radio circle when hovered over in dark mode.
+            checkbox_background_color_selected: The background of a checkbox square or radio circle when selected.
+            checkbox_background_color_selected_dark: The background of a checkbox square or radio circle when selected in dark mode.
+            checkbox_border_color: The border color of a checkbox square or radio circle.
+            checkbox_border_color_dark: The border color of a checkbox square or radio circle in dark mode.
+            checkbox_border_color_focus: The border color of a checkbox square or radio circle when focused.
+            checkbox_border_color_focus_dark: The border color of a checkbox square or radio circle when focused in dark mode.
+            checkbox_border_color_hover: The border color of a checkbox square or radio circle when hovered over.
+            checkbox_border_color_hover_dark: The border color of a checkbox square or radio circle when hovered over in dark mode.
+            checkbox_border_color_selected: The border color of a checkbox square or radio circle when selected.
+            checkbox_border_color_selected_dark: The border color of a checkbox square or radio circle when selected in dark mode.
+            checkbox_border_radius: The corner radius of a checkbox square.
+            checkbox_border_width: The border width of a checkbox square or radio circle.
+            checkbox_border_width_dark: The border width of a checkbox square or radio circle in dark mode.
+            checkbox_check: The checkmark visual of a checkbox square.
+            radio_circle: The circle visual of a radio circle.
+            checkbox_shadow: The shadow of a checkbox square or radio circle.
+            checkbox_label_background_fill: The background of the surrounding button of a checkbox or radio element.
+            checkbox_label_background_fill_dark: The background of the surrounding button of a checkbox or radio element in dark mode.
+            checkbox_label_background_fill_hover: The background of the surrounding button of a checkbox or radio element when hovered over.
+            checkbox_label_background_fill_hover_dark: The background of the surrounding button of a checkbox or radio element when hovered over in dark mode.
+            checkbox_label_background_fill_selected: The background of the surrounding button of a checkbox or radio element when selected.
+            checkbox_label_background_fill_selected_dark: The background of the surrounding button of a checkbox or radio element when selected in dark mode.
+            checkbox_label_border_color: The border color of the surrounding button of a checkbox or radio element.
+            checkbox_label_border_color_dark: The border color of the surrounding button of a checkbox or radio element in dark mode.
+            checkbox_label_border_color_hover: The border color of the surrounding button of a checkbox or radio element when hovered over.
+            checkbox_label_border_color_hover_dark: The border color of the surrounding button of a checkbox or radio element when hovered over in dark mode.
+            checkbox_label_border_width: The border width of the surrounding button of a checkbox or radio element.
+            checkbox_label_border_width_dark: The border width of the surrounding button of a checkbox or radio element in dark mode.
+            checkbox_label_gap: The gap consecutive checkbox or radio elements.
+            checkbox_label_padding: The padding of the surrounding button of a checkbox or radio element.
+            checkbox_label_shadow: The shadow of the surrounding button of a checkbox or radio element.
+            checkbox_label_text_size: The text size of the label accompanying a checkbox or radio element.
+            checkbox_label_text_weight: The text weight of the label accompanying a checkbox or radio element.
+            checkbox_label_text_color: The text color of the label accompanying a checkbox or radio element.
+            checkbox_label_text_color_dark: The text color of the label accompanying a checkbox or radio element in dark mode.
+            checkbox_label_text_color_selected: The text color of the label accompanying a checkbox or radio element when selected.
+            checkbox_label_text_color_selected_dark: The text color of the label accompanying a checkbox or radio element when selected in dark mode.
+            error_background_fill: The background of an error message.
+            error_background_fill_dark: The background of an error message in dark mode.
+            error_border_color: The border color of an error message.
+            error_border_color_dark: The border color of an error message in dark mode.
+            error_border_width: The border width of an error message.
+            error_border_width_dark: The border width of an error message in dark mode.
+            error_text_color: The text color of an error message.
+            error_text_color_dark: The text color of an error message in dark mode.
+            input_background_fill: The background of an input field.
+            input_background_fill_dark: The background of an input field in dark mode.
+            input_background_fill_focus: The background of an input field when focused.
+            input_background_fill_focus_dark: The background of an input field when focused in dark mode.
+            input_background_fill_hover: The background of an input field when hovered over.
+            input_background_fill_hover_dark: The background of an input field when hovered over in dark mode.
+            input_border_color: The border color of an input field.
+            input_border_color_dark: The border color of an input field in dark mode.
+            input_border_color_focus: The border color of an input field when focused.
+            input_border_color_focus_dark: The border color of an input field when focused in dark mode.
+            input_border_color_hover: The border color of an input field when hovered over.
+            input_border_color_hover_dark: The border color of an input field when hovered over in dark mode.
+            input_border_width: The border width of an input field.
+            input_border_width_dark: The border width of an input field in dark mode.
+            input_padding: The padding of an input field.
+            input_placeholder_color: The placeholder text color of an input field.
+            input_placeholder_color_dark: The placeholder text color of an input field in dark mode.
+            input_radius: The corner radius of an input field.
+            input_shadow: The shadow of an input field.
+            input_shadow_dark: The shadow of an input field in dark mode.
+            input_shadow_focus: The shadow of an input field when focused.
+            input_shadow_focus_dark: The shadow of an input field when focused in dark mode.
+            input_text_size: The text size of an input field.
+            input_text_weight: The text weight of an input field.
+            loader_color: The color of the loading animation while a request is pending.
+            loader_color_dark: The color of the loading animation while a request is pending in dark mode.
+            slider_color: The color of the slider in a range element.
+            slider_color_dark: The color of the slider in a range element in dark mode.
+            stat_color_background_fill: The background used for stats visuals (e.g. confidence bars in label).
+            stat_color_background_fill_dark: The background used for stats visuals (e.g. confidence bars in label) in dark mode.
+            table_border_color: The border color of a table.
+            table_border_color_dark: The border color of a table in dark mode.
+            table_even_background_fill: The background of even rows in a table.
+            table_even_background_fill_dark: The background of even rows in a table in dark mode.
+            table_odd_background_fill: The background of odd rows in a table.
+            table_odd_background_fill_dark: The background of odd rows in a table in dark mode.
+            table_radius: The corner radius of a table.
+            table_row_focus: The background of a focused row in a table.
+            table_row_focus_dark: The background of a focused row in a table in dark mode.
+            button_border_width: The border width of a button.
+            button_border_width_dark: The border width of a button in dark mode.
+            button_cancel_background_fill: The background of a button of "cancel" variant.
+            button_cancel_background_fill_dark: The background of a button of "cancel" variant in dark mode.
+            button_cancel_background_fill_hover: The background of a button of "cancel" variant when hovered over.
+            button_cancel_background_fill_hover_dark: The background of a button of "cancel" variant when hovered over in dark mode.
+            button_cancel_border_color: The border color of a button of "cancel" variant.
+            button_cancel_border_color_dark: The border color of a button of "cancel" variant in dark mode.
+            button_cancel_border_color_hover: The border color of a button of "cancel" variant when hovered over.
+            button_cancel_border_color_hover_dark: The border color of a button of "cancel" variant when hovered over in dark mode.
+            button_cancel_text_color: The text color of a button of "cancel" variant.
+            button_cancel_text_color_dark: The text color of a button of "cancel" variant in dark mode.
+            button_cancel_text_color_hover: The text color of a button of "cancel" variant when hovered over.
+            button_cancel_text_color_hover_dark: The text color of a button of "cancel" variant when hovered over in dark mode.
+            button_large_padding: The padding of a button with the default "large" size.
+            button_large_radius: The corner radius of a button with the default "large" size.
+            button_large_text_size: The text size of a button with the default "large" size.
+            button_large_text_weight: The text weight of a button with the default "large" size.
+            button_primary_background_fill: The background of a button of "primary" variant.
+            button_primary_background_fill_dark: The background of a button of "primary" variant in dark mode.
+            button_primary_background_fill_hover: The background of a button of "primary" variant when hovered over.
+            button_primary_background_fill_hover_dark: The background of a button of "primary" variant when hovered over in dark mode.
+            button_primary_border_color: The border color of a button of "primary" variant.
+            button_primary_border_color_dark: The border color of a button of "primary" variant in dark mode.
+            button_primary_border_color_hover: The border color of a button of "primary" variant when hovered over.
+            button_primary_border_color_hover_dark: The border color of a button of "primary" variant when hovered over in dark mode.
+            button_primary_text_color: The text color of a button of "primary" variant.
+            button_primary_text_color_dark: The text color of a button of "primary" variant in dark mode.
+            button_primary_text_color_hover: The text color of a button of "primary" variant when hovered over.
+            button_primary_text_color_hover_dark: The text color of a button of "primary" variant when hovered over in dark mode.
+            button_secondary_background_fill: The background of a button of default "secondary" variant.
+            button_secondary_background_fill_dark: The background of a button of default "secondary" variant in dark mode.
+            button_secondary_background_fill_hover: The background of a button of default "secondary" variant when hovered over.
+            button_secondary_background_fill_hover_dark: The background of a button of default "secondary" variant when hovered over in dark mode.
+            button_secondary_border_color: The border color of a button of default "secondary" variant.
+            button_secondary_border_color_dark: The border color of a button of default "secondary" variant in dark mode.
+            button_secondary_border_color_hover: The border color of a button of default "secondary" variant when hovered over.
+            button_secondary_border_color_hover_dark: The border color of a button of default "secondary" variant when hovered over in dark mode.
+            button_secondary_text_color: The text color of a button of default "secondary" variant.
+            button_secondary_text_color_dark: The text color of a button of default "secondary" variant in dark mode.
+            button_secondary_text_color_hover: The text color of a button of default "secondary" variant when hovered over.
+            button_secondary_text_color_hover_dark: The text color of a button of default "secondary" variant when hovered over in dark mode.
+            button_shadow: The shadow under a button.
+            button_shadow_active: The shadow under a button when pressed.
+            button_shadow_hover: The shadow under a button when hovered over.
+            button_small_padding: The padding of a button set to "small" size.
+            button_small_radius: The corner radius of a button set to "small" size.
+            button_small_text_size: The text size of a button set to "small" size.
+            button_small_text_weight: The text weight of a button set to "small" size.
+            button_transition: The transition animation duration of a button between regular, hover, and focused states.
+        """
+
+        # Body
+        self.body_background_fill = body_background_fill or getattr(
+            self, "body_background_fill", "*background_fill_primary"
+        )
+        self.body_background_fill_dark = body_background_fill_dark or getattr(
+            self, "body_background_fill_dark", "*background_fill_primary"
+        )
+        self.body_text_color = body_text_color or getattr(
+            self, "body_text_color", "*neutral_800"
+        )
+        self.body_text_color_dark = body_text_color_dark or getattr(
+            self, "body_text_color_dark", "*neutral_100"
+        )
+        self.body_text_size = body_text_size or getattr(
+            self, "body_text_size", "*text_md"
+        )
+        self.body_text_weight = body_text_weight or getattr(
+            self, "body_text_weight", "400"
+        )
+        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
         # Core Colors
-        self.background_accent = background_accent or getattr(
-            self, "background_accent", "*primary_500"
+        self.color_accent = color_accent or getattr(
+            self, "color_accent", "*primary_500"
         )
-        self.background_accent_soft = background_accent_soft or getattr(
-            self, "background_accent_soft", "*primary_50"
+        self.color_accent_soft = color_accent_soft or getattr(
+            self, "color_accent_soft", "*primary_50"
         )
-        self.background_accent_soft_dark = background_accent_soft_dark or getattr(
-            self, "background_accent_soft_dark", "*neutral_700"
+        self.color_accent_soft_dark = color_accent_soft_dark or getattr(
+            self, "color_accent_soft_dark", "*neutral_700"
         )
-        self.background_primary = background_primary or getattr(
+        self.background_fill_primary = background_fill_primary or getattr(
             self, "background_primary", "white"
         )
-        self.background_primary_dark = background_primary_dark or getattr(
+        self.background_fill_primary_dark = background_fill_primary_dark or getattr(
             self, "background_primary_dark", "*neutral_950"
         )
-        self.background_secondary = background_secondary or getattr(
+        self.background_fill_secondary = background_fill_secondary or getattr(
             self, "background_secondary", "*neutral_50"
         )
-        self.background_secondary_dark = background_secondary_dark or getattr(
+        self.background_fill_secondary_dark = background_fill_secondary_dark or getattr(
             self, "background_secondary_dark", "*neutral_900"
         )
         self.border_color_accent = border_color_accent or getattr(
@@ -518,26 +775,6 @@ class Base(ThemeClass):
         self.body_text_color_subdued_dark = body_text_color_subdued_dark or getattr(
             self, "body_text_color_subdued_dark", "*neutral_400"
         )
-        # Body
-        self.body_background = body_background or getattr(
-            self, "body_background", "*background_primary"
-        )
-        self.body_background_dark = body_background_dark or getattr(
-            self, "body_background_dark", "*background_primary"
-        )
-        self.body_text_color = body_text_color or getattr(
-            self, "body_text_color", "*neutral_800"
-        )
-        self.body_text_color_dark = body_text_color_dark or getattr(
-            self, "body_text_color_dark", "*neutral_100"
-        )
-        self.body_text_size = body_text_size or getattr(
-            self, "body_text_size", "*text_md"
-        )
-        self.body_text_weight = body_text_weight or getattr(
-            self, "body_text_weight", "400"
-        )
-        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
         # Shadows
         self.shadow_drop = shadow_drop or getattr(
             self, "shadow_drop", "rgba(0,0,0,0.05) 0px 1px 2px 0px"
@@ -555,11 +792,11 @@ class Base(ThemeClass):
             self, "shadow_spread_dark", "1px"
         )
         # Layout Atoms
-        self.block_background = block_background or getattr(
-            self, "block_background", "*background_primary"
+        self.block_background_fill = block_background_fill or getattr(
+            self, "block_background_fill", "*background_fill_primary"
         )
-        self.block_background_dark = block_background_dark or getattr(
-            self, "block_background_dark", "*neutral_800"
+        self.block_background_fill_dark = block_background_fill_dark or getattr(
+            self, "block_background_fill_dark", "*neutral_800"
         )
         self.block_border_color = block_border_color or getattr(
             self, "block_border_color", "*border_color_primary"
@@ -573,11 +810,11 @@ class Base(ThemeClass):
         self.block_border_width_dark = block_border_width_dark or getattr(
             self, "block_border_width_dark", None
         )
-        self.block_info_color = block_info_color or getattr(
-            self, "block_info_color", "*body_text_color_subdued"
+        self.block_info_text_color = block_info_text_color or getattr(
+            self, "block_info_text_color", "*body_text_color_subdued"
         )
-        self.block_info_color_dark = block_info_color_dark or getattr(
-            self, "block_info_color_dark", "*body_text_color_subdued"
+        self.block_info_text_color_dark = block_info_text_color_dark or getattr(
+            self, "block_info_text_color_dark", "*body_text_color_subdued"
         )
         self.block_info_text_size = block_info_text_size or getattr(
             self, "block_info_text_size", "*text_sm"
@@ -585,11 +822,14 @@ class Base(ThemeClass):
         self.block_info_text_weight = block_info_text_weight or getattr(
             self, "block_info_text_weight", "400"
         )
-        self.block_label_background = block_label_background or getattr(
-            self, "block_label_background", "*background_primary"
+        self.block_label_background_fill = block_label_background_fill or getattr(
+            self, "block_label_background_fill", "*background_fill_primary"
         )
-        self.block_label_background_dark = block_label_background_dark or getattr(
-            self, "block_label_background_dark", "*background_secondary"
+        self.block_label_background_fill_dark = (
+            block_label_background_fill_dark
+            or getattr(
+                self, "block_label_background_fill_dark", "*background_fill_secondary"
+            )
         )
         self.block_label_border_color = block_label_border_color or getattr(
             self, "block_label_border_color", "*border_color_primary"
@@ -608,9 +848,6 @@ class Base(ThemeClass):
         )
         self.block_label_text_color_dark = block_label_text_color_dark or getattr(
             self, "block_label_text_color_dark", "*neutral_200"
-        )
-        self.block_label_icon_color = block_label_icon_color or getattr(
-            self, "block_label_icon_color", "*block_label_text_color"
         )
         self.block_label_margin = block_label_margin or getattr(
             self, "block_label_margin", "0"
@@ -642,11 +879,12 @@ class Base(ThemeClass):
         self.block_shadow_dark = block_shadow_dark or getattr(
             self, "block_shadow_dark", None
         )
-        self.block_title_background = block_title_background or getattr(
-            self, "block_title_background", "none"
+        self.block_title_background_fill = block_title_background_fill or getattr(
+            self, "block_title_background_fill", "none"
         )
-        self.block_title_background_dark = block_title_background_dark or getattr(
-            self, "block_title_background_dark", None
+        self.block_title_background_fill_dark = (
+            block_title_background_fill_dark
+            or getattr(self, "block_title_background_fill_dark", None)
         )
         self.block_title_border_color = block_title_border_color or getattr(
             self, "block_title_border_color", "none"
@@ -683,11 +921,11 @@ class Base(ThemeClass):
         )
         self.form_gap_width = form_gap_width or getattr(self, "form_gap_width", "0px")
         self.layout_gap = layout_gap or getattr(self, "layout_gap", "*spacing_xxl")
-        self.panel_background = panel_background or getattr(
-            self, "panel_background", "*background_secondary"
+        self.panel_background_fill = panel_background_fill or getattr(
+            self, "panel_background_fill", "*background_fill_secondary"
         )
-        self.panel_background_dark = panel_background_dark or getattr(
-            self, "panel_background_dark", "*background_secondary"
+        self.panel_background_fill_dark = panel_background_fill_dark or getattr(
+            self, "panel_background_fill_dark", "*background_fill_secondary"
         )
         self.panel_border_color = panel_border_color or getattr(
             self, "panel_border_color", "*border_color_primary"
@@ -698,6 +936,9 @@ class Base(ThemeClass):
         self.panel_border_width = panel_border_width or getattr(
             self, "panel_border_width", "0"
         )
+        self.panel_border_width_dark = panel_border_width_dark or getattr(
+            self, "panel_border_width_dark", None
+        )
         self.section_header_text_size = section_header_text_size or getattr(
             self, "section_header_text_size", "*text_md"
         )
@@ -705,30 +946,49 @@ class Base(ThemeClass):
             self, "section_header_text_weight", "400"
         )
         # Component Atoms
-        self.checkbox_background = checkbox_background or getattr(
-            self, "checkbox_background", "*background_primary"
+        self.checkbox_background_color = checkbox_background_color or getattr(
+            self, "checkbox_background_color", "*background_fill_primary"
         )
-        self.checkbox_background_dark = checkbox_background_dark or getattr(
-            self, "checkbox_background_dark", "*neutral_800"
+        self.checkbox_background_color_dark = checkbox_background_color_dark or getattr(
+            self, "checkbox_background_color_dark", "*neutral_800"
         )
-        self.checkbox_background_focus = checkbox_background_focus or getattr(
-            self, "checkbox_background_focus", "*checkbox_background"
+        self.checkbox_background_color_focus = (
+            checkbox_background_color_focus
+            or getattr(
+                self, "checkbox_background_color_focus", "*checkbox_background_color"
+            )
         )
-        self.checkbox_background_focus_dark = checkbox_background_focus_dark or getattr(
-            self, "checkbox_background_focus_dark", "*checkbox_background"
+        self.checkbox_background_color_focus_dark = (
+            checkbox_background_color_focus_dark
+            or getattr(
+                self,
+                "checkbox_background_color_focus_dark",
+                "*checkbox_background_color",
+            )
         )
-        self.checkbox_background_hover = checkbox_background_hover or getattr(
-            self, "checkbox_background_hover", "*checkbox_background"
+        self.checkbox_background_color_hover = (
+            checkbox_background_color_hover
+            or getattr(
+                self, "checkbox_background_color_hover", "*checkbox_background_color"
+            )
         )
-        self.checkbox_background_hover_dark = checkbox_background_hover_dark or getattr(
-            self, "checkbox_background_hover_dark", "*checkbox_background"
+        self.checkbox_background_color_hover_dark = (
+            checkbox_background_color_hover_dark
+            or getattr(
+                self,
+                "checkbox_background_color_hover_dark",
+                "*checkbox_background_color",
+            )
         )
-        self.checkbox_background_selected = checkbox_background_selected or getattr(
-            self, "checkbox_background_selected", "*secondary_600"
+        self.checkbox_background_color_selected = (
+            checkbox_background_color_selected
+            or getattr(self, "checkbox_background_color_selected", "*secondary_600")
         )
-        self.checkbox_background_selected_dark = (
-            checkbox_background_selected_dark
-            or getattr(self, "checkbox_background_selected_dark", "*secondary_600")
+        self.checkbox_background_color_selected_dark = (
+            checkbox_background_color_selected_dark
+            or getattr(
+                self, "checkbox_background_color_selected_dark", "*secondary_600"
+            )
         )
         self.checkbox_border_color = checkbox_border_color or getattr(
             self, "checkbox_border_color", "*neutral_300"
@@ -763,40 +1023,50 @@ class Base(ThemeClass):
         self.checkbox_border_width = checkbox_border_width or getattr(
             self, "checkbox_border_width", "*input_border_width"
         )
-        self.checkbox_label_background = checkbox_label_background or getattr(
-            self, "checkbox_label_background", "*button_secondary_background"
+        self.checkbox_border_width_dark = checkbox_border_width_dark or getattr(
+            self, "checkbox_border_width_dark", "*input_border_width"
         )
-        self.checkbox_label_background_dark = checkbox_label_background_dark or getattr(
-            self, "checkbox_label_background_dark", "*button_secondary_background"
+        self.checkbox_label_background_fill = checkbox_label_background_fill or getattr(
+            self, "checkbox_label_background_fill", "*button_secondary_background_fill"
         )
-        self.checkbox_label_background_hover = (
-            checkbox_label_background_hover
+        self.checkbox_label_background_fill_dark = (
+            checkbox_label_background_fill_dark
             or getattr(
                 self,
-                "checkbox_label_background_hover",
-                "*button_secondary_background_hover",
+                "checkbox_label_background_fill_dark",
+                "*button_secondary_background_fill",
             )
         )
-        self.checkbox_label_background_hover_dark = (
-            checkbox_label_background_hover_dark
+        self.checkbox_label_background_fill_hover = (
+            checkbox_label_background_fill_hover
             or getattr(
                 self,
-                "checkbox_label_background_hover_dark",
-                "*button_secondary_background_hover",
+                "checkbox_label_background_fill_hover",
+                "*button_secondary_background_fill_hover",
             )
         )
-        self.checkbox_label_background_selected = (
-            checkbox_label_background_selected
-            or getattr(
-                self, "checkbox_label_background_selected", "*checkbox_label_background"
-            )
-        )
-        self.checkbox_label_background_selected_dark = (
-            checkbox_label_background_selected_dark
+        self.checkbox_label_background_fill_hover_dark = (
+            checkbox_label_background_fill_hover_dark
             or getattr(
                 self,
-                "checkbox_label_background_selected_dark",
-                "*checkbox_label_background",
+                "checkbox_label_background_fill_hover_dark",
+                "*button_secondary_background_fill_hover",
+            )
+        )
+        self.checkbox_label_background_fill_selected = (
+            checkbox_label_background_fill_selected
+            or getattr(
+                self,
+                "checkbox_label_background_fill_selected",
+                "*checkbox_label_background_fill",
+            )
+        )
+        self.checkbox_label_background_fill_selected_dark = (
+            checkbox_label_background_fill_selected_dark
+            or getattr(
+                self,
+                "checkbox_label_background_fill_selected_dark",
+                "*checkbox_label_background_fill",
             )
         )
         self.checkbox_label_border_color = checkbox_label_border_color or getattr(
@@ -827,6 +1097,10 @@ class Base(ThemeClass):
         self.checkbox_label_border_width = checkbox_label_border_width or getattr(
             self, "checkbox_label_border_width", "*input_border_width"
         )
+        self.checkbox_label_border_width_dark = (
+            checkbox_label_border_width_dark
+            or getattr(self, "checkbox_label_border_width_dark", "*input_border_width")
+        )
         self.checkbox_label_gap = checkbox_label_gap or getattr(
             self, "checkbox_label_gap", "*spacing_lg"
         )
@@ -842,29 +1116,44 @@ class Base(ThemeClass):
         self.checkbox_label_text_weight = checkbox_label_text_weight or getattr(
             self, "checkbox_label_text_weight", "400"
         )
+        self.checkbox_check = checkbox_check or getattr(
+            self,
+            "checkbox_check",
+            """url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e")""",
+        )
+        self.radio_circle = radio_circle or getattr(
+            self,
+            "radio_circle",
+            """url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")""",
+        )
         self.checkbox_shadow = checkbox_shadow or getattr(
             self, "checkbox_shadow", "*input_shadow"
         )
-        self.checkbox_text_color = checkbox_text_color or getattr(
-            self, "checkbox_text_color", "*body_text_color"
+        self.checkbox_label_text_color = checkbox_label_text_color or getattr(
+            self, "checkbox_label_text_color", "*body_text_color"
         )
-        self.checkbox_text_color_dark = checkbox_text_color_dark or getattr(
-            self, "checkbox_text_color_dark", "*body_text_color"
+        self.checkbox_label_text_color_dark = checkbox_label_text_color_dark or getattr(
+            self, "checkbox_label_text_color_dark", "*body_text_color"
         )
-        self.checkbox_text_color_selected = checkbox_text_color_selected or getattr(
-            self, "checkbox_text_color_selected", "*checkbox_text_color"
-        )
-        self.checkbox_text_color_selected_dark = (
-            checkbox_text_color_selected_dark
+        self.checkbox_label_text_color_selected = (
+            checkbox_label_text_color_selected
             or getattr(
-                self, "checkbox_text_color_selected_dark", "*checkbox_text_color"
+                self, "checkbox_label_text_color_selected", "*checkbox_label_text_color"
             )
         )
-        self.error_background = error_background or getattr(
-            self, "error_background", colors.red.c100
+        self.checkbox_label_text_color_selected_dark = (
+            checkbox_label_text_color_selected_dark
+            or getattr(
+                self,
+                "checkbox_label_text_color_selected_dark",
+                "*checkbox_label_text_color",
+            )
         )
-        self.error_background_dark = error_background_dark or getattr(
-            self, "error_background_dark", "*background_primary"
+        self.error_background_fill = error_background_fill or getattr(
+            self, "error_background_fill", colors.red.c100
+        )
+        self.error_background_fill_dark = error_background_fill_dark or getattr(
+            self, "error_background_fill_dark", "*background_fill_primary"
         )
         self.error_border_color = error_border_color or getattr(
             self, "error_border_color", colors.red.c200
@@ -878,30 +1167,33 @@ class Base(ThemeClass):
         self.error_border_width_dark = error_border_width_dark or getattr(
             self, "error_border_width_dark", None
         )
-        self.error_color = error_color or getattr(self, "error_color", colors.red.c500)
-        self.error_color_dark = error_color_dark or getattr(
-            self, "error_color_dark", colors.red.c500
+        self.error_text_color = error_text_color or getattr(
+            self, "error_text_color", colors.red.c500
         )
-        self.header_text_weight = header_text_weight or getattr(
-            self, "header_text_weight", "600"
+        self.error_text_color_dark = error_text_color_dark or getattr(
+            self, "error_text_color_dark", colors.red.c500
         )
-        self.input_background = input_background or getattr(
-            self, "input_background", "*neutral_100"
+        self.input_background_fill = input_background_fill or getattr(
+            self, "input_background_fill", "*neutral_100"
         )
-        self.input_background_dark = input_background_dark or getattr(
-            self, "input_background_dark", "*neutral_700"
+        self.input_background_fill_dark = input_background_fill_dark or getattr(
+            self, "input_background_fill_dark", "*neutral_700"
         )
-        self.input_background_focus = input_background_focus or getattr(
-            self, "input_background_focus", "*secondary_500"
+        self.input_background_fill_focus = input_background_fill_focus or getattr(
+            self, "input_background_fill_focus", "*secondary_500"
         )
-        self.input_background_focus_dark = input_background_focus_dark or getattr(
-            self, "input_background_focus_dark", "*secondary_600"
+        self.input_background_fill_focus_dark = (
+            input_background_fill_focus_dark
+            or getattr(self, "input_background_fill_focus_dark", "*secondary_600")
         )
-        self.input_background_hover = input_background_hover or getattr(
-            self, "input_background_hover", "*input_background"
+        self.input_background_fill_hover = input_background_fill_hover or getattr(
+            self, "input_background_fill_hover", "*input_background_fill"
         )
-        self.input_background_hover_dark = input_background_hover_dark or getattr(
-            self, "input_background_hover_dark", "*input_background"
+        self.input_background_fill_hover_dark = (
+            input_background_fill_hover_dark
+            or getattr(
+                self, "input_background_fill_hover_dark", "*input_background_fill"
+            )
         )
         self.input_border_color = input_border_color or getattr(
             self, "input_border_color", "*border_color_primary"
@@ -923,6 +1215,9 @@ class Base(ThemeClass):
         )
         self.input_border_width = input_border_width or getattr(
             self, "input_border_width", "0px"
+        )
+        self.input_border_width_dark = input_border_width_dark or getattr(
+            self, "input_border_width_dark", "0px"
         )
         self.input_padding = input_padding or getattr(
             self, "input_padding", "*spacing_xl"
@@ -951,7 +1246,7 @@ class Base(ThemeClass):
             self, "input_text_weight", "400"
         )
         self.loader_color = loader_color or getattr(
-            self, "loader_color", "*background_accent"
+            self, "loader_color", "*color_accent"
         )
         self.loader_color_dark = loader_color_dark or getattr(
             self, "loader_color_dark", None
@@ -962,15 +1257,19 @@ class Base(ThemeClass):
         self.prose_text_weight = prose_text_weight or getattr(
             self, "prose_text_weight", "400"
         )
+        self.prose_header_text_weight = prose_header_text_weight or getattr(
+            self, "prose_header_text_weight", "600"
+        )
         self.slider_color = slider_color or getattr(self, "slider_color", "")
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )
-        self.stat_color_background = stat_color_background or getattr(
-            self, "stat_color_background", "*primary_300"
+        self.stat_color_background_fill = stat_color_background_fill or getattr(
+            self, "stat_color_background_fill", "*primary_300"
         )
-        self.stat_color_background_dark = stat_color_background_dark or getattr(
-            self, "stat_color_background_dark", "*primary_500"
+        self.stat_color_background_fill_dark = (
+            stat_color_background_fill_dark
+            or getattr(self, "stat_color_background_fill_dark", "*primary_500")
         )
         self.table_border_color = table_border_color or getattr(
             self, "table_border_color", "*neutral_300"
@@ -978,44 +1277,58 @@ class Base(ThemeClass):
         self.table_border_color_dark = table_border_color_dark or getattr(
             self, "table_border_color_dark", "*neutral_700"
         )
-        self.table_even_background = table_even_background or getattr(
-            self, "table_even_background", "white"
+        self.table_even_background_fill = table_even_background_fill or getattr(
+            self, "table_even_background_fill", "white"
         )
-        self.table_even_background_dark = table_even_background_dark or getattr(
-            self, "table_even_background_dark", "*neutral_950"
+        self.table_even_background_fill_dark = (
+            table_even_background_fill_dark
+            or getattr(self, "table_even_background_fill_dark", "*neutral_950")
         )
-        self.table_odd_background = table_odd_background or getattr(
-            self, "table_odd_background", "*neutral_50"
+        self.table_odd_background_fill = table_odd_background_fill or getattr(
+            self, "table_odd_background_fill", "*neutral_50"
         )
-        self.table_odd_background_dark = table_odd_background_dark or getattr(
-            self, "table_odd_background_dark", "*neutral_900"
+        self.table_odd_background_fill_dark = table_odd_background_fill_dark or getattr(
+            self, "table_odd_background_fill_dark", "*neutral_900"
         )
         self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
         self.table_row_focus = table_row_focus or getattr(
-            self, "table_row_focus", "*background_accent_soft"
+            self, "table_row_focus", "*color_accent_soft"
         )
         self.table_row_focus_dark = table_row_focus_dark or getattr(
-            self, "table_row_focus_dark", "*background_accent_soft"
+            self, "table_row_focus_dark", "*color_accent_soft"
         )
         # Buttons
         self.button_border_width = button_border_width or getattr(
             self, "button_border_width", "*input_border_width"
         )
-        self.button_cancel_background = button_cancel_background or getattr(
-            self, "button_cancel_background", "*button_secondary_background"
+        self.button_border_width_dark = button_border_width_dark or getattr(
+            self, "button_border_width_dark", "*input_border_width"
         )
-        self.button_cancel_background_dark = button_cancel_background_dark or getattr(
-            self, "button_cancel_background_dark", "*button_secondary_background"
+        self.button_cancel_background_fill = button_cancel_background_fill or getattr(
+            self, "button_cancel_background_fill", "*button_secondary_background_fill"
         )
-        self.button_cancel_background_hover = button_cancel_background_hover or getattr(
-            self, "button_cancel_background_hover", "*button_cancel_background"
-        )
-        self.button_cancel_background_hover_dark = (
-            button_cancel_background_hover_dark
+        self.button_cancel_background_fill_dark = (
+            button_cancel_background_fill_dark
             or getattr(
                 self,
-                "button_cancel_background_hover_dark",
-                "*button_cancel_background",
+                "button_cancel_background_fill_dark",
+                "*button_secondary_background_fill",
+            )
+        )
+        self.button_cancel_background_fill_hover = (
+            button_cancel_background_fill_hover
+            or getattr(
+                self,
+                "button_cancel_background_fill_hover",
+                "*button_cancel_background_fill",
+            )
+        )
+        self.button_cancel_background_fill_hover_dark = (
+            button_cancel_background_fill_hover_dark
+            or getattr(
+                self,
+                "button_cancel_background_fill_hover_dark",
+                "*button_cancel_background_fill",
             )
         )
         self.button_cancel_border_color = button_cancel_border_color or getattr(
@@ -1072,24 +1385,27 @@ class Base(ThemeClass):
         self.button_large_text_weight = button_large_text_weight or getattr(
             self, "button_large_text_weight", "600"
         )
-        self.button_primary_background = button_primary_background or getattr(
-            self, "button_primary_background", "*primary_200"
+        self.button_primary_background_fill = button_primary_background_fill or getattr(
+            self, "button_primary_background_fill", "*primary_200"
         )
-        self.button_primary_background_dark = button_primary_background_dark or getattr(
-            self, "button_primary_background_dark", "*primary_700"
+        self.button_primary_background_fill_dark = (
+            button_primary_background_fill_dark
+            or getattr(self, "button_primary_background_fill_dark", "*primary_700")
         )
-        self.button_primary_background_hover = (
-            button_primary_background_hover
-            or getattr(
-                self, "button_primary_background_hover", "*button_primary_background"
-            )
-        )
-        self.button_primary_background_hover_dark = (
-            button_primary_background_hover_dark
+        self.button_primary_background_fill_hover = (
+            button_primary_background_fill_hover
             or getattr(
                 self,
-                "button_primary_background_hover_dark",
-                "*button_primary_background",
+                "button_primary_background_fill_hover",
+                "*button_primary_background_fill",
+            )
+        )
+        self.button_primary_background_fill_hover_dark = (
+            button_primary_background_fill_hover_dark
+            or getattr(
+                self,
+                "button_primary_background_fill_hover_dark",
+                "*button_primary_background_fill",
             )
         )
         self.button_primary_border_color = button_primary_border_color or getattr(
@@ -1135,27 +1451,28 @@ class Base(ThemeClass):
                 "*button_primary_text_color",
             )
         )
-        self.button_secondary_background = button_secondary_background or getattr(
-            self, "button_secondary_background", "*neutral_200"
+        self.button_secondary_background_fill = (
+            button_secondary_background_fill
+            or getattr(self, "button_secondary_background_fill", "*neutral_200")
         )
-        self.button_secondary_background_dark = (
-            button_secondary_background_dark
-            or getattr(self, "button_secondary_background_dark", "*neutral_600")
+        self.button_secondary_background_fill_dark = (
+            button_secondary_background_fill_dark
+            or getattr(self, "button_secondary_background_fill_dark", "*neutral_600")
         )
-        self.button_secondary_background_hover = (
-            button_secondary_background_hover
+        self.button_secondary_background_fill_hover = (
+            button_secondary_background_fill_hover
             or getattr(
                 self,
-                "button_secondary_background_hover",
-                "*button_secondary_background",
+                "button_secondary_background_fill_hover",
+                "*button_secondary_background_fill",
             )
         )
-        self.button_secondary_background_hover_dark = (
-            button_secondary_background_hover_dark
+        self.button_secondary_background_fill_hover_dark = (
+            button_secondary_background_fill_hover_dark
             or getattr(
                 self,
-                "button_secondary_background_hover_dark",
-                "*button_secondary_background",
+                "button_secondary_background_fill_hover_dark",
+                "*button_secondary_background_fill",
             )
         )
         self.button_secondary_border_color = button_secondary_border_color or getattr(
