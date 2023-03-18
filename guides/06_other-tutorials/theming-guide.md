@@ -6,10 +6,10 @@ Tags: THEMES
 Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
 
 ```python
-with gr.Blocks(theme=gr.themes.Glass()):
+with gr.Blocks(theme=gr.themes.Soft()):
     ...
 ```
-$demo_theme_glass
+$demo_theme_soft
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
 
@@ -108,12 +108,12 @@ Your IDE type hinting should help you navigate these variables. Since there are 
 
 ### CSS Variable Naming Conventions
 
-CSS variable names can get quite long, like `button_primary_background_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Seperated by underscores, the variable name is made up of:
+CSS variable names can get quite long, like `button_primary_background_fill_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Seperated by underscores, the variable name is made up of:
 
 1. The target element, such as `button`, `slider`, or `block`.
 2. The target element type or sub-element, such as `button_primary`, or `block_label`.
-3. The property, such as `button_primary_background`, or `block_label_border_width`.
-4. Any relevant state, such as `button_primary_background_hover`.
+3. The property, such as `button_primary_background_fill`, or `block_label_border_width`.
+4. Any relevant state, such as `button_primary_background_fill_hover`.
 5. If the value is different in dark mode, the suffix `_dark`. For example, `input_border_color_focus_dark`.
 
 Of course, many CSS variable names are shorter than this, such as `table_border_color`, or `input_shadow`. 
@@ -128,12 +128,12 @@ To reference one of the core constructor variables, precede the variable name wi
 
 ```python
 theme = gr.themes.Default(primary_hue="blue").set(
-    button_primary_background="*primary_200",
-    button_primary_background_hover="*primary_300",
+    button_primary_background_fill="*primary_200",
+    button_primary_background_fill_hover="*primary_300",
 )
 ```
 
-In the example above, we've set the `button_primary_background` and `button_primary_background_hover` variables to `*primary_200` and `*primary_300`. These variables will be set to the 200 and 300 brightness values of the blue primary color palette, respectively.
+In the example above, we've set the `button_primary_background_fill` and `button_primary_background_fill_hover` variables to `*primary_200` and `*primary_300`. These variables will be set to the 200 and 300 brightness values of the blue primary color palette, respectively.
 
 Similarly, to reference a core size, use the `*spacing_`, `*radius_`, or `*text_` prefix, followed by the size value. For example:
 
@@ -151,23 +151,23 @@ Variables can also reference each other. For example, look at the example below:
 
 ```python
 theme = gr.themes.Default().set(
-    button_primary_background="#FF0000",
-    button_primary_background_hover="#FF0000",
+    button_primary_background_fill="#FF0000",
+    button_primary_background_fill_hover="#FF0000",
     button_primary_border="#FF0000",
 )
 ```
 
-Having to set these values to a common color is a bit tedious. Instead, we can reference the `button_primary_background` variable in the `button_primary_background_hover` and `button_primary_border` variables, using a `*` prefix. 
+Having to set these values to a common color is a bit tedious. Instead, we can reference the `button_primary_background_fill` variable in the `button_primary_background_fill_hover` and `button_primary_border` variables, using a `*` prefix. 
 
 ```python
 theme = gr.themes.Default().set(
-    button_primary_background="#FF0000",
-    button_primary_background_hover="*button_primary_background",
-    button_primary_border="*button_primary_background",
+    button_primary_background_fill="#FF0000",
+    button_primary_background_fill_hover="*button_primary_background_fill",
+    button_primary_border="*button_primary_background_fill",
 )
 ```
 
-Now, if we change the `button_primary_background` variable, the `button_primary_background_hover` and `button_primary_border` variables will automatically update as well.
+Now, if we change the `button_primary_background_fill` variable, the `button_primary_background_fill_hover` and `button_primary_border` variables will automatically update as well.
 
 This is particularly useful if you intend to share your theme - it makes it easy to modify the theme without having to change every variable.
 
@@ -175,14 +175,14 @@ Note that dark mode variables automatically reference each other. For example:
 
 ```python
 theme = gr.themes.Default().set(
-    button_primary_background="#FF0000",
-    button_primary_background_dark="#AAAAAA",
-    button_primary_border="*button_primary_background",
-    button_primary_border_dark="*button_primary_background",
+    button_primary_background_fill="#FF0000",
+    button_primary_background_fill_dark="#AAAAAA",
+    button_primary_border="*button_primary_background_fill",
+    button_primary_border_dark="*button_primary_background_fill",
 )
 ```
 
-`button_primary_border_dark` will draw its value from `button_primary_background_dark`, because dark mode always draw from the dark version of the variable.
+`button_primary_border_dark` will draw its value from `button_primary_background_fill_dark`, because dark mode always draw from the dark version of the variable.
 
 ## Creating a Full Theme
 
@@ -200,7 +200,9 @@ We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutra
 $code_theme_new_step_2
 $demo_theme_new_step_2
 
-See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
+See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. 
+
+Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
 $code_theme_new_step_3
 $demo_theme_new_step_3

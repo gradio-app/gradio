@@ -49,7 +49,7 @@
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--container-radius);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-full);
 		max-height: var(--size-32);
 		overflow: auto;
@@ -65,7 +65,7 @@
 
 	.item:hover,
 	.active {
-		background: var(--background-secondary);
+		background: var(--background-fill-secondary);
 	}
 
 	.inner-item {
