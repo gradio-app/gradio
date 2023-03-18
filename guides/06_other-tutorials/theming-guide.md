@@ -243,7 +243,14 @@ See how the primary button and the loading animation are now green? These CSS va
 Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
 $code_theme_new_step_3
-$demo_theme_new_step_3
+
+<iframe
+	src="https://gradio-theme-new-step-3.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
 
 Look how fun our theme looks now! With just a few variable changes, our theme looks completely different.
 
