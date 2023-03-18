@@ -218,7 +218,7 @@ Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a 
 $code_theme_new_step_1
 
 <iframe
-	src="https://gradio-theme-new-step-1.hf.space"
+	src="https://gradio-theme-new-step-1.hf.space?__theme=light"
 	frameborder="0"
 	width="850"
 	height="450"
