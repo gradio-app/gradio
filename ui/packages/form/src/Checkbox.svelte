@@ -57,7 +57,6 @@
 		box-shadow: var(--input-shadow);
 		border: 1px solid var(--checkbox-border-color);
 		border-radius: var(--checkbox-border-radius);
-		background-image: var(--checkbox-check);
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
 	}
@@ -65,6 +64,7 @@
 	input:checked,
 	input:checked:hover,
 	input:checked:focus {
+		background-image: var(--checkbox-check);
 		border-color: var(--checkbox-border-color-selected);
 		background-color: var(--checkbox-background-color-selected);
 	}
