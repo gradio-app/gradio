@@ -458,7 +458,7 @@ class Base(ThemeClass):
         button_small_text_size=None,
         button_small_text_weight=None,
         button_transition=None,
-    ):
+    ) -> Base:
         """
         Parameters:
             body_background_fill: The background of the entire app.
