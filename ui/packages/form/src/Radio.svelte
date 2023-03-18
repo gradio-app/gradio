@@ -98,6 +98,7 @@
 	input:checked:focus {
 		background-image: var(--radio-circle);
 		border-color: var(--checkbox-border-color-selected);
+		background-image: var(--radio-circle);
 		background-color: var(--checkbox-background-color-selected);
 	}
 
