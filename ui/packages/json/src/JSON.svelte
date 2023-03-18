@@ -73,7 +73,7 @@
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background);
+		background: var(--block-label-background-fill);
 		padding: 5px;
 		width: 22px;
 		height: 22px;

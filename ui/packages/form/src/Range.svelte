@@ -75,7 +75,7 @@
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--input-radius);
-		background: var(--input-background);
+		background: var(--input-background-fill);
 		padding: var(--size-2) var(--size-2);
 		height: var(--size-6);
 		color: var(--body-text-color);

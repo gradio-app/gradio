@@ -124,7 +124,7 @@
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--radius-lg);
-		background: var(--input-background);
+		background: var(--input-background-fill);
 		padding: var(--size-1-5);
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
@@ -138,7 +138,7 @@
 	}
 
 	.error {
-		color: var(--error-color);
+		color: var(--error-text-color);
 	}
 
 	.type {

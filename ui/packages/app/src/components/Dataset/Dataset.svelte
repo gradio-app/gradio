@@ -259,7 +259,7 @@
 	.tr-body {
 		cursor: pointer;
 		border-bottom: 1px solid var(--border-color-primary);
-		background: var(--table-even-background);
+		background: var(--table-even-background-fill);
 	}
 
 	.tr-body:last-child {
@@ -267,7 +267,7 @@
 	}
 
 	.tr-body:nth-child(odd) {
-		background: var(--table-odd-background);
+		background: var(--table-odd-background-fill);
 	}
 
 	.tr-body:hover {

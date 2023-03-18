@@ -38,7 +38,7 @@
 	.compact,
 	.panel {
 		border-radius: var(--container-radius);
-		background: var(--background-secondary);
+		background: var(--background-fill-secondary);
 		padding: var(--size-2);
 	}
 	.unequal-height {

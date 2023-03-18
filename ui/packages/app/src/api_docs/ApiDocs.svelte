@@ -176,7 +176,7 @@
 
 	.endpoint {
 		border-radius: var(--radius-md);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-6);
 		font-size: var(--text-md);
 	}

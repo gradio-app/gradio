@@ -20,7 +20,7 @@
 .prose h4,
 .prose h5 {
 	margin: var(--spacing-xxl) 0 var(--spacing-lg);
-	font-weight: var(--header-text-weight);
+	font-weight: var(--prose-header-text-weight);
 	line-height: 1.3;
 }
 
@@ -83,7 +83,7 @@
 .prose code {
 	border: 1px solid var(--border-color-primary);
 	border-radius: var(--radius-sm);
-	background: var(--background-secondary);
+	background: var(--background-fill-secondary);
 	padding: 1px 3px;
 	font-size: 85%;
 	white-space: nowrap;

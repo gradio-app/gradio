@@ -523,7 +523,7 @@
 
 	.api-docs-wrap {
 		box-shadow: var(--shadow-drop-lg);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		overflow-x: hidden;
 		overflow-y: auto;
 	}

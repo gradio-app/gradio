@@ -308,7 +308,7 @@
 		align-items: center;
 		z-index: var(--layer-5);
 		border-radius: var(--block-radius);
-		background-color: var(--background-primary);
+		background: var(--background-fill-primary);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
@@ -334,7 +334,7 @@
 
 	.generating {
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-		border: 2px solid var(--background-accent);
+		border: 2px solid var(--color-accent);
 		background: transparent;
 	}
 
@@ -366,11 +366,11 @@
 		opacity: 0.8;
 		z-index: var(--layer-1);
 		transition: 10ms;
-		background: var(--background-secondary);
+		background: var(--background-fill-secondary);
 	}
 	.progress-bar-wrap {
 		border: 1px solid var(--border-color-primary);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		width: 55.5%;
 		height: var(--size-4);
 	}
@@ -426,11 +426,10 @@
 		box-shadow: var(--shadow-drop);
 		border: solid 1px var(--error-border-color);
 		border-radius: var(--radius-full);
-		background-color: var(--background-primary);
-		background: var(--error-background);
+		background: var(--error-background-fill);
 		padding-right: var(--size-4);
 		padding-left: var(--size-4);
-		color: var(--error-color);
+		color: var(--error-text-color);
 		font-weight: var(--weight-semibold);
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
@@ -458,7 +457,7 @@
 		box-shadow: var(--shadow-drop-lg);
 		border: 1px solid var(--error-border-color);
 		border-radius: var(--container-radius);
-		background: var(--error-background);
+		background: var(--error-background-fill);
 		padding: var(--size-4) var(--size-6);
 		max-width: 1200px;
 		max-width: 610px;
@@ -470,7 +469,7 @@
 		display: flex;
 		align-items: center;
 		padding: var(--size-1) var(--size-3);
-		color: var(--error-color);
+		color: var(--error-text-color);
 		color: var(--color-red-500);
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);

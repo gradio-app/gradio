@@ -5,7 +5,7 @@
 
 ### Official Theme release
 
-Gradio now supports a new theme system, which allows you to customize the look and feel of your app. You can now use the `theme=` kwarg to pass in a prebuilt theme, or customize your own! See guides/06_other-tutorials/theming-guide for more details. By [@aliabid94](https://github.com/aliabid94) in [PR 3494](https://github.com/gradio-app/gradio/pull/3494) 
+Gradio now supports a new theme system, which allows you to customize the look and feel of your app. You can now use the `theme=` kwarg to pass in a prebuilt theme, or customize your own! See guides/06_other-tutorials/theming-guide for more details. By [@aliabid94](https://github.com/aliabid94) in [PR 3470](https://github.com/gradio-app/gradio/pull/3470) and [PR 3497](https://github.com/gradio-app/gradio/pull/3497)
 
 ### `elem_classes`
 

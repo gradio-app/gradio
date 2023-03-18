@@ -646,7 +646,7 @@
 
 <style>
 	.button-wrap:hover svg {
-		color: var(--background-accent);
+		color: var(--color-accent);
 	}
 
 	.button-wrap svg {
@@ -675,7 +675,7 @@
 	}
 
 	.dragging {
-		border-color: var(--background-accent);
+		border-color: var(--color-accent);
 	}
 
 	.no-wrap {
@@ -736,7 +736,7 @@
 
 	th:focus-within,
 	td:focus-within {
-		--ring-color: var(--background-accent);
+		--ring-color: var(--color-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -748,7 +748,7 @@
 	}
 
 	tr th {
-		background: var(--table-even-background);
+		background: var(--table-even-background-fill);
 	}
 
 	th svg {
@@ -777,7 +777,7 @@
 	}
 
 	.sort-button.sorted {
-		color: var(--background-accent);
+		color: var(--color-accent);
 	}
 
 	tbody {
@@ -789,15 +789,15 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background: var(--table-even-background);
+		background: var(--table-even-background-fill);
 	}
 
 	tbody > tr:nth-child(odd) {
-		background: var(--table-odd-background);
+		background: var(--table-odd-background-fill);
 	}
 
 	tbody > tr:nth-child(odd):focus {
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 	}
 
 	.editing {

@@ -113,7 +113,7 @@
 	}
 	.selected {
 		border-color: var(--border-color-primary);
-		background-color: var(--background-primary);
+		background: var(--background-fill-primary);
 		color: var(--body-text-color);
 	}
 
@@ -123,7 +123,7 @@
 		bottom: -2px;
 		left: 0;
 		z-index: 999;
-		background-color: var(--background-primary);
+		background: var(--background-fill-primary);
 		width: 100%;
 		height: 2px;
 		content: "";

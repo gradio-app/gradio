@@ -39,7 +39,7 @@
 	}
 
 	span {
-		color: var(--background-accent);
+		color: var(--color-accent);
 	}
 
 	button {
@@ -51,7 +51,7 @@
 	}
 
 	button:hover {
-		color: var(--background-accent);
+		color: var(--color-accent);
 	}
 
 	@media (--screen-md) {

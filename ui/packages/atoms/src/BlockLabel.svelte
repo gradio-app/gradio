@@ -35,7 +35,7 @@
 		border-top: none;
 		border-left: none;
 		border-radius: var(--block-label-radius);
-		background: var(--block-label-background);
+		background: var(--block-label-background-fill);
 		padding: var(--block-label-padding);
 		pointer-events: none;
 		color: var(--block-label-text-color);

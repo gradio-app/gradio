@@ -16,7 +16,7 @@
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-sm);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-5);
 		height: var(--size-5);
 		color: var(--block-label-text-color);

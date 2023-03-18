@@ -197,7 +197,7 @@
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--border-color-primary);
 		border-radius: var(--input-radius);
-		background: var(--input-background);
+		background: var(--input-background-fill);
 	}
 
 	.wrap:focus-within {
@@ -223,9 +223,9 @@
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color);
 		border-radius: var(--button-small-radius);
-		background: var(--checkbox-label-background);
+		background: var(--checkbox-label-background-fill);
 		padding: var(--checkbox-label-padding);
-		color: var(--checkbox-text-color);
+		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
@@ -243,7 +243,7 @@
 		cursor: pointer;
 		border: var(--checkbox-border-width) solid var(--border-color-primary);
 		border-radius: var(--radius-full);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;
