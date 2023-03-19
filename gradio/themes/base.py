@@ -1267,9 +1267,8 @@ class Base(ThemeClass):
         self.stat_background_fill = stat_background_fill or getattr(
             self, "stat_background_fill", "*primary_300"
         )
-        self.stat_background_fill_dark = (
-            stat_background_fill_dark
-            or getattr(self, "stat_background_fill_dark", "*primary_500")
+        self.stat_background_fill_dark = stat_background_fill_dark or getattr(
+            self, "stat_background_fill_dark", "*primary_500"
         )
         self.table_border_color = table_border_color or getattr(
             self, "table_border_color", "*neutral_300"

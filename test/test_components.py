@@ -2683,5 +2683,3 @@ class TestTempFileManagement:
 
         f = temp_file_manager.download_temp_copy_if_needed(url2)
         assert len(temp_file_manager.temp_files) == 2
-
-

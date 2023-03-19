@@ -4,12 +4,16 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import json
 import math
 import operator
 import random
+import secrets
+import shutil
 import tempfile
+import urllib.request
 import uuid
 import warnings
 from copy import deepcopy
@@ -18,24 +22,19 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type
 
-import hashlib
-import secrets
-import urllib.request
 import aiofiles
-from fastapi import UploadFile
-import shutil
-
 import altair as alt
 import matplotlib.figure
 import numpy as np
 import pandas as pd
 import PIL
 import PIL.ImageOps
+import requests
+from fastapi import UploadFile
 from ffmpy import FFmpeg
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
-import requests
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -3218,9 +3217,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class UploadButton(
-    Clickable, Uploadable, IOComponent, FileSerializable
-):
+class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -4316,9 +4313,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
-class Model3D(
-    Changeable, Editable, Clearable, IOComponent, FileSerializable
-):
+class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str} filepath.
