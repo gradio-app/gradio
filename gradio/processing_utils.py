@@ -313,14 +313,6 @@ def file_to_json(file_path: str | Path) -> Dict:
         return json.load(f)
 
 
-class TempFileManager:
-    """
-    A class that should be inherited by any Component that needs to manage temporary files.
-    It should be instantiated in the __init__ method of the component.
-    """
-
- 
-
 def download_tmp_copy_of_file(
     url_path: str, access_token: str | None = None, dir: str | None = None
 ) -> tempfile._TemporaryFileWrapper:

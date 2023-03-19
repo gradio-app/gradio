@@ -57,7 +57,6 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
-from gradio.processing_utils import TempFileManager
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -3220,7 +3219,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
 @document("style")
 class UploadButton(
-    Clickable, Uploadable, IOComponent, FileSerializable, TempFileManager
+    Clickable, Uploadable, IOComponent, FileSerializable
 ):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
@@ -3973,7 +3972,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
+class Gallery(IOComponent, FileSerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -4318,7 +4317,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
 @document("style")
 class Model3D(
-    Changeable, Editable, Clearable, IOComponent, FileSerializable, TempFileManager
+    Changeable, Editable, Clearable, IOComponent, FileSerializable
 ):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
