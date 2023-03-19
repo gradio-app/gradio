@@ -278,11 +278,6 @@ class ThemeClass:
             contents = re.sub(r"{AUTHOR}", org_name or author, contents)
             contents = re.sub(r"{SPACE_NAME}", repo_name, contents)
             app_file.write(contents)
-        # TODO: Delete this once we publish this to PyPi
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as req_file:
-            req_file.write(
-                "https://gradio-builds.s3.amazonaws.com/theme-share/attempt-10/gradio-3.21.0-py3-none-any.whl"
-            )
 
         operations = [
             CommitOperationAdd(
@@ -293,9 +288,6 @@ class ThemeClass:
                 path_in_repo="README.md", path_or_fileobj=readme_file.name
             ),
             CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
-            CommitOperationAdd(
-                path_in_repo="requirements.txt", path_or_fileobj=req_file.name
-            ),
             CommitOperationAdd(
                 path_in_repo="theme_dropdown.py",
                 path_or_fileobj=str(
