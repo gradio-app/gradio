@@ -9,5 +9,15 @@
     // Use Pollen's inbuilt variable ordering
     "cssvar.disableSort": true,
     // Add support for autocomplete in other file types
-    "cssvar.extensions": ["js", "css", "html", "jsx", "tsx", "svelte"]
+    "cssvar.extensions": [
+        "js",
+        "css",
+        "html",
+        "jsx",
+        "tsx",
+        "svelte"
+    ],
+    "python.analysis.extraPaths": [
+        "./gradio/themes/utils"
+    ]
 }

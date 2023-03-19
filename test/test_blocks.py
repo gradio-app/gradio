@@ -382,6 +382,17 @@ class TestBlocksMethods:
         finally:
             server.close()
 
+    @patch(
+        "gradio.themes.ThemeClass.from_hub",
+        side_effect=ValueError("Something went wrong!"),
+    )
+    def test_use_default_theme_as_fallback(self, mock_from_hub):
+        with pytest.warns(
+            UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
+        ):
+            with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
+                assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
