@@ -142,7 +142,7 @@ dracula = gr.themes.Base(
     neutral_hue=dracula_gray,
     font=gr.themes.GoogleFont("Poppins"),
 ).set(
-    body_background=dracula_gray.c500,
+    body_background_fill=dracula_gray.c500,
     background_accent_soft=dracula_gray.c100,
     background_primary=dracula_gray.c500,
     background_secondary=dracula_gray.c500,
