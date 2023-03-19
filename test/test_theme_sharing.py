@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import huggingface_hub
 import pytest
+from huggingface_hub.hf_api import SpaceInfo
 
 import gradio as gr
 from gradio.themes.utils import ThemeAsset, get_matching_version, get_theme_assets
@@ -262,9 +263,9 @@ class TestThemeUploadDownload:
     @patch("gradio.themes.base.get_theme_assets", return_value=assets)
     def test_get_next_version(self, mock):
         next_version = gr.themes.Base._get_next_version(
-            "gradio/dracula_test@0.0.1"
+            SpaceInfo(id="gradio/dracula_test")
         )
-        assert next_version == "0.0.2"
+        assert next_version == "3.20.2"
 
     @pytest.mark.flaky
     def test_theme_download(self):
@@ -274,7 +275,7 @@ class TestThemeUploadDownload:
             == dracula.to_dict()
         )
 
-        with gr.Blocks(theme="freddyaboulton/dracula_revamped@0.0.1") as demo:
+        with gr.Blocks(theme="gradio/dracula_test@0.0.1") as demo:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
