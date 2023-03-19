@@ -561,7 +561,7 @@ class TestBlocksPostprocessing:
             button.click(lambda x: x, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match="Number of output components does not match number of values returned from from function <lambda>",
+            match=r'An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
         ):
             demo.postprocess_data(fn_index=0, predictions=["test"], state={})
 

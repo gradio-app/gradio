@@ -979,9 +979,45 @@ class Blocks(BlockContext):
 
         return predictions
 
+    def validate_inputs(self, fn_index: int, inputs: List[Any]):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+
+        dep_inputs = dependency["inputs"]
+
+        # This handles incorrect inputs when args are changed by a JS function
+        # Only check not enough args case, ignore extra arguments (for now)
+        # TODO: make this stricter?
+        if len(inputs) < len(dep_inputs):
+            name = f" ({block_fn.name})" if block_fn.name and block_fn.name != "<lambda>" else ""
+
+            wanted_args = []
+            received_args = []
+            for input_id in dep_inputs:
+                block = self.blocks[input_id]
+                wanted_args.append(str(block))
+            for inp in inputs:
+                if isinstance(inp, str):
+                    v = f'"{inp}"'
+                else:
+                    v = str(inp)
+                received_args.append(v)
+
+            wanted = ", ".join(wanted_args)
+            received = ", ".join(received_args)
+
+            raise ValueError(f"""An event handler{name} didn't receive enough input values (needed: {len(dep_inputs)}, got: {len(inputs)}).
+Check if the event handler calls a Javascript function, and make sure its return value is correct.
+Wanted inputs:
+    [{wanted}]
+Received inputs:
+    [{received}]""")
+
     def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+
+        self.validate_inputs(fn_index, inputs)
 
         if block_fn.preprocess:
             processed_input = []
@@ -997,6 +1033,37 @@ class Blocks(BlockContext):
         else:
             processed_input = inputs
         return processed_input
+
+    def validate_outputs(self, fn_index: int, predictions: List[Any]):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+
+        dep_outputs = dependency["outputs"]
+
+        if len(predictions) < len(dep_outputs):
+            name = f" ({block_fn.name})" if block_fn.name and block_fn.name != "<lambda>" else ""
+
+            wanted_args = []
+            received_args = []
+            for output_id in dep_outputs:
+                block = self.blocks[output_id]
+                wanted_args.append(str(block))
+            for pred in predictions:
+                if isinstance(pred, str):
+                    v = f'"{pred}"'
+                else:
+                    v = str(pred)
+                received_args.append(v)
+
+            wanted = ", ".join(wanted_args)
+            received = ", ".join(received_args)
+
+            # JS func didn't pass enough arguments
+            raise ValueError(f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
+Wanted outputs:
+    [{wanted}]
+Received outputs:
+    [{received}]""")
 
     def postprocess_data(
         self, fn_index: int, predictions: List | Dict, state: Dict[int, Any]
@@ -1014,6 +1081,8 @@ class Blocks(BlockContext):
             predictions = [
                 predictions,
             ]
+
+        self.validate_outputs(fn_index, predictions)
 
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
