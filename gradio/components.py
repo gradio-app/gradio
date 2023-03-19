@@ -183,6 +183,9 @@ class IOComponent(Component, Serializable):
         every: float | None = None,
         **kwargs,
     ):
+        self.temp_files: Set[str] = set()
+        self.DEFAULT_TEMP_DIR = tempfile.gettempdir()
+        
         Component.__init__(
             self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
         )
@@ -204,8 +207,6 @@ class IOComponent(Component, Serializable):
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
 
-        self.temp_files: Set[str] = set()
-        self.DEFAULT_TEMP_DIR = tempfile.gettempdir()
 
     def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
