@@ -1,9 +1,28 @@
 from __future__ import annotations
 
+import json
 import re
-from typing import Iterable
+import tempfile
+import textwrap
+from pathlib import Path
+from typing import Dict, Iterable
 
-from gradio.themes.utils import colors, fonts, sizes
+import huggingface_hub
+import requests
+import semantic_version as semver
+from huggingface_hub import CommitOperationAdd
+
+from gradio.documentation import document, set_documentation_group
+from gradio.themes.utils import (
+    colors,
+    fonts,
+    get_matching_version,
+    get_theme_assets,
+    sizes,
+)
+from gradio.themes.utils.readme_content import README_CONTENT
+
+set_documentation_group("themes")
 
 
 class ThemeClass:
@@ -74,7 +93,232 @@ class ThemeClass:
 
         return css_code + "\n" + dark_css_code
 
+    def to_dict(self):
+        """Convert the theme into a python dictionary."""
+        schema = {"theme": {}}
+        for prop in dir(self):
+            if (
+                not prop.startswith("_")
+                or prop.startswith("_font")
+                or prop == "_stylesheets"
+            ) and isinstance(getattr(self, prop), (list, str)):
+                schema["theme"][prop] = getattr(self, prop)
+        return schema
 
+    @classmethod
+    def load(cls, path: str) -> "ThemeClass":
+        """Load a theme from a json file.
+
+        Parameters:
+            path: The filepath to read.
+        """
+        theme = json.load(open(path), object_hook=fonts.as_font)
+        return cls.from_dict(theme)
+
+    @classmethod
+    def from_dict(cls, theme: Dict[str, Dict[str, str]]) -> "ThemeClass":
+        """Create a theme instance from a dictionary representation.
+
+        Parameters:
+            theme: The dictionary representation of the theme.
+        """
+        base = cls()
+        for prop, value in theme["theme"].items():
+            setattr(base, prop, value)
+        return base
+
+    def dump(self, filename: str):
+        """Write the theme to a json file.
+
+        Parameters:
+            filename: The path to write the theme too
+        """
+        as_dict = self.to_dict()
+        json.dump(as_dict, open(Path(filename), "w"), cls=fonts.FontEncoder)
+
+    @classmethod
+    def from_hub(cls, repo_name: str, hf_token: str | None = None):
+        """Load a theme from the hub.
+
+        This DOES NOT require a HuggingFace account for downloading publicly available themes.
+
+        Parameters:
+            repo_name: string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.
+            hf_token: HuggingFace Token. Only needed to download private themes.
+        """
+        if "@" not in repo_name:
+            name, version = repo_name, None
+        else:
+            name, version = repo_name.split("@")
+
+        api = huggingface_hub.HfApi(token=hf_token)
+
+        try:
+            space_info = api.space_info(name)
+        except requests.HTTPError as e:
+            raise ValueError(f"The space {name} does not exist") from e
+
+        assets = get_theme_assets(space_info)
+        matching_version = get_matching_version(assets, version)
+
+        if not matching_version:
+            raise ValueError(
+                f"Cannot find a matching version for expression {version} "
+                f"from files {[f.filename for f in assets]}"
+            )
+
+        theme_file = huggingface_hub.hf_hub_download(
+            repo_id=name,
+            repo_type="space",
+            filename=f"themes/theme_schema@{matching_version.version}.json",
+        )
+        return cls.load(theme_file)
+
+    @staticmethod
+    def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
+        assets = get_theme_assets(space_info)
+        print("assets", assets)
+        latest_version = max(assets, key=lambda asset: asset.version).version
+        return str(latest_version.next_patch())
+
+    @staticmethod
+    def _theme_version_exists(
+        space_info: huggingface_hub.hf_api.SpaceInfo, version: str
+    ) -> bool:
+        assets = get_theme_assets(space_info)
+        return any(a.version == semver.Version(version) for a in assets)
+
+    def push_to_hub(
+        self,
+        repo_name: str,
+        org_name: str | None = None,
+        version: str | None = None,
+        hf_token: str | None = None,
+        theme_name: str | None = None,
+        description: str | None = None,
+        private: bool = False,
+    ):
+        """Upload a theme to the HuggingFace hub.
+
+        This requires a HuggingFace account.
+
+        Parameters:
+            repo_name: The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'.
+            org_name: The name of the org to save the space in. If None (the default), the username corresponding to the logged in user, or hƒ_token is used.
+            version: A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.
+            hf_token: API token for your HuggingFace account
+            theme_name: Name for the name. If None, defaults to repo_name
+            description: A long form description to your theme.
+        """
+
+        from gradio import __version__
+
+        api = huggingface_hub.HfApi()
+
+        if not hf_token:
+            try:
+                author = huggingface_hub.whoami()["name"]
+            except OSError as e:
+                raise ValueError(
+                    "In order to push to hub, log in via `huggingface-cli login` "
+                    "or provide a theme_token to push_to_hub. For more information "
+                    "see https://huggingface.co/docs/huggingface_hub/quick-start#login"
+                ) from e
+        else:
+            author = huggingface_hub.whoami(token=hf_token)["name"]
+
+        space_id = f"{org_name or author}/{repo_name}"
+
+        try:
+            space_info = api.space_info(space_id)
+        except requests.HTTPError:
+            space_info = None
+
+        space_exists = space_info is not None
+
+        # If no version, set the version to next patch release
+        if not version:
+            if space_exists:
+                version = self._get_next_version(space_info)
+            else:
+                version = "0.0.1"
+        else:
+            _ = semver.Version(version)
+
+        if space_exists and self._theme_version_exists(space_info, version):
+            raise ValueError(
+                f"The space {space_id} already has a "
+                f"theme with version {version}. See: themes/theme_schema@{version}.json. "
+                "To manually override this version, use the HuggingFace hub UI."
+            )
+
+        theme_name = theme_name or repo_name
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".json"
+        ) as css_file:
+            contents = self.to_dict()
+            contents["version"] = version
+            json.dump(contents, css_file, cls=fonts.FontEncoder)
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
+            readme_content = README_CONTENT.format(
+                theme_name=theme_name,
+                description=description or "Add a description of this theme here!",
+                author=author,
+                gradio_version=__version__,
+            )
+            readme_file.write(textwrap.dedent(readme_content))
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
+            contents = open(str(Path(__file__).parent / "app.py")).read()
+            contents = re.sub(
+                r"theme=gr.themes.Default\(\)",
+                f"theme='{space_id}'",
+                contents,
+            )
+            contents = re.sub(r"{THEME}", theme_name or repo_name, contents)
+            contents = re.sub(r"{AUTHOR}", org_name or author, contents)
+            contents = re.sub(r"{SPACE_NAME}", repo_name, contents)
+            app_file.write(contents)
+
+        operations = [
+            CommitOperationAdd(
+                path_in_repo=f"themes/theme_schema@{version}.json",
+                path_or_fileobj=css_file.name,
+            ),
+            CommitOperationAdd(
+                path_in_repo="README.md", path_or_fileobj=readme_file.name
+            ),
+            CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
+            CommitOperationAdd(
+                path_in_repo="theme_dropdown.py",
+                path_or_fileobj=str(
+                    Path(__file__).parent / "utils" / "theme_dropdown.py"
+                ),
+            ),
+        ]
+
+        huggingface_hub.create_repo(
+            space_id,
+            repo_type="space",
+            space_sdk="gradio",
+            token=hf_token,
+            exist_ok=True,
+            private=private,
+        )
+
+        api.create_commit(
+            repo_id=space_id,
+            commit_message="Updating theme",
+            repo_type="space",
+            operations=operations,
+            token=hf_token,
+        )
+        url = f"https://huggingface.co/spaces/{space_id}"
+        print(f"See your theme here! {url}")
+        return url
+
+
+@document("push_to_hub", "from_hub", "load", "dump", "from_dict", "to_dict")
 class Base(ThemeClass):
     def __init__(
         self,
@@ -396,8 +640,8 @@ class Base(ThemeClass):
         loader_color_dark=None,
         slider_color=None,
         slider_color_dark=None,
-        stat_color_background_fill=None,
-        stat_color_background_fill_dark=None,
+        stat_background_fill=None,
+        stat_background_fill_dark=None,
         table_border_color=None,
         table_border_color_dark=None,
         table_even_background_fill=None,
@@ -458,7 +702,7 @@ class Base(ThemeClass):
         button_small_text_size=None,
         button_small_text_weight=None,
         button_transition=None,
-    ):
+    ) -> Base:
         """
         Parameters:
             body_background_fill: The background of the entire app.
@@ -627,8 +871,8 @@ class Base(ThemeClass):
             loader_color_dark: The color of the loading animation while a request is pending in dark mode.
             slider_color: The color of the slider in a range element.
             slider_color_dark: The color of the slider in a range element in dark mode.
-            stat_color_background_fill: The background used for stats visuals (e.g. confidence bars in label).
-            stat_color_background_fill_dark: The background used for stats visuals (e.g. confidence bars in label) in dark mode.
+            stat_background_fill: The background used for stats visuals (e.g. confidence bars in label).
+            stat_background_fill_dark: The background used for stats visuals (e.g. confidence bars in label) in dark mode.
             table_border_color: The border color of a table.
             table_border_color_dark: The border color of a table in dark mode.
             table_even_background_fill: The background of even rows in a table.
@@ -1217,7 +1461,7 @@ class Base(ThemeClass):
             self, "input_border_width", "0px"
         )
         self.input_border_width_dark = input_border_width_dark or getattr(
-            self, "input_border_width_dark", "0px"
+            self, "input_border_width_dark", None
         )
         self.input_padding = input_padding or getattr(
             self, "input_padding", "*spacing_xl"
@@ -1264,12 +1508,11 @@ class Base(ThemeClass):
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )
-        self.stat_color_background_fill = stat_color_background_fill or getattr(
-            self, "stat_color_background_fill", "*primary_300"
+        self.stat_background_fill = stat_background_fill or getattr(
+            self, "stat_background_fill", "*primary_300"
         )
-        self.stat_color_background_fill_dark = (
-            stat_color_background_fill_dark
-            or getattr(self, "stat_color_background_fill_dark", "*primary_500")
+        self.stat_background_fill_dark = stat_background_fill_dark or getattr(
+            self, "stat_background_fill_dark", "*primary_500"
         )
         self.table_border_color = table_border_color or getattr(
             self, "table_border_color", "*neutral_300"

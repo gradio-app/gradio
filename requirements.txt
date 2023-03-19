@@ -20,6 +20,7 @@ python-multipart
 pydub
 pyyaml
 requests
+semantic_version
 typing_extensions
 uvicorn
 websockets>=10.0

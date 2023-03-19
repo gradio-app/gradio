@@ -478,7 +478,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: Theme | None = None,
+        theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -497,7 +497,13 @@ class Blocks(BlockContext):
         self.save_to = None
         if theme is None:
             theme = DefaultTheme()
-        elif not isinstance(theme, Theme):
+        elif isinstance(theme, str):
+            try:
+                theme = Theme.from_hub(theme)
+            except Exception as e:
+                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                theme = DefaultTheme()
+        if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
         self.theme = theme

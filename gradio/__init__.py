@@ -86,6 +86,7 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
+from gradio.themes import Base as Theme
 
 current_pkg_version = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
