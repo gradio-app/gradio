@@ -185,7 +185,7 @@ class IOComponent(Component, Serializable):
     ):
         self.temp_files: Set[str] = set()
         self.DEFAULT_TEMP_DIR = tempfile.gettempdir()
-        
+
         Component.__init__(
             self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
         )
@@ -206,7 +206,6 @@ class IOComponent(Component, Serializable):
         )
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
-
 
     def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
@@ -4243,25 +4242,60 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "__type__": "update",
         }
         return updated_config
+    
+    def _preprocess_chat_messages(
+        self, chat_message: str | Dict | None
+    ) -> str | Tuple | None:
+        if chat_message is None:
+            return None
+        elif isinstance(chat_message, dict):
+            if chat_message["alt_text"] is not None:
+                return (chat_message["name"], chat_message["alt_text"])
+            else:
+                return (chat_message["name"], )
+        else: # string
+            return chat_message    
 
-    def _process_chat_messages(
-        self, chat_message: str | Tuple | List | Dict | None
+    def preprocess(
+        self,
+        y: List[
+            Tuple[str | Dict | None, str | Dict | None]
+        ],
+    ) -> List[Tuple[str | Tuple | None, str | Tuple | None]]:
+        if y is None:
+            return y
+        processed_messages = []
+        for message_pair in y:
+            assert isinstance(
+                message_pair, (tuple, list)
+            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
+            assert (
+                len(message_pair) == 2
+            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            processed_messages.append(
+                (
+                    self._preprocess_chat_messages(message_pair[0]),
+                    self._preprocess_chat_messages(message_pair[1]),
+                )
+            )
+        return processed_messages
+
+    def _postprocess_chat_messages(
+        self, chat_message: str | Tuple | List | None
     ) -> str | Dict | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            mime_type = processing_utils.get_mimetype(chat_message[0])
+            filepath = chat_message[0] 
+            mime_type = processing_utils.get_mimetype(filepath)
+            filepath = self.make_temp_copy_if_needed(filepath)
             return {
-                "name": chat_message[0],
+                "name": filepath,
                 "mime_type": mime_type,
                 "alt_text": chat_message[1] if len(chat_message) > 1 else None,
                 "data": None,  # These last two fields are filled in by the frontend
                 "is_file": True,
             }
-        elif isinstance(
-            chat_message, dict
-        ):  # This happens for previously processed messages
-            return chat_message
         elif isinstance(chat_message, str):
             return self.md.renderInline(chat_message)
         else:
@@ -4270,7 +4304,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     def postprocess(
         self,
         y: List[
-            Tuple[str | Tuple | List | Dict | None, str | Tuple | List | Dict | None]
+            Tuple[str | Tuple | List | None, str | Tuple | List | None]
         ],
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
@@ -4291,8 +4325,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
             processed_messages.append(
                 (
-                    self._process_chat_messages(message_pair[0]),
-                    self._process_chat_messages(message_pair[1]),
+                    self._postprocess_chat_messages(message_pair[0]),
+                    self._postprocess_chat_messages(message_pair[1]),
                 )
             )
         return processed_messages
