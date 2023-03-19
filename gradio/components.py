@@ -1690,7 +1690,7 @@ class Image(
                 suffix=("." + fmt.lower() if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
-            return file_obj.name
+            return self.make_temp_copy_if_needed(file_obj.name)
         else:
             raise ValueError(
                 "Unknown type: "
