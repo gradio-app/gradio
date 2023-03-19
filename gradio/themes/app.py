@@ -1,7 +1,8 @@
 import time
 
-import gradio as gr
 from theme_dropdown import create_theme_dropdown  # noqa: F401
+
+import gradio as gr
 
 dropdown, js = create_theme_dropdown()
 
