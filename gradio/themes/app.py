@@ -1,8 +1,7 @@
 import time
 
-from theme_dropdown import create_theme_dropdown
-
 import gradio as gr
+from gradio.themes.utils.theme_dropdown import create_theme_dropdown
 
 dropdown, js = create_theme_dropdown()
 
@@ -121,13 +120,12 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
     with gr.Row():
         with gr.Column(scale=2):
-            chatbot = gr.Chatbot([["Hello", "Hi"]], label="Chatbot")
+            chatbot = gr.Chatbot([("Hello", "Hi")], label="Chatbot")
             chat_btn = gr.Button("Add messages")
 
             def chat(history):
                 time.sleep(2)
                 yield [["How are you?", "I am good."]]
-                time
 
             chat_btn.click(
                 lambda history: history

@@ -299,7 +299,7 @@ class TestThemeUploadDownload:
             dracula.push_to_hub("dracula_revamped", version="3.0", hf_token="s")
 
     def test_dump_and_load(self):
-        with tempfile.NamedTemporaryFile(suffix=".json") as path:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as path:
             dracula.dump(path.name)
             assert gr.themes.Base.load(path.name).to_dict() == dracula.to_dict()
 
