@@ -1,4 +1,6 @@
+
 # Upcoming Release
+
 
 ## New Features:
 
@@ -7,6 +9,39 @@ No changes to highlight.
 ## Bug Fixes:
 
 No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+
+
+# 3.22.1
+
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Restore label bars by [@aliabid94](https://github.com/aliabid94) in [PR 3507](https://github.com/gradio-app/gradio/pull/3507) 
 
 ## Documentation Changes:
 

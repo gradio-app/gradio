@@ -647,8 +647,8 @@ class Base(ThemeClass):
         loader_color_dark=None,
         slider_color=None,
         slider_color_dark=None,
-        stat_color_background_fill=None,
-        stat_color_background_fill_dark=None,
+        stat_background_fill=None,
+        stat_background_fill_dark=None,
         table_border_color=None,
         table_border_color_dark=None,
         table_even_background_fill=None,
@@ -878,8 +878,8 @@ class Base(ThemeClass):
             loader_color_dark: The color of the loading animation while a request is pending in dark mode.
             slider_color: The color of the slider in a range element.
             slider_color_dark: The color of the slider in a range element in dark mode.
-            stat_color_background_fill: The background used for stats visuals (e.g. confidence bars in label).
-            stat_color_background_fill_dark: The background used for stats visuals (e.g. confidence bars in label) in dark mode.
+            stat_background_fill: The background used for stats visuals (e.g. confidence bars in label).
+            stat_background_fill_dark: The background used for stats visuals (e.g. confidence bars in label) in dark mode.
             table_border_color: The border color of a table.
             table_border_color_dark: The border color of a table in dark mode.
             table_even_background_fill: The background of even rows in a table.
@@ -1515,12 +1515,12 @@ class Base(ThemeClass):
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )
-        self.stat_color_background_fill = stat_color_background_fill or getattr(
-            self, "stat_color_background_fill", "*primary_300"
+        self.stat_background_fill = stat_background_fill or getattr(
+            self, "stat_background_fill", "*primary_300"
         )
-        self.stat_color_background_fill_dark = (
-            stat_color_background_fill_dark
-            or getattr(self, "stat_color_background_fill_dark", "*primary_500")
+        self.stat_background_fill_dark = (
+            stat_background_fill_dark
+            or getattr(self, "stat_background_fill_dark", "*primary_500")
         )
         self.table_border_color = table_border_color or getattr(
             self, "table_border_color", "*neutral_300"
