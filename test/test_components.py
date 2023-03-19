@@ -623,6 +623,9 @@ class TestImage:
         assert image_input.preprocess(img).size == (30, 10)
         assert image_input.postprocess("test/test_files/bus.png") == img
         assert image_input.serialize("test/test_files/bus.png") == img
+        image_input = gr.Image(type="filepath")
+        image_temp_filepath = image_input.preprocess(img)
+        assert image_temp_filepath in image_input.temp_files
 
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
@@ -1733,8 +1736,14 @@ class TestChatbot:
                 "cool pic",
             ),
         ]
-
-        assert chatbot.postprocess(multimodal_msg) == processed_multimodal_msg
+        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg)
+        postprocessed_multimodal_msg_base_names = []
+        for x, y in postprocessed_multimodal_msg:
+            if isinstance(x, dict):
+                x["name"] = os.path.basename(x["name"])
+                postprocessed_multimodal_msg_base_names.append((x, y))
+        assert postprocessed_multimodal_msg_base_names == processed_multimodal_msg
+        assert chatbot.preprocess(processed_multimodal_msg) == multimodal_msg
         assert chatbot.get_config() == {
             "value": [],
             "label": None,

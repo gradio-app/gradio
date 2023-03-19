@@ -4242,7 +4242,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "__type__": "update",
         }
         return updated_config
-    
+
     def _preprocess_chat_messages(
         self, chat_message: str | Dict | None
     ) -> str | Tuple | None:
@@ -4252,15 +4252,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             if chat_message["alt_text"] is not None:
                 return (chat_message["name"], chat_message["alt_text"])
             else:
-                return (chat_message["name"], )
-        else: # string
-            return chat_message    
+                return (chat_message["name"],)
+        else:  # string
+            return chat_message
 
     def preprocess(
         self,
-        y: List[
-            Tuple[str | Dict | None, str | Dict | None]
-        ],
+        y: List[Tuple[str | Dict | None, str | Dict | None]],
     ) -> List[Tuple[str | Tuple | None, str | Tuple | None]]:
         if y is None:
             return y
@@ -4286,7 +4284,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            filepath = chat_message[0] 
+            filepath = chat_message[0]
             mime_type = processing_utils.get_mimetype(filepath)
             filepath = self.make_temp_copy_if_needed(filepath)
             return {
@@ -4303,9 +4301,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def postprocess(
         self,
-        y: List[
-            Tuple[str | Tuple | List | None, str | Tuple | List | None]
-        ],
+        y: List[Tuple[str | Tuple | List | None, str | Tuple | List | None]],
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
