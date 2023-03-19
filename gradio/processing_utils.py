@@ -1,24 +1,19 @@
 from __future__ import annotations
 
 import base64
-import hashlib
 import json
 import mimetypes
 import os
-import secrets
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Dict, Tuple
 
-import aiofiles
 import numpy as np
 import requests
-from fastapi import UploadFile
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -324,125 +319,7 @@ class TempFileManager:
     It should be instantiated in the __init__ method of the component.
     """
 
-    def __init__(self) -> None:
-        # Set stores all the temporary files created by this component.
-        self.temp_files: Set[str] = set()
-        self.DEFAULT_TEMP_DIR = tempfile.gettempdir()
-
-    def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
-        sha1 = hashlib.sha1()
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
-                sha1.update(chunk)
-        return sha1.hexdigest()
-
-    def hash_url(self, url: str, chunk_num_blocks: int = 128) -> str:
-        sha1 = hashlib.sha1()
-        remote = urllib.request.urlopen(url)
-        max_file_size = 100 * 1024 * 1024  # 100MB
-        total_read = 0
-        while True:
-            data = remote.read(chunk_num_blocks * sha1.block_size)
-            total_read += chunk_num_blocks * sha1.block_size
-            if not data or total_read > max_file_size:
-                break
-            sha1.update(data)
-        return sha1.hexdigest()
-
-    def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
-        sha1 = hashlib.sha1()
-        for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
-            data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
-            sha1.update(data.encode("utf-8"))
-        return sha1.hexdigest()
-
-    def make_temp_copy_if_needed(self, file_path: str) -> str:
-        """Returns a temporary file path for a copy of the given file path if it does
-        not already exist. Otherwise returns the path to the existing temp file."""
-        temp_dir = self.hash_file(file_path)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
-
-        if not Path(full_temp_file_path).exists():
-            shutil.copy2(file_path, full_temp_file_path)
-
-        self.temp_files.add(full_temp_file_path)
-        return full_temp_file_path
-
-    async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
-        temp_dir = secrets.token_hex(
-            20
-        )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
-        temp_dir = Path(upload_dir) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-        output_file_obj = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-
-        if file.filename:
-            file_name = Path(file.filename).name
-            output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
-
-        full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
-
-        async with aiofiles.open(full_temp_file_path, "wb") as output_file:
-            while True:
-                content = await file.read(100 * 1024 * 1024)
-                if not content:
-                    break
-                await output_file.write(content)
-
-        return full_temp_file_path
-
-    def download_temp_copy_if_needed(self, url: str) -> str:
-        """Downloads a file and makes a temporary file path for a copy if does not already
-        exist. Otherwise returns the path to the existing temp file."""
-        temp_dir = self.hash_url(url)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-
-        f.name = utils.strip_invalid_filename_characters(Path(url).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
-
-        if not Path(full_temp_file_path).exists():
-            with requests.get(url, stream=True) as r:
-                with open(full_temp_file_path, "wb") as f:
-                    shutil.copyfileobj(r.raw, f)
-
-        self.temp_files.add(full_temp_file_path)
-        return full_temp_file_path
-
-    def base64_to_temp_file_if_needed(
-        self, base64_encoding: str, file_name: str | None = None
-    ) -> str:
-        """Converts a base64 encoding to a file and returns the path to the file if
-        the file doesn't already exist. Otherwise returns the path to the existing file."""
-        temp_dir = self.hash_base64(base64_encoding)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
-        temp_dir.mkdir(exist_ok=True, parents=True)
-
-        guess_extension = get_extension(base64_encoding)
-        if file_name:
-            file_name = utils.strip_invalid_filename_characters(file_name)
-        elif guess_extension:
-            file_name = "file." + guess_extension
-        else:
-            file_name = "file"
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = file_name
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
-
-        if not Path(full_temp_file_path).exists():
-            data, _ = decode_base64_to_binary(base64_encoding)
-            with open(full_temp_file_path, "wb") as fb:
-                fb.write(data)
-
-        self.temp_files.add(full_temp_file_path)
-        return full_temp_file_path
-
+ 
 
 def download_tmp_copy_of_file(
     url_path: str, access_token: str | None = None, dir: str | None = None
