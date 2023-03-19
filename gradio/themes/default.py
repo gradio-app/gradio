@@ -62,8 +62,8 @@ class Default(Base):
             input_border_width="1px",
             input_background_fill="white",
             # Gradients
-            stat_color_background_fill="linear-gradient(to right, *primary_400, *primary_200)",
-            stat_color_background_fill_dark="linear-gradient(to right, *primary_400, *primary_600)",
+            stat_background_fill="linear-gradient(to right, *primary_400, *primary_200)",
+            stat_background_fill_dark="linear-gradient(to right, *primary_400, *primary_600)",
             error_background_fill=f"linear-gradient(to right, {colors.red.c100}, *background_fill_secondary)",
             error_background_fill_dark="*background_fill_primary",
             checkbox_label_background_fill="linear-gradient(to top, *neutral_50, white)",

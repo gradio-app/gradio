@@ -7,7 +7,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Restore label bars by [@aliabid94](https://github.com/aliabid94) in [PR 3507](https://github.com/gradio-app/gradio/pull/3507) 
 
 ## Documentation Changes:
 
