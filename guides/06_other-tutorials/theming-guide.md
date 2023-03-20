@@ -17,10 +17,15 @@ with gr.Blocks(theme=gr.themes.Soft()):
 	height="450"
 ></iframe>
 
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. These are:
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
+* `gr.themes.Base()`
+* `gr.themes.Default()`
+* `gr.themes.Glass()`
+* `gr.themes.Monochrome()`
+* `gr.themes.Soft()`
 
-You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
+Each of these themes set values for hundreds of CSS variables. You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
 
 ## Extending Themes via the Constructor
 
