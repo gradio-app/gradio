@@ -177,7 +177,6 @@ class ThemeClass:
     @staticmethod
     def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
         assets = get_theme_assets(space_info)
-        print("assets", assets)
         latest_version = max(assets, key=lambda asset: asset.version).version
         return str(latest_version.next_patch())
 
