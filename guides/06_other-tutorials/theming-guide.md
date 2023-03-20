@@ -256,12 +256,12 @@ Look how fun our theme looks now! With just a few variable changes, our theme lo
 
 You may find it helpful to explore the [source code of the other prebuilt themes](https://github.com/gradio-app/gradio/blob/main/gradio/themes) to see how they modified the base theme. You can also find your browser's Inspector useful to select elements from the UI and see what CSS variables are being used in the styles panel. 
 
-### Sharing Themes 🎨 🤝
+## Sharing Themes
 
 Once you have created a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it!
 
-#### Uploading a Theme
-There are two ways to upload a theme, via the theme class instance or the command line. We will cover both of them.
+### Uploading a Theme
+There are two ways to upload a theme, via the theme class instance or the command line. We will cover both of them with the previously created `seafoam` theme.
 
 1. Via the class instance
 
@@ -296,20 +296,34 @@ you can ommit the `hf_token` argument.
 
 The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
 That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying
-about changing how previously created apps look.
+about changing how previously created apps look. The `version` argument is optional. If omitted, the next patch version is automatically applied.
 
-#### Theme Previews
+### Theme Previews
 
 By calling `push_to_hub` or `upload_theme`, the theme assets will be stored in a [HuggingFace space](https://huggingface.co/docs/hub/spaces-overview).
 
 The theme preview for our seafoam theme is here: [seafoam preview](https://huggingface.co/spaces/gradio/seafoam).
 
-#### Discovering Themes
+<iframe
+	src="https://gradio-seafoam.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+### Discovering Themes
 
 The [Theme Gallery](https://huggingface.co/spaces/gradio/theme-gallery) shows all the public gradio themes. After publishing your theme,
 it will automatically show up in the theme gallery after a couple of minutes. 
 
 You can sort the themes by the number of likes on the space and from most to least recently created as well as toggling themes between light and dark mode.
+
+<iframe
+	src="https://gradio-theme-gallery.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
 
 ### Downloading
 To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
