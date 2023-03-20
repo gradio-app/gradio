@@ -3819,7 +3819,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Dict | List | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -3980,7 +3980,7 @@ class Gallery(IOComponent, FileSerializable, Selectable):
 
     def __init__(
         self,
-        value: List[np.ndarray | _Image.Image | str] | Callable | None = None,
+        value: List[np.ndarray | _Image.Image | str | Tuple] | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
