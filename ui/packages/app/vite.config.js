@@ -24,7 +24,7 @@ const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
 const TEST_CDN = !!process.env.TEST_CDN;
 const CDN = TEST_CDN
 	? "http://localhost:4321/"
-	: `https://gradio-dev-cdn.s3.amazonaws.com/${GRADIO_VERSION}/`;
+	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
