@@ -27,7 +27,7 @@
 		is_space: boolean;
 		is_colab: boolean;
 		show_api: boolean;
-		stylesheets: string[];
+		stylesheets?: string[];
 	}
 
 	let id = -1;
@@ -97,13 +97,15 @@
 			target.appendChild(style);
 		}
 		mount_css(config.root + "/theme.css", document.head);
-		for (let stylesheet of config.stylesheets) {
-			let absolute_link =
-				stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
-			mount_css(
-				absolute_link ? stylesheet : config.root + "/" + stylesheet,
-				document.head
-			);
+		if (config.stylesheets) {
+			for (let stylesheet of config.stylesheets) {
+				let absolute_link =
+					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
+				mount_css(
+					absolute_link ? stylesheet : config.root + "/" + stylesheet,
+					document.head
+				);
+			}
 		}
 	}
 
