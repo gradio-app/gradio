@@ -6,13 +6,25 @@
 	export let showOptions: boolean = false;
 	export let activeOption: string;
 	export let disabled: boolean = false;
-	export let distance_from_top: number;
-	export let distance_from_bottom: number;
-	export let input_height: number;
+
+	let distance_from_top: number;
+	let distance_from_bottom: number;
+	let input_height: number;
+	let refElement: HTMLDivElement;
+	$: {
+		if (showOptions && refElement) {
+			distance_from_top = refElement.getBoundingClientRect().top;
+			distance_from_bottom =
+				window.innerHeight - refElement.getBoundingClientRect().bottom;
+			input_height =
+				refElement.parentElement?.getBoundingClientRect().height || 0;
+		}
+	}
 
 	const dispatch = createEventDispatcher();
 </script>
 
+<div class="reference" bind:this={refElement} />
 {#if showOptions && !disabled}
 	<ul
 		class="options"
@@ -22,8 +34,8 @@
 		style:top={distance_from_bottom > distance_from_top ? "0px" : null}
 		style:bottom={distance_from_bottom <= distance_from_top ? "0px" : null}
 		style:max-height={distance_from_bottom > distance_from_top
-			? `${distance_from_bottom}px`
-			: `${distance_from_top - input_height}px`}
+			? `calc(${distance_from_bottom + input_height}px - var(--window-padding))`
+			: `calc(${distance_from_top}px - var(--window-padding))`}
 	>
 		{#each filtered as choice}
 			<li
@@ -52,6 +64,7 @@
 
 <style>
 	.options {
+		--window-padding: var(--size-8);
 		position: absolute;
 		z-index: var(--layer-5);
 		margin-left: 0;
