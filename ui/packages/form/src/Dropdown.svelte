@@ -299,7 +299,8 @@
 		cursor: not-allowed;
 	}
 	input:not(.multiselect) {
-		cursor: pointer;}
+		cursor: pointer;
+	}
 
 	.remove-all {
 		margin-left: var(--size-1);

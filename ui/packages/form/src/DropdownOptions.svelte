@@ -21,11 +21,9 @@
 		on:mousedown|preventDefault={(e) => dispatch("change", e)}
 		style:top={distance_from_bottom > distance_from_top ? "0px" : null}
 		style:bottom={distance_from_bottom <= distance_from_top ? "0px" : null}
-		style:max-height={
-			distance_from_bottom > distance_from_top
-				? `${distance_from_bottom}px`
-				: `${distance_from_top - input_height}px`
-		}
+		style:max-height={distance_from_bottom > distance_from_top
+			? `${distance_from_bottom}px`
+			: `${distance_from_top - input_height}px`}
 	>
 		{#each filtered as choice}
 			<li
