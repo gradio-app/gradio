@@ -13,7 +13,7 @@ css = (
 )
 
 with gr.Blocks(css=css) as demo:
-    gr.BarPlot(value=simple, x="a", y="b", title="Simple Bar Plot").style(
+    gr.BarPlot(value=simple, x="item", y="inventory", title="Simple Bar Plot").style(
         container=False,
     )
 
