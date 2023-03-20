@@ -5741,7 +5741,10 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: str | Tuple[str] | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        value: str
+        | Tuple[str]
+        | None
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
