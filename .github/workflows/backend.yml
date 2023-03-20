@@ -53,12 +53,12 @@ jobs:
     - name: Install 3.9 Test Dependencies
       if: ${{ matrix.python-version == '3.9' }}
       run: |
-        venv/bin/activate
+        . venv/bin/activate
         pip install -r test/requirements.txt
     - name: Install 3.7 Test Dependencies
       if: ${{ matrix.python-version == '3.7' }}
       run: |
-        venv/bin/activate
+        . venv/bin/activate
         pip install -r test/requirements-37.txt
     - name: Lint
       run: |
