@@ -17,10 +17,15 @@ with gr.Blocks(theme=gr.themes.Soft()):
 	height="450"
 ></iframe>
 
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. These are:
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
+* `gr.themes.Base()`
+* `gr.themes.Default()`
+* `gr.themes.Glass()`
+* `gr.themes.Monochrome()`
+* `gr.themes.Soft()`
 
-You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
+Each of these themes set values for hundreds of CSS variables. You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
 
 ## Extending Themes via the Constructor
 
@@ -256,4 +261,95 @@ Look how fun our theme looks now! With just a few variable changes, our theme lo
 
 You may find it helpful to explore the [source code of the other prebuilt themes](https://github.com/gradio-app/gradio/blob/main/gradio/themes) to see how they modified the base theme. You can also find your browser's Inspector useful to select elements from the UI and see what CSS variables are being used in the styles panel. 
 
-Enjoy creating your own themes! If you make one you're proud of, please share it with us on [Twitter](https://twitter.com/gradio).
+## Sharing Themes
+
+Once you have created a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it!
+
+### Uploading a Theme
+There are two ways to upload a theme, via the theme class instance or the command line. We will cover both of them with the previously created `seafoam` theme.
+
+* Via the class instance
+
+Each theme instance has a method called `push_to_hub` we can use to upload a theme to the HuggingFace hub.
+
+```python
+seafoam.push_to_hub(repo_name="seafoam",
+                    version="0.0.1",
+					hf_token="<token>")
+```
+
+* Via the command line
+
+First save the theme to disk
+```python
+seafoam.dump(filename="seafoam.json")
+```
+
+Then use the `upload_theme` command:
+
+```bash
+upload_theme\
+"seafoam.json"\
+"seafoam"\
+--version "0.0.1"\
+--hf_token "<token>"
+```
+
+In order to upload a theme, you must have a HuggingFace account and pass your [Access Token](https://huggingface.co/docs/huggingface_hub/quick-start#login)
+as the `hf_token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
+you can ommit the `hf_token` argument.
+
+The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
+That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying
+about changing how previously created apps look. The `version` argument is optional. If omitted, the next patch version is automatically applied.
+
+### Theme Previews
+
+By calling `push_to_hub` or `upload_theme`, the theme assets will be stored in a [HuggingFace space](https://huggingface.co/docs/hub/spaces-overview).
+
+The theme preview for our seafoam theme is here: [seafoam preview](https://huggingface.co/spaces/gradio/seafoam).
+
+<iframe
+	src="https://gradio-seafoam.hf.space?__theme=light"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+### Discovering Themes
+
+The [Theme Gallery](https://huggingface.co/spaces/gradio/theme-gallery) shows all the public gradio themes. After publishing your theme,
+it will automatically show up in the theme gallery after a couple of minutes. 
+
+You can sort the themes by the number of likes on the space and from most to least recently created as well as toggling themes between light and dark mode.
+
+<iframe
+	src="https://gradio-theme-gallery.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+### Downloading
+To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
+
+```python
+my_theme = gr.Theme.from_hub("gradio/seafoam")
+
+with gr.Blocks(theme=my_theme) as demo:
+    ....
+```
+
+You can also pass the theme string directly to `Blocks` or `Interface` (`gr.Blocks(theme="gradio/seafoam")`)
+
+You can pin your app to an upstream theme version by using semantic versioning expressions.
+
+For example, the following would ensure the theme we load from the `seafoam` repo was between versions `0.0.1` and `0.1.0`:
+
+```python
+with gr.Blocks(theme="gradio/seafoam@>=0.0.1,<0.1.0") as demo:
+    ....
+```
+
+Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub! 
+If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out! 
