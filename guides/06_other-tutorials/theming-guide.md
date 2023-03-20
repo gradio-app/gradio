@@ -263,7 +263,7 @@ Once you have created a theme, you can upload it to the HuggingFace Hub to let o
 ### Uploading a Theme
 There are two ways to upload a theme, via the theme class instance or the command line. We will cover both of them with the previously created `seafoam` theme.
 
-1. Via the class instance
+* Via the class instance
 
 Each theme instance has a method called `push_to_hub` we can use to upload a theme to the HuggingFace hub.
 
@@ -273,7 +273,7 @@ seafoam.push_to_hub(repo_name="seafoam",
 					hf_token="<token>")
 ```
 
-2. Via the command line
+* Via the command line
 
 First save the theme to disk
 ```python
