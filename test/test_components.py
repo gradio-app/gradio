@@ -1700,14 +1700,14 @@ class TestChatbot:
         ]
 
         multimodal_msg = [
-            (("driving.mp4",), "cool video"),
-            (("cantina.wav",), "cool audio"),
-            (("lion.jpg", "A lion"), "cool pic"),
+            (("test/test_files/video_sample.mp4",), "cool video"),
+            (("test/test_files/audio_sample.wav",), "cool audio"),
+            (("test/test_files/bus.png", "A bus"), "cool pic"),
         ]
         processed_multimodal_msg = [
             (
                 {
-                    "name": "driving.mp4",
+                    "name": "video_sample.mp4",
                     "mime_type": "video/mp4",
                     "alt_text": None,
                     "data": None,
@@ -1717,7 +1717,7 @@ class TestChatbot:
             ),
             (
                 {
-                    "name": "cantina.wav",
+                    "name": "audio_sample.wav",
                     "mime_type": "audio/wav",
                     "alt_text": None,
                     "data": None,
@@ -1727,9 +1727,9 @@ class TestChatbot:
             ),
             (
                 {
-                    "name": "lion.jpg",
-                    "mime_type": "image/jpeg",
-                    "alt_text": "A lion",
+                    "name": "bus.png",
+                    "mime_type": "image/png",
+                    "alt_text": "A bus",
                     "data": None,
                     "is_file": True,
                 },
@@ -1743,7 +1743,18 @@ class TestChatbot:
                 x["name"] = os.path.basename(x["name"])
                 postprocessed_multimodal_msg_base_names.append((x, y))
         assert postprocessed_multimodal_msg_base_names == processed_multimodal_msg
-        assert chatbot.preprocess(processed_multimodal_msg) == multimodal_msg
+
+        preprocessed_multimodal_msg = chatbot.preprocess(processed_multimodal_msg)
+        multimodal_msg_base_names = []
+        for x, y in multimodal_msg:
+            if isinstance(x, tuple):
+                if len(x) > 1:
+                    new_x = (os.path.basename(x[0]), x[1])
+                else:
+                    new_x = (os.path.basename(x[0]),)
+                multimodal_msg_base_names.append((new_x, y))
+        assert multimodal_msg_base_names == preprocessed_multimodal_msg
+
         assert chatbot.get_config() == {
             "value": [],
             "label": None,

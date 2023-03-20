@@ -4301,7 +4301,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def postprocess(
         self,
-        y: List[Tuple[str | Tuple | List | None, str | Tuple | List | None]],
+        y: List[Tuple[str | Tuple | None, str | Tuple | None]],
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
