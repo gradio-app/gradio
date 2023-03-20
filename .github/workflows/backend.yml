@@ -44,12 +44,20 @@ jobs:
         cache-dependency-path: ui/pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests virtualenv
-    - name: Install Gradio + Python Deps
+    - name: Install Gradio
       run: |
         python -m virtualenv venv
         . venv/bin/activate
         bash scripts/install_gradio.sh
-        bash scripts/install_test_requirements.sh
+        pip install --upgrade pip
+    - name: Install 3.9 Test Dependencies
+      if: ${{ matrix.python-version == "3.9" }}
+      run: |
+        pip install -r test/requirements.txt
+    - name: Install 3.7 Test Dependencies
+      if: ${{ matrix.python-version == "3.7" }}
+      run: |
+        pip install -r test/requirements-37.txt
     - name: Lint
       run: |
         . venv/bin/activate
