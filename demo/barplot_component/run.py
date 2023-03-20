@@ -3,8 +3,8 @@ import pandas as pd
 
 simple = pd.DataFrame(
     {
-        "a": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
-        "b": [28, 55, 43, 91, 81, 53, 19, 87, 52],
+        "item": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        "inventory": [28, 55, 43, 91, 81, 53, 19, 87, 52],
     }
 )
 
