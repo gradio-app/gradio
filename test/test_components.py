@@ -1695,17 +1695,17 @@ class TestChatbot:
         Postprocess, get_config
         """
         chatbot = gr.Chatbot()
-        assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
-            ("You are <strong>cool</strong>", "so are <em>you</em>")
+        assert chatbot.postprocess([["You are **cool**", "so are *you*"]]) == [
+            ["You are <strong>cool</strong>", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
-            (("test/test_files/video_sample.mp4",), "cool video"),
-            (("test/test_files/audio_sample.wav",), "cool audio"),
-            (("test/test_files/bus.png", "A bus"), "cool pic"),
+            [("test/test_files/video_sample.mp4",), "cool video"],
+            [("test/test_files/audio_sample.wav",), "cool audio"],
+            [("test/test_files/bus.png", "A bus"), "cool pic"],
         ]
         processed_multimodal_msg = [
-            (
+            [
                 {
                     "name": "video_sample.mp4",
                     "mime_type": "video/mp4",
@@ -1714,8 +1714,8 @@ class TestChatbot:
                     "is_file": True,
                 },
                 "cool video",
-            ),
-            (
+            ],
+            [
                 {
                     "name": "audio_sample.wav",
                     "mime_type": "audio/wav",
@@ -1724,8 +1724,8 @@ class TestChatbot:
                     "is_file": True,
                 },
                 "cool audio",
-            ),
-            (
+            ],
+            [
                 {
                     "name": "bus.png",
                     "mime_type": "image/png",
@@ -1734,14 +1734,14 @@ class TestChatbot:
                     "is_file": True,
                 },
                 "cool pic",
-            ),
+            ],
         ]
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg)
         postprocessed_multimodal_msg_base_names = []
         for x, y in postprocessed_multimodal_msg:
             if isinstance(x, dict):
                 x["name"] = os.path.basename(x["name"])
-                postprocessed_multimodal_msg_base_names.append((x, y))
+                postprocessed_multimodal_msg_base_names.append([x, y])
         assert postprocessed_multimodal_msg_base_names == processed_multimodal_msg
 
         preprocessed_multimodal_msg = chatbot.preprocess(processed_multimodal_msg)
@@ -1752,7 +1752,7 @@ class TestChatbot:
                     new_x = (os.path.basename(x[0]), x[1])
                 else:
                     new_x = (os.path.basename(x[0]),)
-                multimodal_msg_base_names.append((new_x, y))
+                multimodal_msg_base_names.append([new_x, y])
         assert multimodal_msg_base_names == preprocessed_multimodal_msg
 
         assert chatbot.get_config() == {

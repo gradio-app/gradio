@@ -4168,14 +4168,16 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects function to return a {List[Tuple[str | None | Tuple, str | None | Tuple]]}, a list of tuples with user message and response messages. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
+    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
     """
 
     def __init__(
         self,
-        value: List[Tuple[str | None, str | None]] | Callable | None = None,
+        value: List[List[str | Tuple[str] | Tuple[str, str] | None]]
+        | Callable
+        | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
         *,
         label: str | None = None,
@@ -4229,7 +4231,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: List[List[str | Tuple[str] | Tuple[str, str] | None]]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
@@ -4245,7 +4249,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def _preprocess_chat_messages(
         self, chat_message: str | Dict | None
-    ) -> str | Tuple | None:
+    ) -> str | Tuple[str] | Tuple[str, str] | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, dict):
@@ -4258,8 +4262,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def preprocess(
         self,
-        y: List[Tuple[str | Dict | None, str | Dict | None]],
-    ) -> List[Tuple[str | Tuple | None, str | Tuple | None]]:
+        y: List[List[str | Dict | None] | Tuple[str | Dict | None, str | Dict | None]],
+    ) -> List[List[str | Tuple[str] | Tuple[str, str] | None]]:
         if y is None:
             return y
         processed_messages = []
@@ -4271,10 +4275,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 len(message_pair) == 2
             ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
             processed_messages.append(
-                (
+                [
                     self._preprocess_chat_messages(message_pair[0]),
                     self._preprocess_chat_messages(message_pair[1]),
-                )
+                ]
             )
         return processed_messages
 
@@ -4301,13 +4305,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def postprocess(
         self,
-        y: List[Tuple[str | Tuple | None, str | Tuple | None]],
-    ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
+        y: List[List[str | Tuple[str] | Tuple[str, str] | None] | Tuple],
+    ) -> List[List[str | Dict | None]]:
         """
         Parameters:
-            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
+            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
         Returns:
-            List of tuples representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information.
+            List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
         if y is None:
             return []
@@ -4320,10 +4324,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 len(message_pair) == 2
             ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
             processed_messages.append(
-                (
+                [
                     self._postprocess_chat_messages(message_pair[0]),
                     self._postprocess_chat_messages(message_pair[1]),
-                )
+                ]
             )
         return processed_messages
 
