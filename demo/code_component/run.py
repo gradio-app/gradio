@@ -6,13 +6,13 @@ css = (
 
 with gr.Blocks(css=css) as demo:
     gr.Code(
-        value="""
-    def hello_world():
-        return "Hello, world!"
+        value="""def hello_world():
+    return "Hello, world!"
     
-    print(hello_world())
-    """,
+print(hello_world())""",
         language="python",
+        interactive=True,
+        show_label=False,
     )
 
 if __name__ == "__main__":
