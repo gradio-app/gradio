@@ -6,6 +6,9 @@
 	export let showOptions: boolean = false;
 	export let activeOption: string;
 	export let disabled: boolean = false;
+	export let distance_from_top: number;
+	export let distance_from_bottom: number;
+	export let input_height: number;
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -16,6 +19,13 @@
 		aria-expanded={showOptions}
 		transition:fly={{ duration: 200, y: 5 }}
 		on:mousedown|preventDefault={(e) => dispatch("change", e)}
+		style:top={distance_from_bottom > distance_from_top ? "0px" : null}
+		style:bottom={distance_from_bottom <= distance_from_top ? "0px" : null}
+		style:max-height={
+			distance_from_bottom > distance_from_top
+				? `${distance_from_bottom}px`
+				: `${distance_from_top - input_height}px`
+		}
 	>
 		{#each filtered as choice}
 			<li
@@ -51,7 +61,6 @@
 		border-radius: var(--container-radius);
 		background: var(--background-fill-primary);
 		width: var(--size-full);
-		max-height: var(--size-32);
 		overflow: auto;
 		color: var(--body-text-color);
 		list-style: none;

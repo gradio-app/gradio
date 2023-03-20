@@ -22,6 +22,8 @@
 		activeOption: string,
 		showOptions = false;
 
+	let inputElement: HTMLInputElement;
+
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
@@ -39,6 +41,18 @@
 	// cause infinite loops in the non-multiselect case
 	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
+	}
+
+	let distance_from_top = 0;
+	let distance_from_bottom = 0;
+	let input_height = 0;
+	$: {
+		if (showOptions) {
+			distance_from_top = inputElement.getBoundingClientRect().top;
+			distance_from_bottom =
+				window.innerHeight - inputElement.getBoundingClientRect().bottom;
+			input_height = inputElement.getBoundingClientRect().height;
+		}
 	}
 
 	function add(option: string) {
@@ -157,15 +171,21 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
+					class:multiselect
 					{disabled}
 					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:focus={() =>
-						(showOptions =
+					bind:this={inputElement}
+					on:mousedown={() => {
+						showOptions = !showOptions;
+					}}
+					on:focus={() => {
+						showOptions =
 							Array.isArray(value) && value.length === max_choices
 								? false
-								: true)}
+								: true;
+					}}
 					on:blur={() => (showOptions = false)}
 					on:keyup={handleKeyup}
 				/>
@@ -186,6 +206,9 @@
 			{filtered}
 			{activeOption}
 			{disabled}
+			{distance_from_top}
+			{distance_from_bottom}
+			{input_height}
 			on:change={handleOptionMousedown}
 		/>
 	</div>
@@ -275,6 +298,8 @@
 	input:disabled {
 		cursor: not-allowed;
 	}
+	input:not(.multiselect) {
+		cursor: pointer;}
 
 	.remove-all {
 		margin-left: var(--size-1);

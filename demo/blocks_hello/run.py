@@ -9,9 +9,13 @@ with gr.Blocks() as demo:
     # Hello World!
     Start typing below to see the output.
     """)
-    inp = gr.Textbox(placeholder="What is your name?")
-    out = gr.Textbox()
-    inp.change(welcome, inp, out)
+    gr.Dropdown(list("abcd"))
+    gr.Dropdown(list("abcdefghijklmnopqrstuvwxyz"))
+    gr.Dropdown(list("abcdefghijklmnopqrstuvwxyz"), multiselect=True)
+    gr.Dropdown(list("abcd"))
+    gr.HTML("""
+    <div style="height: 600px; width: 240px; background-color: blue"></div>
+    """)
 
 if __name__ == "__main__":
     demo.launch()
