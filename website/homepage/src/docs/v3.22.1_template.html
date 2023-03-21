@@ -214,6 +214,14 @@
         
       
     </div>
+    <a class="thin-link px-4 block" href="#themes">Themes</a>
+    <div class="sub-links hidden" hash="#themes">
+      
+        
+          <a class="thinner-link px-4 pl-8 block" href="#base">Base</a>
+        
+      
+    </div>
     <a class="link px-4 my-2 block" href="#components">Components</a>
     
       <a class="px-4 block thin-link" href="#audio">Audio</a>
@@ -3399,7 +3407,7 @@ demo.launch()</code></pre>
               <code class="block">
                 theme
               </code>
-              <p class="text-gray-500 italic">Theme | None</p>
+              <p class="text-gray-500 italic">Theme | str | None</p>
               
               <p class="text-gray-500 font-semibold">default: None</p>
               
@@ -5763,6 +5771,868 @@ demo.launch()</code></pre>
    <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
       
         <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">Accordion</span></p>
+      
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+                
+              
+            </div>
+          </section>
+          <section id="themes" class="pt-2 mb-8">
+            <h3 class="text-3xl font-light my-4">
+              Themes
+            </h3>
+            <p class="mb-12">
+              Customize the look of your app by writing your own custom theme
+            </p>
+            <div class="flex flex-col gap-10">
+              
+                
+                  
+<div class="obj" id="base">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-header"
+      class="text-3xl font-light py-4">Base</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.<span>Base(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg"></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                primary_hue
+              </code>
+              <p class="text-gray-500 italic">colors.Color | str</p>
+              
+              <p class="text-gray-500 font-semibold">default: Color()</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The primary hue of the theme. Load a preset, like gradio.themes.colors.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                secondary_hue
+              </code>
+              <p class="text-gray-500 italic">colors.Color | str</p>
+              
+              <p class="text-gray-500 font-semibold">default: Color()</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The secondary hue of the theme. Load a preset, like gradio.themes.colors.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                neutral_hue
+              </code>
+              <p class="text-gray-500 italic">colors.Color | str</p>
+              
+              <p class="text-gray-500 font-semibold">default: Color()</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The neutral hue of the theme, used . Load a preset, like gradio.themes.colors.green (or just the string "green"), or pass your own gradio.themes.utils.Color object.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                text_size
+              </code>
+              <p class="text-gray-500 italic">sizes.Size | str</p>
+              
+              <p class="text-gray-500 font-semibold">default: Size()</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The size of the text. Load a preset, like gradio.themes.sizes.text_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                spacing_size
+              </code>
+              <p class="text-gray-500 italic">sizes.Size | str</p>
+              
+              <p class="text-gray-500 font-semibold">default: Size()</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The size of the spacing. Load a preset, like gradio.themes.sizes.spacing_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                radius_size
+              </code>
+              <p class="text-gray-500 italic">sizes.Size | str</p>
+              
+              <p class="text-gray-500 font-semibold">default: Size()</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The radius size of corners. Load a preset, like gradio.themes.sizes.radius_sm (or just the string "sm"), or pass your own gradio.themes.utils.Size object.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                font
+              </code>
+              <p class="text-gray-500 italic">fonts.Font | str | Iterable[fonts.Font | str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: (<gradio.themes.utils.fonts.GoogleFont object at 0x7fd08ffc35b0>, 'ui-sans-serif', 'system-ui', 'sans-serif')</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                font_mono
+              </code>
+              <p class="text-gray-500 italic">fonts.Font | str | Iterable[fonts.Font | str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: (<gradio.themes.utils.fonts.GoogleFont object at 0x7fd08fedd540>, 'ui-monospace', 'Consolas', 'monospace')</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
+      <div class="flex flex-col gap-8 pl-12">
+        
+          
+            
+<div class="obj" id="base-push_to_hub">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-push_to_hub-header"
+      class="text-3xl font-light py-4">push_to_hub</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.Base.<span>push_to_hub(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+    -->repo_name, <!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">Upload a theme to the HuggingFace hub. <br> This requires a HuggingFace account. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                repo_name
+              </code>
+              <p class="text-gray-500 italic">str</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The name of the repository to store the theme assets, e.g. 'my_theme' or 'sunset'.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                org_name
+              </code>
+              <p class="text-gray-500 italic">str | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The name of the org to save the space in. If None (the default), the username corresponding to the logged in user, or hƒ_token is used.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                version
+              </code>
+              <p class="text-gray-500 italic">str | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A semantic version tag for theme. Bumping the version tag lets you publish updates to a theme without changing the look of applications that already loaded your theme.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                hf_token
+              </code>
+              <p class="text-gray-500 italic">str | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>API token for your HuggingFace account</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                theme_name
+              </code>
+              <p class="text-gray-500 italic">str | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Name for the name. If None, defaults to repo_name</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                description
+              </code>
+              <p class="text-gray-500 italic">str | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A long form description to your theme.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                private
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p></p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="base-from_hub">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-from_hub-header"
+      class="text-3xl font-light py-4">from_hub</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.Base.<span>from_hub(</span><!--
+--><!--
+  --><!--
+    -->repo_name, <!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">Load a theme from the hub. <br> This DOES NOT require a HuggingFace account for downloading publicly available themes. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                repo_name
+              </code>
+              <p class="text-gray-500 italic">str</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>string of the form <author>/<theme-name>@<semantic-version-expression>.  If a semantic version expression is omitted, the latest version will be fetched.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                hf_token
+              </code>
+              <p class="text-gray-500 italic">str | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>HuggingFace Token. Only needed to download private themes.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="base-load">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-load-header"
+      class="text-3xl font-light py-4">load</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.Base.<span>load(</span><!--
+--><!--
+  --><!--
+    -->path, <!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">Load a theme from a json file. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                path
+              </code>
+              <p class="text-gray-500 italic">str</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The filepath to read.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="base-dump">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-dump-header"
+      class="text-3xl font-light py-4">dump</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.Base.<span>dump(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+    -->filename, <!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">Write the theme to a json file. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                filename
+              </code>
+              <p class="text-gray-500 italic">str</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The path to write the theme too</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="base-from_dict">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-from_dict-header"
+      class="text-3xl font-light py-4">from_dict</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.Base.<span>from_dict(</span><!--
+--><!--
+  --><!--
+    -->theme, <!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">Create a theme instance from a dictionary representation. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                theme
+              </code>
+              <p class="text-gray-500 italic">Dict[str, Dict[str, str]]</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The dictionary representation of the theme.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="base-to_dict">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="base-to_dict-header"
+      class="text-3xl font-light py-4">to_dict</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.Base.<span>to_dict(</span><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">Convert the theme into a python dictionary.</p>
+  <br>
+  
+  
+  
+
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+      <div class="ml-12"> </div>
+    </div>
+  
+  
+   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
+      
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">Base</span></p>
       
   
 </div>
@@ -24821,7 +25691,7 @@ if __name__ == "__main__":
               <code class="block">
                 value
               </code>
-              <p class="text-gray-500 italic">List[np.ndarray | _Image.Image | str] | Callable | None</p>
+              <p class="text-gray-500 italic">List[np.ndarray | _Image.Image | str | Tuple] | Callable | None</p>
               
               <p class="text-gray-500 font-semibold">default: None</p>
               
@@ -30322,7 +31192,7 @@ if __name__ == "__main__":
               <code class="block">
                 value
               </code>
-              <p class="text-gray-500 italic">str | Callable | None</p>
+              <p class="text-gray-500 italic">str | Dict | List | Callable | None</p>
               
               <p class="text-gray-500 font-semibold">default: None</p>
               
