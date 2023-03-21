@@ -32,7 +32,7 @@
 		activeOption = filtered[0];
 
 	$: readonly =
-		(!multiselect && typeof value === "string") ||
+		(!multiselect && typeof value === "string" && value.length > 0) ||
 		(multiselect && Array.isArray(value) && value.length === max_choices);
 
 	// The initial value of value is [] so that can
@@ -52,7 +52,6 @@
 				});
 				dispatch("change", value);
 			}
-			showOptions = !(value.length === max_choices);
 		}
 		value = value;
 	}
@@ -161,11 +160,12 @@
 					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:focus={() =>
-						(showOptions =
-							Array.isArray(value) && value.length === max_choices
-								? false
-								: true)}
+					on:mousedown={() => {
+						showOptions = !showOptions;
+					}}
+					on:focus={() => {
+						showOptions = true;
+					}}
 					on:blur={() => (showOptions = false)}
 					on:keyup={handleKeyup}
 				/>
