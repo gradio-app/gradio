@@ -8,11 +8,12 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-* Fixed bug where text for altair plots was not legible in dark mode by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3555](https://github.com/gradio-app/gradio/pull/3555)  
+- Fixed bug where text for altair plots was not legible in dark mode by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3555](https://github.com/gradio-app/gradio/pull/3555)  
+- Fixes `Chatbot` and `Image` components so that files passed during processing are added to a directory where they can be served from, by [@abidlabs](https://github.com/abidlabs) in [PR 3523](https://github.com/gradio-app/gradio/pull/3523)
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Makes some fixes to the Theme Guide related to naming of variables, by [@abidlabs](https://github.com/abidlabs) in [PR 3561](https://github.com/gradio-app/gradio/pull/3561)
 
 ## Testing and Infrastructure Changes:
 
@@ -24,7 +25,8 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+* Mobile responsive iframes in themes guide by[@aliabd](https://github.com/aliabd) in [PR 3562](https://github.com/gradio-app/gradio/pull/3562) 
+
 
 ## Contributors Shoutout:
 

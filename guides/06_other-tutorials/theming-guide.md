@@ -10,12 +10,12 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     ...
 ```
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-soft.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. These are:
 
@@ -54,13 +54,12 @@ or you could use the `Color` objects directly, like this:
 with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink)) as demo:
     ...
 ```
-
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-1.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 Predefined colors are:
 
@@ -93,9 +92,9 @@ You could also create your own custom `Color` objects and pass them in.
 
 The next 3 constructor arguments set the sizing of the theme and are `gradio.themes.Size` objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
 
-- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.spacing_md`.
-- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.radius_md`.
-- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.font_md`.
+- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.sizes.spacing_md`.
+- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.sizes.radius_md`.
+- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.sizes.text_md`.
 
 You could modify these values using their string shortcuts, such as
 
@@ -110,13 +109,12 @@ or you could use the `Size` objects directly, like this:
 with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none)) as demo:
     ...
 ```
-
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-2.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 The predefined size objects are:
 
@@ -147,13 +145,13 @@ with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata")
     ...
 ```
 
+$demo_theme_extended_step_3
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-3.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
-
+</div>
 
 
 ## Extending Themes via `.set()`
@@ -246,7 +244,7 @@ theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
     button_primary_background_fill_dark="#AAAAAA",
     button_primary_border="*button_primary_background_fill",
-    button_primary_border_dark="*button_primary_background_fill",
+    button_primary_border_dark="*button_primary_background_fill_dark",
 )
 ```
 
@@ -260,12 +258,12 @@ Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a 
 
 $code_theme_new_step_1
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-1.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 
 The Base theme is very barebones, and uses `gr.themes.Blue` as it primary color - you'll note the primary button and the loading animation are both blue as a result. Let's change the defaults core arguments of our app. We'll overwrite the constructor and pass new defaults for the core constructor arguments.
@@ -274,25 +272,24 @@ We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutra
 
 $code_theme_new_step_2
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-2.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. 
 
 Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
 $code_theme_new_step_3
-
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-3.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 
 Look how fun our theme looks now! With just a few variable changes, our theme looks completely different.
@@ -347,12 +344,12 @@ By calling `push_to_hub` or `upload_theme`, the theme assets will be stored in a
 
 The theme preview for our seafoam theme is here: [seafoam preview](https://huggingface.co/spaces/gradio/seafoam).
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-seafoam.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 ### Discovering Themes
 
@@ -361,12 +358,12 @@ it will automatically show up in the theme gallery after a couple of minutes.
 
 You can sort the themes by the number of likes on the space and from most to least recently created as well as toggling themes between light and dark mode.
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-gallery.hf.space"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 ### Downloading
 To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
@@ -391,3 +388,19 @@ with gr.Blocks(theme="gradio/seafoam@>=0.0.1,<0.1.0") as demo:
 
 Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub! 
 If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out! 
+
+<style>
+.wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 25px;
+    height: 0;
+}
+.wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+</style>
