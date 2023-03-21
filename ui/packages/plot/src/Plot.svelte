@@ -66,8 +66,6 @@
 			spec.config = config;
 		}
 		switch (value.chart || "") {
-			case "":
-				break;
 			case "scatter":
 				if (spec.encoding.color && spec.encoding.color.type == "nominal") {
 					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
