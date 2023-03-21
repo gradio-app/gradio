@@ -315,7 +315,7 @@ class IOComponent(Component):
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
-            data, _ = processing_utils.decode_base64_to_binary(base64_encoding)
+            data, _ = client_utils.decode_base64_to_binary(base64_encoding)
             with open(full_temp_file_path, "wb") as fb:
                 fb.write(data)
 
