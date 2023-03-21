@@ -12,13 +12,9 @@
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let show_label: boolean;
-	export let mirror_webcam: boolean;
+	export let show_label: boolean = true;
+	export let mirror_webcam: boolean = false;
 	export let include_audio: boolean;
-
-	export let drop_text: string = "Drop a video file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -50,16 +46,8 @@
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	{#if source === "upload"}
-		<Upload
-			bind:dragging
-			filetype="video/mp4,video/x-m4v,video/*"
-			on:load={handle_load}
-		>
-			<div class="flex flex-col">
-				{drop_text}
-				<span class="text-gray-300">- {or_text} -</span>
-				{upload_text}
-			</div>
+		<Upload bind:dragging filetype="video/x-m4v,video/*" on:load={handle_load}>
+			<slot />
 		</Upload>
 	{:else if source === "webcam"}
 		<Webcam
@@ -82,9 +70,22 @@
 			mirror={mirror_webcam && source === "webcam"}
 		/>
 	{:else if value.size}
-		<div class="file-name text-4xl p-6 break-all">{value.name}</div>
-		<div class="file-size text-2xl p-2">
+		<div class="file-name">{value.name}</div>
+		<div class="file-size">
 			{prettyBytes(value.size)}
 		</div>
 	{/if}
 {/if}
+
+<style>
+	.file-name {
+		padding: var(--size-6);
+		font-size: var(--text-xxl);
+		word-break: break-all;
+	}
+
+	.file-size {
+		padding: var(--size-2);
+		font-size: var(--text-xl);
+	}
+</style>

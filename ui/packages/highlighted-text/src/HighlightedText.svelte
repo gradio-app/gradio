@@ -2,10 +2,13 @@
 	const browser = typeof document !== "undefined";
 	import { colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
+	export let selectable: boolean = false;
 
 	let ctx: CanvasRenderingContext2D;
 
@@ -23,6 +26,10 @@
 		ctx.clearRect(0, 0, 1, 1);
 		return `rgba(${r}, ${g}, ${b}, ${255 / a})`;
 	}
+
+	const dispatch = createEventDispatcher<{
+		select: SelectData;
+	}>();
 
 	let mode: "categories" | "scores";
 
@@ -86,17 +93,14 @@
 
 {#if mode === "categories"}
 	{#if show_legend}
-		<div
-			class="category-legend flex flex-wrap gap-1 mb-2 text-black mt-7"
-			data-testid="highlighted-text:category-legend"
-		>
+		<div class="category-legend" data-testid="highlighted-text:category-legend">
 			{#each Object.entries(_color_map) as [category, color], i}
 				<div
 					on:mouseover={() => handle_mouseover(category)}
 					on:focus={() => handle_mouseover(category)}
 					on:mouseout={() => handle_mouseout()}
 					on:blur={() => handle_mouseout()}
-					class="category-label px-2 rounded-sm font-semibold cursor-pointer"
+					class="category-label"
 					style={"background-color:" + color.secondary}
 				>
 					{category}
@@ -104,25 +108,26 @@
 			{/each}
 		</div>
 	{/if}
-	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7 mt-7"
-		data-testid="highlighted-text:textfield"
-	>
-		{#each value as [text, category]}
+	<div class="textfield">
+		{#each value as [text, category], i}
 			<span
-				class="textspan rounded-sm px-1 transition-colors text-black  pb-[0.225rem] pt-[0.15rem]"
+				class="textspan"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
 					: _color_map[category].secondary}
-				class:dark:text-white={category === null ||
-					(active && active !== category)}
+				class:no-cat={category === null || (active && active !== category)}
 				class:hl={category !== null}
+				class:selectable
+				on:click={() => {
+					dispatch("select", { index: i, value: [text, category] });
+				}}
 			>
-				<span class="text ">{text}</span>
+				<span class:no-label={!_color_map[category]} class="text">{text}</span>
 				{#if !show_legend && category !== null}
-					&nbsp;<span
-						class="label mr-[-4px] font-bold uppercase text-xs inline-category  text-white rounded-sm  px-[0.325rem] mt-[0.05rem] py-[0.05rem] transition-colors"
+					&nbsp;
+					<span
+						class="label"
 						style:background-color={category === null ||
 						(active && active !== category)
 							? ""
@@ -130,34 +135,27 @@
 					>
 						{category}
 					</span>
-				{/if}</span
-			>
+				{/if}
+			</span>
 		{/each}
 	</div>
 {:else}
 	{#if show_legend}
-		<div
-			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold mt-7"
-			data-testid="highlighted-text:color-legend"
-			style="background: -webkit-linear-gradient(to right,#8d83d6,(255,255,255,0),#eb4d4b); background: linear-gradient(to right,#8d83d6,rgba(255,255,255,0),#eb4d4b);"
-		>
+		<div class="color-legend" data-testid="highlighted-text:color-legend">
 			<span>-1</span>
 			<span>0</span>
 			<span>+1</span>
 		</div>
 	{/if}
-	<div
-		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word leading-7"
-		data-testid="highlighted-text:textfield"
-	>
+	<div class="textfield" data-testid="highlighted-text:textfield">
 		{#each value as [text, score]}
 			<span
-				class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
+				class="textspan score-text"
 				style={"background-color: rgba(" +
-					(score < 0 ? "141, 131, 214," + -score : "235, 77, 75," + score) +
+					(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
 					")"}
 			>
-				<span class="text dark:text-white">{text}</span>
+				<span class="text">{text}</span>
 			</span>
 		{/each}
 	</div>
@@ -165,10 +163,102 @@
 
 <style>
 	.hl + .hl {
-		@apply ml-1;
+		margin-left: var(--size-1);
 	}
 
 	.textspan:last-child > .label {
-		@apply mr-0;
+		margin-right: 0;
+	}
+
+	.category-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		margin-top: var(--size-7);
+		margin-bottom: var(--size-2);
+		color: black;
+	}
+
+	.category-label {
+		cursor: pointer;
+		border-radius: var(--radius-xs);
+		padding-right: var(--size-2);
+		padding-left: var(--size-2);
+		font-weight: var(--weight-semibold);
+	}
+
+	.color-legend {
+		display: flex;
+		justify-content: space-between;
+		margin-top: var(--size-7);
+		margin-bottom: var(--size-3);
+		border-radius: var(--radius-xs);
+		background: linear-gradient(
+			to right,
+			var(--color-purple),
+			rgba(255, 255, 255, 0),
+			var(--color-red)
+		);
+		padding: var(--size-1) var(--size-2);
+		font-weight: var(--weight-semibold);
+	}
+
+	.textfield {
+		box-sizing: border-box;
+		border-radius: var(--radius-xs);
+		background: var(--background-fill-primary);
+		background-color: transparent;
+		padding: var(--block-padding);
+		max-width: var(--size-full);
+		line-height: var(--scale-4);
+		word-break: break-all;
+	}
+
+	.textspan {
+		transition: 150ms;
+		border-radius: var(--radius-xs);
+		padding-top: 2.5px;
+		padding-right: var(--size-1);
+		padding-bottom: 3.5px;
+		padding-left: var(--size-1);
+		color: black;
+	}
+
+	.label {
+		transition: 150ms;
+		margin-top: 1px;
+		margin-right: calc(var(--size-1) * -1);
+		border-radius: var(--radius-xs);
+		padding: 1px 5px;
+		color: var(--body-text-color);
+		color: white;
+		font-weight: var(--weight-bold);
+		font-size: var(--text-sm);
+		text-transform: uppercase;
+	}
+
+	.text {
+		color: black;
+	}
+
+	.score-text .text {
+		color: var(--body-text-color);
+	}
+
+	.score-text {
+		margin-right: var(--size-1);
+		padding: var(--size-1);
+	}
+
+	.no-cat {
+		color: var(--body-text-color);
+	}
+
+	.no-label {
+		color: var(--body-text-color);
+	}
+
+	.selectable {
+		cursor: pointer;
 	}
 </style>

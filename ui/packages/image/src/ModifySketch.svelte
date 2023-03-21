@@ -6,7 +6,7 @@
 	const dispatch = createEventDispatcher();
 </script>
 
-<div class="z-50 top-2 right-2 justify-end flex gap-1 absolute">
+<div>
 	<IconButton Icon={Undo} label="Undo" on:click={() => dispatch("undo")} />
 	<IconButton
 		Icon={Clear}
@@ -17,3 +17,15 @@
 		}}
 	/>
 </div>
+
+<style>
+	div {
+		display: flex;
+		position: absolute;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-5);
+	}
+</style>

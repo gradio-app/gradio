@@ -16,12 +16,14 @@ from unittest.mock import patch
 
 import mlflow
 import pytest
+import uvicorn
 import wandb
 import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.exceptions import DuplicateBlockError
+from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
@@ -44,16 +46,9 @@ def captured_output():
 class TestBlocksMethods:
     maxDiff = None
 
-    def test_set_share(self):
+    def test_set_share_is_false_by_default(self):
         with gr.Blocks() as demo:
-            # self.share is False when instantiating the class
             assert not demo.share
-            # default is False, if share is None
-            demo.share = None
-            assert not demo.share
-            # if set to True, it doesn't change
-            demo.share = True
-            assert demo.share
 
     @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
@@ -287,6 +282,117 @@ class TestBlocksMethods:
 
         assert block.css == css
 
+    @pytest.mark.asyncio
+    async def test_restart_after_close(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_completed":
+                    completed = True
+            assert msg["output"]["data"][0] == "freddy"
+
+        io.close()
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_completed":
+                    completed = True
+            assert msg["output"]["data"][0] == "Victor"
+
+    def test_function_types_documented_in_config(self):
+        def continuous_fn():
+            return 42
+
+        def generator_function():
+            for index in range(10):
+                yield index
+
+        with gr.Blocks() as demo:
+
+            gr.Number(value=lambda: 2, every=2)
+            meaning_of_life = gr.Number()
+            counter = gr.Number()
+            generator_btn = gr.Button(value="Generate")
+            greeting = gr.Textbox()
+            greet_btn = gr.Button(value="Greet")
+
+            greet_btn.click(lambda: "Hello!", inputs=None, outputs=[greeting])
+            generator_btn.click(generator_function, inputs=None, outputs=[counter])
+            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
+
+        for i, dependency in enumerate(demo.config["dependencies"]):
+            if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+            if i == 0:
+                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 1:
+                assert dependency["types"] == {"continuous": False, "generator": True}
+            if i == 2:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+
+    @pytest.mark.asyncio
+    async def test_run_without_launching(self):
+        """Test that we can start the app and use queue without calling .launch().
+
+        This is essentially what the 'gradio' reload mode does
+        """
+
+        port = get_first_available_port(7860, 7870)
+
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+
+        config = uvicorn.Config(app=io.app, port=port, log_level="warning")
+
+        server = Server(config=config)
+        server.run_in_thread()
+
+        try:
+            async with websockets.connect(f"ws://localhost:{port}/queue/join") as ws:
+                completed = False
+                while not completed:
+                    msg = json.loads(await ws.recv())
+                    if msg["msg"] == "send_data":
+                        await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
+                    if msg["msg"] == "send_hash":
+                        await ws.send(
+                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
+                        )
+                    if msg["msg"] == "process_completed":
+                        completed = True
+                assert msg["output"]["data"][0] == "Victor"
+        finally:
+            server.close()
+
+    @patch(
+        "gradio.themes.ThemeClass.from_hub",
+        side_effect=ValueError("Something went wrong!"),
+    )
+    def test_use_default_theme_as_fallback(self, mock_from_hub):
+        with pytest.warns(
+            UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
+        ):
+            with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
+                assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -312,15 +418,16 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.load_event
+                    assert not component.load_event_to_attach
                 else:
-                    assert component.load_event
+                    assert component.load_event_to_attach
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
-        assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+        # Queue should be explicitly false for these events
+        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
@@ -343,11 +450,14 @@ class TestComponentsInBlocks:
                 components.append(component(value=lambda: None, every=1))
         assert [comp.load_event for comp in components] == demo.dependencies
 
+
+class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+
         io_components = [
             c()
             for c in io_components
-            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot]
+            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot, gr.BarPlot]
         ]
         with gr.Blocks() as demo:
             for component in io_components:
@@ -378,6 +488,22 @@ class TestComponentsInBlocks:
 
         output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
+
+    def test_blocks_does_not_del_dict_keys_inplace(self):
+        with gr.Blocks() as demo:
+            im_list = [gr.Image() for i in range(2)]
+
+            def change_visibility(value):
+                return [gr.update(visible=value)] * 2
+
+            checkbox = gr.Checkbox(value=True, label="Show image")
+            checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
+
+        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state={})
+        assert output == [
+            {"visible": False, "__type__": "update"},
+            {"visible": False, "__type__": "update"},
+        ]
 
     def test_blocks_returns_correct_output_dict_single_key(self):
         with gr.Blocks() as demo:
@@ -454,11 +580,22 @@ class TestComponentsInBlocks:
         for fn_index in range(2):
             output = await demo.process_api(fn_index, [], state={})
             assert output["data"][0] == {
-                "interactive": True,
                 "__type__": "update",
                 "mode": "dynamic",
             }
             assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+
+    def test_error_raised_if_num_outputs_mismatch(self):
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(lambda x: x, textbox1, [textbox1, textbox2])
+        with pytest.raises(
+            ValueError,
+            match="Number of output components does not match number of values returned from from function <lambda>",
+        ):
+            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
 
 
 class TestCallFunction:
@@ -755,11 +892,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
-            "type": None,
+            "interactive": False,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
-            "mode": "static",
         }
 
         specific_update = gr.Textbox.get_specific_update(
@@ -772,10 +908,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
+            "interactive": True,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
-            "mode": "dynamic",
         }
 
     def test_with_generic_update(self):
@@ -793,7 +929,6 @@ class TestSpecificUpdate:
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
-            "mode": "dynamic",
             "interactive": True,
             "__type__": "update",
         }
@@ -967,6 +1102,51 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
+
+    @pytest.mark.asyncio
+    async def test_cancel_button_for_interfaces(self):
+        def generate(x):
+            for i in range(4):
+                yield i
+                time.sleep(0.2)
+
+        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
+        stop_btn_id = next(
+            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
+        )
+        assert not io.blocks[stop_btn_id].visible
+
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            checked_iteration = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_generating" and isinstance(
+                    msg["output"]["data"][0], str
+                ):
+                    checked_iteration = True
+                    assert msg["output"]["data"][1:] == [
+                        {"visible": False, "__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                    ]
+                if msg["msg"] == "process_completed":
+                    assert msg["output"]["data"] == [
+                        {"__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                        {"visible": False, "__type__": "update"},
+                    ]
+                    completed = True
+            assert checked_iteration
+
+        io.close()
 
 
 class TestEvery:
@@ -1302,7 +1482,7 @@ async def test_queue_when_using_auth():
         data={"username": "abc", "password": "123"},
         follow_redirects=False,
     )
-    assert resp.status_code == 302
+    assert resp.status_code == 200
     token = resp.cookies.get("access-token")
     assert token
 

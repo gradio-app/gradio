@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { Component as Form } from "./components/Form";
 	import { Component as Textbox } from "./components/Textbox";
+	import { Button } from "@gradio/button";
+	import { Component as Column } from "./components/Column";
 	export let root: string;
-	export let id: number;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
+	export let is_space: boolean;
 
-	window.__gradio_loader__[id].$set({ status: "complete" });
 	let username = "";
 	let password = "";
 	let incorrect_credentials = false;
@@ -16,7 +17,7 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		let response = await fetch(root + "login", {
+		let response = await fetch(root + "/login", {
 			method: "POST",
 			body: formData
 		});
@@ -24,23 +25,26 @@
 			incorrect_credentials = true;
 			username = "";
 			password = "";
-		} else {
+		} else if (response.status == 200) {
 			location.reload();
 		}
 	};
 </script>
 
-<div
-	class="dark:bg-gray-950 w-full flex flex-col items-center justify-center"
-	class:min-h-screen={app_mode}
->
-	<div class="gr-panel !p-8">
-		<h2 class="text-2xl font-semibold mb-6">Login</h2>
+<div class="wrap" class:min-h-screen={app_mode}>
+	<Column variant="panel" min_width={480}>
+		<h2>Login</h2>
 		{#if auth_message}
-			<p class="my-4">{auth_message}</p>
+			<p class="auth">{auth_message}</p>
+		{/if}
+		{#if is_space}
+			<p class="auth">
+				If you are visiting a HuggingFace Space in Incognito mode, you must
+				enable third party cookies.
+			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="my-4 text-red-600 font-semibold">Incorrect Credentials</p>
+			<p class="creds">Incorrect Credentials</p>
 		{/if}
 		<Form>
 			<Textbox
@@ -64,9 +68,45 @@
 			/>
 		</Form>
 
-		<button
-			class="gr-button gr-button-lg gr-button-primary w-full mt-4"
-			on:click={submit}>Login</button
+		<Button
+			size="lg"
+			variant="primary"
+			style={{ full_width: true }}
+			on:click={submit}
 		>
-	</div>
+			Login
+		</Button>
+	</Column>
 </div>
+
+<style>
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin-top: var(--size-3);
+		background: var(--background-fill-primary);
+		width: var(--size-full);
+	}
+
+	h2 {
+		margin-bottom: var(--size-3);
+		color: var(--body-text-color);
+		font-weight: var(--section-header-text-weight);
+		font-size: var(--text-xl);
+	}
+
+	.auth {
+		margin-top: var(--size-1);
+		margin-bottom: var(--size-1);
+		color: var(--body-text-color);
+	}
+
+	.creds {
+		margin-top: var(--size-4);
+		margin-bottom: var(--size-4);
+		color: var(--error-text-color);
+		font-weight: var(--weight-semibold);
+	}
+</style>

@@ -92,6 +92,10 @@
 .thinner-link.current-nav-link {
   @apply border-orange-500 text-orange-500;
 }
+.prose :where(img):not(:where([class~=not-prose] *)) {
+  margin-bottom: 0;
+  margin-top: 0;
+}
 
 /* docs */
 .selected-demo {

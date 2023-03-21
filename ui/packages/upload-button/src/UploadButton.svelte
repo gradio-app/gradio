@@ -1,19 +1,17 @@
 <script lang="ts">
-	import { get_styles } from "@gradio/utils";
+	import { Button } from "@gradio/button";
 	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "./types";
-	import { type } from "@testing-library/user-event/dist/type";
+	import type { FileData } from "@gradio/upload";
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let size: "sm" | "lg" = "lg";
+	export let size: "sm" | "lg" = style.size || "lg";
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
-
-	$: ({ classes } = get_styles(style, ["full_width"]));
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -37,33 +35,30 @@
 
 	const loadFiles = (files: FileList) => {
 		let _files: Array<File> = Array.from(files);
-		if (!files.length || !window.FileReader) {
+		if (!files.length) {
 			return;
 		}
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: Array<FileData | string> = [];
+		var all_file_data: Array<FileData | File> = [];
 		_files.forEach((f, i) => {
-			let ReaderObj = new FileReader();
-			ReaderObj.readAsDataURL(f);
-			ReaderObj.onloadend = function () {
-				all_file_data[i] = include_file_metadata
-					? {
-							name: f.name,
-							size: f.size,
-							data: this.result as string
-					  }
-					: (this.result as string);
-				if (
-					all_file_data.filter((x) => x !== undefined).length === files.length
-				) {
-					dispatch(
-						"load",
-						file_count == "single" ? all_file_data[0] : all_file_data
-					);
-				}
-			};
+			all_file_data[i] = include_file_metadata
+				? {
+						name: f.name,
+						size: f.size,
+						data: "",
+						blob: f
+				  }
+				: f;
+			if (
+				all_file_data.filter((x) => x !== undefined).length === files.length
+			) {
+				dispatch(
+					"load",
+					file_count == "single" ? all_file_data[0] : all_file_data
+				);
+			}
 		});
 	};
 
@@ -76,7 +71,7 @@
 </script>
 
 <input
-	class="hidden-upload hidden"
+	class="hide"
 	accept={accept_file_types}
 	type="file"
 	bind:this={hidden_upload}
@@ -86,12 +81,20 @@
 	mozdirectory={file_count === "directory" || undefined}
 />
 
-<button
+<Button
+	{size}
+	variant="secondary"
+	{elem_id}
+	{elem_classes}
+	{visible}
 	on:click={openFileUpload}
-	class:!hidden={!visible}
-	class="gr-button gr-button-{size}
-		{classes}"
-	id={elem_id}
+	{style}
 >
 	<slot />
-</button>
+</Button>
+
+<style>
+	.hide {
+		display: none;
+	}
+</style>

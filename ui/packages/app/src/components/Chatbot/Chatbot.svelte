@@ -1,35 +1,58 @@
 <script lang="ts">
 	import { ChatBot } from "@gradio/chatbot";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import { Chat } from "@gradio/icons";
+	import type { FileData } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: Array<[string, string]> = [];
+	export let value: Array<
+		[string | FileData | null, string | FileData | null]
+	> = [];
+	let _value: Array<[string | FileData | null, string | FileData | null]>;
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
-	export let color_map: Record<string, string> = {};
+	export let root: string;
+	export let root_url: null | string;
+	export let selectable: boolean = false;
 
-	$: if (!style.color_map && Object.keys(color_map).length) {
-		style.color_map = color_map;
-	}
+	const redirect_src_url = (src: string) =>
+		src.replace('src="/file', `src="${root}file`);
 
-	export let loading_status: LoadingStatus;
+	$: _value = value
+		? value.map(([user_msg, bot_msg]) => [
+				typeof user_msg === "string"
+					? redirect_src_url(user_msg)
+					: normalise_file(user_msg, root, root_url),
+				typeof bot_msg === "string"
+					? redirect_src_url(bot_msg)
+					: normalise_file(bot_msg, root, root_url)
+		  ])
+		: [];
+	export let loading_status: LoadingStatus | undefined = undefined;
 </script>
 
-<Block padding={false} {elem_id} {visible}>
-	<StatusTracker {...loading_status} />
+<Block {elem_id} {elem_classes} {visible} padding={false}>
 	{#if show_label}
 		<BlockLabel
 			{show_label}
 			Icon={Chat}
+			float={false}
 			label={label || "Chatbot"}
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
-	<ChatBot {style} {value} on:change />
+	<ChatBot
+		{style}
+		{selectable}
+		value={_value}
+		pending_message={loading_status?.status === "pending"}
+		on:change
+		on:select
+	/>
 </Block>

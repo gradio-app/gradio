@@ -7,21 +7,18 @@
 	export let interpretation: [number, number];
 </script>
 
-<div class="input-checkbox inline-block">
+<div class="input-checkbox">
 	<BlockTitle>{label}</BlockTitle>
-	<button
-		class="checkbox-item py-2 px-3 rounded cursor-pointer flex gap-1"
-		class:selected={original}
-	>
+	<button class="checkbox-item" class:selected={original}>
 		<div
-			class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"
+			class="checkbox"
 			style={"background-color: " + getSaliencyColor(interpretation[0])}
 		/>
 		<div
-			class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"
+			class="checkbox"
 			style={"background-color: " + getSaliencyColor(interpretation[1])}
 		>
-			<svg class="check h-3 w-4" viewBox="-10 -10 20 20">
+			<svg viewBox="-10 -10 20 20">
 				<line
 					x1="-7.5"
 					y1="0"
@@ -46,15 +43,46 @@
 </div>
 
 <style lang="postcss">
-	.selected .check {
-		@apply opacity-100;
+	.input-checkbox {
+		display: inline-block;
+	}
+
+	svg {
+		width: var(--size-4);
+		height: var(--size-3);
+	}
+	.selected svg {
+		opacity: 1;
 	}
 	.input-checkbox {
-		.checkbox-item {
-			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
-		}
-		.checkbox-item.selected {
-			@apply bg-amber-500 dark:bg-red-600 text-white;
-		}
+		display: flex;
+		gap: var(--size-1);
+		cursor: pointer;
+		border-radius: var(--radius-md);
+		padding: var(--size-2) var(--size-3);
+	}
+
+	.checkbox {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 1px solid var(--border-color-primary);
+		background: var(--background-fill-primary);
+		width: var(--size-4);
+		height: var(--size-4);
+	}
+
+	.checkbox-item {
+		transition: 150ms;
+		box-shadow: var(--shadow-drop);
+		background: var(--background-fill-primary);
+	}
+
+	.checkbox-item:hover {
+		box-shadow: var(--shadow-drop-lg);
+	}
+	.checkbox-item.selected {
+		background: var(--color-accent-base);
+		color: white;
 	}
 </style>

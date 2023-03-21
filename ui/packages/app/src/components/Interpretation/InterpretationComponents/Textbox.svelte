@@ -5,14 +5,27 @@
 	export let interpretation: Array<[string, number]>;
 </script>
 
-<div class="input-text w-full rounded box-border p-2 break-word">
+<div class="input-text">
 	<BlockTitle>{label}</BlockTitle>
 	{#each interpretation as [text, saliency]}
 		<span
-			class="textspan p-1 bg-opacity-20 dark:bg-opacity-80"
+			class="text-span"
 			style={"background-color: " + getSaliencyColor(saliency)}
 		>
 			{text}
 		</span>
 	{/each}
 </div>
+
+<style>
+	.input-text {
+		border-radius: var(--radius-md);
+		padding: var(--size-2);
+		width: var(--size-full);
+		overflow-wrap: break-word;
+	}
+
+	.text-span {
+		padding: var(--size-1);
+	}
+</style>

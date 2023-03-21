@@ -13,6 +13,6 @@ function mock_demo(page: Page, demo: string) {
 
 test("kitchen sink", async ({ page }) => {
 	await mock_demo(page, "kitchen_sink");
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 	await expect(page).toHaveScreenshot();
 });

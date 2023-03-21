@@ -6,13 +6,18 @@
 		Radio,
 		TextBox,
 		Number,
-		Range
+		Range,
+		ColorPicker
 	} from "@gradio/form";
-	import { Panel } from "@gradio/atoms";
+	import { Block } from "@gradio/atoms";
 </script>
 
-<Panel>
-	<TextBox on:change={({ detail }) => console.log(detail)} label="TextBox" />
+<Block>
+	<TextBox
+		on:change={({ detail }) => console.log(detail)}
+		label="TextBox"
+		max_lines={1}
+	/>
 	<TextBox
 		on:change={({ detail }) => console.log(detail)}
 		label="TextBox with max_lines"
@@ -23,6 +28,7 @@
 	<TextBox
 		label="TextArea"
 		lines={5}
+		max_lines={20}
 		on:change={({ detail }) => console.log(detail)}
 		placeholder="Type here..."
 	/>
@@ -91,4 +97,6 @@ And more.`}
 	/>
 
 	<Range label="Dropdown" value={27} disabled />
-</Panel>
+
+	<ColorPicker label="Color" />
+</Block>

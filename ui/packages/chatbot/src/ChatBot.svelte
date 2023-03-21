@@ -1,15 +1,26 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import { colors } from "@gradio/theme";
-	import type { Styles } from "@gradio/utils";
+	import type { Styles, SelectData } from "@gradio/utils";
+	import type { FileData } from "@gradio/upload";
 
-	export let value: Array<[string, string]>;
+	export let value: Array<
+		[string | FileData | null, string | FileData | null]
+	> | null;
+	let old_value: Array<
+		[string | FileData | null, string | FileData | null]
+	> | null = null;
+	export let pending_message: boolean = false;
+	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
+	export let selectable: boolean = false;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		select: SelectData;
+	}>();
 
 	beforeUpdate(() => {
 		autoscroll =
@@ -17,54 +28,228 @@
 	});
 
 	afterUpdate(() => {
-		if (autoscroll) div.scrollTo(0, div.scrollHeight);
+		if (autoscroll) {
+			div.scrollTo(0, div.scrollHeight);
+			div.querySelectorAll("img").forEach((n) => {
+				n.addEventListener("load", () => {
+					div.scrollTo(0, div.scrollHeight);
+				});
+			});
+		}
 	});
 
-	$: value && dispatch("change");
-
-	$: _colors = get_colors();
-
-	function get_color(c: string) {
-		if (c in colors) {
-			return colors[c as keyof typeof colors].primary;
-		} else {
-			return c;
-		}
-	}
-
-	function get_colors() {
-		if (!style.color_map) {
-			return ["#fb923c", "#9ca3af"];
-		} else {
-			return [get_color(style.color_map[0]), get_color(style.color_map[1])];
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			dispatch("change");
 		}
 	}
 </script>
 
-<div class="overflow-y-auto h-[40vh]" bind:this={div}>
-	<div class="flex flex-col items-end space-y-4 p-3">
-		{#each value as message}
-			<div
-				data-testid="user"
-				class="px-3 py-2 rounded-[22px] rounded-br-none text-white text-sm chat-message"
-				style={"background-color:" + _colors[0]}
-			>
-				{@html message[0]}
+<div
+	class="wrap"
+	style:height={`${style.height}px`}
+	style:max-height={`${style.height}px`}
+	bind:this={div}
+>
+	<div class="message-wrap">
+		{#if value !== null}
+			{#each value as message_pair, i}
+				{#each message_pair as message, j}
+					<div
+						data-testid={j == 0 ? "user" : "bot"}
+						class:latest={i === value.length - 1}
+						class="message {j == 0 ? 'user' : 'bot'}"
+						class:hide={message === null}
+						class:selectable
+						on:click={() =>
+							dispatch("select", { index: [i, j], value: message })}
+					>
+						{#if typeof message === "string"}
+							{@html message}
+							{#if feedback && j == 1}
+								<div class="feedback">
+									{#each feedback as f}
+										<button>{f}</button>
+									{/each}
+								</div>
+							{/if}
+						{:else if message !== null && message.mime_type?.includes("audio")}
+							<audio
+								controls
+								preload="metadata"
+								src={message.data}
+								title={message.alt_text}
+								on:play
+								on:pause
+								on:ended
+							/>
+						{:else if message !== null && message.mime_type?.includes("video")}
+							<video
+								controls
+								src={message.data}
+								title={message.alt_text}
+								preload="auto"
+								on:play
+								on:pause
+								on:ended
+							>
+								<track kind="captions" />
+							</video>
+						{:else if message !== null && message.mime_type?.includes("image")}
+							<img src={message.data} alt={message.alt_text} />
+						{/if}
+					</div>
+				{/each}
+			{/each}
+		{/if}
+		{#if pending_message}
+			<div class="message pending">
+				<div class="dot-flashing" />
+				&nbsp;
+				<div class="dot-flashing" />
+				&nbsp;
+				<div class="dot-flashing" />
 			</div>
-			<div
-				data-testid="bot"
-				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white text-sm chat-message"
-				style={"background-color:" + _colors[1]}
-			>
-				{@html message[1]}
-			</div>
-		{/each}
+		{/if}
 	</div>
 </div>
 
 <style>
-	.chat-message :global(img) {
+	.wrap {
+		padding: var(--block-padding);
+		height: 100%;
+		max-height: 480px;
+		overflow-y: auto;
+	}
+
+	.message-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xxl);
+	}
+
+	.message-wrap > div :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
+	}
+
+	.message-wrap :global(audio) {
+		width: 100%;
+	}
+
+	.message {
+		position: relative;
+		align-self: flex-start;
+		border-width: 1px;
+		border-radius: var(--radius-xxl);
+		background: var(--background-fill-secondary);
+		padding: var(--spacing-xxl);
+		width: calc(100% - var(--spacing-xxl));
+		color: var(--body-text-color);
+		font-size: var(--text-lg);
+		line-height: var(--line-lg);
+		overflow-wrap: break-word;
+	}
+	.user {
+		align-self: flex-end;
+		border-bottom-right-radius: 0;
+	}
+	.bot {
+		border-bottom-left-radius: 0;
+		padding-left: calc(2 * var(--spacing-xxl));
+	}
+	@media (max-width: 480px) {
+		.message {
+			width: auto;
+		}
+		.bot {
+			padding-left: var(--spacing-xxl);
+		}
+	}
+
+	/* Colors */
+	.bot,
+	.pending {
+		border-color: var(--border-color-primary);
+		background: var(--background-fill-secondary);
+	}
+	.user {
+		border-color: var(--border-color-accent);
+		background-color: var(--color-accent-soft);
+	}
+	.feedback {
+		display: flex;
+		position: absolute;
+		top: var(--spacing-xl);
+		right: calc(var(--spacing-xxl) + var(--spacing-xl));
+		gap: var(--spacing-lg);
+		font-size: var(--text-sm);
+	}
+	.feedback button {
+		color: var(--body-text-color-subdued);
+	}
+	.feedback button:hover {
+		color: var(--body-text-color);
+	}
+	.selectable {
+		cursor: pointer;
+	}
+
+	.pending {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		align-self: center;
+		gap: 2px;
+	}
+	.dot-flashing {
+		animation: dot-flashing 1s infinite linear alternate;
+		border-radius: 5px;
+		background-color: var(--body-text-color);
+		width: 5px;
+		height: 5px;
+		color: var(--body-text-color);
+	}
+	.dot-flashing:nth-child(2) {
+		animation-delay: 0.33s;
+	}
+	.dot-flashing:nth-child(3) {
+		animation-delay: 0.66s;
+	}
+
+	/* Small screen */
+	@media (max-width: 480px) {
+		.user {
+			align-self: flex-end;
+		}
+		.bot {
+			align-self: flex-start;
+			padding-left: var(--size-3);
+		}
+	}
+
+	@keyframes dot-flashing {
+		0% {
+			opacity: 0.8;
+		}
+		50% {
+			opacity: 0.5;
+		}
+		100% {
+			opacity: 0.8;
+		}
+	}
+	.message-wrap .message :global(img) {
+		margin: var(--size-2);
+		max-height: 200px;
+	}
+	.message-wrap .message :global(a) {
+		color: var(--color-text-link);
+		text-decoration: underline;
+	}
+
+	.hide {
+		display: none;
 	}
 </style>

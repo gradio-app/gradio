@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import { Download } from "@gradio/icons";
 
 	import { Image } from "@gradio/icons";
 
@@ -17,9 +18,30 @@
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 {#if value === null}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><Image /></div>
-	</div>
+	<Empty size="large" unpadded_box={true}><Image /></Empty>
 {:else}
-	<img class="w-full h-full object-contain" src={value} alt="" />
+	<div class="download">
+		<a
+			href={value}
+			target={window.__is_colab__ ? "_blank" : null}
+			download={"image"}
+		>
+			<IconButton Icon={Download} label="Download" />
+		</a>
+	</div>
+	<img src={value} alt="" />
 {/if}
+
+<style>
+	img {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+
+	.download {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+	}
+</style>

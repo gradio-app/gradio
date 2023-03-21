@@ -11,6 +11,7 @@
 
 	export let value: null | string = null;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 
 	export let loading_status: LoadingStatus;
@@ -20,11 +21,13 @@
 	export let style: Styles = {};
 	export let theme: string;
 	export let caption: string;
+	export let bokeh_version: string | null;
 </script>
 
 <Block
 	padding={false}
 	{elem_id}
+	{elem_classes}
 	{visible}
 	disable={typeof style.container === "boolean" && !style.container}
 >
@@ -32,5 +35,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} {target} {theme} {caption} on:change />
+	<Plot {value} {target} {theme} {caption} {bokeh_version} on:change />
 </Block>

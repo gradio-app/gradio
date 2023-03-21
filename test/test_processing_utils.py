@@ -1,9 +1,9 @@
 import os
-import pathlib
 import shutil
 import tempfile
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import patch
 
 import ffmpy
 import matplotlib.pyplot as plt
@@ -63,6 +63,16 @@ class TestImagePreprocessing:
         output_base64 = processing_utils.encode_pil_to_base64(img)
         assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
 
+    def test_save_pil_to_file_keeps_pnginfo(self):
+        input_img = Image.open("gradio/test_data/test_image.png")
+        input_img = input_img.convert("RGB")
+        input_img.info = {"key1": "value1", "key2": "value2"}
+
+        file_obj = processing_utils.save_pil_to_file(input_img)
+        output_img = Image.open(file_obj)
+
+        assert output_img.info == input_img.info
+
     def test_encode_pil_to_base64_keeps_pnginfo(self):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
@@ -72,6 +82,14 @@ class TestImagePreprocessing:
         decoded_image = processing_utils.decode_base64_to_image(encoded_image)
 
         assert decoded_image.info == input_img.info
+
+    @patch("PIL.Image.Image.getexif", return_value={274: 3})
+    @patch("PIL.ImageOps.exif_transpose")
+    def test_base64_to_image_does_rotation(self, mock_rotate, mock_exif):
+        input_img = Image.open("gradio/test_data/test_image.png")
+        base64 = processing_utils.encode_pil_to_base64(input_img)
+        processing_utils.decode_base64_to_image(base64)
+        mock_rotate.assert_called_once()
 
     def test_resize_and_crop(self):
         img = Image.open("gradio/test_data/test_image.png")
@@ -117,35 +135,6 @@ class TestAudioPreprocessing:
 
 
 class TestTempFileManager:
-    def test_get_temp_file_path(self):
-        temp_file_manager = processing_utils.TempFileManager()
-        temp_file_manager.hash_file = MagicMock(return_value="")
-
-        filepath = "C:/gradio/test_image.png"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "test_image" in temp_filepath
-        assert temp_filepath.endswith(".png")
-
-        filepath = "ABCabc123.csv"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "ABCabc123" in temp_filepath
-        assert temp_filepath.endswith(".csv")
-
-        filepath = "lion#1.jpeg"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "lion1" in temp_filepath
-        assert temp_filepath.endswith(".jpeg")
-
-        filepath = "%%lio|n#1.jpeg"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "lion1" in temp_filepath
-        assert temp_filepath.endswith(".jpeg")
-
-        filepath = "/home/lion--_1.txt"
-        temp_filepath = temp_file_manager.get_temp_file_path(filepath)
-        assert "lion--_1" in temp_filepath
-        assert temp_filepath.endswith(".txt")
-
     def test_hash_file(self):
         temp_file_manager = processing_utils.TempFileManager()
         h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
@@ -167,6 +156,7 @@ class TestTempFileManager:
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         assert mock_copy.called
         assert len(temp_file_manager.temp_files) == 1
+        assert Path(f).name == "cheetah1.jpg"
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         assert len(temp_file_manager.temp_files) == 1
@@ -175,6 +165,31 @@ class TestTempFileManager:
             "gradio/test_data/cheetah1-copy.jpg"
         )
         assert len(temp_file_manager.temp_files) == 2
+        assert Path(f).name == "cheetah1-copy.jpg"
+
+    def test_base64_to_temp_file_if_needed(self):
+        temp_file_manager = processing_utils.TempFileManager()
+
+        base64_file_1 = media_data.BASE64_IMAGE
+        base64_file_2 = media_data.BASE64_AUDIO["data"]
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
+        assert len(temp_file_manager.temp_files) == 2
+
+        for file in temp_file_manager.temp_files:
+            os.remove(file)
 
     @pytest.mark.flaky
     @patch("shutil.copyfileobj")
@@ -310,4 +325,13 @@ class TestVideoProcessing:
                 tmp_not_playable_vid.name
             )
             # If the conversion succeeded it'd be .mp4
-            assert pathlib.Path(playable_vid).suffix == ".avi"
+            assert Path(playable_vid).suffix == ".avi"
+
+
+def test_download_private_file():
+    url_path = "https://gradio-tests-not-actually-private-space.hf.space/file=lion.jpg"
+    access_token = "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"  # Intentionally revealing this key for testing purposes
+    file = processing_utils.download_tmp_copy_of_file(
+        url_path=url_path, access_token=access_token
+    )
+    assert file.name.endswith(".jpg")

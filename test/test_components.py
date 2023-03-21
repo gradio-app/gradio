@@ -7,11 +7,12 @@ Tests for all of the components defined in components.py. Tests are divided into
 import filecmp
 import json
 import os
-import pathlib
+import pathlib  # noqa: F401
 import shutil
 import tempfile
 from copy import deepcopy
 from difflib import SequenceMatcher
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import matplotlib
@@ -49,7 +50,7 @@ def test_raise_warnings():
 class TestTextbox:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, tokenize, get_config
         """
         text_input = gr.Textbox()
         assert text_input.preprocess("Hello World!") == "Hello World!"
@@ -92,11 +93,11 @@ class TestTextbox:
             "label": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
         }
-        assert isinstance(text_input.generate_sample(), str)
 
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
@@ -181,10 +182,10 @@ class TestTextbox:
 class TestNumber:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
+        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_config
 
         """
-        numeric_input = gr.Number()
+        numeric_input = gr.Number(elem_id="num", elem_classes="first")
         assert numeric_input.preprocess(3) == 3.0
         assert numeric_input.preprocess(None) is None
         assert numeric_input.postprocess(3) == 3
@@ -192,7 +193,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.14) == 2.14
         assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
-        assert isinstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
         assert numeric_input.get_interpretation_neighbors(1) == (
             [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
@@ -209,7 +209,8 @@ class TestNumber:
             "show_label": True,
             "label": None,
             "style": {},
-            "elem_id": None,
+            "elem_id": "num",
+            "elem_classes": ["first"],
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -217,7 +218,7 @@ class TestNumber:
 
     def test_component_functions_integer(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
         numeric_input = gr.Number(precision=0, value=42)
@@ -228,7 +229,6 @@ class TestNumber:
         assert numeric_input.postprocess(2.85) == 3
         assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
-        assert isinstance(numeric_input.generate_sample(), int)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
         assert numeric_input.get_interpretation_neighbors(1) == (
             [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
@@ -255,6 +255,7 @@ class TestNumber:
             "label": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -262,7 +263,7 @@ class TestNumber:
 
     def test_component_functions_precision(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
@@ -350,7 +351,7 @@ class TestNumber:
 class TestSlider:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         slider_input = gr.Slider()
         assert slider_input.preprocess(3.0) == 3.0
@@ -359,7 +360,6 @@ class TestSlider:
         assert slider_input.postprocess(None) == 0
         assert slider_input.serialize(3, True) == 3
 
-        assert isinstance(slider_input.generate_sample(), int)
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
         assert slider_input.get_config() == {
             "minimum": 10,
@@ -371,6 +371,7 @@ class TestSlider:
             "label": "Slide Your Input",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -426,14 +427,13 @@ class TestSlider:
 class TestCheckbox:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         bool_input = gr.Checkbox()
         assert bool_input.preprocess(True)
         assert bool_input.postprocess(True)
         assert bool_input.postprocess(True)
         assert bool_input.serialize(True, True)
-        assert isinstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
             "value": True,
@@ -442,6 +442,7 @@ class TestCheckbox:
             "label": "Check Your Input",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -466,13 +467,12 @@ class TestCheckbox:
 class TestCheckboxGroup:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.serialize(["a", "c"], True) == ["a", "c"]
-        assert isinstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
             choices=["a", "b", "c"],
@@ -486,6 +486,7 @@ class TestCheckboxGroup:
             "label": "Check Your Inputs",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -511,14 +512,13 @@ class TestCheckboxGroup:
 class TestRadio:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
 
         """
         radio_input = gr.Radio(["a", "b", "c"])
         assert radio_input.preprocess("c") == "c"
         assert radio_input.postprocess("a") == "a"
         assert radio_input.serialize("a", True) == "a"
-        assert isinstance(radio_input.generate_sample(), str)
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
@@ -530,6 +530,7 @@ class TestRadio:
             "label": "Pick Your One Input",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -557,21 +558,22 @@ class TestRadio:
 class TestDropdown:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config
+        Preprocess, postprocess, serialize, get_config
         """
         dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
 
-        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
         assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
-        assert isinstance(dropdown_input_multiselect.generate_sample(), str)
         dropdown_input_multiselect = gr.Dropdown(
             value=["a", "c"],
             choices=["a", "b", "c"],
             label="Select Your Inputs",
+            multiselect=True,
+            max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
             "choices": ["a", "b", "c"],
@@ -581,10 +583,12 @@ class TestDropdown:
             "label": "Select Your Inputs",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
-            "multiselect": None,
+            "multiselect": True,
+            "max_choices": 2,
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
@@ -607,7 +611,7 @@ class TestDropdown:
 class TestImage:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
+        Preprocess, postprocess, serialize, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
         """
         img = deepcopy(media_data.BASE64_IMAGE)
@@ -620,11 +624,11 @@ class TestImage:
         assert image_input.postprocess("test/test_files/bus.png") == img
         assert image_input.serialize("test/test_files/bus.png") == img
 
-        assert isinstance(image_input.generate_sample(), str)
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
         assert image_input.get_config() == {
+            "brush_radius": None,
             "image_mode": "RGB",
             "shape": None,
             "source": "upload",
@@ -635,6 +639,7 @@ class TestImage:
             "label": "Upload Your Image",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
@@ -667,6 +672,12 @@ class TestImage:
             image_output.postprocess([1, 2, 3])
         image_output = gr.Image(type="numpy")
         assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
+
+    @pytest.mark.flaky
+    def test_serialize_url(self):
+        img = "https://gradio.app/assets/img/header-image.jpg"
+        expected = processing_utils.encode_url_or_file_to_base64(img)
+        assert gr.Image().serialize(img) == expected
 
     def test_in_interface_as_input(self):
         """
@@ -759,20 +770,25 @@ class TestPlot:
 class TestAudio:
     def test_component_functions(self):
         """
-        Preprocess, postprocess serialize, generate_sample, get_config, deserialize
+        Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
         """
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
-        output = audio_input.preprocess(x_wav)
-        assert output[0] == 8000
-        assert output[1].shape == (8046,)
+        output1 = audio_input.preprocess(x_wav)
+        assert output1[0] == 8000
+        assert output1[1].shape == (8046,)
+
+        x_wav["is_file"] = True
+        audio_input = gr.Audio(type="filepath")
+        output1 = audio_input.preprocess(x_wav)
+        assert Path(output1).name == "audio_sample-0-100.wav"
+
         assert filecmp.cmp(
             "test/test_files/audio_sample.wav",
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
         )
 
-        assert isinstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "source": "upload",
@@ -782,6 +798,7 @@ class TestAudio:
             "label": "Upload Your Audio",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
@@ -790,13 +807,14 @@ class TestAudio:
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
-        assert audio_input.preprocess(x_wav) is not None
+        output2 = audio_input.preprocess(x_wav)
+        assert output2 is not None
+        assert output1 != output2
 
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
-        audio_input = gr.Audio(type="numpy")
 
         # Output functionalities
         y_audio = gr.processing_utils.decode_base64_to_file(
@@ -812,6 +830,7 @@ class TestAudio:
             "source": "upload",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
@@ -828,6 +847,14 @@ class TestAudio:
         output1 = audio_output.postprocess(y_audio.name)
         output2 = audio_output.postprocess(y_audio.name)
         assert output1 == output2
+
+    def test_serialize(self):
+        audio_input = gr.Audio()
+        serialized_input = audio_input.serialize("test/test_files/audio_sample.wav")
+        assert serialized_input["data"] == media_data.BASE64_AUDIO["data"]
+        assert os.path.basename(serialized_input["name"]) == "audio_sample.wav"
+        assert serialized_input["orig_name"] == "audio_sample.wav"
+        assert not serialized_input["is_file"]
 
     def test_tokenize(self):
         """
@@ -878,7 +905,7 @@ class TestAudio:
 class TestFile:
     def test_component_functions(self):
         """
-        Preprocess, serialize, generate_sample, get_config, value
+        Preprocess, serialize, get_config, value
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
@@ -896,8 +923,8 @@ class TestFile:
         input1 = file_input.preprocess(x_file)
         input2 = file_input.preprocess(x_file)
         assert input1.name == input2.name
+        assert Path(input1.name).name == "sample_file.pdf"
 
-        assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
             "file_count": "single",
@@ -907,10 +934,12 @@ class TestFile:
             "label": "Upload Your File",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
         }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
@@ -927,6 +956,12 @@ class TestFile:
         output1 = file_input.postprocess("test/test_files/sample_file.pdf")
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
+
+    def test_file_type_must_be_list(self):
+        with pytest.raises(
+            ValueError, match="Parameter file_types must be a list. Received str"
+        ):
+            gr.File(file_types=".json")
 
     def test_in_interface_as_input(self):
         """
@@ -969,11 +1004,17 @@ class TestUploadButton:
         input2 = upload_input.preprocess(x_file)
         assert input1.name == input2.name
 
+    def test_raises_if_file_types_is_not_list(self):
+        with pytest.raises(
+            ValueError, match="Parameter file_types must be a list. Received int"
+        ):
+            gr.UploadButton(file_types=2)
+
 
 class TestDataframe:
     def test_component_functions(self):
         """
-        Preprocess, serialize, generate_sample, get_config
+        Preprocess, serialize, get_config
         """
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
@@ -985,7 +1026,6 @@ class TestDataframe:
         assert not output["Member"][0]
         assert dataframe_input.postprocess(x_data) == x_data
 
-        assert isinstance(dataframe_input.generate_sample(), list)
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
@@ -1008,6 +1048,7 @@ class TestDataframe:
             "overflow_row_behaviour": "paginate",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
@@ -1030,6 +1071,7 @@ class TestDataframe:
             "label": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "datatype": ["str", "str", "str"],
             "row_count": (1, "dynamic"),
@@ -1143,8 +1185,8 @@ class TestDataframe:
 
 class TestDataset:
     def test_preprocessing(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = str(pathlib.Path(test_file_dir, "bus.png").resolve())
+        test_file_dir = Path(__file__).parent / "test_files"
+        bus = str(Path(test_file_dir, "bus.png").resolve())
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
@@ -1174,8 +1216,8 @@ class TestDataset:
         assert dataset.preprocess(1) == 1
 
     def test_postprocessing(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = pathlib.Path(test_file_dir, "bus.png")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        bus = Path(test_file_dir, "bus.png")
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"], type="index"
@@ -1200,7 +1242,7 @@ class TestDataset:
 class TestVideo:
     def test_component_functions(self):
         """
-        Preprocess, serialize, deserialize, generate_sample, get_config
+        Preprocess, serialize, deserialize, get_config
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
@@ -1209,7 +1251,6 @@ class TestVideo:
         output2 = video_input.preprocess(x_video)
         assert output1 == output2
 
-        assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "source": "upload",
@@ -1218,6 +1259,7 @@ class TestVideo:
             "label": "Upload Your Video",
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
@@ -1270,7 +1312,7 @@ class TestVideo:
         assert iface(x_audio).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
             suffix="bad_video.mp4", delete=False
@@ -1280,9 +1322,7 @@ class TestVideo:
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             _ = gr.Video().postprocess(tmp_not_playable_vid.name)
             # The original video gets converted to .mp4 format
-            full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
-                ".mp4"
-            )
+            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
         # This file has a playable codec but not a playable container
@@ -1293,9 +1333,7 @@ class TestVideo:
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
             _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-            full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
-                ".mp4"
-            )
+            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
@@ -1347,7 +1385,7 @@ class TestVideo:
 class TestTimeseries:
     def test_component_functions(self):
         """
-        Preprocess, postprocess,  generate_sample, get_config,
+        Preprocess, postprocess,  get_config,
         """
         timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
         x_timeseries = {
@@ -1357,7 +1395,6 @@ class TestTimeseries:
         output = timeseries_input.preprocess(x_timeseries)
         assert isinstance(output, pd.core.frame.DataFrame)
 
-        assert isinstance(timeseries_input.generate_sample(), dict)
         timeseries_input = gr.Timeseries(
             x="time", y="retail", label="Upload Your Timeseries"
         )
@@ -1370,6 +1407,7 @@ class TestTimeseries:
             "colors": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
@@ -1392,6 +1430,7 @@ class TestTimeseries:
             "colors": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
@@ -1454,8 +1493,8 @@ class TestLabel:
         with pytest.raises(ValueError):
             label_output.postprocess([1, 2, 3])
 
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        path = str(Path(test_file_dir, "test_label_json.json"))
         label_dict = label_output.postprocess(path)
         assert label_dict["label"] == "web site"
 
@@ -1467,10 +1506,12 @@ class TestLabel:
             "label": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
             "color": None,
+            "selectable": False,
         }
 
     def test_color_argument(self):
@@ -1605,10 +1646,12 @@ class TestHighlightedText:
             "show_legend": False,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "interactive": None,
             "root_url": None,
+            "selectable": False,
         }
 
     def test_in_interface(self):
@@ -1650,19 +1693,60 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
-            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+            ("You are <strong>cool</strong>", "so are <em>you</em>")
         ]
+
+        multimodal_msg = [
+            (("driving.mp4",), "cool video"),
+            (("cantina.wav",), "cool audio"),
+            (("lion.jpg", "A lion"), "cool pic"),
+        ]
+        processed_multimodal_msg = [
+            (
+                {
+                    "name": "driving.mp4",
+                    "mime_type": "video/mp4",
+                    "alt_text": None,
+                    "data": None,
+                    "is_file": True,
+                },
+                "cool video",
+            ),
+            (
+                {
+                    "name": "cantina.wav",
+                    "mime_type": "audio/wav",
+                    "alt_text": None,
+                    "data": None,
+                    "is_file": True,
+                },
+                "cool audio",
+            ),
+            (
+                {
+                    "name": "lion.jpg",
+                    "mime_type": "image/jpeg",
+                    "alt_text": "A lion",
+                    "data": None,
+                    "is_file": True,
+                },
+                "cool pic",
+            ),
+        ]
+
+        assert chatbot.postprocess(multimodal_msg) == processed_multimodal_msg
         assert chatbot.get_config() == {
             "value": [],
-            "color_map": None,
             "label": None,
             "show_label": True,
             "interactive": None,
             "name": "chatbot",
             "visible": True,
             "elem_id": None,
+            "elem_classes": None,
             "style": {},
             "root_url": None,
+            "selectable": False,
         }
 
 
@@ -1676,6 +1760,7 @@ class TestJSON:
         assert js_output.get_config() == {
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": None,
             "show_label": True,
@@ -1692,7 +1777,6 @@ class TestJSON:
         """
 
         def get_avg_age_per_gender(data):
-            print(data)
             return {
                 "M": int(data[data["gender"] == "M"].mean()),
                 "F": int(data[data["gender"] == "F"].mean()),
@@ -1731,6 +1815,7 @@ class TestHTML:
         assert {
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "value": "#Welcome onboard",
             "show_label": True,
@@ -1756,7 +1841,7 @@ class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
         assert markdown_component.get_config()["value"].startswith(
-            """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
+            """<h1>Let’s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" height="0.9678125em" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">"""
         )
 
     def test_in_interface(self):
@@ -1768,7 +1853,7 @@ class TestMarkdown:
         output_data = iface(input_data)
         assert (
             output_data
-            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png">image</a></p>\n"""
+            == """<p>Here’s an <a href="https://gradio.app/images/gradio_logo.png" target="_blank">image</a></p>\n"""
         )
 
 
@@ -1779,7 +1864,7 @@ class TestModel3D:
         """
         component = gr.components.Model3D(None, label="Model")
         assert {
-            "clearColor": [0.2, 0.2, 0.2, 1.0],
+            "clearColor": [0, 0, 0, 0],
             "value": None,
             "label": "Model",
             "show_label": True,
@@ -1788,6 +1873,7 @@ class TestModel3D:
             "name": "model3d",
             "visible": True,
             "elem_id": None,
+            "elem_classes": None,
             "style": {},
         } == component.get_config()
 
@@ -1809,7 +1895,7 @@ class TestModel3D:
 class TestColorPicker:
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, tokenize, get_config
         """
         color_picker_input = gr.ColorPicker()
         assert color_picker_input.preprocess("#000000") == "#000000"
@@ -1826,12 +1912,12 @@ class TestColorPicker:
             "label": None,
             "style": {},
             "elem_id": None,
+            "elem_classes": None,
             "visible": True,
             "interactive": None,
             "root_url": None,
             "name": "colorpicker",
         }
-        assert isinstance(color_picker_input.generate_sample(), str)
 
     def test_in_interface_as_input(self):
         """
@@ -1858,9 +1944,9 @@ class TestColorPicker:
 
 class TestCarousel:
     def test_deprecation(self):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         with pytest.raises(DeprecationWarning):
-            gr.Carousel([pathlib.Path(test_file_dir, "bus.png")])
+            gr.Carousel([Path(test_file_dir, "bus.png")])
 
     def test_deprecation_in_interface(self):
         with pytest.raises(DeprecationWarning):
@@ -1877,13 +1963,11 @@ class TestGallery:
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
         gallery = gr.Gallery()
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         data = [
+            gr.processing_utils.encode_file_to_base64(Path(test_file_dir, "bus.png")),
             gr.processing_utils.encode_file_to_base64(
-                pathlib.Path(test_file_dir, "bus.png")
-            ),
-            gr.processing_utils.encode_file_to_base64(
-                pathlib.Path(test_file_dir, "cheetah1.jpg")
+                Path(test_file_dir, "cheetah1.jpg")
             ),
         ]
 
@@ -1979,13 +2063,23 @@ def test_dataset_calls_as_example(*mocks):
 
 cars = vega_datasets.data.cars()
 stocks = vega_datasets.data.stocks()
+barley = vega_datasets.data.barley()
+simple = pd.DataFrame(
+    {
+        "a": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        "b": [28, 55, 43, 91, 81, 53, 19, 87, 52],
+    }
+)
 
 
 class TestScatterPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
+
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
+            "elem_classes": None,
             "interactive": None,
             "label": None,
             "name": "plot",
@@ -1994,6 +2088,7 @@ class TestScatterPlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2164,10 +2259,12 @@ class TestScatterPlot:
 
 
 class TestLinePlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
         assert gr.LinePlot().get_config() == {
             "caption": None,
             "elem_id": None,
+            "elem_classes": None,
             "interactive": None,
             "label": None,
             "name": "plot",
@@ -2176,6 +2273,7 @@ class TestLinePlot:
             "style": {},
             "value": None,
             "visible": True,
+            "bokeh_version": "3.0.3",
         }
 
     def test_no_color(self):
@@ -2322,3 +2420,189 @@ class TestLinePlot:
         )
         assert isinstance(plot.value, dict)
         assert isinstance(plot.value["plot"], str)
+
+
+class TestBarPlot:
+    @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
+    def test_get_config(self):
+        assert gr.BarPlot().get_config() == {
+            "caption": None,
+            "elem_id": None,
+            "elem_classes": None,
+            "interactive": None,
+            "label": None,
+            "name": "plot",
+            "root_url": None,
+            "show_label": True,
+            "style": {},
+            "value": None,
+            "visible": True,
+            "bokeh_version": "3.0.3",
+        }
+
+    def test_no_color(self):
+        plot = gr.BarPlot(
+            x="a",
+            y="b",
+            tooltip=["a", "b"],
+            title="Made Up Bar Plot",
+            x_title="Variable A",
+        )
+        output = plot.postprocess(simple)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert output["chart"] == "bar"
+        config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["field"] == "a"
+        assert config["encoding"]["x"]["title"] == "Variable A"
+        assert config["encoding"]["y"]["field"] == "b"
+        assert config["encoding"]["y"]["title"] == "b"
+
+        assert config["title"] == "Made Up Bar Plot"
+        assert "height" not in config
+        assert "width" not in config
+
+    def test_height_width(self):
+        plot = gr.BarPlot(x="a", y="b", height=100, width=200)
+        output = plot.postprocess(simple)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
+        config = json.loads(output["value"]["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+    def test_ylim(self):
+        plot = gr.BarPlot(x="a", y="b", y_lim=[15, 100])
+        output = plot.postprocess(simple)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["y"]["scale"] == {"domain": [15, 100]}
+
+    def test_horizontal(self):
+        output = gr.BarPlot.update(
+            simple,
+            x="a",
+            y="b",
+            x_title="Variable A",
+            y_title="Variable B",
+            title="Simple Bar Plot with made up data",
+            tooltip=["a", "b"],
+            vertical=False,
+            y_lim=[20, 100],
+        )
+        assert output["value"]["chart"] == "bar"
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["x"]["field"] == "b"
+        assert config["encoding"]["x"]["scale"] == {"domain": [20, 100]}
+        assert config["encoding"]["x"]["title"] == "Variable B"
+
+        assert config["encoding"]["y"]["field"] == "a"
+        assert config["encoding"]["y"]["title"] == "Variable A"
+
+    def test_stack_via_color(self):
+        output = gr.BarPlot.update(
+            barley,
+            x="variety",
+            y="yield",
+            color="site",
+            title="Barley Yield Data",
+            color_legend_title="Site",
+            color_legend_position="bottom",
+        )
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["color"]["field"] == "site"
+        assert config["encoding"]["color"]["legend"] == {
+            "title": "Site",
+            "orient": "bottom",
+        }
+        assert config["encoding"]["color"]["scale"] == {
+            "domain": [
+                "University Farm",
+                "Waseca",
+                "Morris",
+                "Crookston",
+                "Grand Rapids",
+                "Duluth",
+            ],
+            "range": [0, 1, 2, 3, 4, 5],
+        }
+
+    def test_group(self):
+        output = gr.BarPlot.update(
+            barley,
+            x="year",
+            y="yield",
+            color="year",
+            group="site",
+            title="Barley Yield by Year and Site",
+            group_title="",
+            tooltip=["yield", "site", "year"],
+        )
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["column"] == {"field": "site", "title": ""}
+
+    def test_group_horizontal(self):
+        output = gr.BarPlot.update(
+            barley,
+            x="year",
+            y="yield",
+            color="year",
+            group="site",
+            title="Barley Yield by Year and Site",
+            group_title="Site Title",
+            tooltip=["yield", "site", "year"],
+            vertical=False,
+        )
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["row"] == {"field": "site", "title": "Site Title"}
+
+    def test_barplot_accepts_fn_as_value(self):
+        plot = gr.BarPlot(
+            value=lambda: barley.sample(frac=0.1, replace=False),
+            x="year",
+            y="yield",
+        )
+        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value["plot"], str)
+
+
+class TestCode:
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, get_config
+        """
+        code = gr.Code()
+
+        assert code.preprocess("# hello friends") == "# hello friends"
+        assert code.preprocess("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        assert code.postprocess(
+            """
+            def fn(a):
+                return a
+            """) == "def fn(a):\n    return a"
+
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        path = str(Path(test_file_dir, "test_label_json.json"))
+        with open(path) as f:
+            assert code.postprocess(path) == path
+            assert code.postprocess((path,)) == f.read()
+
+        assert code.serialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
+        assert code.deserialize("def fn(a):\n  return a") == "def fn(a):\n  return a"
+
+        assert code.get_config() == {
+            "value": None,
+            "language": None,
+            "name": "code",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "elem_classes": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }

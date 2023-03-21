@@ -9,15 +9,34 @@
 </script>
 
 <div
-	class="bg-black bg-opacity-80 text-white py-1 px-[0.4rem] absolute text-xs flex items-center justify-center rounded"
 	bind:offsetWidth={w}
 	bind:offsetHeight={h}
 	style="
 		top: {y - h / 2}px;
 		left: {x - w - 7}px;"
 >
-	<span
-		class="inline-block w-3 h-3 mr-1 rounded-sm"
-		style="background: {color}"
-	/>{text}
+	<span style="background: {color}" />
+	{text}
 </div>
+
+<style>
+	div {
+		display: flex;
+		position: absolute;
+		justify-content: center;
+		align-items: center;
+		border-radius: var(--radius-sm);
+		background-color: rgba(0, 0, 0, 0.8);
+		padding: var(--size-1) 0.4rem;
+		color: white;
+		font-size: var(--text-sm);
+	}
+
+	span {
+		display: inline-block;
+		margin-right: var(--size-1);
+		border-radius: var(--radius-xs);
+		width: var(--size-3);
+		height: var(--size-3);
+	}
+</style>

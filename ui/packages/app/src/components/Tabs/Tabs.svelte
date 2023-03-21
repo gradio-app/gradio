@@ -6,11 +6,12 @@
 
 	export let visible: boolean = true;
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let selected: number | string;
 
 	$: dispatch("prop_change", { selected });
 </script>
 
-<Tabs {visible} {elem_id} bind:selected on:change>
+<Tabs {visible} {elem_id} {elem_classes} bind:selected on:change on:select>
 	<slot />
 </Tabs>

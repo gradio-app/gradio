@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 
 import gradio
 from gradio.blocks import Blocks
+from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids
@@ -58,6 +59,24 @@ class TestInterface:
         greet_upper_case = partial(greet, formatter=capwords)
         demo = Interface(fn=greet_upper_case, inputs="text", outputs="text")
         assert demo("abubakar") == "Hello Abubakar!"
+
+    def test_input_labels_extracted_from_method(self):
+        class A:
+            def test(self, parameter_name):
+                return parameter_name
+
+        t = Textbox()
+        Interface(A().test, t, "text")
+        assert t.label == "parameter_name"
+
+        def test(parameter_name1, parameter_name2):
+            return parameter_name1
+
+        t = Textbox()
+        i = Image()
+        Interface(test, [t, i], "text")
+        assert t.label == "parameter_name1"
+        assert i.label == "parameter_name2"
 
     def test_examples_valid_path(self):
         path = os.path.join(
@@ -236,6 +255,34 @@ class TestInterfaceInterpretation:
             inputs=["number", "number"],
             outputs="number",
             interpretation="default",
+        )
+
+        interpretation_id = None
+        for c in iface.config["components"]:
+            if c["props"].get("value") == "Interpret" and c.get("type") == "button":
+                interpretation_id = c["id"]
+
+        # Make sure the event is configured correctly.
+        interpretation_dep = next(
+            d
+            for d in iface.config["dependencies"]
+            if d["targets"] == [interpretation_id]
+        )
+        interpretation_comps = [
+            c["id"]
+            for c in iface.config["components"]
+            if c.get("type") == "interpretation"
+        ]
+        interpretation_columns = [
+            c["id"]
+            for c in iface.config["components"]
+            if c.get("type") == "column" and c["props"].get("variant") == "default"
+        ]
+        assert sorted(interpretation_dep["outputs"]) == sorted(
+            interpretation_comps + interpretation_columns
+        )
+        assert sorted(interpretation_dep["inputs"]) == sorted(
+            [c._id for c in iface.input_components + iface.output_components]
         )
 
         app, _, _ = iface.launch(prevent_thread_lock=True)

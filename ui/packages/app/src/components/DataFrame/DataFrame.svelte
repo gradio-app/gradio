@@ -10,6 +10,7 @@
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: { data: Data; headers: Headers } = {
 		data: [["", "", ""]],
@@ -36,7 +37,7 @@
 	}
 </script>
 
-<div id={elem_id} class="relative overflow-hidden" class:!hidden={!visible}>
+<div id={elem_id} class={elem_classes.join(" ")} class:hide={!visible}>
 	<StatusTracker {...loading_status} />
 	<Table
 		{label}
@@ -45,8 +46,20 @@
 		values={value}
 		{headers}
 		on:change={({ detail }) => handle_change(detail)}
+		on:select
 		editable={mode === "dynamic"}
 		{wrap}
 		{datatype}
 	/>
 </div>
+
+<style>
+	div {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.hide {
+		display: none;
+	}
+</style>

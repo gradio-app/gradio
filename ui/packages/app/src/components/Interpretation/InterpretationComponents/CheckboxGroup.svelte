@@ -8,22 +8,19 @@
 	export let label: string = "";
 </script>
 
-<div class="input-checkbox-group flex flex-wrap gap-2">
+<div class="input-checkbox-group">
 	<BlockTitle>{label}</BlockTitle>
 	{#each choices as choice, i}
-		<button
-			class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-1"
-			class:selected={original.includes(choice)}
-		>
+		<button class="checkbox-item " class:selected={original.includes(choice)}>
 			<div
-				class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"
+				class="checkbox"
 				style={"background-color: " + getSaliencyColor(interpretation[i][0])}
 			/>
 			<div
-				class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"
+				class="checkbox"
 				style={"background-color: " + getSaliencyColor(interpretation[i][1])}
 			>
-				<svg class="check h-3 w-4" viewBox="-10 -10 20 20">
+				<svg viewBox="-10 -10 20 20">
 					<line
 						x1="-7.5"
 						y1="0"
@@ -50,21 +47,61 @@
 </div>
 
 <style lang="postcss">
-	.selected .check {
-		@apply opacity-100;
+	svg {
+		width: var(--size-4);
+		height: var(--size-3);
+	}
+	.selected svg {
+		opacity: 1;
 	}
 	.input-checkbox-group {
-		.checkbox-item {
-			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
-		}
-		.checkbox {
-			@apply bg-gray-100 dark:bg-gray-400 transition;
-		}
-		.checkbox-item.selected {
-			@apply bg-amber-500 dark:bg-red-600 text-white;
-		}
-		.selected .checkbox {
-			@apply bg-amber-600 dark:bg-red-700;
-		}
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-2);
+	}
+
+	.checkbox-item {
+		display: flex;
+		align-items: center;
+		gap: var(--size-1);
+		transition: 150ms;
+		cursor: pointer;
+		box-shadow: var(--shadow-drop);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-primary);
+		padding: var(--size-2) var(--size-3);
+		font-weight: var(--weight-semibold);
+	}
+
+	.checkbox-item:hover {
+		box-shadow: var(--shadow-drop-lg);
+	}
+
+	.checkbox {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 1px solid var(--border-color-primary);
+		background: var(--background-fill-primary);
+		width: var(--size-4);
+		height: var(--size-4);
+	}
+	.checkbox-item.selected {
+		background: var(--color-accent-base);
+		color: white;
+	}
+	.selected .checkbox {
+		background: var(--color-accent-base);
+	}
+
+	.checkbox-item {
+		transition: 150ms;
+		box-shadow: var(--shadow-drop);
+		background: var(--background-fill-primary);
+	}
+
+	.checkbox-item.selected {
+		background: var(--color-accent-base);
+		color: white;
 	}
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
+	import type { client } from "@gradio/client";
 
 	import { component_map } from "./components/directory";
 	import {
@@ -15,10 +16,9 @@
 		LayoutNode,
 		Documentation
 	} from "./components/types";
-	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
-	import ApiDocs from "./ApiDocs.svelte";
+	import { ApiDocs } from "./api_docs/";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
@@ -26,21 +26,20 @@
 	setupi18n();
 
 	export let root: string;
-	export let fn: ReturnType<typeof api_fn>;
 	export let components: Array<ComponentMeta>;
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
 
-	export let enable_queue: boolean;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let id: number = 0;
-	export let autoscroll: boolean = false;
+	export let autoscroll: boolean;
 	export let show_api: boolean = true;
+	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme: string;
+	export let app: Awaited<ReturnType<typeof client>>;
 
 	let loading_status = create_loading_status_store();
 
@@ -60,11 +59,14 @@
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
+			const wrap = d.backend_fn
+				? d.inputs.length === 1
+				: d.outputs.length === 1;
 			try {
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
 					`let result = await (${d.js})(...__fn_args);
-					return ${d.outputs.length} === 1 ? [result] : result;`
+					return ${wrap} ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
@@ -196,19 +198,56 @@
 		_component_map.set(c.type, _c);
 	});
 
-	let ready = false;
+	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
 				ready = true;
-
-				await tick();
-				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				window.__gradio_loader__[id].$set({ status: "error" });
 			});
+	});
+
+	function handle_update(data: any, fn_index: number) {
+		const outputs = dependencies[fn_index].outputs;
+		data.forEach((value: any, i: number) => {
+			if (
+				typeof value === "object" &&
+				value !== null &&
+				value.__type__ === "update"
+			) {
+				for (const [update_key, update_value] of Object.entries(value)) {
+					if (update_key === "__type__") {
+						continue;
+					} else {
+						instance_map[outputs[i]].props[update_key] = update_value;
+					}
+				}
+				rootNode = rootNode;
+			} else {
+				instance_map[outputs[i]].props.value = value;
+			}
+		});
+	}
+
+	app.on("data", ({ data, fn_index }) => {
+		handle_update(data, fn_index);
+		let status = loading_status.get_status_for_fn(fn_index);
+		if (status === "complete" || status === "error") {
+			dependencies.forEach((dep, i) => {
+				if (
+					dep.trigger_after === fn_index &&
+					(!dep.trigger_only_on_success || status === "complete")
+				) {
+					trigger_api_call(i, null);
+				}
+			});
+		}
+	});
+
+	app.on("status", ({ fn_index, ...status }) => {
+		loading_status.update({ ...status, fn_index });
 	});
 
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
@@ -218,8 +257,52 @@
 		obj.props[prop] = val;
 		rootNode = rootNode;
 	}
-
 	let handled_dependencies: Array<number[]> = [];
+
+	const trigger_api_call = (dep_index: number, event_data: unknown) => {
+		let dep = dependencies[dep_index];
+		const current_status = loading_status.get_status_for_fn(dep_index);
+		if (current_status === "pending" || current_status === "generating") {
+			return;
+		}
+
+		if (dep.cancels) {
+			dep.cancels.forEach((fn_index) => {
+				app.cancel("/predict", fn_index);
+			});
+		}
+
+		let payload = {
+			fn_index: dep_index,
+			data: dep.inputs.map((id) => instance_map[id].props.value),
+			event_data: dep.collects_event_data ? event_data : null
+		};
+
+		if (dep.frontend_fn) {
+			dep
+				.frontend_fn(
+					payload.data.concat(
+						dep.outputs.map((id) => instance_map[id].props.value)
+					)
+				)
+				.then((v: []) => {
+					if (dep.backend_fn) {
+						payload.data = v;
+						make_prediction();
+					} else {
+						handle_update(v, dep_index);
+					}
+				});
+		} else {
+			if (dep.backend_fn) {
+				make_prediction();
+			}
+		}
+
+		function make_prediction() {
+			app.predict("/predict", payload);
+		}
+	};
 
 	async function handle_mount() {
 		await tick();
@@ -231,137 +314,38 @@
 			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
 		}
 
-		dependencies.forEach(
-			(
-				{
-					targets,
-					trigger,
-					inputs,
-					outputs,
-					queue,
-					backend_fn,
-					frontend_fn,
-					cancels,
-					...rest
-				},
-				i
-			) => {
-				const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-					t,
-					instance_map[t]
-				]);
+		dependencies.forEach((dep, i) => {
+			let { targets, trigger, inputs, outputs } = dep;
+			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
+				t,
+				instance_map[t]
+			]);
 
-				// page events
-				if (
-					targets.length === 0 &&
-					!handled_dependencies[i]?.includes(-1) &&
-					trigger === "load" &&
-					// check all input + output elements are on the page
-					outputs.every((v) => instance_map?.[v].instance) &&
-					inputs.every((v) => instance_map?.[v].instance)
-				) {
-					const req = fn({
-						action: "predict",
-						backend_fn,
-						frontend_fn,
-						payload: {
-							fn_index: i,
-							data: inputs.map((id) => instance_map[id].props.value)
-						},
-						queue: queue === null ? enable_queue : queue,
-						queue_callback: handle_update,
-						loading_status: loading_status,
-						cancels
-					});
-
-					function handle_update(output: any) {
-						output.data.forEach((value: any, i: number) => {
-							if (
-								typeof value === "object" &&
-								value !== null &&
-								value.__type__ === "update"
-							) {
-								for (const [update_key, update_value] of Object.entries(
-									value
-								)) {
-									if (update_key === "__type__") {
-										continue;
-									} else {
-										instance_map[outputs[i]].props[update_key] = update_value;
-									}
-								}
-								rootNode = rootNode;
-							} else {
-								instance_map[outputs[i]].props.value = value;
-							}
-						});
-					}
-
-					if (!(queue === null ? enable_queue : queue)) {
-						req.then(handle_update);
-					}
-
-					handled_dependencies[i] = [-1];
-				}
-
-				target_instances
-					.filter((v) => !!v && !!v[1])
-					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-						if (handled_dependencies[i]?.includes(id) || !instance) return;
-						instance?.$on(trigger, () => {
-							if (loading_status.get_status_for_fn(i) === "pending") {
-								return;
-							}
-
-							// page events
-							const req = fn({
-								action: "predict",
-								backend_fn,
-								frontend_fn,
-								payload: {
-									fn_index: i,
-									data: inputs.map((id) => instance_map[id].props.value)
-								},
-								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue,
-								queue_callback: handle_update,
-								loading_status: loading_status,
-								cancels
-							});
-
-							if (!(queue === null ? enable_queue : queue)) {
-								req.then(handle_update);
-							}
-						});
-
-						function handle_update(output: any) {
-							output.data.forEach((value: any, i: number) => {
-								if (
-									typeof value === "object" &&
-									value !== null &&
-									value.__type__ === "update"
-								) {
-									for (const [update_key, update_value] of Object.entries(
-										value
-									)) {
-										if (update_key === "__type__") {
-											continue;
-										} else {
-											instance_map[outputs[i]].props[update_key] = update_value;
-										}
-									}
-									rootNode = rootNode;
-								} else {
-									instance_map[outputs[i]].props.value = value;
-								}
-							});
-						}
-
-						if (!handled_dependencies[i]) handled_dependencies[i] = [];
-						handled_dependencies[i].push(id);
-					});
+			// page events
+			if (
+				targets.length === 0 &&
+				!handled_dependencies[i]?.includes(-1) &&
+				trigger === "load" &&
+				// check all input + output elements are on the page
+				outputs.every((v) => instance_map?.[v].instance) &&
+				inputs.every((v) => instance_map?.[v].instance)
+			) {
+				trigger_api_call(i, null);
+				handled_dependencies[i] = [-1];
 			}
-		);
+
+			target_instances
+				.filter((v) => !!v && !!v[1])
+				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					instance?.$on(trigger, (event_data) => {
+						trigger_api_call(i, event_data.detail);
+					});
+
+					if (!handled_dependencies[i]) handled_dependencies[i] = [];
+					handled_dependencies[i].push(id);
+				});
+		});
 	}
 
 	function handle_destroy(id: number) {
@@ -404,11 +388,8 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full flex flex-col" class:min-h-screen={app_mode}>
-	<div
-		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={app_mode}
-	>
+<div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
+	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
 				has_modes={rootNode.has_modes}
@@ -426,43 +407,42 @@
 			/>
 		{/if}
 	</div>
-	<footer
-		class="flex justify-center pb-6 text-gray-400 space-x-2 text-sm md:text-base"
-	>
-		{#if show_api}
-			<button
-				on:click={() => {
-					set_api_docs_visible(!api_docs_visible);
-				}}
-				class="flex items-center hover:text-gray-500"
+
+	{#if show_footer}
+		<footer>
+			{#if show_api}
+				<button
+					on:click={() => {
+						set_api_docs_visible(!api_docs_visible);
+					}}
+					class="show-api"
+				>
+					Use via API <img src={api_logo} alt="" />
+				</button>
+				<div>·</div>
+			{/if}
+			<a
+				href="https://gradio.app"
+				class="built-with"
+				target="_blank"
+				rel="noreferrer"
 			>
-				Use via API <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />
-			</button>
-			<div>·</div>
-		{/if}
-		<a
-			href="https://gradio.app"
-			class="flex items-center hover:text-gray-500"
-			target="_blank"
-			rel="noreferrer"
-		>
-			Built with Gradio
-			<img class="w-2.5 md:w-3 mx-1" src={logo} alt="logo" />
-		</a>
-	</footer>
+				Built with Gradio
+				<img src={logo} alt="logo" />
+			</a>
+		</footer>
+	{/if}
 </div>
 
 {#if api_docs_visible && ready}
-	<div class="h-screen w-screen fixed z-50 bg-black/50 flex top-0">
+	<div class="api-docs">
 		<div
-			class="flex-1 backdrop-blur-sm"
+			class="backdrop"
 			on:click={() => {
 				set_api_docs_visible(false);
 			}}
 		/>
-		<div
-			class="md:w-[950px] 2xl:w-[1150px] bg-white md:rounded-l-xl shadow-2xl overflow-hidden overflow-y-auto"
-		>
+		<div class="api-docs-wrap ">
 			<ApiDocs
 				on:close={() => {
 					set_api_docs_visible(false);
@@ -474,3 +454,91 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.wrap {
+		display: flex;
+		flex-grow: 1;
+		flex-direction: column;
+		width: var(--size-full);
+		font-weight: var(--body-text-weight);
+		font-size: var(--body-text-size);
+	}
+
+	footer {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--size-4);
+		color: var(--body-text-color-subdued);
+	}
+
+	footer > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+	.show-api:hover {
+		color: var(--body-text-color);
+	}
+
+	.show-api img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
+	}
+
+	.built-with {
+		display: flex;
+		align-items: center;
+	}
+
+	.built-with:hover {
+		color: var(--body-text-color);
+	}
+
+	.built-with img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
+	}
+
+	.api-docs {
+		display: flex;
+		position: fixed;
+		top: 0;
+		right: 0;
+		z-index: var(--layer-5);
+		background: rgba(0, 0, 0, 0.5);
+		width: var(--size-screen);
+		height: var(--size-screen-h);
+	}
+
+	.backdrop {
+		flex: 1 1 0%;
+		backdrop-filter: blur(4px);
+	}
+
+	.api-docs-wrap {
+		box-shadow: var(--shadow-drop-lg);
+		background: var(--background-fill-primary);
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+
+	@media (--screen-md) {
+		.api-docs-wrap {
+			border-top-left-radius: var(--radius-lg);
+			border-bottom-left-radius: var(--radius-lg);
+			width: 950px;
+		}
+	}
+
+	@media (--screen-xxl) {
+		.api-docs-wrap {
+			width: 1150px;
+		}
+	}
+</style>

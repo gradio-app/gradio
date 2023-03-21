@@ -4,10 +4,8 @@
 	export let collapsed = depth > 4;
 </script>
 
-<span class="inline-block h-0 w-0" class:mt-10={depth === 0} />
-<div
-	class="json-node inline text-sm font-mono leading-tight dark:text-slate-200"
->
+<span class="spacer" class:mt-10={depth === 0} />
+<div class="json-node">
 	{#if value instanceof Array}
 		{#if collapsed}
 			<button
@@ -15,16 +13,13 @@
 					collapsed = false;
 				}}
 			>
-				<span
-					class="bg-gray-50 hover:bg-gray-100 px-1 border rounded text-gray-700 dark:hover:bg-gray-800"
-					>expand {value.length} children</span
-				>
+				<span class="expand-array">expand {value.length} children</span>
 			</button>
 		{:else}
 			[
-			<div class="json-children pl-4">
+			<div class="children">
 				{#each value as node, i}
-					<div class="json-item">
+					<div>
 						{i}: <svelte:self value={node} depth={depth + 1} />
 						{#if i !== value.length - 1}
 							,
@@ -45,9 +40,9 @@
 			</button>
 		{:else}
 			&#123;
-			<div class="json-children pl-4">
+			<div class="children">
 				{#each Object.entries(value) as node, i}
-					<div class="json-item">
+					<div>
 						{node[0]}: <svelte:self
 							value={node[1]}
 							depth={depth + 1}
@@ -62,27 +57,71 @@
 			&#125;
 		{/if}
 	{:else if value === null}
-		<div
-			class="json-item inline text-gray-500 dark:text-gray-400"
-			item-type="null"
-		>
-			null
-		</div>
+		<div class="json-item null">null</div>
 	{:else if typeof value === "string"}
-		<div class="json-item inline text-green-500" item-type="string">
+		<div class="json-item string">
 			"{value}"
 		</div>
 	{:else if typeof value === "boolean"}
-		<div class="json-item inline text-red-500" item-type="boolean">
+		<div class="json-item bool">
 			{value.toLocaleString()}
 		</div>
 	{:else if typeof value === "number"}
-		<div class="json-item inline text-blue-500" item-type="number">
+		<div class="json-item number">
 			{value}
 		</div>
 	{:else}
-		<div class="json-item inline" item-type="other">
+		<div class="json-item">
 			{value}
 		</div>
 	{/if}
 </div>
+
+<style>
+	.spacer {
+		display: inline-block;
+		width: 0;
+		height: 0;
+	}
+
+	.json-node {
+		display: inline;
+		color: var(--body-text-color);
+		line-height: var(--line-sm);
+		font-family: var(--font-mono);
+	}
+
+	.expand-array {
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		background: var(--background-fill-secondary);
+		padding: 0 var(--size-1);
+		color: var(--body-text-color);
+	}
+
+	.expand-array:hover {
+		background: var(--background-fill-primary);
+	}
+
+	.children {
+		padding-left: var(--size-4);
+	}
+
+	.json-item {
+		display: inline;
+	}
+
+	.null {
+		color: var(--body-text-color-subdued);
+	}
+
+	.string {
+		color: var(--color-green-500);
+	}
+	.number {
+		color: var(--color-blue-500);
+	}
+	.bool {
+		color: var(--color-red-500);
+	}
+</style>

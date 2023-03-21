@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import { Video, StaticVideo } from "@gradio/video";
+	import UploadText from "../UploadText.svelte";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -10,8 +12,11 @@
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
+	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: FileData | null | string = null;
+	let old_value: FileData | null | string = null;
+
 	export let label: string;
 	export let source: string;
 	export let root: string;
@@ -25,9 +30,21 @@
 	export let mode: "static" | "dynamic";
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root_url ?? root);
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
+
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
+
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block
@@ -35,15 +52,17 @@
 	variant={mode === "dynamic" && value === null && source === "upload"
 		? "dashed"
 		: "solid"}
-	color={dragging ? "green" : "grey"}
+	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}
+	{elem_classes}
 	style={{ height: style.height, width: style.width }}
+	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
-		<StaticVideo value={_value} {label} {show_label} />
+		<StaticVideo value={_value} {label} {show_label} on:play on:pause />
 	{:else}
 		<Video
 			value={_value}
@@ -57,16 +76,14 @@
 			{label}
 			{show_label}
 			{source}
-			drop_text={$_("interface.drop_video")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
 			{mirror_webcam}
 			{include_audio}
-			on:change
 			on:clear
 			on:play
 			on:pause
 			on:upload
-		/>
+		>
+			<UploadText type="video" />
+		</Video>
 	{/if}
 </Block>

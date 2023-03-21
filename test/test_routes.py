@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import tempfile
 from unittest.mock import patch
 
 import numpy as np
@@ -52,6 +53,17 @@ class TestRoutes:
     def test_get_config_route(self, test_client):
         response = test_client.get("/config/")
         assert response.status_code == 200
+
+    def test_upload_route(self, test_client):
+        response = test_client.post(
+            "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
+        )
+        assert response.status_code == 200
+        file = response.json()[0]
+        assert "alphabet" in file
+        assert file.endswith(".txt")
+        with open(file) as saved_file:
+            assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
 
     def test_predict_route(self, test_client):
         response = test_client.post(
@@ -180,6 +192,29 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
+    def test_get_file_allowed_by_file_directories(self):
+        allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+        allowed_file.write(media_data.BASE64_IMAGE)
+        allowed_file.flush()
+
+        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        with pytest.raises(ValueError):
+            file_response = client.get(f"/file={allowed_file.name}")
+
+        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            prevent_thread_lock=True,
+            file_directories=[os.path.dirname(allowed_file.name)],
+        )
+        client = TestClient(app)
+
+        file_response = client.get(f"/file={allowed_file.name}")
+        assert file_response.status_code == 200
+        assert len(file_response.text) == len(media_data.BASE64_IMAGE)
+
     def test_get_file_created_by_app(self):
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True
@@ -202,6 +237,9 @@ class TestRoutes:
         created_file = response["data"][0]["name"]
         file_response = client.get(f"/file={created_file}")
         assert file_response.is_success
+
+        backwards_compatible_file_response = client.get(f"/file/{created_file}")
+        assert backwards_compatible_file_response.is_success
 
         file_response_with_full_range = client.get(
             f"/file={created_file}", headers={"Range": "bytes=0-"}
@@ -250,7 +288,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["a"]
+        assert output["data"][0] == "a"
 
         response = client.post(
             "/api/predict/",
@@ -258,7 +296,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["b"]
+        assert output["data"][0] == "b"
 
         response = client.post(
             "/api/predict/",
@@ -266,7 +304,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["c"]
+        assert output["data"][0] == "c"
 
         response = client.post(
             "/api/predict/",
@@ -274,7 +312,11 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == [None]
+        assert output["data"] == [
+            {"__type__": "update"},
+            {"__type__": "update", "visible": True},
+            {"__type__": "update", "visible": False},
+        ]
 
         response = client.post(
             "/api/predict/",
@@ -282,7 +324,15 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["a"]
+        assert output["data"][0] is None
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+            headers={"Authorization": f"Bearer {app.queue_token}"},
+        )
+        output = dict(response.json())
+        assert output["data"][0] == "a"
 
 
 class TestApp:
@@ -384,6 +434,61 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_get_headers(self):
+        def identity(name, request: gr.Request):
+            assert isinstance(request.headers["user-agent"], str)
+            assert isinstance(request.headers.items(), list)
+            assert isinstance(request.headers.keys(), list)
+            assert isinstance(request.headers.values(), list)
+            assert isinstance(dict(request.headers), dict)
+            user_agent = request.headers["user-agent"]
+            assert "testclient" in user_agent
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_includes_username_as_none_if_no_auth(self):
+        def identity(name, request: gr.Request):
+            assert request.username is None
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_includes_username_with_auth(self):
+        def identity(name, request: gr.Request):
+            assert request.username == "admin"
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True, auth=("admin", "password")
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data=dict(username="admin", password="password"),
+        )
         response = client.post("/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())

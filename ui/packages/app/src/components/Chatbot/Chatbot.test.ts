@@ -4,11 +4,11 @@ import { cleanup, render, get_text } from "@gradio/tootils";
 import Chatbot from "./Chatbot.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
 
-const loading_status = {
+const loading_status: LoadingStatus = {
 	eta: 0,
 	queue_position: 1,
 	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
+	status: "complete",
 	scroll_to_output: false,
 	visible: true,
 	fn_index: 0
@@ -21,7 +21,9 @@ describe("Chatbot", () => {
 		const { getAllByTestId } = render(Chatbot, {
 			loading_status,
 			label: "hello",
-			value: [["user message one", "bot message one"]]
+			value: [["user message one", "bot message one"]],
+			root: "",
+			root_url: ""
 		});
 
 		const bot = getAllByTestId("user")[0];
@@ -35,7 +37,9 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = render(Chatbot, {
 			loading_status,
 			label: "hello",
-			value: [["user message one", "bot message one"]]
+			value: [["user message one", "bot message one"]],
+			root: "",
+			root_url: ""
 		});
 
 		const bot = getAllByTestId("user");

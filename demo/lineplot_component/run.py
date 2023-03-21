@@ -1,7 +1,9 @@
 import gradio as gr
 from vega_datasets import data
 
-with gr.Blocks() as demo:
+css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
+
+with gr.Blocks(css=css) as demo:
     gr.LinePlot(
         data.stocks(),
         x="date",
@@ -11,7 +13,7 @@ with gr.Blocks() as demo:
         title="Stock Prices",
         tooltip=["date", "price", "symbol"],
         height=300,
-        width=500,
+        width=300,
         show_label=False,
     ).style(
         container=False,
