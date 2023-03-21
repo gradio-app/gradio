@@ -32,7 +32,7 @@
 		activeOption = filtered[0];
 
 	$: readonly =
-		(!multiselect && typeof value === "string") ||
+		(!multiselect && typeof value === "string" && value.length > 0) ||
 		(multiselect && Array.isArray(value) && value.length === max_choices);
 
 	// The initial value of value is [] so that can
@@ -156,7 +156,6 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:multiselect
 					{disabled}
 					{readonly}
 					autocomplete="off"
@@ -187,7 +186,6 @@
 			{filtered}
 			{activeOption}
 			{disabled}
-			cover_parent={!multiselect}
 			on:change={handleOptionMousedown}
 		/>
 	</div>
@@ -276,9 +274,6 @@
 
 	input:disabled {
 		cursor: not-allowed;
-	}
-	input:not(.multiselect) {
-		cursor: pointer;
 	}
 
 	.remove-all {

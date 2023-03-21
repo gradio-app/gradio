@@ -6,7 +6,6 @@
 	export let showOptions: boolean = false;
 	export let activeOption: string;
 	export let disabled: boolean = false;
-	export let cover_parent: boolean = true;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
@@ -22,22 +21,12 @@
 				refElement.parentElement?.getBoundingClientRect().height || 0;
 		}
 		if (distance_from_bottom > distance_from_top) {
-			if (cover_parent) {
-				top = "0px";
-				max_height = distance_from_bottom + input_height;
-			} else {
-				top = `${input_height}px`;
-				max_height = distance_from_bottom;
-			}
+			top = `${input_height}px`;
+			max_height = distance_from_bottom;
 			bottom = null;
 		} else {
-			if (cover_parent) {
-				bottom = "0px";
-				max_height = distance_from_top;
-			} else {
-				bottom = `${input_height}px`;
-				max_height = distance_from_top - input_height;
-			}
+			bottom = `${input_height}px`;
+			max_height = distance_from_top - input_height;
 			top = null;
 		}
 	}
