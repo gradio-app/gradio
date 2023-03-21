@@ -6,7 +6,7 @@ Tags: THEMES
 Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
 
 ```python
-with gr.Blocks(theme=gr.themes.Soft()):
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     ...
 ```
 
@@ -33,25 +33,25 @@ Although each theme has hundreds of CSS variables, the values for most these var
 
 ### Core Colors
 
-The first 3 constructor arguments set the colors of the theme and are gradio.themes.Color objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
+The first 3 constructor arguments set the colors of the theme and are `gradio.themes.Color` objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
 
 The 3 color constructor arguments are:
 
-- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.Orange`.
-- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to `gradio.themes.Blue`.
-- `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to `gradio.themes.Gray`.
+- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.colors.orange`.
+- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to `gradio.themes.colors.blue`.
+- `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to `gradio.themes.colors.gray`.
 
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")):
+with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")) as demo:
     ...
 ```
 
-or you could use the `Color` object directly, such as
+or you could use the `Color` objects directly, like this:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=gr.themes.Pink)):
+with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink)) as demo:
     ...
 ```
 
@@ -62,11 +62,36 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=
 	height="450"
 ></iframe>
 
+Predefined colors are:
+
+* `slate`
+* `gray`
+* `zinc`
+* `neutral`
+* `stone`
+* `red`
+* `orange`
+* `amber`
+* `yellow`
+* `lime`
+* `green`
+* `emerald`
+* `teal`
+* `cyan`
+* `sky`
+* `blue`
+* `indigo`
+* `violet`
+* `purple`
+* `fuchsia`
+* `pink`
+* `rose`
+
 You could also create your own custom `Color` objects and pass them in.
 
 ### Core Sizing
 
-The next 3 constructor arguments set the sizing of the theme and are gradio.themes.Size objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
+The next 3 constructor arguments set the sizing of the theme and are `gradio.themes.Size` objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
 
 - `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.spacing_md`.
 - `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.radius_md`.
@@ -75,14 +100,14 @@ The next 3 constructor arguments set the sizing of the theme and are gradio.them
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")):
+with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")) as demo:
     ...
 ```
 
-or you could use the `Size` object directly, such as
+or you could use the `Size` objects directly, like this:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius_size=gr.themes.radius_none)):
+with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none)) as demo:
     ...
 ```
 
@@ -92,6 +117,19 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius
 	width="850"
 	height="450"
 ></iframe>
+
+The predefined size objects are:
+
+* `radius_none`
+* `radius_sm`
+* `radius_md`
+* `radius_lg`
+* `spacing_sm`
+* `spacing_md`
+* `spacing_lg`
+* `text_sm`
+* `text_md`
+* `text_lg`
 
 You could also create your own custom `Size` objects and pass them in.
 
@@ -105,7 +143,7 @@ The final 2 constructor arguments set the fonts of the theme. You can pass a lis
 You could modify these values such as the following:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])):
+with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])) as demo:
     ...
 ```
 
@@ -128,7 +166,7 @@ theme = gr.themes.Default(primary_hue="blue").set(
     slider_color="#FF0000",
 )
 
-with gr.Blocks(theme=theme):
+with gr.Blocks(theme=theme) as demo:
     ...
 ```
 
