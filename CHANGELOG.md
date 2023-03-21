@@ -8,7 +8,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+* Fixed bug where text for altair plots was not legible in dark mode by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3555](https://github.com/gradio-app/gradio/pull/3555)  
 
 ## Documentation Changes:
 
