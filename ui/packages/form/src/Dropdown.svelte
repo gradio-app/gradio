@@ -52,7 +52,6 @@
 				});
 				dispatch("change", value);
 			}
-			showOptions = !(value.length === max_choices);
 		}
 		value = value;
 	}
@@ -166,10 +165,7 @@
 						showOptions = !showOptions;
 					}}
 					on:focus={() => {
-						showOptions =
-							Array.isArray(value) && value.length === max_choices
-								? false
-								: true;
+						showOptions = true;
 					}}
 					on:blur={() => (showOptions = false)}
 					on:keyup={handleKeyup}
@@ -191,6 +187,7 @@
 			{filtered}
 			{activeOption}
 			{disabled}
+			cover_parent={!multiselect}
 			on:change={handleOptionMousedown}
 		/>
 	</div>

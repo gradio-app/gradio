@@ -6,11 +6,13 @@
 	export let showOptions: boolean = false;
 	export let activeOption: string;
 	export let disabled: boolean = false;
+	export let cover_parent: boolean = true;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
 	let input_height: number;
 	let refElement: HTMLDivElement;
+	let top: string | null, bottom: string | null, max_height: number;
 	$: {
 		if (showOptions && refElement) {
 			distance_from_top = refElement.getBoundingClientRect().top;
@@ -18,6 +20,25 @@
 				window.innerHeight - refElement.getBoundingClientRect().bottom;
 			input_height =
 				refElement.parentElement?.getBoundingClientRect().height || 0;
+		}
+		if (distance_from_bottom > distance_from_top) {
+			if (cover_parent) {
+				top = "0px";
+				max_height = distance_from_bottom + input_height;
+			} else {
+				top = `${input_height}px`;
+				max_height = distance_from_bottom;
+			}
+			bottom = null;
+		} else {
+			if (cover_parent) {
+				bottom = "0px";
+				max_height = distance_from_top;
+			} else {
+				bottom = `${input_height}px`;
+				max_height = distance_from_top - input_height;
+			}
+			top = null;
 		}
 	}
 
@@ -31,11 +52,9 @@
 		aria-expanded={showOptions}
 		transition:fly={{ duration: 200, y: 5 }}
 		on:mousedown|preventDefault={(e) => dispatch("change", e)}
-		style:top={distance_from_bottom > distance_from_top ? "0px" : null}
-		style:bottom={distance_from_bottom <= distance_from_top ? "0px" : null}
-		style:max-height={distance_from_bottom > distance_from_top
-			? `calc(${distance_from_bottom + input_height}px - var(--window-padding))`
-			: `calc(${distance_from_top}px - var(--window-padding))`}
+		style:top
+		style:bottom
+		style:max-height={`calc(${max_height}px - var(--window-padding))`}
 	>
 		{#each filtered as choice}
 			<li
