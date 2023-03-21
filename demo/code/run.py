@@ -13,7 +13,7 @@ def set_lang(language):
 
 def set_lang_from_path():
     sleep(1)
-    return gr.Code.update(css_file, language="css")
+    return gr.Code.update((css_file, ), language="css")
 
 
 def code(language, code):

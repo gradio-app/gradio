@@ -6,21 +6,26 @@ Tags: THEMES
 Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
 
 ```python
-with gr.Blocks(theme=gr.themes.Soft()):
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     ...
 ```
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-soft.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. These are:
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. Each of these themes set values for hundreds of CSS variables.
+* `gr.themes.Base()`
+* `gr.themes.Default()`
+* `gr.themes.Glass()`
+* `gr.themes.Monochrome()`
+* `gr.themes.Soft()`
 
-You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
+Each of these themes set values for hundreds of CSS variables. You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
 
 ## Extending Themes via the Constructor
 
@@ -28,65 +33,101 @@ Although each theme has hundreds of CSS variables, the values for most these var
 
 ### Core Colors
 
-The first 3 constructor arguments set the colors of the theme and are gradio.themes.Color objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
+The first 3 constructor arguments set the colors of the theme and are `gradio.themes.Color` objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
 
 The 3 color constructor arguments are:
 
-- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.Orange`.
-- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to `gradio.themes.Blue`.
-- `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to `gradio.themes.Gray`.
+- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.colors.orange`.
+- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to `gradio.themes.colors.blue`.
+- `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to `gradio.themes.colors.gray`.
 
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")):
+with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")) as demo:
     ...
 ```
 
-or you could use the `Color` object directly, such as
+or you could use the `Color` objects directly, like this:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.Red, secondary_hue=gr.themes.Pink)):
+with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink)) as demo:
     ...
 ```
-
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-1.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
+
+Predefined colors are:
+
+* `slate`
+* `gray`
+* `zinc`
+* `neutral`
+* `stone`
+* `red`
+* `orange`
+* `amber`
+* `yellow`
+* `lime`
+* `green`
+* `emerald`
+* `teal`
+* `cyan`
+* `sky`
+* `blue`
+* `indigo`
+* `violet`
+* `purple`
+* `fuchsia`
+* `pink`
+* `rose`
 
 You could also create your own custom `Color` objects and pass them in.
 
 ### Core Sizing
 
-The next 3 constructor arguments set the sizing of the theme and are gradio.themes.Size objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
+The next 3 constructor arguments set the sizing of the theme and are `gradio.themes.Size` objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
 
-- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.spacing_md`.
-- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.radius_md`.
-- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.font_md`.
+- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.sizes.spacing_md`.
+- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.sizes.radius_md`.
+- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.sizes.text_md`.
 
 You could modify these values using their string shortcuts, such as
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")):
+with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")) as demo:
     ...
 ```
 
-or you could use the `Size` object directly, such as
+or you could use the `Size` objects directly, like this:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.spacing_sm, radius_size=gr.themes.radius_none)):
+with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none)) as demo:
     ...
 ```
-
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-2.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
+
+The predefined size objects are:
+
+* `radius_none`
+* `radius_sm`
+* `radius_md`
+* `radius_lg`
+* `spacing_sm`
+* `spacing_md`
+* `spacing_lg`
+* `text_sm`
+* `text_md`
+* `text_lg`
 
 You could also create your own custom `Size` objects and pass them in.
 
@@ -100,17 +141,16 @@ The final 2 constructor arguments set the fonts of the theme. You can pass a lis
 You could modify these values such as the following:
 
 ```python
-with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])):
+with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])) as demo:
     ...
 ```
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-extended-step-3.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
-
+</div>
 
 
 ## Extending Themes via `.set()`
@@ -123,7 +163,7 @@ theme = gr.themes.Default(primary_hue="blue").set(
     slider_color="#FF0000",
 )
 
-with gr.Blocks(theme=theme):
+with gr.Blocks(theme=theme) as demo:
     ...
 ```
 
@@ -203,7 +243,7 @@ theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
     button_primary_background_fill_dark="#AAAAAA",
     button_primary_border="*button_primary_background_fill",
-    button_primary_border_dark="*button_primary_background_fill",
+    button_primary_border_dark="*button_primary_background_fill_dark",
 )
 ```
 
@@ -217,12 +257,12 @@ Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a 
 
 $code_theme_new_step_1
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-1.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 
 The Base theme is very barebones, and uses `gr.themes.Blue` as it primary color - you'll note the primary button and the loading animation are both blue as a result. Let's change the defaults core arguments of our app. We'll overwrite the constructor and pass new defaults for the core constructor arguments.
@@ -231,29 +271,135 @@ We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutra
 
 $code_theme_new_step_2
 
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-2.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. 
 
 Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
 
 $code_theme_new_step_3
-
+<div class="wrapper">
 <iframe
 	src="https://gradio-theme-new-step-3.hf.space?__theme=light"
 	frameborder="0"
-	width="850"
-	height="450"
 ></iframe>
+</div>
 
 
 Look how fun our theme looks now! With just a few variable changes, our theme looks completely different.
 
 You may find it helpful to explore the [source code of the other prebuilt themes](https://github.com/gradio-app/gradio/blob/main/gradio/themes) to see how they modified the base theme. You can also find your browser's Inspector useful to select elements from the UI and see what CSS variables are being used in the styles panel. 
 
-Enjoy creating your own themes! If you make one you're proud of, please share it with us on [Twitter](https://twitter.com/gradio).
+## Sharing Themes
+
+Once you have created a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it!
+
+### Uploading a Theme
+There are two ways to upload a theme, via the theme class instance or the command line. We will cover both of them with the previously created `seafoam` theme.
+
+* Via the class instance
+
+Each theme instance has a method called `push_to_hub` we can use to upload a theme to the HuggingFace hub.
+
+```python
+seafoam.push_to_hub(repo_name="seafoam",
+                    version="0.0.1",
+					hf_token="<token>")
+```
+
+* Via the command line
+
+First save the theme to disk
+```python
+seafoam.dump(filename="seafoam.json")
+```
+
+Then use the `upload_theme` command:
+
+```bash
+upload_theme\
+"seafoam.json"\
+"seafoam"\
+--version "0.0.1"\
+--hf_token "<token>"
+```
+
+In order to upload a theme, you must have a HuggingFace account and pass your [Access Token](https://huggingface.co/docs/huggingface_hub/quick-start#login)
+as the `hf_token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
+you can ommit the `hf_token` argument.
+
+The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
+That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying
+about changing how previously created apps look. The `version` argument is optional. If omitted, the next patch version is automatically applied.
+
+### Theme Previews
+
+By calling `push_to_hub` or `upload_theme`, the theme assets will be stored in a [HuggingFace space](https://huggingface.co/docs/hub/spaces-overview).
+
+The theme preview for our seafoam theme is here: [seafoam preview](https://huggingface.co/spaces/gradio/seafoam).
+
+<div class="wrapper">
+<iframe
+	src="https://gradio-seafoam.hf.space?__theme=light"
+	frameborder="0"
+></iframe>
+</div>
+
+### Discovering Themes
+
+The [Theme Gallery](https://huggingface.co/spaces/gradio/theme-gallery) shows all the public gradio themes. After publishing your theme,
+it will automatically show up in the theme gallery after a couple of minutes. 
+
+You can sort the themes by the number of likes on the space and from most to least recently created as well as toggling themes between light and dark mode.
+
+<div class="wrapper">
+<iframe
+	src="https://gradio-theme-gallery.hf.space"
+	frameborder="0"
+></iframe>
+</div>
+
+### Downloading
+To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
+
+```python
+my_theme = gr.Theme.from_hub("gradio/seafoam")
+
+with gr.Blocks(theme=my_theme) as demo:
+    ....
+```
+
+You can also pass the theme string directly to `Blocks` or `Interface` (`gr.Blocks(theme="gradio/seafoam")`)
+
+You can pin your app to an upstream theme version by using semantic versioning expressions.
+
+For example, the following would ensure the theme we load from the `seafoam` repo was between versions `0.0.1` and `0.1.0`:
+
+```python
+with gr.Blocks(theme="gradio/seafoam@>=0.0.1,<0.1.0") as demo:
+    ....
+```
+
+Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub! 
+If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out! 
+
+<style>
+.wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 25px;
+    height: 0;
+}
+.wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+</style>
