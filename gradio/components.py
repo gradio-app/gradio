@@ -5593,10 +5593,14 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         }
 
     def postprocess(self, y):
-        if y is not None and isinstance(y, tuple):
+        if y is None:
+            return None
+        elif isinstance(y, tuple):
             with open(y[0]) as file_data:
                 return file_data.read()
-        return y
+        else:
+            unindented_y = inspect.cleandoc(y)
+            return unindented_y
 
     @staticmethod
     def update(
