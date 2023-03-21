@@ -24,7 +24,8 @@ No changes to highlight.
 
 ## Full Changelog:
 
-* Mobile responsive iframes in themes guide by[@aliabd](https://github.com/aliabd) in [PR 3562](https://github.com/gradio-app/gradio/pull/3562) 
+* Mobile responsive iframes in themes guide by [@aliabd](https://github.com/aliabd) in [PR 3562](https://github.com/gradio-app/gradio/pull/3562) 
+* Remove extra $demo from theme guide by [@aliabd](https://github.com/aliabd) in [PR 3563](https://github.com/gradio-app/gradio/pull/3563)
 
 
 ## Contributors Shoutout:
