@@ -93,9 +93,9 @@ You could also create your own custom `Color` objects and pass them in.
 
 The next 3 constructor arguments set the sizing of the theme and are `gradio.themes.Size` objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
 
-- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.spacing_md`.
-- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.radius_md`.
-- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.font_md`.
+- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.sizes.spacing_md`.
+- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.sizes.radius_md`.
+- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.sizes.text_md`.
 
 You could modify these values using their string shortcuts, such as
 
@@ -246,7 +246,7 @@ theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
     button_primary_background_fill_dark="#AAAAAA",
     button_primary_border="*button_primary_background_fill",
-    button_primary_border_dark="*button_primary_background_fill",
+    button_primary_border_dark="*button_primary_background_fill_dark",
 )
 ```
 
