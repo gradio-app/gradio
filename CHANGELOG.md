@@ -8,11 +8,11 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Fixes `Chatbot` and `Image` components so that files passed during processing are added to a directory where they can be served from, by [@abidlabs](https://github.com/abidlabs) in [PR 3523](https://github.com/gradio-app/gradio/pull/3523)
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Makes some fixes to the Theme Guide related to naming of variables, by [@abidlabs](https://github.com/abidlabs) in [PR 3561](https://github.com/gradio-app/gradio/pull/3561)
 
 ## Testing and Infrastructure Changes:
 
@@ -50,7 +50,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3428](https://git
 
 ## Documentation Changes:
 
-* Some fixes to the Theme Guide docs
+* Some fixes to the Theme Guide docs 
 
 ## Testing and Infrastructure Changes:
 
