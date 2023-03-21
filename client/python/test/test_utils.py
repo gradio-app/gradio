@@ -44,8 +44,8 @@ def test_decode_base64_to_file():
 
 def test_download_private_file():
     url_path = "https://gradio-tests-not-actually-private-space.hf.space/file=lion.jpg"
-    access_token = "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"  # Intentionally revealing this key for testing purposes
-    file = utils.download_tmp_copy_of_file(url_path=url_path, access_token=access_token)
+    hf_token = "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"  # Intentionally revealing this key for testing purposes
+    file = utils.download_tmp_copy_of_file(url_path=url_path, hf_token=hf_token)
     assert file.name.endswith(".jpg")
 
 

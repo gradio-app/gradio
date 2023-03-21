@@ -75,11 +75,11 @@ async def get_pred_from_ws(
 
 
 def download_tmp_copy_of_file(
-    url_path: str, access_token: str | None = None, dir: str | None = None
+    url_path: str, hf_token: str | None = None, dir: str | None = None
 ) -> tempfile._TemporaryFileWrapper:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + access_token} if access_token else {}
+    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
     prefix = Path(url_path).stem
     suffix = Path(url_path).suffix
     file_obj = tempfile.NamedTemporaryFile(

@@ -22,15 +22,15 @@ class Client:
         self,
         space: str | None = None,
         src: str | None = None,
-        access_token: str | None = None,
+        hf_token: str | None = None,
         max_workers: int = 40,
     ):
-        self.access_token = access_token
+        self.hf_token = hf_token
         library_version = (
             (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
         )
         self.headers = build_hf_headers(
-            token=access_token,
+            token=hf_token,
             library_name="gradio_client",
             library_version=library_version,
         )
@@ -42,7 +42,7 @@ class Client:
         self.src = src or self._space_name_to_src(space)
         if self.src is None:
             raise ValueError(
-                f"Could not find Space: {space}. If it is a private Space, please provide an access_token."
+                f"Could not find Space: {space}. If it is a private Space, please provide an hf_token."
             )
         else:
             print(f"Loaded as API: {self.src} ✔")
@@ -140,7 +140,7 @@ class Endpoint:
         self.headers = client.headers
         self.config = client.config
         self.use_ws = self._use_websocket(self.dependency)
-        self.access_token = client.access_token
+        self.hf_token = client.hf_token
         try:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
@@ -201,7 +201,7 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         return tuple(
             [
-                s.deserialize(d, access_token=self.access_token)
+                s.deserialize(d, hf_token=self.hf_token)
                 for s, d in zip(self.deserializers, data)
             ]
         )

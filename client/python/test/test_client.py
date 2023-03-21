@@ -14,9 +14,9 @@ class TestPredictionsFromSpaces:
 
     @pytest.mark.flaky
     def test_private_space(self):
-        access_token = "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"  # Intentionally revealing this key for testing purposes
+        hf_token = "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"  # Intentionally revealing this key for testing purposes
         client = Client(
-            space="gradio-tests/not-actually-private-space", access_token=access_token
+            space="gradio-tests/not-actually-private-space", hf_token=hf_token
         )
         output = client.predict("abc").result()
         assert output == "abc"
