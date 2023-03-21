@@ -61,9 +61,13 @@
 
 	$: if (type == "altair") {
 		spec = JSON.parse(plot);
-		const config = create_config(darkmode);
-		spec.config = config;
+		if (value.chart || "") {
+			const config = create_config(darkmode);
+			spec.config = config;
+		}
 		switch (value.chart || "") {
+			case "":
+				break;
 			case "scatter":
 				if (spec.encoding.color && spec.encoding.color.type == "nominal") {
 					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
