@@ -262,7 +262,9 @@ class IOComponent(Component):
 
         if file.filename:
             file_name = Path(file.filename).name
-            output_file_obj.name = client_utils.strip_invalid_filename_characters(file_name)
+            output_file_obj.name = client_utils.strip_invalid_filename_characters(
+                file_name
+            )
 
         full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
 

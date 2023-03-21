@@ -2597,11 +2597,15 @@ class TestCode:
         assert code.preprocess("# hello friends") == "# hello friends"
         assert code.preprocess("def fn(a):\n  return a") == "def fn(a):\n  return a"
 
-        assert code.postprocess(
-            """
+        assert (
+            code.postprocess(
+                """
             def fn(a):
                 return a
-            """) == "def fn(a):\n    return a"
+            """
+            )
+            == "def fn(a):\n    return a"
+        )
 
         test_file_dir = Path(Path(__file__).parent, "test_files")
         path = str(Path(test_file_dir, "test_label_json.json"))

@@ -202,6 +202,7 @@ def convert_to_16_bit_wav(data):
 # OUTPUT
 ##################
 
+
 def _convert(image, dtype, force_copy=False, uniform=False):
     """
     Adapted from: https://github.com/scikit-image/scikit-image/blob/main/skimage/util/dtype.py#L510-L531
