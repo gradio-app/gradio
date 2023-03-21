@@ -50,7 +50,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3428](https://git
 
 ## Documentation Changes:
 
-No changes to highlight.
+* Some fixes to the Theme Guide docs
 
 ## Testing and Infrastructure Changes:
 
