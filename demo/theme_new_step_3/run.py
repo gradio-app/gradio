@@ -60,16 +60,19 @@ class Seafoam(Base):
 
 seafoam = Seafoam()
 
-def repeat(name, count):
-    time.sleep(3)
-    return name * count
+with gr.Blocks(theme=seafoam) as demo:
+    textbox = gr.Textbox(label="Name")
+    slider = gr.Slider(label="Count", minimum=0, maximum=100, step=1)
+    with gr.Row():
+        button = gr.Button("Submit", variant="primary")
+        clear = gr.Button("Clear")
+    output = gr.Textbox(label="Output")
 
-demo = gr.Interface(
-    fn=repeat,
-    inputs=[gr.Textbox(), gr.Slider(label="Count")],
-    outputs=gr.Textbox(label="Output"),
-    theme=seafoam,
-)
+    def repeat(name, count):
+        time.sleep(3)
+        return name * count
+
+    button.click(repeat, [textbox, slider], output)
 
 if __name__ == "__main__":
     demo.launch()
