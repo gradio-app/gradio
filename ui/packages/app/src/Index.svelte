@@ -97,15 +97,14 @@
 			target.appendChild(style);
 		}
 		mount_css(config.root + "/theme.css", document.head);
-		if (config.stylesheets) {
-			for (let stylesheet of config.stylesheets) {
-				let absolute_link =
-					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
-				mount_css(
-					absolute_link ? stylesheet : config.root + "/" + stylesheet,
-					document.head
-				);
-			}
+		if (!config.stylesheets) return;
+		for (let stylesheet of config.stylesheets) {
+			let absolute_link =
+				stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
+			mount_css(
+				absolute_link ? stylesheet : config.root + "/" + stylesheet,
+				document.head
+			);
 		}
 	}
 
