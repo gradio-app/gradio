@@ -311,8 +311,8 @@ class IOComponent(Component):
         else:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = file_name
-        full_temp_file_path = str(utils.abspath(temp_dir / file_name))
+        f.name = file_name  # type: ignore
+        full_temp_file_path = str(utils.abspath(temp_dir / file_name))  # type: ignore
 
         if not Path(full_temp_file_path).exists():
             data, _ = client_utils.decode_base64_to_binary(base64_encoding)
