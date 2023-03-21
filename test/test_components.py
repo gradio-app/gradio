@@ -623,6 +623,9 @@ class TestImage:
         assert image_input.preprocess(img).size == (30, 10)
         assert image_input.postprocess("test/test_files/bus.png") == img
         assert image_input.serialize("test/test_files/bus.png") == img
+        image_input = gr.Image(type="filepath")
+        image_temp_filepath = image_input.preprocess(img)
+        assert image_temp_filepath in image_input.temp_files
 
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
@@ -1692,49 +1695,66 @@ class TestChatbot:
         Postprocess, get_config
         """
         chatbot = gr.Chatbot()
-        assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
-            ("You are <strong>cool</strong>", "so are <em>you</em>")
+        assert chatbot.postprocess([["You are **cool**", "so are *you*"]]) == [
+            ["You are <strong>cool</strong>", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
-            (("driving.mp4",), "cool video"),
-            (("cantina.wav",), "cool audio"),
-            (("lion.jpg", "A lion"), "cool pic"),
+            [("test/test_files/video_sample.mp4",), "cool video"],
+            [("test/test_files/audio_sample.wav",), "cool audio"],
+            [("test/test_files/bus.png", "A bus"), "cool pic"],
         ]
         processed_multimodal_msg = [
-            (
+            [
                 {
-                    "name": "driving.mp4",
+                    "name": "video_sample.mp4",
                     "mime_type": "video/mp4",
                     "alt_text": None,
                     "data": None,
                     "is_file": True,
                 },
                 "cool video",
-            ),
-            (
+            ],
+            [
                 {
-                    "name": "cantina.wav",
+                    "name": "audio_sample.wav",
                     "mime_type": "audio/wav",
                     "alt_text": None,
                     "data": None,
                     "is_file": True,
                 },
                 "cool audio",
-            ),
-            (
+            ],
+            [
                 {
-                    "name": "lion.jpg",
-                    "mime_type": "image/jpeg",
-                    "alt_text": "A lion",
+                    "name": "bus.png",
+                    "mime_type": "image/png",
+                    "alt_text": "A bus",
                     "data": None,
                     "is_file": True,
                 },
                 "cool pic",
-            ),
+            ],
         ]
+        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg)
+        postprocessed_multimodal_msg_base_names = []
+        for x, y in postprocessed_multimodal_msg:
+            if isinstance(x, dict):
+                x["name"] = os.path.basename(x["name"])
+                postprocessed_multimodal_msg_base_names.append([x, y])
+        assert postprocessed_multimodal_msg_base_names == processed_multimodal_msg
 
-        assert chatbot.postprocess(multimodal_msg) == processed_multimodal_msg
+        preprocessed_multimodal_msg = chatbot.preprocess(processed_multimodal_msg)
+        multimodal_msg_base_names = []
+        for x, y in multimodal_msg:
+            if isinstance(x, tuple):
+                if len(x) > 1:
+                    new_x = (os.path.basename(x[0]), x[1])
+                else:
+                    new_x = (os.path.basename(x[0]),)
+                multimodal_msg_base_names.append([new_x, y])
+        assert multimodal_msg_base_names == preprocessed_multimodal_msg
+
         assert chatbot.get_config() == {
             "value": [],
             "label": None,
@@ -2606,3 +2626,84 @@ class TestCode:
             "interactive": None,
             "root_url": None,
         }
+
+
+class TestTempFileManagement:
+    def test_hash_file(self):
+        temp_file_manager = gr.File()
+        h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
+        h2 = temp_file_manager.hash_file("gradio/test_data/cheetah1-copy.jpg")
+        h3 = temp_file_manager.hash_file("gradio/test_data/cheetah2.jpg")
+        assert h1 == h2
+        assert h1 != h3
+
+    @patch("shutil.copy2")
+    def test_make_temp_copy_if_needed(self, mock_copy):
+        temp_file_manager = gr.File()
+
+        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
+        assert mock_copy.called
+        assert len(temp_file_manager.temp_files) == 1
+        assert Path(f).name == "cheetah1.jpg"
+
+        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.make_temp_copy_if_needed(
+            "gradio/test_data/cheetah1-copy.jpg"
+        )
+        assert len(temp_file_manager.temp_files) == 2
+        assert Path(f).name == "cheetah1-copy.jpg"
+
+    def test_base64_to_temp_file_if_needed(self):
+        temp_file_manager = gr.File()
+
+        base64_file_1 = media_data.BASE64_IMAGE
+        base64_file_2 = media_data.BASE64_AUDIO["data"]
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.base64_to_temp_file_if_needed(base64_file_2)
+        assert len(temp_file_manager.temp_files) == 2
+
+        for file in temp_file_manager.temp_files:
+            os.remove(file)
+
+    @pytest.mark.flaky
+    @patch("shutil.copyfileobj")
+    def test_download_temp_copy_if_needed(self, mock_copy):
+        temp_file_manager = gr.File()
+        url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
+        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
+
+        f = temp_file_manager.download_temp_copy_if_needed(url1)
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.download_temp_copy_if_needed(url1)
+        assert mock_copy.called
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.download_temp_copy_if_needed(url1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.download_temp_copy_if_needed(url2)
+        assert len(temp_file_manager.temp_files) == 2
