@@ -8,10 +8,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-
-- Removes leading spaces from all lines of code uniformly in the `gr.Code()` component. By [@abidlabs](https://github.com/abidlabs) in [PR 3556](https://github.com/gradio-app/gradio/pull/3556) 
-- Fixed broken login page, by [@aliabid94](https://github.com/aliabid94) in [PR 3529](https://github.com/gradio-app/gradio/pull/3529)
-
+No changes to highlight.
 
 ## Documentation Changes:
 
@@ -47,7 +44,9 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3428](https://git
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Removes leading spaces from all lines of code uniformly in the `gr.Code()` component. By [@abidlabs](https://github.com/abidlabs) in [PR 3556](https://github.com/gradio-app/gradio/pull/3556) 
+- Fixed broken login page, by [@aliabid94](https://github.com/aliabid94) in [PR 3529](https://github.com/gradio-app/gradio/pull/3529)
+
 
 ## Documentation Changes:
 
@@ -68,7 +67,6 @@ No changes to highlight.
 ## Contributors Shoutout:
 
 No changes to highlight.
-
 
 
 # 3.22.1
