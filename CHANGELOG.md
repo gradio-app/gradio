@@ -12,7 +12,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Makes some fixes to the Theme Guide related to naming of variables, by [@abidlabs](https://github.com/abidlabs) in [PR 3561](https://github.com/gradio-app/gradio/pull/3561)
 
 ## Testing and Infrastructure Changes:
 
