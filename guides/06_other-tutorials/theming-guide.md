@@ -95,7 +95,7 @@ The next 3 constructor arguments set the sizing of the theme and are `gradio.the
 
 - `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.sizes.spacing_md`.
 - `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.sizes.radius_md`.
-- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.sizes.font_md`.
+- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.sizes.text_md`.
 
 You could modify these values using their string shortcuts, such as
 
