@@ -226,6 +226,7 @@ class App(FastAPI):
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
+                    "root": app.get_blocks().root,
                 }
 
             try:
