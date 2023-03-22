@@ -271,7 +271,7 @@ COMPONENT_MAPPING = {
     "highlightedtext": JSONSerializable,
     "json": JSONSerializable,
     "html": SimpleSerializable,
-    "gallery": GallerySerializable,  # TODO: Make this a proper Serializable class
+    "gallery": GallerySerializable,
     "chatbot": JSONSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
