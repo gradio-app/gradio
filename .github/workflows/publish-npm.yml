@@ -9,9 +9,8 @@ env:
 jobs:
   version:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./ui
+      
+        
     steps:
       - name: checkout code repository
         uses: actions/checkout@v3
@@ -24,17 +23,19 @@ jobs:
       - name: install pnpm
         run: npm i pnpm@latest -g
       - name: Setup npmrc
+        working-directory: ./ui
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
       - name: setup pnpm config
         run: pnpm config set store-dir $PNPM_CACHE_FOLDER
       - name: install dependencies
+        working-directory: ./ui
         run: pnpm install
       - name: create and publish versions
         uses: changesets/action@v1
         with:
-          version: pnpm ci:version
+          version: cd ui && pnpm changeset version
           commit: "chore: update versions"
           title: "chore: update versions"
-          publish: pnpm ci:publish
+          publish: cd ui && pnpm ci:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
