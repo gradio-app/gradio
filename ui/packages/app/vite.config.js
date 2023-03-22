@@ -117,7 +117,9 @@ export default defineConfig(({ mode }) => {
 		],
 		test: {
 			environment: "happy-dom",
-			include: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
+			include: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+			setupFiles: "./setUpTests.ts",
+			globals: true
 		}
 	};
 });

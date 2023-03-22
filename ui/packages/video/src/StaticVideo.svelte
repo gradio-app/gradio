@@ -25,7 +25,6 @@
 	<Empty size="large" unpadded_box={true}><Video /></Empty>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<Player src={value.data} on:play on:pause on:ended mirror={false} />
 	<div class="download" data-testid="download-div">
 		<a
 			href={value.data}
@@ -35,6 +34,7 @@
 			<IconButton Icon={Download} label="Download" />
 		</a>
 	</div>
+	<Player src={value.data} on:play on:pause on:ended mirror={false} />
 {/if}
 
 <style>
