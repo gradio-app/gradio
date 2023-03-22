@@ -4,7 +4,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)   
 
 ## Bug Fixes:
 
