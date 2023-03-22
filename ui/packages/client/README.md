@@ -2,6 +2,12 @@
 
 A javascript client to call Gradio APIs.
 
+**install it**
+
+```sh
+pnpm add @gradio/client
+```
+
 **usage**
 
 ```ts
