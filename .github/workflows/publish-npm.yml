@@ -17,18 +17,21 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
       - name: setup node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
-      - name: install pnpm
-        run: npm i pnpm@latest -g
-      - name: Setup npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
-      - name: setup pnpm config
-        run: pnpm config set store-dir $PNPM_CACHE_FOLDER
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+          node-version: 18
+          registry-url: "https://registry.npmjs.org"
       - name: install dependencies
         run: pnpm install
+      - name: Setup npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
       - name: create and publish versions
         uses: changesets/action@v1
         with:
@@ -36,6 +39,7 @@ jobs:
           commit: "chore: update versions"
           title: "chore: update versions"
           publish: pnpm ci:publish
-          cwd: ./ui
+          cwd: ui
         env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
