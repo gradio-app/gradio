@@ -8,14 +8,15 @@ env:
   PNPM_CACHE_FOLDER: .pnpm-store
 jobs:
   version:
-    timeout-minutes: 15
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ui
     steps:
       - name: checkout code repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - run: cd ui 
       - name: setup node.js
         uses: actions/setup-node@v3
         with:
