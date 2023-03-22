@@ -44,7 +44,7 @@ def load(
     **kwargs,
 ) -> Blocks:
     """
-    Class method that constructs a Blocks from a Hugging Face repo. Can accept
+    Method that constructs a Blocks from a Hugging Face repo. Can accept
     model repos (if src is "models") or Space repos (if src is "spaces"). The input
     and output components are automatically loaded from the repo.
     Parameters:
@@ -57,7 +57,7 @@ def load(
         a Gradio Blocks object for the given model
     Example:
         import gradio as gr
-        demo = gr.load("models/EleutherAI/gpt-neo-1.3B")
+        demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
     if hf_token is None and api_key:
