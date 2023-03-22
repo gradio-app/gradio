@@ -39,6 +39,7 @@ def load(
     name: str,
     src: str | None = None,
     api_key: str | None = None,
+    hf_token: str | None = None,
     alias: str | None = None,
     **kwargs,
 ) -> Blocks:
@@ -49,19 +50,21 @@ def load(
     Parameters:
         name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
         src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-        api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+        api_key: Deprecated. Please use the `hf_token` parameter instead.
+        hf_token: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
         alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
     Returns:
-        a Gradio Interface object for the given model
+        a Gradio Blocks object for the given model
     Example:
         import gradio as gr
-        description = "Story generation with GPT"
-        examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
-        demo = gr.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
+        demo = gr.load("models/EleutherAI/gpt-neo-1.3B")
         demo.launch()
     """
+    if hf_token is None and api_key:
+        warnings.warn("The `api_key` parameter will be deprecated. Please use the `hf_token` parameter going forward.")
+        hf_token = api_key
     return load_blocks_from_repo(
-        name=name, src=src, api_key=api_key, alias=alias, **kwargs
+        name=name, src=src, api_key=hf_token, alias=alias, **kwargs
     )
 
 
