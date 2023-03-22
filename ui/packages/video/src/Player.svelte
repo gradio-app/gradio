@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { tick } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
