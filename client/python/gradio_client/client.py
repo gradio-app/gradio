@@ -3,17 +3,17 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
-import pkgutil
 import re
 import uuid
 from concurrent.futures import Future
+import threading
 from typing import Any, Callable, Dict, List, Tuple
 
 import requests
 import websockets
-from gradio_client import serializing, utils
+from gradio_client import serializing, utils, __version__
 from gradio_client.serializing import Serializable
-from huggingface_hub.utils import build_hf_headers
+from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
 
 
@@ -26,13 +26,10 @@ class Client:
         max_workers: int = 40,
     ):
         self.hf_token = hf_token
-        library_version = (
-            (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
-        )
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
-            library_version=library_version,
+            library_version=__version__,
         )
 
         if space is None and src is None:
@@ -58,7 +55,10 @@ class Client:
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
-
+        
+        # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
+        threading.Thread(target=self._telemetry_thread).start()
+        
     def predict(
         self,
         *args,
@@ -92,6 +92,21 @@ class Client:
     ##################################
     # Private helper methods
     ##################################
+    
+    def _telemetry_thread(self) -> None:
+        # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
+        data = {
+            "src": self.src,
+        }
+        try:
+            send_telemetry(
+                topic="py_client/initiated",
+                library_name="gradio_client",
+                library_version=__version__,
+                user_agent=data,
+            )
+        except Exception:
+            pass   
 
     def _infer_fn_index(self, api_name: str) -> int:
         for i, d in enumerate(self.config["dependencies"]):
