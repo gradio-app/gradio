@@ -14,6 +14,7 @@ from gradio_client import Client
 import gradio
 from gradio import components, utils
 from gradio.context import Context
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
@@ -30,6 +31,10 @@ if TYPE_CHECKING:
     from gradio.interface import Interface
 
 
+set_documentation_group("helpers")
+
+
+@document()
 def load(
     name: str,
     src: str | None = None,
@@ -38,7 +43,7 @@ def load(
     **kwargs,
 ) -> Blocks:
     """
-    Class method that constructs an Interface from a Hugging Face repo. Can accept
+    Class method that constructs a Blocks from a Hugging Face repo. Can accept
     model repos (if src is "models") or Space repos (if src is "spaces"). The input
     and output components are automatically loaded from the repo.
     Parameters:

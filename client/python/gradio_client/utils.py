@@ -4,6 +4,7 @@ import base64
 import json
 import mimetypes
 import os
+import pkgutil
 import shutil
 import tempfile
 from pathlib import Path
@@ -15,6 +16,8 @@ from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "{}/api/predict/"
 WS_URL = "{}/queue/join"
+
+__version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
 
 class TooManyRequestsError(Exception):

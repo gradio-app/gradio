@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import requests
 import websockets
-from gradio_client import serializing, utils, __version__
+from gradio_client import serializing, utils
 from gradio_client.serializing import Serializable
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
@@ -29,7 +29,7 @@ class Client:
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
-            library_version=__version__,
+            library_version=utils.__version__,
         )
 
         if space is None and src is None:
@@ -102,7 +102,7 @@ class Client:
             send_telemetry(
                 topic="py_client/initiated",
                 library_name="gradio_client",
-                library_version=__version__,
+                library_version=utils.__version__,
                 user_agent=data,
             )
         except Exception:
