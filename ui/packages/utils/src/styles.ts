@@ -1,6 +1,7 @@
 export interface Styles {
 	container?: boolean;
-	grid?: number | Array<number>;
+	grid_cols?: number | Array<number>;
+	grid_rows?: number | Array<number>;
 	height?: "auto" | string | number;
 	width?: "auto" | string | number;
 	full_width?: boolean;
@@ -12,6 +13,7 @@ export interface Styles {
 	gap?: boolean;
 	size?: "sm" | "lg";
 	preview?: boolean;
+	object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
 	show_copy_button?: boolean;
 }
 
@@ -62,15 +64,28 @@ const style_handlers: StyleHandlers = {
 			? ""
 			: `border-width: 0; box-shadow: none; overflow: visible; background: transparent;`;
 	},
-	grid(grid) {
-		let grid_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
-		let _grid = Array.isArray(grid) ? grid : [grid];
+	grid_cols(grid_cols) {
+		let grid_cols_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
+		let _grid_cols = Array.isArray(grid_cols) ? grid_cols : [grid_cols];
 
 		return [0, 0, 0, 0, 0, 0]
 			.map(
 				(_, i) =>
-					`--${grid_map[i]}grid-cols: var(--grid-${
-						_grid?.[i] || _grid?.[_grid?.length - 1]
+					`--${grid_cols_map[i]}grid-cols: var(--grid-${
+						_grid_cols?.[i] || _grid_cols?.[_grid_cols?.length - 1]
+					});`
+			)
+			.join(" ");
+	},
+	grid_rows(grid_rows) {
+		let grid_rows_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
+		let _grid_rows = Array.isArray(grid_rows) ? grid_rows : [grid_rows];
+
+		return [0, 0, 0, 0, 0, 0]
+			.map(
+				(_, i) =>
+					`--${grid_rows_map[i]}grid-rows: var(--grid-${
+						_grid_rows?.[i] || _grid_rows?.[_grid_rows?.length - 1]
 					});`
 			)
 			.join(" ");
@@ -91,6 +106,9 @@ const style_handlers: StyleHandlers = {
 	},
 	item_container(visible) {
 		return visible ? "" : "border-width:0;";
+	},
+	object_fit(object_fit) {
+		return `--object-fit: ${object_fit};`;
 	}
 } as const;
 

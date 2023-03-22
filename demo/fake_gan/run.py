@@ -37,7 +37,7 @@ with gr.Blocks() as demo:
 
         gallery = gr.Gallery(
             label="Generated images", show_label=False, elem_id="gallery"
-        ).style(grid=[2], height="auto")
+        ).style(columns=[2], rows=[2], object_fit="contain", height="auto")
 
     btn.click(fake_gan, None, gallery)
 
