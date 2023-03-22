@@ -2,3 +2,4 @@ requests
 websockets
 packaging
 fsspec
+huggingface_hub
