@@ -5,6 +5,5 @@
 	"type": "module",
 	"main": "src/index.ts",
 	"author": "",
-	"license": "ISC",
-	"private": true
+	"license": "ISC"
 }
