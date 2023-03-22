@@ -33,9 +33,10 @@ jobs:
       - name: create and publish versions
         uses: changesets/action@v1
         with:
-          version: cd ui && pnpm changeset version
+          version: pnpm changeset version
           commit: "chore: update versions"
           title: "chore: update versions"
-          publish: cd ui && pnpm ci:publish
+          publish: pnpm ci:publish
+          cwd: ./ui
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
