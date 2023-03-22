@@ -98,11 +98,11 @@ def load_blocks_from_repo(
     )
 
     if api_key is not None:
-        if Context.access_token is not None and Context.access_token != api_key:
+        if Context.hf_token is not None and Context.hf_token != api_key:
             warnings.warn(
                 """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
             )
-        Context.access_token = api_key
+        Context.hf_token = api_key
 
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
@@ -452,7 +452,7 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
-    client = Client(space=space, access_token=api_key)
+    client = Client(space=space, hf_token=api_key)
     predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 

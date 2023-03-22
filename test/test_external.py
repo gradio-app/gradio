@@ -305,7 +305,7 @@ class TestLoadInterface:
             gr.load(
                 "spaces/gradio/test-loading-examples",
             )
-        assert Context.access_token == api_key
+        assert Context.hf_token == api_key
 
     def test_loading_files_via_proxy_works(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes

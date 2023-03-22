@@ -942,7 +942,7 @@ class Blocks(BlockContext):
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(
-                outputs[o], root_url=block.root_url, access_token=Context.access_token
+                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
             )
             predictions.append(deserialized)
 
