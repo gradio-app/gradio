@@ -79,7 +79,7 @@ class Interface(Blocks):
         **kwargs,
     ) -> Blocks:
         """
-        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class 
+        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class
         method that constructs a Blocks from a Hugging Face repo. Can accept
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
@@ -92,7 +92,9 @@ class Interface(Blocks):
             a Gradio Interface object for the given model
         """
         warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")
-        return external.load(name=name, src=src, hf_token=api_key, alias=alias, **kwargs)
+        return external.load(
+            name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+        )
 
     @classmethod
     def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:

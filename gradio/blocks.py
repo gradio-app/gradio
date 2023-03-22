@@ -1230,7 +1230,9 @@ class Blocks(BlockContext):
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            return external.load(name=name, src=src, hf_token=api_key, alias=alias, **kwargs)
+            return external.load(
+                name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+            )
         else:
             return self_or_cls.set_event_trigger(
                 event_name="load",
