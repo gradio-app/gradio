@@ -24,6 +24,7 @@
 
 	$: dispatch("change", value);
 	const clamp = () => {
+		dispatch("release", value);
 		value = Math.min(Math.max(value, minimum), maximum);
 	};
 </script>
@@ -41,6 +42,7 @@
 			on:blur={clamp}
 			{step}
 			{disabled}
+			on:mouseup={handle_release}
 		/>
 	</div>
 </div>
