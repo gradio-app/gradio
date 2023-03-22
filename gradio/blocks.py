@@ -1192,7 +1192,7 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.load()
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
 
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
@@ -1230,7 +1230,7 @@ class Blocks(BlockContext):
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
+            return external.load(name=name, src=src, hf_token=api_key, alias=alias, **kwargs)
         else:
             return self_or_cls.set_event_trigger(
                 event_name="load",
