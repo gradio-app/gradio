@@ -4,7 +4,9 @@
 
 ## New Features:
 
-No changes to highlight.
+### Added a download button for videos! 📥
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3581](https://github.com/gradio-app/gradio/pull/3581).
 
 ## Bug Fixes:
 
