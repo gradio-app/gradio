@@ -1,3 +1,5 @@
+import "@testing-library/jest-dom";
+
 import { test, describe, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 
