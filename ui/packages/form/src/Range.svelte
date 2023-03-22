@@ -35,6 +35,7 @@
 			<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		</label>
 		<input
+			data-testid="number-input"
 			type="number"
 			bind:value
 			min={minimum}
