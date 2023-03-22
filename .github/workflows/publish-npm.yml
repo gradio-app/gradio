@@ -10,7 +10,8 @@ jobs:
   version:
     runs-on: ubuntu-latest
     defaults:
-      working-directory: ui
+      run:
+        working-directory: ui
     steps:
       - name: checkout code repository
         uses: actions/checkout@v3
