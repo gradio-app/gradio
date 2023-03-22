@@ -61,7 +61,9 @@ def load(
         demo.launch()
     """
     if hf_token is None and api_key:
-        warnings.warn("The `api_key` parameter will be deprecated. Please use the `hf_token` parameter going forward.")
+        warnings.warn(
+            "The `api_key` parameter will be deprecated. Please use the `hf_token` parameter going forward."
+        )
         hf_token = api_key
     return load_blocks_from_repo(
         name=name, src=src, api_key=hf_token, alias=alias, **kwargs

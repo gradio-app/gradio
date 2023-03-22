@@ -4,9 +4,9 @@ from __future__ import annotations
 import concurrent.futures
 import json
 import re
+import threading
 import uuid
 from concurrent.futures import Future
-import threading
 from typing import Any, Callable, Dict, List, Tuple
 
 import requests
@@ -55,10 +55,10 @@ class Client:
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
-        
+
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
-        
+
     def predict(
         self,
         *args,
@@ -92,7 +92,7 @@ class Client:
     ##################################
     # Private helper methods
     ##################################
-    
+
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         data = {
@@ -106,7 +106,7 @@ class Client:
                 user_agent=data,
             )
         except Exception:
-            pass   
+            pass
 
     def _infer_fn_index(self, api_name: str) -> int:
         for i, d in enumerate(self.config["dependencies"]):
