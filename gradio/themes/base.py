@@ -122,17 +122,17 @@ class ThemeClass:
         Parameters:
             theme: The dictionary representation of the theme.
         """
-        theme = cls()
+        new_theme = cls()
         for prop, value in theme["theme"].items():
-            setattr(theme, prop, value)
+            setattr(new_theme, prop, value)
 
         # For backwards compatibility, load attributes in base theme not in the loaded theme from the base theme.
         base = Base()
         for attr in base.__dict__:
-            if not attr.startswith("_") and not hasattr(theme, attr):
-                setattr(theme, attr, getattr(base, attr))
+            if not attr.startswith("_") and not hasattr(new_theme, attr):
+                setattr(new_theme, attr, getattr(base, attr))
 
-        return theme
+        return new_theme
 
     def dump(self, filename: str):
         """Write the theme to a json file.
