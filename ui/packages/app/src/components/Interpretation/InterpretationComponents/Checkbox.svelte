@@ -67,7 +67,7 @@
 		justify-content: center;
 		align-items: center;
 		border: 1px solid var(--border-color-primary);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		width: var(--size-4);
 		height: var(--size-4);
 	}
@@ -75,14 +75,14 @@
 	.checkbox-item {
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 	}
 
 	.checkbox-item:hover {
 		box-shadow: var(--shadow-drop-lg);
 	}
 	.checkbox-item.selected {
-		background: var(--background-accent-base);
+		background: var(--color-accent-base);
 		color: white;
 	}
 </style>

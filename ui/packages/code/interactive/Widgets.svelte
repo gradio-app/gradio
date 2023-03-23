@@ -26,7 +26,7 @@
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background);
+		background: var(--block-label-background-fill);
 		overflow: hidden;
 		color: var(--block-label-text-color);
 		font: var(--font);

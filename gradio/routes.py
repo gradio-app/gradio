@@ -46,7 +46,6 @@ from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.helpers import EventData
-from gradio.processing_utils import TempFileManager
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
@@ -227,6 +226,7 @@ class App(FastAPI):
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
+                    "root": app.get_blocks().root,
                 }
 
             try:
@@ -547,7 +547,7 @@ class App(FastAPI):
             files: List[UploadFile] = File(...),
         ):
             output_files = []
-            file_manager = TempFileManager()
+            file_manager = gradio.File()
             for input_file in files:
                 output_files.append(
                     await file_manager.save_uploaded_file(

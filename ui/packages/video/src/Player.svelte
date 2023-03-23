@@ -237,6 +237,6 @@
 		font-family: var(--font-mono);
 	}
 	.wrap {
-		background-color: var(--background-secondary);
+		background-color: var(--background-fill-secondary);
 	}
 </style>

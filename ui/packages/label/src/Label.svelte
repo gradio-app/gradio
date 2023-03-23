@@ -81,7 +81,7 @@
 	.bar {
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
-		background: var(--stat-color-background);
+		background: var(--stat-background-fill);
 		height: var(--size-1);
 	}
 
@@ -95,7 +95,7 @@
 	}
 
 	.confidence-set:hover .label {
-		color: var(--background-accent);
+		color: var(--color-accent);
 	}
 
 	.text {

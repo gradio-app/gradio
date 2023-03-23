@@ -89,7 +89,7 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            if isinstance(self, components.TempFileManager):
+            if isinstance(self, components.IOComponent):
                 Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
@@ -400,6 +400,9 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict = block.get_specific_update(update_dict)
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
+    interactive = update_dict.pop("interactive", None)
+    if interactive is not None:
+        update_dict["mode"] = "dynamic" if interactive else "static"
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         assert isinstance(
@@ -474,7 +477,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: Theme | None = None,
+        theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -493,7 +496,13 @@ class Blocks(BlockContext):
         self.save_to = None
         if theme is None:
             theme = DefaultTheme()
-        elif not isinstance(theme, Theme):
+        elif isinstance(theme, str):
+            try:
+                theme = Theme.from_hub(theme)
+            except Exception as e:
+                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                theme = DefaultTheme()
+        if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
         self.theme = theme

@@ -89,7 +89,7 @@
 
 		<main
 			class="gradio-bg px-6 w-full"
-			style="background: var(--background-primary)"
+			style="background: var(--background-fill-primary)"
 		>
 			<div class="gradio-interface">
 				<slot />

@@ -32,7 +32,7 @@
 		activeOption = filtered[0];
 
 	$: readonly =
-		(!multiselect && typeof value === "string") ||
+		(!multiselect && typeof value === "string" && value.length > 0) ||
 		(multiselect && Array.isArray(value) && value.length === max_choices);
 
 	// The initial value of value is [] so that can
@@ -52,7 +52,6 @@
 				});
 				dispatch("change", value);
 			}
-			showOptions = !(value.length === max_choices);
 		}
 		value = value;
 	}
@@ -161,11 +160,12 @@
 					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:focus={() =>
-						(showOptions =
-							Array.isArray(value) && value.length === max_choices
-								? false
-								: true)}
+					on:mousedown={() => {
+						showOptions = !showOptions;
+					}}
+					on:focus={() => {
+						showOptions = true;
+					}}
 					on:blur={() => (showOptions = false)}
 					on:keyup={handleKeyup}
 				/>
@@ -197,7 +197,7 @@
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--border-color-primary);
 		border-radius: var(--input-radius);
-		background: var(--input-background);
+		background: var(--input-background-fill);
 	}
 
 	.wrap:focus-within {
@@ -223,9 +223,9 @@
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color);
 		border-radius: var(--button-small-radius);
-		background: var(--checkbox-label-background);
+		background: var(--checkbox-label-background-fill);
 		padding: var(--checkbox-label-padding);
-		color: var(--checkbox-text-color);
+		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
@@ -243,7 +243,7 @@
 		cursor: pointer;
 		border: var(--checkbox-border-width) solid var(--border-color-primary);
 		border-radius: var(--radius-full);
-		background: var(--background-primary);
+		background: var(--background-fill-primary);
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;

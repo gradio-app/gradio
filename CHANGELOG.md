@@ -1,11 +1,117 @@
+
 # Upcoming Release
+
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Fixed bug where text for altair plots was not legible in dark mode by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3555](https://github.com/gradio-app/gradio/pull/3555)  
+- Fixes `Chatbot` and `Image` components so that files passed during processing are added to a directory where they can be served from, by [@abidlabs](https://github.com/abidlabs) in [PR 3523](https://github.com/gradio-app/gradio/pull/3523)
+
+## Documentation Changes:
+
+- Makes some fixes to the Theme Guide related to naming of variables, by [@abidlabs](https://github.com/abidlabs) in [PR 3561](https://github.com/gradio-app/gradio/pull/3561)
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+* Mobile responsive iframes in themes guide by [@aliabd](https://github.com/aliabd) in [PR 3562](https://github.com/gradio-app/gradio/pull/3562) 
+* Remove extra $demo from theme guide by [@aliabd](https://github.com/aliabd) in [PR 3563](https://github.com/gradio-app/gradio/pull/3563)
+
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+
+# 3.23.0
+
+
+## New Features:
+
+### Theme Sharing! 
+
+Once you have created a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it! You can also download, reuse, and remix other peoples' themes. See https://gradio.app/theming-guide/ for more details. 
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3428](https://github.com/gradio-app/gradio/pull/3428) 
+
+## Bug Fixes:
+
+- Removes leading spaces from all lines of code uniformly in the `gr.Code()` component. By [@abidlabs](https://github.com/abidlabs) in [PR 3556](https://github.com/gradio-app/gradio/pull/3556) 
+- Fixed broken login page, by [@aliabid94](https://github.com/aliabid94) in [PR 3529](https://github.com/gradio-app/gradio/pull/3529)
+
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+- Fix rendering of dropdowns to take more space, and related bugs, by [@aliabid94](https://github.com/aliabid94) in [PR 3549](https://github.com/gradio-app/gradio/pull/3549)
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+
+# 3.22.1
+
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Restore label bars by [@aliabid94](https://github.com/aliabid94) in [PR 3507](https://github.com/gradio-app/gradio/pull/3507) 
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+
+# 3.22.0
 
 
 ## New Features:
 
 ### Official Theme release
 
-Gradio now supports a new theme system, which allows you to customize the look and feel of your app. You can now use the `theme=` kwarg to pass in a prebuilt theme, or customize your own! See guides/06_other-tutorials/theming-guide for more details. By [@aliabid94](https://github.com/aliabid94) in [PR 3494](https://github.com/gradio-app/gradio/pull/3494) 
+Gradio now supports a new theme system, which allows you to customize the look and feel of your app. You can now use the `theme=` kwarg to pass in a prebuilt theme, or customize your own! See https://gradio.app/theming-guide/ for more details. By [@aliabid94](https://github.com/aliabid94) in [PR 3470](https://github.com/gradio-app/gradio/pull/3470) and [PR 3497](https://github.com/gradio-app/gradio/pull/3497)
 
 ### `elem_classes`
 
@@ -26,6 +132,7 @@ By [@aliabid94](https://github.com/aliabid94) in [PR 3466](https://github.com/gr
 ## Testing and Infrastructure Changes:
 
 - Pinned `pyright==1.1.298` for stability by [@abidlabs](https://github.com/abidlabs) in [PR 3475](https://github.com/gradio-app/gradio/pull/3475)
+- Removed `IOComponent.add_interactive_to_config()` by [@space-nuko](https://github.com/space-nuko) in [PR 3476](https://github.com/gradio-app/gradio/pull/3476)
 - Removed `IOComponent.generate_sample()` by [@space-nuko](https://github.com/space-nuko) in [PR 3475](https://github.com/gradio-app/gradio/pull/3483)
 
 ## Breaking Changes:
@@ -44,6 +151,74 @@ No changes to highlight.
 # 3.21.0
 
 ## New Features:
+
+### Theme Sharing 🎨 🤝
+
+You can now share your gradio themes with the world!
+
+After creating a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it!
+
+### Uploading
+There are two ways to upload a theme, via the theme class instance or the command line.
+
+1. Via the class instance
+
+```python
+my_theme.push_to_hub(repo_name="my_theme",
+                     version="0.2.0",
+                     hf_token="...")
+```
+
+2. Via the command line
+
+First save the theme to disk
+```python
+my_theme.dump(filename="my_theme.json")
+```
+
+Then use the `upload_theme` command:
+
+```bash
+upload_theme\
+"my_theme.json"\
+"my_theme"\
+"0.2.0"\
+"<hf-token>"
+```
+
+The `version` must be a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string.
+
+This creates a space on the huggingface hub to host the theme files and show potential users a preview of your theme.
+
+An example theme space is here: https://huggingface.co/spaces/freddyaboulton/dracula_revamped 
+
+### Downloading
+To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
+
+```python
+my_theme = gr.Theme.from_hub("freddyaboulton/my_theme")
+
+with gr.Blocks(theme=my_theme) as demo:
+    ....
+```
+
+You can also pass the theme string directly to `Blocks` or `Interface` (`gr.Blocks(theme="freddyaboulton/my_theme")`)
+
+You can pin your app to an upstream theme version by using semantic versioning expressions.
+
+For example, the following would ensure the theme we load from the `my_theme` repo was between versions `0.1.0` and `0.2.0`:
+
+```python
+with gr.Blocks(theme="freddyaboulton/my_theme@>=0.1.0,<0.2.0") as demo:
+    ....
+```
+
+by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3428](https://github.com/gradio-app/gradio/pull/3428)  
+
+
+### Code component 🦾 
+
+New code component allows you to enter, edit and display code with full syntax highlighting by [@pngwn](https://github.com/pngwn) in [PR 3421](https://github.com/gradio-app/gradio/pull/3421)
 
 ### The `Chatbot` component now supports audio, video, and images
 

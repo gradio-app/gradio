@@ -4,26 +4,33 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import json
 import math
 import operator
 import random
+import secrets
+import shutil
 import tempfile
+import urllib.request
 import uuid
 import warnings
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type
 
+import aiofiles
 import altair as alt
 import matplotlib.figure
 import numpy as np
 import pandas as pd
 import PIL
 import PIL.ImageOps
+import requests
+from fastapi import UploadFile
 from ffmpy import FFmpeg
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
@@ -49,7 +56,6 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
-from gradio.processing_utils import TempFileManager
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -177,6 +183,9 @@ class IOComponent(Component, Serializable):
         every: float | None = None,
         **kwargs,
     ):
+        self.temp_files: Set[str] = set()
+        self.DEFAULT_TEMP_DIR = tempfile.gettempdir()
+
         Component.__init__(
             self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
         )
@@ -198,6 +207,120 @@ class IOComponent(Component, Serializable):
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
 
+    def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+                sha1.update(chunk)
+        return sha1.hexdigest()
+
+    def hash_url(self, url: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        remote = urllib.request.urlopen(url)
+        max_file_size = 100 * 1024 * 1024  # 100MB
+        total_read = 0
+        while True:
+            data = remote.read(chunk_num_blocks * sha1.block_size)
+            total_read += chunk_num_blocks * sha1.block_size
+            if not data or total_read > max_file_size:
+                break
+            sha1.update(data)
+        return sha1.hexdigest()
+
+    def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
+            data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
+            sha1.update(data.encode("utf-8"))
+        return sha1.hexdigest()
+
+    def make_temp_copy_if_needed(self, file_path: str) -> str:
+        """Returns a temporary file path for a copy of the given file path if it does
+        not already exist. Otherwise returns the path to the existing temp file."""
+        temp_dir = self.hash_file(file_path)
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
+        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+
+        if not Path(full_temp_file_path).exists():
+            shutil.copy2(file_path, full_temp_file_path)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    async def save_uploaded_file(self, file: UploadFile, upload_dir: str) -> str:
+        temp_dir = secrets.token_hex(
+            20
+        )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
+        temp_dir = Path(upload_dir) / temp_dir
+        temp_dir.mkdir(exist_ok=True, parents=True)
+        output_file_obj = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+
+        if file.filename:
+            file_name = Path(file.filename).name
+            output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
+
+        full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
+
+        async with aiofiles.open(full_temp_file_path, "wb") as output_file:
+            while True:
+                content = await file.read(100 * 1024 * 1024)
+                if not content:
+                    break
+                await output_file.write(content)
+
+        return full_temp_file_path
+
+    def download_temp_copy_if_needed(self, url: str) -> str:
+        """Downloads a file and makes a temporary file path for a copy if does not already
+        exist. Otherwise returns the path to the existing temp file."""
+        temp_dir = self.hash_url(url)
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
+        temp_dir.mkdir(exist_ok=True, parents=True)
+        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+
+        f.name = utils.strip_invalid_filename_characters(Path(url).name)
+        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+
+        if not Path(full_temp_file_path).exists():
+            with requests.get(url, stream=True) as r:
+                with open(full_temp_file_path, "wb") as f:
+                    shutil.copyfileobj(r.raw, f)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    def base64_to_temp_file_if_needed(
+        self, base64_encoding: str, file_name: str | None = None
+    ) -> str:
+        """Converts a base64 encoding to a file and returns the path to the file if
+        the file doesn't already exist. Otherwise returns the path to the existing file."""
+        temp_dir = self.hash_base64(base64_encoding)
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        guess_extension = processing_utils.get_extension(base64_encoding)
+        if file_name:
+            file_name = utils.strip_invalid_filename_characters(file_name)
+        elif guess_extension:
+            file_name = "file." + guess_extension
+        else:
+            file_name = "file"
+        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        f.name = file_name
+        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+
+        if not Path(full_temp_file_path).exists():
+            data, _ = processing_utils.decode_base64_to_binary(base64_encoding)
+            with open(full_temp_file_path, "wb") as fb:
+                fb.write(data)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
     def get_config(self):
         config = {
             "label": self.label,
@@ -207,12 +330,6 @@ class IOComponent(Component, Serializable):
         }
         if self.info:
             config["info"] = self.info
-        return config
-
-    @staticmethod
-    def add_interactive_to_config(config, interactive):
-        if interactive is not None:
-            config["mode"] = "dynamic" if interactive else "static"
         return config
 
     @staticmethod
@@ -347,7 +464,7 @@ class Textbox(
         interactive: bool | None = None,
         type: str | None = None,
     ):
-        updated_config = {
+        return {
             "lines": lines,
             "max_lines": max_lines,
             "placeholder": placeholder,
@@ -356,9 +473,9 @@ class Textbox(
             "visible": visible,
             "value": value,
             "type": type,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: str | None) -> str | None:
         """
@@ -552,14 +669,14 @@ class Number(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: float | None) -> float | None:
         """
@@ -745,7 +862,7 @@ class Slider(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "minimum": minimum,
             "maximum": maximum,
             "step": step,
@@ -754,9 +871,9 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def postprocess(self, y: float | None) -> float | None:
         """
@@ -880,15 +997,15 @@ class Checkbox(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def get_interpretation_neighbors(self, x):
         return [not x], {}
@@ -1000,16 +1117,16 @@ class CheckboxGroup(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
@@ -1182,16 +1299,16 @@ class Radio(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: str | None) -> str | int | None:
         """
@@ -1351,16 +1468,16 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: str | List[str]
@@ -1543,16 +1660,16 @@ class Image(
         visible: bool | None = None,
         brush_radius: int | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def _format_image(
         self, im: _Image.Image | None
@@ -1571,7 +1688,7 @@ class Image(
                 suffix=("." + fmt.lower() if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
-            return file_obj.name
+            return self.make_temp_copy_if_needed(file_obj.name)
         else:
             raise ValueError(
                 "Unknown type: "
@@ -1803,7 +1920,6 @@ class Video(
     Uploadable,
     IOComponent,
     FileSerializable,
-    TempFileManager,
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -1860,7 +1976,6 @@ class Video(
         self.include_audio = (
             include_audio if include_audio is not None else source == "upload"
         )
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -1892,16 +2007,16 @@ class Video(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "source": source,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
@@ -2022,7 +2137,6 @@ class Audio(
     Uploadable,
     IOComponent,
     FileSerializable,
-    TempFileManager,
     TokenInterpretable,
 ):
     """
@@ -2082,7 +2196,6 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -2114,16 +2227,16 @@ class Audio(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "source": source,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: Dict[str, Any] | None
@@ -2332,7 +2445,6 @@ class File(
     Uploadable,
     IOComponent,
     FileSerializable,
-    TempFileManager,
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
@@ -2403,7 +2515,6 @@ class File(
         Uses event data gradio.SelectData to carry `value` referring to name of selected file, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -2434,15 +2545,15 @@ class File(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
@@ -2699,7 +2810,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "max_rows": max_rows,
             "max_cols": max_cols,
             "label": label,
@@ -2707,9 +2818,9 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: DataframeData):
         """
@@ -2915,16 +3026,16 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "colors": colors,
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
@@ -3075,13 +3186,13 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
-        updated_config = {
+        return {
             "variant": variant,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(
         self,
@@ -3106,9 +3217,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class UploadButton(
-    Clickable, Uploadable, IOComponent, FileSerializable, TempFileManager
-):
+class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -3153,7 +3262,6 @@ class UploadButton(
             )
         self.file_types = file_types
         self.label = label
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -3179,13 +3287,13 @@ class UploadButton(
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
-        updated_config = {
+        return {
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
@@ -3338,14 +3446,14 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
-        updated_config = {
+        return {
             "value": value,
             "label": label,
             "show_label": show_label,
             "visible": visible,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: str | None) -> str | None:
         """
@@ -3501,7 +3609,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         # e.g. no background default state.
         elif color is None:
             color = "transparent"
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
@@ -3509,7 +3617,6 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             "color": color,
             "__type__": "update",
         }
-        return updated_config
 
     def style(
         self,
@@ -3712,7 +3819,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Dict | List | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -3862,7 +3969,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
+class Gallery(IOComponent, FileSerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -3873,7 +3980,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
 
     def __init__(
         self,
-        value: List[np.ndarray | _Image.Image | str] | Callable | None = None,
+        value: List[np.ndarray | _Image.Image | str | Tuple] | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -3899,7 +4006,6 @@ class Gallery(IOComponent, TempFileManager, FileSerializable, Selectable):
         Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -4062,14 +4168,16 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects function to return a {List[Tuple[str | None | Tuple, str | None | Tuple]]}, a list of tuples with user message and response messages. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
+    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
     """
 
     def __init__(
         self,
-        value: List[Tuple[str | None, str | None]] | Callable | None = None,
+        value: List[List[str | Tuple[str] | Tuple[str, str] | None]]
+        | Callable
+        | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
         *,
         label: str | None = None,
@@ -4123,7 +4231,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: List[List[str | Tuple[str] | Tuple[str, str] | None]]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
@@ -4137,24 +4247,57 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def _process_chat_messages(
-        self, chat_message: str | Tuple | List | Dict | None
+    def _preprocess_chat_messages(
+        self, chat_message: str | Dict | None
+    ) -> str | Tuple[str] | Tuple[str, str] | None:
+        if chat_message is None:
+            return None
+        elif isinstance(chat_message, dict):
+            if chat_message["alt_text"] is not None:
+                return (chat_message["name"], chat_message["alt_text"])
+            else:
+                return (chat_message["name"],)
+        else:  # string
+            return chat_message
+
+    def preprocess(
+        self,
+        y: List[List[str | Dict | None] | Tuple[str | Dict | None, str | Dict | None]],
+    ) -> List[List[str | Tuple[str] | Tuple[str, str] | None]]:
+        if y is None:
+            return y
+        processed_messages = []
+        for message_pair in y:
+            assert isinstance(
+                message_pair, (tuple, list)
+            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
+            assert (
+                len(message_pair) == 2
+            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            processed_messages.append(
+                [
+                    self._preprocess_chat_messages(message_pair[0]),
+                    self._preprocess_chat_messages(message_pair[1]),
+                ]
+            )
+        return processed_messages
+
+    def _postprocess_chat_messages(
+        self, chat_message: str | Tuple | List | None
     ) -> str | Dict | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            mime_type = processing_utils.get_mimetype(chat_message[0])
+            filepath = chat_message[0]
+            mime_type = processing_utils.get_mimetype(filepath)
+            filepath = self.make_temp_copy_if_needed(filepath)
             return {
-                "name": chat_message[0],
+                "name": filepath,
                 "mime_type": mime_type,
                 "alt_text": chat_message[1] if len(chat_message) > 1 else None,
                 "data": None,  # These last two fields are filled in by the frontend
                 "is_file": True,
             }
-        elif isinstance(
-            chat_message, dict
-        ):  # This happens for previously processed messages
-            return chat_message
         elif isinstance(chat_message, str):
             return self.md.renderInline(chat_message)
         else:
@@ -4162,15 +4305,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def postprocess(
         self,
-        y: List[
-            Tuple[str | Tuple | List | Dict | None, str | Tuple | List | Dict | None]
-        ],
-    ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
+        y: List[List[str | Tuple[str] | Tuple[str, str] | None] | Tuple],
+    ) -> List[List[str | Dict | None]]:
         """
         Parameters:
-            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
+            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
         Returns:
-            List of tuples representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information.
+            List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
         if y is None:
             return []
@@ -4183,10 +4324,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 len(message_pair) == 2
             ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
             processed_messages.append(
-                (
-                    self._process_chat_messages(message_pair[0]),
-                    self._process_chat_messages(message_pair[1]),
-                )
+                [
+                    self._postprocess_chat_messages(message_pair[0]),
+                    self._postprocess_chat_messages(message_pair[1]),
+                ]
             )
         return processed_messages
 
@@ -4207,9 +4348,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
-class Model3D(
-    Changeable, Editable, Clearable, IOComponent, FileSerializable, TempFileManager
-):
+class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str} filepath.
@@ -4244,7 +4383,6 @@ class Model3D(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
-        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -5556,7 +5694,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
     def __init__(
         self,
-        value: str | None = None,
+        value: str | Tuple[str] | None = None,
         language: str | None = None,
         *,
         label: str | None = None,
@@ -5600,29 +5738,36 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         }
 
     def postprocess(self, y):
-        if y is not None and isinstance(y, tuple):
+        if y is None:
+            return None
+        elif isinstance(y, tuple):
             with open(y[0]) as file_data:
                 return file_data.read()
-        return y
+        else:
+            unindented_y = inspect.cleandoc(y)
+            return unindented_y
 
     @staticmethod
     def update(
-        value: str | None | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        value: str
+        | Tuple[str]
+        | None
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
         language: str | None = None,
         interactive: bool | None = True,
     ):
-        updated_config = {
+        return {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "language": language,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def style(self):
         return self
