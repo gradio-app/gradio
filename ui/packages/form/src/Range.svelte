@@ -24,6 +24,7 @@
 
 	$: dispatch("change", value);
 	const clamp = () => {
+		dispatch("release", value);
 		value = Math.min(Math.max(value, minimum), maximum);
 	};
 </script>
@@ -34,6 +35,7 @@
 			<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		</label>
 		<input
+			data-testid="number-input"
 			type="number"
 			bind:value
 			min={minimum}
@@ -41,6 +43,7 @@
 			on:blur={clamp}
 			{step}
 			{disabled}
+			on:mouseup={handle_release}
 		/>
 	</div>
 </div>
