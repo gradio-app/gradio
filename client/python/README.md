@@ -1,6 +1,6 @@
 # `gradio_client`: Use any Gradio app as an API -- in 3 lines of Python
 
-This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. This library is CURRENTLY IN ALPHA. APIS MAY CHANGE. WE DO NOT RECOMMEND USING IT EXCEPT IN EXPERIMENTAL PROJECTS. 
+This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. Warning: This library is **currently in alpha, and APIs may change**.
 
 As an example, consider the Stable Diffusion Gradio app, which is hosted on Hugging Face Spaces, and which generates images given a text prompt. Using the `gradio_client` library, we can easily use the Gradio as an API to generates images programmatically.
 
@@ -13,7 +13,7 @@ client = grc.Client(space="stability-ai/stable-diffusion")
 job = client.predict("a hyperrealistic portrait of a cat wearing cyberpunk armor")
 job.result()
 
->> URL
+>> https://stabilityai-stable-diffusion.hf.space/kjbcxadsk3ada9k/image.png  # URL to generated image
 
 ```
 

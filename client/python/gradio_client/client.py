@@ -64,7 +64,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int = 0,
-        result_callbacks: List[Callable] | None = None,
+        result_callbacks: Callable | List[Callable] | None = None,
     ) -> Future:
         if api_name:
             fn_index = self._infer_fn_index(api_name)
@@ -74,24 +74,21 @@ class Client:
         job = Job(future)
 
         if result_callbacks:
-
+            if isinstance(result_callbacks, Callable):
+                result_callbacks = [result_callbacks]        
+            
             def create_fn(callback) -> Callable:
                 def fn(future):
                     if isinstance(future.result(), tuple):
                         callback(*future.result())
                     else:
                         callback(future.result())
-
                 return fn
 
             for callback in result_callbacks:
                 job.add_done_callback(create_fn(callback))
 
         return job
-
-    ##################################
-    # Private helper methods
-    ##################################
 
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
