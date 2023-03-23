@@ -169,6 +169,7 @@ dracula = gr.themes.Base(
     panel_background_fill="#31395294",
     block_background_fill_dark="#31395294",
 )
+dracula.name = "gradio/dracula_test"
 
 
 class TestSemverMatch:
@@ -279,6 +280,7 @@ class TestThemeUploadDownload:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
+        assert demo.theme.name == "gradio/dracula_test"
 
     def test_theme_download_raises_error_if_theme_does_not_exist(self):
 

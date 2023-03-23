@@ -28,6 +28,7 @@ set_documentation_group("themes")
 class ThemeClass:
     def __init__(self):
         self._stylesheets = []
+        self.name = None
 
     def _get_theme_css(self):
         css = {}
@@ -101,6 +102,7 @@ class ThemeClass:
                 not prop.startswith("_")
                 or prop.startswith("_font")
                 or prop == "_stylesheets"
+                or prop == "name"
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
@@ -172,7 +174,9 @@ class ThemeClass:
             repo_type="space",
             filename=f"themes/theme_schema@{matching_version.version}.json",
         )
-        return cls.load(theme_file)
+        theme = cls.load(theme_file)
+        theme.name = name
+        return theme
 
     @staticmethod
     def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
