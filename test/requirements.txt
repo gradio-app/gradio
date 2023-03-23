@@ -26,9 +26,9 @@ backcall==0.2.0
     # via ipython
 black==23.1.0
     # via -r requirements.in
-boto3==1.26.93
+boto3==1.26.97
     # via -r requirements.in
-botocore==1.29.93
+botocore==1.29.97
     # via
     #   boto3
     #   s3transfer
@@ -69,7 +69,7 @@ coverage[toml]==7.2.2
     #   pytest-cov
 cycler==0.11.0
     # via matplotlib
-databricks-cli==0.17.5
+databricks-cli==0.17.6
     # via mlflow
 decorator==5.1.1
     # via ipython
@@ -83,15 +83,15 @@ entrypoints==0.4
     # via
     #   altair
     #   mlflow
-everett[ini]==3.1.0
+everett[ini]==3.2.0
     # via comet-ml
 exceptiongroup==1.1.1
     # via pytest
 executing==1.2.0
     # via stack-data
-fastapi==0.94.1
+fastapi==0.95.0
     # via -r requirements.in
-filelock==3.10.0
+filelock==3.10.2
     # via
     #   huggingface-hub
     #   torch
@@ -118,7 +118,7 @@ httpx==0.23.3
     # via
     #   -r requirements.in
     #   respx
-huggingface-hub==0.13.2
+huggingface-hub==0.13.3
     # via
     #   -r requirements.in
     #   transformers
@@ -127,9 +127,9 @@ idna==3.4
     #   anyio
     #   requests
     #   rfc3986
-imageio==2.26.0
+imageio==2.26.1
     # via scikit-image
-importlib-metadata==6.0.0
+importlib-metadata==6.1.0
     # via mlflow
 iniconfig==2.0.0
     # via pytest
@@ -159,13 +159,13 @@ jsonschema==4.17.3
     #   comet-ml
 kiwisolver==1.4.4
     # via matplotlib
-lazy-loader==0.1
+lazy-loader==0.2
     # via scikit-image
 llvmlite==0.39.1
     # via numba
 mako==1.2.4
     # via alembic
-markdown==3.4.1
+markdown==3.4.3
     # via mlflow
 markupsafe==2.1.2
     # via
@@ -257,7 +257,7 @@ pyarrow==11.0.0
     # via mlflow
 pycodestyle==2.10.0
     # via flake8
-pydantic==1.10.6
+pydantic==1.10.7
     # via
     #   -r requirements.in
     #   fastapi
@@ -276,7 +276,7 @@ pytest==7.2.2
     #   -r requirements.in
     #   pytest-asyncio
     #   pytest-cov
-pytest-asyncio==0.20.3
+pytest-asyncio==0.21.0
     # via -r requirements.in
 pytest-cov==4.0.0
     # via -r requirements.in
@@ -303,7 +303,7 @@ pyyaml==6.0
     #   wandb
 querystring-parser==1.2.4
     # via mlflow
-regex==2022.10.31
+regex==2023.3.23
     # via transformers
 requests==2.28.2
     # via
@@ -367,7 +367,7 @@ sniffio==1.3.0
     #   anyio
     #   httpcore
     #   httpx
-sqlalchemy==2.0.6
+sqlalchemy==2.0.7
     # via
     #   alembic
     #   mlflow
@@ -383,7 +383,7 @@ tabulate==0.9.0
     # via databricks-cli
 threadpoolctl==3.1.0
     # via scikit-learn
-tifffile==2023.3.15
+tifffile==2023.3.21
     # via scikit-image
 tokenizers==0.13.2
     # via transformers
@@ -406,7 +406,7 @@ traitlets==5.9.0
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.27.1
+transformers==4.27.2
     # via -r requirements.in
 typing-extensions==4.5.0
     # via
