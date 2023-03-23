@@ -64,6 +64,7 @@
 	export let variant: "default" | "center" = "default";
 	export let loading_text: string = "Loading...";
 	export let absolute: boolean = true;
+	export let translucent: boolean = false;
 
 	let el: HTMLDivElement;
 
@@ -184,8 +185,9 @@
 <div
 	class="wrap {variant}"
 	class:hide={!status || status === "complete" || !visible}
-	class:translucent={variant === "center" &&
-		(status === "pending" || status === "error")}
+	class:translucent={(variant === "center" &&
+		(status === "pending" || status === "error")) ||
+		translucent}
 	class:generating={status === "generating"}
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
@@ -308,7 +310,7 @@
 		align-items: center;
 		z-index: var(--layer-5);
 		border-radius: var(--block-radius);
-		background: var(--background-fill-primary);
+		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;

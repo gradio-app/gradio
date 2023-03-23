@@ -122,10 +122,17 @@ class ThemeClass:
         Parameters:
             theme: The dictionary representation of the theme.
         """
-        base = cls()
+        theme = cls()
         for prop, value in theme["theme"].items():
-            setattr(base, prop, value)
-        return base
+            setattr(theme, prop, value)
+
+        # For backwards compatibility, load attributes in base theme not in the loaded theme from the base theme.
+        base = Base()
+        for attr in base.__dict__:
+            if not attr.startswith("_") and not hasattr(theme, attr):
+                setattr(theme, attr, getattr(base, attr))
+
+        return theme
 
     def dump(self, filename: str):
         """Write the theme to a json file.
@@ -524,6 +531,7 @@ class Base(ThemeClass):
         block_label_border_color_dark=None,
         block_label_border_width=None,
         block_label_border_width_dark=None,
+        block_label_shadow=None,
         block_label_text_color=None,
         block_label_text_color_dark=None,
         block_label_margin=None,
@@ -756,6 +764,7 @@ class Base(ThemeClass):
             block_label_border_color_dark: The border color of the title label of a media element (e.g. image) in dark mode.
             block_label_border_width: The border width of the title label of a media element (e.g. image).
             block_label_border_width_dark: The border width of the title label of a media element (e.g. image) in dark mode.
+            block_label_shadow: The shadow of the title label of a media element (e.g. image).
             block_label_text_color: The text color of the title label of a media element (e.g. image).
             block_label_text_color_dark: The text color of the title label of a media element (e.g. image) in dark mode.
             block_label_margin: The margin of the title label of a media element (e.g. image) from its surrounding container.
@@ -1085,6 +1094,9 @@ class Base(ThemeClass):
         )
         self.block_label_border_width_dark = block_label_border_width_dark or getattr(
             self, "block_label_border_width_dark", None
+        )
+        self.block_label_shadow = block_label_shadow or getattr(
+            self, "block_label_shadow", "*block_shadow"
         )
         self.block_label_text_color = block_label_text_color or getattr(
             self, "block_label_text_color", "*neutral_500"

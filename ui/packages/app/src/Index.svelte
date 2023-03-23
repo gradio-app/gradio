@@ -70,7 +70,7 @@
 	export let initial_height: string;
 	export let app_mode: boolean;
 	export let is_embed: boolean;
-	export let theme: "light" | "dark" = "light";
+	export let theme: "light" | "dark" | "system" = "system";
 	export let control_page_title: boolean;
 	export let container: boolean;
 	export let info: boolean;
@@ -122,21 +122,15 @@
 
 	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
 		let url = new URL(window.location.toString());
-		let theme: "light" | "dark" = "light";
+		let url_color_mode: "light" | "dark" | "system" | null =
+			url.searchParams.get("__theme") as "light" | "dark" | "system" | null;
+		url_color_mode =
+			url_color_mode ||
+			(url.searchParams.get("__dark-theme") === "true" ? "dark" : null);
+		theme = url_color_mode || theme;
 
-		const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
-			"__theme"
-		) as "light" | "dark" | "system" | null;
-
-		if (color_mode !== null) {
-			if (color_mode === "dark") {
-				theme = darkmode(target);
-			} else if (color_mode === "system") {
-				theme = use_system_theme(target);
-			}
-			// light is default, so we don't need to do anything else
-		} else if (url.searchParams.get("__dark-theme") === "true") {
-			theme = darkmode(target);
+		if (theme === "dark" || theme === "light") {
+			darkmode(target, theme);
 		} else {
 			theme = use_system_theme(target);
 		}
@@ -150,24 +144,27 @@
 			?.addEventListener("change", update_scheme);
 
 		function update_scheme() {
-			let theme: "light" | "dark" = "light";
-			const is_dark =
-				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
+			let theme: "light" | "dark" = window?.matchMedia?.(
+				"(prefers-color-scheme: dark)"
+			).matches
+				? "dark"
+				: "light";
 
-			if (is_dark) {
-				theme = darkmode(target);
-			}
+			darkmode(target, theme);
 			return theme;
 		}
 		return theme;
 	}
 
-	function darkmode(target: HTMLDivElement): "dark" {
-		target.classList.add("dark");
-		if (app_mode) {
-			document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
+	function darkmode(target: HTMLDivElement, theme: "dark" | "light") {
+		const dark_class_element = is_embed ? target.parentElement! : document.body;
+		const bg_element = is_embed ? target : target.parentElement!;
+		bg_element.style.background = "var(--body-background-fill)";
+		if (theme === "dark") {
+			dark_class_element.classList.add("dark");
+		} else {
+			dark_class_element.classList.remove("dark");
 		}
-		return "dark";
 	}
 
 	let status: SpaceStatus = {
@@ -284,6 +281,7 @@
 			timer={false}
 			queue_position={null}
 			queue_size={null}
+			translucent={true}
 			{loading_text}
 		>
 			<div class="error" slot="error">

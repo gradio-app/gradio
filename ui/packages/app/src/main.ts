@@ -31,12 +31,8 @@ export function mount_css(url: string, target: HTMLElement): Promise<void> {
 
 function create_custom_element() {
 	class GradioApp extends HTMLElement {
-		theme: "light" | "dark";
-
 		constructor() {
 			super();
-
-			this.theme = "light";
 		}
 
 		async connectedCallback() {
@@ -69,6 +65,10 @@ function create_custom_element() {
 			const info = this.getAttribute("info") ?? true; // default: true
 			const autoscroll = this.getAttribute("autoscroll");
 			const eager = this.getAttribute("eager");
+			const theme = (this.getAttribute("theme") ?? "system") as
+				| "system"
+				| "light"
+				| "dark";
 
 			const app = new Index({
 				target: this,
@@ -85,7 +85,7 @@ function create_custom_element() {
 					eager: eager === "true" ? true : false,
 					// gradio meta info
 					version: GRADIO_VERSION,
-					theme: this.theme,
+					theme: theme,
 					// misc global behaviour
 					autoscroll: autoscroll === "true" ? true : false,
 					control_page_title: control_page_title === "true" ? true : false,
