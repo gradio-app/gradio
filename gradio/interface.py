@@ -306,7 +306,6 @@ class Interface(Blocks):
         self.article = article
 
         self.thumbnail = thumbnail
-        self.theme = theme
 
         self.examples = examples
         self.num_shap = num_shap

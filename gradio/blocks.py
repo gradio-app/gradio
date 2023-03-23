@@ -506,7 +506,7 @@ class Blocks(BlockContext):
         if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
-        self.theme = theme
+        self.theme: Theme = theme
         self.theme_css = theme._get_theme_css()
         self.stylesheets = theme._stylesheets
         self.encrypt = False
