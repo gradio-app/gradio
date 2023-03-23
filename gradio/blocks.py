@@ -564,7 +564,7 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
+                "theme": self.theme.name,
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)

@@ -35,6 +35,7 @@ class Glass(Base):
         ),
     ):
         super().__init__(
+            name="glass",
             primary_hue=primary_hue,
             secondary_hue=secondary_hue,
             neutral_hue=neutral_hue,

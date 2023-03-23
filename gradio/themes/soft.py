@@ -34,6 +34,7 @@ class Soft(Base):
         ),
     ):
         super().__init__(
+            name="soft",
             primary_hue=primary_hue,
             secondary_hue=secondary_hue,
             neutral_hue=neutral_hue,

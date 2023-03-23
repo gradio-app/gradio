@@ -34,6 +34,7 @@ class Monochrome(Base):
         ),
     ):
         super().__init__(
+            name="monochrome",
             primary_hue=primary_hue,
             secondary_hue=secondary_hue,
             neutral_hue=neutral_hue,
