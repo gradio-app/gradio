@@ -13,7 +13,7 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
-from gradio import Examples, interpretation, utils
+from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -77,9 +77,10 @@ class Interface(Blocks):
         api_key: str | None = None,
         alias: str | None = None,
         **kwargs,
-    ) -> Interface:
+    ) -> Blocks:
         """
-        Class method that constructs an Interface from a Hugging Face repo. Can accept
+        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class
+        method that constructs a Blocks from a Hugging Face repo. Can accept
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
@@ -89,14 +90,11 @@ class Interface(Blocks):
             alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
         Returns:
             a Gradio Interface object for the given model
-        Example:
-            import gradio as gr
-            description = "Story generation with GPT"
-            examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
-            demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
-            demo.launch()
         """
-        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+        warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")
+        return external.load(
+            name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+        )
 
     @classmethod
     def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
@@ -242,10 +240,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.input_components = [
-            get_component_instance(i, render=False) for i in inputs
+            get_component_instance(i, render=False) for i in inputs  # type: ignore
         ]
         self.output_components = [
-            get_component_instance(o, render=False) for o in outputs
+            get_component_instance(o, render=False) for o in outputs  # type: ignore
         ]
 
         for component in self.input_components + self.output_components:

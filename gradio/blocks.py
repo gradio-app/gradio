@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tupl
 import anyio
 import requests
 from anyio import CapacityLimiter
+from gradio_client import utils as client_utils
 from typing_extensions import Literal
 
 from gradio import components, external, networking, queueing, routes, strings, utils
@@ -634,7 +635,7 @@ class Blocks(BlockContext):
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
                 # We used to add a "fake_event" to the config to cache examples
-                # without removing it. This was causing bugs in calling gr.Interface.load
+                # without removing it. This was causing bugs in calling gr.load
                 # We fixed the issue by removing "fake_event" from the config in examples.py
                 # but we still need to skip these events when loading the config to support
                 # older demos
@@ -808,7 +809,7 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(
+        outputs = client_utils.synchronize_async(
             self.process_api,
             fn_index=fn_index,
             inputs=processed_inputs,
@@ -940,7 +941,9 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
-            deserialized = block.deserialize(outputs[o], root_url=block.root_url)
+            deserialized = block.deserialize(
+                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
+            )
             predictions.append(deserialized)
 
         return predictions
@@ -1128,15 +1131,16 @@ class Blocks(BlockContext):
         config["layout"] = getLayout(self)
 
         for _id, block in self.blocks.items():
-            config["components"].append(
-                {
-                    "id": _id,
-                    "type": (block.get_block_name()),
-                    "props": utils.delete_none(block.get_config())
-                    if hasattr(block, "get_config")
-                    else {},
-                }
-            )
+            props = block.get_config() if hasattr(block, "get_config") else {}
+            block_config = {
+                "id": _id,
+                "type": block.get_block_name(),
+                "props": utils.delete_none(props),
+            }
+            serializer = utils.get_serializer_name(block)
+            if serializer:
+                block_config["serializer"] = serializer
+            config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
 
@@ -1188,7 +1192,7 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
 
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
@@ -1221,11 +1225,14 @@ class Blocks(BlockContext):
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
+            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
+            return external.load(
+                name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+            )
         else:
             return self_or_cls.set_event_trigger(
                 event_name="load",

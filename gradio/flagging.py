@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, List
 
 import pkg_resources
+from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import utils
@@ -139,9 +140,9 @@ class SimpleCSVLogger(FlaggingCallback):
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
-            save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
-                component.label or ""
-            )
+            save_dir = Path(
+                flagging_dir
+            ) / client_utils.strip_invalid_filename_characters(component.label or "")
             csv_data.append(
                 component.deserialize(
                     sample,
@@ -205,7 +206,9 @@ class CSVLogger(FlaggingCallback):
 
         csv_data = []
         for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
-            save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
+            save_dir = Path(
+                flagging_dir
+            ) / client_utils.strip_invalid_filename_characters(
                 getattr(component, "label", None) or f"component {idx}"
             )
             if utils.is_update(sample):
@@ -339,7 +342,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             for component, sample in zip(self.components, flag_data):
                 save_dir = Path(
                     self.dataset_dir
-                ) / utils.strip_invalid_filename_characters(component.label or "")
+                ) / client_utils.strip_invalid_filename_characters(
+                    component.label or ""
+                )
                 filepath = component.deserialize(sample, save_dir, None)
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
@@ -474,7 +479,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
             headers.append(component.label)
 
             try:
-                save_dir = Path(folder_name) / utils.strip_invalid_filename_characters(
+                save_dir = Path(
+                    folder_name
+                ) / client_utils.strip_invalid_filename_characters(
                     component.label or ""
                 )
                 filepath = component.deserialize(sample, save_dir, None)

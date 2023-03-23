@@ -2,22 +2,18 @@ from __future__ import annotations
 
 import base64
 import json
-import mimetypes
-import os
 import shutil
 import subprocess
 import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
-import requests
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
+from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
-
-from gradio import utils
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -35,7 +31,7 @@ def to_binary(x: str | Dict) -> bytes:
         if x.get("data"):
             base64str = x["data"]
         else:
-            base64str = encode_url_or_file_to_base64(x["name"])
+            base64str = client_utils.encode_url_or_file_to_base64(x["name"])
     else:
         base64str = x
     return base64.b64decode(base64str.split(",")[1])
@@ -55,56 +51,6 @@ def decode_base64_to_image(encoding: str) -> Image.Image:
     if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
         img = ImageOps.exif_transpose(img)
     return img
-
-
-def encode_url_or_file_to_base64(path: str | Path):
-    path = str(path)
-    if utils.validate_url(path):
-        return encode_url_to_base64(path)
-    else:
-        return encode_file_to_base64(path)
-
-
-def get_mimetype(filename: str) -> str | None:
-    mimetype = mimetypes.guess_type(filename)[0]
-    if mimetype is not None:
-        mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
-    return mimetype
-
-
-def get_extension(encoding: str) -> str | None:
-    encoding = encoding.replace("audio/wav", "audio/x-wav")
-    type = mimetypes.guess_type(encoding)[0]
-    if type == "audio/flac":  # flac is not supported by mimetypes
-        return "flac"
-    elif type is None:
-        return None
-    extension = mimetypes.guess_extension(type)
-    if extension is not None and extension.startswith("."):
-        extension = extension[1:]
-    return extension
-
-
-def encode_file_to_base64(f):
-    with open(f, "rb") as file:
-        encoded_string = base64.b64encode(file.read())
-        base64_str = str(encoded_string, "utf-8")
-        mimetype = get_mimetype(f)
-        return (
-            "data:"
-            + (mimetype if mimetype is not None else "")
-            + ";base64,"
-            + base64_str
-        )
-
-
-def encode_url_to_base64(url):
-    encoded_string = base64.b64encode(requests.get(url).content)
-    base64_str = str(encoded_string, "utf-8")
-    mimetype = get_mimetype(url)
-    return (
-        "data:" + (mimetype if mimetype is not None else "") + ";base64," + base64_str
-    )
 
 
 def encode_plot_to_base64(plt):
@@ -255,99 +201,6 @@ def convert_to_16_bit_wav(data):
 ##################
 # OUTPUT
 ##################
-
-
-def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
-    extension = get_extension(encoding)
-    try:
-        data = encoding.split(",")[1]
-    except IndexError:
-        data = ""
-    return base64.b64decode(data), extension
-
-
-def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    data, extension = decode_base64_to_binary(encoding)
-    if file_path is not None and prefix is None:
-        filename = Path(file_path).name
-        prefix = filename
-        if "." in filename:
-            prefix = filename[0 : filename.index(".")]
-            extension = filename[filename.index(".") + 1 :]
-
-    if prefix is not None:
-        prefix = utils.strip_invalid_filename_characters(prefix)
-
-    if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
-    else:
-        file_obj = tempfile.NamedTemporaryFile(
-            delete=False,
-            prefix=prefix,
-            suffix="." + extension,
-            dir=dir,
-        )
-    file_obj.write(data)
-    file_obj.flush()
-    return file_obj
-
-
-def dict_or_str_to_json_file(jsn, dir=None):
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-
-    file_obj = tempfile.NamedTemporaryFile(
-        delete=False, suffix=".json", dir=dir, mode="w+"
-    )
-    if isinstance(jsn, str):
-        jsn = json.loads(jsn)
-    json.dump(jsn, file_obj)
-    file_obj.flush()
-    return file_obj
-
-
-def file_to_json(file_path: str | Path) -> Dict:
-    with open(file_path) as f:
-        return json.load(f)
-
-
-def download_tmp_copy_of_file(
-    url_path: str, access_token: str | None = None, dir: str | None = None
-) -> tempfile._TemporaryFileWrapper:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + access_token} if access_token else {}
-    prefix = Path(url_path).stem
-    suffix = Path(url_path).suffix
-    file_obj = tempfile.NamedTemporaryFile(
-        delete=False,
-        prefix=prefix,
-        suffix=suffix,
-        dir=dir,
-    )
-    with requests.get(url_path, headers=headers, stream=True) as r:
-        with open(file_obj.name, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-    return file_obj
-
-
-def create_tmp_copy_of_file(
-    file_path: str, dir: str | None = None
-) -> tempfile._TemporaryFileWrapper:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    prefix = Path(file_path).stem
-    suffix = Path(file_path).suffix
-    file_obj = tempfile.NamedTemporaryFile(
-        delete=False,
-        prefix=prefix,
-        suffix=suffix,
-        dir=dir,
-    )
-    shutil.copy2(file_path, file_obj.name)
-    return file_obj
 
 
 def _convert(image, dtype, force_copy=False, uniform=False):

@@ -54,6 +54,7 @@ from gradio.components import (
 )
 from gradio.events import SelectData
 from gradio.exceptions import Error
+from gradio.external import load
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
