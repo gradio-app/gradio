@@ -169,6 +169,7 @@ dracula = gr.themes.Base(
     panel_background_fill="#31395294",
     block_background_fill_dark="#31395294",
 )
+dracula.name = "gradio/dracula_test"
 
 
 class TestSemverMatch:
@@ -259,6 +260,21 @@ class TestGetThemeAssets:
                 get_theme_assets(space_info)
 
 
+class TestBuiltInThemes:
+    @pytest.mark.parametrize(
+        "theme, name",
+        [
+            (gr.themes.Base(), "base"),
+            (gr.themes.Glass(), "glass"),
+            (gr.themes.Monochrome(), "monochrome"),
+            (gr.themes.Soft(), "soft"),
+            (gr.themes.Default(), "default"),
+        ],
+    )
+    def test_theme_name(self, theme, name):
+        assert theme.name == name
+
+
 class TestThemeUploadDownload:
     @patch("gradio.themes.base.get_theme_assets", return_value=assets)
     def test_get_next_version(self, mock):
@@ -279,6 +295,7 @@ class TestThemeUploadDownload:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
+        assert demo.theme.name == "gradio/dracula_test"
 
     def test_theme_download_raises_error_if_theme_does_not_exist(self):
 
