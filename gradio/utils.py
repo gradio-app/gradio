@@ -165,7 +165,6 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
         "dev_mode": blocks.dev_mode,
         "show_api": blocks.show_api,
         "show_error": blocks.show_error,
-        "theme": blocks.theme,
         "title": blocks.title,
         "inputs": blocks.input_components
         if blocks.mode == "interface"
