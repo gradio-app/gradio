@@ -9,14 +9,13 @@ import uuid
 from concurrent.futures import Future
 from typing import Any, Callable, Dict, List, Tuple
 
+import huggingface_hub
 import requests
 import websockets
-import huggingface_hub
-from huggingface_hub.utils import build_hf_headers, send_telemetry
-from packaging import version
-
 from gradio_client import serializing, utils
 from gradio_client.serializing import Serializable
+from huggingface_hub.utils import build_hf_headers, send_telemetry
+from packaging import version
 
 
 class Client:
