@@ -75,14 +75,15 @@ class Client:
 
         if result_callbacks:
             if isinstance(result_callbacks, Callable):
-                result_callbacks = [result_callbacks]        
-            
+                result_callbacks = [result_callbacks]
+
             def create_fn(callback) -> Callable:
                 def fn(future):
                     if isinstance(future.result(), tuple):
                         callback(*future.result())
                     else:
                         callback(future.result())
+
                 return fn
 
             for callback in result_callbacks:
