@@ -293,8 +293,10 @@ pytz==2022.7.1
     #   pandas
 pywavelets==1.4.1
     # via scikit-image
-pywin32==305
-    # via docker
+pywin32==305 ; sys_platform == "win32"
+    # via
+    #   -r requirements.in
+    #   docker
 pyyaml==6.0
     # via
     #   huggingface-hub

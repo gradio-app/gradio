@@ -24,3 +24,4 @@ fastapi>=0.87.0
 altair
 vega_datasets
 tqdm
+pywin32==305; sys_platform == 'win32'
