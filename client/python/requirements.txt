@@ -2,4 +2,4 @@ requests
 websockets
 packaging
 fsspec
-huggingface_hub
+huggingface_hub>=0.13.0

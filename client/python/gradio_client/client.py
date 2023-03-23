@@ -11,10 +11,12 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import requests
 import websockets
-from gradio_client import serializing, utils
-from gradio_client.serializing import Serializable
+import huggingface_hub
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
+
+from gradio_client import serializing, utils
+from gradio_client.serializing import Serializable
 
 
 class Client:
@@ -45,7 +47,7 @@ class Client:
             print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = utils.API_URL.format(self.src)
-        self.ws_url = utils.WS_URL.format(self.src).replace("https", "wss")
+        self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
         self.config = self._get_config()
 
         self.endpoints = [
@@ -117,14 +119,7 @@ class Client:
             self.executor.shutdown(wait=True)
 
     def _space_name_to_src(self, space) -> str | None:
-        return (
-            requests.get(
-                f"https://huggingface.co/api/spaces/{space}/host",
-                headers=self.headers,
-            )
-            .json()
-            .get("host")
-        )
+        return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _get_config(self) -> Dict:
         assert self.src is not None
@@ -137,7 +132,7 @@ class Client:
             raise ValueError(f"Could not get Gradio config from: {self.src}")
         if "allow_flagging" in config:
             raise ValueError(
-                f"Gradio 2.x is not supported by this client. Please upgrade this app to Gradio 3.x."
+                "Gradio 2.x is not supported by this client. Please upgrade this app to Gradio 3.x."
             )
         return config
 
