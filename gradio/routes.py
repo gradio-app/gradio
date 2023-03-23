@@ -282,8 +282,8 @@ class App(FastAPI):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             url = httpx.URL(url_path)
             headers = {}
-            if Context.access_token is not None:
-                headers["Authorization"] = f"Bearer {Context.access_token}"
+            if Context.hf_token is not None:
+                headers["Authorization"] = f"Bearer {Context.hf_token}"
             rp_req = client.build_request("GET", url, headers=headers)
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(

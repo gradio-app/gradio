@@ -4,7 +4,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)   
 
 ## Bug Fixes:
 
@@ -27,7 +27,7 @@ No changes to highlight.
 
 * Mobile responsive iframes in themes guide by [@aliabd](https://github.com/aliabd) in [PR 3562](https://github.com/gradio-app/gradio/pull/3562) 
 * Remove extra $demo from theme guide by [@aliabd](https://github.com/aliabd) in [PR 3563](https://github.com/gradio-app/gradio/pull/3563)
-
+* Set the theme name to be the upstream repo name when loading from the hub by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3595](https://github.com/gradio-app/gradio/pull/3595)   
 
 ## Contributors Shoutout:
 

@@ -6,7 +6,7 @@ auth_token = os.getenv("auth_token")
 
 # load a model from https://hf.co/models as an interface, then use it as an api 
 # you can remove the api_key parameter if you don't care about rate limiting. 
-api = gr.Interface.load("huggingface/EleutherAI/gpt-j-6B", api_key=auth_token)
+api = gr.load("huggingface/EleutherAI/gpt-j-6B", api_key=auth_token)
 
 def complete_with_gpt(text):
     return text[:-50] + api(text[-50:])
