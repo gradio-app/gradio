@@ -260,6 +260,21 @@ class TestGetThemeAssets:
                 get_theme_assets(space_info)
 
 
+class TestBuiltInThemes:
+    @pytest.mark.parametrize(
+        "theme, name",
+        [
+            (gr.themes.Base(), "base"),
+            (gr.themes.Glass(), "glass"),
+            (gr.themes.Monochrome(), "monochrome"),
+            (gr.themes.Soft(), "soft"),
+            (gr.themes.Default(), "default"),
+        ],
+    )
+    def test_theme_name(self, theme, name):
+        assert theme.name == name
+
+
 class TestThemeUploadDownload:
     @patch("gradio.themes.base.get_theme_assets", return_value=assets)
     def test_get_next_version(self, mock):
