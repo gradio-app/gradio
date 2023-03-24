@@ -96,8 +96,8 @@ function create_custom_element() {
 			});
 		}
 	}
-
-	customElements.define("gradio-app", GradioApp);
+	if (!customElements.get("gradio-app"))
+		customElements.define("gradio-app", GradioApp);
 }
 
 create_custom_element();
