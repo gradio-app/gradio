@@ -1,0 +1,365 @@
+:root {
+	--primary-50: #fff7ed;
+	--primary-100: #ffedd5;
+	--primary-200: #fed7aa;
+	--primary-300: #fdba74;
+	--primary-400: #fb923c;
+	--primary-500: #f97316;
+	--primary-600: #ea580c;
+	--primary-700: #c2410c;
+	--primary-800: #9a3412;
+	--primary-900: #7c2d12;
+	--primary-950: #6c2e12;
+	--secondary-50: #eff6ff;
+	--secondary-100: #dbeafe;
+	--secondary-200: #bfdbfe;
+	--secondary-300: #93c5fd;
+	--secondary-400: #60a5fa;
+	--secondary-500: #3b82f6;
+	--secondary-600: #2563eb;
+	--secondary-700: #1d4ed8;
+	--secondary-800: #1e40af;
+	--secondary-900: #1e3a8a;
+	--secondary-950: #1d3660;
+	--neutral-50: #f9fafb;
+	--neutral-100: #f3f4f6;
+	--neutral-200: #e5e7eb;
+	--neutral-300: #d1d5db;
+	--neutral-400: #9ca3af;
+	--neutral-500: #6b7280;
+	--neutral-600: #4b5563;
+	--neutral-700: #374151;
+	--neutral-800: #1f2937;
+	--neutral-900: #111827;
+	--neutral-950: #0b0f19;
+	--spacing-xxs: 1px;
+	--spacing-xs: 2px;
+	--spacing-sm: 4px;
+	--spacing-md: 6px;
+	--spacing-lg: 8px;
+	--spacing-xl: 10px;
+	--spacing-xxl: 16px;
+	--radius-xxs: 1px;
+	--radius-xs: 2px;
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+	--radius-xl: 12px;
+	--radius-xxl: 22px;
+	--text-xxs: 9px;
+	--text-xs: 10px;
+	--text-sm: 12px;
+	--text-md: 14px;
+	--text-lg: 16px;
+	--text-xl: 22px;
+	--text-xxl: 26px;
+	--color-accent: var(--primary-500);
+	--color-accent-soft: var(--primary-50);
+	--background-fill-primary: white;
+	--background-fill-secondary: var(--neutral-50);
+	--border-color-accent: var(--primary-300);
+	--border-color-primary: var(--neutral-200);
+	--text-color-code-background-fill: var(--neutral-200);
+	--text-color-code-border: var(--border-color-primary);
+	--link-text-color: var(--secondary-600);
+	--link-text-color-active: var(--secondary-600);
+	--link-text-color-hover: var(--secondary-700);
+	--link-text-color-visited: var(--secondary-500);
+	--body-text-color-subdued: var(--neutral-400);
+	--body-background-fill: var(--background-fill-primary);
+	--body-text-color: var(--neutral-800);
+	--body-text-size: var(--text-md);
+	--body-text-weight: 400;
+	--embed-radius: var(--radius-lg);
+	--shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+		0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
+	--shadow-spread: 3px;
+	--block-background-fill: var(--background-fill-primary);
+	--block-border-color: var(--border-color-primary);
+	--block-border-width: 1px;
+	--block-info-text-color: var(--body-text-color-subdued);
+	--block-info-text-size: var(--text-sm);
+	--block-info-text-weight: 400;
+	--block-label-background-fill: var(--background-fill-primary);
+	--block-label-border-color: var(--border-color-primary);
+	--block-label-border-width: 1px;
+	--block-label-text-color: var(--neutral-500);
+	--block-label-icon-color: var(--block-label-text-color);
+	--block-label-margin: 0;
+	--block-label-padding: var(--spacing-sm) var(--spacing-lg);
+	--block-label-radius: calc(var(--radius-lg) - 1px) 0
+		calc(var(--radius-lg) - 1px) 0;
+	--block-label-right-radius: 0 calc(var(--radius-lg) - 1px) 0
+		calc(var(--radius-lg) - 1px);
+	--block-label-text-size: var(--text-sm);
+	--block-label-text-weight: 400;
+	--block-padding: var(--spacing-xl) calc(var(--spacing-xl) + 2px);
+	--block-radius: var(--radius-lg);
+	--block-shadow: var(--shadow-drop);
+	--block-title-background-fill: none;
+	--block-title-border-color: none;
+	--block-title-border-width: 0px;
+	--block-title-text-color: var(--neutral-500);
+	--block-title-padding: 0;
+	--block-title-radius: none;
+	--block-title-text-size: var(--text-md);
+	--block-title-text-weight: 400;
+	--container-radius: var(--radius-lg);
+	--form-gap-width: 1px;
+	--layout-gap: var(--spacing-xxl);
+	--panel-background-fill: var(--background-fill-secondary);
+	--panel-border-color: var(--border-color-primary);
+	--panel-border-width: 0;
+	--section-header-text-size: var(--text-md);
+	--section-header-text-weight: 400;
+	--checkbox-background-color: var(--background-fill-primary);
+	--checkbox-background-color-focus: var(--background-fill-primary);
+	--checkbox-background-color-hover: var(--background-fill-primary);
+	--checkbox-background-color-selected: var(--secondary-600);
+	--checkbox-border-color: var(--neutral-300);
+	--checkbox-border-color-focus: var(--secondary-500);
+	--checkbox-border-color-hover: var(--neutral-300);
+	--checkbox-border-color-selected: var(--secondary-600);
+	--checkbox-border-radius: var(--radius-sm);
+	--checkbox-border-width: var(--input-border-width);
+	--checkbox-label-background-fill: linear-gradient(
+		to top,
+		var(--neutral-50),
+		white
+	);
+	--checkbox-label-background-fill-hover: linear-gradient(
+		to top,
+		var(--neutral-100),
+		white
+	);
+	--checkbox-label-background-fill-selected: var(
+		--checkbox-label-background-fill
+	);
+	--checkbox-label-border-color: var(--border-color-primary);
+	--checkbox-label-border-color-hover: var(--border-color-primary);
+	--checkbox-label-border-width: var(--input-border-width);
+	--checkbox-label-gap: var(--spacing-lg);
+	--checkbox-label-padding: var(--spacing-md) calc(2 * var(--spacing-md));
+	--checkbox-label-shadow: var(--shadow-drop);
+	--checkbox-label-text-size: var(--text-md);
+	--checkbox-label-text-weight: 400;
+	--checkbox-shadow: var(--input-shadow);
+	--checkbox-label-text-color: var(--body-text-color);
+	--checkbox-label-text-color-selected: var(--checkbox-label-text-color);
+	--error-background-fill: linear-gradient(
+		to right,
+		#fee2e2,
+		var(--background-fill-secondary)
+	);
+	--error-border-color: #fecaca;
+	--error-border-width: 1px;
+	--error-text-color: #ef4444;
+	--prose-header-text-weight: 600;
+	--input-background-fill: white;
+	--input-background-fill-focus: var(--secondary-500);
+	--input-background-fill-hover: var(--input-background-fill);
+	--input-border-color: var(--border-color-primary);
+	--input-border-color-focus: var(--secondary-300);
+	--input-border-color-hover: var(--border-color-primary);
+	--input-border-width: 1px;
+	--input-padding: var(--spacing-xl);
+	--input-placeholder-color: var(--neutral-400);
+	--input-radius: var(--radius-lg);
+	--input-shadow: 0 0 0 var(--shadow-spread) transparent, var(--shadow-inset);
+	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--secondary-50),
+		var(--shadow-inset);
+	--input-text-size: var(--text-md);
+	--input-text-weight: 400;
+	--loader-color: var(--color-accent);
+	--prose-text-size: var(--text-md);
+	--prose-text-weight: 400;
+	--stat-background-fill: linear-gradient(
+		to right,
+		var(--primary-400),
+		var(--primary-200)
+	);
+	--table-border-color: var(--neutral-300);
+	--table-even-background-fill: white;
+	--table-odd-background-fill: var(--neutral-50);
+	--table-radius: var(--radius-lg);
+	--table-row-focus: var(--color-accent-soft);
+	--button-border-width: var(--input-border-width);
+	--button-cancel-background-fill: linear-gradient(
+		to bottom right,
+		#fee2e2,
+		#fecaca
+	);
+	--button-cancel-background-fill-hover: linear-gradient(
+		to bottom right,
+		#fee2e2,
+		#fee2e2
+	);
+	--button-cancel-border-color: #fecaca;
+	--button-cancel-border-color-hover: var(--button-cancel-border-color);
+	--button-cancel-text-color: #dc2626;
+	--button-cancel-text-color-hover: var(--button-cancel-text-color);
+	--button-large-padding: var(--spacing-lg) calc(2 * var(--spacing-lg));
+	--button-large-radius: var(--radius-lg);
+	--button-large-text-size: var(--text-lg);
+	--button-large-text-weight: 600;
+	--button-primary-background-fill: linear-gradient(
+		to bottom right,
+		var(--primary-100),
+		var(--primary-300)
+	);
+	--button-primary-background-fill-hover: linear-gradient(
+		to bottom right,
+		var(--primary-100),
+		var(--primary-200)
+	);
+	--button-primary-border-color: var(--primary-200);
+	--button-primary-border-color-hover: var(--button-primary-border-color);
+	--button-primary-text-color: var(--primary-600);
+	--button-primary-text-color-hover: var(--button-primary-text-color);
+	--button-secondary-background-fill: linear-gradient(
+		to bottom right,
+		var(--neutral-100),
+		var(--neutral-200)
+	);
+	--button-secondary-background-fill-hover: linear-gradient(
+		to bottom right,
+		var(--neutral-100),
+		var(--neutral-100)
+	);
+	--button-secondary-border-color: var(--neutral-200);
+	--button-secondary-border-color-hover: var(--button-secondary-border-color);
+	--button-secondary-text-color: var(--neutral-700);
+	--button-secondary-text-color-hover: var(--button-secondary-text-color);
+	--button-shadow: var(--shadow-drop);
+	--button-shadow-active: var(--shadow-inset);
+	--button-shadow-hover: var(--shadow-drop-lg);
+	--button-small-padding: var(--spacing-sm) calc(2 * var(--spacing-sm));
+	--button-small-radius: var(--radius-lg);
+	--button-small-text-size: var(--text-md);
+	--button-small-text-weight: 400;
+	--button-transition: none;
+}
+.dark {
+	--color-accent-soft: var(--neutral-900);
+	--background-fill-primary: var(--neutral-950);
+	--background-fill-secondary: var(--neutral-900);
+	--border-color-accent: var(--neutral-600);
+	--border-color-primary: var(--neutral-700);
+	--text-color-code-background-fill: var(--neutral-800);
+	--link-text-color-active: var(--secondary-500);
+	--link-text-color: var(--secondary-500);
+	--link-text-color-hover: var(--secondary-400);
+	--link-text-color-visited: var(--secondary-600);
+	--body-text-color-subdued: var(--neutral-400);
+	--body-background-fill: var(--background-fill-primary);
+	--body-text-color: var(--neutral-100);
+	--shadow-spread: 1px;
+	--block-background-fill: var(--neutral-800);
+	--block-border-color: var(--border-color-primary);
+	--block-border-width: 1px;
+	--block-info-text-color: var(--body-text-color-subdued);
+	--block-label-background-fill: var(--background-fill-secondary);
+	--block-label-border-color: var(--border-color-primary);
+	--block-label-border-width: 1px;
+	--block-label-text-color: var(--neutral-200);
+	--block-shadow: none;
+	--block-title-background-fill: none;
+	--block-title-border-color: none;
+	--block-title-border-width: 0px;
+	--block-title-text-color: var(--neutral-200);
+	--panel-background-fill: var(--background-fill-secondary);
+	--panel-border-color: var(--border-color-primary);
+	--checkbox-background-color: var(--neutral-800);
+	--checkbox-background-color-focus: var(--checkbox-background-color);
+	--checkbox-background-color-hover: var(--checkbox-background-color);
+	--checkbox-background-color-selected: var(--secondary-600);
+	--checkbox-border-color: var(--neutral-700);
+	--checkbox-border-color-focus: var(--secondary-500);
+	--checkbox-border-color-hover: var(--neutral-600);
+	--checkbox-border-color-selected: var(--secondary-600);
+	--checkbox-label-background-fill: linear-gradient(
+		to top,
+		var(--neutral-900),
+		var(--neutral-800)
+	);
+	--checkbox-label-background-fill-hover: linear-gradient(
+		to top,
+		var(--neutral-900),
+		var(--neutral-800)
+	);
+	--checkbox-label-background-fill-selected: var(
+		--checkbox-label-background-fill
+	);
+	--checkbox-label-border-color: var(--border-color-primary);
+	--checkbox-label-border-color-hover: var(--border-color-primary);
+	--checkbox-label-text-color: var(--body-text-color);
+	--checkbox-label-text-color-selected: var(--checkbox-label-text-color);
+	--error-background-fill: var(--background-fill-primary);
+	--error-border-color: var(--border-color-primary);
+	--error-border-width: var(--error-border-width);
+	--error-text-color: #ef4444;
+	--input-background-fill: var(--neutral-800);
+	--input-background-fill-focus: var(--secondary-600);
+	--input-background-fill-hover: var(--input-background-fill);
+	--input-border-color: var(--border-color-primary);
+	--input-border-color-focus: var(--neutral-700);
+	--input-border-color-hover: var(--border-color-primary);
+	--input-placeholder-color: var(--neutral-500);
+	--input-shadow: var(--input-shadow);
+	--input-shadow-focus: 0 0 0 var(--shadow-spread) var(--neutral-700),
+		var(--shadow-inset);
+	--loader-color: var(--loader-color);
+	--stat-background-fill: linear-gradient(
+		to right,
+		var(--primary-400),
+		var(--primary-600)
+	);
+	--table-border-color: var(--neutral-700);
+	--table-even-background-fill: var(--neutral-950);
+	--table-odd-background-fill: var(--neutral-900);
+	--table-row-focus: var(--color-accent-soft);
+	--button-cancel-background-fill: linear-gradient(
+		to bottom right,
+		#dc2626,
+		#b91c1c
+	);
+	--button-cancel-background-fill-hover: linear-gradient(
+		to bottom right,
+		#dc2626,
+		#dc2626
+	);
+	--button-cancel-border-color: #dc2626;
+	--button-cancel-border-color-hover: var(--button-cancel-border-color);
+	--button-cancel-text-color: white;
+	--button-cancel-text-color-hover: var(--button-cancel-text-color);
+	--button-primary-background-fill: linear-gradient(
+		to bottom right,
+		var(--primary-600),
+		var(--primary-700)
+	);
+	--button-primary-background-fill-hover: linear-gradient(
+		to bottom right,
+		var(--primary-600),
+		var(--primary-600)
+	);
+	--button-primary-border-color: var(--primary-600);
+	--button-primary-border-color-hover: var(--button-primary-border-color);
+	--button-primary-text-color: white;
+	--button-primary-text-color-hover: var(--button-primary-text-color);
+	--button-secondary-background-fill: linear-gradient(
+		to bottom right,
+		var(--neutral-600),
+		var(--neutral-700)
+	);
+	--button-secondary-background-fill-hover: linear-gradient(
+		to bottom right,
+		var(--neutral-600),
+		var(--neutral-600)
+	);
+	--button-secondary-border-color: var(--neutral-600);
+	--button-secondary-border-color-hover: var(--button-secondary-border-color);
+	--button-secondary-text-color: white;
+	--button-secondary-text-color-hover: var(--button-secondary-text-color);
+}

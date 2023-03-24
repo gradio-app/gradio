@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "이미지를 끌어 놓으세요",
+		"drop_video": "비디오를 끌어 놓으세요",
+		"drop_audio": "오디오를 끌어 놓으세요",
+		"drop_file": "파일을 끌어 놓으세요",
+		"drop_csv": "CSV파일을 끌어 놓으세요",
+		"click_to_upload": "클릭해서 업로드하기",
+		"view_api": "API 보기",
+		"built_with_Gradio": "gradio로 제작되었습니다"
+	},
+	"Submit": "제출하기",
+	"Clear": "클리어",
+	"Interpret": "설명하기",
+	"Flag": "플래그",
+	"Examples": "예시",
+	"or": "또는"
+}

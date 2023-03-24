@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "أسقط الصورة هنا",
+		"drop_video": "أسقط الفيديو هنا",
+		"drop_audio": "أسقط الملف الصوتي هنا",
+		"drop_file": "أسقط الملف هنا",
+		"drop_csv": "أسقط ملف البيانات هنا",
+		"click_to_upload": "إضغط للتحميل",
+		"view_api": "إستخدم واجهة البرمجة",
+		"built_with_Gradio": "تم الإنشاء بإستخدام Gradio"
+	},
+	"Submit": "أرسل",
+	"Clear": "أمسح",
+	"Interpret": "فسِّر",
+	"Flag": "بلِّغ",
+	"Examples": "أمثلة",
+	"or": "أو"
+}
