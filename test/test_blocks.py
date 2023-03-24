@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from functools import partial
 from string import capwords
 from unittest.mock import patch
+import uuid
 
 import mlflow
 import pytest
@@ -393,6 +394,11 @@ class TestBlocksMethods:
             with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
                 assert demo.theme.to_dict() == gr.themes.Default().to_dict()
 
+    def test_exit_called_at_launch(self):
+        with gr.Blocks() as demo:
+            gr.Textbox(uuid.uuid4)
+        demo.launch(prevent_thread_lock=True)
+        assert len(demo.get_config_file()["dependencies"]) == 1
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -1547,3 +1553,4 @@ def test_temp_file_sets_get_extended():
         demo2.render()
 
     assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
+
