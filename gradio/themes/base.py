@@ -326,7 +326,6 @@ class Base(ThemeClass):
     def __init__(
         self,
         *,
-        name: str = "base",
         primary_hue: colors.Color | str = colors.blue,
         secondary_hue: colors.Color | str = colors.blue,
         neutral_hue: colors.Color | str = colors.gray,
