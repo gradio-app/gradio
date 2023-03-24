@@ -1149,6 +1149,7 @@ class Blocks(BlockContext):
             Context.root_block = self
         self.parent = Context.block
         Context.block = self
+        self.exited = False
         return self
 
     def __exit__(self, *args):
@@ -1163,6 +1164,7 @@ class Blocks(BlockContext):
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
+        self.exited = True
 
     @class_or_instancemethod
     def load(
@@ -1384,6 +1386,9 @@ class Blocks(BlockContext):
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if not self.exited:
+            self.__exit__()
+
         self.dev_mode = False
         if (
             auth
