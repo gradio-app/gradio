@@ -51,7 +51,6 @@ from gradio.utils import (
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import comet_ml
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
@@ -1688,7 +1687,7 @@ class Blocks(BlockContext):
 
     def integrate(
         self,
-        comet_ml: comet_ml.Experiment | None = None,
+        comet_ml=None,
         wandb: ModuleType | None = None,
         mlflow: ModuleType | None = None,
     ) -> None:
