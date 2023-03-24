@@ -362,6 +362,8 @@ class Base(ThemeClass):
             font_mono: The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
         """
 
+        self.name = "base"
+
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
                 return shortcut
