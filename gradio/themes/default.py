@@ -34,7 +34,6 @@ class Default(Base):
         ),
     ):
         super().__init__(
-            name="default",
             primary_hue=primary_hue,
             secondary_hue=secondary_hue,
             neutral_hue=neutral_hue,

@@ -26,7 +26,7 @@ set_documentation_group("themes")
 
 
 class ThemeClass:
-    def __init__(self, name):
+    def __init__(self):
         self._stylesheets = []
         self.name = None
 
@@ -361,8 +361,6 @@ class Base(ThemeClass):
             font: The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
             font_mono: The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
         """
-
-        self.name = "base"
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
