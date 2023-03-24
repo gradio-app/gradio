@@ -1165,7 +1165,7 @@ class Blocks(BlockContext):
         self.app = routes.App.create_app(self)
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
         self.exited = True
-        
+
     @class_or_instancemethod
     def load(
         self_or_cls,
@@ -1388,7 +1388,7 @@ class Blocks(BlockContext):
         """
         if not self.exited:
             self.__exit__()
-            
+
         self.dev_mode = False
         if (
             auth
