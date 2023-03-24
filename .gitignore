@@ -54,3 +54,8 @@ workspace.code-workspace
 
 # FRP
 gradio/frpc_*
+
+# js
+node_modules
+public/build/
+test-results

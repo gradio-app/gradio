@@ -41,7 +41,7 @@ jobs:
       with:
         node-version: 16
         cache: pnpm
-        cache-dependency-path: ui/pnpm-lock.yaml
+        cache-dependency-path: pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests virtualenv
     - name: Install Gradio
@@ -70,10 +70,8 @@ jobs:
         bash scripts/type_check_backend.sh
     - name: Build frontend
       run: |
-        cd ui
         pnpm i --frozen-lockfile
         pnpm build
-        cd ..
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Create coverage dir
