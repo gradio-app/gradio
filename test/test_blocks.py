@@ -8,6 +8,7 @@ import random
 import sys
 import time
 import unittest.mock as mock
+import uuid
 import warnings
 from contextlib import contextmanager
 from functools import partial
@@ -392,6 +393,12 @@ class TestBlocksMethods:
         ):
             with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
                 assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+
+    def test_exit_called_at_launch(self):
+        with gr.Blocks() as demo:
+            gr.Textbox(uuid.uuid4)
+        demo.launch(prevent_thread_lock=True)
+        assert len(demo.get_config_file()["dependencies"]) == 1
 
 
 class TestComponentsInBlocks:
