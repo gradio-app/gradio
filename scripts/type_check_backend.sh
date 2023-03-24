@@ -5,4 +5,4 @@ pip_required
 
 pip install --upgrade pip
 pip install pyright==1.1.298
-pyright gradio/*.py
+pyright gradio/*.py client/python/gradio_client/*.py
