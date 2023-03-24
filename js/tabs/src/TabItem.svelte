@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
-		getContext(TABS);
+		getContext(TABS) as any;
 
 	let tab_index = register_tab({ name, id });
 

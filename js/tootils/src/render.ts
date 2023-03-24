@@ -9,7 +9,11 @@ type Component<T extends SvelteComponentTyped, Props> = new (args: {
 	props?: Props;
 }) => T;
 
-function render<Events, Props, T extends SvelteComponentTyped<Props, Events>>(
+function render<
+	Events extends Record<string, any>,
+	Props extends Record<string, any>,
+	T extends SvelteComponentTyped<Props, Events>
+>(
 	Component: Component<T, Props> | { default: Component<T, Props> },
 	props?: Props
 ) {

@@ -9,15 +9,6 @@ declare global {
 	}
 }
 
-declare namespace svelte.JSX {
-	interface DOMAttributes<T extends EventTarget> {
-		theme?: string;
-		"item-type"?: string;
-		webkitdirectory?: boolean | string;
-		mozdirectory?: boolean | string;
-	}
-}
-
 export interface Config {
 	auth_required: boolean | undefined;
 	auth_message: string;

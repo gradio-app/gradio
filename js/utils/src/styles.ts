@@ -24,7 +24,8 @@ type ProcessedStyles = PartialRecord<keyof Styles, string> & {
 };
 
 const get_style = <T extends keyof Styles>(styles: Styles, key: T) => {
-	return style_handlers[key](styles[key]!);
+	//@ts-ignore
+	return style_handlers[key](styles[key]);
 };
 
 export function get_styles(

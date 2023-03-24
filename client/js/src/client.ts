@@ -78,7 +78,7 @@ export async function client(
 	app_reference: string,
 	space_status_callback?: SpaceStatusCallback
 ): Promise<client_return> {
-	return new Promise(async (res, rej) => {
+	return new Promise(async (res) => {
 		const return_obj = {
 			predict,
 			on,
