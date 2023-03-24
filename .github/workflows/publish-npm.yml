@@ -1,0 +1,45 @@
+name: Changesets
+on:
+  push:
+    branches:
+      - main
+env:
+  CI: true
+  PNPM_CACHE_FOLDER: .pnpm-store
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - name: checkout code repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+      - name: setup node.js
+        uses: actions/setup-node@v3
+        with:
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+          node-version: 18
+          registry-url: "https://registry.npmjs.org"
+      - name: install dependencies
+        run: pnpm install
+      - name: Setup npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      - name: create and publish versions
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          commit: "chore: update versions"
+          title: "chore: update versions"
+          publish: pnpm ci:publish
+          cwd: ui
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

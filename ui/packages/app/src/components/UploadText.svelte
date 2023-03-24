@@ -14,7 +14,7 @@
 
 <div class="wrap">
 	{$_(defs[type])}
-	<span class="or">- or -</span>
+	<span class="or">- {$_("or")} -</span>
 	{$_("interface.click_to_upload")}
 </div>
 
