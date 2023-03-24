@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import PIL.Image
+from gradio_client import utils as client_utils
 
 from gradio import processing_utils, routes, utils
 from gradio.context import Context
@@ -67,7 +68,7 @@ def create_examples(
         batch=batch,
         _initiated_directly=False,
     )
-    utils.synchronize_async(examples_obj.create)
+    client_utils.synchronize_async(examples_obj.create)
     return examples_obj
 
 
