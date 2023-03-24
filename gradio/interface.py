@@ -130,7 +130,7 @@ class Interface(Blocks):
         description: str | None = None,
         article: str | None = None,
         thumbnail: str | None = None,
-        theme: Theme | None = None,
+        theme: Theme | str | None = None,
         css: str | None = None,
         allow_flagging: str | None = None,
         flagging_options: List[str] | List[Tuple[str, str]] | None = None,
