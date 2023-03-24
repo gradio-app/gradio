@@ -364,15 +364,24 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
         return line_count
 
-
+@document()
 class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     """
-    A FlaggingCallback that saves flagged data to a Hugging Face dataset in JSONL format.
-
+    A callback that saves flagged data (both the input and output data)
+    to a Hugging Face dataset in JSONL format.
+    
     Each data sample is saved in a different JSONL file,
     allowing multiple users to use flagging simultaneously.
     Saving to a single CSV would cause errors as only one user can edit at the same time.
 
+    Example:
+        import gradio as gr
+        hf_writer = gr.HuggingFaceDatasetJSONSaver(HF_API_TOKEN, "image-classification-mistakes")
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                            allow_flagging="manual", flagging_callback=hf_writer)
+    Guides: using_flagging
     """
 
     def __init__(
