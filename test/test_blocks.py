@@ -194,7 +194,6 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-
     @mock.patch("requests.post")
     def test_initiated_analytics(self, mock_post):
         with gr.Blocks(analytics_enabled=True):
