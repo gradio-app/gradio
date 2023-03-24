@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import functools
 import inspect
 import json
 import json.decoder
@@ -29,7 +30,6 @@ from typing import (
     Dict,
     Generator,
     List,
-    NewType,
     Tuple,
     Type,
     TypeVar,
@@ -37,7 +37,6 @@ from typing import (
 )
 
 import aiohttp
-import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
 import requests
@@ -45,14 +44,14 @@ from huggingface_hub.utils import send_telemetry
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
-from pydantic import BaseModel, Json, parse_obj_as
+from pydantic import BaseModel, parse_obj_as
 
 import gradio
 from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import BlockContext
+    from gradio.blocks import Block, BlockContext
     from gradio.components import Component
 
 analytics_url = "https://api.gradio.app/"
@@ -498,24 +497,6 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args, **kwargs) -> Any:
-    """
-    Runs async functions in sync scopes.
-
-    Can be used in any scope. See run_coro_in_background for more details.
-
-    Example:
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
-
-    Args:
-        func:
-        *args:
-        **kwargs:
-    """
-    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
-
-
 def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     Runs coroutines in background.
@@ -571,7 +552,6 @@ class AsyncRequest:
     You can see example usages in test_utils.py.
     """
 
-    ResponseJson = NewType("ResponseJson", Json)
     client = httpx.AsyncClient()
 
     class Method(str, Enum):
@@ -674,9 +654,7 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(
-        self, response: ResponseJson
-    ) -> Union[BaseModel, ResponseJson | None]:
+    def _validate_response_data(self, response):
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -705,7 +683,7 @@ class AsyncRequest:
 
         return validated_response
 
-    def _validate_response_by_model(self, response: ResponseJson) -> BaseModel:
+    def _validate_response_by_model(self, response) -> BaseModel:
         """
         Validate response json using the validation model.
         Args:
@@ -718,9 +696,7 @@ class AsyncRequest:
             validated_data = parse_obj_as(self._validation_model, response)
         return validated_data
 
-    def _validate_response_by_validation_function(
-        self, response: ResponseJson
-    ) -> ResponseJson | None:
+    def _validate_response_by_validation_function(self, response):
         """
         Validate response json using the validation function.
         Args:
@@ -785,19 +761,6 @@ def set_directory(path: Path | str):
         yield
     finally:
         os.chdir(origin)
-
-
-def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
-    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
-    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
-    filename_len = len(filename.encode())
-    if filename_len > max_bytes:
-        while filename_len > max_bytes:
-            if len(filename) == 0:
-                break
-            filename = filename[:-1]
-            filename_len = len(filename.encode())
-    return filename
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -1007,6 +970,38 @@ def abspath(path: str | Path) -> Path:
         return Path.cwd() / path
     else:
         return Path(path).resolve()
+
+
+def get_serializer_name(block: Block) -> str | None:
+    if not hasattr(block, "serialize"):
+        return None
+
+    def get_class_that_defined_method(meth: Callable):
+        # Adapted from: https://stackoverflow.com/a/25959545/5209347
+        if isinstance(meth, functools.partial):
+            return get_class_that_defined_method(meth.func)
+        if inspect.ismethod(meth) or (
+            inspect.isbuiltin(meth)
+            and getattr(meth, "__self__", None) is not None
+            and getattr(meth.__self__, "__class__", None)
+        ):
+            for cls in inspect.getmro(meth.__self__.__class__):
+                if meth.__name__ in cls.__dict__:
+                    return cls
+            meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
+        if inspect.isfunction(meth):
+            cls = getattr(
+                inspect.getmodule(meth),
+                meth.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[0],
+                None,
+            )
+            if isinstance(cls, type):
+                return cls
+        return getattr(meth, "__objclass__", None)
+
+    cls = get_class_that_defined_method(block.serialize)  # type: ignore
+    if cls:
+        return cls.__name__
 
 
 def get_markdown_parser() -> MarkdownIt:
