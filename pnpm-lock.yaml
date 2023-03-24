@@ -46,7 +46,7 @@ importers:
     dependencies:
       '@changesets/changelog-github': 0.4.8
       '@changesets/cli': 2.26.1
-      '@gradio/tootils': link:ui/tootils
+      '@gradio/tootils': link:js/tootils
       '@playwright/test': 1.27.1
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.44_svelte@3.49.0+vite@2.9.9
       '@tailwindcss/forms': 0.5.0_tailwindcss@3.1.6
@@ -88,16 +88,16 @@ importers:
   client/js:
     specifiers: {}
 
-  ui/_cdn-test:
+  js/_cdn-test:
     specifiers:
       vite: ^2.9.9
     devDependencies:
       vite: 2.9.9
 
-  ui/accordion:
+  js/accordion:
     specifiers: {}
 
-  ui/app:
+  js/app:
     specifiers:
       '@gradio/accordion': workspace:^0.0.1
       '@gradio/atoms': workspace:^0.0.1
@@ -167,13 +167,13 @@ importers:
       svelte: 3.49.0
       svelte-i18n: 3.3.13_svelte@3.49.0
 
-  ui/atoms:
+  js/atoms:
     specifiers:
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/utils': link:../utils
 
-  ui/audio:
+  js/audio:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
@@ -191,13 +191,13 @@ importers:
       extendable-media-recorder-wav-encoder: 7.0.76
       svelte-range-slider-pips: 2.0.2
 
-  ui/button:
+  js/button:
     specifiers:
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/utils': link:../utils
 
-  ui/chart:
+  js/chart:
     specifiers:
       '@gradio/icons': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
@@ -222,7 +222,7 @@ importers:
       '@types/d3-scale': 4.0.2
       '@types/d3-shape': 3.0.2
 
-  ui/chatbot:
+  js/chatbot:
     specifiers:
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
@@ -232,7 +232,7 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
 
-  ui/code:
+  js/code:
     specifiers:
       '@codemirror/autocomplete': ^6.3.0
       '@codemirror/commands': ^6.1.2
@@ -282,7 +282,7 @@ importers:
       cm6-theme-basic-light: 0.2.0_xw675pmc2xeonceu42bz2qxoy4
       codemirror: 6.0.1_@lezer+common@1.0.2
 
-  ui/file:
+  js/file:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -294,7 +294,7 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
 
-  ui/form:
+  js/form:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -304,7 +304,7 @@ importers:
       '@gradio/icons': link:../icons
       '@gradio/utils': link:../utils
 
-  ui/gallery:
+  js/gallery:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -318,7 +318,7 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
 
-  ui/highlighted-text:
+  js/highlighted-text:
     specifiers:
       '@gradio/theme': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
@@ -326,13 +326,13 @@ importers:
       '@gradio/theme': link:../theme
       '@gradio/utils': link:../utils
 
-  ui/html:
+  js/html:
     specifiers: {}
 
-  ui/icons:
+  js/icons:
     specifiers: {}
 
-  ui/image:
+  js/image:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -350,7 +350,7 @@ importers:
       lazy-brush: 1.0.1
       resize-observer-polyfill: 1.5.1
 
-  ui/json:
+  js/json:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -358,16 +358,16 @@ importers:
       '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
 
-  ui/label:
+  js/label:
     specifiers:
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/utils': link:../utils
 
-  ui/markdown:
+  js/markdown:
     specifiers: {}
 
-  ui/model3D:
+  js/model3D:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -381,7 +381,7 @@ importers:
       babylonjs: 4.2.2
       babylonjs-loaders: 4.2.2
 
-  ui/plot:
+  js/plot:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -403,7 +403,7 @@ importers:
       vega: 5.22.1
       vega-lite: 5.6.0_vega@5.22.1
 
-  ui/table:
+  js/table:
     specifiers:
       '@gradio/button': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
@@ -419,22 +419,22 @@ importers:
       d3-dsv: 3.0.1
       dequal: 2.0.2
 
-  ui/tabs:
+  js/tabs:
     specifiers:
       '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/utils': link:../utils
 
-  ui/theme:
+  js/theme:
     specifiers: {}
 
-  ui/tooltip:
+  js/tooltip:
     specifiers: {}
 
-  ui/tootils:
+  js/tootils:
     specifiers: {}
 
-  ui/upload:
+  js/upload:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -442,7 +442,7 @@ importers:
       '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
 
-  ui/upload-button:
+  js/upload-button:
     specifiers:
       '@gradio/button': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
@@ -452,13 +452,13 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
 
-  ui/utils:
+  js/utils:
     specifiers:
       '@gradio/theme': workspace:^0.0.1
     dependencies:
       '@gradio/theme': link:../theme
 
-  ui/video:
+  js/video:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
@@ -470,7 +470,7 @@ importers:
       '@gradio/image': link:../image
       '@gradio/upload': link:../upload
 
-  ui/workbench:
+  js/workbench:
     specifiers:
       '@gradio/accordion': workspace:^0.0.1
       '@gradio/atoms': workspace:^0.0.1
