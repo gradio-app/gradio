@@ -56,7 +56,7 @@ jobs:
         with:
           python-version: '3.x'
       - run: bash scripts/install_gradio.sh
-      - run: pip install -r ../demo/outbreak_forecast/requirements.txt
+      - run: pip install -r demo/outbreak_forecast/requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm test:browser:full
