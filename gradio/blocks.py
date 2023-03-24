@@ -20,7 +20,16 @@ from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from typing_extensions import Literal
 
-from gradio import components, external, networking, queueing, routes, strings, utils
+from gradio import (
+    components,
+    external,
+    networking,
+    queueing,
+    routes,
+    strings,
+    themes,
+    utils,
+)
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
@@ -562,10 +571,22 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
+            built_in_themes = [
+                themes.Base(),
+                themes.Default(),
+                themes.Monochrome(),
+                themes.Soft(),
+                themes.Glass(),
+            ]
+            is_custom_theme = not any(
+                self.theme.to_dict() == built_in_theme.to_dict()
+                for built_in_theme in built_in_themes
+            )
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
+                "theme": self.theme.name,
+                "is_custom_theme": is_custom_theme,
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
