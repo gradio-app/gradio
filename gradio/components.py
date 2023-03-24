@@ -1578,7 +1578,7 @@ class Image(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         """
@@ -1661,7 +1661,7 @@ class Image(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
     ):
         return {
             "label": label,

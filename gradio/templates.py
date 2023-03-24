@@ -68,7 +68,7 @@ class Webcam(components.Image):
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -115,7 +115,7 @@ class Sketchpad(components.Image):
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -162,7 +162,7 @@ class Paint(components.Image):
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -209,7 +209,7 @@ class ImageMask(components.Image):
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -256,7 +256,7 @@ class ImagePaint(components.Image):
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -303,7 +303,7 @@ class Pil(components.Image):
         streaming: bool = False,
         elem_id: str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         super().__init__(
