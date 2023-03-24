@@ -1,16 +1,13 @@
-# Don't forget to run bash scripts/create_test_requirements.sh from unix or wsl when you update this file.
+# Don't forget to run bash scripts/create_test_requirements.sh and scripts/create_test_requirements-37.sh from unix or wsl when you update this file.
 asyncio
 boto3
 IPython
-comet_ml
 coverage
-mlflow
 torch
 transformers
 scikit-image
 shap
 pytest
-wandb
 huggingface_hub
 pytest-cov
 pytest-asyncio
