@@ -44,6 +44,7 @@ class Soft(Base):
             font=font,
             font_mono=font_mono,
         )
+        self.name = "soft"
         super().set(
             # Colors
             background_fill_primary="*neutral_50",

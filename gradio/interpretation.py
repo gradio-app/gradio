@@ -8,8 +8,9 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import numpy as np
+from gradio_client import utils as client_utils
 
-from gradio import components, utils
+from gradio import components
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -139,7 +140,9 @@ async def run_interpret(interface: Interface, raw_input: List):
                     (
                         neighbor_values,
                         interpret_kwargs,
-                    ) = input_component.get_interpretation_neighbors(x)
+                    ) = input_component.get_interpretation_neighbors(
+                        x
+                    )  # type: ignore
                     interface_scores = []
                     alternative_output = []
                     for neighbor_input in neighbor_values:
@@ -208,7 +211,7 @@ async def run_interpret(interface: Interface, raw_input: List):
                     for masked_x in masked_xs:
                         processed_masked_input = copy.deepcopy(processed_input)
                         processed_masked_input[i] = input_component.preprocess(masked_x)
-                        new_output = utils.synchronize_async(
+                        new_output = client_utils.synchronize_async(
                             interface.call_function, 0, processed_masked_input
                         )
                         new_output = new_output["prediction"]

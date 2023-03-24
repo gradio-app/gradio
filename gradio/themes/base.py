@@ -28,7 +28,7 @@ set_documentation_group("themes")
 class ThemeClass:
     def __init__(self, name):
         self._stylesheets = []
-        self.name = name
+        self.name = None
 
     def _get_theme_css(self):
         css = {}
@@ -102,6 +102,7 @@ class ThemeClass:
                 not prop.startswith("_")
                 or prop.startswith("_font")
                 or prop == "_stylesheets"
+                or prop == "name"
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
@@ -173,7 +174,9 @@ class ThemeClass:
             repo_type="space",
             filename=f"themes/theme_schema@{matching_version.version}.json",
         )
-        return cls.load(theme_file)
+        theme = cls.load(theme_file)
+        theme.name = name
+        return theme
 
     @staticmethod
     def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
@@ -358,7 +361,8 @@ class Base(ThemeClass):
             font: The primary font to use for the theme. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
             font_mono: The monospace font to use for the theme, applies to code. Pass a string for a system font, or a gradio.themes.font.GoogleFont object to load a font from Google Fonts. Pass a list of fonts for fallbacks.
         """
-        super().__init__(name=name)
+
+        self.name = "base"
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
