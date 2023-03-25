@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
-	import { Undo, Clear } from "@gradio/icons";
+	import { Undo, Clear, Trash } from "@gradio/icons";
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -12,7 +12,15 @@
 		Icon={Clear}
 		label="Clear"
 		on:click={(event) => {
-			dispatch("clear");
+			dispatch("clear_mask");
+			event.stopPropagation();
+		}}
+	/>
+	<IconButton
+		Icon={Trash}
+		label="Remove Image"
+		on:click={(event) => {
+			dispatch("remove_image");
 			event.stopPropagation();
 		}}
 	/>
