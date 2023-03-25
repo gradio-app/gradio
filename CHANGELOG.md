@@ -5,6 +5,7 @@
 ## New Features:
 
 - Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)   
+- Add a "clear mask" button to `gr.Image` sketch modes, by [@space-nuko](https://github.com/space-nuko) in [PR 3615](https://github.com/gradio-app/gradio/pull/3615)
 
 ## Bug Fixes:
 
