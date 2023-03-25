@@ -157,8 +157,8 @@ class Changeable(EventListener):
     def __init__(self):
         self.change = EventListenerMethod(self, "change")
         """
-        This event is triggered when the component's input value changes (e.g. when the user types in a textbox
-        or uploads an image). This method can be used when this component is in a Gradio Blocks.
+        This event is triggered when the component's value changes (e.g. when the user types in a textbox or an image receives a value from the output of an event trigger). 
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -245,7 +245,8 @@ class Blurrable(EventListener):
     def __init__(self):
         self.blur = EventListenerMethod(self, "blur")
         """
-        This event is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). This method can be used when this component is in a Gradio Blocks.
+        This event is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). 
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -254,7 +255,8 @@ class Uploadable(EventListener):
     def __init__(self):
         self.upload = EventListenerMethod(self, "upload")
         """
-        This event is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component). This method can be used when this component is in a Gradio Blocks.
+        This event is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component).
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -263,9 +265,19 @@ class Releaseable(EventListener):
     def __init__(self):
         self.release = EventListenerMethod(self, "release")
         """
-        This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider). This method can be used when this component is in a Gradio Blocks.
+        This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider).
+        This method can be used when this component is in a Gradio Blocks.
         """
 
+
+@document("*input", inherit=True)
+class Inputable(EventListener):
+    def __init__(self):
+        self.input = EventListenerMethod(self, "input")
+        """
+        This event is triggered when the user changes the value of the component.
+        This method can be used when this component is in a Gradio Blocks.
+        """
 
 @document("*select", inherit=True)
 class Selectable(EventListener):
