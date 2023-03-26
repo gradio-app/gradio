@@ -104,7 +104,9 @@ class TestHuggingFaceDatasetJSONSaver:
             )
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="PermissionError on tempdir cleanup")
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="PermissionError on tempdir cleanup"
+)
 class TestDisableFlagging:
     def test_flagging_no_permission_error_with_flagging_disabled(self):
         with tempfile.TemporaryDirectory() as tmpdirname:

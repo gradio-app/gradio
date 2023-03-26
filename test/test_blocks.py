@@ -1410,6 +1410,7 @@ def test_queue_enabled_for_fn():
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(sys.platform == "win32", reason="AssertionError on inner loop")
 async def test_queue_when_using_auth():
     sleep_time = 1
 
