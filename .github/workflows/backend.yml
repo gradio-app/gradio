@@ -25,7 +25,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Cache python deps
-      shell: bash
       id: cache-python
       uses: actions/cache@v3
       with:
@@ -46,34 +45,38 @@ jobs:
         cache-dependency-path: ui/pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests virtualenv
+    - name: venv activate Linux
+      if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
+      run: |
+        python -m virtualenv venv
+        source venv/bin/activate
+    - name: venv activate Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        python -m virtualenv venv
+        ./venv/Scripts/Activate.ps1
     - name: Install Gradio
       shell: bash
       run: |
-        python -m virtualenv venv
-        . venv/bin/activate
         bash scripts/install_gradio.sh
         pip install --upgrade pip
     - name: Install 3.9 Test Dependencies
       shell: bash
       if: ${{ matrix.python-version == '3.9' }}
       run: |
-        . venv/bin/activate
         pip install -r test/requirements.txt
     - name: Install 3.7 Test Dependencies
       shell: bash
       if: ${{ matrix.python-version == '3.7' }}
       run: |
-        . venv/bin/activate
         pip install -r test/requirements-37.txt
     - name: Lint
       shell: bash
       run: |
-        . venv/bin/activate
         bash scripts/lint_backend.sh
     - name: Typecheck
       shell: bash
       run: |
-        . venv/bin/activate
         bash scripts/type_check_backend.sh
     - name: Build frontend
       shell: bash
@@ -89,7 +92,6 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        . venv/bin/activate
         coverage run -m pytest -m "${{ matrix.test-type }}"
         coverage xml
 
