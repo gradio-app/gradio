@@ -50,11 +50,13 @@ jobs:
       run: |
         python -m virtualenv venv
         source venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
     - name: venv activate Windows
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
         python -m virtualenv venv
         ./venv/Scripts/Activate.ps1
+        echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     - name: Install Gradio
       shell: bash
       run: |
