@@ -58,6 +58,7 @@ jobs:
     - name: Install Gradio
       shell: bash
       run: |
+        python --version
         bash scripts/install_gradio.sh
         pip install --upgrade pip
     - name: Install 3.9 Test Dependencies
