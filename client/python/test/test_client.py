@@ -3,6 +3,7 @@ import json
 import pytest
 
 from gradio_client import Client
+import time
 
 
 class TestPredictionsFromSpaces:
@@ -20,3 +21,17 @@ class TestPredictionsFromSpaces:
         )
         output = client.predict("abc").result()
         assert output == "abc"
+
+    @pytest.mark.flaky
+    def test_job_status(self):
+        statuses = []
+        client = Client(space="gradio/calculator")
+        job = client.predict(5, "add", 4)
+        while not job.done():
+            time.sleep(0.1)
+            statuses.append(job.status())
+
+        assert statuses
+        # Messages are sorted by time
+        assert sorted([s.time for s in statuses if s]) == [s.time for s in statuses if s]
+        assert sorted([s.status for s in statuses if s]) == [s.status for s in statuses if s]

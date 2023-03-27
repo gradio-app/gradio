@@ -7,7 +7,11 @@ import os
 import pkgutil
 import shutil
 import tempfile
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
+from queue import Queue
 from typing import Any, Callable, Dict, Tuple
 
 import fsspec.asyn
@@ -38,6 +42,53 @@ class InvalidAPIEndpointError(Exception):
     pass
 
 
+class Status(Enum):
+    JOINING_QUEUE = "JOINING_QUEUE"
+    QUEUE_FULL = "QUEUE_FULL"
+    IN_QUEUE = "IN_QUEUE"
+    SENDING_DATA = "SENDING_DATA"
+    START_ITERATION = "START_ITERATION"
+    ITERATING = "ITERATING"
+    FINISHED = "FINISHED"
+
+    @staticmethod
+    def ordering(status: "Status") -> int:
+        order = [
+            Status.JOINING_QUEUE,
+            Status.QUEUE_FULL,
+            Status.IN_QUEUE,
+            Status.SENDING_DATA,
+            Status.START_ITERATION,
+            Status.ITERATING,
+            Status.FINISHED,
+        ]
+        return order.index(status)
+
+    def __lt__(self, other: "Status"):
+        return self.ordering(self) < self.ordering(other)
+
+    @staticmethod
+    def msg_to_status(msg: str) -> "Status":
+        return {
+            "send_hash": Status.JOINING_QUEUE,
+            "queue_full": Status.QUEUE_FULL,
+            "estimation": Status.IN_QUEUE,
+            "send_data": Status.SENDING_DATA,
+            "process_starts": Status.START_ITERATION,
+            "process_generating": Status.ITERATING,
+            "process_completed": Status.FINISHED,
+        }[msg]
+
+
+@dataclass
+class StatusUpdate:
+    status: Status
+    rank: int
+    queue_size: int | None
+    success: bool | None
+    time: datetime
+
+
 ########################
 # Network utils
 ########################
@@ -55,13 +106,21 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol, data: str, hash_data: str
+    websocket: WebSocketCommonProtocol, data: str, hash_data: str, queue: Queue
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
         msg = await websocket.recv()
         resp = json.loads(msg)
+        status_update = StatusUpdate(
+            status=Status.msg_to_status(resp["msg"]),
+            queue_size=resp.get("queue_size", 0),
+            rank=resp.get("rank", 0),
+            success=resp.get("success"),
+            time=datetime.now(),
+        )
+        queue.put_nowait(status_update)
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":
