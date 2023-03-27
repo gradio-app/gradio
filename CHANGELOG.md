@@ -5,6 +5,7 @@
 ## New Features:
 
 - Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)   
+- Make `Remove All` button in `gr.Dropdown` configurable, by [@space-nuko](https://github.com/space-nuko) in [PR 3648](https://github.com/gradio-app/gradio/pull/3648)   
 
 ## Bug Fixes:
 
