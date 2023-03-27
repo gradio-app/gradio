@@ -18,7 +18,7 @@
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "vitest dev --config .config/vitest.config.ts",
 		"test:run": "vitest run --config .config/vitest.config.ts",
-		"test:browser": "pnpm --filter @gradio/app test:browser",
+		"test:browser": "pnpm --filter @gradio/app test:browser:full",
 		"test:browser:full": "run-s build test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
