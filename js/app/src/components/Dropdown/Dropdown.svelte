@@ -22,17 +22,13 @@
 
 	export let mode: "static" | "dynamic";
 
-    if (!value) {
-        if (multiselect) {
-            value = [];
-        }
-        else if (default_value) {
-            value = default_value;
-        }
-        else {
-            value = "";
-        }
-    }
+	if (!value) {
+		if (multiselect) {
+			value = [];
+		} else {
+			value = default_value || "";
+		}
+	}
 </script>
 
 <Block

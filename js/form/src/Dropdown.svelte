@@ -74,11 +74,7 @@
 		if (multiselect) {
 			value = [];
 		} else {
-            if (default_value) {
-                value = default_value;
-            } else {
-                value = "";
-            }
+			value = default_value || "";
 		}
 
 		inputValue = "";
@@ -176,7 +172,10 @@
 					on:keyup={handleKeyup}
 				/>
 				<div
-					class:hide={!show_remove_all || (default_value && value === default_value) || (multiselect && (value?.length ?? 0) === 0) || disabled}
+					class:hide={!show_remove_all ||
+						(default_value && value === default_value) ||
+						(multiselect && (value?.length ?? 0) === 0) ||
+						disabled}
 					class="token-remove remove-all"
 					title="Remove All"
 					on:click={remove_all}

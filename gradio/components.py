@@ -1441,7 +1441,9 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             self.show_remove_all = show_remove_all
 
         if self.show_remove_all and not self.multiselect and not self.default_value:
-            warnings.warn("No `default_value` parameter provided with `multiselect` False, defaulting to an empty string.")
+            warnings.warn(
+                "No `default_value` parameter provided with `multiselect` False, defaulting to an empty string."
+            )
             self.default_value = ""
 
         if self.multiselect and self.default_value:
