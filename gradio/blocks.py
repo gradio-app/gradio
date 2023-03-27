@@ -1333,6 +1333,9 @@ class Blocks(BlockContext):
         return self
 
     def validate_queue_settings(self):
+        if not self.enable_queue and self.progress_tracking:
+            raise ValueError("Progress tracking requires queuing to be enabled.")
+
         for fn_index, dep in enumerate(self.dependencies):
             if not self.enable_queue and self.queue_enabled_for_fn(fn_index):
                 raise ValueError(
@@ -1473,9 +1476,6 @@ class Blocks(BlockContext):
         self.file_directories = file_directories if file_directories is not None else []
         if not isinstance(self.file_directories, list):
             raise ValueError("file_directories must be a list of directories.")
-
-        if not self.enable_queue and self.progress_tracking:
-            raise ValueError("Progress tracking requires queuing to be enabled.")
 
         self.validate_queue_settings()
 
