@@ -950,7 +950,7 @@ class Base(ThemeClass):
             self, "body_text_size", "*text_md"
         )
         self.body_text_weight = body_text_weight or getattr(
-            self, "body_text_weight", "400"
+            self, "body_text_weight", "normal"
         )
         self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
         # Core Colors
@@ -1063,7 +1063,7 @@ class Base(ThemeClass):
             self, "block_info_text_size", "*text_sm"
         )
         self.block_info_text_weight = block_info_text_weight or getattr(
-            self, "block_info_text_weight", "400"
+            self, "block_info_text_weight", "normal"
         )
         self.block_label_background_fill = block_label_background_fill or getattr(
             self, "block_label_background_fill", "*background_fill_primary"
@@ -1112,7 +1112,7 @@ class Base(ThemeClass):
             self, "block_label_text_size", "*text_sm"
         )
         self.block_label_text_weight = block_label_text_weight or getattr(
-            self, "block_label_text_weight", "400"
+            self, "block_label_text_weight", "normal"
         )
         self.block_padding = block_padding or getattr(
             self, "block_padding", "*spacing_xl calc(*spacing_xl + 2px)"
@@ -1157,7 +1157,7 @@ class Base(ThemeClass):
             self, "block_title_text_size", "*text_md"
         )
         self.block_title_text_weight = block_title_text_weight or getattr(
-            self, "block_title_text_weight", "400"
+            self, "block_title_text_weight", "normal"
         )
         self.container_radius = container_radius or getattr(
             self, "container_radius", "*radius_lg"
@@ -1186,7 +1186,7 @@ class Base(ThemeClass):
             self, "section_header_text_size", "*text_md"
         )
         self.section_header_text_weight = section_header_text_weight or getattr(
-            self, "section_header_text_weight", "400"
+            self, "section_header_text_weight", "normal"
         )
         # Component Atoms
         self.checkbox_background_color = checkbox_background_color or getattr(
@@ -1357,7 +1357,7 @@ class Base(ThemeClass):
             self, "checkbox_label_text_size", "*text_md"
         )
         self.checkbox_label_text_weight = checkbox_label_text_weight or getattr(
-            self, "checkbox_label_text_weight", "400"
+            self, "checkbox_label_text_weight", "normal"
         )
         self.checkbox_check = checkbox_check or getattr(
             self,
@@ -1486,7 +1486,7 @@ class Base(ThemeClass):
             self, "input_text_size", "*text_md"
         )
         self.input_text_weight = input_text_weight or getattr(
-            self, "input_text_weight", "400"
+            self, "input_text_weight", "normal"
         )
         self.loader_color = loader_color or getattr(
             self, "loader_color", "*color_accent"
@@ -1498,7 +1498,7 @@ class Base(ThemeClass):
             self, "prose_text_size", "*text_md"
         )
         self.prose_text_weight = prose_text_weight or getattr(
-            self, "prose_text_weight", "400"
+            self, "prose_text_weight", "normal"
         )
         self.prose_header_text_weight = prose_header_text_weight or getattr(
             self, "prose_header_text_weight", "600"
@@ -1780,7 +1780,7 @@ class Base(ThemeClass):
             self, "button_small_text_size", "*text_md"
         )
         self.button_small_text_weight = button_small_text_weight or getattr(
-            self, "button_small_text_weight", "400"
+            self, "button_small_text_weight", "normal"
         )
         self.button_transition = button_transition or getattr(
             self, "button_transition", "background-color 0.2s ease"
