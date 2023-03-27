@@ -1473,9 +1473,7 @@ async def test_queue_when_using_auth():
                     assert msg["output"]["data"] == [f"Hello {i}!"]
                     break
 
-    loop = asyncio.get_event_loop()
-    group = asyncio.gather(*[run_ws(i) for i in range(3)])
-    await group
+    await asyncio.gather(*[run_ws(i) for i in range(3)])
 
 
 def test_temp_file_sets_get_extended():
