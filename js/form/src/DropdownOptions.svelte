@@ -49,7 +49,7 @@
 			<li
 				class="item"
 				role="button"
-				class:selected={value?.includes(choice)}
+				class:selected={value === choice}
 				class:active={activeOption === choice}
 				class:bg-gray-100={activeOption === choice}
 				class:dark:bg-gray-600={activeOption === choice}
