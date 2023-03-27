@@ -17,6 +17,8 @@
 	export let show_label: boolean;
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
+	export let allow_custom_value: boolean = false;
+	export let placeholder: string = "";
 
 	export let mode: "static" | "dynamic";
 
@@ -43,8 +45,11 @@
 		{label}
 		{info}
 		{show_label}
+		{allow_custom_value}
+		{placeholder}
 		on:change
 		on:select
+		on:blur
 		disabled={mode === "static"}
 	/>
 </Block>

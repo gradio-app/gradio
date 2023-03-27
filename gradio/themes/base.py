@@ -507,7 +507,7 @@ class Base(ThemeClass):
         prose_text_size=None,
         prose_text_weight=None,
         prose_header_text_weight=None,
-        # Shadows: These set the high-level shadow rendering styles. These variables are often referenced by other component-specific shadow variables. 
+        # Shadows: These set the high-level shadow rendering styles. These variables are often referenced by other component-specific shadow variables.
         shadow_drop=None,
         shadow_drop_lg=None,
         shadow_inset=None,
@@ -1509,7 +1509,7 @@ class Base(ThemeClass):
         self.prose_header_text_weight = prose_header_text_weight or getattr(
             self, "prose_header_text_weight", "600"
         )
-        self.slider_color = slider_color or getattr(self, "slider_color", "")
+        self.slider_color = slider_color or getattr(self, "slider_color", " ")
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )
