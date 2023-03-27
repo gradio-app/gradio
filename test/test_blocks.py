@@ -1474,7 +1474,6 @@ async def test_queue_when_using_auth():
                     break
 
     loop = asyncio.get_event_loop()
-    tm = loop.time()
     group = asyncio.gather(*[run_ws(i) for i in range(3)])
     await group
 
