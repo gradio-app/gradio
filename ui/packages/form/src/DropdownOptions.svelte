@@ -15,9 +15,13 @@
 	let top: string | null, bottom: string | null, max_height: number;
 	$: {
 		if (showOptions && refElement) {
-			if (listElement) {
-				let el = document.querySelector(`li[data-value="${value}"]`);
-				el?.scrollIntoView(true)
+			if (listElement && typeof value === "string") {
+				let el = document.querySelector(
+					`li[data-value="${value}"]`
+				) as HTMLLIElement;
+				if (el) {
+					listElement.scrollTo(0, el.offsetTop);
+				}
 			}
 			distance_from_top = refElement.getBoundingClientRect().top;
 			distance_from_bottom =
