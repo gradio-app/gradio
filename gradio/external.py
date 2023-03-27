@@ -1,36 +1,73 @@
 """This module should not be used directly as its API is subject to change. Instead,
-use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
+use the `gr.Blocks.load()` or `gr.load()` functions."""
 
 from __future__ import annotations
 
 import json
 import re
-import uuid
 import warnings
-from copy import deepcopy
 from typing import TYPE_CHECKING, Callable, Dict
 
 import requests
+from gradio_client import Client
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
     get_tabular_examples,
-    get_ws_fn,
     postprocess_label,
     rows_to_cols,
     streamline_spaces_interface,
-    use_websocket,
 )
 from gradio.processing_utils import to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.interface import Interface
+
+
+set_documentation_group("helpers")
+
+
+@document()
+def load(
+    name: str,
+    src: str | None = None,
+    api_key: str | None = None,
+    hf_token: str | None = None,
+    alias: str | None = None,
+    **kwargs,
+) -> Blocks:
+    """
+    Method that constructs a Blocks from a Hugging Face repo. Can accept
+    model repos (if src is "models") or Space repos (if src is "spaces"). The input
+    and output components are automatically loaded from the repo.
+    Parameters:
+        name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+        src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+        api_key: Deprecated. Please use the `hf_token` parameter instead.
+        hf_token: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+        alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
+    Returns:
+        a Gradio Blocks object for the given model
+    Example:
+        import gradio as gr
+        demo = gr.load("gradio/question-answering", src="spaces")
+        demo.launch()
+    """
+    if hf_token is None and api_key:
+        warnings.warn(
+            "The `api_key` parameter will be deprecated. Please use the `hf_token` parameter going forward."
+        )
+        hf_token = api_key
+    return load_blocks_from_repo(
+        name=name, src=src, api_key=hf_token, alias=alias, **kwargs
+    )
 
 
 def load_blocks_from_repo(
@@ -61,11 +98,11 @@ def load_blocks_from_repo(
     )
 
     if api_key is not None:
-        if Context.access_token is not None and Context.access_token != api_key:
+        if Context.hf_token is not None and Context.hf_token != api_key:
             warnings.warn(
                 """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
             )
-        Context.access_token = api_key
+        Context.hf_token = api_key
 
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
@@ -411,58 +448,13 @@ def from_spaces(
                 "Blocks or Interface locally. You may find this Guide helpful: "
                 "https://gradio.app/using_blocks_like_functions/"
             )
-        return from_spaces_blocks(config, api_key, iframe_url)
+        return from_spaces_blocks(space=space_name, api_key=api_key)
 
 
-def from_spaces_blocks(config: Dict, api_key: str | None, iframe_url: str) -> Blocks:
-    api_url = "{}/api/predict/".format(iframe_url)
-
-    headers = {"Content-Type": "application/json"}
-    if api_key is not None:
-        headers["Authorization"] = f"Bearer {api_key}"
-    ws_url = "{}/queue/join".format(iframe_url).replace("https", "wss")
-
-    ws_fn = get_ws_fn(ws_url, headers)
-
-    fns = []
-    for d, dependency in enumerate(config["dependencies"]):
-        if dependency["backend_fn"]:
-
-            def get_fn(outputs, fn_index, use_ws):
-                def fn(*data):
-                    data = json.dumps({"data": data, "fn_index": fn_index})
-                    hash_data = json.dumps(
-                        {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
-                    )
-                    if use_ws:
-                        result = utils.synchronize_async(ws_fn, data, hash_data)
-                        output = result["data"]
-                    else:
-                        response = requests.post(api_url, headers=headers, data=data)
-                        result = json.loads(response.content.decode("utf-8"))
-                        try:
-                            output = result["data"]
-                        except KeyError:
-                            if "error" in result and "429" in result["error"]:
-                                raise TooManyRequestsError(
-                                    "Too many requests to the Hugging Face API"
-                                )
-                            raise KeyError(
-                                f"Could not find 'data' key in response from external Space. Response received: {result}"
-                            )
-                    if len(outputs) == 1:
-                        output = output[0]
-                    return output
-
-                return fn
-
-            fn = get_fn(
-                deepcopy(dependency["outputs"]), d, use_websocket(config, dependency)
-            )
-            fns.append(fn)
-        else:
-            fns.append(None)
-    return gradio.Blocks.from_config(config, fns, iframe_url)
+def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
+    client = Client(space=space, hf_token=api_key)
+    predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
+    return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
 
 def from_spaces_interface(

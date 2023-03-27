@@ -13,7 +13,7 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
-from gradio import Examples, interpretation, utils
+from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -30,7 +30,6 @@ from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import GRADIO_VERSION
 
 set_documentation_group("interface")
 
@@ -77,9 +76,10 @@ class Interface(Blocks):
         api_key: str | None = None,
         alias: str | None = None,
         **kwargs,
-    ) -> Interface:
+    ) -> Blocks:
         """
-        Class method that constructs an Interface from a Hugging Face repo. Can accept
+        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class
+        method that constructs a Blocks from a Hugging Face repo. Can accept
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
@@ -89,14 +89,11 @@ class Interface(Blocks):
             alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
         Returns:
             a Gradio Interface object for the given model
-        Example:
-            import gradio as gr
-            description = "Story generation with GPT"
-            examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
-            demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
-            demo.launch()
         """
-        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+        warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")
+        return external.load(
+            name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+        )
 
     @classmethod
     def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
@@ -133,7 +130,7 @@ class Interface(Blocks):
         description: str | None = None,
         article: str | None = None,
         thumbnail: str | None = None,
-        theme: Theme | None = None,
+        theme: Theme | str | None = None,
         css: str | None = None,
         allow_flagging: str | None = None,
         flagging_options: List[str] | List[Tuple[str, str]] | None = None,
@@ -242,10 +239,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.input_components = [
-            get_component_instance(i, render=False) for i in inputs
+            get_component_instance(i, render=False) for i in inputs  # type: ignore
         ]
         self.output_components = [
-            get_component_instance(o, render=False) for o in outputs
+            get_component_instance(o, render=False) for o in outputs  # type: ignore
         ]
 
         for component in self.input_components + self.output_components:
@@ -308,7 +305,6 @@ class Interface(Blocks):
         self.article = article
 
         self.thumbnail = thumbnail
-        self.theme = theme
 
         self.examples = examples
         self.num_shap = num_shap
@@ -372,22 +368,6 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
-
-        if self.analytics_enabled:
-            data = {
-                "mode": self.mode,
-                "fn": fn,
-                "inputs": inputs,
-                "outputs": outputs,
-                "live": live,
-                "interpretation": interpretation,
-                "allow_flagging": allow_flagging,
-                "custom_css": self.css is not None,
-                "theme": self.theme,
-                "version": GRADIO_VERSION,
-            }
-            utils.initiated_analytics(data)
-
         utils.version_check()
         Interface.instances.add(self)
 

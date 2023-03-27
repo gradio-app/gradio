@@ -24,8 +24,8 @@ class TestSeries:
 
     @pytest.mark.flaky
     def test_with_external(self):
-        io1 = gr.Interface.load("spaces/abidlabs/image-identity")
-        io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
+        io1 = gr.load("spaces/abidlabs/image-identity")
+        io2 = gr.load("spaces/abidlabs/image-classifier")
         series = mix.Series(io1, io2)
         try:
             output = series("gradio/test_data/lion.jpg")
@@ -55,8 +55,8 @@ class TestParallel:
 
     @pytest.mark.flaky
     def test_with_external(self):
-        io1 = gr.Interface.load("spaces/abidlabs/english_to_spanish")
-        io2 = gr.Interface.load("spaces/abidlabs/english2german")
+        io1 = gr.load("spaces/abidlabs/english_to_spanish")
+        io2 = gr.load("spaces/abidlabs/english2german")
         parallel = mix.Parallel(io1, io2)
         try:
             hello_es, hello_de = parallel("Hello")
