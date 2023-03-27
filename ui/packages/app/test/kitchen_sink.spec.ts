@@ -1,5 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import { BASE64_IMAGE, BASE64_AUDIO } from "./media_data";
+import { mock_theme, wait_for_page } from "./utils";
 
 function mock_demo(page: Page, demo: string) {
 	return page.route("**/config", (route) => {
@@ -28,7 +29,8 @@ function mock_api(page: Page, body: Array<unknown>) {
 
 test("test inputs", async ({ page }) => {
 	await mock_demo(page, "kitchen_sink");
-	await page.goto("http://localhost:9876");
+	await mock_theme(page);
+	await wait_for_page(page);
 
 	const textbox = await page.getByLabel("Textbox").nth(0);
 	await expect(textbox).toHaveValue("Lorem ipsum");
@@ -209,7 +211,8 @@ test("test outputs", async ({ page }) => {
 		]
 	]);
 
-	await page.goto("http://localhost:9876");
+	await mock_theme(page);
+	await wait_for_page(page);
 
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
 
