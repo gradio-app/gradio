@@ -171,8 +171,8 @@ Here, `create_repo` creates a gradio repo with the target name under a specific 
 
 Throughout this guide, you've seen there are Gradio demos embedded. You can also do this on own website! The first step is to create a Space with the demo you want to showcase. You can embed it in your HTML code, as shown in the following self-contained example.
 
-```bash
-&lt;iframe src="https://osanseviero-mix-match-gradio.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"&gt;&lt;/iframe&gt;
+```html
+<iframe src="https://osanseviero-mix-match-gradio.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe&gt;
 ```
 
 ## Recap

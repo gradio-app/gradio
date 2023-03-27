@@ -51,21 +51,22 @@ Using web components is faster then iframes, and will automatically adjust to ot
 
 1. Import the gradio JS library into into your site by adding the script below in your site (replace {GRADIO_VERSION} in the URL with the library version of Gradio you are using). 
 
-    ```html
-&lt;script type="module"
+```html
+<script type="module"
 src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
-&lt;/script>
-    ```
+</script>
+```
 
 2. Add 
-    ```html
-&lt;gradio-app src="https://$your_space_host.hf.space">&lt;/gradio-app>
-    ```
+```html
+<gradio-app src="https://$your_space_host.hf.space"></gradio-app>
+```
+
 element where you want to place the app. Set the `src=` attribute to your Space's embed URL, which you can find in the Embed this Space button. For example:
 
-    ```html
-&lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
-    ```
+```html
+<gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space"></gradio-app>
+```
 
 <script>
 fetch("https://pypi.org/pypi/gradio/json"
@@ -84,13 +85,13 @@ _Note: While Gradio's CSS will never impact the embedding page, the embedding pa
 To embed with IFrames instead, simply add this element:
 
 ```html
-&lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
+<iframe src="https://$your_space_host.hf.space"></iframe>
 ```
 
 For example: 
 
 ```html
-&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/iframe>
+<iframe src="https://abidlabs-pytorch-image-classifier.hf.space"></iframe>
 ```
 
 ## API Page
