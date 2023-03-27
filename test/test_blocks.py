@@ -342,6 +342,23 @@ class TestBlocksMethods:
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
 
+    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
