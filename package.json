@@ -16,10 +16,10 @@
 		"format:check": "prettier --config .config/.prettierrc.json --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
 		"format:write": "prettier --config .config/.prettierrc.json --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
-		"test": "vitest dev",
-		"test:run": "vitest run",
+		"test": "vitest dev --config .config/vitest.config.ts",
+		"test:run": "vitest run --config .config/vitest.config.ts",
 		"test:browser": "pnpm --filter @gradio/app test:browser",
-		"test:browser:full": "run-s build test:browser:full",
+		"test:browser:full": "run-s build test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
 		"testy": "pnpm --filter @gradio/app test"

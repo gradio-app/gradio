@@ -3,7 +3,7 @@ export default {
 		screenshot: "only-on-failure",
 		trace: "retain-on-failure"
 	},
-	testMatch: /.*.spec.ts/,
+	// testMatch: /.*.spec.ts/,
 	testDir: "..",
 	globalSetup: "./playwright-setup.js",
 	workers: 1
