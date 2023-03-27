@@ -1,5 +1,6 @@
-import guides_json from "./guides.json";
-let guides_by_category = guides_json.guides_by_category;
+import guides_by_category_json from "../guides/json/guides_by_category.json";
+
+let guides_by_category = guides_by_category_json.guides_by_category;
 
 const COLOR_SETS = [
     ["from-green-100", "to-green-50"],

@@ -10,7 +10,7 @@ def get_latest_release():
             }, j)
 
 demos.generate("../src/routes/demos/demos.json")
-guides.generate("../src/routes/guides/guides.json")
+guides.generate("../src/routes/guides/json/")
 docs.generate("../src/routes/docs/docs.json")
 changelog.generate("../src/routes/changelog/changelog.json")
 get_latest_release()

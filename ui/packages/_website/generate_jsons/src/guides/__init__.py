@@ -41,11 +41,14 @@ guide_folders.remove("assets")
 
 guides = []
 guides_by_category = []
+guide_names = []
+guide_urls = []
 absolute_index = 0
 for guide_folder in guide_folders:
     guide_list = sorted(os.listdir(os.path.join(GUIDES_DIR, guide_folder)))
     _, guide_category, pretty_guide_category = format_name(guide_folder)
     guides_by_category.append({"category": pretty_guide_category, "guides": []})
+    guide_names.append({"category": pretty_guide_category, "guides": []})
     for guide_file in guide_list:
         guide_index, guide_name, pretty_guide_name = format_name(guide_file)
         with open(os.path.join(GUIDES_DIR, guide_folder, guide_file), "r") as f:
@@ -134,13 +137,25 @@ for guide_folder in guide_folders:
         }
         guides.append(guide_data)
         guides_by_category[-1]["guides"].append(guide_data)
+        guide_names[-1]["guides"].append({"name": guide_name, "pretty_name": pretty_guide_name, "url": url})
+        guide_urls.append(guide_name)
         absolute_index += 1
 
 
 def generate(json_path):
-    with open(json_path, 'w+') as f:
+    with open(json_path + "guides_by_category.json", 'w+') as f:
         json.dump({
-            "guides": guides,
-            "guides_by_category": guides_by_category
+            "guides_by_category": guides_by_category,
             }, f)
+    for guide in guides: 
+        with open(json_path + guide["name"] + ".json", 'w+') as f:
+            json.dump({
+                "guide": guide
+                }, f)
+    with open(json_path + "guide_names.json", 'w+') as f:
+        json.dump({
+            "guide_names": guide_names,
+            "guide_urls": guide_urls
+            }, f)
+
 

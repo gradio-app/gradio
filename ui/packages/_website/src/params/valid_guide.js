@@ -1,6 +1,6 @@
-import guides_json from "../routes/guides/guides.json";
-let guides = guides_json.guides;
+import guide_names_json from "../routes/guides/json/guide_names.json";
+let guide_urls = guide_names_json.guide_urls;
 
 export function match(value) {
-    return guides.some((guide) => guide.name === value);
+    return guide_urls.some((guide) => guide === value);
 }

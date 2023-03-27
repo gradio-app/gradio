@@ -1,15 +1,12 @@
 <script>
     import { page } from '$app/stores';
-    import guides_json from "../guides.json";
     import space_logo from "../../../assets/img/spaces-logo.svg";
     import MetaTags from "../../../components/MetaTags.svelte";
 
     export let data;
-
-    let guides = data.guides;
-    let guides_by_category = guides_json.guides_by_category;
-    let guide;
-    let nav = data.guide_slugs;
+    let guide_page = "quickstart";
+    let guide_names = data.guide_names;
+    let guide_slug = data.guide_slug;
 
     const COLORS = ["bg-green-50", "bg-yellow-50", "bg-red-50", "bg-pink-50", "bg-purple-50"];
 
@@ -38,8 +35,7 @@
         }
         sidebar.scrollTop = target_link?.offsetTop;
     }
-
-    $: guide_page = guides.filter(guide => guide.name === $page.params.guide)[0];
+    $: guide_page = data.guide;
 </script> 
 
     <MetaTags title={guide_page.pretty_name}
@@ -52,11 +48,11 @@
     bind:this={sidebar} 
     class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
         style="min-width: 18%">
-        {#each guides_by_category as guides, i}
+        {#each guide_names as guides, i}
             <div class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
                 style="max-width: 12rem">
             { guides.category }
-            {#if !show_all && i === guides_by_category.length - 1 && guides.category !== guide_page.category}
+            {#if !show_all && i === guide_names.length - 1 && guides.category !== guide_page.category}
                 <button
                 class:hidden={show_all}
                 class="block show-guides" 
@@ -67,7 +63,7 @@
                 {#if guide.name == guide_page.name }
                 <a
                 bind:this={target_link}
-                class:hidden={!show_all && i === guides_by_category.length - 1 && guides.category !== guide_page.category}
+                class:hidden={!show_all && i === guide_names.length - 1 && guides.category !== guide_page.category}
                 class:current-nav-link={guide.name == guide_page.name}
                 class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
                     style="max-width: 12rem"
@@ -75,13 +71,13 @@
                     on:click={handleAnchorClick}>{guide.pretty_name}</a>
 
                     <div class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
-                        {#each nav[guide_page.name] as heading} 
+                        {#each guide_slug as heading} 
                             <a class="subheading block thin-link -indent-2 ml-4 mr-2" href="{heading.href}" on:click={handleAnchorClick}>{heading.text}</a>
                         {/each}
                     </div>
                 {:else}
                 <a
-                class:hidden={!show_all && i === guides_by_category.length - 1 && guides.category !== guide_page.category}
+                class:hidden={!show_all && i === guide_names.length - 1 && guides.category !== guide_page.category}
                 class:current-nav-link={guide.name == guide_page.name}
                 class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
                     style="max-width: 12rem"
