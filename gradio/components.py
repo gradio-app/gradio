@@ -382,7 +382,7 @@ class Textbox(
         value: str | Callable | None = "",
         *,
         lines: int = 1,
-        max_lines: int = 20,
+        max_lines: int = None,
         placeholder: str | None = None,
         label: str | None = None,
         info: str | None = None,
@@ -393,6 +393,7 @@ class Textbox(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         type: str = "text",
+        suggestions: List[str] | None = None,
         **kwargs,
     ):
         """
@@ -410,14 +411,19 @@ class Textbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
+            suggestions: A list of strings to provide as suggestions for the user as they type. Only available when lines=1.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
 
         #
         self.lines = lines
-        self.max_lines = max_lines if type == "text" else 1
+        if type == "text":
+            self.max_lines = 1 if lines == 1 else max_lines or 20
+        else:
+            self.max_lines = 1
         self.placeholder = placeholder
+        self.suggestions = suggestions
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
@@ -449,6 +455,7 @@ class Textbox(
             "placeholder": self.placeholder,
             "value": self.value,
             "type": self.type,
+            "suggestions": self.suggestions,
             **IOComponent.get_config(self),
         }
 
@@ -3381,7 +3388,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
+class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.

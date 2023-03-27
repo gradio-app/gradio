@@ -17,6 +17,7 @@
 	export let placeholder: string = "";
 	export let show_label: boolean;
 	export let max_lines: number | false;
+	export let suggestions: Array<string> = [];
 	export let type: "text" | "password" | "email" = "text";
 
 	export let style: Styles = {};
@@ -43,6 +44,7 @@
 		{show_label}
 		{lines}
 		{type}
+		{suggestions}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		{style}
