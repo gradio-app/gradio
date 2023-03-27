@@ -1047,7 +1047,7 @@ class TestCancel:
         def iteration(a):
             yield a
 
-        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        msg = "Queue needs to be enabled!"
         with pytest.raises(ValueError, match=msg):
             gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
                 prevent_thread_lock=True
