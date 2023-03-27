@@ -1,4 +1,5 @@
 import { test, expect, Page, Locator } from "@playwright/test";
+import { mock_theme, wait_for_page } from "./utils";
 
 //taken from: https://github.com/microsoft/playwright/issues/20032
 async function changeSlider(
@@ -59,8 +60,8 @@ function mock_api(page: Page) {
 test("slider release", async ({ page }) => {
 	await mock_demo(page, "slider_release");
 	await mock_api(page);
-	await page.goto("http://localhost:9876");
-
+	await mock_theme(page);
+	await wait_for_page(page);
 	const slider = page.getByLabel("Slider");
 
 	await changeSlider(page, slider, slider, 0.7);
