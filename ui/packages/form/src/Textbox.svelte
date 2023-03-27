@@ -16,13 +16,11 @@
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
-	export let suggestions: Array<string> = [];
 	export let style: Styles = {};
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
-	let suggestions_element_id = Math.random().toString(36).substring(2, 15);
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 	$: handle_change(value);
@@ -137,7 +135,6 @@
 			<input
 				data-testid="textbox"
 				type="text"
-				list={suggestions_element_id}
 				class="scroll-hide"
 				bind:value
 				bind:this={el}
@@ -151,7 +148,6 @@
 			<input
 				data-testid="password"
 				type="password"
-				list={suggestions_element_id}
 				class="scroll-hide"
 				bind:value
 				bind:this={el}
@@ -166,7 +162,6 @@
 			<input
 				data-testid="textbox"
 				type="email"
-				list={suggestions_element_id}
 				class="scroll-hide"
 				bind:value
 				bind:this={el}
@@ -177,13 +172,6 @@
 				on:select={handle_select}
 				autocomplete="email"
 			/>
-		{/if}
-		{#if suggestions}
-			<datalist id={suggestions_element_id}>
-				{#each suggestions as suggestion}
-					<option value={suggestion} />
-				{/each}
-			</datalist>
 		{/if}
 	{:else}
 		{#if show_label && style.show_copy_button}

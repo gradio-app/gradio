@@ -385,7 +385,7 @@ class Textbox(
         value: str | Callable | None = "",
         *,
         lines: int = 1,
-        max_lines: int = None,
+        max_lines: int = 20,
         placeholder: str | None = None,
         label: str | None = None,
         info: str | None = None,
@@ -396,7 +396,6 @@ class Textbox(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         type: str = "text",
-        suggestions: List[str] | None = None,
         **kwargs,
     ):
         """
@@ -421,12 +420,8 @@ class Textbox(
 
         #
         self.lines = lines
-        if type == "text":
-            self.max_lines = 1 if lines == 1 else max_lines or 20
-        else:
-            self.max_lines = 1
+        self.max_lines = max_lines if type == "text" else 20
         self.placeholder = placeholder
-        self.suggestions = suggestions
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
@@ -458,7 +453,6 @@ class Textbox(
             "placeholder": self.placeholder,
             "value": self.value,
             "type": self.type,
-            "suggestions": self.suggestions,
             **IOComponent.get_config(self),
         }
 
@@ -1377,7 +1371,9 @@ class Radio(
 
 
 @document("style")
-class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(
+    Changeable, Selectable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1402,6 +1398,8 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
+        allow_custom_value: bool = False,
+        placeholder: str | None = None,
         **kwargs,
     ):
         """
@@ -1419,6 +1417,8 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
+            placeholder: Placeholder text to display when no value is selected.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1436,6 +1436,12 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
         self.max_choices = max_choices
+        self.allow_custom_value = allow_custom_value
+        self.placeholder = placeholder
+        if multiselect and allow_custom_value:
+            raise ValueError(
+                "Custom values are not supported when `multiselect` is True."
+            )
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
@@ -1466,6 +1472,8 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
+            "allow_custom_value": self.allow_custom_value,
+            "placeholder": self.placeholder,
             **IOComponent.get_config(self),
         }
 
@@ -1476,6 +1484,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
+        placeholder: str | None = None,
         visible: bool | None = None,
     ):
         return {
@@ -1486,6 +1495,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "placeholder": placeholder,
             "__type__": "update",
         }
 
@@ -1504,10 +1514,10 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             if x is None:
                 return None
             elif self.multiselect:
-                return [self.choices.index(c) for c in x]
+                return [self.choices.index(c) if c in self.choices else None for c in x]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x)
+                    return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
                 "Unknown type: "
