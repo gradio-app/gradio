@@ -24,7 +24,7 @@
 
 	beforeUpdate(() => {
 		autoscroll =
-			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
+			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
 	afterUpdate(() => {
