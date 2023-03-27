@@ -47,7 +47,7 @@ Let's break down above code.
 
 We will now create an example for a minimal data visualization dashboard. You can find a more comprehensive version in the related Spaces.
 
-<gradio-app space="scikit-learn/tabular-playground"></gradio-app>
+<gradio-app space="gradio/tabular-playground"></gradio-app>
 
 ```python
 import gradio as gr
@@ -76,7 +76,7 @@ outputs = [gr.Gallery(label="Profiling Dashboard").style(grid=(1,3))]
 gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df.head(100)], title="Supersoaker Failures Analysis Dashboard").launch()
 ```
 
-<gradio-app space="merve/gradio-analysis-dashboard-minimal"></gradio-app>
+<gradio-app space="gradio/gradio-analysis-dashboard-minimal"></gradio-app>
 
 We will use the same dataset we used to train our model, but we will make a dashboard to visualize it this time. 
 
@@ -99,6 +99,6 @@ description = "This model predicts Supersoaker production line failures. Drag an
 gr.Interface.load("huggingface/scikit-learn/tabular-playground", title=title, description=description).launch()
 ```
 
-<gradio-app space="scikit-learn/gradio-skops-integation"></gradio-app>
+<gradio-app space="gradio/gradio-skops-integration"></gradio-app>
 
 `sklearn` models pushed to Hugging Face Hub using `skops` include a `config.json` file that contains an example input  with column names, the task being solved (that can either be `tabular-classification` or `tabular-regression`). From the task type, `gradio` constructs the `Interface` and consumes column names and the example input to build it. You can [refer to skops documentation on hosting models on Hub](https://skops.readthedocs.io/en/latest/auto_examples/plot_hf_hub.html#sphx-glr-auto-examples-plot-hf-hub-py) to learn how to push your models to Hub using `skops`.
