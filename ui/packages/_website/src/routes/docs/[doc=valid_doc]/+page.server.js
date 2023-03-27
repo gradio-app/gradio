@@ -4,6 +4,7 @@ import DocsNav from '../../../components/DocsNav.svelte';
 import FunctionDoc from '../../../components/FunctionDoc.svelte';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
+import { make_slug_processor } from "../../../utils";
 
 let language = 'python';
 
@@ -27,8 +28,19 @@ export async function load({params}) {
     let mode;
     let headers = [];
     let method_headers = []
+    const get_slug = make_slug_processor();
+
     for (const key in docs) {
         for (const o in docs[key]) {
+            if (docs[key][o].name) {
+				docs[key][o].slug = get_slug(docs[key][o].name);
+			}
+
+			if (docs[key][o].fns && docs[key][o].fns.length) {
+				docs[key][o].fns.forEach((fn) => {
+					if (fn.name) fn.slug = get_slug(`${docs[key][o].name} ${fn.name}`);
+				});
+			}
             if (o == name) {
                 obj = docs[key][o];
                 mode = key;
