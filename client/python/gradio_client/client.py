@@ -295,7 +295,7 @@ class Job(Future):
         self.future = future
         self.queue = queue
         self._status: StatusUpdate = StatusUpdate(
-            Status.SENDING_TO_EXECUTOR,
+            Status.STARTING,
             rank=None,
             queue_size=None,
             success=None,
@@ -323,7 +323,7 @@ class Job(Future):
                 )
         elif self.queue.qsize():
             next_status: StatusUpdate = self.queue.get_nowait()
-            if self._status.status == Status.SENDING_TO_EXECUTOR:
+            if self._status.status == Status.STARTING:
                 self._status = next_status
             elif next_status.time > self._status.time:
                 self._status = next_status

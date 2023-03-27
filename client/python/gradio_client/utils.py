@@ -43,7 +43,7 @@ class InvalidAPIEndpointError(Exception):
 
 
 class Status(Enum):
-    SENDING_TO_EXECUTOR = "SENDING_TO_EXECUTOR"
+    STARTING = "STARTING"
     JOINING_QUEUE = "JOINING_QUEUE"
     QUEUE_FULL = "QUEUE_FULL"
     IN_QUEUE = "IN_QUEUE"
@@ -55,7 +55,7 @@ class Status(Enum):
     @staticmethod
     def ordering(status: "Status") -> int:
         order = [
-            Status.SENDING_TO_EXECUTOR,
+            Status.STARTING,
             Status.JOINING_QUEUE,
             Status.QUEUE_FULL,
             Status.IN_QUEUE,
@@ -108,21 +108,22 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol, data: str, hash_data: str, queue: Queue
+    websocket: WebSocketCommonProtocol, data: str, hash_data: str, queue: Queue | None = None
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
         msg = await websocket.recv()
         resp = json.loads(msg)
-        status_update = StatusUpdate(
-            status=Status.msg_to_status(resp["msg"]),
-            queue_size=resp.get("queue_size"),
-            rank=resp.get("rank", 0),
-            success=resp.get("success"),
-            time=datetime.now(),
-        )
-        queue.put_nowait(status_update)
+        if queue:
+            status_update = StatusUpdate(
+                status=Status.msg_to_status(resp["msg"]),
+                queue_size=resp.get("queue_size"),
+                rank=resp.get("rank", 0),
+                success=resp.get("success"),
+                time=datetime.now(),
+            )
+            queue.put_nowait(status_update)
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":
