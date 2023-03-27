@@ -360,7 +360,7 @@
 
 <style>
 	.fixed-height {
-		height: var(--size-60);
+		height: 100%;
 	}
 
 	img {
