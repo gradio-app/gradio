@@ -419,7 +419,10 @@ class Textbox(
 
         #
         self.lines = lines
-        self.max_lines = max_lines if type == "text" else 1
+        if type == "text":
+            self.max_lines = max(lines, max_lines)
+        else:
+            self.max_lines = 1
         self.placeholder = placeholder
         self.select: EventListenerMethod
         """
