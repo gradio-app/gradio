@@ -561,10 +561,28 @@ class TestDropdown:
         """
         Preprocess, postprocess, serialize, get_config
         """
-        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        dropdown_input = gr.Dropdown(value="a", choices=["a", "b", "c"])
+        assert dropdown_input.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": "a",
+            "name": "dropdown",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "elem_classes": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "multiselect": None,
+            "max_choices": None,
+            "show_remove_all": None,
+            "default_value": None,
+        }
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
 
+    def test_component_functions_multiselect(self):
         dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"])
         assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
         assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
@@ -590,6 +608,8 @@ class TestDropdown:
             "root_url": None,
             "multiselect": True,
             "max_choices": 2,
+            "show_remove_all": True,
+            "default_value": None,
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
