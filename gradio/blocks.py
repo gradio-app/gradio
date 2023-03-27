@@ -17,9 +17,19 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tupl
 import anyio
 import requests
 from anyio import CapacityLimiter
+from gradio_client import utils as client_utils
 from typing_extensions import Literal
 
-from gradio import components, external, networking, queueing, routes, strings, utils
+from gradio import (
+    components,
+    external,
+    networking,
+    queueing,
+    routes,
+    strings,
+    themes,
+    utils,
+)
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
@@ -41,7 +51,6 @@ from gradio.utils import (
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import comet_ml
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
@@ -505,7 +514,7 @@ class Blocks(BlockContext):
         if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
-        self.theme = theme
+        self.theme: Theme = theme
         self.theme_css = theme._get_theme_css()
         self.stylesheets = theme._stylesheets
         self.encrypt = False
@@ -561,10 +570,22 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
+            built_in_themes = [
+                themes.Base(),
+                themes.Default(),
+                themes.Monochrome(),
+                themes.Soft(),
+                themes.Glass(),
+            ]
+            is_custom_theme = not any(
+                self.theme.to_dict() == built_in_theme.to_dict()
+                for built_in_theme in built_in_themes
+            )
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
+                "theme": self.theme.name,
+                "is_custom_theme": is_custom_theme,
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
@@ -634,7 +655,7 @@ class Blocks(BlockContext):
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
                 # We used to add a "fake_event" to the config to cache examples
-                # without removing it. This was causing bugs in calling gr.Interface.load
+                # without removing it. This was causing bugs in calling gr.load
                 # We fixed the issue by removing "fake_event" from the config in examples.py
                 # but we still need to skip these events when loading the config to support
                 # older demos
@@ -808,7 +829,7 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(
+        outputs = client_utils.synchronize_async(
             self.process_api,
             fn_index=fn_index,
             inputs=processed_inputs,
@@ -940,7 +961,9 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
-            deserialized = block.deserialize(outputs[o], root_url=block.root_url)
+            deserialized = block.deserialize(
+                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
+            )
             predictions.append(deserialized)
 
         return predictions
@@ -1128,15 +1151,16 @@ class Blocks(BlockContext):
         config["layout"] = getLayout(self)
 
         for _id, block in self.blocks.items():
-            config["components"].append(
-                {
-                    "id": _id,
-                    "type": (block.get_block_name()),
-                    "props": utils.delete_none(block.get_config())
-                    if hasattr(block, "get_config")
-                    else {},
-                }
-            )
+            props = block.get_config() if hasattr(block, "get_config") else {}
+            block_config = {
+                "id": _id,
+                "type": block.get_block_name(),
+                "props": utils.delete_none(props),
+            }
+            serializer = utils.get_serializer_name(block)
+            if serializer:
+                block_config["serializer"] = serializer
+            config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
 
@@ -1145,6 +1169,7 @@ class Blocks(BlockContext):
             Context.root_block = self
         self.parent = Context.block
         Context.block = self
+        self.exited = False
         return self
 
     def __exit__(self, *args):
@@ -1159,6 +1184,7 @@ class Blocks(BlockContext):
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
+        self.exited = True
 
     @class_or_instancemethod
     def load(
@@ -1188,7 +1214,7 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
 
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
@@ -1221,11 +1247,14 @@ class Blocks(BlockContext):
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
+            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
+            return external.load(
+                name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+            )
         else:
             return self_or_cls.set_event_trigger(
                 event_name="load",
@@ -1377,6 +1406,9 @@ class Blocks(BlockContext):
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if not self.exited:
+            self.__exit__()
+
         self.dev_mode = False
         if (
             auth
@@ -1655,7 +1687,7 @@ class Blocks(BlockContext):
 
     def integrate(
         self,
-        comet_ml: comet_ml.Experiment | None = None,
+        comet_ml=None,
         wandb: ModuleType | None = None,
         mlflow: ModuleType | None = None,
     ) -> None:

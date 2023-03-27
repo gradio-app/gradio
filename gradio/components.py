@@ -14,7 +14,6 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
-import uuid
 import warnings
 from copy import deepcopy
 from enum import Enum
@@ -32,6 +31,15 @@ import PIL.ImageOps
 import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
+from gradio_client import utils as client_utils
+from gradio_client.serializing import (
+    FileSerializable,
+    GallerySerializable,
+    ImgSerializable,
+    JSONSerializable,
+    Serializable,
+    SimpleSerializable,
+)
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
@@ -56,13 +64,6 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
-from gradio.serializing import (
-    FileSerializable,
-    ImgSerializable,
-    JSONSerializable,
-    Serializable,
-    SimpleSerializable,
-)
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -81,7 +82,7 @@ class _Keywords(Enum):
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
-class Component(Block):
+class Component(Block, Serializable):
     """
     A base class for defining the methods that all gradio components should have.
     """
@@ -163,7 +164,7 @@ class Component(Block):
         return self
 
 
-class IOComponent(Component, Serializable):
+class IOComponent(Component):
     """
     A base class for defining methods that all input/output components should have.
     """
@@ -242,7 +243,7 @@ class IOComponent(Component, Serializable):
         temp_dir.mkdir(exist_ok=True, parents=True)
 
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = utils.strip_invalid_filename_characters(Path(file_path).name)
+        f.name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
@@ -261,7 +262,9 @@ class IOComponent(Component, Serializable):
 
         if file.filename:
             file_name = Path(file.filename).name
-            output_file_obj.name = utils.strip_invalid_filename_characters(file_name)
+            output_file_obj.name = client_utils.strip_invalid_filename_characters(
+                file_name
+            )
 
         full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
 
@@ -282,7 +285,7 @@ class IOComponent(Component, Serializable):
         temp_dir.mkdir(exist_ok=True, parents=True)
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
 
-        f.name = utils.strip_invalid_filename_characters(Path(url).name)
+        f.name = client_utils.strip_invalid_filename_characters(Path(url).name)
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
@@ -302,19 +305,19 @@ class IOComponent(Component, Serializable):
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        guess_extension = processing_utils.get_extension(base64_encoding)
+        guess_extension = client_utils.get_extension(base64_encoding)
         if file_name:
-            file_name = utils.strip_invalid_filename_characters(file_name)
+            file_name = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
             file_name = "file." + guess_extension
         else:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = file_name
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+        f.name = file_name  # type: ignore
+        full_temp_file_path = str(utils.abspath(temp_dir / file_name))  # type: ignore
 
         if not Path(full_temp_file_path).exists():
-            data, _ = processing_utils.decode_base64_to_binary(base64_encoding)
+            data, _ = client_utils.decode_base64_to_binary(base64_encoding)
             with open(full_temp_file_path, "wb") as fb:
                 fb.write(data)
 
@@ -1582,7 +1585,7 @@ class Image(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         mirror_webcam: bool = True,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
         **kwargs,
     ):
         """
@@ -1665,7 +1668,7 @@ class Image(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
-        brush_radius: int | None = None,
+        brush_radius: float | None = None,
     ):
         return {
             "label": label,
@@ -1761,7 +1764,7 @@ class Image(
         elif isinstance(y, _Image.Image):
             return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            return processing_utils.encode_url_or_file_to_base64(y)
+            return client_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
 
@@ -2148,8 +2151,8 @@ class Audio(
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
-    Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath or URL to an audio file, which gets displayed
+    Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real_time_speech_recognition
@@ -2173,7 +2176,7 @@ class Audio(
     ):
         """
         Parameters:
-            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: A path, URL, or [sample_rate, numpy array] tuple (sample rate in Hz, audio data as a float or int numpy array) for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: component name in interface.
@@ -2325,7 +2328,7 @@ class Audio(
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
             processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
-            out_data = processing_utils.encode_file_to_base64(file.name)
+            out_data = client_utils.encode_file_to_base64(file.name)
             leave_one_out_sets.append(out_data)
             file.close()
             Path(file.name).unlink()
@@ -2336,7 +2339,7 @@ class Audio(
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
             processing_utils.audio_to_file(sample_rate, token, file.name)
-            token_data = processing_utils.encode_file_to_base64(file.name)
+            token_data = client_utils.encode_file_to_base64(file.name)
             file.close()
             Path(file.name).unlink()
 
@@ -2367,7 +2370,7 @@ class Audio(
                 masked_input = masked_input + t * int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
             processing_utils.audio_to_file(sample_rate, masked_input, file.name)
-            masked_data = processing_utils.encode_file_to_base64(file.name)
+            masked_data = client_utils.encode_file_to_base64(file.name)
             file.close()
             Path(file.name).unlink()
             masked_inputs.append(masked_data)
@@ -2589,9 +2592,7 @@ class File(
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore
                 else:
-                    file = processing_utils.decode_base64_to_file(
-                        data, file_path=file_name
-                    )
+                    file = client_utils.decode_base64_to_file(data, file_path=file_name)
                     file.orig_name = file_name  # type: ignore
                     self.temp_files.add(str(utils.abspath(file.name)))
                 return file
@@ -2601,7 +2602,7 @@ class File(
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
-                return processing_utils.decode_base64_to_binary(data)[0]
+                return client_utils.decode_base64_to_binary(data)[0]
             else:
                 raise ValueError(
                     "Unknown type: "
@@ -3119,7 +3120,7 @@ class State(IOComponent, SimpleSerializable):
     ):
         """
         Parameters:
-            value: the initial value of the state. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: the initial value (of abitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
         """
         self.stateful = True
         IOComponent.__init__(self, value=deepcopy(value), **kwargs)
@@ -3329,9 +3330,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore
                 else:
-                    file = processing_utils.decode_base64_to_file(
-                        data, file_path=file_name
-                    )
+                    file = client_utils.decode_base64_to_file(data, file_path=file_name)
                     file.orig_name = file_name  # type: ignore
                     self.temp_files.add(str(utils.abspath(file.name)))
                 return file
@@ -3339,7 +3338,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
-                return processing_utils.decode_base64_to_binary(data)[0]
+                return client_utils.decode_base64_to_binary(data)[0]
             else:
                 raise ValueError(
                     "Unknown type: "
@@ -3976,7 +3975,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent, FileSerializable, Selectable):
+class Gallery(IOComponent, GallerySerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -4117,41 +4116,6 @@ class Gallery(IOComponent, FileSerializable, Selectable):
 
         Component.style(self, container=container, **kwargs)
         return self
-
-    def deserialize(
-        self,
-        x: Any,
-        save_dir: str = "",
-        root_url: str | None = None,
-    ) -> None | str:
-        if x is None:
-            return None
-        gallery_path = Path(save_dir) / str(uuid.uuid4())
-        gallery_path.mkdir(exist_ok=True, parents=True)
-        captions = {}
-        for img_data in x:
-            if isinstance(img_data, list) or isinstance(img_data, tuple):
-                img_data, caption = img_data
-            else:
-                caption = None
-            name = FileSerializable.deserialize(
-                self, img_data, gallery_path, root_url=root_url
-            )
-            captions[name] = caption
-            captions_file = gallery_path / "captions.json"
-            with captions_file.open("w") as captions_json:
-                json.dump(captions, captions_json)
-        return str(utils.abspath(gallery_path))
-
-    def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
-        files = []
-        captions_file = Path(x) / "captions.json"
-        with captions_file.open("r") as captions_json:
-            captions = json.load(captions_json)
-        for file_name, caption in captions.items():
-            img = FileSerializable.serialize(self, file_name)
-            files.append([img, caption])
-        return files
 
 
 class Carousel(IOComponent, Changeable, SimpleSerializable):
@@ -4296,7 +4260,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             return None
         elif isinstance(chat_message, (tuple, list)):
             filepath = chat_message[0]
-            mime_type = processing_utils.get_mimetype(filepath)
+            mime_type = client_utils.get_mimetype(filepath)
             filepath = self.make_temp_copy_if_needed(filepath)
             return {
                 "name": filepath,
@@ -4559,7 +4523,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         """
         if y is None:
             return None
-        if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
+        if isinstance(y, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif "bokeh" in y.__module__:
@@ -5786,7 +5750,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Selectable, Component):
+class Dataset(Clickable, Selectable, Component, SimpleSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -5894,7 +5858,7 @@ class Dataset(Clickable, Selectable, Component):
 
 
 @document()
-class Interpretation(Component):
+class Interpretation(Component, SimpleSerializable):
     """
     Used to create an interpretation widget for a component.
     Preprocessing: this component does *not* accept input.
@@ -5945,7 +5909,7 @@ class Interpretation(Component):
         return self
 
 
-class StatusTracker(Component):
+class StatusTracker(Component, SimpleSerializable):
     def __init__(
         self,
         **kwargs,
