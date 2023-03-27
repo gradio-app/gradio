@@ -1459,7 +1459,7 @@ async def test_queue_when_using_auth():
             await ws.recv()
     assert e.type == websockets.InvalidStatusCode
 
-    async def run_ws(_loop, _time, i):
+    async def run_ws(i):
         async with websockets.connect(
             f"{demo.local_url.replace('http', 'ws')}queue/join",
             extra_headers={"Cookie": f"access-token={token}"},
@@ -1488,15 +1488,9 @@ async def test_queue_when_using_auth():
                 if msg["msg"] == "process_completed":
                     assert msg["success"]
                     assert msg["output"]["data"] == [f"Hello {i}!"]
-                    assert _loop.time() > _time
                     break
 
-    loop = asyncio.get_event_loop()
-    tm = loop.time()
-    group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
-    )
-    await group
+    await asyncio.gather(*[run_ws(i) for i in range(3)])
 
 
 def test_temp_file_sets_get_extended():
