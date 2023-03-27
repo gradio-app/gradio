@@ -77,12 +77,10 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls"):
             with gr.Tabs():
-                with gr.TabItem("Theme Controls"):
+                with gr.TabItem("Source Theme"):
                     gr.Markdown(
                         """
-                    ## Theme Builder
-                    This tool allows you to build your own custom theme for Gradio. As you make changes, the app on the right will update in real time.
-                    First, select a base theme below you would like to build off of. Note: when you click 'Load Theme', all variable values in other tabs will be overwritten!
+                    Select a base theme below you would like to build off of. Note: when you click 'Load Theme', all variable values in other tabs will be overwritten!
                     """
                     )
                     base_theme_dropdown = gr.Dropdown(
@@ -90,14 +88,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                         value="Base",
                         show_label=False,
                     )
-                    load_theme_btn = gr.Button("Load Theme")
-
-                    gr.Markdown(
-                        """
-                    Click on the tabs above to set various styling aspects of your theme. 
-                    When you are done, click on "View Code" to see your theme code, or push it to the Hub to share! 
-                    """
-                    )
+                    load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
                 with gr.TabItem("Core Colors"):
                     gr.Markdown(
                         """Set the three hues of the theme: `primary_hue`, `secondary_hue`, and `neutral_hue`. 
@@ -225,18 +216,31 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                         gr.Markdown(desc)
                         for variable in variables:
                             textbox = gr.Textbox(
-                                label=variable, info=get_docstr(variable)
+                                label=variable, info=get_docstr(variable), suggestions=["test", "qwerty", "asdf"]
                             )
                             theme_var_textboxes.append(textbox)
 
         secret_css = gr.Textbox(visible=False)
+        secret_font = gr.JSON(visible=False)
 
         demo.load(
             None,
             None,
             None,
-            _js="""() => {document.head.innerHTML += "<style id='theme_css'></style>"}""",
-        )
+            _js="""() => {
+                document.head.innerHTML += "<style id='theme_css'></style>";
+                let evt_listener = window.setTimeout(
+                    () => {
+                        load_theme_btn = document.querySelector('#load_theme');
+                        if (load_theme_btn) {
+                            load_theme_btn.click();
+                            window.clearTimeout(evt_listener);
+                        }
+                    },
+                    100
+                );
+            }""",
+        ) 
 
         theme_inputs = (
             [primary_hue, secondary_hue, neutral_hue]
@@ -433,14 +437,34 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
             theme.set(
                 **{attr: val for attr, val in zip(flat_variables, remaining_args)}
             )
-            return theme._get_theme_css()
+            return theme._get_theme_css(), theme._stylesheets
 
         def attach_rerender(evt_listener):
-            evt_listener(render_variables, theme_inputs, secret_css,).then(
+            evt_listener(
+                render_variables,
+                theme_inputs,
+                [secret_css, secret_font],
+            ).then(
                 None,
-                secret_css,
+                [secret_css, secret_font],
                 None,
-                _js="""(css) => {document.getElementById('theme_css').innerHTML = css}""",
+                _js="""(css, fonts) => {
+                    document.getElementById('theme_css').innerHTML = css;
+                    let existing_font_links = document.querySelectorAll('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css"]');
+                    existing_font_links.forEach(link => {
+                        if (fonts.includes(link.href)) {
+                            fonts = fonts.filter(font => font != link.href);
+                        } else {
+                            link.remove();
+                        }
+                    });
+                    fonts.forEach(font => {
+                        let link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = font;
+                        document.head.appendChild(link);
+                    });
+                }""",
             )
 
         def load_color(color_name):
@@ -452,7 +476,10 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
             secondary_hue.select(load_color, secondary_hue, secondary_hues).then
         )
         attach_rerender(neutral_hue.select(load_color, neutral_hue, neutral_hues).then)
-
+        for hue_set in (primary_hues, secondary_hues, neutral_hues):
+            for hue in hue_set:
+                attach_rerender(hue.blur)
+            
         def load_size(size_name):
             size = [size for size in sizes if size.name == size_name][0]
             return [getattr(size, i) for i in size_range]
@@ -477,11 +504,22 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
         ):
             attach_rerender(theme_box.blur)
             attach_rerender(theme_box.submit)
+        for checkbox in main_is_google + mono_is_google:
+            attach_rerender(checkbox.select)
 
         ### App ###
 
         with gr.Column(scale=6, elem_id="app"):
             with gr.Column(variant="panel"):
+                gr.Markdown(
+                    """
+                    # Theme Builder
+                    Welcome to the theme builder. The left panel is where you create the theme. The different aspects of the theme are broken down into different tabs. Here's how to navigate them:
+                    1. First, set the "Source Theme". This will set the default values that you can override.
+                    2. Set the "Core Colors", "Core Sizing" and "Core Fonts". These are the core variables that are used to build the rest of the theme.
+                    3. The rest of the tabs set specific theme variables. These control finer aspects of the UI. Within these theme variables, you can reference the core variables and other theme variables using the variable name preceded by an asterisk, e.g. `*primary_50` or `*body_text_color`.
+                    4. Once you have finished your theme, click on "View Code" below to see how you can integrate the theme into your app. You can also click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.                    
+                    """)
                 with gr.Accordion("View Code", open=False):
                     pass
                 with gr.Row():
@@ -490,6 +528,18 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     ).style(container=False)
                     upload_to_hub_btn = gr.Button("Upload to Hub")
                     dark_mode = gr.Button("Dark Mode", variant="primary")
+
+                    dark_mode.click(
+                        None,
+                        None,
+                        None,
+                        _js="""() => {
+                        document.body.classList.toggle('dark')
+                    }""",
+                    )
+                
+                gr.Markdown("Below this panel is a dummy app to demo your theme.")
+
             name = gr.Textbox(
                 label="Name",
                 info="Full name, including middle name. No special characters.",
@@ -554,6 +604,22 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                         stop_btn = gr.Button(
                             "Stop", label="Stop Button", variant="stop"
                         ).style(size="sm")
+                    
+                    gr.Examples([["images/lion.jpg"], ["images/tower.jpg"]], img)
+
+            gr.Examples(
+                examples=[
+                    ["A", "Option 1", ["Option B"], True,],
+                    [
+                        "B",
+                        "Option 2",
+                        ["Option B", "Option C"],
+                        False,
+                    ],
+                ],
+                inputs=[radio, drop, drop_2, check],
+                label="Examples",
+            )
 
             with gr.Row():
                 gr.Dataframe(value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], label="Dataframe")
