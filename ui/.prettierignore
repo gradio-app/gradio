@@ -1,6 +1,0 @@
-packages/app/public/**
-pnpm-workspace.yaml
-packages/app/dist/**
-pnpm-lock.yaml
-packages/plot/src/Plot.svelte
-**/.svelte-kit/**

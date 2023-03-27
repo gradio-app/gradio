@@ -20,8 +20,8 @@ COPY ./test ./test
 COPY ./guides ./guides
 COPY ./demo ./demo
 COPY ./website ./website
-COPY ./ui ./ui
-WORKDIR /gradio/ui
+COPY ./js ./js
+
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build

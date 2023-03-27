@@ -42,7 +42,7 @@ jobs:
       with:
         node-version: 16
         cache: pnpm
-        cache-dependency-path: ui/pnpm-lock.yaml
+        cache-dependency-path: pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests virtualenv
     - name: venv activate Linux
@@ -83,10 +83,8 @@ jobs:
     - name: Build frontend
       shell: bash
       run: |
-        cd ui
         pnpm i --frozen-lockfile
         pnpm build
-        cd ..
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Create coverage dir
