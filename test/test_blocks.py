@@ -1280,7 +1280,8 @@ class TestProgressBar:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
+                    if msg["progress_data"]:  # Ignore empty lists which sometimes appear on Windows
+                        progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
