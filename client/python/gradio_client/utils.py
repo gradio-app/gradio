@@ -43,6 +43,7 @@ class InvalidAPIEndpointError(Exception):
 
 
 class Status(Enum):
+    SENDING_TO_EXECUTOR = "SENDING_TO_EXECUTOR"
     JOINING_QUEUE = "JOINING_QUEUE"
     QUEUE_FULL = "QUEUE_FULL"
     IN_QUEUE = "IN_QUEUE"
@@ -54,6 +55,7 @@ class Status(Enum):
     @staticmethod
     def ordering(status: "Status") -> int:
         order = [
+            Status.SENDING_TO_EXECUTOR,
             Status.JOINING_QUEUE,
             Status.QUEUE_FULL,
             Status.IN_QUEUE,
@@ -83,7 +85,7 @@ class Status(Enum):
 @dataclass
 class StatusUpdate:
     status: Status
-    rank: int
+    rank: int | None
     queue_size: int | None
     success: bool | None
     time: datetime
@@ -115,7 +117,7 @@ async def get_pred_from_ws(
         resp = json.loads(msg)
         status_update = StatusUpdate(
             status=Status.msg_to_status(resp["msg"]),
-            queue_size=resp.get("queue_size", 0),
+            queue_size=resp.get("queue_size"),
             rank=resp.get("rank", 0),
             success=resp.get("success"),
             time=datetime.now(),

@@ -294,9 +294,15 @@ class Job(Future):
     def __init__(self, future: Future, queue: LifoQueue | None = None):
         self.future = future
         self.queue = queue
-        self._status: StatusUpdate | None = None
+        self._status: StatusUpdate = StatusUpdate(
+            Status.SENDING_TO_EXECUTOR,
+            rank=None,
+            queue_size=None,
+            success=None,
+            time=datetime.now(),
+        )
 
-    def status(self) -> StatusUpdate | None:
+    def status(self) -> StatusUpdate:
         if not self.queue:
             time = datetime.now()
             if self.done():
@@ -317,7 +323,7 @@ class Job(Future):
                 )
         elif self.queue.qsize():
             next_status: StatusUpdate = self.queue.get_nowait()
-            if self._status is None:
+            if self._status.status == Status.SENDING_TO_EXECUTOR:
                 self._status = next_status
             elif next_status.time > self._status.time:
                 self._status = next_status
