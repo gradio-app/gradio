@@ -364,12 +364,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
         return line_count
 
+
 @document()
 class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     """
     A callback that saves flagged data (both the input and output data)
     to a Hugging Face dataset in JSONL format.
-    
+
     Each data sample is saved in a different JSONL file,
     allowing multiple users to use flagging simultaneously.
     Saving to a single CSV would cause errors as only one user can edit at the same time.
@@ -393,17 +394,12 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         verbose: bool = True,
     ):
         """
-        Params:
-        hf_token (str): The token to use to access the huggingface API.
-        dataset_name (str): The name of the dataset to save the data to, e.g.
-            "image-classifier-1"
-        organization (str): The name of the organization to which to attach
-            the datasets. If None, the dataset attaches to the user only.
-        private (bool): If the dataset does not already exist, whether it
-            should be created as a private dataset or public. Private datasets
-            may require paid huggingface.co accounts
-        verbose (bool): Whether to print out the status of the dataset
-            creation.
+        Parameters:
+            hf_token: The token to use to access the huggingface API.
+            dataset_name: The name of the dataset to save the data to, e.g. "image-classifier-1"
+            organization: The name of the organization to which to attach the datasets. If None, the dataset attaches to the user only.
+            private: If the dataset does not already exist, whether it should be created as a private dataset or public. Private datasets may require paid huggingface.co accounts
+            verbose: Whether to print out the status of the dataset creation.
         """
         self.hf_token = hf_token
         self.dataset_name = dataset_name
