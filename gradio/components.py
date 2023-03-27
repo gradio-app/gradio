@@ -2878,6 +2878,8 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
                 ),
             }
         if isinstance(y, (np.ndarray, list)):
+            if len(y) == 0:
+                return self.postprocess([[]])
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             assert isinstance(y, list), "output cannot be converted to list"
