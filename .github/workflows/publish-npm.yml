@@ -3,6 +3,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'js/**'
+      - 'client/js/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
