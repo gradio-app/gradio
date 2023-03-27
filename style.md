@@ -158,5 +158,3 @@ Nothing
 ## Variable
 
 Nothing
-
-.
