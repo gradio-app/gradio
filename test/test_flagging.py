@@ -1,7 +1,5 @@
 import os
-import sys
 import tempfile
-import test.utils
 from unittest.mock import MagicMock
 
 import huggingface_hub
@@ -105,7 +103,6 @@ class TestHuggingFaceDatasetJSONSaver:
             )
 
 
-@test.utils.flakyif(sys.platform == "win32", reason="AssertionError on inner loop")
 class TestDisableFlagging:
     def test_flagging_no_permission_error_with_flagging_disabled(self):
         with tempfile.TemporaryDirectory() as tmpdirname:

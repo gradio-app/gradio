@@ -6,7 +6,6 @@ import os
 import pathlib
 import random
 import sys
-import test.utils
 import time
 import unittest.mock as mock
 import uuid
@@ -1248,7 +1247,6 @@ class TestProgressBar:
         ]
 
     @pytest.mark.asyncio
-    @test.utils.flakyif(sys.platform == "win32", reason="AssertionError")
     async def test_progress_bar_track_tqdm(self):
         from tqdm import tqdm
 
@@ -1412,7 +1410,6 @@ def test_queue_enabled_for_fn():
 
 
 @pytest.mark.asyncio
-@test.utils.flakyif(sys.platform == "win32", reason="AssertionError on inner loop")
 async def test_queue_when_using_auth():
     sleep_time = 1
 
