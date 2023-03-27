@@ -420,7 +420,7 @@ class Textbox(
         #
         self.lines = lines
         if type == "text":
-            self.max_lines = lines if lines > max_lines else max_lines
+            self.max_lines = max(lines, max_lines)
         else:
             self.max_lines = 1
         self.placeholder = placeholder
