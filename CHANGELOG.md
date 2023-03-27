@@ -41,7 +41,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.23.0
+# Version 3.23.0
 
 
 ## New Features:
@@ -79,7 +79,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.22.1
+# Version 3.22.1
 
 
 ## New Features:
@@ -111,7 +111,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.22.0
+# Version 3.22.0
 
 
 ## New Features:
@@ -154,7 +154,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.21.0
+# Version 3.21.0
 
 ## New Features:
 
@@ -305,7 +305,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.20.1
+# Version 3.20.1
 
 ## New Features:
 
@@ -340,7 +340,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.20.0
+# Version 3.20.0
 
 ## New Features:
 
@@ -432,7 +432,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://git
 
 No changes to highlight.
 
-# 3.19.1
+# Version 3.19.1
 
 ## New Features:
 
@@ -464,7 +464,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.19.0
+# Version 3.19.0
 
 ## New Features:
 
