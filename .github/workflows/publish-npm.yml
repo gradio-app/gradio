@@ -3,15 +3,17 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'js/**'
+      - 'client/js/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
 jobs:
   version:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ui
     steps:
       - name: checkout code repository
         uses: actions/checkout@v3
@@ -25,7 +27,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           cache: pnpm
-          cache-dependency-path: ui/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
           node-version: 18
           registry-url: "https://registry.npmjs.org"
       - name: install dependencies
@@ -39,7 +41,6 @@ jobs:
           commit: "chore: update versions"
           title: "chore: update versions"
           publish: pnpm ci:publish
-          cwd: ui
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
