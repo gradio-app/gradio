@@ -20,7 +20,16 @@ from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from typing_extensions import Literal
 
-from gradio import components, external, networking, queueing, routes, strings, utils
+from gradio import (
+    components,
+    external,
+    networking,
+    queueing,
+    routes,
+    strings,
+    themes,
+    utils,
+)
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
@@ -42,7 +51,6 @@ from gradio.utils import (
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import comet_ml
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
@@ -562,10 +570,22 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
+            built_in_themes = [
+                themes.Base(),
+                themes.Default(),
+                themes.Monochrome(),
+                themes.Soft(),
+                themes.Glass(),
+            ]
+            is_custom_theme = not any(
+                self.theme.to_dict() == built_in_theme.to_dict()
+                for built_in_theme in built_in_themes
+            )
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
+                "theme": self.theme.name,
+                "is_custom_theme": is_custom_theme,
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
@@ -1149,6 +1169,7 @@ class Blocks(BlockContext):
             Context.root_block = self
         self.parent = Context.block
         Context.block = self
+        self.exited = False
         return self
 
     def __exit__(self, *args):
@@ -1163,6 +1184,7 @@ class Blocks(BlockContext):
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
         self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
+        self.exited = True
 
     @class_or_instancemethod
     def load(
@@ -1384,6 +1406,9 @@ class Blocks(BlockContext):
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if not self.exited:
+            self.__exit__()
+
         self.dev_mode = False
         if (
             auth
@@ -1662,7 +1687,7 @@ class Blocks(BlockContext):
 
     def integrate(
         self,
-        comet_ml: comet_ml.Experiment | None = None,
+        comet_ml=None,
         wandb: ModuleType | None = None,
         mlflow: ModuleType | None = None,
     ) -> None:

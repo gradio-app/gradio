@@ -90,22 +90,28 @@
 	let config: Config;
 	let loading_text: string = "Loading...";
 
-	function mount_custom_css(target: HTMLElement, css_string: string | null) {
+	async function mount_custom_css(
+		target: HTMLElement,
+		css_string: string | null
+	) {
 		if (css_string) {
 			let style = document.createElement("style");
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
-		mount_css(config.root + "/theme.css", document.head);
+		await mount_css(config.root + "/theme.css", document.head);
 		if (!config.stylesheets) return;
-		for (let stylesheet of config.stylesheets) {
-			let absolute_link =
-				stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
-			mount_css(
-				absolute_link ? stylesheet : config.root + "/" + stylesheet,
-				document.head
-			);
-		}
+
+		await Promise.all(
+			config.stylesheets.map((stylesheet) => {
+				let absolute_link =
+					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
+				return mount_css(
+					absolute_link ? stylesheet : config.root + "/" + stylesheet,
+					document.head
+				);
+			})
+		);
 	}
 
 	async function reload_check(root: string) {
@@ -178,6 +184,7 @@
 	};
 
 	let app: Awaited<ReturnType<typeof client>>;
+	let css_ready = false;
 	function handle_status(_status: SpaceStatus) {
 		status = _status;
 	}
@@ -201,7 +208,8 @@
 			detail: "RUNNING"
 		};
 
-		mount_custom_css(wrapper, config.css);
+		await mount_custom_css(wrapper, config.css);
+		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
 		if (config.dev_mode) {
@@ -314,7 +322,7 @@
 			is_space={config.is_space}
 			{app_mode}
 		/>
-	{:else if config && Blocks}
+	{:else if config && Blocks && css_ready}
 		<Blocks
 			{app}
 			{...config}

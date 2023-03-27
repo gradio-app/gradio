@@ -1,5 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import { BASE64_PLOT_IMG } from "./media_data";
+import { mock_theme, wait_for_page } from "./utils";
 
 function mock_demo(page: Page, demo: string) {
 	return page.route("**/config", (route) => {
@@ -8,17 +9,6 @@ function mock_demo(page: Page, demo: string) {
 				"Access-Control-Allow-Origin": "*"
 			},
 			path: `../../demo/${demo}/config.json`
-		});
-	});
-}
-
-function mock_theme(page: Page) {
-	return page.route("**/theme.css", (route) => {
-		return route.fulfill({
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-			path: `./test/mocks/theme.css`
 		});
 	});
 }
@@ -41,7 +31,7 @@ test("matplotlib", async ({ page }) => {
 	await mock_demo(page, "outbreak_forecast");
 	await mock_api(page, [[{ type: "matplotlib", plot: BASE64_PLOT_IMG }]]);
 	await mock_theme(page);
-	await page.goto("http://localhost:9876");
+	await wait_for_page(page);
 
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("button", { name: "Matplotlib" }).click();

@@ -1,4 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
+import { mock_theme, wait_for_page } from "./utils";
 
 function mock_demo(page: Page, demo: string) {
 	return page.route("**/config", (route) => {
@@ -28,7 +29,8 @@ function mock_api(page: Page, body: Array<unknown>) {
 test("a component acts as both input and output", async ({ page }) => {
 	await mock_demo(page, "input_output");
 	await mock_api(page, [["tset"]]);
-	await page.goto("http://localhost:9876");
+	await mock_theme(page);
+	await wait_for_page(page);
 
 	const textbox = await page.getByLabel("Input-Output");
 
