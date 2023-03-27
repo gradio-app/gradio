@@ -11,9 +11,14 @@
 	let distance_from_bottom: number;
 	let input_height: number;
 	let refElement: HTMLDivElement;
+	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
 	$: {
 		if (showOptions && refElement) {
+			if (listElement) {
+				let el = document.querySelector(`li[data-value="${value}"]`);
+				el?.scrollIntoView(true)
+			}
 			distance_from_top = refElement.getBoundingClientRect().top;
 			distance_from_bottom =
 				window.innerHeight - refElement.getBoundingClientRect().bottom;
@@ -44,6 +49,7 @@
 		style:top
 		style:bottom
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
+		bind:this={listElement}
 	>
 		{#each filtered as choice}
 			<li
