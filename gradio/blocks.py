@@ -1347,7 +1347,7 @@ class Blocks(BlockContext):
             for i in dep["cancels"]:
                 if not self.queue_enabled_for_fn(i):
                     raise ValueError(
-                        "In order to cancel an event, the queue for that event must be enabled! "
+                        "Queue needs to be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
                         "into an interface without enabling the queue or 2) defining an event that cancels "
                         "another event without enabling the queue. Both can be solved by calling .queue() "
