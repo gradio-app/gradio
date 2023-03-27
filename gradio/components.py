@@ -1394,6 +1394,8 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
+        show_remove_all: bool | None = None,
+        default_value: str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -1431,6 +1433,22 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
+
+        self.default_value = default_value
+        if show_remove_all is None:
+            self.show_remove_all = self.multiselect or self.default_value
+        else:
+            self.show_remove_all = show_remove_all
+
+        if self.show_remove_all and not self.multiselect and not self.default_value:
+            warnings.warn("No `default_value` parameter provided with `multiselect` False, defaulting to an empty string.")
+            self.default_value = ""
+
+        if self.multiselect and self.default_value:
+            warnings.warn(
+                "The `default_value` parameter is ignored when `multiselect` is False."
+            )
+
         self.max_choices = max_choices
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
@@ -1462,6 +1480,8 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
+            "show_remove_all": self.show_remove_all,
+            "default_value": self.default_value,
             **IOComponent.get_config(self),
         }
 

@@ -15,16 +15,24 @@
 	export let max_choices: number;
 	export let choices: Array<string>;
 	export let show_label: boolean;
+	export let show_remove_all: boolean = false;
+	export let default_value: string | undefined;
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 
-	if (multiselect && !value) {
-		value = [];
-	} else if (!value) {
-		value = "";
-	}
+    if (!value) {
+        if (multiselect) {
+            value = [];
+        }
+        else if (default_value) {
+            value = default_value;
+        }
+        else {
+            value = "";
+        }
+    }
 </script>
 
 <Block
@@ -43,6 +51,8 @@
 		{label}
 		{info}
 		{show_label}
+		{show_remove_all}
+		{default_value}
 		on:change
 		on:select
 		disabled={mode === "static"}

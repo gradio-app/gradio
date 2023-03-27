@@ -12,6 +12,8 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
+	export let show_remove_all: boolean = false;
+	export let default_value: string | undefined;
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
@@ -72,7 +74,11 @@
 		if (multiselect) {
 			value = [];
 		} else {
-			value = "";
+            if (default_value) {
+                value = default_value;
+            } else {
+                value = "";
+            }
 		}
 
 		inputValue = "";
@@ -170,7 +176,7 @@
 					on:keyup={handleKeyup}
 				/>
 				<div
-					class:hide={!value?.length || disabled}
+					class:hide={!show_remove_all || (default_value && value === default_value) || (multiselect && (value?.length ?? 0) === 0) || disabled}
 					class="token-remove remove-all"
 					title="Remove All"
 					on:click={remove_all}
@@ -280,5 +286,9 @@
 		margin-left: var(--size-1);
 		width: 20px;
 		height: 20px;
+	}
+
+	.hide {
+		visibility: hidden;
 	}
 </style>
