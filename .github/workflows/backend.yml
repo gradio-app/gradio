@@ -15,12 +15,13 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
     strategy:
       matrix:
+        os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
         python-version: ["3.9", "3.7"]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.test-type == 'flaky' }}
     steps:
     - uses: actions/checkout@v3
     - name: Cache python deps
@@ -44,31 +45,43 @@ jobs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests virtualenv
-    - name: Install Gradio
+    - name: venv activate Linux
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         python -m virtualenv venv
-        . venv/bin/activate
+        source venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: venv activate Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        python -m virtualenv venv
+        ./venv/Scripts/Activate.ps1
+        echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    - name: Install Gradio
+      shell: bash
+      run: |
         bash scripts/install_gradio.sh
         pip install --upgrade pip
     - name: Install 3.9 Test Dependencies
+      shell: bash
       if: ${{ matrix.python-version == '3.9' }}
       run: |
-        . venv/bin/activate
         pip install -r test/requirements.txt
     - name: Install 3.7 Test Dependencies
+      shell: bash
       if: ${{ matrix.python-version == '3.7' }}
       run: |
-        . venv/bin/activate
         pip install -r test/requirements-37.txt
     - name: Lint
+      shell: bash
       run: |
-        . venv/bin/activate
         bash scripts/lint_backend.sh
     - name: Typecheck
+      shell: bash
       run: |
-        . venv/bin/activate
         bash scripts/type_check_backend.sh
     - name: Build frontend
+      shell: bash
       run: |
         pnpm i --frozen-lockfile
         pnpm build
@@ -77,8 +90,8 @@ jobs:
     - name: Create coverage dir
       run: mkdir test-reports
     - name: Run tests
+      shell: bash
       run: |
-        . venv/bin/activate
         coverage run -m pytest -m "${{ matrix.test-type }}"
         coverage xml
 
