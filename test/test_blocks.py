@@ -1486,11 +1486,12 @@ class TestAddRequests:
 
     def test_default_args_with_event_data(self):
         pr = gr.Progress()
+        target = gr.Textbox()
 
         def moo(a, b, ed: SelectData, c=42):
             return a + b + c
 
-        event_data = SelectData(target=None, data={"index": 24, "value": "foo"})
+        event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
         inputs = [1, 2]
         request = gr.Request()
         inputs_ = gr.helpers.special_args(
@@ -1499,6 +1500,10 @@ class TestAddRequests:
         assert len(inputs_) == 4
         new_event_data = inputs_[2]
         assert inputs_ == inputs + [new_event_data, 42]
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
 
         def moo(a, b, ed: SelectData, c=42, pr=pr):
             return a + b + c
@@ -1512,6 +1517,10 @@ class TestAddRequests:
         new_event_data = inputs_[2]
         assert inputs_ == inputs + [new_event_data, 42, pr]
         assert progress_index == 4
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
 
 
 def test_queue_enabled_for_fn():
