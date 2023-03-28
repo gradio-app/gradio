@@ -13,7 +13,6 @@
 	export let disabled: boolean = false;
 	export let show_label: boolean;
 	export let allow_custom_value: boolean = false;
-	export let placeholder: string = "";
 
 	$: is_custom_value =
 		allow_custom_value && typeof value === "string" && !choices.includes(value);
@@ -170,7 +169,6 @@
 					{disabled}
 					{readonly}
 					autocomplete="off"
-					placeholder={value == "" ? placeholder : ""}
 					bind:value={inputValue}
 					on:mousedown={() => {
 						showOptions = !showOptions;

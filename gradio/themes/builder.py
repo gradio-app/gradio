@@ -1,6 +1,7 @@
-import gradio as gr
-import time
 import inspect
+import time
+
+import gradio as gr
 
 themes = [
     gr.themes.Base,
@@ -60,7 +61,7 @@ css = """
     flex-wrap: unset;
     overflow-y: scroll;
     position: sticky;
-    top: 0;    
+    top: 0;
 }
 #controls::-webkit-scrollbar {
   -webkit-appearance: none;
@@ -97,7 +98,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
                 with gr.TabItem("Core Colors"):
                     gr.Markdown(
-                        """Set the three hues of the theme: `primary_hue`, `secondary_hue`, and `neutral_hue`. 
+                        """Set the three hues of the theme: `primary_hue`, `secondary_hue`, and `neutral_hue`.
                         Each of these is a palette ranging from 50 to 950 in brightness. Pick a preset palette - optionally, open the accordion to overwrite specific values.
                         Note that these variables do not affect elements directly, but are referenced by other variables with asterisks, such as `*primary_200` or `*neutral_950`."""
                     )
@@ -193,7 +194,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
 
                 with gr.TabItem("Core Fonts"):
                     gr.Markdown(
-                        """Set the main `font` and the monospace `font_mono` here. 
+                        """Set the main `font` and the monospace `font_mono` here.
                         Set up to 4 values for each (fallbacks in case a font is not available).
                         Check "Google Font" if font should be loaded from Google Fonts.
                         """
@@ -231,7 +232,16 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     "radius": [f"*radius_{i}" for i in size_range],
                     "padding": [f"*spacing_{i}" for i in size_range],
                     "gap": [f"*spacing_{i}" for i in size_range],
-                    "weight": ["100", "200", "300", "normal", "500", "600", "bold", "800"],
+                    "weight": [
+                        "100",
+                        "200",
+                        "300",
+                        "normal",
+                        "500",
+                        "600",
+                        "bold",
+                        "800",
+                    ],
                     "shadow": ["none"],
                     "border_width": [],
                 }
@@ -272,7 +282,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                             )
                             theme_var_input.append(dropdown)
 
-        ### App ###
+        # App
 
         with gr.Column(scale=6, elem_id="app"):
             with gr.Column(variant="panel"):
@@ -283,7 +293,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     1. First, set the "Source Theme". This will set the default values that you can override.
                     2. Set the "Core Colors", "Core Sizing" and "Core Fonts". These are the core variables that are used to build the rest of the theme.
                     3. The rest of the tabs set specific CSS theme variables. These control finer aspects of the UI. Within these theme variables, you can reference the core variables and other theme variables using the variable name preceded by an asterisk, e.g. `*primary_50` or `*body_text_color`. Clear the dropdown to set a custom value.
-                    4. Once you have finished your theme, click on "View Code" below to see how you can integrate the theme into your app. You can also click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.                    
+                    4. Once you have finished your theme, click on "View Code" below to see how you can integrate the theme into your app. You can also click on "Upload to Hub" to upload your theme to the Hugging Face Hub, where others can download and use your theme.
                     """
                 )
                 with gr.Accordion("View Code", open=False):
@@ -379,8 +389,6 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                             "Stop", label="Stop Button", variant="stop"
                         ).style(size="sm")
 
-                    gr.Examples([["images/lion.jpg"], ["images/tower.jpg"]], img)
-
             gr.Examples(
                 examples=[
                     [
@@ -453,7 +461,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                         gr.Number(label="Chatbot control 2")
                         gr.Number(label="Chatbot control 3")
 
-        ## Event Listeners ##
+        # Event Listeners
 
         secret_css = gr.Textbox(visible=False)
         secret_font = gr.JSON(visible=False)
@@ -757,7 +765,7 @@ with gr.Blocks(theme=theme) as demo:
             final_main_fonts = []
             font_weights = set()
             weight_map = {"normal": "400", "bold": "700"}
-            for attr, val in zip(flat_variables, remaining_args):                
+            for attr, val in zip(flat_variables, remaining_args):
                 if "weight" in attr:
                     val = weight_map.get(val, val)
                     font_weights.add(val)

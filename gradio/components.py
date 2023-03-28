@@ -1399,7 +1399,6 @@ class Dropdown(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         allow_custom_value: bool = False,
-        placeholder: str | None = None,
         **kwargs,
     ):
         """
@@ -1418,7 +1417,6 @@ class Dropdown(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
-            placeholder: Placeholder text to display when no value is selected.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1437,7 +1435,6 @@ class Dropdown(
             )
         self.max_choices = max_choices
         self.allow_custom_value = allow_custom_value
-        self.placeholder = placeholder
         if multiselect and allow_custom_value:
             raise ValueError(
                 "Custom values are not supported when `multiselect` is True."
@@ -1473,7 +1470,6 @@ class Dropdown(
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
             "allow_custom_value": self.allow_custom_value,
-            "placeholder": self.placeholder,
             **IOComponent.get_config(self),
         }
 
