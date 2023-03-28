@@ -8,3 +8,11 @@ from gradio.themes.utils import colors, sizes  # noqa: F401
 from gradio.themes.utils.colors import Color  # noqa: F401
 from gradio.themes.utils.fonts import Font, GoogleFont  # noqa: F401
 from gradio.themes.utils.sizes import Size  # noqa: F401
+
+BUILT_IN_THEMES = [
+    gradio.themes.Base(),
+    gradio.themes.Default(),
+    gradio.themes.Monochrome(),
+    gradio.themes.Soft(),
+    gradio.themes.Glass(),
+]
