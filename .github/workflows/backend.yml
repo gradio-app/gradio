@@ -30,7 +30,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ./venv
-        key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}
+        key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - name: Install Python
       uses: actions/setup-python@v3
       with:
@@ -52,6 +52,7 @@ jobs:
     - name: Install Client
       run: |
         pip install -e .
+        pip install test/requirements.txt
     - name: Tests
       shell: bash
       run: |
