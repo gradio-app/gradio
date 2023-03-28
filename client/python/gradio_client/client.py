@@ -26,6 +26,8 @@ class Client:
         hf_token: str | None = None,
         max_workers: int = 40,
     ):
+        """
+        """
         self.hf_token = hf_token
         self.headers = build_hf_headers(
             token=hf_token,
