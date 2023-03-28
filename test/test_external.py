@@ -216,6 +216,7 @@ class TestLoadInterface:
         try:
             output = io("male", 77, 10)
             assert json.load(open(output))["label"] == "Perishes"
+            assert io.theme.name == "soft"
         except TooManyRequestsError:
             pass
 
@@ -284,6 +285,7 @@ class TestLoadInterface:
         try:
             output = io("abc")
             assert output == "abc"
+            assert io.theme.name == "gradio/monochrome"
         except TooManyRequestsError:
             pass
 
@@ -312,6 +314,7 @@ class TestLoadInterface:
         io = gr.load(
             "spaces/gradio-tests/test-loading-examples-private", api_key=api_key
         )
+        assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
