@@ -149,7 +149,7 @@ code.language-bash {
 [type="search"]::-webkit-search-cancel-button {
   @apply appearance-none h-5 w-5;
   -webkit-appearance: none;
-  background-image: url("assets/img/esc.svg");
+  background-image: url("/src/assets/img/esc.svg");
   background-size: 20px 20px;
 }
 
