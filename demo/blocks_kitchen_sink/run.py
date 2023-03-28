@@ -123,7 +123,7 @@ with gr.Blocks(theme=base_theme) as demo:
 
                 def go(*args):
                     time.sleep(3)
-                    return "https://akhaliq-animeganv2.hf.space/file/groot.jpeg"
+                    return "https://i.ibb.co/6BgKdSj/groot.jpg"
 
                 go_btn.click(go, [radio, drop, drop_2, check, name], img, api_name="go")
 
