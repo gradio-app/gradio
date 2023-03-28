@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "Įkelkite paveikslėlį čia",
+		"drop_video": "Įkelkite vaizdo įrašą čia",
+		"drop_audio": "Įkelkite garso įrašą čia",
+		"drop_file": "Įkelkite bylą čia",
+		"drop_csv": "Įkelkite CSV čia",
+		"click_to_upload": "Spustelėkite norėdami įkelti",
+		"view_api": "peržiūrėti api",
+		"built_with_Gradio": "sukurta su gradio"
+	},
+	"Submit": "Pateikti",
+	"Clear": "Trinti",
+	"Interpret": "Interpretuoti",
+	"Flag": "Pažymėti",
+	"Examples": "Pavyzdžiai",
+	"or": "arba"
+}

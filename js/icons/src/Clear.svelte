@@ -1,0 +1,24 @@
+<svg
+	width="100%"
+	height="100%"
+	viewBox="0 0 24 24"
+	version="1.1"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xml:space="preserve"
+	stroke="currentColor"
+	style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;"
+>
+	<g
+		transform="matrix(1.14096,-0.140958,-0.140958,1.14096,-0.0559523,0.0559523)"
+	>
+		<path
+			d="M18,6L6.087,17.913"
+			style="fill:none;fill-rule:nonzero;stroke-width:2px;"
+		/>
+	</g>
+	<path
+		d="M4.364,4.364L19.636,19.636"
+		style="fill:none;fill-rule:nonzero;stroke-width:2px;"
+	/>
+</svg>

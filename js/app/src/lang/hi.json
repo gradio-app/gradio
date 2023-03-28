@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "यहाँ इमेज ड्रॉप करें",
+		"drop_video": "यहाँ वीडियो ड्रॉप करें",
+		"drop_audio": "यहाँ ऑडियो ड्रॉप करें",
+		"drop_file": "यहाँ File ड्रॉप करें",
+		"drop_csv": "यहाँ CSV ड्रॉप करें",
+		"click_to_upload": "अपलोड के लिए बटन दबायें",
+		"view_api": "API को देखे",
+		"built_with_Gradio": "Gradio से बना"
+	},
+	"Submit": "सबमिट करे",
+	"Clear": "हटाये",
+	"Interpret": "व्याख्या करे",
+	"Flag": "चिह्नित करे",
+	"Examples": "उदाहरण",
+	"or": "या"
+}

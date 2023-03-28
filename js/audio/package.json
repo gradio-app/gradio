@@ -1,0 +1,19 @@
+{
+	"name": "@gradio/audio",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^0.0.1",
+		"@gradio/button": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1",
+		"@gradio/upload": "workspace:^0.0.1",
+		"extendable-media-recorder": "^7.0.2",
+		"extendable-media-recorder-wav-encoder": "^7.0.76",
+		"svelte-range-slider-pips": "^2.0.1"
+	}
+}

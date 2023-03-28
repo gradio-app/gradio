@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "Rasmni Shu Yerga Tashlang",
+		"drop_video": "Videoni Shu Yerga Tashlang",
+		"drop_audio": "Audioni Shu Yerga Tashlang",
+		"drop_file": "Faylni Shu Yerga Tashlang",
+		"drop_csv": "CSVni Shu Yerga Tashlang",
+		"click_to_upload": "Yuklash uchun Bosing",
+		"view_api": "apini ko'ring",
+		"built_with_Gradio": "gradio bilan qilingan"
+	},
+	"Submit": "Yubor",
+	"Clear": "Tozalash",
+	"Interpret": "Tushuntirish",
+	"Flag": "Bayroq",
+	"Examples": "Namunalar",
+	"or": "或"
+}

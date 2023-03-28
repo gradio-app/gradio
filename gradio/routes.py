@@ -757,6 +757,7 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
+    blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")
