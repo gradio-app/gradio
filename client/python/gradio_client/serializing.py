@@ -326,7 +326,7 @@ COMPONENT_MAPPING = {
     "checkbox": BooleanSerializable,
     "checkboxgroup": ListStringSerializable,
     "radio": BooleanSerializable,
-    "dropdown": SimpleSerializable,
+    "dropdown": DropdownSerializable,
     "image": ImgSerializable,
     "video": FileSerializable,
     "audio": FileSerializable,

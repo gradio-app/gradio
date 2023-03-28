@@ -185,6 +185,7 @@ class Endpoint:
             for component in self.dependency["components"]:
                 if component["id"] == input:
                     label = component["props"].get("label", f"parameter_{i}")
+
         return
 
     def end_to_end_fn(self, *data):
