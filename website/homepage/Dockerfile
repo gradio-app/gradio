@@ -21,7 +21,7 @@ COPY ./guides ./guides
 COPY ./demo ./demo
 COPY ./website ./website
 COPY ./js ./js
-
+WORKDIR /gradio
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build
