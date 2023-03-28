@@ -576,7 +576,7 @@ class TestDropdown:
             "root_url": None,
             "multiselect": None,
             "max_choices": None,
-            "show_remove_all": None,
+            "show_clear_button": None,
             "default_value": None,
         }
         assert dropdown_input.preprocess("a") == "a"
@@ -608,7 +608,7 @@ class TestDropdown:
             "root_url": None,
             "multiselect": True,
             "max_choices": 2,
-            "show_remove_all": True,
+            "show_clear_button": True,
             "default_value": None,
         }
         with pytest.raises(ValueError):

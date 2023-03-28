@@ -12,7 +12,7 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
-	export let show_remove_all: boolean = false;
+	export let show_clear_button: boolean = false;
 	export let default_value: string | undefined;
 
 	const dispatch = createEventDispatcher<{
@@ -172,7 +172,7 @@
 					on:keyup={handleKeyup}
 				/>
 				<div
-					class:hide={!show_remove_all ||
+					class:hide={!show_clear_button ||
 						(default_value && value === default_value) ||
 						(multiselect && (value?.length ?? 0) === 0) ||
 						disabled}

@@ -15,7 +15,7 @@
 	export let max_choices: number;
 	export let choices: Array<string>;
 	export let show_label: boolean;
-	export let show_remove_all: boolean = false;
+	export let show_clear_button: boolean = false;
 	export let default_value: string | undefined;
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
@@ -47,7 +47,7 @@
 		{label}
 		{info}
 		{show_label}
-		{show_remove_all}
+		{show_clear_button}
 		{default_value}
 		on:change
 		on:select

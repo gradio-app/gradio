@@ -1394,7 +1394,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         info: str | None = None,
         every: float | None = None,
         show_label: bool = True,
-        show_remove_all: bool | None = None,
+        show_clear_button: bool | None = None,
         default_value: str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
@@ -1435,12 +1435,12 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             )
 
         self.default_value = default_value
-        if show_remove_all is None:
-            self.show_remove_all = self.multiselect or self.default_value
+        if show_clear_button is None:
+            self.show_clear_button = self.multiselect or self.default_value
         else:
-            self.show_remove_all = show_remove_all
+            self.show_clear_button = show_clear_button
 
-        if self.show_remove_all and not self.multiselect and not self.default_value:
+        if self.show_clear_button and not self.multiselect and not self.default_value:
             warnings.warn(
                 "No `default_value` parameter provided with `multiselect` False, defaulting to an empty string."
             )
@@ -1482,7 +1482,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
-            "show_remove_all": self.show_remove_all,
+            "show_clear_button": self.show_clear_button,
             "default_value": self.default_value,
             **IOComponent.get_config(self),
         }
