@@ -108,7 +108,10 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol, data: str, hash_data: str, queue: Queue | None = None
+    websocket: WebSocketCommonProtocol,
+    data: str,
+    hash_data: str,
+    queue: Queue | None = None,
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
@@ -119,7 +122,7 @@ async def get_pred_from_ws(
             status_update = StatusUpdate(
                 status=Status.msg_to_status(resp["msg"]),
                 queue_size=resp.get("queue_size"),
-                rank=resp.get("rank", 0),
+                rank=resp.get("rank", None),
                 success=resp.get("success"),
                 time=datetime.now(),
             )

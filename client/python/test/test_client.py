@@ -1,9 +1,15 @@
 import json
+import os
+import time
+from datetime import datetime, timedelta
+from queue import LifoQueue
+from unittest.mock import patch
 
 import pytest
-
 from gradio_client import Client
-import time
+from gradio_client.utils import Status, StatusUpdate
+
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
 
 class TestPredictionsFromSpaces:
@@ -33,5 +39,82 @@ class TestPredictionsFromSpaces:
 
         assert statuses
         # Messages are sorted by time
-        assert sorted([s.time for s in statuses if s]) == [s.time for s in statuses if s]
-        assert sorted([s.status for s in statuses if s]) == [s.status for s in statuses if s]
+        assert sorted([s.time for s in statuses if s]) == [
+            s.time for s in statuses if s
+        ]
+        assert sorted([s.status for s in statuses if s]) == [
+            s.status for s in statuses if s
+        ]
+
+
+class TestStatusUpdates:
+    @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
+    def test_put_updates_in_queue(self, mock_make_end_to_end_fn):
+
+        now = datetime.now()
+
+        messages = [
+            StatusUpdate(
+                status=Status.STARTING,
+                rank=None,
+                success=None,
+                queue_size=None,
+                time=now,
+            ),
+            StatusUpdate(
+                status=Status.SENDING_DATA,
+                rank=None,
+                success=None,
+                queue_size=None,
+                time=now + timedelta(seconds=1),
+            ),
+            StatusUpdate(
+                status=Status.IN_QUEUE,
+                rank=2,
+                queue_size=2,
+                success=None,
+                time=now + timedelta(seconds=2),
+            ),
+            StatusUpdate(
+                status=Status.IN_QUEUE,
+                rank=1,
+                queue_size=1,
+                success=None,
+                time=now + timedelta(seconds=3),
+            ),
+            StatusUpdate(
+                status=Status.ITERATING,
+                rank=None,
+                queue_size=None,
+                success=None,
+                time=now + timedelta(seconds=3),
+            ),
+            StatusUpdate(
+                status=Status.FINISHED,
+                rank=None,
+                queue_size=None,
+                success=True,
+                time=now + timedelta(seconds=4),
+            ),
+        ]
+
+        class MockEndToEndFunction:
+            def __init__(self, queue: LifoQueue):
+                self.queue = queue
+
+            def __call__(self, *args, **kwargs):
+                for m in messages:
+                    self.queue.put_nowait(m)
+                    time.sleep(0.1)
+
+        mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
+
+        client = Client(space="gradio/calculator")
+        job = client.predict(5, "add", 6, fn_index=0)
+
+        statuses = []
+        while not job.done():
+            statuses.append(job.status())
+            time.sleep(0.09)
+
+        assert all(s in messages for s in statuses)

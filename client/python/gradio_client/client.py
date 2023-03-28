@@ -77,7 +77,7 @@ class Client:
         queue = None
         if self.endpoints[fn_index].use_ws:
             queue = LifoQueue()
-        end_to_end_fn = self.endpoints[fn_index].end_to_end_fn(queue)
+        end_to_end_fn = self.endpoints[fn_index].make_end_to_end_fn(queue)
         future = self.executor.submit(end_to_end_fn, *args)
         job = Job(future, queue=queue)
 
@@ -163,9 +163,9 @@ class Endpoint:
         except AssertionError:
             self.is_valid = False
 
-    def end_to_end_fn(self, queue: LifoQueue | None = None):
+    def make_end_to_end_fn(self, queue: LifoQueue | None = None):
 
-        _predict = self.predict(queue)
+        _predict = self.make_predict(queue)
 
         def _inner(*data):
             if not self.is_valid:
@@ -179,7 +179,7 @@ class Endpoint:
 
         return _inner
 
-    def predict(self, queue: LifoQueue | None = None):
+    def make_predict(self, queue: LifoQueue | None = None):
         def _predict(*data) -> Tuple:
             data = json.dumps({"data": data, "fn_index": self.fn_index})
             hash_data = json.dumps(
@@ -209,7 +209,7 @@ class Endpoint:
 
     def _predict_resolve(self, *data) -> Any:
         """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
-        outputs = self.predict()(*data)
+        outputs = self.make_predict()(*data)
         if len(self.dependency["outputs"]) == 1:
             return outputs[0]
         return outputs
