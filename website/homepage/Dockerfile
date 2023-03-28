@@ -6,7 +6,7 @@ RUN apt-get install -y nodejs jq
 RUN npm install -g npm@latest
 RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
-COPY ./gradio/ /gradio/
+COPY . /gradio/
 WORKDIR /gradio
 RUN npm i pnpm@6 -g
 ENV NODE_OPTIONS="--max-old-space-size=4096"
