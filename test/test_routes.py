@@ -271,6 +271,27 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}",
+                inputs=input_,
+                outputs=output,
+                queue=True,
+                api_name="greet",
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event greet"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
+
 
 class TestGeneratorRoutes:
     def test_generator(self):
