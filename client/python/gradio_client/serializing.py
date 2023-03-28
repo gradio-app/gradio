@@ -12,13 +12,25 @@ from gradio_client import utils
 
 class Serializable(ABC):
     @abstractmethod
-    def serialize(self, x: Any, load_dir: str | Path = ""):
+    def get_input_type() -> str:
         """
-        Convert data from human-readable format to serialized format for a browser.
+        Get the type of input this component accepts (for documentation generation).
         """
         pass
 
     @abstractmethod
+    def get_output_type() -> str:
+        """
+        Get the type of input this component accepts (for documentation generation).
+        """
+        pass
+
+    def serialize(self, x: Any, load_dir: str | Path = ""):
+        """
+        Convert data from human-readable format to serialized format for a browser.
+        """
+        return x
+
     def deserialize(
         self,
         x: Any,
@@ -29,38 +41,78 @@ class Serializable(ABC):
         """
         Convert data from serialized format for a browser to human-readable format.
         """
-        pass
+        return x
 
 
 class SimpleSerializable(Serializable):
-    def serialize(self, x: Any, load_dir: str | Path = "") -> Any:
-        """
-        Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
-        Parameters:
-            x: Input data to serialize
-            load_dir: Ignored
-        """
-        return x
+    """General class that does not perform any serialization or deserialization."""
 
-    def deserialize(
-        self,
-        x: Any,
-        save_dir: str | Path | None = None,
-        root_url: str | None = None,
-        hf_token: str | None = None,
-    ):
-        """
-        Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
-        Parameters:
-            x: Input data to deserialize
-            save_dir: Ignored
-            root_url: Ignored
-            hf_token: Ignored
-        """
-        return x
+    def get_input_type(self) -> str:
+        return "Any"
+
+    def get_output_type(self) -> str:
+        return "Any"
+
+
+class StringSerializable(Serializable):
+    """Expects a string as input/output but performs no serialization."""
+
+    def get_input_type(self) -> str:
+        return "str (value)"
+
+    def get_output_type(self) -> str:
+        return "str (value)"
+
+
+class ListStringSerializable(Serializable):
+    """Expects a list of strings as input/output but performs no serialization."""
+
+    def get_input_type(self) -> str:
+        return "List[str] (values)"
+
+    def get_output_type(self) -> str:
+        return "List[str] (values)"
+
+
+class DropdownSerializable(Serializable):
+    """Expects a string or list of strings as input/output but performs no serialization."""
+
+    def get_input_type(self) -> str:
+        return "str | List[str] (value[s])"
+
+    def get_output_type(self) -> str:
+        return "str | List[str] (value[s])"
+
+
+class BooleanSerializable(Serializable):
+    """Expects a boolean as input/output but performs no serialization."""
+
+    def get_input_type(self) -> str:
+        return "bool (value)"
+
+    def get_output_type(self) -> str:
+        return "bool (value)"
+
+
+class NumberSerializable(Serializable):
+    """Expects a number (int/float) as input/output but performs no serialization."""
+
+    def get_input_type(self) -> str:
+        return "int | float (value)"
+
+    def get_output_type(self) -> str:
+        return "int | float (value)"
 
 
 class ImgSerializable(Serializable):
+    """Expects a base64 string as input/output which is ."""
+
+    def get_input_type(self) -> str:
+        return "str (filepath or URL)"
+
+    def get_output_type(self) -> str:
+        return "str (filepath or URL)"
+
     def serialize(
         self,
         x: str | None,
@@ -102,6 +154,12 @@ class ImgSerializable(Serializable):
 
 
 class FileSerializable(Serializable):
+    def get_input_type(self) -> str:
+        return "str (filepath or URL)"
+
+    def get_output_type(self) -> str:
+        return "str (filepath or URL)"
+
     def serialize(
         self,
         x: str | None,
@@ -168,6 +226,12 @@ class FileSerializable(Serializable):
 
 
 class JSONSerializable(Serializable):
+    def get_input_type(self) -> str:
+        return "str (filepath)"
+
+    def get_output_type(self) -> str:
+        return "str (filepath)"
+
     def serialize(
         self,
         x: str | None,
@@ -206,6 +270,12 @@ class JSONSerializable(Serializable):
 
 
 class GallerySerializable(Serializable):
+    def get_input_type(self) -> str:
+        return "str (directory path)"
+
+    def get_output_type(self) -> str:
+        return "str (directory path)"
+
     def serialize(
         self, x: str | None, load_dir: str | Path = ""
     ) -> List[List[str]] | None:
@@ -250,12 +320,12 @@ class GallerySerializable(Serializable):
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
 
 COMPONENT_MAPPING = {
-    "textbox": SimpleSerializable,
-    "number": SimpleSerializable,
-    "slider": SimpleSerializable,
-    "checkbox": SimpleSerializable,
-    "checkboxgroup": SimpleSerializable,
-    "radio": SimpleSerializable,
+    "textbox": StringSerializable,
+    "number": NumberSerializable,
+    "slider": NumberSerializable,
+    "checkbox": BooleanSerializable,
+    "checkboxgroup": ListStringSerializable,
+    "radio": BooleanSerializable,
     "dropdown": SimpleSerializable,
     "image": ImgSerializable,
     "video": FileSerializable,
@@ -264,18 +334,18 @@ COMPONENT_MAPPING = {
     "dataframe": JSONSerializable,
     "timeseries": JSONSerializable,
     "state": SimpleSerializable,
-    "button": SimpleSerializable,
+    "button": StringSerializable,
     "uploadbutton": FileSerializable,
-    "colorpicker": SimpleSerializable,
+    "colorpicker": StringSerializable,
     "label": JSONSerializable,
     "highlightedtext": JSONSerializable,
     "json": JSONSerializable,
-    "html": SimpleSerializable,
+    "html": StringSerializable,
     "gallery": GallerySerializable,
     "chatbot": JSONSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
-    "markdown": SimpleSerializable,
-    "dataset": SimpleSerializable,
-    "code": SimpleSerializable,
+    "markdown": StringSerializable,
+    "dataset": StringSerializable,
+    "code": StringSerializable,
 }

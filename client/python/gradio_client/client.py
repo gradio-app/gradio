@@ -28,8 +28,8 @@ class Client:
     ):
         """
         Parameters:
-            space: The name of the Space to load, e.g. "abidlabs/pictionary". If it is a private Space, you must provide an hf_token. app. Either `space` or `src` must be provided. 
-            src: The full URL of the hosted Gradio app to load, e.g. "https://mydomain.com/app" or the shareable link to a Gradio app, e.g. "https://bec81a83-5b5c-471e.gradio.live/". Either `space` or `src` must be provided. 
+            space: The name of the Space to load, e.g. "abidlabs/pictionary". If it is a private Space, you must provide an hf_token. app. Either `space` or `src` must be provided.
+            src: The full URL of the hosted Gradio app to load, e.g. "https://mydomain.com/app" or the shareable link to a Gradio app, e.g. "https://bec81a83-5b5c-471e.gradio.live/". Either `space` or `src` must be provided.
             hf_token: The Hugging Face token to use to access private Spaces. If not provided, only public Spaces can be loaded.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         """
@@ -108,6 +108,12 @@ class Client:
 
         return job
 
+    def usage(self, all_endpoints=True):
+        """
+        Parameters:
+            all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints.
+        """
+
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         data = {
@@ -147,7 +153,7 @@ class Client:
             raise ValueError(f"Could not get Gradio config from: {self.src}")
         if "allow_flagging" in config:
             raise ValueError(
-                "Gradio 2.x is not supported by this client. Please upgrade this app to Gradio 3.x."
+                "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
             )
         return config
 
@@ -171,6 +177,15 @@ class Endpoint:
             ]  # Only a real API endpoint if backend_fn is True
         except AssertionError:
             self.is_valid = False
+
+    def get_info(self):
+        parameters = {}
+        returns = {}
+        for i, input in enumerate(self.dependency["inputs"]):
+            for component in self.dependency["components"]:
+                if component["id"] == input:
+                    label = component["props"].get("label", f"parameter_{i}")
+        return
 
     def end_to_end_fn(self, *data):
         if not self.is_valid:
