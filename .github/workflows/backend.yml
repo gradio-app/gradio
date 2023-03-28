@@ -24,6 +24,7 @@ jobs:
       run:
         working-directory: client/python
     steps:
+    - uses: actions/checkout@v3
     - name: Cache python deps
       id: cache-python
       uses: actions/cache@v3
