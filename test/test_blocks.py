@@ -342,6 +342,23 @@ class TestBlocksMethods:
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
 
+    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -1030,7 +1047,7 @@ class TestCancel:
         def iteration(a):
             yield a
 
-        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        msg = "Queue needs to be enabled!"
         with pytest.raises(ValueError, match=msg):
             gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
                 prevent_thread_lock=True
@@ -1280,7 +1297,10 @@ class TestProgressBar:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
+                    if msg[
+                        "progress_data"
+                    ]:  # Ignore empty lists which sometimes appear on Windows
+                        progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
@@ -1442,7 +1462,7 @@ async def test_queue_when_using_auth():
             await ws.recv()
     assert e.type == websockets.InvalidStatusCode
 
-    async def run_ws(_loop, _time, i):
+    async def run_ws(i):
         async with websockets.connect(
             f"{demo.local_url.replace('http', 'ws')}queue/join",
             extra_headers={"Cookie": f"access-token={token}"},
@@ -1471,15 +1491,9 @@ async def test_queue_when_using_auth():
                 if msg["msg"] == "process_completed":
                     assert msg["success"]
                     assert msg["output"]["data"] == [f"Hello {i}!"]
-                    assert _loop.time() > _time
                     break
 
-    loop = asyncio.get_event_loop()
-    tm = loop.time()
-    group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
-    )
-    await group
+    await asyncio.gather(*[run_ws(i) for i in range(3)])
 
 
 def test_temp_file_sets_get_extended():

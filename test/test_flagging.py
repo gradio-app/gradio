@@ -105,22 +105,17 @@ class TestHuggingFaceDatasetJSONSaver:
 
 class TestDisableFlagging:
     def test_flagging_no_permission_error_with_flagging_disabled(self):
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            os.chmod(tmpdirname, 0o444)  # Make directory read-only
-            nonwritable_path = os.path.join(tmpdirname, "flagging_dir")
-
-            io = gr.Interface(
-                lambda x: x,
-                "text",
-                "text",
-                allow_flagging="never",
-                flagging_dir=nonwritable_path,
-            )
-            try:
-                io.launch(prevent_thread_lock=True)
-            except PermissionError:
-                self.fail("launch() raised a PermissionError unexpectedly")
-
+        tmpdirname = tempfile.mkdtemp()
+        os.chmod(tmpdirname, 0o444)  # Make directory read-only
+        nonwritable_path = os.path.join(tmpdirname, "flagging_dir")
+        io = gr.Interface(
+            lambda x: x,
+            "text",
+            "text",
+            allow_flagging="never",
+            flagging_dir=nonwritable_path,
+        )
+        io.launch(prevent_thread_lock=True)
         io.close()
 
 

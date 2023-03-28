@@ -1096,6 +1096,8 @@ class TestDataframe:
         postprocess
         """
         dataframe_output = gr.Dataframe()
+        output = dataframe_output.postprocess([])
+        assert output == {"data": [[]], "headers": []}
         output = dataframe_output.postprocess(np.zeros((2, 2)))
         assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2]}
         output = dataframe_output.postprocess([[1, 3, 5]])
