@@ -631,7 +631,7 @@ def special_args(
             if inputs is not None and event_data is not None:
                 inputs.insert(i, param.annotation(event_data.target, event_data._data))
         elif param.default is not param.empty:
-            if inputs is not None:
+            if inputs is not None and len(inputs) <= i:
                 inputs.insert(i, param.default)
     if inputs is not None:
         while len(inputs) < len(positional_args):
