@@ -162,7 +162,7 @@ class FileSerializable(Serializable):
                 file_name = utils.decode_base64_to_file(x["data"], dir=save_dir).name
         else:
             raise ValueError(
-                f"A FileSerializable component cannot only deserialize a string or a dict, not a: {type(x)}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a: {type(x)}"
             )
         return file_name
 
