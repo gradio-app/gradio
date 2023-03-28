@@ -5,6 +5,13 @@ source scripts/helpers.sh
 
 pnpm_required
 
-echo "Building the frontend..."
+cmd="build"
+if [[ "$1" == "dev" ]]; then
+    echo "Building the frontend (development mode)..."
+    cmd="build:dev"
+else
+    echo "Building the frontend..."
+fi
+
 pnpm i --frozen-lockfile
-pnpm build
+pnpm $cmd

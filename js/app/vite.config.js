@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
@@ -34,6 +34,9 @@ export default defineConfig(({ mode }) => {
 		mode === "production:local" ||
 		mode === "production:website";
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
+    const env = loadEnv(mode, process.cwd(), '');
+    const server_port = env.GRADIO_SERVER_PORT || "7860";
+    const server_name = env.GRADIO_SERVER_NAME || "127.0.0.1";
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
@@ -52,7 +55,7 @@ export default defineConfig(({ mode }) => {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
-				: JSON.stringify("http://localhost:7860/"),
+				: JSON.stringify(`http://${server_name}:${server_port}`),
 			GRADIO_VERSION: JSON.stringify(version)
 		},
 		css: {

@@ -10,6 +10,7 @@
 		"build:cdn": "pnpm --filter @gradio/app build:cdn --emptyOutDir",
 		"build:website": "pnpm --filter @gradio/app build:website --emptyOutDir",
 		"build:cdn-local": "TEST_CDN=TRUE pnpm build:cdn",
+		"build:dev": "pnpm css && pnpm --filter @gradio/app build:dev --emptyOutDir",
 		"preview:cdn-server": "sirv ../gradio/templates/cdn --single --port=4321 --cors",
 		"preview:cdn-app": "pnpm --filter @gradio/cdn-test dev",
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",

@@ -195,8 +195,12 @@
 
 		const api_url =
 			BUILD_MODE === "dev"
-				? "http://localhost:7860"
+				? BACKEND_URL || "http://localhost:7860"
 				: host || space || src || location.origin;
+
+        if (BUILD_MODE === "dev") {
+            console.log(`Backend URL set to ${api_url} for development, configure your demo.launch(...) options to match`);
+        }
 
 		app = await client(api_url, handle_status);
 		config = app.config;
