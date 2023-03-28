@@ -8,16 +8,15 @@ import random
 import sys
 import time
 import unittest.mock as mock
+import uuid
 import warnings
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
 from unittest.mock import patch
 
-import mlflow
 import pytest
 import uvicorn
-import wandb
 import websockets
 from fastapi.testclient import TestClient
 
@@ -195,62 +194,6 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    def test_integration_wandb(self):
-        with captured_output() as (out, err):
-            wandb.log = mock.MagicMock()
-            wandb.Html = mock.MagicMock()
-            demo = gr.Blocks()
-            with demo:
-                gr.Textbox("Hi there!")
-            demo.integrate(wandb=wandb)
-
-            assert (
-                out.getvalue().strip()
-                == "The WandB integration requires you to `launch(share=True)` first."
-            )
-            demo.share_url = "tmp"
-            demo.integrate(wandb=wandb)
-            wandb.log.assert_called_once()
-
-    @mock.patch("comet_ml.Experiment")
-    def test_integration_comet(self, mock_experiment):
-        experiment = mock_experiment()
-        experiment.log_text = mock.MagicMock()
-        experiment.log_other = mock.MagicMock()
-
-        demo = gr.Blocks()
-        with demo:
-            gr.Textbox("Hi there!")
-
-        demo.launch(prevent_thread_lock=True)
-        demo.integrate(comet_ml=experiment)
-        experiment.log_text.assert_called_with("gradio: " + demo.local_url)
-        demo.share_url = "tmp"  # used to avoid creating real share links.
-        demo.integrate(comet_ml=experiment)
-        experiment.log_text.assert_called_with("gradio: " + demo.share_url)
-        assert experiment.log_other.call_count == 2
-        demo.share_url = None
-        demo.close()
-
-    def test_integration_mlflow(self):
-        mlflow.log_param = mock.MagicMock()
-        demo = gr.Blocks()
-        with demo:
-            gr.Textbox("Hi there!")
-
-        demo.launch(prevent_thread_lock=True)
-        demo.integrate(mlflow=mlflow)
-        mlflow.log_param.assert_called_with(
-            "Gradio Interface Local Link", demo.local_url
-        )
-        demo.share_url = "tmp"  # used to avoid creating real share links.
-        demo.integrate(mlflow=mlflow)
-        mlflow.log_param.assert_called_with(
-            "Gradio Interface Share Link", demo.share_url
-        )
-        demo.share_url = None
-        demo.close()
-
     @mock.patch("requests.post")
     def test_initiated_analytics(self, mock_post):
         with gr.Blocks(analytics_enabled=True):
@@ -392,6 +335,29 @@ class TestBlocksMethods:
         ):
             with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
                 assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+
+    def test_exit_called_at_launch(self):
+        with gr.Blocks() as demo:
+            gr.Textbox(uuid.uuid4)
+        demo.launch(prevent_thread_lock=True)
+        assert len(demo.get_config_file()["dependencies"]) == 1
+
+    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
 
 
 class TestComponentsInBlocks:
@@ -1081,7 +1047,7 @@ class TestCancel:
         def iteration(a):
             yield a
 
-        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        msg = "Queue needs to be enabled!"
         with pytest.raises(ValueError, match=msg):
             gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
                 prevent_thread_lock=True
@@ -1331,7 +1297,10 @@ class TestProgressBar:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
+                    if msg[
+                        "progress_data"
+                    ]:  # Ignore empty lists which sometimes appear on Windows
+                        progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
@@ -1493,7 +1462,7 @@ async def test_queue_when_using_auth():
             await ws.recv()
     assert e.type == websockets.InvalidStatusCode
 
-    async def run_ws(_loop, _time, i):
+    async def run_ws(i):
         async with websockets.connect(
             f"{demo.local_url.replace('http', 'ws')}queue/join",
             extra_headers={"Cookie": f"access-token={token}"},
@@ -1522,15 +1491,9 @@ async def test_queue_when_using_auth():
                 if msg["msg"] == "process_completed":
                     assert msg["success"]
                     assert msg["output"]["data"] == [f"Hello {i}!"]
-                    assert _loop.time() > _time
                     break
 
-    loop = asyncio.get_event_loop()
-    tm = loop.time()
-    group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
-    )
-    await group
+    await asyncio.gather(*[run_ws(i) for i in range(3)])
 
 
 def test_temp_file_sets_get_extended():

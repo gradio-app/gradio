@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, List
 
 import pkg_resources
+from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio import utils
@@ -139,9 +140,9 @@ class SimpleCSVLogger(FlaggingCallback):
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
-            save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
-                component.label or ""
-            )
+            save_dir = Path(
+                flagging_dir
+            ) / client_utils.strip_invalid_filename_characters(component.label or "")
             csv_data.append(
                 component.deserialize(
                     sample,
@@ -205,7 +206,9 @@ class CSVLogger(FlaggingCallback):
 
         csv_data = []
         for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
-            save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
+            save_dir = Path(
+                flagging_dir
+            ) / client_utils.strip_invalid_filename_characters(
                 getattr(component, "label", None) or f"component {idx}"
             )
             if utils.is_update(sample):
@@ -339,7 +342,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             for component, sample in zip(self.components, flag_data):
                 save_dir = Path(
                     self.dataset_dir
-                ) / utils.strip_invalid_filename_characters(component.label or "")
+                ) / client_utils.strip_invalid_filename_characters(
+                    component.label or ""
+                )
                 filepath = component.deserialize(sample, save_dir, None)
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
@@ -360,14 +365,24 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return line_count
 
 
+@document()
 class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     """
-    A FlaggingCallback that saves flagged data to a Hugging Face dataset in JSONL format.
+    A callback that saves flagged data (both the input and output data)
+    to a Hugging Face dataset in JSONL format.
 
     Each data sample is saved in a different JSONL file,
     allowing multiple users to use flagging simultaneously.
     Saving to a single CSV would cause errors as only one user can edit at the same time.
 
+    Example:
+        import gradio as gr
+        hf_writer = gr.HuggingFaceDatasetJSONSaver(HF_API_TOKEN, "image-classification-mistakes")
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                            allow_flagging="manual", flagging_callback=hf_writer)
+    Guides: using_flagging
     """
 
     def __init__(
@@ -379,17 +394,12 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         verbose: bool = True,
     ):
         """
-        Params:
-        hf_token (str): The token to use to access the huggingface API.
-        dataset_name (str): The name of the dataset to save the data to, e.g.
-            "image-classifier-1"
-        organization (str): The name of the organization to which to attach
-            the datasets. If None, the dataset attaches to the user only.
-        private (bool): If the dataset does not already exist, whether it
-            should be created as a private dataset or public. Private datasets
-            may require paid huggingface.co accounts
-        verbose (bool): Whether to print out the status of the dataset
-            creation.
+        Parameters:
+            hf_token: The token to use to access the huggingface API.
+            dataset_name: The name of the dataset to save the data to, e.g. "image-classifier-1"
+            organization: The name of the organization to which to attach the datasets. If None, the dataset attaches to the user only.
+            private: If the dataset does not already exist, whether it should be created as a private dataset or public. Private datasets may require paid huggingface.co accounts
+            verbose: Whether to print out the status of the dataset creation.
         """
         self.hf_token = hf_token
         self.dataset_name = dataset_name
@@ -474,7 +484,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
             headers.append(component.label)
 
             try:
-                save_dir = Path(folder_name) / utils.strip_invalid_filename_characters(
+                save_dir = Path(
+                    folder_name
+                ) / client_utils.strip_invalid_filename_characters(
                     component.label or ""
                 )
                 filepath = component.deserialize(sample, save_dir, None)

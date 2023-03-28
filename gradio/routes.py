@@ -282,8 +282,8 @@ class App(FastAPI):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             url = httpx.URL(url_path)
             headers = {}
-            if Context.access_token is not None:
-                headers["Authorization"] = f"Bearer {Context.access_token}"
+            if Context.hf_token is not None:
+                headers["Authorization"] = f"Bearer {Context.hf_token}"
             rp_req = client.build_request("GET", url, headers=headers)
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
@@ -757,6 +757,7 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
+    blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")
