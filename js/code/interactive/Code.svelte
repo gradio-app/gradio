@@ -20,7 +20,7 @@
 
 	export let basic = true;
 	export let language: string;
-	export let lines: int = 5;
+	export let lines: number = 5;
 	export let extensions: Extension[] = [];
 
 	export let useTab = true;
@@ -56,9 +56,9 @@
 		}
 	}
 
-	function updateLines(newLines: int) {
+	function updateLines(newLines: number) {
 		if (view) {
-			view.requestMeasure({ read: readPos, write: drawSel });
+			view.requestMeasure({ read: updateGutters });
 		}
 	}
 
@@ -70,7 +70,7 @@
 	}
 
 	function getGutterLineHeight(view: EditorView): string | null {
-		let elements = view.dom.querySelectorAll(".cm-gutterElement");
+		let elements = view.dom.querySelectorAll<HTMLElement>(".cm-gutterElement");
 		if (elements.length === 0) {
 			return null;
 		}
@@ -84,8 +84,8 @@
 		return null;
 	}
 
-	function updateGutters(view: EditorView): int {
-		let gutters = view.dom.querySelectorAll(".cm-gutter");
+	function updateGutters(view: EditorView): any {
+		let gutters = view.dom.querySelectorAll<HTMLElement>(".cm-gutter");
 		let _lines = lines + 1;
 		let lineHeight = getGutterLineHeight(view);
 		if (!lineHeight) {

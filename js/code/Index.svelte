@@ -17,7 +17,7 @@
 
 	export let value: string = "";
 	export let language: string = "";
-	export let lines: int = 5;
+	export let lines: number = 5;
 	export let target: HTMLElement;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
