@@ -55,13 +55,17 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
     from gradio.components import Component
 
-BUILT_IN_THEMES: Dict[str, Theme] = {t.name: t for t in [
-    themes.Base(),
-    themes.Default(),
-    themes.Monochrome(),
-    themes.Soft(),
-    themes.Glass(),
-]}
+BUILT_IN_THEMES: Dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+    ]
+}
+
 
 class Block:
     def __init__(
@@ -513,8 +517,8 @@ class Blocks(BlockContext):
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
-            if theme in BUILT_IN_THEMES:
-                theme = BUILT_IN_THEMES[theme]
+            if theme.lower() in BUILT_IN_THEMES:
+                theme = BUILT_IN_THEMES[theme.lower()]
             else:
                 try:
                     theme = Theme.from_hub(theme)
