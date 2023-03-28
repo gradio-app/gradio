@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "Déposer l'Image Ici",
+		"drop_video": "Déposer la Vidéo Ici",
+		"drop_audio": "Déposer l'Audio Ici",
+		"drop_file": "Déposer le Fichier Ici",
+		"drop_csv": "Déposer le CSV Ici",
+		"click_to_upload": "Cliquer pour Télécharger",
+		"view_api": "Voir l'API",
+		"built_with_Gradio": "Conçu avec Gradio"
+	},
+	"Submit": "Soumettre",
+	"Clear": "Nettoyer",
+	"Interpret": "Interpréter",
+	"Flag": "Signaler",
+	"Examples": "Exemples",
+	"or": "ou"
+}

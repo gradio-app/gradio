@@ -1,0 +1,21 @@
+{
+	"name": "@gradio/plot",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1",
+		"@gradio/theme": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
+		"@rollup/plugin-json": "^5.0.2",
+		"plotly.js-dist-min": "^2.10.1",
+		"svelte-vega": "^1.2.0",
+		"vega": "^5.22.1",
+		"vega-lite": "*"
+	}
+}

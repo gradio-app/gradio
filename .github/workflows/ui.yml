@@ -6,10 +6,6 @@ on:
       - "main"
   pull_request:
 
-defaults:
-  run:
-    working-directory: ui
-
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
@@ -32,7 +28,7 @@ jobs:
         with:
           node-version: 16
           cache: pnpm
-          cache-dependency-path: ui/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
         run: pnpm i --frozen-lockfile
       - name: formatting check
@@ -54,13 +50,13 @@ jobs:
         with:
           node-version: 16
           cache: pnpm
-          cache-dependency-path: ui/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - name: Install Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
-      - run: cd .. && bash scripts/install_gradio.sh
-      - run: pip install -r ../demo/outbreak_forecast/requirements.txt
+      - run: bash scripts/install_gradio.sh
+      - run: pip install -r demo/outbreak_forecast/requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm test:browser:full
@@ -70,4 +66,4 @@ jobs:
         with:
           retention-days: 3
           name: test-failure-${{ github.run_id }}
-          path: ui/packages/app/test-results
+          path: js/app/test-results

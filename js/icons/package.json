@@ -1,0 +1,10 @@
+{
+	"name": "@gradio/icons",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true
+}

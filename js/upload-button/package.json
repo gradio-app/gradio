@@ -1,0 +1,15 @@
+{
+	"name": "@gradio/upload-button",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/button": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
+		"@gradio/upload": "workspace:^0.0.1"
+	}
+}

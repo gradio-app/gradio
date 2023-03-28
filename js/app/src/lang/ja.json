@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"drop_image": "ここに画像をドロップ",
+		"drop_video": "ここに動画をドロップ",
+		"drop_audio": "ここに音声をドロップ",
+		"drop_file": "ここにファイルをドロップ",
+		"drop_csv": "ここにCSVをドロップ",
+		"click_to_upload": "クリックしてアップロード",
+		"view_api": "APIを見る",
+		"built_with_Gradio": "gradioで作ろう"
+	},
+	"Submit": "送信",
+	"Clear": "クリア",
+	"Interpret": "解釈",
+	"Flag": "フラグする",
+	"Examples": "入力例",
+	"or": "または"
+}
