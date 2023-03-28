@@ -419,7 +419,10 @@ class Textbox(
 
         #
         self.lines = lines
-        self.max_lines = max_lines if type == "text" else 1
+        if type == "text":
+            self.max_lines = max(lines, max_lines)
+        else:
+            self.max_lines = 1
         self.placeholder = placeholder
         self.select: EventListenerMethod
         """
@@ -2875,6 +2878,8 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
                 ),
             }
         if isinstance(y, (np.ndarray, list)):
+            if len(y) == 0:
+                return self.postprocess([[]])
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             assert isinstance(y, list), "output cannot be converted to list"

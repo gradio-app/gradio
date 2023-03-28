@@ -12,18 +12,23 @@
 - Fixes `Chatbot` and `Image` components so that files passed during processing are added to a directory where they can be served from, by [@abidlabs](https://github.com/abidlabs) in [PR 3523](https://github.com/gradio-app/gradio/pull/3523)
 - Use Gradio API server to send telemetry using `huggingface_hub` [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3488](https://github.com/gradio-app/gradio/pull/3488)
 - Fixes an an issue where if the Blocks scope was not exited, then State could be shared across sessions, by [@abidlabs](https://github.com/abidlabs) in [PR 3600](https://github.com/gradio-app/gradio/pull/3600)
-- Fixed bug where "or" was not being localized in file upload text by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3599](https://github.com/gradio-app/gradio/pull/3599)   
 - Ensures that `gr.load()` loads and applies the upstream theme, by [@abidlabs](https://github.com/abidlabs) in [PR 3641](https://github.com/gradio-app/gradio/pull/3641)
+- Fixed bug where "or" was not being localized in file upload text by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3599](https://github.com/gradio-app/gradio/pull/3599)  
+- Fixed bug where chatbot does not autoscroll inside of a tab, row or column by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3637](https://github.com/gradio-app/gradio/pull/3637)
+- Fixed bug where textbox shrinks when  `lines` set to larger than 20 by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3637](https://github.com/gradio-app/gradio/pull/3637)
+- Ensure CSS has fully loaded before rendering the application, by [@pngwn](https://github.com/pngwn) in [PR 3573](https://github.com/gradio-app/gradio/pull/3573)
+- Support using an empty list as `gr.Dataframe` value, by [@space-nuko](https://github.com/space-nuko) in [PR 3646](https://github.com/gradio-app/gradio/pull/3646)
 
 ## Documentation Changes:
 
 - Makes some fixes to the Theme Guide related to naming of variables, by [@abidlabs](https://github.com/abidlabs) in [PR 3561](https://github.com/gradio-app/gradio/pull/3561)
+- Documented `HuggingFaceDatasetJSONSaver` by [@osanseviero](https://github.com/osanseviero) in [PR 3604](https://github.com/gradio-app/gradio/pull/3604)
 - Makes some additions to documentation of `Audio` and `State` components, and fixes the `pictionary` demo by [@abidlabs](https://github.com/abidlabs) in [PR 3611](https://github.com/gradio-app/gradio/pull/3611)
-
 
 ## Testing and Infrastructure Changes:
 
 - Removed heavily-mocked tests related to comet_ml, wandb, and mlflow as they added a significant amount of test dependencies that prevented installation of test dependencies on Windows environemnts. By [@abidlabs](https://github.com/abidlabs) in [PR 3608](https://github.com/gradio-app/gradio/pull/3608)
+- Added Windows continuous integration, by [@space-nuko](https://github.com/space-nuko) in [PR 3628](https://github.com/gradio-app/gradio/pull/3628)
 
 ## Breaking Changes:
 
@@ -34,13 +39,14 @@ No changes to highlight.
 * Mobile responsive iframes in themes guide by [@aliabd](https://github.com/aliabd) in [PR 3562](https://github.com/gradio-app/gradio/pull/3562) 
 * Remove extra $demo from theme guide by [@aliabd](https://github.com/aliabd) in [PR 3563](https://github.com/gradio-app/gradio/pull/3563)
 * Set the theme name to be the upstream repo name when loading from the hub by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3595](https://github.com/gradio-app/gradio/pull/3595)   
+* Raise error when an event is queued but the queue is not configured by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3640](https://github.com/gradio-app/gradio/pull/3640)    
 
 ## Contributors Shoutout:
 
 No changes to highlight.
 
 
-# 3.23.0
+# Version 3.23.0
 
 
 ## New Features:
@@ -78,7 +84,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.22.1
+# Version 3.22.1
 
 
 ## New Features:
@@ -110,7 +116,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.22.0
+# Version 3.22.0
 
 
 ## New Features:
@@ -153,7 +159,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.21.0
+# Version 3.21.0
 
 ## New Features:
 
@@ -304,7 +310,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.20.1
+# Version 3.20.1
 
 ## New Features:
 
@@ -339,7 +345,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.20.0
+# Version 3.20.0
 
 ## New Features:
 
@@ -431,7 +437,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3297](https://git
 
 No changes to highlight.
 
-# 3.19.1
+# Version 3.19.1
 
 ## New Features:
 
@@ -463,7 +469,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.19.0
+# Version 3.19.0
 
 ## New Features:
 

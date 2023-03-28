@@ -1333,6 +1333,33 @@ class Blocks(BlockContext):
         self.app = routes.App.create_app(self)
         return self
 
+    def validate_queue_settings(self):
+        if not self.enable_queue and self.progress_tracking:
+            raise ValueError("Progress tracking requires queuing to be enabled.")
+
+        for fn_index, dep in enumerate(self.dependencies):
+            if not self.enable_queue and self.queue_enabled_for_fn(fn_index):
+                raise ValueError(
+                    f"The queue is enabled for event {dep['api_name'] if dep['api_name'] else fn_index} "
+                    "but the queue has not been enabled for the app. Please call .queue() "
+                    "on your app. Consult https://gradio.app/docs/#blocks-queue for information on how "
+                    "to configure the queue."
+                )
+            for i in dep["cancels"]:
+                if not self.queue_enabled_for_fn(i):
+                    raise ValueError(
+                        "Queue needs to be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
+            if dep["batch"] and (
+                dep["queue"] is False
+                or (dep["queue"] is None and not self.enable_queue)
+            ):
+                raise ValueError("In order to use batching, the queue must be enabled.")
+
     def launch(
         self,
         inline: bool | None = None,
@@ -1451,24 +1478,7 @@ class Blocks(BlockContext):
         if not isinstance(self.file_directories, list):
             raise ValueError("file_directories must be a list of directories.")
 
-        if not self.enable_queue and self.progress_tracking:
-            raise ValueError("Progress tracking requires queuing to be enabled.")
-
-        for dep in self.dependencies:
-            for i in dep["cancels"]:
-                if not self.queue_enabled_for_fn(i):
-                    raise ValueError(
-                        "In order to cancel an event, the queue for that event must be enabled! "
-                        "You may get this error by either 1) passing a function that uses the yield keyword "
-                        "into an interface without enabling the queue or 2) defining an event that cancels "
-                        "another event without enabling the queue. Both can be solved by calling .queue() "
-                        "before .launch()"
-                    )
-            if dep["batch"] and (
-                dep["queue"] is False
-                or (dep["queue"] is None and not self.enable_queue)
-            ):
-                raise ValueError("In order to use batching, the queue must be enabled.")
+        self.validate_queue_settings()
 
         self.config = self.get_config_file()
         self.max_threads = max(
