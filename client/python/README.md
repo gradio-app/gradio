@@ -61,7 +61,7 @@ import gradio_client as grc
 
 client = grc.Client(space="abidlabs/en2fr")
 
-client.make_predict("Hello").result()
+client.predict("Hello").result()
 
 >> Bonjour
 ```
@@ -77,7 +77,7 @@ import gradio_client as grc
 
 client = grc.Client(space="abidlabs/en2fr")
 
-job = client.make_predict("Hello")
+job = client.predict("Hello")
 
 # Do something else
 
@@ -100,5 +100,5 @@ def print_result(x):
 
     client = grc.Client(space="abidlabs/en2fr")
 
-    job = client.make_predict("Hello", callbacks=[print_result])
+    job = client.predict("Hello", callbacks=[print_result])
 ```
