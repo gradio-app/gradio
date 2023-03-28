@@ -20,6 +20,7 @@
 
 	export let basic = true;
 	export let language: string;
+	export let lines: int = 5;
 	export let extensions: Extension[] = [];
 
 	export let useTab = true;
@@ -41,6 +42,7 @@
 
 	$: reconfigure(), lang_extension;
 	$: setDoc(value);
+	$: updateLines(lines);
 
 	function setDoc(newDoc: string) {
 		if (view && newDoc !== view.state.doc.toString()) {
@@ -54,11 +56,46 @@
 		}
 	}
 
+	function updateLines(newLines: int) {
+		if (view) {
+			view.requestMeasure({ read: readPos, write: drawSel });
+		}
+	}
+
 	function createEditorView(): EditorView {
 		return new EditorView({
 			parent: element,
 			state: createEditorState(value)
 		});
+	}
+
+	function getGutterLineHeight(view: EditorView): string | null {
+		let elements = view.dom.querySelectorAll(".cm-gutterElement");
+		if (elements.length === 0) {
+			return null;
+		}
+		for (var i = 0; i < elements.length; i++) {
+			let node = elements[i];
+			let height = getComputedStyle(node)?.height ?? "0px";
+			if (height != "0px") {
+				return height;
+			}
+		}
+		return null;
+	}
+
+	function updateGutters(view: EditorView): int {
+		let gutters = view.dom.querySelectorAll(".cm-gutter");
+		let _lines = lines + 1;
+		let lineHeight = getGutterLineHeight(view);
+		if (!lineHeight) {
+			return null;
+		}
+		for (var i = 0; i < gutters.length; i++) {
+			let node = gutters[i];
+			node.style.minHeight = `calc(${lineHeight} * ${_lines})`;
+		}
+		return null;
 	}
 
 	function handleChange(vu: ViewUpdate): void {
@@ -68,6 +105,7 @@
 			value = text;
 			dispatch("change", text);
 		}
+		view.requestMeasure({ read: updateGutters });
 	}
 
 	function getExtensions() {
@@ -97,9 +135,6 @@
 
 			fontFamily: "var(--font-mono)",
 			minHeight: "100%"
-		},
-		".cm-gutter": {
-			minHeight: "231px"
 		},
 		".cm-gutters": {
 			marginRight: "1px",
@@ -217,10 +252,21 @@
 </div>
 
 <style>
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		flex-flow: column;
+		margin: 0;
+		padding: 0;
+		height: 100%;
+	}
 	.codemirror-wrapper {
-		min-height: 250px;
-		max-height: 480px;
+		height: 100%;
 		overflow: auto;
+	}
+
+	:global(.cm-editor) {
+		height: 100%;
 	}
 
 	/* Dunno why this doesn't work through the theme API -- don't remove*/

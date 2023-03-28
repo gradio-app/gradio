@@ -5666,6 +5666,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         value: str | Tuple[str] | None = None,
         language: str | None = None,
         *,
+        lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
         show_label: bool = True,
@@ -5687,6 +5688,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         """
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
+        self.lines = lines
         IOComponent.__init__(
             self,
             label=label,
@@ -5703,6 +5705,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         return {
             "value": self.value,
             "language": self.language,
+            "lines": self.lines,
             **IOComponent.get_config(self),
         }
 

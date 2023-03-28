@@ -17,6 +17,7 @@
 
 	export let value: string = "";
 	export let language: string = "";
+	export let lines: int = 5;
 	export let target: HTMLElement;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -44,7 +45,7 @@
 		{:else}
 			<Widget {language} {value} />
 
-			<Code bind:value {language} {dark_mode} readonly />
+			<Code bind:value {language} {lines} {dark_mode} readonly />
 		{/if}
 	</Block>
 {:else}
@@ -53,7 +54,7 @@
 
 		<BlockLabel Icon={CodeIcon} {show_label} {label} />
 
-		<Code bind:value {language} {dark_mode} />
+		<Code bind:value {language} {lines} {dark_mode} />
 	</Block>
 {/if}
 
