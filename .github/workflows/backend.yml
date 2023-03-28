@@ -22,8 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: ../client/python
-        shell: bash
+        working-directory: client/python
     steps:
     - name: Cache python deps
       id: cache-python
@@ -53,6 +52,7 @@ jobs:
       run: |
         pip install -e .
     - name: Tests
+      shell: bash
       run: |
         bash scripts/ci.sh
   test:
