@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: client/python
+        working-directory: ./client/python
         shell: bash
     steps:
     - name: Cache python deps
