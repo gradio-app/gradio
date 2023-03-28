@@ -52,7 +52,7 @@ jobs:
     - name: Install Client
       run: |
         pip install -e .
-        pip install test/requirements.txt
+        pip install -r test/requirements.txt
     - name: Tests
       shell: bash
       run: |
