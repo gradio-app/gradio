@@ -614,6 +614,7 @@ class Blocks(BlockContext):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
+        theme = config.get("theme", "default")
         original_mapping: Dict[int, Block] = {}
 
         def get_block_instance(id: int) -> Block:
@@ -651,7 +652,7 @@ class Blocks(BlockContext):
 
         derived_fields = ["types"]
 
-        with Blocks() as blocks:
+        with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 

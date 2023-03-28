@@ -216,6 +216,7 @@ class TestLoadInterface:
         try:
             output = io("male", 77, 10)
             assert json.load(open(output))["label"] == "Perishes"
+            assert io.theme.name == "default"
         except TooManyRequestsError:
             pass
 
@@ -284,6 +285,7 @@ class TestLoadInterface:
         try:
             output = io("abc")
             assert output == "abc"
+            assert io.theme.name == "gradio/monochrome"
         except TooManyRequestsError:
             pass
 
