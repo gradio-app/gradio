@@ -108,20 +108,22 @@ class Client:
 
         return job
 
-    def usage(self, all_endpoints=True):
+    def usage(self, all_endpoints=True, print_usage=True) -> str | None:
         """
         Parameters:
             all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints.
+            print_usage: If True, prints the usage info to the console. If False, returns the usage info as a string.
         """
         named_endpoints: Dict[str, Dict[str, Dict[str, str]]] = {}
         unnamed_endpoints: Dict[int, Dict[str, Dict[str, str]]] = {}
         for endpoint in self.endpoints:
-            if endpoint.api_name:
-                named_endpoints[endpoint.api_name] = endpoint.get_info()
-            else:
-                unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
+            if endpoint.is_valid:
+                if endpoint.api_name:
+                    named_endpoints[endpoint.api_name] = endpoint.get_info()
+                else:
+                    unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
         
-        usage_info = f"Named endpoints: {len(named_endpoints)}\n"
+        usage_info = f"Usage Info\n----------\nNamed endpoints: {len(named_endpoints)}\n"
         for api_name, info in named_endpoints.items():
             parameters = ",".join(list(info["parameters"].keys()))
             if parameters:
@@ -129,7 +131,7 @@ class Client:
             returns = ",".join(list(info["returns"].keys()))
             if returns:
                 returns = f" -> {returns}"
-            usage_info += f"  Client().predict({parameters}api_name={api_name}){returns}\n"
+            usage_info += f"  Client().predict({parameters}api_name=\"{api_name}\"){returns}\n"
             if parameters:
                 usage_info += "    Parameters:\n"
                 for name, type in info["parameters"].items():
@@ -155,7 +157,10 @@ class Client:
                     usage_info += "    Returns:\n"
                     for name, type in info["returns"].items():
                         usage_info += f"      {name}: {type}\n"
-        return usage_info
+        if print_usage:
+            print(usage_info)
+        else:
+            return usage_info
     
     def __repr__(self):
         return self.usage()
@@ -231,14 +236,14 @@ class Endpoint:
     def get_info(self) -> Dict[str, Dict[str, str]]:
         parameters = {}
         for i, input in enumerate(self.dependency["inputs"]):
-            for component in self.dependency["components"]:
+            for component in self.config["components"]:
                 if component["id"] == input:
                     label = component["props"].get("label", f"parameter_{i}")
                     parameters[label] = self.serializers[i].get_input_type()
         
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
-            for component in self.dependency["components"]:
+            for component in self.config["components"]:
                 if component["id"] == output:
                     label = component["props"].get("label", f"parameter_{o}")
                     returns[label] = self.serializers[o].get_output_type()        
