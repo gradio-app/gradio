@@ -383,6 +383,8 @@ To test the application:
 - run on a terminal `python path/demo/run.py` which starts the backend at the address [http://localhost:7860](http://localhost:7860);
 - in another terminal, run `pnpm dev` to start the frontend at [http://localhost:9876](http://localhost:9876) with hot reload functionalities.
 
+**Note**: If you have more than one Gradio backend running and need to configure which backend the dev server will connect to, set the `GRADIO_SERVER_PORT` environment variable when running the frontend and backend. That will configure the backend to listen on the port and the Vite dev server to connect on that port (the default is 7860).
+
 ## Conclusion
 
 In this guide, we have shown how simple it is to add a new component to Gradio, seeing step by step how the ColorPicker component was added. For further details, you can refer to PR: [#1695](https://github.com/gradio-app/gradio/pull/1695).
