@@ -16,7 +16,7 @@
 	export let choices: Array<string>;
 	export let show_label: boolean;
 	export let show_clear_button: boolean = false;
-	export let default_value: string | undefined;
+	export let cleared_value: string | undefined;
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
 
@@ -26,8 +26,8 @@
 		if (multiselect) {
 			value = [];
 		} else {
-			value = default_value || "";
-		}
+			value = cleared_value || "";
+        }
 	}
 </script>
 
@@ -48,7 +48,7 @@
 		{info}
 		{show_label}
 		{show_clear_button}
-		{default_value}
+		{cleared_value}
 		on:change
 		on:select
 		disabled={mode === "static"}

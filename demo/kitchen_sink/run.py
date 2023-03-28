@@ -98,7 +98,7 @@ demo = gr.Interface(
         gr.CheckboxGroup(label="CheckboxGroup", choices=CHOICES, value=CHOICES[0:2]),
         gr.Radio(label="Radio", choices=CHOICES, value=CHOICES[2]),
         gr.Dropdown(label="Dropdown", choices=CHOICES),
-        gr.Dropdown(label="Dropdown w/ Default Value", choices=CHOICES, default_value="foo"),
+        gr.Dropdown(label="Dropdown w/ Default Value", choices=CHOICES, cleared_value="foo"),
         gr.Dropdown(label="Multiselect Dropdown (Max choice: 2)", choices=CHOICES, multiselect=True, max_choices=2),
         gr.Image(label="Image"),
         gr.Image(label="Image w/ Cropper", tool="select"),

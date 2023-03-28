@@ -1395,7 +1395,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         every: float | None = None,
         show_label: bool = True,
         show_clear_button: bool | None = None,
-        default_value: str | None = None,
+        cleared_value: str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -1434,21 +1434,15 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
 
-        self.default_value = default_value
+        self.cleared_value = cleared_value
         if show_clear_button is None:
-            self.show_clear_button = self.multiselect or self.default_value
+            self.show_clear_button = self.multiselect or self.cleared_value
         else:
             self.show_clear_button = show_clear_button
 
-        if self.show_clear_button and not self.multiselect and not self.default_value:
+        if self.multiselect and self.cleared_value:
             warnings.warn(
-                "No `default_value` parameter provided with `multiselect` False, defaulting to an empty string."
-            )
-            self.default_value = ""
-
-        if self.multiselect and self.default_value:
-            warnings.warn(
-                "The `default_value` parameter is ignored when `multiselect` is False."
+                "The `cleared_value` parameter is ignored when `multiselect` is False."
             )
 
         self.max_choices = max_choices
@@ -1474,7 +1468,15 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             **kwargs,
         )
 
-        self.cleared_value = self.value or ([] if multiselect else "")
+        if not self.cleared_value:
+            if multiselect:
+                self.cleared_value = []
+            else:
+                self.cleared_value = self.value or ""
+                if self.show_clear_button:
+                    warnings.warn(
+                        f"No `cleared_value` parameter provided with `multiselect` False, defaulting to '{self.cleared_value}'"
+                    )
 
     def get_config(self):
         return {
@@ -1483,7 +1485,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
             "show_clear_button": self.show_clear_button,
-            "default_value": self.default_value,
+            "cleared_value": self.cleared_value,
             **IOComponent.get_config(self),
         }
 
@@ -1500,7 +1502,6 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "choices": choices,
             "label": label,
             "show_label": show_label,
-            "interactive": interactive,
             "visible": visible,
             "value": value,
             "interactive": interactive,

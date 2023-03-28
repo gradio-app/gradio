@@ -13,7 +13,7 @@
 	export let disabled: boolean = false;
 	export let show_label: boolean;
 	export let show_clear_button: boolean = false;
-	export let default_value: string | undefined;
+	export let cleared_value: string | undefined;
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
@@ -74,8 +74,8 @@
 		if (multiselect) {
 			value = [];
 		} else {
-			value = default_value || "";
-		}
+			value = cleared_value || "";
+        }
 
 		inputValue = "";
 		e.preventDefault();
@@ -173,7 +173,7 @@
 				/>
 				<div
 					class:hide={!show_clear_button ||
-						(default_value && value === default_value) ||
+						(cleared_value && value === cleared_value) ||
 						(multiselect && (value?.length ?? 0) === 0) ||
 						disabled}
 					class="token-remove remove-all"

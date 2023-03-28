@@ -577,7 +577,7 @@ class TestDropdown:
             "multiselect": None,
             "max_choices": None,
             "show_clear_button": None,
-            "default_value": None,
+            "cleared_value": "a",
         }
         assert dropdown_input.preprocess("a") == "a"
         assert dropdown_input.postprocess("a") == "a"
@@ -609,7 +609,7 @@ class TestDropdown:
             "multiselect": True,
             "max_choices": 2,
             "show_clear_button": True,
-            "default_value": None,
+            "cleared_value": [],
         }
         with pytest.raises(ValueError):
             gr.Dropdown(["a"], type="unknown")
