@@ -5367,7 +5367,7 @@ class BarPlot(Plot):
         width: int | None = None,
         y_lim: List[int] | None = None,
         caption: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
         label: str | None = None,
         show_label: bool = True,
         visible: bool = True,
@@ -5729,7 +5729,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         show_label: bool | None = None,
         visible: bool | None = None,
         language: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
     ):
         return {
             "label": label,
