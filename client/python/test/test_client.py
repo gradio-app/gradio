@@ -46,6 +46,17 @@ class TestPredictionsFromSpaces:
             s.status for s in statuses if s
         ]
 
+    @pytest.mark.flaky
+    def test_job_status_queue_disabled(self):
+        statuses = []
+        client = Client(space="freddyaboulton/sentiment-classification")
+        job = client.predict("I love the gradio python client")
+        while not job.done():
+            time.sleep(0.02)
+            statuses.append(job.status())
+        statuses.append(job.status())
+        assert all(s.status in [Status.ITERATING, Status.FINISHED] for s in statuses)
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
