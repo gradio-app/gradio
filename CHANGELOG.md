@@ -29,6 +29,7 @@
 
 - Removed heavily-mocked tests related to comet_ml, wandb, and mlflow as they added a significant amount of test dependencies that prevented installation of test dependencies on Windows environemnts. By [@abidlabs](https://github.com/abidlabs) in [PR 3608](https://github.com/gradio-app/gradio/pull/3608)
 - Added Windows continuous integration, by [@space-nuko](https://github.com/space-nuko) in [PR 3628](https://github.com/gradio-app/gradio/pull/3628)
+- Make frontend development server port/address configurable, by [@space-nuko](https://github.com/space-nuko) in [PR 3668](https://github.com/gradio-app/gradio/pull/3668)
 
 ## Breaking Changes:
 
