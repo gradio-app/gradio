@@ -57,6 +57,7 @@ css = """
 }
 #controls {
     max-height: 100vh;
+    flex-wrap: unset;
     overflow-y: scroll;
     position: sticky;
     top: 0;    
@@ -76,6 +77,11 @@ css = """
 with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls", min_width=400):
+            with gr.Row():
+                undo_btn = gr.Button("Undo").style(size="sm")
+                dark_mode_btn = gr.Button("Dark Mode", variant="primary").style(
+                    size="sm"
+                )
             with gr.Tabs():
                 with gr.TabItem("Source Theme"):
                     gr.Markdown(
@@ -227,7 +233,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     "gap": [f"*spacing_{i}" for i in size_range],
                     "weight": ["300", "normal", "600", "bold"],
                     "shadow": ["none"],
-                    "border_width": []
+                    "border_width": [],
                 }
                 for variable in flat_variables:
                     if variable.endswith("_dark"):
@@ -282,21 +288,11 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                 )
                 with gr.Accordion("View Code", open=False):
                     output_code = gr.Code(language="python")
-                with gr.Row():
-                    hf_hub_token = gr.Textbox(
-                        placeholder="Hugging Face Hub Token", show_label=False
-                    ).style(container=False)
-                    upload_to_hub_btn = gr.Button("Upload to Hub")
-                    dark_mode = gr.Button("Dark Mode", variant="primary")
-
-                    dark_mode.click(
-                        None,
-                        None,
-                        None,
-                        _js="""() => {
-                        document.body.classList.toggle('dark')
-                    }""",
-                    )
+                with gr.Accordion("Upload to Hub", open=False):
+                    with gr.Row():
+                        hf_hub_token = gr.Textbox(label="Hugging Face Hub Token")
+                        version_number = gr.Textbox(label="Version Number")
+                        upload_to_hub_btn = gr.Button("Upload to Hub")
 
                 gr.Markdown("Below this panel is a dummy app to demo your theme.")
 
@@ -558,8 +554,6 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                 + var_output
             )
 
-        demo.load(load_theme, base_theme_dropdown, theme_inputs)
-
         def generate_theme_code(base_theme, final_theme, core_variables):
             base_theme_name = base_theme
             base_theme = [theme for theme in themes if theme.__name__ == base_theme][
@@ -575,23 +569,17 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
             radius_size = parameters["radius_size"].default
 
             core_diffs = {}
-            for value_name, base_value, class_name, final_value in zip(
-                [
-                    "primary_hue",
-                    "secondary_hue",
-                    "neutral_hue",
-                    "text_size",
-                    "spacing_size",
-                    "radius_size",
-                ],
-                [
-                    "Color",
-                    "Color",
-                    "Color",
-                    "Size",
-                    "Size",
-                    "Size",
-                ],
+            specific_core_diffs = {}
+            core_var_names = [
+                "primary_hue",
+                "secondary_hue",
+                "neutral_hue",
+                "text_size",
+                "spacing_size",
+                "radius_size",
+            ]
+            for value_name, base_value, source_class, final_value in zip(
+                core_var_names,
                 [
                     primary_hue,
                     secondary_hue,
@@ -600,18 +588,52 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     spacing_size,
                     radius_size,
                 ],
+                [
+                    gr.themes.Color,
+                    gr.themes.Color,
+                    gr.themes.Color,
+                    gr.themes.Size,
+                    gr.themes.Size,
+                    gr.themes.Size,
+                ],
                 core_variables,
             ):
                 if base_value.name != final_value:
                     core_diffs[value_name] = final_value
+                source_obj = [
+                    obj for obj in source_class.all if obj.name == final_value
+                ][0]
+                final_attr_values = {}
+                diff = False
+                for attr in dir(source_obj):
+                    if attr in ["all", "name"] or attr.startswith("_"):
+                        continue
+                    final_theme_attr = (
+                        value_name.split("_")[0]
+                        + "_"
+                        + (attr[1:] if source_class == gr.themes.Color else attr)
+                    )
+                    final_attr_values[final_theme_attr] = getattr(
+                        final_theme, final_theme_attr
+                    )
+                    if getattr(source_obj, attr) != final_attr_values[final_theme_attr]:
+                        diff = True
+                if diff:
+                    specific_core_diffs[value_name] = (source_class, final_attr_values)
 
             newline = "\n"
 
             core_diffs_code = ""
-            if len(core_diffs) > 0:
-                core_diffs_code = f"""
-    {(',' + newline + "    ").join([f"{k}='{v}'" for k, v in core_diffs.items()])}
-"""
+            if len(core_diffs) + len(specific_core_diffs) > 0:
+                core_diffs_code = "\n"
+                for var_name in core_var_names:
+                    if var_name in specific_core_diffs:
+                        cls, vals = specific_core_diffs[var_name]
+                        core_diffs_code += f"""    {var_name}=gr.themes.{cls.__name__}({', '.join(f'''{k}="{v}"''' for k, v in vals.items())}),\n"""
+                    elif var_name in core_diffs:
+                        core_diffs_code += (
+                            f"""    {var_name}="{core_diffs[var_name]}",\n"""
+                        )
 
             var_diffs = {}
             for variable in flat_variables:
@@ -639,7 +661,9 @@ with gr.Blocks(theme=theme) as demo:
     ..."""
             return output
 
-        def render_variables(base_theme, *args):
+        history = gr.State([])
+
+        def render_variables(history, base_theme, *args):
             primary_hue, secondary_hue, neutral_hue = args[0:3]
             primary_hues = args[3 : 3 + len(palette_range)]
             secondary_hues = args[3 + len(palette_range) : 3 + 2 * len(palette_range)]
@@ -743,6 +767,7 @@ with gr.Blocks(theme=theme) as demo:
                 **{attr: val for attr, val in zip(flat_variables, remaining_args)}
             )
             return (
+                history + [(base_theme, args)],
                 theme._get_theme_css(),
                 theme._stylesheets,
                 generate_theme_code(
@@ -762,8 +787,8 @@ with gr.Blocks(theme=theme) as demo:
         def attach_rerender(evt_listener):
             evt_listener(
                 render_variables,
-                [base_theme_dropdown] + theme_inputs,
-                [secret_css, secret_font, output_code],
+                [history, base_theme_dropdown] + theme_inputs,
+                [history, secret_css, secret_font, output_code],
             ).then(
                 None,
                 [secret_css, secret_font],
@@ -824,6 +849,30 @@ with gr.Blocks(theme=theme) as demo:
             attach_rerender(theme_box.select)
         for checkbox in main_is_google + mono_is_google:
             attach_rerender(checkbox.select)
+
+        dark_mode_btn.click(
+            None,
+            None,
+            None,
+            _js="""() => {
+            document.body.classList.toggle('dark')
+        }""",
+        )
+
+        def undo(history_var):
+            if len(history_var) == 0:
+                return [], gr.skip(), gr.skip()
+            else:
+                history_var.pop()
+                old = history_var.pop()
+                return history_var, old[0], *old[1]
+
+        attach_rerender(
+            undo_btn.click(
+                undo, [history], [history, base_theme_dropdown] + theme_inputs
+            ).then
+        )
+
 
 if __name__ == "__main__":
     demo.launch()
