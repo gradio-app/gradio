@@ -8,18 +8,17 @@ import threading
 import uuid
 from concurrent.futures import Future
 from datetime import datetime
-from queue import LifoQueue
+from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
 import huggingface_hub
 import requests
 import websockets
+from gradio_client import serializing, utils
+from gradio_client.utils import Status, StatusUpdate, JobStatus, Communicator
+from gradio_client.serializing import Serializable
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
-
-from gradio_client import serializing, utils
-from gradio_client.serializing import Serializable
-from .utils import Status, StatusUpdate
 
 
 class Client:
@@ -74,12 +73,13 @@ class Client:
         if api_name:
             fn_index = self._infer_fn_index(api_name)
 
-        queue = None
+        helper = None
         if self.endpoints[fn_index].use_ws:
-            queue = LifoQueue()
-        end_to_end_fn = self.endpoints[fn_index].make_end_to_end_fn(queue)
+            helper = Communicator(Lock(), JobStatus())
+        end_to_end_fn = self.endpoints[fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
-        job = Job(future, queue=queue)
+
+        job = Job(future, communicator=helper)
 
         if result_callbacks:
             if isinstance(result_callbacks, Callable):
@@ -163,9 +163,9 @@ class Endpoint:
         except AssertionError:
             self.is_valid = False
 
-    def make_end_to_end_fn(self, queue: LifoQueue | None = None):
+    def make_end_to_end_fn(self, helper: Communicator | None = None):
 
-        _predict = self.make_predict(queue)
+        _predict = self.make_predict(helper)
 
         def _inner(*data):
             if not self.is_valid:
@@ -179,7 +179,7 @@ class Endpoint:
 
         return _inner
 
-    def make_predict(self, queue: LifoQueue | None = None):
+    def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> Tuple:
             data = json.dumps({"data": data, "fn_index": self.fn_index})
             hash_data = json.dumps(
@@ -187,7 +187,7 @@ class Endpoint:
             )
             if self.use_ws:
                 result = utils.synchronize_async(
-                    self._ws_fn, data, hash_data, queue=queue
+                    self._ws_fn, data, hash_data, helper
                 )
                 output = result["data"]
             else:
@@ -281,53 +281,45 @@ class Endpoint:
         dependency_uses_queue = dependency.get("queue", False) is not False
         return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
-    async def _ws_fn(self, data, hash_data, queue: LifoQueue):
+    async def _ws_fn(self, data, hash_data, helper: Communicator) :
         async with websockets.connect(  # type: ignore
             self.ws_url, open_timeout=10, extra_headers=self.headers
         ) as websocket:
-            return await utils.get_pred_from_ws(websocket, data, hash_data, queue)
+            return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
 
 class Job(Future):
     """A Job is a thin wrapper over the Future class that can be cancelled."""
 
-    def __init__(self, future: Future, queue: LifoQueue | None = None):
+    def __init__(self, future: Future, communicator: Communicator | None = None):
         self.future = future
-        self.queue = queue
-        self._status: StatusUpdate = StatusUpdate(
-            Status.STARTING,
-            rank=None,
-            queue_size=None,
-            success=None,
-            time=datetime.now(),
-        )
+        self.communicator = communicator
 
     def status(self) -> StatusUpdate:
-        if not self.queue:
+        if not self.communicator:
             time = datetime.now()
             if self.done():
                 return StatusUpdate(
-                    status=Status.FINISHED,
+                    code=Status.FINISHED,
                     rank=0,
                     queue_size=None,
                     success=None,
                     time=time,
+                    eta=None,
                 )
             else:
                 return StatusUpdate(
-                    status=Status.ITERATING,
+                    code=Status.ITERATING,
                     rank=0,
                     queue_size=None,
                     success=None,
                     time=time,
+                    eta=None,
                 )
-        elif self.queue.qsize():
-            next_status: StatusUpdate = self.queue.get_nowait()
-            if self._status.status == Status.STARTING:
-                self._status = next_status
-            elif next_status.time > self._status.time:
-                self._status = next_status
-        return self._status
+        else:
+            with self.communicator.lock:
+                return self.communicator.job.latest_status
+
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""

@@ -7,12 +7,12 @@ import os
 import pkgutil
 import shutil
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from queue import Queue
-from typing import Any, Callable, Dict, Tuple
+from threading import Lock
+from typing import Any, Callable, Dict, Tuple, List
 
 import fsspec.asyn
 import requests
@@ -84,11 +84,35 @@ class Status(Enum):
 
 @dataclass
 class StatusUpdate:
-    status: Status
+    """Update message sent from the worker thread to the Job on the main thread."""
+    code: Status
     rank: int | None
     queue_size: int | None
+    eta: int | None
     success: bool | None
-    time: datetime
+    time: datetime | None
+
+
+def create_initial_status_update():
+    return StatusUpdate(code=Status.STARTING,
+                        rank=None, queue_size=None, eta=None,
+                        success=None, time=None)
+
+@dataclass
+class JobStatus:
+    """The job status. 
+    
+    Keeps strack of the latest status update and intermediate outputs (not yet implements).
+    """
+    latest_status: StatusUpdate = field(default_factory=create_initial_status_update)
+    outputs: List = field(default_factory=list)
+
+@dataclass
+class Communicator:
+    """Helper class to help communicate between the worker thread and main thread."""
+    lock: Lock
+    job: JobStatus
+
 
 
 ########################
@@ -111,22 +135,24 @@ async def get_pred_from_ws(
     websocket: WebSocketCommonProtocol,
     data: str,
     hash_data: str,
-    queue: Queue | None = None,
+    helper: Communicator | None,
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
         msg = await websocket.recv()
         resp = json.loads(msg)
-        if queue:
-            status_update = StatusUpdate(
-                status=Status.msg_to_status(resp["msg"]),
-                queue_size=resp.get("queue_size"),
-                rank=resp.get("rank", None),
-                success=resp.get("success"),
-                time=datetime.now(),
-            )
-            queue.put_nowait(status_update)
+        if helper:
+            with helper.lock:
+                status_update = StatusUpdate(
+                    code=Status.msg_to_status(resp["msg"]),
+                    queue_size=resp.get("queue_size"),
+                    rank=resp.get("rank", None),
+                    success=resp.get("success"),
+                    time=datetime.now(),
+                    eta=resp.get("rank_eta")
+                )
+                helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":

@@ -66,42 +66,42 @@ class TestStatusUpdates:
 
         messages = [
             StatusUpdate(
-                status=Status.STARTING,
+                code=Status.STARTING,
                 rank=None,
                 success=None,
                 queue_size=None,
                 time=now,
             ),
             StatusUpdate(
-                status=Status.SENDING_DATA,
+                code=Status.SENDING_DATA,
                 rank=None,
                 success=None,
                 queue_size=None,
                 time=now + timedelta(seconds=1),
             ),
             StatusUpdate(
-                status=Status.IN_QUEUE,
+                code=Status.IN_QUEUE,
                 rank=2,
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
             ),
             StatusUpdate(
-                status=Status.IN_QUEUE,
+                code=Status.IN_QUEUE,
                 rank=1,
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
             ),
             StatusUpdate(
-                status=Status.ITERATING,
+                code=Status.ITERATING,
                 rank=None,
                 queue_size=None,
                 success=None,
                 time=now + timedelta(seconds=3),
             ),
             StatusUpdate(
-                status=Status.FINISHED,
+                code=Status.FINISHED,
                 rank=None,
                 queue_size=None,
                 success=True,
