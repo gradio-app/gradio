@@ -114,60 +114,61 @@ class Client:
             all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints.
             print_usage: If True, prints the usage info to the console. If False, returns the usage info as a string.
         """
-        named_endpoints: Dict[str, Dict[str, Dict[str, str]]] = {}
-        unnamed_endpoints: Dict[int, Dict[str, Dict[str, str]]] = {}
+        named_endpoints: Dict[str, Dict[str, Dict[str, Tuple[str, str]]]] = {}
+        unnamed_endpoints: Dict[int, Dict[str, Dict[str, Tuple[str, str]]]] = {}
         for endpoint in self.endpoints:
             if endpoint.is_valid:
                 if endpoint.api_name:
                     named_endpoints[endpoint.api_name] = endpoint.get_info()
                 else:
                     unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
-        
-        usage_info = f"Usage Info\n----------\nNamed endpoints: {len(named_endpoints)}\n"
-        for api_name, info in named_endpoints.items():
+
+        usage_info = f"Client.predict() Usage Info\n---------------------------\nNamed endpoints: {len(named_endpoints)}\n"
+        usage_info += self._render_endpoints_info(
+            named_endpoints, label_format='api_name="{}"'
+        )
+        if unnamed_endpoints and all_endpoints:
+            usage_info += f"\nUnnamed endpoints: {len(unnamed_endpoints)}\n"
+            usage_info += self._render_endpoints_info(
+                unnamed_endpoints, label_format="fn_index={}"
+            )
+        if print_usage:
+            print(usage_info)
+        else:
+            return usage_info
+
+    def _render_endpoints_info(
+        self,
+        endpoints_info: Dict[Any, Dict[str, Dict[str, Tuple[str, str]]]],
+        label_format: str,
+    ) -> str:
+        usage_info = ""
+        for label, info in endpoints_info.items():
             parameters = ",".join(list(info["parameters"].keys()))
             if parameters:
                 parameters = f"{parameters}, "
             returns = ",".join(list(info["returns"].keys()))
             if returns:
                 returns = f" -> {returns}"
-            usage_info += f"  Client().predict({parameters}api_name=\"{api_name}\"){returns}\n"
+            usage_info += (
+                f" - predict({parameters}{label_format.format(label)}){returns}\n"
+            )
             if parameters:
                 usage_info += "    Parameters:\n"
                 for name, type in info["parameters"].items():
-                    usage_info += f"      {name}: {type}\n"
+                    usage_info += f"     - [{type[1]}] {name}: {type[0]}\n"
             if returns:
                 usage_info += "    Returns:\n"
                 for name, type in info["returns"].items():
-                    usage_info += f"      {name}: {type}\n"
-        if unnamed_endpoints and all_endpoints:
-            for fn_index, info in unnamed_endpoints.items():
-                parameters = ",".join(list(info["parameters"].keys()))
-                if parameters:
-                    parameters = f"{parameters}, "
-                returns = ",".join(list(info["returns"].keys()))
-                if returns:
-                    returns = f" -> {returns}"
-                usage_info += f"  Client().predict({parameters}fn_index={fn_index}){returns}\n"
-                if parameters:
-                    usage_info += "    Parameters:\n"
-                    for name, type in info["parameters"].items():
-                        usage_info += f"      {name}: {type}\n"
-                if returns:
-                    usage_info += "    Returns:\n"
-                    for name, type in info["returns"].items():
-                        usage_info += f"      {name}: {type}\n"
-        if print_usage:
-            print(usage_info)
-        else:
-            return usage_info
-    
+                    usage_info += f"     - [{type[1]}] {name}: {type[0]}\n"
+        return usage_info
+
     def __repr__(self):
         return self.usage()
-    
+
     def __str__(self):
         return self.usage()
-    
+
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         data = {
@@ -233,21 +234,27 @@ class Endpoint:
         except AssertionError:
             self.is_valid = False
 
-    def get_info(self) -> Dict[str, Dict[str, str]]:
+    def get_info(self) -> Dict[str, Dict[str, Tuple[str, str]]]:
         parameters = {}
         for i, input in enumerate(self.dependency["inputs"]):
             for component in self.config["components"]:
                 if component["id"] == input:
-                    label = component["props"].get("label", f"parameter_{i}")
-                    parameters[label] = self.serializers[i].get_input_type()
-        
+                    label = component["props"].get("label", f"parameter_{i}").lower()
+                    parameters[label] = (
+                        self.serializers[i].get_input_type(),
+                        component.get("type", "component").capitalize(),
+                    )
+
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.config["components"]:
                 if component["id"] == output:
-                    label = component["props"].get("label", f"parameter_{o}")
-                    returns[label] = self.serializers[o].get_output_type()        
-                    
+                    label = component["props"].get("label", f"parameter_{o}").lower()
+                    returns[label] = (
+                        self.deserializers[o].get_output_type(),
+                        component.get("type", "component").capitalize(),
+                    )
+
         return {"parameters": parameters, "returns": returns}
 
     def end_to_end_fn(self, *data):
