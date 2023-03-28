@@ -113,7 +113,56 @@ class Client:
         Parameters:
             all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints.
         """
-
+        named_endpoints: Dict[str, Dict[str, Dict[str, str]]] = {}
+        unnamed_endpoints: Dict[int, Dict[str, Dict[str, str]]] = {}
+        for endpoint in self.endpoints:
+            if endpoint.api_name:
+                named_endpoints[endpoint.api_name] = endpoint.get_info()
+            else:
+                unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
+        
+        usage_info = f"Named endpoints: {len(named_endpoints)}\n"
+        for api_name, info in named_endpoints.items():
+            parameters = ",".join(list(info["parameters"].keys()))
+            if parameters:
+                parameters = f"{parameters}, "
+            returns = ",".join(list(info["returns"].keys()))
+            if returns:
+                returns = f" -> {returns}"
+            usage_info += f"  Client().predict({parameters}api_name={api_name}){returns}\n"
+            if parameters:
+                usage_info += "    Parameters:\n"
+                for name, type in info["parameters"].items():
+                    usage_info += f"      {name}: {type}\n"
+            if returns:
+                usage_info += "    Returns:\n"
+                for name, type in info["returns"].items():
+                    usage_info += f"      {name}: {type}\n"
+        if unnamed_endpoints and all_endpoints:
+            for fn_index, info in unnamed_endpoints.items():
+                parameters = ",".join(list(info["parameters"].keys()))
+                if parameters:
+                    parameters = f"{parameters}, "
+                returns = ",".join(list(info["returns"].keys()))
+                if returns:
+                    returns = f" -> {returns}"
+                usage_info += f"  Client().predict({parameters}fn_index={fn_index}){returns}\n"
+                if parameters:
+                    usage_info += "    Parameters:\n"
+                    for name, type in info["parameters"].items():
+                        usage_info += f"      {name}: {type}\n"
+                if returns:
+                    usage_info += "    Returns:\n"
+                    for name, type in info["returns"].items():
+                        usage_info += f"      {name}: {type}\n"
+        return usage_info
+    
+    def __repr__(self):
+        return self.usage()
+    
+    def __str__(self):
+        return self.usage()
+    
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         data = {
@@ -166,6 +215,7 @@ class Endpoint:
         self.ws_url = client.ws_url
         self.fn_index = fn_index
         self.dependency = dependency
+        self.api_name: str | None = dependency.get("api_name")
         self.headers = client.headers
         self.config = client.config
         self.use_ws = self._use_websocket(self.dependency)
@@ -174,19 +224,26 @@ class Endpoint:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
                 "backend_fn"
-            ]  # Only a real API endpoint if backend_fn is True
+            ]  # Only a real API endpoint if backend_fn is True and serializers are valid
         except AssertionError:
             self.is_valid = False
 
-    def get_info(self):
+    def get_info(self) -> Dict[str, Dict[str, str]]:
         parameters = {}
-        returns = {}
         for i, input in enumerate(self.dependency["inputs"]):
             for component in self.dependency["components"]:
                 if component["id"] == input:
                     label = component["props"].get("label", f"parameter_{i}")
-
-        return
+                    parameters[label] = self.serializers[i].get_input_type()
+        
+        returns = {}
+        for o, output in enumerate(self.dependency["outputs"]):
+            for component in self.dependency["components"]:
+                if component["id"] == output:
+                    label = component["props"].get("label", f"parameter_{o}")
+                    returns[label] = self.serializers[o].get_output_type()        
+                    
+        return {"parameters": parameters, "returns": returns}
 
     def end_to_end_fn(self, *data):
         if not self.is_valid:
