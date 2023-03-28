@@ -34,9 +34,9 @@ export default defineConfig(({ mode }) => {
 		mode === "production:local" ||
 		mode === "production:website";
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
-    const env = loadEnv(mode, process.cwd(), '');
-    const server_port = env.GRADIO_SERVER_PORT || "7860";
-    const server_name = env.GRADIO_SERVER_NAME || "127.0.0.1";
+	const env = loadEnv(mode, process.cwd(), "");
+	const server_port = env.GRADIO_SERVER_PORT || "7860";
+	const server_name = env.GRADIO_SERVER_NAME || "127.0.0.1";
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
