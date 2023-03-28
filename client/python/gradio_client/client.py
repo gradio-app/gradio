@@ -27,6 +27,11 @@ class Client:
         max_workers: int = 40,
     ):
         """
+        Parameters:
+            space: The name of the Space to load, e.g. "abidlabs/pictionary". If it is a private Space, you must provide an hf_token. app. Either `space` or `src` must be provided. 
+            src: The full URL of the hosted Gradio app to load, e.g. "https://mydomain.com/app" or the shareable link to a Gradio app, e.g. "https://bec81a83-5b5c-471e.gradio.live/". Either `space` or `src` must be provided. 
+            hf_token: The Hugging Face token to use to access private Spaces. If not provided, only public Spaces can be loaded.
+            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         """
         self.hf_token = hf_token
         self.headers = build_hf_headers(
@@ -69,6 +74,15 @@ class Client:
         fn_index: int = 0,
         result_callbacks: Callable | List[Callable] | None = None,
     ) -> Future:
+        """
+        Parameters:
+            *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            api_name: The name of the API endpoint to call. If not provided, the first API will be called. Takes precedence over fn_index.
+            fn_index: The index of the API endpoint to call. If not provided, the first API will be called.
+            result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
+        Returns:
+            A Job object that can be used to retrieve the status and result of the remote API call.
+        """
         if api_name:
             fn_index = self._infer_fn_index(api_name)
 
