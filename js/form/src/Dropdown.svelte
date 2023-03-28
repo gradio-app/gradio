@@ -75,7 +75,7 @@
 			value = [];
 		} else {
 			value = cleared_value || "";
-        }
+		}
 
 		inputValue = "";
 		e.preventDefault();

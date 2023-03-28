@@ -27,7 +27,7 @@
 			value = [];
 		} else {
 			value = cleared_value || "";
-        }
+		}
 	}
 </script>
 
