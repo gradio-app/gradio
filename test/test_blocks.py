@@ -1428,20 +1428,23 @@ class TestAddRequests:
 
     def test_default_args_with_progress(self):
         pr = gr.Progress()
-        pr2 = gr.Progress()
 
         def moo(a, b, c=42, pr=pr):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
         assert inputs_ == inputs + [42, pr]
         assert progress_index == 3
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
         assert inputs_ == inputs + [pr]
         assert progress_index == 3
 
@@ -1450,10 +1453,11 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
         assert inputs_ == inputs + [pr, 42]
         assert progress_index == 2
-
 
 
 def test_queue_enabled_for_fn():
