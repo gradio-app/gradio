@@ -21,11 +21,11 @@ import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
-from gradio.events import SelectData
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -1468,9 +1468,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(
-            moo, copy.deepcopy(inputs), request
-        )[0]
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, 42]
 
         def moo(a, b, req: gr.Request, c=42, pr=pr):
