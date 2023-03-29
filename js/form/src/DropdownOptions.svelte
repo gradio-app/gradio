@@ -33,10 +33,10 @@
 
 	const dispatch = createEventDispatcher();
 
-    function isSelected(choice) {
-        let arr = Array.isArray(value) ? value : [value];
-        return arr.includes(choice)
-    }
+	function isSelected(choice) {
+		let arr = Array.isArray(value) ? value : [value];
+		return arr.includes(choice);
+	}
 </script>
 
 <div class="reference" bind:this={refElement} />
@@ -61,10 +61,7 @@
 				data-value={choice}
 				aria-label={choice}
 			>
-				<span
-					class:hide={!isSelected(choice)}
-					class="inner-item pr-1"
-				>
+				<span class:hide={!isSelected(choice)} class="inner-item pr-1">
 					✓
 				</span>
 				{choice}
