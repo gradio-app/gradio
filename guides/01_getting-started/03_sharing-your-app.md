@@ -122,7 +122,11 @@ You'll also need to add a fixed `height` manually as well as other regular ifram
 
 $demo_hello_world
 
-See the "view api" link in footer of the app above? This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
+If you click and open the space above, you'll see a "Use via API" link in the footer of the app. 
+
+![Use via API](/assets/guides/use_via_api.png)
+
+This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
 
 ```python
 btn.click(add, [num1, num2], output, api_name="addition")
