@@ -23,8 +23,8 @@ import type { Config } from "./types";
 type event = <K extends EventType>(
 	eventType: K,
 	listener: EventListener<K>
-) => ReturnType<predict>;
-type predict = (endpoint: string, payload: Payload) => {};
+) => client_return;
+type predict = (endpoint: string, payload: Payload) => Promise<unknown>;
 
 type client_return = {
 	predict: predict;
@@ -86,10 +86,14 @@ export async function client(
 			cancel
 		};
 
-		if (!("WebSocket" in window) || window.WebSocket.CLOSING !== 2) {
+		if (
+			typeof window === "undefined" ||
+			!("WebSocket" in window) ||
+			window.WebSocket.CLOSING !== 2
+		) {
 			const ws = await import("ws");
 			//@ts-ignore
-			global.WebSocket = ws;
+			global.WebSocket = ws.WebSocket;
 		}
 
 		const listener_map: ListenerMap<EventType> = {};
@@ -156,7 +160,6 @@ export async function client(
 			if (space_status_callback) space_status_callback(status);
 			if (status.status === "running")
 				try {
-					console.log(host);
 					config = await resolve_config(`${http_protocol}//${host}`);
 					res(config_success(config));
 				} catch (e) {
@@ -198,8 +201,8 @@ export async function client(
 					typeof payload.fn_index === "number"
 						? payload.fn_index
 						: api_map[trimmed_endpoint];
-
 				if (skip_queue(fn_index, config)) {
+					console.log("SKIP");
 					fire_event({
 						type: "status",
 						endpoint,
@@ -352,14 +355,18 @@ export async function client(
 
 function skip_queue(id: number, config: Config) {
 	return (
-		!(config?.dependencies?.[id].queue === null
+		!(config?.dependencies?.[id]?.queue === null
 			? config.enable_queue
-			: config?.dependencies?.[id].queue) || false
+			: config?.dependencies?.[id]?.queue) || false
 	);
 }
 
 async function resolve_config(endpoint?: string): Promise<Config> {
-	if (window.gradio_config && location.origin !== "http://localhost:9876") {
+	if (
+		typeof window !== "undefined" &&
+		window.gradio_config &&
+		location.origin !== "http://localhost:9876"
+	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;
 		config.root = endpoint + config.root;

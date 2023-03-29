@@ -13,6 +13,7 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
+		"vite": "^4.2.1",
 		"ws": "^8.13.0"
 	},
 	"devDependencies": {
@@ -20,7 +21,7 @@
 		"esbuild": "^0.17.14"
 	},
 	"scripts": {
-		"bundle": "esbuild src/index.ts --bundle --splitting --outdir=dist --format=esm --platform=node --minify",
+		"bundle": "vite build --ssr",
 		"generate_types": "tsc",
 		"build": "pnpm bundle && pnpm generate_types"
 	},
