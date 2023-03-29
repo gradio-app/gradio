@@ -33,12 +33,16 @@ from fastapi import UploadFile
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.serializing import (
+    BooleanSerializable,
     FileSerializable,
     GallerySerializable,
     ImgSerializable,
     JSONSerializable,
+    ListStringSerializable,
+    NumberSerializable,
     Serializable,
     SimpleSerializable,
+    StringSerializable,
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
@@ -367,7 +371,7 @@ class Textbox(
     Submittable,
     Blurrable,
     IOComponent,
-    SimpleSerializable,
+    StringSerializable,
     TokenInterpretable,
 ):
     """
@@ -584,7 +588,7 @@ class Number(
     Submittable,
     Blurrable,
     IOComponent,
-    SimpleSerializable,
+    NumberSerializable,
     NeighborInterpretable,
 ):
     """
@@ -764,7 +768,7 @@ class Slider(
     Changeable,
     Releaseable,
     IOComponent,
-    SimpleSerializable,
+    NumberSerializable,
     NeighborInterpretable,
 ):
     """
@@ -837,6 +841,12 @@ class Slider(
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
         self.test_input = self.value
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "int | float", f"value between {self.minimum} and {self.maximum}"
+
+    def get_output_type(self) -> Tuple[str, str]:
+        return "int | float", f"value between {self.minimum} and {self.maximum})"
 
     def get_config(self):
         return {
@@ -929,7 +939,7 @@ class Checkbox(
     Changeable,
     Selectable,
     IOComponent,
-    SimpleSerializable,
+    BooleanSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1033,7 +1043,7 @@ class CheckboxGroup(
     Changeable,
     Selectable,
     IOComponent,
-    SimpleSerializable,
+    ListStringSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1217,7 +1227,7 @@ class Radio(
     Selectable,
     Changeable,
     IOComponent,
-    SimpleSerializable,
+    StringSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1455,6 +1465,18 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         )
 
         self.cleared_value = self.value or ([] if multiselect else "")
+
+    def input_api_info(self) -> Tuple[str, str]:
+        if self.multiselect:
+            return "List[str]", f"List of options from: {self.choices}"
+        else:
+            return "str", f"Option from: {self.choices}"
+
+    def get_output_type(self) -> Tuple[str, str]:
+        if self.multiselect:
+            return "List[str]", f"List of options from: {self.choices}"
+        else:
+            return "str", f"Option from: {self.choices}"
 
     def get_config(self):
         return {
@@ -3135,7 +3157,7 @@ class Variable(State):
 
 
 @document("style")
-class Button(Clickable, IOComponent, SimpleSerializable):
+class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -3385,7 +3407,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
+class ColorPicker(Changeable, Submittable, IOComponent, StringSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -3902,7 +3924,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class HTML(Changeable, IOComponent, SimpleSerializable):
+class HTML(Changeable, IOComponent, StringSerializable):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -5578,7 +5600,7 @@ class BarPlot(Plot):
 
 
 @document()
-class Markdown(IOComponent, Changeable, SimpleSerializable):
+class Markdown(IOComponent, Changeable, StringSerializable):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -5653,7 +5675,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("languages")
-class Code(Changeable, IOComponent, SimpleSerializable):
+class Code(Changeable, IOComponent, StringSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -5762,7 +5784,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Selectable, Component, SimpleSerializable):
+class Dataset(Clickable, Selectable, Component, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
