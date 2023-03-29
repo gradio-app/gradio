@@ -105,7 +105,7 @@ class Client:
         return job
 
     def view_api(
-        self, 
+        self,
         all_endpoints: bool | None = None,
         return_info: bool = False,
     ) -> Dict | None:
@@ -155,7 +155,7 @@ class Client:
 
         human_info = f"Client.predict() Usage Info\n---------------------------\n"
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
-        
+
         for api_name, endpoint_info in info["named_endpoints"].items():
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
@@ -166,9 +166,9 @@ class Client:
         else:
             if num_unnamed_endpoints > 0:
                 human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
-        
+
         print(human_info)
-        
+
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
@@ -292,7 +292,12 @@ class Endpoint:
         for i, input in enumerate(self.dependency["inputs"]):
             for component in self.config["components"]:
                 if component["id"] == input:
-                    label = component["props"].get("label", f"parameter_{i}").lower().replace(" ", "_")
+                    label = (
+                        component["props"]
+                        .get("label", f"parameter_{i}")
+                        .lower()
+                        .replace(" ", "_")
+                    )
                     if "info" in component:
                         info = component["info"]["input"]
                     else:
@@ -304,7 +309,12 @@ class Endpoint:
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.config["components"]:
                 if component["id"] == output:
-                    label = component["props"].get("label", f"value_{o}").lower().replace(" ", "_")
+                    label = (
+                        component["props"]
+                        .get("label", f"value_{o}")
+                        .lower()
+                        .replace(" ", "_")
+                    )
                     if "info" in component:
                         info = component["info"]["output"]
                     else:
