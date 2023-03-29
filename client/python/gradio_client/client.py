@@ -12,11 +12,10 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub.utils import build_hf_headers, send_telemetry
-from packaging import version
-
 from gradio_client import serializing, utils
 from gradio_client.serializing import Serializable
+from huggingface_hub.utils import build_hf_headers, send_telemetry
+from packaging import version
 
 
 class Client:
@@ -105,7 +104,9 @@ class Client:
 
         return job
 
-    def view_api(self, all_endpoints: bool | None = None, print_usage: bool | None = True) -> Dict | None:
+    def view_api(
+        self, all_endpoints: bool | None = None, print_usage: bool | None = True
+    ) -> Dict | None:
         """
         Parameters:
             all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints. If None (default), will only return info about named endpoints if there are any, and unnamed endpoints if there are no named endpoints.
@@ -129,12 +130,17 @@ class Client:
                     ...
             }
         """
-        programmatic_info: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {"named_endpoints": {}, "unnamed_endpoints": {}}
-        
+        programmatic_info: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
+            "named_endpoints": {},
+            "unnamed_endpoints": {},
+        }
+
         for endpoint in self.endpoints:
             if endpoint.is_valid:
                 if endpoint.api_name:
-                    programmatic_info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
+                    programmatic_info["named_endpoints"][
+                        endpoint.api_name
+                    ] = endpoint.get_info()
                 else:
                     unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
 
@@ -149,7 +155,7 @@ class Client:
             )
         else:
             usage_info += f"\nUnnamed endpoints: {len(unnamed_endpoints)}, to view, run Client.view_api(`all_endpoints=True`)\n"
-            
+
         if print_usage:
             print(usage_info)
         else:

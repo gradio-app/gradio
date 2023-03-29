@@ -1384,9 +1384,7 @@ class Radio(
 
 
 @document("style")
-class Dropdown(
-    Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent
-):
+class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
