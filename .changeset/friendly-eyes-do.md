@@ -2,4 +2,4 @@
 "@gradio/client": patch
 ---
 
-Create ESM bundle and generate typescript declaration files.
+Ensure client works in node, create ESM bundle and generate typescript declaration files.
