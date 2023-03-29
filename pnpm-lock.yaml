@@ -89,10 +89,8 @@ importers:
     specifiers:
       '@types/ws': ^8.5.4
       esbuild: ^0.17.14
-      vite: ^4.2.1
       ws: ^8.13.0
     dependencies:
-      vite: 4.2.1
       ws: 8.13.0
     devDependencies:
       '@types/ws': 8.5.4
