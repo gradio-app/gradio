@@ -22,11 +22,16 @@ from gradio_client.serializing import Serializable
 class Client:
     def __init__(
         self,
-        space: str | None = None,
-        src: str | None = None,
+        src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
     ):
+        """
+        Parameters:
+            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/pictionary") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
+            hf_token: The Hugging Face token to use to access private Spaces. If not provided, only public Spaces can be loaded.
+            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+        """
         self.hf_token = hf_token
         self.headers = build_hf_headers(
             token=hf_token,
@@ -34,17 +39,15 @@ class Client:
             library_version=utils.__version__,
         )
 
-        if space is None and src is None:
-            raise ValueError("Either `space` or `src` must be provided")
-        elif space and src:
-            raise ValueError("Only one of `space` or `src` should be provided")
-        self.src = src or self._space_name_to_src(space)
-        if self.src is None:
-            raise ValueError(
-                f"Could not find Space: {space}. If it is a private Space, please provide an hf_token."
-            )
+        if src.startswith("http://") or src.startswith("https://"):
+            self.src = src
         else:
-            print(f"Loaded as API: {self.src} ✔")
+            self.src = self._space_name_to_src(src)
+            if self.src is None:
+                raise ValueError(
+                    f"Could not find Space: {src}. If it is a private Space, please provide an hf_token."
+                )
+        print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = utils.API_URL.format(self.src)
         self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
@@ -68,6 +71,15 @@ class Client:
         fn_index: int = 0,
         result_callbacks: Callable | List[Callable] | None = None,
     ) -> Future:
+        """
+        Parameters:
+            *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            api_name: The name of the API endpoint to call. If not provided, the first API will be called. Takes precedence over fn_index.
+            fn_index: The index of the API endpoint to call. If not provided, the first API will be called.
+            result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
+        Returns:
+            A Job object that can be used to retrieve the status and result of the remote API call.
+        """
         if api_name:
             fn_index = self._infer_fn_index(api_name)
 
@@ -92,6 +104,110 @@ class Client:
                 job.add_done_callback(create_fn(callback))
 
         return job
+
+    def view_api(
+        self,
+        all_endpoints: bool | None = None,
+        return_info: bool = False,
+    ) -> Dict | None:
+        """
+        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately.
+        Parameters:
+            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
+            return_info: If False (default), prints the usage info to the console. If True, returns the usage info as a dictionary that can be programmatically parsed (does not print), and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+        Dictionary format:
+            {
+                "named_endpoints": {
+                    "endpoint_1_name": {
+                        "parameters": {
+                            "parameter_1_name": ["python type", "description", "component_type"],
+                            "parameter_2_name": ["python type", "description", "component_type"],
+                        },
+                        "returns": {
+                            "value_1_name": ["python type", "description", "component_type"],
+                        }
+                    ...
+                "unnamed_endpoints": {
+                    "fn_index_1": {
+                        ...
+                    }
+                    ...
+            }
+        """
+        info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
+            "named_endpoints": {},
+            "unnamed_endpoints": {},
+        }
+
+        for endpoint in self.endpoints:
+            if endpoint.is_valid:
+                if endpoint.api_name:
+                    info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
+                else:
+                    info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
+
+        if return_info:
+            return info
+
+        num_named_endpoints = len(info["named_endpoints"])
+        num_unnamed_endpoints = len(info["unnamed_endpoints"])
+        if num_named_endpoints == 0 and all_endpoints is None:
+            all_endpoints = True
+
+        human_info = "Client.predict() Usage Info\n---------------------------\n"
+        human_info += f"Named API endpoints: {num_named_endpoints}\n"
+
+        for api_name, endpoint_info in info["named_endpoints"].items():
+            human_info += self._render_endpoints_info(api_name, endpoint_info)
+
+        if all_endpoints:
+            human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
+            for fn_index, endpoint_info in info["unnamed_endpoints"].items():
+                human_info += self._render_endpoints_info(fn_index, endpoint_info)
+        else:
+            if num_unnamed_endpoints > 0:
+                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
+
+        print(human_info)
+
+    def _render_endpoints_info(
+        self,
+        name_or_index: str | int,
+        endpoints_info: Dict[str, Dict[str, List[str]]],
+    ) -> str:
+        parameter_names = list(endpoints_info["parameters"].keys())
+        rendered_parameters = ", ".join(parameter_names)
+        if rendered_parameters:
+            rendered_parameters = rendered_parameters + ", "
+        return_value_names = list(endpoints_info["returns"].keys())
+        rendered_return_values = ", ".join(return_value_names)
+        if len(return_value_names) > 1:
+            rendered_return_values = f"({rendered_return_values})"
+
+        if isinstance(name_or_index, str):
+            final_param = f'api_name="{name_or_index}"'
+        elif isinstance(name_or_index, int):
+            final_param = f"fn_index={name_or_index}"
+        else:
+            raise ValueError("name_or_index must be a string or integer")
+
+        human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        if endpoints_info["parameters"]:
+            human_info += "    Parameters:\n"
+        for label, info in endpoints_info["parameters"].items():
+            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+        if endpoints_info["returns"]:
+            human_info += "    Returns:\n"
+        for label, info in endpoints_info["returns"].items():
+            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+
+        return human_info
+
+    def __repr__(self):
+        return self.view_api()
+
+    def __str__(self):
+        return self.view_api()
 
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
@@ -132,7 +248,7 @@ class Client:
             raise ValueError(f"Could not get Gradio config from: {self.src}")
         if "allow_flagging" in config:
             raise ValueError(
-                "Gradio 2.x is not supported by this client. Please upgrade this app to Gradio 3.x."
+                "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
             )
         return config
 
@@ -145,6 +261,7 @@ class Endpoint:
         self.ws_url = client.ws_url
         self.fn_index = fn_index
         self.dependency = dependency
+        self.api_name: str | None = dependency.get("api_name")
         self.headers = client.headers
         self.config = client.config
         self.use_ws = self._use_websocket(self.dependency)
@@ -153,9 +270,61 @@ class Endpoint:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
                 "backend_fn"
-            ]  # Only a real API endpoint if backend_fn is True
+            ]  # Only a real API endpoint if backend_fn is True and serializers are valid
         except AssertionError:
             self.is_valid = False
+
+    def get_info(self) -> Dict[str, Dict[str, List[str]]]:
+        """
+        Dictionary format:
+            {
+                "parameters": {
+                    "parameter_1_name": ["type", "description", "component_type"],
+                    "parameter_2_name": ["type", "description", "component_type"],
+                    ...
+                },
+                "returns": {
+                    "value_1_name": ["type", "description", "component_type"],
+                    ...
+                }
+            }
+        """
+        parameters = {}
+        for i, input in enumerate(self.dependency["inputs"]):
+            for component in self.config["components"]:
+                if component["id"] == input:
+                    label = (
+                        component["props"]
+                        .get("label", f"parameter_{i}")
+                        .lower()
+                        .replace(" ", "_")
+                    )
+                    if "info" in component:
+                        info = component["info"]["input"]
+                    else:
+                        info = self.serializers[i].input_api_info()
+                    info = list(info)
+                    info.append(component.get("type", "component").capitalize())
+                    parameters[label] = info
+        returns = {}
+        for o, output in enumerate(self.dependency["outputs"]):
+            for component in self.config["components"]:
+                if component["id"] == output:
+                    label = (
+                        component["props"]
+                        .get("label", f"value_{o}")
+                        .lower()
+                        .replace(" ", "_")
+                    )
+                    if "info" in component:
+                        info = component["info"]["output"]
+                    else:
+                        info = self.deserializers[o].output_api_info()
+                    info = list(info)
+                    info.append(component.get("type", "component").capitalize())
+                    returns[label] = list(info)
+
+        return {"parameters": parameters, "returns": returns}
 
     def end_to_end_fn(self, *data):
         if not self.is_valid:
