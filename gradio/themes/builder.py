@@ -304,7 +304,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
                     )
                     with gr.Row():
                         theme_name = gr.Textbox(label="Theme Name")
-                        theme_hf_token = gr.Textbox(label="Hugging Face Token")
+                        theme_hf_token = gr.Textbox(label="Hugging Face Write Token")
                     with gr.Row():
                         theme_repo_name = gr.Textbox(
                             label="Repo Name",
@@ -923,8 +923,10 @@ with gr.Blocks(theme=theme) as demo:
                 theme_name=data[theme_name],
                 description=data[theme_description],
             )
+            space_name = "/".join(theme_url.split("/")[-2:])
             return gr.Markdown.update(
-                value=f"Theme uploaded [here!]({theme_url})!", visible=True
+                value=f"Theme uploaded [here!]({theme_url})! Load it as `gr.Blocks(theme='{space_name}')`",
+                visible=True,
             )
 
         upload_to_hub_btn.click(

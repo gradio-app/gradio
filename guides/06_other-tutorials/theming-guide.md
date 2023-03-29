@@ -29,7 +29,7 @@ Each of these themes set values for hundreds of CSS variables. You can use prebu
 
 ## Using the Theme Builder
 
-The easiest way to build a theme is using the Theme Builder. To launch the Theme Builder, run the following code:
+The easiest way to build a theme is using the Theme Builder. To launch the Theme Builder locally, run the following code:
 
 ```python
 import gradio as gr
@@ -37,7 +37,7 @@ import gradio as gr
 gr.themes.builder()
 ```
 
-![Theme Builder Screenshot](/assets/theme-builder.png)
+$demo_theme_builder
 
 As you edit the values in the Theme Builder, the app will preview updates in real time. You can download the code to generate the theme you've created so you can use it in any Gradio app.
 
