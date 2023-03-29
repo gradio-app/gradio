@@ -33,7 +33,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	function isSelected(choice) {
+	function isSelected(choice: string) {
 		let arr = Array.isArray(value) ? value : [value];
 		return arr.includes(choice);
 	}
