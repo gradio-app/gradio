@@ -23,8 +23,9 @@
 	}
 
 	button:hover {
-		border: 1px solid var(--button-secondary-border-color-hover);
+		border: 2px solid var(--button-secondary-border-color-hover);
 		color: var(--block-label-text-color);
+		cursor: pointer;
 	}
 
 	div {
