@@ -843,11 +843,11 @@ class Slider(
         self.cleared_value = self.value
         self.test_input = self.value
 
-    def get_input_type(self) -> str:
-        return f"int | float (value between {self.minimum} and {self.maximum})"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "int | float", f"value between {self.minimum} and {self.maximum}"
 
-    def get_output_type(self) -> str:
-        return f"int | float (value between {self.minimum} and {self.maximum})"
+    def get_output_type(self) -> Tuple[str, str]:
+        return "int | float", f"value between {self.minimum} and {self.maximum})"
 
     def get_config(self):
         return {
@@ -1385,7 +1385,7 @@ class Radio(
 
 @document("style")
 class Dropdown(
-    Changeable, Selectable, IOComponent, DropdownSerializable, FormComponent
+    Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent
 ):
     """
     Creates a dropdown of choices from which entries can be selected.
@@ -1468,6 +1468,18 @@ class Dropdown(
         )
 
         self.cleared_value = self.value or ([] if multiselect else "")
+
+    def input_api_info(self) -> Tuple[str, str]:
+        if self.multiselect:
+            return "List[str]", f"List of options from: {self.choices}"
+        else:
+            return "str", f"Option from: {self.choices}"
+
+    def get_output_type(self) -> Tuple[str, str]:
+        if self.multiselect:
+            return "List[str]", f"List of options from: {self.choices}"
+        else:
+            return "str", f"Option from: {self.choices}"
 
     def get_config(self):
         return {

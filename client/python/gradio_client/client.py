@@ -22,15 +22,13 @@ from gradio_client.serializing import Serializable
 class Client:
     def __init__(
         self,
-        space: str | None = None,
-        src: str | None = None,
+        src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
     ):
         """
         Parameters:
-            space: The name of the Space to load, e.g. "abidlabs/pictionary". If it is a private Space, you must provide an hf_token. app. Either `space` or `src` must be provided.
-            src: The full URL of the hosted Gradio app to load, e.g. "https://mydomain.com/app" or the shareable link to a Gradio app, e.g. "https://bec81a83-5b5c-471e.gradio.live/". Either `space` or `src` must be provided.
+            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/pictionary") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. If not provided, only public Spaces can be loaded.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         """
@@ -41,17 +39,15 @@ class Client:
             library_version=utils.__version__,
         )
 
-        if space is None and src is None:
-            raise ValueError("Either `space` or `src` must be provided")
-        elif space and src:
-            raise ValueError("Only one of `space` or `src` should be provided")
-        self.src = src or self._space_name_to_src(space)
-        if self.src is None:
-            raise ValueError(
-                f"Could not find Space: {space}. If it is a private Space, please provide an hf_token."
-            )
+        if src.startswith("http://") or src.startswith("https://"):
+            self.src = src
         else:
-            print(f"Loaded as API: {self.src} ✔")
+            self.src = self._space_name_to_src(src)
+            if self.src is None:
+                raise ValueError(
+                    f"Could not find Space: {src}. If it is a private Space, please provide an hf_token."
+                )
+        print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = utils.API_URL.format(self.src)
         self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
@@ -109,18 +105,36 @@ class Client:
 
         return job
 
-    def usage(self, all_endpoints=True, print_usage=True) -> str | None:
+    def view_api(self, all_endpoints: bool | None = None, print_usage: bool | None = True) -> Dict | None:
         """
         Parameters:
-            all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints.
-            print_usage: If True, prints the usage info to the console. If False, returns the usage info as a string.
+            all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints. If None (default), will only return info about named endpoints if there are any, and unnamed endpoints if there are no named endpoints.
+            print_usage: If True, prints the usage info to the console. If False, returns the usage info as a dictionary that can be programmatically parsed. All endpoints are returned in the dictionary regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+        Dictionary format:
+            {
+                "named_endpoints": {
+                    "endpoint_1_name": {
+                        "parameters": {
+                            "label_of_input_1": "info_for_input_1",
+                            "label_of_input_2": "info_for_input_2",
+                        },
+                        "returns": {
+                            "label_of_output_1": "info_for_output_1",
+                        }
+                    ...
+                "unnamed_endpoints": {
+                    "fn_index_1": {
+                        ...
+                    }
+                    ...
+            }
         """
-        named_endpoints: Dict[str, Dict[str, Dict[str, Tuple[str, str]]]] = {}
-        unnamed_endpoints: Dict[int, Dict[str, Dict[str, Tuple[str, str]]]] = {}
+        programmatic_info: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        
         for endpoint in self.endpoints:
             if endpoint.is_valid:
                 if endpoint.api_name:
-                    named_endpoints[endpoint.api_name] = endpoint.get_info()
+                    programmatic_info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
                 else:
                     unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
 
@@ -133,10 +147,13 @@ class Client:
             usage_info += self._render_endpoints_info(
                 unnamed_endpoints, label_format="fn_index={}"
             )
+        else:
+            usage_info += f"\nUnnamed endpoints: {len(unnamed_endpoints)}, to view, run Client.view_api(`all_endpoints=True`)\n"
+            
         if print_usage:
             print(usage_info)
         else:
-            return usage_info
+            return programmatic_info
 
     def _render_endpoints_info(
         self,
@@ -165,10 +182,10 @@ class Client:
         return usage_info
 
     def __repr__(self):
-        return self.usage()
+        return self.view_api()
 
     def __str__(self):
-        return self.usage()
+        return self.view_api()
 
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
@@ -245,22 +262,23 @@ class Endpoint:
                         info = component["info"]["input"]
                     else:
                         info = (
-                            self.serializers[i].get_input_type(),
+                            self.serializers[i].input_api_info(),
                             component.get("type", "component").capitalize(),
                         )
-                    parameters[label] = info
+                    parameters[label] = list(info)
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.config["components"]:
                 if component["id"] == output:
-                    label = component["props"].get("label", f"parameter_{o}").lower()
+                    label = component["props"].get("label", f"value_{o}").lower()
                     if "info" in component:
                         info = component["info"]["output"]
-                    info = (
-                        self.deserializers[o].get_output_type(),
-                        component.get("type", "component").capitalize(),
-                    )
-                    returns[label] = info
+                    else:
+                        info = (
+                            self.deserializers[o].output_api_info(),
+                            component.get("type", "component").capitalize(),
+                        )
+                    returns[label] = list(info)
 
         return {"parameters": parameters, "returns": returns}
 

@@ -5,23 +5,23 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from gradio_client import utils
 
 
 class Serializable(ABC):
     @abstractmethod
-    def get_input_type() -> str:
+    def input_api_info(self) -> Tuple[str, str]:
         """
-        Get the type of input this component accepts (for documentation generation).
+        Get the type of input that should be provided via API, and a human-readable description of the input as a tuple (for documentation generation).
         """
         pass
 
     @abstractmethod
-    def get_output_type() -> str:
+    def output_api_info(self) -> Tuple[str, str]:
         """
-        Get the type of input this component accepts (for documentation generation).
+        Get the type of output that should be returned via API, and a human-readable description of the output as a tuple (for documentation generation).
         """
         pass
 
@@ -47,71 +47,61 @@ class Serializable(ABC):
 class SimpleSerializable(Serializable):
     """General class that does not perform any serialization or deserialization."""
 
-    def get_input_type(self) -> str:
-        return "Any"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "Any", ""
 
-    def get_output_type(self) -> str:
-        return "Any"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "Any", ""
 
 
 class StringSerializable(Serializable):
     """Expects a string as input/output but performs no serialization."""
 
-    def get_input_type(self) -> str:
-        return "str (value)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "value"
 
-    def get_output_type(self) -> str:
-        return "str (value)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "value"
 
 
 class ListStringSerializable(Serializable):
     """Expects a list of strings as input/output but performs no serialization."""
 
-    def get_input_type(self) -> str:
-        return "List[str] (values)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "List[str]", "values"
 
-    def get_output_type(self) -> str:
-        return "List[str] (values)"
-
-
-class DropdownSerializable(Serializable):
-    """Expects a string or list of strings as input/output but performs no serialization."""
-
-    def get_input_type(self) -> str:
-        return "str | List[str] (value[s])"
-
-    def get_output_type(self) -> str:
-        return "str | List[str] (value[s])"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "List[str]", "values"
 
 
 class BooleanSerializable(Serializable):
     """Expects a boolean as input/output but performs no serialization."""
 
-    def get_input_type(self) -> str:
-        return "bool (value)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "bool", "value"
 
-    def get_output_type(self) -> str:
-        return "bool (value)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "bool", "value"
 
 
 class NumberSerializable(Serializable):
     """Expects a number (int/float) as input/output but performs no serialization."""
 
-    def get_input_type(self) -> str:
-        return "int | float (value)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "int | float", "value"
 
-    def get_output_type(self) -> str:
-        return "int | float (value)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "int | float", "value"
 
 
 class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is ."""
 
-    def get_input_type(self) -> str:
-        return "str (filepath or URL)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
 
-    def get_output_type(self) -> str:
-        return "str (filepath or URL)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
 
     def serialize(
         self,
@@ -154,11 +144,11 @@ class ImgSerializable(Serializable):
 
 
 class FileSerializable(Serializable):
-    def get_input_type(self) -> str:
-        return "str (filepath or URL)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
 
-    def get_output_type(self) -> str:
-        return "str (filepath or URL)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
 
     def serialize(
         self,
@@ -226,11 +216,11 @@ class FileSerializable(Serializable):
 
 
 class JSONSerializable(Serializable):
-    def get_input_type(self) -> str:
-        return "str (filepath to json file)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath to json file"
 
-    def get_output_type(self) -> str:
-        return "str (filepath to json file)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath to json file"
 
     def serialize(
         self,
@@ -270,11 +260,11 @@ class JSONSerializable(Serializable):
 
 
 class GallerySerializable(Serializable):
-    def get_input_type(self) -> str:
-        return "str (directory path)"
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "directory path to images and captions.json"
 
-    def get_output_type(self) -> str:
-        return "str (directory path)"
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "directory path to images and captions.json"
 
     def serialize(
         self, x: str | None, load_dir: str | Path = ""
@@ -326,7 +316,7 @@ COMPONENT_MAPPING: Dict[str, type] = {
     "checkbox": BooleanSerializable,
     "checkboxgroup": ListStringSerializable,
     "radio": StringSerializable,
-    "dropdown": DropdownSerializable,
+    "dropdown": SimpleSerializable,
     "image": ImgSerializable,
     "video": FileSerializable,
     "audio": FileSerializable,

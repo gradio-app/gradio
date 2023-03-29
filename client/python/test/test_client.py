@@ -10,15 +10,13 @@ HF_TOKEN = "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"  # Intentionally reveali
 class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
-        client = Client(space="gradio-tests/titanic-survival")
+        client = Client("gradio-tests/titanic-survival")
         output = client.predict("male", 77, 10).result()
         assert json.load(open(output))["label"] == "Perishes"
 
     @pytest.mark.flaky
     def test_private_space(self):
-        client = Client(
-            space="gradio-tests/not-actually-private-space", hf_token=HF_TOKEN
-        )
+        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
         output = client.predict("abc").result()
         assert output == "abc"
 
@@ -26,7 +24,7 @@ class TestPredictionsFromSpaces:
 class TestEndpoints:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
-        client = Client(space="gradio-tests/titanic-survival")
+        client = Client("gradio-tests/titanic-survival")
         assert client.endpoints[0].get_info() == {
             "parameters": {
                 "sex": ("Any", "Radio"),
@@ -38,9 +36,7 @@ class TestEndpoints:
 
     @pytest.mark.flaky
     def test_private_space(self):
-        client = Client(
-            space="gradio-tests/not-actually-private-space", hf_token=HF_TOKEN
-        )
+        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
