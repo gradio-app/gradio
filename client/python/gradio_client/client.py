@@ -105,22 +105,24 @@ class Client:
         return job
 
     def view_api(
-        self, all_endpoints: bool | None = None, print_usage: bool | None = True
+        self, 
+        all_endpoints: bool | None = None, 
+        print_api: bool | None = True
     ) -> Dict | None:
         """
         Parameters:
-            all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints. If None (default), will only return info about named endpoints if there are any, and unnamed endpoints if there are no named endpoints.
-            print_usage: If True, prints the usage info to the console. If False, returns the usage info as a dictionary that can be programmatically parsed. All endpoints are returned in the dictionary regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+            all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints. If None (default), will only return info about unnamed endpoints if there are no named endpoints.
+            print_api: If True, prints the usage info to the console. If False, returns the usage info as a dictionary that can be programmatically parsed. All endpoints are returned in the dictionary regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Dictionary format:
             {
                 "named_endpoints": {
                     "endpoint_1_name": {
                         "parameters": {
-                            "label_of_input_1": "info_for_input_1",
-                            "label_of_input_2": "info_for_input_2",
+                            "parameter_1_name": ["python type", "description", "component_type"],
+                            "parameter_2_name": ["python type", "description", "component_type"],
                         },
                         "returns": {
-                            "label_of_output_1": "info_for_output_1",
+                            "value_1_name": ["python type", "description", "component_type"],
                         }
                     ...
                 "unnamed_endpoints": {
@@ -130,43 +132,43 @@ class Client:
                     ...
             }
         """
-        programmatic_info: Dict[str, Dict[str, Dict[str, Dict[str, str]]]] = {
+        info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
             "named_endpoints": {},
             "unnamed_endpoints": {},
         }
 
         for endpoint in self.endpoints:
             if endpoint.is_valid:
-                if endpoint.api_name:
-                    programmatic_info["named_endpoints"][
-                        endpoint.api_name
-                    ] = endpoint.get_info()
+                if endpoint.api_name:                    
+                    info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
                 else:
-                    unnamed_endpoints[endpoint.fn_index] = endpoint.get_info()
-
-        usage_info = f"Client.predict() Usage Info\n---------------------------\nNamed endpoints: {len(named_endpoints)}\n"
-        usage_info += self._render_endpoints_info(
-            named_endpoints, label_format='api_name="{}"'
-        )
-        if unnamed_endpoints and all_endpoints:
-            usage_info += f"\nUnnamed endpoints: {len(unnamed_endpoints)}\n"
-            usage_info += self._render_endpoints_info(
-                unnamed_endpoints, label_format="fn_index={}"
-            )
+                    info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
+        
+        if not print_api:
+            return info
+        
+        num_named_endpoints = len(info["named_endpoints"])
+        num_unnamed_endpoints = len(info["unnamed_endpoints"])
+        if num_named_endpoints == 0 and all_endpoints is None:
+            all_endpoints = True
+            
+        human_info = f"Client.predict() Usage Info\n---------------------------\nNamed endpoints: {num_named_endpoints}\n"
+        for api_name, endpoint_info in info["named_endpoints"].items():
+            human_info += self._render_endpoints_info(api_name, endpoint_info)
+        
+        if all_endpoints:
+            human_info += f"\nUnnamed endpoints: {num_unnamed_endpoints}\n"
+            for fn_index, endpoint_info in info["unnamed_endpoints"].items():
+                human_info += self._render_endpoints_info(fn_index, endpoint_info)
         else:
-            usage_info += f"\nUnnamed endpoints: {len(unnamed_endpoints)}, to view, run Client.view_api(`all_endpoints=True`)\n"
-
-        if print_usage:
-            print(usage_info)
-        else:
-            return programmatic_info
+            human_info += f"\nUnnamed endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
 
     def _render_endpoints_info(
         self,
-        endpoints_info: Dict[Any, Dict[str, Dict[str, Tuple[str, str]]]],
-        label_format: str,
+        name_or_index: str | int,
+        endpoints_info: Dict[str, Dict[str, List[str]]],
     ) -> str:
-        usage_info = ""
+        human_info = ""
         for label, info in endpoints_info.items():
             parameters = ",".join(list(info["parameters"].keys()))
             if parameters:
@@ -174,18 +176,18 @@ class Client:
             returns = ",".join(list(info["returns"].keys()))
             if returns:
                 returns = f" -> {returns}"
-            usage_info += (
+            human_info += (
                 f" - predict({parameters}{label_format.format(label)}){returns}\n"
             )
             if parameters:
-                usage_info += "    Parameters:\n"
+                human_info += "    Parameters:\n"
                 for name, type in info["parameters"].items():
-                    usage_info += f"     - [{type[1]}] {name}: {type[0]}\n"
+                    human_info += f"     - [{type[1]}] {name}: {type[0]}\n"
             if returns:
-                usage_info += "    Returns:\n"
+                human_info += "    Returns:\n"
                 for name, type in info["returns"].items():
-                    usage_info += f"     - [{type[1]}] {name}: {type[0]}\n"
-        return usage_info
+                    human_info += f"     - [{type[1]}] {name}: {type[0]}\n"
+        return human_info
 
     def __repr__(self):
         return self.view_api()
@@ -258,7 +260,21 @@ class Endpoint:
         except AssertionError:
             self.is_valid = False
 
-    def get_info(self) -> Dict[str, Dict[str, Tuple[str, str]]]:
+    def get_info(self) -> Dict[str, Dict[str, List[str]]]:
+        """
+        Dictionary format:
+            {
+                "parameters": {
+                    "parameter_1_name": ["type", "description", "component_type"],
+                    "parameter_2_name": ["type", "description", "component_type"],
+                    ...
+                },
+                "returns": {
+                    "value_1_name": ["type", "description", "component_type"],
+                    ...
+                }
+            }
+        """
         parameters = {}
         for i, input in enumerate(self.dependency["inputs"]):
             for component in self.config["components"]:
@@ -267,11 +283,10 @@ class Endpoint:
                     if "info" in component:
                         info = component["info"]["input"]
                     else:
-                        info = (
-                            self.serializers[i].input_api_info(),
-                            component.get("type", "component").capitalize(),
-                        )
-                    parameters[label] = list(info)
+                        info = self.serializers[i].input_api_info()
+                    info = list(info)
+                    info.append(component.get("type", "component").capitalize())
+                    parameters[label] = info
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.config["components"]:
@@ -280,10 +295,9 @@ class Endpoint:
                     if "info" in component:
                         info = component["info"]["output"]
                     else:
-                        info = (
-                            self.deserializers[o].output_api_info(),
-                            component.get("type", "component").capitalize(),
-                        )
+                        info = self.deserializers[o].output_api_info()
+                    info = list(info)                        
+                    info.append(component.get("type", "component").capitalize())
                     returns[label] = list(info)
 
         return {"parameters": parameters, "returns": returns}
