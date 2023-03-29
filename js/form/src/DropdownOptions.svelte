@@ -32,6 +32,11 @@
 	}
 
 	const dispatch = createEventDispatcher();
+
+	function isSelected(choice: string) {
+		let arr = Array.isArray(value) ? value : [value];
+		return arr.includes(choice);
+	}
 </script>
 
 <div class="reference" bind:this={refElement} />
@@ -49,19 +54,14 @@
 			<li
 				class="item"
 				role="button"
-				class:selected={value?.includes(choice)}
+				class:selected={isSelected(choice)}
 				class:active={activeOption === choice}
 				class:bg-gray-100={activeOption === choice}
 				class:dark:bg-gray-600={activeOption === choice}
 				data-value={choice}
 				aria-label={choice}
 			>
-				<span
-					class:hide={!(Array.isArray(value) ? value : [value])?.includes(
-						choice
-					)}
-					class="inner-item pr-1"
-				>
+				<span class:hide={!isSelected(choice)} class="inner-item pr-1">
 					✓
 				</span>
 				{choice}
