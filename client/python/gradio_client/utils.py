@@ -12,7 +12,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, Tuple, List
+from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
 import requests
@@ -43,6 +43,8 @@ class InvalidAPIEndpointError(Exception):
 
 
 class Status(Enum):
+    """Status codes presented to client users."""
+
     STARTING = "STARTING"
     JOINING_QUEUE = "JOINING_QUEUE"
     QUEUE_FULL = "QUEUE_FULL"
@@ -54,6 +56,7 @@ class Status(Enum):
 
     @staticmethod
     def ordering(status: "Status") -> int:
+        """Order of messages. Helpful for testing."""
         order = [
             Status.STARTING,
             Status.JOINING_QUEUE,
@@ -71,6 +74,7 @@ class Status(Enum):
 
     @staticmethod
     def msg_to_status(msg: str) -> "Status":
+        """Map the raw message from the backend to the status code presented to users."""
         return {
             "send_hash": Status.JOINING_QUEUE,
             "queue_full": Status.QUEUE_FULL,
@@ -85,34 +89,43 @@ class Status(Enum):
 @dataclass
 class StatusUpdate:
     """Update message sent from the worker thread to the Job on the main thread."""
+
     code: Status
     rank: int | None
     queue_size: int | None
-    eta: int | None
+    eta: float | None
     success: bool | None
     time: datetime | None
 
 
 def create_initial_status_update():
-    return StatusUpdate(code=Status.STARTING,
-                        rank=None, queue_size=None, eta=None,
-                        success=None, time=None)
+    return StatusUpdate(
+        code=Status.STARTING,
+        rank=None,
+        queue_size=None,
+        eta=None,
+        success=None,
+        time=datetime.now(),
+    )
+
 
 @dataclass
 class JobStatus:
-    """The job status. 
-    
+    """The job status.
+
     Keeps strack of the latest status update and intermediate outputs (not yet implements).
     """
+
     latest_status: StatusUpdate = field(default_factory=create_initial_status_update)
-    outputs: List = field(default_factory=list)
+    outputs: List[Any] = field(default_factory=list)
+
 
 @dataclass
 class Communicator:
     """Helper class to help communicate between the worker thread and main thread."""
+
     lock: Lock
     job: JobStatus
-
 
 
 ########################
@@ -135,7 +148,7 @@ async def get_pred_from_ws(
     websocket: WebSocketCommonProtocol,
     data: str,
     hash_data: str,
-    helper: Communicator | None,
+    helper: Communicator | None = None,
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
@@ -150,7 +163,7 @@ async def get_pred_from_ws(
                     rank=resp.get("rank", None),
                     success=resp.get("success"),
                     time=datetime.now(),
-                    eta=resp.get("rank_eta")
+                    eta=resp.get("rank_eta"),
                 )
                 helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":

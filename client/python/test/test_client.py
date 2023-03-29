@@ -2,12 +2,12 @@ import json
 import os
 import time
 from datetime import datetime, timedelta
-from queue import LifoQueue
 from unittest.mock import patch
 
 import pytest
+
 from gradio_client import Client
-from gradio_client.utils import Status, StatusUpdate
+from gradio_client.utils import Communicator, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
@@ -42,8 +42,8 @@ class TestPredictionsFromSpaces:
         assert sorted([s.time for s in statuses if s]) == [
             s.time for s in statuses if s
         ]
-        assert sorted([s.status for s in statuses if s]) == [
-            s.status for s in statuses if s
+        assert sorted([s.code for s in statuses if s]) == [
+            s.code for s in statuses if s
         ]
 
     @pytest.mark.flaky
@@ -55,7 +55,7 @@ class TestPredictionsFromSpaces:
             time.sleep(0.02)
             statuses.append(job.status())
         statuses.append(job.status())
-        assert all(s.status in [Status.ITERATING, Status.FINISHED] for s in statuses)
+        assert all(s.code in [Status.ITERATING, Status.FINISHED] for s in statuses)
 
 
 class TestStatusUpdates:
@@ -67,6 +67,7 @@ class TestStatusUpdates:
         messages = [
             StatusUpdate(
                 code=Status.STARTING,
+                eta=None,
                 rank=None,
                 success=None,
                 queue_size=None,
@@ -74,6 +75,7 @@ class TestStatusUpdates:
             ),
             StatusUpdate(
                 code=Status.SENDING_DATA,
+                eta=None,
                 rank=None,
                 success=None,
                 queue_size=None,
@@ -81,6 +83,7 @@ class TestStatusUpdates:
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
+                eta=3,
                 rank=2,
                 queue_size=2,
                 success=None,
@@ -88,6 +91,7 @@ class TestStatusUpdates:
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
+                eta=2,
                 rank=1,
                 queue_size=1,
                 success=None,
@@ -95,6 +99,7 @@ class TestStatusUpdates:
             ),
             StatusUpdate(
                 code=Status.ITERATING,
+                eta=None,
                 rank=None,
                 queue_size=None,
                 success=None,
@@ -102,6 +107,7 @@ class TestStatusUpdates:
             ),
             StatusUpdate(
                 code=Status.FINISHED,
+                eta=None,
                 rank=None,
                 queue_size=None,
                 success=True,
@@ -110,12 +116,13 @@ class TestStatusUpdates:
         ]
 
         class MockEndToEndFunction:
-            def __init__(self, queue: LifoQueue):
-                self.queue = queue
+            def __init__(self, communicator: Communicator):
+                self.communicator = communicator
 
             def __call__(self, *args, **kwargs):
                 for m in messages:
-                    self.queue.put_nowait(m)
+                    with self.communicator.lock:
+                        self.communicator.job.latest_status = m
                     time.sleep(0.1)
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction

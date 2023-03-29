@@ -14,11 +14,12 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
-from gradio_client import serializing, utils
-from gradio_client.utils import Status, StatusUpdate, JobStatus, Communicator
-from gradio_client.serializing import Serializable
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
+
+from gradio_client import serializing, utils
+from gradio_client.serializing import Serializable
+from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 
 
 class Client:
@@ -69,7 +70,7 @@ class Client:
         api_name: str | None = None,
         fn_index: int = 0,
         result_callbacks: Callable | List[Callable] | None = None,
-    ) -> Future:
+    ) -> Job:
         if api_name:
             fn_index = self._infer_fn_index(api_name)
 
@@ -186,9 +187,7 @@ class Endpoint:
                 {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
             )
             if self.use_ws:
-                result = utils.synchronize_async(
-                    self._ws_fn, data, hash_data, helper
-                )
+                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 output = result["data"]
             else:
                 response = requests.post(self.api_url, headers=self.headers, data=data)
@@ -281,7 +280,7 @@ class Endpoint:
         dependency_uses_queue = dependency.get("queue", False) is not False
         return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
-    async def _ws_fn(self, data, hash_data, helper: Communicator) :
+    async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
             self.ws_url, open_timeout=10, extra_headers=self.headers
         ) as websocket:
@@ -319,7 +318,6 @@ class Job(Future):
         else:
             with self.communicator.lock:
                 return self.communicator.job.latest_status
-
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
