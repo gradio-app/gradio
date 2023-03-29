@@ -170,7 +170,7 @@
 					on:keyup={handleKeyup}
 				/>
 				<div
-					class:hide={!value?.length || disabled}
+					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
 					title="Remove All"
 					on:click={remove_all}
@@ -280,5 +280,9 @@
 		margin-left: var(--size-1);
 		width: 20px;
 		height: 20px;
+	}
+
+	.hide {
+		display: none;
 	}
 </style>
