@@ -1,9 +1,8 @@
 XRAY_CONFIG = {
-    "version": "3.21.0\n",
+    "version": "3.23.1b3",
     "mode": "blocks",
     "dev_mode": True,
     "analytics_enabled": False,
-    "theme": "default",
     "components": [
         {
             "id": 1,
@@ -14,7 +13,8 @@ XRAY_CONFIG = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 2,
@@ -28,7 +28,11 @@ XRAY_CONFIG = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {
+                "input": ["List[str]", "values"],
+                "output": ["List[str]", "values"],
+            },
         },
         {"id": 3, "type": "tabs", "props": {"visible": True, "style": {}}},
         {
@@ -61,12 +65,20 @@ XRAY_CONFIG = {
                 "style": {},
             },
             "serializer": "ImgSerializable",
+            "info": {
+                "input": ["str", "filepath or URL"],
+                "output": ["str", "filepath or URL"],
+            },
         },
         {
             "id": 7,
             "type": "json",
             "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
             "serializer": "JSONSerializable",
+            "info": {
+                "input": ["str", "filepath to json file"],
+                "output": ["str", "filepath to json file"],
+            },
         },
         {
             "id": 8,
@@ -79,7 +91,8 @@ XRAY_CONFIG = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 9,
@@ -111,12 +124,20 @@ XRAY_CONFIG = {
                 "style": {},
             },
             "serializer": "ImgSerializable",
+            "info": {
+                "input": ["str", "filepath or URL"],
+                "output": ["str", "filepath or URL"],
+            },
         },
         {
             "id": 12,
             "type": "json",
             "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
             "serializer": "JSONSerializable",
+            "info": {
+                "input": ["str", "filepath to json file"],
+                "output": ["str", "filepath to json file"],
+            },
         },
         {
             "id": 13,
@@ -129,7 +150,8 @@ XRAY_CONFIG = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 14,
@@ -144,7 +166,8 @@ XRAY_CONFIG = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 15,
@@ -164,6 +187,12 @@ XRAY_CONFIG = {
     "show_error": True,
     "show_api": True,
     "is_colab": False,
+    "stylesheets": [
+        "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
+        "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
+    ],
+    "root": "",
+    "theme": "default",
     "layout": {
         "id": 0,
         "children": [
@@ -257,11 +286,10 @@ XRAY_CONFIG = {
 
 
 XRAY_CONFIG_DIFF_IDS = {
-    "version": "3.21.0\n",
+    "version": "3.23.1b3",
     "mode": "blocks",
     "dev_mode": True,
     "analytics_enabled": False,
-    "theme": "default",
     "components": [
         {
             "id": 1,
@@ -272,7 +300,8 @@ XRAY_CONFIG_DIFF_IDS = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 2,
@@ -286,7 +315,11 @@ XRAY_CONFIG_DIFF_IDS = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {
+                "input": ["List[str]", "values"],
+                "output": ["List[str]", "values"],
+            },
         },
         {"id": 3, "type": "tabs", "props": {"visible": True, "style": {}}},
         {
@@ -319,12 +352,20 @@ XRAY_CONFIG_DIFF_IDS = {
                 "style": {},
             },
             "serializer": "ImgSerializable",
+            "info": {
+                "input": ["str", "filepath or URL"],
+                "output": ["str", "filepath or URL"],
+            },
         },
         {
             "id": 7,
             "type": "json",
             "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
             "serializer": "JSONSerializable",
+            "info": {
+                "input": ["str", "filepath to json file"],
+                "output": ["str", "filepath to json file"],
+            },
         },
         {
             "id": 8,
@@ -337,7 +378,8 @@ XRAY_CONFIG_DIFF_IDS = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 9,
@@ -369,12 +411,20 @@ XRAY_CONFIG_DIFF_IDS = {
                 "style": {},
             },
             "serializer": "ImgSerializable",
+            "info": {
+                "input": ["str", "filepath or URL"],
+                "output": ["str", "filepath or URL"],
+            },
         },
         {
             "id": 1212,
             "type": "json",
             "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
             "serializer": "JSONSerializable",
+            "info": {
+                "input": ["str", "filepath to json file"],
+                "output": ["str", "filepath to json file"],
+            },
         },
         {
             "id": 13,
@@ -387,7 +437,8 @@ XRAY_CONFIG_DIFF_IDS = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 14,
@@ -402,7 +453,8 @@ XRAY_CONFIG_DIFF_IDS = {
                 "visible": True,
                 "style": {},
             },
-            "serializer": "SimpleSerializable",
+            "serializer": "Serializable",
+            "info": {"input": ["str", "value"], "output": ["str", "value"]},
         },
         {
             "id": 15,
@@ -422,6 +474,12 @@ XRAY_CONFIG_DIFF_IDS = {
     "show_error": True,
     "show_api": True,
     "is_colab": False,
+    "stylesheets": [
+        "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
+        "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
+    ],
+    "root": "",
+    "theme": "default",
     "layout": {
         "id": 0,
         "children": [
