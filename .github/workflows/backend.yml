@@ -135,6 +135,6 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        coverage run -m pytest -m "${{ matrix.test-type }}"
+        coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         coverage xml
 
