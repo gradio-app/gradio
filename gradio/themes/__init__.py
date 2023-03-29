@@ -10,7 +10,7 @@ from gradio.themes.utils.fonts import Font, GoogleFont  # noqa: F401
 from gradio.themes.utils.sizes import Size  # noqa: F401
 
 
-def builder(*args):
+def builder(*args, **kwargs):
     from gradio.themes.builder import demo
 
-    demo.launch(*args)
+    demo.launch(*args, **kwargs)
