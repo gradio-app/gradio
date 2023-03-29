@@ -7,8 +7,4 @@ python -m black gradio test
 python -m isort --profile=black gradio test 
 python -m flake8 --ignore=E731,E501,E722,W503,E126,E203,F403 gradio test --exclude gradio/__init__.py
 
-cd client/python
-
-bash scripts/format.sh
-
-cd "$(dirname ${0})/.."
+bash client/python/scripts/format.sh  # Call the client library's formatting script
