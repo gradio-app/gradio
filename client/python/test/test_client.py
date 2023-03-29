@@ -27,11 +27,40 @@ class TestEndpoints:
         client = Client("gradio-tests/titanic-survival")
         assert client.endpoints[0].get_info() == {
             "parameters": {
-                "sex": ("Any", "Radio"),
-                "age": ("Any", "Slider"),
-                "fare (british pounds)": ("Any", "Slider"),
+                "sex": ["Any", "", "Radio"],
+                "age": ["Any", "", "Slider"],
+                "fare_(british_pounds)": ["Any", "", "Slider"],
             },
-            "returns": {"output": ("str (filepath to json file)", "Label")},
+            "returns": {"output": ["str", "filepath to json file", "Label"]},
+        }
+        assert client.view_api(return_info=True) == {
+            "named_endpoints": {
+                "predict": {
+                    "parameters": {
+                        "sex": ["Any", "", "Radio"],
+                        "age": ["Any", "", "Slider"],
+                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                    },
+                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                },
+                "predict_1": {
+                    "parameters": {
+                        "sex": ["Any", "", "Radio"],
+                        "age": ["Any", "", "Slider"],
+                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                    },
+                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                },
+                "predict_2": {
+                    "parameters": {
+                        "sex": ["Any", "", "Radio"],
+                        "age": ["Any", "", "Slider"],
+                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                    },
+                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                },
+            },
+            "unnamed_endpoints": {},
         }
 
     @pytest.mark.flaky
@@ -41,6 +70,23 @@ class TestEndpoints:
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
         assert client.endpoints[0].get_info() == {
-            "parameters": {"x": ("Any", "Textbox")},
-            "returns": {"output": ("Any", "Textbox")},
+            "parameters": {"x": ["Any", "", "Textbox"]},
+            "returns": {"output": ["Any", "", "Textbox"]},
+        }
+        assert client.view_api(return_info=True) == {
+            "named_endpoints": {
+                "predict": {
+                    "parameters": {"x": ["Any", "", "Textbox"]},
+                    "returns": {"output": ["Any", "", "Textbox"]},
+                }
+            },
+            "unnamed_endpoints": {
+                2: {
+                    "parameters": {"parameter_0": ["Any", "", "Dataset"]},
+                    "returns": {
+                        "x": ["Any", "", "Textbox"],
+                        "output": ["Any", "", "Textbox"],
+                    },
+                }
+            },
         }

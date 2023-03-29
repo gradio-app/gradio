@@ -34,7 +34,6 @@ from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.serializing import (
     BooleanSerializable,
-    DropdownSerializable,
     FileSerializable,
     GallerySerializable,
     ImgSerializable,
