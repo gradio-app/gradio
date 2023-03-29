@@ -105,9 +105,7 @@ class Client:
         return job
 
     def view_api(
-        self, 
-        all_endpoints: bool | None = None, 
-        print_api: bool | None = True
+        self, all_endpoints: bool | None = None, print_api: bool | None = True
     ) -> Dict | None:
         """
         Parameters:
@@ -139,23 +137,23 @@ class Client:
 
         for endpoint in self.endpoints:
             if endpoint.is_valid:
-                if endpoint.api_name:                    
+                if endpoint.api_name:
                     info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
                 else:
                     info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
-        
+
         if not print_api:
             return info
-        
+
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
             all_endpoints = True
-            
+
         human_info = f"Client.predict() Usage Info\n---------------------------\nNamed endpoints: {num_named_endpoints}\n"
         for api_name, endpoint_info in info["named_endpoints"].items():
             human_info += self._render_endpoints_info(api_name, endpoint_info)
-        
+
         if all_endpoints:
             human_info += f"\nUnnamed endpoints: {num_unnamed_endpoints}\n"
             for fn_index, endpoint_info in info["unnamed_endpoints"].items():
@@ -168,25 +166,30 @@ class Client:
         name_or_index: str | int,
         endpoints_info: Dict[str, Dict[str, List[str]]],
     ) -> str:
-        human_info = ""
-        for label, info in endpoints_info.items():
-            parameters = ",".join(list(info["parameters"].keys()))
-            if parameters:
-                parameters = f"{parameters}, "
-            returns = ",".join(list(info["returns"].keys()))
-            if returns:
-                returns = f" -> {returns}"
-            human_info += (
-                f" - predict({parameters}{label_format.format(label)}){returns}\n"
-            )
-            if parameters:
-                human_info += "    Parameters:\n"
-                for name, type in info["parameters"].items():
-                    human_info += f"     - [{type[1]}] {name}: {type[0]}\n"
-            if returns:
-                human_info += "    Returns:\n"
-                for name, type in info["returns"].items():
-                    human_info += f"     - [{type[1]}] {name}: {type[0]}\n"
+        parameter_names = list(endpoints_info["parameters"].keys())
+        rendered_parameters = ",".join(parameter_names)
+        if rendered_parameters:
+            rendered_parameters = rendered_parameters + ", "
+        return_value_names = list(endpoints_info["returns"].keys())
+        rendered_return_values = "(" + ",".join(return_value_names) + ")"
+
+        if isinstance(name_or_index, int):
+            final_param = f'api_name="{name_or_index}"'
+        elif isinstance(name_or_index, str):
+            final_param = f"fn_index={name_or_index}"
+        else:
+            raise ValueError("name_or_index must be a string or integer")
+
+        human_info = f" - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        if endpoints_info["parameters"]:
+            human_info += "    Parameters:\n"
+        for label, info in endpoints_info["parameters"].items():
+            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+        if endpoints_info["returns"]:
+            human_info += "    Returns:\n"
+        for label, info in endpoints_info["returns"].items():
+            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+
         return human_info
 
     def __repr__(self):
@@ -296,7 +299,7 @@ class Endpoint:
                         info = component["info"]["output"]
                     else:
                         info = self.deserializers[o].output_api_info()
-                    info = list(info)                        
+                    info = list(info)
                     info.append(component.get("type", "component").capitalize())
                     returns[label] = list(info)
 
