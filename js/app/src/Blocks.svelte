@@ -66,7 +66,7 @@
 				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
 					`let result = await (${d.js})(...__fn_args);
-					return ${wrap} ? [result] : result;`
+					return (${wrap} && !Array.isArray(result)) ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
