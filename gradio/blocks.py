@@ -55,6 +55,17 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
     from gradio.components import Component
 
+BUILT_IN_THEMES: Dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+    ]
+}
+
 
 class Block:
     def __init__(
@@ -495,6 +506,7 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
+            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -506,11 +518,14 @@ class Blocks(BlockContext):
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
-            try:
-                theme = Theme.from_hub(theme)
-            except Exception as e:
-                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-                theme = DefaultTheme()
+            if theme.lower() in BUILT_IN_THEMES:
+                theme = BUILT_IN_THEMES[theme.lower()]
+            else:
+                try:
+                    theme = Theme.from_hub(theme)
+                except Exception as e:
+                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                    theme = DefaultTheme()
         if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
@@ -570,16 +585,9 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
-            built_in_themes = [
-                themes.Base(),
-                themes.Default(),
-                themes.Monochrome(),
-                themes.Soft(),
-                themes.Glass(),
-            ]
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
-                for built_in_theme in built_in_themes
+                for built_in_theme in BUILT_IN_THEMES.values()
             )
             data = {
                 "mode": self.mode,
@@ -607,6 +615,7 @@ class Blocks(BlockContext):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
+        theme = config.get("theme", "default")
         original_mapping: Dict[int, Block] = {}
 
         def get_block_instance(id: int) -> Block:
@@ -644,7 +653,7 @@ class Blocks(BlockContext):
 
         derived_fields = ["types"]
 
-        with Blocks() as blocks:
+        with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -1138,6 +1147,7 @@ class Blocks(BlockContext):
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "root": self.root,
+            "theme": self.theme.name,
         }
 
         def getLayout(block):
