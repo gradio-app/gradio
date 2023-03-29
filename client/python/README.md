@@ -13,7 +13,7 @@ client = grc.Client(space="stabilityai/stable-diffusion")
 job = client.predict("a hyperrealistic portrait of a cat wearing cyberpunk armor", "", fn_index=1)
 job.result()
 
->> https: // stabilityai - stable - diffusion.hf.space / kjbcxadsk3ada9k / image.png  # URL to generated image
+>> /Users/usersname/b8c26657-df87-4508-aa75-eb37cd38735f  # Path to generatoed gallery of images
 
 ```
 
@@ -95,10 +95,9 @@ import gradio_client as grc
 
 
 def print_result(x):
-    print(x
-    "The translated result is: {x}")
+    print("The translated result is: {x}")
 
-    client = grc.Client(space="abidlabs/en2fr")
+client = grc.Client(space="abidlabs/en2fr")
 
-    job = client.predict("Hello", callbacks=[print_result])
+job = client.predict("Hello", callbacks=[print_result])
 ```
