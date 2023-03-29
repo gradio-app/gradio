@@ -50,7 +50,7 @@ class Status(Enum):
     QUEUE_FULL = "QUEUE_FULL"
     IN_QUEUE = "IN_QUEUE"
     SENDING_DATA = "SENDING_DATA"
-    START_ITERATION = "START_ITERATION"
+    PROCESSING = "PROCESSSING"
     ITERATING = "ITERATING"
     FINISHED = "FINISHED"
 
@@ -63,7 +63,7 @@ class Status(Enum):
             Status.QUEUE_FULL,
             Status.IN_QUEUE,
             Status.SENDING_DATA,
-            Status.START_ITERATION,
+            Status.PROCESSING,
             Status.ITERATING,
             Status.FINISHED,
         ]
@@ -80,7 +80,7 @@ class Status(Enum):
             "queue_full": Status.QUEUE_FULL,
             "estimation": Status.IN_QUEUE,
             "send_data": Status.SENDING_DATA,
-            "process_starts": Status.START_ITERATION,
+            "process_starts": Status.PROCESSING,
             "process_generating": Status.ITERATING,
             "process_completed": Status.FINISHED,
         }[msg]
