@@ -57,6 +57,18 @@ class TestPredictionsFromSpaces:
         statuses.append(job.status())
         assert all(s.code in [Status.ITERATING, Status.FINISHED] for s in statuses)
 
+    @pytest.mark.flaky
+    def test_intermediate_outputs(
+        self,
+    ):
+        client = Client(space="gradio/count_generator")
+        job = client.predict(3, fn_index=0)
+
+        while not job.done():
+            time.sleep(0.1)
+
+        assert job.outputs() == [[str(i)] for i in range(3)]
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")

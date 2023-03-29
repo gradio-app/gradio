@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import math
 import re
 import threading
+import time
 import uuid
 from concurrent.futures import Future
 from datetime import datetime
@@ -76,11 +78,17 @@ class Client:
 
         helper = None
         if self.endpoints[fn_index].use_ws:
-            helper = Communicator(Lock(), JobStatus())
+            helper = Communicator(
+                Lock(), JobStatus(), self.endpoints[fn_index].deserialize
+            )
         end_to_end_fn = self.endpoints[fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
-        job = Job(future, communicator=helper)
+        job = Job(
+            future,
+            communicator=helper,
+            is_generator=self.endpoints[fn_index].is_generator,
+        )
 
         if result_callbacks:
             if isinstance(result_callbacks, Callable):
@@ -206,6 +214,10 @@ class Endpoint:
 
         return _predict
 
+    @property
+    def is_generator(self):
+        return self.dependency.get("types", {}).get("generator", False)
+
     def _predict_resolve(self, *data) -> Any:
         """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
         outputs = self.make_predict()(*data)
@@ -282,7 +294,10 @@ class Endpoint:
 
     async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
-            self.ws_url, open_timeout=10, extra_headers=self.headers
+            self.ws_url,
+            open_timeout=10,
+            extra_headers=self.headers,
+            max_size=1024 * 1024 * 1024,
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
@@ -290,9 +305,41 @@ class Endpoint:
 class Job(Future):
     """A Job is a thin wrapper over the Future class that can be cancelled."""
 
-    def __init__(self, future: Future, communicator: Communicator | None = None):
+    def __init__(
+        self,
+        future: Future,
+        communicator: Communicator | None = None,
+        is_generator: bool = False,
+    ):
         self.future = future
         self.communicator = communicator
+        self.is_generator = is_generator
+
+    def outputs(
+        self,
+    ):
+        if not self.communicator:
+            return []
+        else:
+            with self.communicator.lock:
+                return self.communicator.job.outputs
+
+    def result(self, timeout: float | None = None):
+        if self.is_generator:
+            # Coerce to inf here because the parent class can't handle inf
+            timeout = timeout or math.inf
+            start = datetime.now()
+            while True:
+                if (datetime.now() - start).seconds > timeout:
+                    raise concurrent.futures.TimeoutError(
+                        "The operation exceeded the given deadline"
+                    )
+                with self.communicator.lock:
+                    if self.communicator.job.outputs:
+                        return self.communicator.job.outputs[0]
+                time.sleep(0.05)
+        else:
+            return super().result(timeout)
 
     def status(self) -> StatusUpdate:
         if not self.communicator:
