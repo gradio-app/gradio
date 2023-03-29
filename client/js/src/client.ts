@@ -18,7 +18,7 @@ import type {
 	SpaceStatusCallback
 } from "./types";
 
-import type { Config } from "../../../globals";
+import type { Config } from "./types";
 
 type event = <K extends EventType>(
 	eventType: K,
@@ -85,6 +85,12 @@ export async function client(
 			off,
 			cancel
 		};
+
+		if (!("WebSocket" in window) || window.WebSocket.CLOSING !== 2) {
+			const ws = await import("ws");
+			//@ts-ignore
+			global.WebSocket = ws;
+		}
 
 		const listener_map: ListenerMap<EventType> = {};
 		const { ws_protocol, http_protocol, host, space_id } =
