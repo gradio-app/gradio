@@ -9,7 +9,7 @@ Here's the entire code to do it:
 ```python
 import gradio_client as grc
 
-client = grc.Client(space="stabilityai/stable-diffusion")
+client = grc.Client("stabilityai/stable-diffusion")
 job = client.predict("a hyperrealistic portrait of a cat wearing cyberpunk armor", "", fn_index=1)
 job.result()
 
@@ -39,7 +39,7 @@ that is running on Spaces (or anywhere else)!
 ```python
 import gradio_client as grc
 
-client = grc.Client(space="abidlabs/en2fr")
+client = grc.Client("abidlabs/en2fr")
 ```
 
 **Connecting a general Gradio app**

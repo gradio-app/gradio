@@ -11,27 +11,26 @@ from gradio_client.utils import Communicator, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
+HF_TOKEN = "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"  # Intentionally revealing this key for testing purposes
+
 
 class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
-        client = Client(space="abidlabs/titanic-survival")
+        client = Client("gradio-tests/titanic-survival")
         output = client.predict("male", 77, 10).result()
         assert json.load(open(output))["label"] == "Perishes"
 
     @pytest.mark.flaky
     def test_private_space(self):
-        hf_token = "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"  # Intentionally revealing this key for testing purposes
-        client = Client(
-            space="gradio-tests/not-actually-private-space", hf_token=hf_token
-        )
+        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
         output = client.predict("abc").result()
         assert output == "abc"
 
     @pytest.mark.flaky
     def test_job_status(self):
         statuses = []
-        client = Client(space="gradio/calculator")
+        client = Client(src="gradio/calculator")
         job = client.predict(5, "add", 4)
         while not job.done():
             time.sleep(0.1)
@@ -49,7 +48,7 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_job_status_queue_disabled(self):
         statuses = []
-        client = Client(space="freddyaboulton/sentiment-classification")
+        client = Client(src="freddyaboulton/sentiment-classification")
         job = client.predict("I love the gradio python client")
         while not job.done():
             time.sleep(0.02)
@@ -127,7 +126,7 @@ class TestStatusUpdates:
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
-        client = Client(space="gradio/calculator")
+        client = Client(src="gradio/calculator")
         job = client.predict(5, "add", 6, fn_index=0)
 
         statuses = []
@@ -199,7 +198,7 @@ class TestStatusUpdates:
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
-        client = Client(space="gradio/calculator")
+        client = Client(src="gradio/calculator")
         job_1 = client.predict(5, "add", 6, fn_index=0)
         job_2 = client.predict(11, "subtract", 1, fn_index=0)
 
@@ -211,3 +210,74 @@ class TestStatusUpdates:
             time.sleep(0.05)
 
         assert all(s in messages_1 for s in statuses_1)
+
+
+class TestEndpoints:
+    @pytest.mark.flaky
+    def test_numerical_to_label_space(self):
+        client = Client("gradio-tests/titanic-survival")
+        assert client.endpoints[0].get_info() == {
+            "parameters": {
+                "sex": ["Any", "", "Radio"],
+                "age": ["Any", "", "Slider"],
+                "fare_(british_pounds)": ["Any", "", "Slider"],
+            },
+            "returns": {"output": ["str", "filepath to json file", "Label"]},
+        }
+        assert client.view_api(return_info=True) == {
+            "named_endpoints": {
+                "predict": {
+                    "parameters": {
+                        "sex": ["Any", "", "Radio"],
+                        "age": ["Any", "", "Slider"],
+                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                    },
+                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                },
+                "predict_1": {
+                    "parameters": {
+                        "sex": ["Any", "", "Radio"],
+                        "age": ["Any", "", "Slider"],
+                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                    },
+                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                },
+                "predict_2": {
+                    "parameters": {
+                        "sex": ["Any", "", "Radio"],
+                        "age": ["Any", "", "Slider"],
+                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                    },
+                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                },
+            },
+            "unnamed_endpoints": {},
+        }
+
+    @pytest.mark.flaky
+    def test_private_space(self):
+        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
+        assert len(client.endpoints) == 3
+        assert len([e for e in client.endpoints if e.is_valid]) == 2
+        assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
+        assert client.endpoints[0].get_info() == {
+            "parameters": {"x": ["Any", "", "Textbox"]},
+            "returns": {"output": ["Any", "", "Textbox"]},
+        }
+        assert client.view_api(return_info=True) == {
+            "named_endpoints": {
+                "predict": {
+                    "parameters": {"x": ["Any", "", "Textbox"]},
+                    "returns": {"output": ["Any", "", "Textbox"]},
+                }
+            },
+            "unnamed_endpoints": {
+                2: {
+                    "parameters": {"parameter_0": ["Any", "", "Dataset"]},
+                    "returns": {
+                        "x": ["Any", "", "Textbox"],
+                        "output": ["Any", "", "Textbox"],
+                    },
+                }
+            },
+        }
