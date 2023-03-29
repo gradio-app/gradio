@@ -1,4 +1,4 @@
-import { test, describe, assert, expect, afterEach, vi } from "vitest";
+import { test, describe, expect, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 
 import File from "./File.svelte";
