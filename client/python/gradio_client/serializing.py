@@ -261,10 +261,10 @@ class JSONSerializable(Serializable):
 
 class GallerySerializable(Serializable):
     def input_api_info(self) -> Tuple[str, str]:
-        return "str", "directory path to images and captions.json"
+        return "str", "path to directory with images and captions.json"
 
     def output_api_info(self) -> Tuple[str, str]:
-        return "str", "directory path to images and captions.json"
+        return "str", "path to directory with images and captions.json"
 
     def serialize(
         self, x: str | None, load_dir: str | Path = ""

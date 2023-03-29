@@ -105,12 +105,15 @@ class Client:
         return job
 
     def view_api(
-        self, all_endpoints: bool | None = None, print_api: bool | None = True
+        self, 
+        all_endpoints: bool | None = None,
+        return_info: bool = False,
     ) -> Dict | None:
         """
+        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately.
         Parameters:
-            all_endpoints: If True, returns information for both named and unnamed endpoints in the Gradio app. If False, will only return info about named endpoints. If None (default), will only return info about unnamed endpoints if there are no named endpoints.
-            print_api: If True, prints the usage info to the console. If False, returns the usage info as a dictionary that can be programmatically parsed. All endpoints are returned in the dictionary regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
+            return_info: If False (default), prints the usage info to the console. If True, returns the usage info as a dictionary that can be programmatically parsed (does not print), and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Dictionary format:
             {
                 "named_endpoints": {
@@ -142,7 +145,7 @@ class Client:
                 else:
                     info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
 
-        if not print_api:
+        if return_info:
             return info
 
         num_named_endpoints = len(info["named_endpoints"])
@@ -150,37 +153,44 @@ class Client:
         if num_named_endpoints == 0 and all_endpoints is None:
             all_endpoints = True
 
-        human_info = f"Client.predict() Usage Info\n---------------------------\nNamed endpoints: {num_named_endpoints}\n"
+        human_info = f"Client.predict() Usage Info\n---------------------------\n"
+        human_info += f"Named API endpoints: {num_named_endpoints}\n"
+        
         for api_name, endpoint_info in info["named_endpoints"].items():
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
-            human_info += f"\nUnnamed endpoints: {num_unnamed_endpoints}\n"
+            human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
             for fn_index, endpoint_info in info["unnamed_endpoints"].items():
                 human_info += self._render_endpoints_info(fn_index, endpoint_info)
         else:
-            human_info += f"\nUnnamed endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
-
+            if num_unnamed_endpoints > 0:
+                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
+        
+        print(human_info)
+        
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
         endpoints_info: Dict[str, Dict[str, List[str]]],
     ) -> str:
         parameter_names = list(endpoints_info["parameters"].keys())
-        rendered_parameters = ",".join(parameter_names)
+        rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
             rendered_parameters = rendered_parameters + ", "
         return_value_names = list(endpoints_info["returns"].keys())
-        rendered_return_values = "(" + ",".join(return_value_names) + ")"
+        rendered_return_values = ", ".join(return_value_names)
+        if len(return_value_names) > 1:
+            rendered_return_values = f"({rendered_return_values})"
 
-        if isinstance(name_or_index, int):
+        if isinstance(name_or_index, str):
             final_param = f'api_name="{name_or_index}"'
-        elif isinstance(name_or_index, str):
+        elif isinstance(name_or_index, int):
             final_param = f"fn_index={name_or_index}"
         else:
             raise ValueError("name_or_index must be a string or integer")
 
-        human_info = f" - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         if endpoints_info["parameters"]:
             human_info += "    Parameters:\n"
         for label, info in endpoints_info["parameters"].items():
@@ -282,7 +292,7 @@ class Endpoint:
         for i, input in enumerate(self.dependency["inputs"]):
             for component in self.config["components"]:
                 if component["id"] == input:
-                    label = component["props"].get("label", f"parameter_{i}").lower()
+                    label = component["props"].get("label", f"parameter_{i}").lower().replace(" ", "_")
                     if "info" in component:
                         info = component["info"]["input"]
                     else:
@@ -294,7 +304,7 @@ class Endpoint:
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.config["components"]:
                 if component["id"] == output:
-                    label = component["props"].get("label", f"value_{o}").lower()
+                    label = component["props"].get("label", f"value_{o}").lower().replace(" ", "_")
                     if "info" in component:
                         info = component["info"]["output"]
                     else:
