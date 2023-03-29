@@ -1173,8 +1173,8 @@ class Blocks(BlockContext):
                 assert isinstance(block, serializing.Serializable)
                 block_config["serializer"] = serializer
                 block_config["info"] = {
-                    "input": list(block.input_api_info()),
-                    "output": list(block.output_api_info()),
+                    "input": list(block.input_api_info()),  # type: ignore
+                    "output": list(block.output_api_info()),  # type: ignore
                 }
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
