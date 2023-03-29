@@ -14,6 +14,49 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
+  client-test:
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-latest"]
+        python-version: ["3.9"]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: client/python
+    steps:
+    - uses: actions/checkout@v3
+    - name: Cache python deps
+      id: cache-python
+      uses: actions/cache@v3
+      with:
+        path: ./venv
+        key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pip
+      run: python -m pip install build requests virtualenv
+    - name: venv activate Linux
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        python -m virtualenv venv
+        source venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: venv activate Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        python -m virtualenv venv
+        ./venv/Scripts/Activate.ps1
+        echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    - name: Install Client
+      run: |
+        pip install -e .
+        pip install -r test/requirements.txt
+    - name: Tests
+      shell: bash
+      run: |
+        bash scripts/ci.sh
   test:
     strategy:
       matrix:
@@ -42,7 +85,7 @@ jobs:
       with:
         node-version: 16
         cache: pnpm
-        cache-dependency-path: ui/pnpm-lock.yaml
+        cache-dependency-path: pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests virtualenv
     - name: venv activate Linux
@@ -83,10 +126,8 @@ jobs:
     - name: Build frontend
       shell: bash
       run: |
-        cd ui
         pnpm i --frozen-lockfile
         pnpm build
-        cd ..
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Create coverage dir

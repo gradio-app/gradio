@@ -2454,7 +2454,7 @@ class File(
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
@@ -2878,6 +2878,8 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
                 ),
             }
         if isinstance(y, (np.ndarray, list)):
+            if len(y) == 0:
+                return self.postprocess([[]])
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             assert isinstance(y, list), "output cannot be converted to list"

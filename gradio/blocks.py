@@ -55,6 +55,17 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
     from gradio.components import Component
 
+BUILT_IN_THEMES: Dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+    ]
+}
+
 
 class Block:
     def __init__(
@@ -495,6 +506,7 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
+            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -506,11 +518,14 @@ class Blocks(BlockContext):
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
-            try:
-                theme = Theme.from_hub(theme)
-            except Exception as e:
-                warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-                theme = DefaultTheme()
+            if theme.lower() in BUILT_IN_THEMES:
+                theme = BUILT_IN_THEMES[theme.lower()]
+            else:
+                try:
+                    theme = Theme.from_hub(theme)
+                except Exception as e:
+                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                    theme = DefaultTheme()
         if not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
@@ -570,16 +585,9 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
-            built_in_themes = [
-                themes.Base(),
-                themes.Default(),
-                themes.Monochrome(),
-                themes.Soft(),
-                themes.Glass(),
-            ]
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
-                for built_in_theme in built_in_themes
+                for built_in_theme in BUILT_IN_THEMES.values()
             )
             data = {
                 "mode": self.mode,
@@ -607,6 +615,7 @@ class Blocks(BlockContext):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
+        theme = config.get("theme", "default")
         original_mapping: Dict[int, Block] = {}
 
         def get_block_instance(id: int) -> Block:
@@ -644,7 +653,7 @@ class Blocks(BlockContext):
 
         derived_fields = ["types"]
 
-        with Blocks() as blocks:
+        with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -1138,6 +1147,7 @@ class Blocks(BlockContext):
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "root": self.root,
+            "theme": self.theme.name,
         }
 
         def getLayout(block):
@@ -1332,6 +1342,33 @@ class Blocks(BlockContext):
         self.app = routes.App.create_app(self)
         return self
 
+    def validate_queue_settings(self):
+        if not self.enable_queue and self.progress_tracking:
+            raise ValueError("Progress tracking requires queuing to be enabled.")
+
+        for fn_index, dep in enumerate(self.dependencies):
+            if not self.enable_queue and self.queue_enabled_for_fn(fn_index):
+                raise ValueError(
+                    f"The queue is enabled for event {dep['api_name'] if dep['api_name'] else fn_index} "
+                    "but the queue has not been enabled for the app. Please call .queue() "
+                    "on your app. Consult https://gradio.app/docs/#blocks-queue for information on how "
+                    "to configure the queue."
+                )
+            for i in dep["cancels"]:
+                if not self.queue_enabled_for_fn(i):
+                    raise ValueError(
+                        "Queue needs to be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
+            if dep["batch"] and (
+                dep["queue"] is False
+                or (dep["queue"] is None and not self.enable_queue)
+            ):
+                raise ValueError("In order to use batching, the queue must be enabled.")
+
     def launch(
         self,
         inline: bool | None = None,
@@ -1450,24 +1487,7 @@ class Blocks(BlockContext):
         if not isinstance(self.file_directories, list):
             raise ValueError("file_directories must be a list of directories.")
 
-        if not self.enable_queue and self.progress_tracking:
-            raise ValueError("Progress tracking requires queuing to be enabled.")
-
-        for dep in self.dependencies:
-            for i in dep["cancels"]:
-                if not self.queue_enabled_for_fn(i):
-                    raise ValueError(
-                        "In order to cancel an event, the queue for that event must be enabled! "
-                        "You may get this error by either 1) passing a function that uses the yield keyword "
-                        "into an interface without enabling the queue or 2) defining an event that cancels "
-                        "another event without enabling the queue. Both can be solved by calling .queue() "
-                        "before .launch()"
-                    )
-            if dep["batch"] and (
-                dep["queue"] is False
-                or (dep["queue"] is None and not self.enable_queue)
-            ):
-                raise ValueError("In order to use batching, the queue must be enabled.")
+        self.validate_queue_settings()
 
         self.config = self.get_config_file()
         self.max_threads = max(
