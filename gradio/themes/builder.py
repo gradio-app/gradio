@@ -1,5 +1,6 @@
 import inspect
 import time
+from typing import Iterable
 
 import gradio as gr
 
@@ -300,24 +301,14 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                     output_code = gr.Code(language="python")
                 with gr.Accordion("Upload to Hub", open=False):
                     gr.Markdown(
-                        "You can save your theme on the Hugging Face Hub. Instructions on making an HF account and getting an API token can be found [here](https://huggingface.co/docs/huggingface_hub/quick-start#login)."
+                        "You can save your theme on the Hugging Face Hub. HF API write token can be found [here](https://huggingface.co/settings/tokens)."
                     )
                     with gr.Row():
                         theme_name = gr.Textbox(label="Theme Name")
                         theme_hf_token = gr.Textbox(label="Hugging Face Write Token")
-                    with gr.Row():
-                        theme_repo_name = gr.Textbox(
-                            label="Repo Name",
-                            info="The name of the repository to store the theme.",
-                        )
                         theme_version = gr.Textbox(
                             label="Version",
-                            info="The version of the theme. Bumping a version allows you to publish theme updates.",
-                            value="1.0.0",
-                        )
-                        theme_description = gr.Textbox(
-                            label="Description",
-                            info="A short description of the theme.",
+                            placeholder="Leave blank to automatically update version.",
                         )
                     upload_to_hub_btn = gr.Button("Upload to Hub")
                     theme_upload_status = gr.Markdown(visible=False)
@@ -578,7 +569,9 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                 + var_output
             )
 
-        def generate_theme_code(base_theme, final_theme, core_variables):
+        def generate_theme_code(
+            base_theme, final_theme, core_variables, final_main_fonts, final_mono_fonts
+        ):
             base_theme_name = base_theme
             base_theme = [theme for theme in themes if theme.__name__ == base_theme][
                 0
@@ -591,6 +584,20 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
             text_size = parameters["text_size"].default
             spacing_size = parameters["spacing_size"].default
             radius_size = parameters["radius_size"].default
+            font = parameters["font"].default
+            font = [font] if not isinstance(font, Iterable) else font
+            font = [
+                gr.themes.Font(f) if not isinstance(f, gr.themes.Font) else f
+                for f in font
+            ]
+            font_mono = parameters["font_mono"].default
+            font_mono = (
+                [font_mono] if not isinstance(font_mono, Iterable) else font_mono
+            )
+            font_mono = [
+                gr.themes.Font(f) if not isinstance(f, gr.themes.Font) else f
+                for f in font_mono
+            ]
 
             core_diffs = {}
             specific_core_diffs = {}
@@ -645,11 +652,32 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                 if diff:
                     specific_core_diffs[value_name] = (source_class, final_attr_values)
 
+            font_diffs = {}
+
+            final_main_fonts = [font for font in final_main_fonts if font[0]]
+            final_mono_fonts = [font for font in final_mono_fonts if font[0]]
+            font = font[:4]
+            font_mono = font_mono[:4]
+            for base_font_set, theme_font_set, font_set_name in [
+                (font, final_main_fonts, "font"),
+                (font_mono, final_mono_fonts, "font_mono"),
+            ]:
+                if len(base_font_set) != len(theme_font_set) or any(
+                    base_font.name != theme_font[0]
+                    or isinstance(base_font, gr.themes.GoogleFont) != theme_font[1]
+                    for base_font, theme_font in zip(base_font_set, theme_font_set)
+                ):
+                    font_diffs[font_set_name] = [
+                        f"gr.themes.GoogleFont('{font_name}')"
+                        if is_google_font
+                        else f"'{font_name}'"
+                        for font_name, is_google_font in theme_font_set
+                    ]
+
             newline = "\n"
 
             core_diffs_code = ""
             if len(core_diffs) + len(specific_core_diffs) > 0:
-                core_diffs_code = "\n"
                 for var_name in core_var_names:
                     if var_name in specific_core_diffs:
                         cls, vals = specific_core_diffs[var_name]
@@ -659,6 +687,15 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                             f"""    {var_name}="{core_diffs[var_name]}",\n"""
                         )
 
+            font_diffs_code = ""
+
+            if len(font_diffs) > 0:
+                font_diffs_code = "".join(
+                    [
+                        f"""    {font_set_name}=[{", ".join(fonts)}],\n"""
+                        for font_set_name, fonts in font_diffs.items()
+                    ]
+                )
             var_diffs = {}
             for variable in flat_variables:
                 base_theme_val = getattr(base_theme, variable)
@@ -679,7 +716,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
             output = f"""
 import gradio as gr
 
-theme = gr.themes.{base_theme_name}({core_diffs_code}){vars_diff_code}
+theme = gr.themes.{base_theme_name}({newline if core_diffs_code or font_diffs_code else ""}{core_diffs_code}{font_diffs_code}){vars_diff_code}
 
 with gr.Blocks(theme=theme) as demo:
     ..."""
@@ -818,6 +855,8 @@ with gr.Blocks(theme=theme) as demo:
                         spacing_size,
                         radius_size,
                     ),
+                    list(zip(main_fonts, main_is_google)),
+                    list(zip(mono_fonts, mono_is_google)),
                 ),
                 theme,
             )
@@ -917,29 +956,29 @@ with gr.Blocks(theme=theme) as demo:
 
         def upload_to_hub(data):
             theme_url = data[current_theme].push_to_hub(
-                repo_name=data[theme_repo_name],
-                version=data[theme_version],
+                repo_name=data[theme_name],
+                version=data[theme_version] or None,
                 hf_token=data[theme_hf_token],
                 theme_name=data[theme_name],
-                description=data[theme_description],
             )
             space_name = "/".join(theme_url.split("/")[-2:])
-            return gr.Markdown.update(
-                value=f"Theme uploaded [here!]({theme_url})! Load it as `gr.Blocks(theme='{space_name}')`",
-                visible=True,
+            return (
+                gr.Markdown.update(
+                    value=f"Theme uploaded [here!]({theme_url})! Load it as `gr.Blocks(theme='{space_name}')`",
+                    visible=True,
+                ),
+                "Upload to Hub",
             )
 
-        upload_to_hub_btn.click(
+        upload_to_hub_btn.click(lambda: "Uploading...", None, upload_to_hub_btn).then(
             upload_to_hub,
             {
                 current_theme,
                 theme_name,
                 theme_hf_token,
-                theme_repo_name,
                 theme_version,
-                theme_description,
             },
-            theme_upload_status,
+            [theme_upload_status, upload_to_hub_btn],
         )
 
 

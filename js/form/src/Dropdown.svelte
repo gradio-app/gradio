@@ -14,8 +14,11 @@
 	export let show_label: boolean;
 	export let allow_custom_value: boolean = false;
 
+	let focused = false;
 	$: is_custom_value =
-		allow_custom_value && typeof value === "string" && !choices.includes(value);
+		allow_custom_value &&
+		typeof value === "string" &&
+		(!choices.includes(value) || focused);
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
@@ -136,7 +139,7 @@
 		} else if (allow_custom_value) {
 			value = inputValue;
 			is_custom_value = true;
-			// dispatch("change", value);
+			dispatch("change", value);
 		}
 	}
 </script>
@@ -175,10 +178,12 @@
 					}}
 					on:focus={() => {
 						showOptions = true;
+						focused = true;
 					}}
 					on:blur={() => {
 						dispatch("blur");
 						showOptions = false;
+						focused = false;
 					}}
 					on:keyup={handleKeyup}
 				/>
