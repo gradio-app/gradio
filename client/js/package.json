@@ -13,7 +13,6 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"vite": "^4.2.1",
 		"ws": "^8.13.0"
 	},
 	"devDependencies": {

@@ -2,8 +2,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	build: {
+		minify: true,
 		lib: {
-			// Could also be a dictionary or array of multiple entry points
 			entry: "src/index.ts",
 			formats: ["es"]
 		},
@@ -14,6 +14,7 @@ export default defineConfig({
 			}
 		}
 	},
+
 	ssr: {
 		target: "node",
 		format: "esm",
