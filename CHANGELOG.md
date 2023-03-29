@@ -12,6 +12,8 @@
     gr.themes.builder()
     ```
 
+- The `Dropdown` component now has a `allow_custom_value` parameter that lets users type in custom values not in the original list of choices.
+- The `Colorpicker` component now has a `.blur()` event
 
 ## Bug Fixes:
 

@@ -75,7 +75,7 @@ css = """
 }
 """
 
-with gr.Blocks(theme=gr.themes.Base(), css=css) as demo:
+with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as demo:
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls", min_width=400):
             with gr.Row():
