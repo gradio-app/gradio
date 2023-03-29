@@ -55,12 +55,12 @@ class TestPredictionsFromSpaces:
             time.sleep(0.02)
             statuses.append(job.status())
         statuses.append(job.status())
-        assert all(s.code in [Status.ITERATING, Status.FINISHED] for s in statuses)
+        assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
 
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
-    def test_put_updates_in_queue(self, mock_make_end_to_end_fn):
+    def test_messages_passed_correctly(self, mock_make_end_to_end_fn):
 
         now = datetime.now()
 
@@ -136,3 +136,78 @@ class TestStatusUpdates:
             time.sleep(0.09)
 
         assert all(s in messages for s in statuses)
+
+    @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
+    def test_messages_correct_two_concurrent(self, mock_make_end_to_end_fn):
+
+        now = datetime.now()
+
+        messages_1 = [
+            StatusUpdate(
+                code=Status.STARTING,
+                eta=None,
+                rank=None,
+                success=None,
+                queue_size=None,
+                time=now,
+            ),
+            StatusUpdate(
+                code=Status.FINISHED,
+                eta=None,
+                rank=None,
+                queue_size=None,
+                success=True,
+                time=now + timedelta(seconds=4),
+            ),
+        ]
+
+        messages_2 = [
+            StatusUpdate(
+                code=Status.IN_QUEUE,
+                eta=3,
+                rank=2,
+                queue_size=2,
+                success=None,
+                time=now + timedelta(seconds=2),
+            ),
+            StatusUpdate(
+                code=Status.IN_QUEUE,
+                eta=2,
+                rank=1,
+                queue_size=1,
+                success=None,
+                time=now + timedelta(seconds=3),
+            ),
+        ]
+
+        class MockEndToEndFunction:
+            n_counts = 0
+
+            def __init__(self, communicator: Communicator):
+                self.communicator = communicator
+                self.messages = (
+                    messages_1 if MockEndToEndFunction.n_counts == 0 else messages_2
+                )
+                MockEndToEndFunction.n_counts += 1
+
+            def __call__(self, *args, **kwargs):
+                for m in self.messages:
+                    with self.communicator.lock:
+                        print(f"here: {m}")
+                        self.communicator.job.latest_status = m
+                    time.sleep(0.1)
+
+        mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
+
+        client = Client(space="gradio/calculator")
+        job_1 = client.predict(5, "add", 6, fn_index=0)
+        job_2 = client.predict(11, "subtract", 1, fn_index=0)
+
+        statuses_1 = []
+        statuses_2 = []
+        while not (job_1.done() and job_2.done()):
+            statuses_1.append(job_1.status())
+            statuses_2.append(job_2.status())
+            time.sleep(0.05)
+
+        assert all(s in messages_1 for s in statuses_1)

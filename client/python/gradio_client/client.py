@@ -308,7 +308,7 @@ class Job(Future):
                 )
             else:
                 return StatusUpdate(
-                    code=Status.ITERATING,
+                    code=Status.PROCESSING,
                     rank=0,
                     queue_size=None,
                     success=None,
