@@ -21,6 +21,7 @@ import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -1411,6 +1412,113 @@ class TestAddRequests:
         request = gr.Request()
         inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
+
+    def test_default_args(self):
+        def moo(a, b, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs + [42]
+
+        inputs = [1, 2, 24]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs
+
+    def test_default_args_with_progress(self):
+        pr = gr.Progress()
+
+        def moo(a, b, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [42, pr]
+        assert progress_index == 3
+
+        inputs = [1, 2, 24]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [pr]
+        assert progress_index == 3
+
+        def moo(a, b, pr=pr, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [pr, 42]
+        assert progress_index == 2
+
+    def test_default_args_with_request(self):
+        pr = gr.Progress()
+
+        def moo(a, b, req: gr.Request, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs + [request, 42]
+
+        def moo(a, b, req: gr.Request, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [request, 42, pr]
+        assert progress_index == 4
+
+    def test_default_args_with_event_data(self):
+        pr = gr.Progress()
+        target = gr.Textbox()
+
+        def moo(a, b, ed: SelectData, c=42):
+            return a + b + c
+
+        event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request, event_data
+        )[0]
+        assert len(inputs_) == 4
+        new_event_data = inputs_[2]
+        assert inputs_ == inputs + [new_event_data, 42]
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
+
+        def moo(a, b, ed: SelectData, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request, event_data
+        )
+        assert len(inputs_) == 5
+        new_event_data = inputs_[2]
+        assert inputs_ == inputs + [new_event_data, 42, pr]
+        assert progress_index == 4
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
 
 
 def test_queue_enabled_for_fn():
