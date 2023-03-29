@@ -240,20 +240,26 @@ class Endpoint:
             for component in self.config["components"]:
                 if component["id"] == input:
                     label = component["props"].get("label", f"parameter_{i}").lower()
-                    parameters[label] = (
-                        self.serializers[i].get_input_type(),
-                        component.get("type", "component").capitalize(),
-                    )
-
+                    if "info" in component:
+                        info = component["info"]["input"]
+                    else:
+                        info = (
+                            self.serializers[i].get_input_type(),
+                            component.get("type", "component").capitalize(),
+                        )
+                    parameters[label] = info
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.config["components"]:
                 if component["id"] == output:
                     label = component["props"].get("label", f"parameter_{o}").lower()
-                    returns[label] = (
+                    if "info" in component:
+                        info = component["info"]["output"]
+                    info = (
                         self.deserializers[o].get_output_type(),
                         component.get("type", "component").capitalize(),
                     )
+                    returns[label] = info
 
         return {"parameters": parameters, "returns": returns}
 

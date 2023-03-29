@@ -227,10 +227,10 @@ class FileSerializable(Serializable):
 
 class JSONSerializable(Serializable):
     def get_input_type(self) -> str:
-        return "str (filepath)"
+        return "str (filepath to json file)"
 
     def get_output_type(self) -> str:
-        return "str (filepath)"
+        return "str (filepath to json file)"
 
     def serialize(
         self,
@@ -325,7 +325,7 @@ COMPONENT_MAPPING = {
     "slider": NumberSerializable,
     "checkbox": BooleanSerializable,
     "checkboxgroup": ListStringSerializable,
-    "radio": BooleanSerializable,
+    "radio": StringSerializable,
     "dropdown": DropdownSerializable,
     "image": ImgSerializable,
     "video": FileSerializable,

@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tupl
 import anyio
 import requests
 from anyio import CapacityLimiter
+from gradio_client import serializing
 from gradio_client import utils as client_utils
 from typing_extensions import Literal
 
@@ -1159,7 +1160,12 @@ class Blocks(BlockContext):
             }
             serializer = utils.get_serializer_name(block)
             if serializer:
+                assert isinstance(block, serializing.Serializable)
                 block_config["serializer"] = serializer
+                block_config["info"] = {
+                    "input": block.get_input_type(),
+                    "output": block.get_output_type(),
+                }
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config

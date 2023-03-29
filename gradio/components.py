@@ -843,6 +843,12 @@ class Slider(
         self.cleared_value = self.value
         self.test_input = self.value
 
+    def get_input_type(self) -> str:
+        return f"int | float (value between {self.minimum} and {self.maximum})"
+
+    def get_output_type(self) -> str:
+        return f"int | float (value between {self.minimum} and {self.maximum})"
+
     def get_config(self):
         return {
             "minimum": self.minimum,
