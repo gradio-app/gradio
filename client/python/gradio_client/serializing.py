@@ -319,7 +319,7 @@ class GallerySerializable(Serializable):
 
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
 
-COMPONENT_MAPPING = {
+COMPONENT_MAPPING: Dict[str, type] = {
     "textbox": StringSerializable,
     "number": NumberSerializable,
     "slider": NumberSerializable,
