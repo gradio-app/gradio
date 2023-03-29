@@ -4091,6 +4091,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
     def style(
         self,
         *,
+        grid: int | Tuple | None = None,
         columns: int | Tuple | None = None,
         rows: int | Tuple | None = None,
         height: str | None = None,
@@ -4102,13 +4103,18 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            columns: Represents the number of columns in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            grid: ('grid' has been renamed to 'columns') Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints            columns: Represents the number of columns in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
         """
+        if grid is not None:
+            warnings.warn(
+                "The 'grid' parameter will be deprecated. Please use 'columns' instead.",
+            )
+            self._style["grid_cols"] = grid
         if columns is not None:
             self._style["grid_cols"] = columns
         if rows is not None:
