@@ -7,4 +7,3 @@ pip_required
 
 echo "Installing Gradio..."
 pip install -e .
-pip install -e client/python
