@@ -21,11 +21,11 @@ demo = gr.Interface(
     ],
     "text",
     examples=[
-        [2, "cat", "park", ["ran", "swam"], True],
-        [4, "dog", "zoo", ["ate", "swam"], False],
-        [10, "bird", "road", ["ran"], False],
-        [8, "cat", "zoo", ["ate"], True],
-    ],
+        [2, "cat", ["Japan", "Pakistan"], "park", ["ate", "swam"], True],
+        [4, "dog", ["Japan"], "zoo", ["ate", "swam"], False],
+        [10, "bird", ["USA", "Pakistan"], "road", ["ran"], False],
+        [8, "cat", ["Pakistan"], "zoo", ["ate"], True],
+    ]
 )
 
 if __name__ == "__main__":
