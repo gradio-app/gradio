@@ -7,6 +7,8 @@ import re
 import threading
 import uuid
 from concurrent.futures import Future
+from datetime import datetime
+from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
 import huggingface_hub
@@ -17,6 +19,7 @@ from packaging import version
 
 from gradio_client import serializing, utils
 from gradio_client.serializing import Serializable
+from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 
 
 class Client:
@@ -83,9 +86,13 @@ class Client:
         if api_name:
             fn_index = self._infer_fn_index(api_name)
 
-        end_to_end_fn = self.endpoints[fn_index].end_to_end_fn
+        helper = None
+        if self.endpoints[fn_index].use_ws:
+            helper = Communicator(Lock(), JobStatus())
+        end_to_end_fn = self.endpoints[fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
-        job = Job(future)
+
+        job = Job(future, communicator=helper)
 
         if result_callbacks:
             if isinstance(result_callbacks, Callable):
@@ -326,42 +333,51 @@ class Endpoint:
 
         return {"parameters": parameters, "returns": returns}
 
-    def end_to_end_fn(self, *data):
-        if not self.is_valid:
-            raise utils.InvalidAPIEndpointError()
-        inputs = self.serialize(*data)
-        predictions = self.predict(*inputs)
-        outputs = self.deserialize(*predictions)
-        if len(self.dependency["outputs"]) == 1:
-            return outputs[0]
-        return outputs
+    def make_end_to_end_fn(self, helper: Communicator | None = None):
 
-    def predict(self, *data) -> Tuple:
-        data = json.dumps({"data": data, "fn_index": self.fn_index})
-        hash_data = json.dumps(
-            {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
-        )
-        if self.use_ws:
-            result = utils.synchronize_async(self._ws_fn, data, hash_data)
-            output = result["data"]
-        else:
-            response = requests.post(self.api_url, headers=self.headers, data=data)
-            result = json.loads(response.content.decode("utf-8"))
-            try:
+        _predict = self.make_predict(helper)
+
+        def _inner(*data):
+            if not self.is_valid:
+                raise utils.InvalidAPIEndpointError()
+            inputs = self.serialize(*data)
+            predictions = _predict(*inputs)
+            outputs = self.deserialize(*predictions)
+            if len(self.dependency["outputs"]) == 1:
+                return outputs[0]
+            return outputs
+
+        return _inner
+
+    def make_predict(self, helper: Communicator | None = None):
+        def _predict(*data) -> Tuple:
+            data = json.dumps({"data": data, "fn_index": self.fn_index})
+            hash_data = json.dumps(
+                {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
+            )
+            if self.use_ws:
+                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 output = result["data"]
-            except KeyError:
-                if "error" in result and "429" in result["error"]:
-                    raise utils.TooManyRequestsError(
-                        "Too many requests to the Hugging Face API"
+            else:
+                response = requests.post(self.api_url, headers=self.headers, data=data)
+                result = json.loads(response.content.decode("utf-8"))
+                try:
+                    output = result["data"]
+                except KeyError:
+                    if "error" in result and "429" in result["error"]:
+                        raise utils.TooManyRequestsError(
+                            "Too many requests to the Hugging Face API"
+                        )
+                    raise KeyError(
+                        f"Could not find 'data' key in response. Response received: {result}"
                     )
-                raise KeyError(
-                    f"Could not find 'data' key in response. Response received: {result}"
-                )
-        return tuple(output)
+            return tuple(output)
+
+        return _predict
 
     def _predict_resolve(self, *data) -> Any:
         """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
-        outputs = self.predict(*data)
+        outputs = self.make_predict()(*data)
         if len(self.dependency["outputs"]) == 1:
             return outputs[0]
         return outputs
@@ -433,18 +449,44 @@ class Endpoint:
         dependency_uses_queue = dependency.get("queue", False) is not False
         return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
-    async def _ws_fn(self, data, hash_data):
+    async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
             self.ws_url, open_timeout=10, extra_headers=self.headers
         ) as websocket:
-            return await utils.get_pred_from_ws(websocket, data, hash_data)
+            return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
 
 class Job(Future):
     """A Job is a thin wrapper over the Future class that can be cancelled."""
 
-    def __init__(self, future: Future):
+    def __init__(self, future: Future, communicator: Communicator | None = None):
         self.future = future
+        self.communicator = communicator
+
+    def status(self) -> StatusUpdate:
+        if not self.communicator:
+            time = datetime.now()
+            if self.done():
+                return StatusUpdate(
+                    code=Status.FINISHED,
+                    rank=0,
+                    queue_size=None,
+                    success=None,
+                    time=time,
+                    eta=None,
+                )
+            else:
+                return StatusUpdate(
+                    code=Status.PROCESSING,
+                    rank=0,
+                    queue_size=None,
+                    success=None,
+                    time=time,
+                    eta=None,
+                )
+        else:
+            with self.communicator.lock:
+                return self.communicator.job.latest_status
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
