@@ -4,7 +4,14 @@
 
 ## New Features:
 
+### Added a download button for videos! 📥
+
+![download_video](https://user-images.githubusercontent.com/41651716/227009612-9bc5fb72-2a44-4c55-9b7b-a0fa098e7f25.gif)
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3581](https://github.com/gradio-app/gradio/pull/3581).
+
 - Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)   
+
 
 ## Bug Fixes:
 

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { BlockLabel, Empty } from "@gradio/atoms";
+	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
-	import { Video } from "@gradio/icons";
+	import { Video, Download } from "@gradio/icons";
 
 	import Player from "./Player.svelte";
 
@@ -26,4 +26,21 @@
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<Player src={value.data} on:play on:pause on:ended mirror={false} />
+	<div class="download" data-testid="download-div">
+		<a
+			href={value.data}
+			target={window.__is_colab__ ? "_blank" : null}
+			download={value.orig_name || value.name}
+		>
+			<IconButton Icon={Download} label="Download" />
+		</a>
+	</div>
 {/if}
+
+<style>
+	.download {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+	}
+</style>

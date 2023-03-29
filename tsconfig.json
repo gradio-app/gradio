@@ -25,6 +25,7 @@
 		"**/dist/**/*",
 		"**/public/**/*",
 		"**/*.config.js",
+		"**/*.test.ts",
 		"**/dist",
 		"**/workbench/**/*",
 		"**/Plot.svelte",

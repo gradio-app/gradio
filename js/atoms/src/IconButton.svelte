@@ -23,7 +23,8 @@
 	}
 
 	button:hover {
-		border: 1px solid var(--button-secondary-border-color-hover);
+		cursor: pointer;
+		border: 2px solid var(--button-secondary-border-color-hover);
 		color: var(--block-label-text-color);
 	}
 
