@@ -1293,7 +1293,7 @@ class TestVideo:
         output2 = video_output.postprocess(y_vid_path)["name"]
         assert output1 == output2
         assert video_output.postprocess(y_vid_path)["orig_name"] == "video_sample.mp4"
-        
+
 
         assert video_output.deserialize(
             {
