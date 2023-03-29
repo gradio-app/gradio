@@ -13,7 +13,7 @@ export interface Styles {
 	gap?: boolean;
 	size?: "sm" | "lg";
 	preview?: boolean;
-	object_fit: "contain" | "cover" | "fill" | "none" | "scale-down";
+	object_fit?: "contain" | "cover" | "fill" | "none" | "scale-down";
 	show_copy_button?: boolean;
 }
 
