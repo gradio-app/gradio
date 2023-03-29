@@ -12,10 +12,11 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
-from gradio_client import serializing, utils
-from gradio_client.serializing import Serializable
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
+
+from gradio_client import serializing, utils
+from gradio_client.serializing import Serializable
 
 
 class Client:
@@ -153,7 +154,7 @@ class Client:
         if num_named_endpoints == 0 and all_endpoints is None:
             all_endpoints = True
 
-        human_info = f"Client.predict() Usage Info\n---------------------------\n"
+        human_info = "Client.predict() Usage Info\n---------------------------\n"
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
         for api_name, endpoint_info in info["named_endpoints"].items():
