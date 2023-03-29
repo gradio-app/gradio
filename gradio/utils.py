@@ -158,6 +158,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
             str(blocks.blocks[y]) for y in x["outputs"]
         ]
     additional_data = {
+        "version": GRADIO_VERSION,
         "is_kaggle": blocks.is_kaggle,
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
