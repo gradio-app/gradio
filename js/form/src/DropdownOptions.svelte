@@ -80,13 +80,13 @@
 		border-radius: var(--container-radius);
 		background: var(--background-fill-primary);
 		width: var(--size-full);
+		min-width: fit-content;
+		max-width: inherit;
 		overflow: auto;
 		color: var(--body-text-color);
 		list-style: none;
-        min-width: fit-content;
-        max-width: inherit;
-        white-space: nowrap;
-    }
+		white-space: nowrap;
+	}
 
 	.item {
 		display: flex;

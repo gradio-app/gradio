@@ -22,9 +22,9 @@
 		activeOption: string,
 		placeholder: string,
 		showOptions = false,
-        filterInput: HTMLElement;
+		filterInput: HTMLElement;
 
-    $: choicesLower = choices.map(o => o.toLowerCase())
+	$: choicesLower = choices.map((o) => o.toLowerCase());
 
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
@@ -33,19 +33,23 @@
 		inputValue ? o.includes(inputValue.toLowerCase()) : o
 	);
 
- function updateActiveOption(filtered, filteredLower, inputValue) {
-     if (inputValue && filteredLower.includes(inputValue.toLowerCase())) {
-         // Autoselect exact matches
-         activeOption = inputValue;
-     }
-     else if ((activeOption && !filtered.includes(activeOption)) ||
-              (!activeOption && inputValue)
-     ) {
-         activeOption = filtered[0];
-     }
-    }
+	function updateActiveOption(
+		filtered: Array<string>,
+		filteredLower: Array<string>,
+		inputValue: string
+	) {
+		if (inputValue && filteredLower.includes(inputValue.toLowerCase())) {
+			// Autoselect exact matches
+			activeOption = inputValue;
+		} else if (
+			(activeOption && !filtered.includes(activeOption)) ||
+			(!activeOption && inputValue)
+		) {
+			activeOption = filtered[0];
+		}
+	}
 
-	$: updateActiveOption(filtered, filteredLower, inputValue)
+	$: updateActiveOption(filtered, filteredLower, inputValue);
 
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
@@ -53,22 +57,21 @@
 		dispatch("change", value);
 	}
 
-    function isFilterReadonly(value: any): bool {
-        if (multiselect) {
-            return Array.isArray(value) && value.length === max_choices;
-        }
-        else {
-            return typeof value === "string" && value.length > 0;
-        }
-    }
+	function isFilterReadonly(value: any): boolean {
+		if (multiselect) {
+			return Array.isArray(value) && value.length === max_choices;
+		} else {
+			return typeof value === "string" && value.length > 0;
+		}
+	}
 
 	$: filterReadonly = isFilterReadonly(value) && !showOptions;
 
-    $: if (!multiselect && showOptions && value) {
-        placeholder = value;
-    } else {
-        placeholder = "";
-    }
+	$: if (!multiselect && showOptions && value) {
+		placeholder = value as string;
+	} else {
+		placeholder = "";
+	}
 
 	function add(option: string) {
 		if (Array.isArray(value)) {
@@ -139,13 +142,12 @@
 			if (!multiselect) {
 				value = activeOption;
 				inputValue = "";
-                showOptions = false;
+				showOptions = false;
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
-		}
-		else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+		} else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 			const increment = e.key === "ArrowUp" ? -1 : 1;
 			const calcIndex = filtered.indexOf(activeOption) + increment;
 			activeOption =
@@ -154,18 +156,21 @@
 					: calcIndex === filtered.length
 					? filtered[0]
 					: filtered[calcIndex];
-            e.preventDefault();
-		}
-		else if (e.key === "Escape") {
+			e.preventDefault();
+		} else if (e.key === "Escape") {
 			showOptions = false;
-            inputValue = "";
-		}
-        else if (e.key === "Backspace") {
-            if (multiselect && (!inputValue || inputValue === "") && Array.isArray(value) && value.length > 0) {
-                remove(value[value.length - 1]);
+			inputValue = "";
+		} else if (e.key === "Backspace") {
+			if (
+				multiselect &&
+				(!inputValue || inputValue === "") &&
+				Array.isArray(value) &&
+				value.length > 0
+			) {
+				remove(value[value.length - 1]);
 				inputValue = "";
-            }
-        }
+			}
+		}
 	}
 </script>
 
@@ -175,68 +180,75 @@
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
-            {#if multiselect || !showOptions}
-                {#if Array.isArray(value)}
-                    {#each value as s}
-                        <div on:click|preventDefault={() => remove(s)} class="token">
-                            <span>{s}</span>
-                            <div
-                                class:hidden={disabled}
-                                class="token-remove"
-                                title="Remove {s}"
-                            >
-                                <Remove />
-                            </div>
-                        </div>
-                    {/each}
-                {:else if value}
-                    <span
-                        class="single-select"
-                        on:mousedown|preventDefault={(e) => {
-                            showOptions = !showOptions;
-                            if (showOptions) {
-                                filterInput.focus();
-                            }
-                        }}
-                    >
-                        {value}
-                    </span>
-                {/if}
-            {/if}
-			<div class="secondary-wrap"
-					on:mousedown|preventDefault={(e) => {
-						showOptions = !showOptions;
-                        if (showOptions) {
-                            filterInput.focus();
-                        }
-                        else {
-                            filterInput.blur();
-                            inputValue = "";
-                        }
-					}}
-					on:focusout={(e) => {
-                        showOptions = false;
-                        inputValue = "";
-                    }}
-                >
+			{#if multiselect || !showOptions}
+				{#if Array.isArray(value)}
+					{#each value as s}
+						<div on:click|preventDefault={() => remove(s)} class="token">
+							<span>{s}</span>
+							<div
+								class:hidden={disabled}
+								class="token-remove"
+								title="Remove {s}"
+							>
+								<Remove />
+							</div>
+						</div>
+					{/each}
+				{:else if value}
+					<span
+						class="single-select"
+						on:mousedown|preventDefault={(e) => {
+							showOptions = !showOptions;
+							if (showOptions) {
+								filterInput.focus();
+							}
+						}}
+					>
+						{value}
+					</span>
+				{/if}
+			{/if}
+			<div
+				class="secondary-wrap"
+				tabindex="0"
+				on:focus|preventDefault={() => {
+					showOptions = !showOptions;
+					if (showOptions) {
+						filterInput.focus();
+					} else {
+						filterInput.blur();
+						inputValue = "";
+					}
+				}}
+				on:mousedown|preventDefault={() => {
+					showOptions = !showOptions;
+					if (showOptions) {
+						filterInput.focus();
+					} else {
+						filterInput.blur();
+						inputValue = "";
+					}
+				}}
+				on:focusout={(e) => {
+					if (e.target == filterInput) {
+						showOptions = false;
+						inputValue = "";
+					}
+				}}
+			>
 				<input
 					class="border-none input"
 					{disabled}
 					readonly={filterReadonly}
 					autocomplete="off"
-                    placeholder={placeholder}
+					{placeholder}
 					bind:value={inputValue}
-                    bind:this={filterInput}
-					on:focus={(e) => {
-                        // Don't reopen the dropdown from focus not triggered by input
-                        // (for example releasing the mouse in the edges of the wrapper box)
-                        if (e.sourceCapabilities) {
-                             showOptions = true;
-                        }
-                        else if (!showOptions) {
-                             filterInput.blur();
-                             inputValue = "";
-                        }
+					bind:this={filterInput}
+					on:focus={() => {
+						if (!showOptions) {
+							filterInput.blur();
+							inputValue = "";
+						}
 					}}
 					on:keydown={handleKeydown}
 				/>
@@ -248,18 +260,18 @@
 				>
 					<Remove />
 				</div>
-                <DropdownArrow />
-            </div>
-        </div>
-        <DropdownOptions
-            bind:value
-            {showOptions}
-            {filtered}
-            {activeOption}
-            {disabled}
-            on:change={handleOptionMousedown}
-        />
-    </div>
+				<DropdownArrow />
+			</div>
+		</div>
+		<DropdownOptions
+			bind:value
+			{showOptions}
+			{filtered}
+			{activeOption}
+			{disabled}
+			on:change={handleOptionMousedown}
+		/>
+	</div>
 </label>
 
 <style>
@@ -356,7 +368,7 @@
 		display: none;
 	}
 
-    .input {
-        color: var(--secondary-400)
-    }
+	.input {
+		color: var(--secondary-400);
+	}
 </style>
