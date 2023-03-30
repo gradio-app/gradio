@@ -15,10 +15,6 @@
 	export let allow_custom_value: boolean = false;
 
 	let focused = false;
-	$: is_custom_value =
-		allow_custom_value &&
-		typeof value === "string" &&
-		(!choices.includes(value) || focused);
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
@@ -26,8 +22,8 @@
 		blur: undefined;
 	}>();
 
-	$: inputValue = typeof value === "string" && is_custom_value ? value : "";
-	let activeOption: string,
+	let inputValue: string,
+		activeOption: string,
 		showOptions = false;
 
 	$: filtered = choices.filter((o) =>
@@ -42,7 +38,7 @@
 	$: readonly =
 		((!multiselect && typeof value === "string" && value.length > 0) ||
 			(multiselect && Array.isArray(value) && value.length === max_choices)) &&
-		!is_custom_value;
+		!allow_custom_value;
 
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
@@ -91,13 +87,15 @@
 
 	function handleOptionMousedown(e: any) {
 		const option = e.detail.target.dataset.value;
-		inputValue = "";
+		if (allow_custom_value) {
+			inputValue = option;
+		} else {
+			inputValue = "";
+		}
 
 		if (option !== undefined) {
 			if (!multiselect) {
 				value = option;
-				inputValue = "";
-				is_custom_value = false;
 				showOptions = false;
 				dispatch("select", {
 					index: choices.indexOf(option),
@@ -120,7 +118,6 @@
 			if (!multiselect) {
 				value = activeOption;
 				inputValue = "";
-				is_custom_value = false;
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
@@ -138,7 +135,6 @@
 			showOptions = false;
 		} else if (allow_custom_value) {
 			value = inputValue;
-			is_custom_value = true;
 			dispatch("change", value);
 		}
 	}
@@ -163,7 +159,7 @@
 						</div>
 					</div>
 				{/each}
-			{:else if !is_custom_value}
+			{:else if !allow_custom_value}
 				<span class="single-select">{value}</span>
 			{/if}
 			<div class="secondary-wrap">
