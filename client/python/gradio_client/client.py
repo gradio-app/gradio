@@ -498,8 +498,8 @@ class Job(Future):
             # Coerce to inf here because the parent class can't handle inf
             timeout = timeout or math.inf
             start = datetime.now()
+            assert self.communicator
             while True:
-                assert self.communicator
                 if (datetime.now() - start).seconds > timeout:
                     raise concurrent.futures.TimeoutError(
                         "The operation exceeded the given deadline"
