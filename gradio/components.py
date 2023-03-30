@@ -2138,7 +2138,7 @@ class Video(
             y = output_file_name
 
         y = self.make_temp_copy_if_needed(y)
-        return {"name": y, "data": None, "is_file": True}
+        return {"name": y, "data": None, "is_file": True, "orig_name": Path(y).name}
 
     def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
