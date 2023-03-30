@@ -1534,7 +1534,7 @@ class Dropdown(
             if x is None:
                 return None
             elif self.multiselect:
-                return [self.choices.index(c) if c in self.choices else None for c in x]
+                return [self.choices.index(c) for c in x]
             else:
                 if isinstance(x, str):
                     return self.choices.index(x) if x in self.choices else None
