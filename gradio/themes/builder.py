@@ -237,10 +237,10 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                         "100",
                         "200",
                         "300",
-                        "normal",
+                        "400",
                         "500",
                         "600",
-                        "bold",
+                        "700",
                         "800",
                     ],
                     "shadow": ["none"],
@@ -801,10 +801,8 @@ with gr.Blocks(theme=theme) as demo:
 
             final_main_fonts = []
             font_weights = set()
-            weight_map = {"normal": "400", "bold": "700"}
             for attr, val in zip(flat_variables, remaining_args):
                 if "weight" in attr:
-                    val = weight_map.get(val, val)
                     font_weights.add(val)
             font_weights = sorted(font_weights)
 
