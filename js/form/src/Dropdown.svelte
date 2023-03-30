@@ -24,10 +24,18 @@
 		showOptions = false,
         filterInput: HTMLElement;
 
+    $: choicesLower = choices.map(o => o.toLowerCase())
+
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
-	$: if (
+	$: filteredLower = choicesLower.filter((o) =>
+		inputValue ? o.includes(inputValue.toLowerCase()) : o
+	);
+
+	$: if (inputValue && filteredLower.includes(inputValue.toLowerCase()))
+        activeOption = inputValue;
+    else if (
 		(activeOption && !filtered.includes(activeOption)) ||
 		(!activeOption && inputValue)
 	)
