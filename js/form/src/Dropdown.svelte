@@ -133,11 +133,11 @@
 			if (!multiselect) {
 				value = activeOption;
 				inputValue = "";
+                showOptions = false;
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
-            showOptions = false;
 		}
 		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 			const increment = e.key === "ArrowUp" ? -1 : 1;
@@ -153,6 +153,11 @@
 			showOptions = false;
             inputValue = "";
 		}
+        if (e.key === "Backspace") {
+            if (multiselect && (!inputValue || inputValue === "") && Array.isArray(value) && value.length > 0) {
+                remove(value[value.length - 1])
+            }
+        }
 	}
 </script>
 
@@ -162,7 +167,7 @@
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
-            {#if !showOptions}
+            {#if multiselect || !showOptions}
                 {#if Array.isArray(value)}
                     {#each value as s}
                         <div on:click|preventDefault={() => remove(s)} class="token">
