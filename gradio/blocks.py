@@ -1251,6 +1251,7 @@ class Blocks(BlockContext):
             preprocess: Instance Method - If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: Instance Method - If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            _js: Optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Example:
             import gradio as gr
             import datetime
@@ -1261,7 +1262,6 @@ class Blocks(BlockContext):
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
             warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:

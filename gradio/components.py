@@ -1928,8 +1928,8 @@ class Image(
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            _js: Optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         """
-        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
         super().stream(
@@ -2444,8 +2444,8 @@ class Audio(
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            _js: Optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         """
-        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
