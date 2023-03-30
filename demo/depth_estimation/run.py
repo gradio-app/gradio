@@ -38,7 +38,7 @@ def process_image(image_path):
         gltf_path = create_3d_obj(np.array(image), depth_image, image_path)
         img = Image.fromarray(depth_image)
         return [img, gltf_path, gltf_path]
-    except Exception as e:
+    except Exception:
         gltf_path = create_3d_obj(
             np.array(image), depth_image, image_path, depth=8)
         img = Image.fromarray(depth_image)
@@ -79,7 +79,7 @@ def create_3d_obj(rgb_image, depth_image, image_path, depth=10):
                    [0, 0, 0, 1]])
 
     print('run Poisson surface reconstruction')
-    with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as cm:
+    with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug):
         mesh_raw, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
             pcd, depth=depth, width=0, scale=1.1, linear_fit=True)
 
