@@ -6,14 +6,13 @@ black
 boto3
 coverage
 fastapi>=0.87.0
-flake8
 httpx
 huggingface_hub
-isort
 pydantic
 pytest
 pytest-asyncio
 pytest-cov
+ruff>=0.0.260
 respx
 scikit-image
 shap
