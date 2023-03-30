@@ -20,7 +20,9 @@
 
 	let inputValue: string,
 		activeOption: string,
-		showOptions = false;
+		placeholder: string,
+		showOptions = false,
+        filterInput: HTMLElement;
 
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
@@ -31,15 +33,28 @@
 	)
 		activeOption = filtered[0];
 
-	$: readonly =
-		(!multiselect && typeof value === "string" && value.length > 0) ||
-		(multiselect && Array.isArray(value) && value.length === max_choices);
-
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
 	$: if (!multiselect && !Array.isArray(value)) {
 		dispatch("change", value);
 	}
+
+    function is_filter_readonly(value: any): bool {
+        if (multiselect) {
+            return Array.isArray(value) && value.length === max_choices;
+        }
+        else {
+            return typeof value === "string" && value.length > 0;
+        }
+    }
+
+	$: filter_readonly = is_filter_readonly(value) && !showOptions;
+
+    $: if (!multiselect && showOptions && value) {
+        placeholder = value;
+    } else {
+        placeholder = "";
+    }
 
 	function add(option: string) {
 		if (Array.isArray(value)) {
@@ -114,6 +129,7 @@
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
+            showOptions = false;
 		}
 		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 			const increment = e.key === "ArrowUp" ? -1 : 1;
@@ -127,6 +143,7 @@
 		}
 		if (e.key === "Escape") {
 			showOptions = false;
+            inputValue = "";
 		}
 	}
 </script>
@@ -137,36 +154,64 @@
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
-			{#if Array.isArray(value)}
-				{#each value as s}
-					<div on:click|preventDefault={() => remove(s)} class="token">
-						<span>{s}</span>
-						<div
-							class:hidden={disabled}
-							class="token-remove"
-							title="Remove {s}"
-						>
-							<Remove />
-						</div>
-					</div>
-				{/each}
-			{:else}
-				<span class="single-select">{value}</span>
-			{/if}
-			<div class="secondary-wrap">
-				<input
-					class="border-none"
-					{disabled}
-					{readonly}
-					autocomplete="off"
-					bind:value={inputValue}
-					on:mousedown={() => {
+            {#if !showOptions}
+                {#if Array.isArray(value)}
+                    {#each value as s}
+                        <div on:click|preventDefault={() => remove(s)} class="token">
+                            <span>{s}</span>
+                            <div
+                                class:hidden={disabled}
+                                class="token-remove"
+                                title="Remove {s}"
+                            >
+                                <Remove />
+                            </div>
+                        </div>
+                    {/each}
+                {:else if value}
+                    <span
+                        class="single-select"
+                        on:mousedown|preventDefault={(e) => {
+                            console.log("span mousedown")
+                            showOptions = !showOptions;
+                            if (showOptions) {
+                                filterInput.focus();
+                            }
+                        }}
+                    >
+                        {value}
+                    </span>
+                {/if}
+            {/if}
+			<div class="secondary-wrap"
+					on:mousedown|preventDefault={(e) => {
+                        console.log("div mousedown")
 						showOptions = !showOptions;
+                        if (showOptions) {
+                            filterInput.focus();
+                        }
 					}}
-					on:focus={() => {
-						showOptions = true;
+					on:focusout={(e) => {
+                        console.log("input blur");
+                        showOptions = false;
+                        inputValue = "";
+                    }}
+                >
+				<input
+					class="border-none input"
+					{disabled}
+					readonly={filter_readonly}
+					autocomplete="off"
+                    placeholder={placeholder}
+					bind:value={inputValue}
+                    bind:this={filterInput}
+					on:focus={(e) => {
+                        // Don't reopen options from focus not triggered by input
+                        if (e.sourceCapabilities) {
+                             console.log("input focus");
+                             showOptions = true;
+                        }
 					}}
-					on:blur={() => (showOptions = false)}
 					on:keyup={handleKeyup}
 				/>
 				<div
@@ -177,18 +222,18 @@
 				>
 					<Remove />
 				</div>
-				<DropdownArrow />
-			</div>
-		</div>
-		<DropdownOptions
-			bind:value
-			{showOptions}
-			{filtered}
-			{activeOption}
-			{disabled}
-			on:change={handleOptionMousedown}
-		/>
-	</div>
+                <DropdownArrow />
+            </div>
+        </div>
+        <DropdownOptions
+            bind:value
+            {showOptions}
+            {filtered}
+            {activeOption}
+            {disabled}
+            on:change={handleOptionMousedown}
+        />
+    </div>
 </label>
 
 <style>
@@ -210,7 +255,6 @@
 		position: relative;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: var(--checkbox-label-gap);
 		padding: var(--checkbox-label-gap);
 	}
 
@@ -285,4 +329,8 @@
 	.hide {
 		display: none;
 	}
+
+    .input {
+        color: var(--secondary-400)
+    }
 </style>
