@@ -14,6 +14,7 @@
 	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: undefined;
+		blur: undefined;
 	}>();
 
 	function handle_change(val: string) {
@@ -24,7 +25,7 @@
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	<input type="color" bind:value {disabled} />
+	<input type="color" on:blur bind:value {disabled} />
 </label>
 
 <style>
