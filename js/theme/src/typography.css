@@ -1,4 +1,5 @@
 .prose {
+	font-weight: var(--prose-text-weight);
 	font-size: var(--text-md);
 }
 

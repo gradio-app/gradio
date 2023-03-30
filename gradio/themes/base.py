@@ -473,7 +473,7 @@ class Base(ThemeClass):
     def set(
         self,
         *,
-        # Body
+        # Body Attributes: These set set the values for the entire body of the app.
         body_background_fill=None,
         body_background_fill_dark=None,
         body_text_color=None,
@@ -483,7 +483,7 @@ class Base(ThemeClass):
         body_text_color_subdued_dark=None,
         body_text_weight=None,
         embed_radius=None,
-        # Core Colors
+        # Element Colors: These set the colors for common elements.
         background_fill_primary=None,
         background_fill_primary_dark=None,
         background_fill_secondary=None,
@@ -495,7 +495,7 @@ class Base(ThemeClass):
         color_accent=None,
         color_accent_soft=None,
         color_accent_soft_dark=None,
-        # Text
+        # Text: This sets the text styling for text elements.
         link_text_color=None,
         link_text_color_dark=None,
         link_text_color_active=None,
@@ -507,13 +507,13 @@ class Base(ThemeClass):
         prose_text_size=None,
         prose_text_weight=None,
         prose_header_text_weight=None,
-        # Shadows
+        # Shadows: These set the high-level shadow rendering styles. These variables are often referenced by other component-specific shadow variables.
         shadow_drop=None,
         shadow_drop_lg=None,
         shadow_inset=None,
         shadow_spread=None,
         shadow_spread_dark=None,
-        # Layout Atoms
+        # Layout Atoms: These set the style for common layout elements, such as the blocks that wrap components.
         block_background_fill=None,
         block_background_fill_dark=None,
         block_border_color=None,
@@ -565,7 +565,7 @@ class Base(ThemeClass):
         panel_border_width_dark=None,
         section_header_text_size=None,
         section_header_text_weight=None,
-        # Component Atoms
+        # Component Atoms: These set the style for elements within components.
         checkbox_background_color=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
@@ -656,25 +656,21 @@ class Base(ThemeClass):
         table_radius=None,
         table_row_focus=None,
         table_row_focus_dark=None,
-        # Buttons
+        # Buttons: These set the style for buttons.
         button_border_width=None,
         button_border_width_dark=None,
-        button_cancel_background_fill=None,
-        button_cancel_background_fill_dark=None,
-        button_cancel_background_fill_hover=None,
-        button_cancel_background_fill_hover_dark=None,
-        button_cancel_border_color=None,
-        button_cancel_border_color_dark=None,
-        button_cancel_border_color_hover=None,
-        button_cancel_border_color_hover_dark=None,
-        button_cancel_text_color=None,
-        button_cancel_text_color_dark=None,
-        button_cancel_text_color_hover=None,
-        button_cancel_text_color_hover_dark=None,
+        button_shadow=None,
+        button_shadow_active=None,
+        button_shadow_hover=None,
+        button_transition=None,
         button_large_padding=None,
         button_large_radius=None,
         button_large_text_size=None,
         button_large_text_weight=None,
+        button_small_padding=None,
+        button_small_radius=None,
+        button_small_text_size=None,
+        button_small_text_weight=None,
         button_primary_background_fill=None,
         button_primary_background_fill_dark=None,
         button_primary_background_fill_hover=None,
@@ -699,14 +695,18 @@ class Base(ThemeClass):
         button_secondary_text_color_dark=None,
         button_secondary_text_color_hover=None,
         button_secondary_text_color_hover_dark=None,
-        button_shadow=None,
-        button_shadow_active=None,
-        button_shadow_hover=None,
-        button_small_padding=None,
-        button_small_radius=None,
-        button_small_text_size=None,
-        button_small_text_weight=None,
-        button_transition=None,
+        button_cancel_background_fill=None,
+        button_cancel_background_fill_dark=None,
+        button_cancel_background_fill_hover=None,
+        button_cancel_background_fill_hover_dark=None,
+        button_cancel_border_color=None,
+        button_cancel_border_color_dark=None,
+        button_cancel_border_color_hover=None,
+        button_cancel_border_color_hover_dark=None,
+        button_cancel_text_color=None,
+        button_cancel_text_color_dark=None,
+        button_cancel_text_color_hover=None,
+        button_cancel_text_color_hover_dark=None,
     ) -> Base:
         """
         Parameters:
@@ -1509,7 +1509,7 @@ class Base(ThemeClass):
         self.prose_header_text_weight = prose_header_text_weight or getattr(
             self, "prose_header_text_weight", "600"
         )
-        self.slider_color = slider_color or getattr(self, "slider_color", "")
+        self.slider_color = slider_color or getattr(self, "slider_color", "auto")
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
         )

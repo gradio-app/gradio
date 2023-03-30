@@ -577,6 +577,7 @@ class TestDropdown:
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
+            "allow_custom_value": False,
             "choices": ["a", "b", "c"],
             "value": ["a", "c"],
             "name": "dropdown",
