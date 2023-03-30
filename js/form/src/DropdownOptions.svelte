@@ -83,7 +83,10 @@
 		overflow: auto;
 		color: var(--body-text-color);
 		list-style: none;
-	}
+        min-width: fit-content;
+        max-width: inherit;
+        white-space: nowrap;
+    }
 
 	.item {
 		display: flex;
