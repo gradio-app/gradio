@@ -946,7 +946,7 @@ with gr.Blocks(theme=theme) as demo:
             else:
                 history_var.pop()
                 old = history_var.pop()
-                return history_var, old[0], *old[1]
+                return [history_var, old[0]] + list(old[1])
 
         attach_rerender(
             undo_btn.click(
