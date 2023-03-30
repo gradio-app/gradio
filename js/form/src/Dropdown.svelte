@@ -20,36 +20,19 @@
 
 	let inputValue: string,
 		activeOption: string,
-		placeholder: string,
 		showOptions = false,
 		filterInput: HTMLElement;
-
-	$: choicesLower = choices.map((o) => o?.toLowerCase());
 
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
-	$: filteredLower = choicesLower.filter((o) =>
-		inputValue ? o.includes(inputValue.toLowerCase()) : o
-	);
 
-	function updateActiveOption(
-		filtered: Array<string>,
-		filteredLower: Array<string>,
-		inputValue: string
+	$: if (
+		(activeOption && !filtered.includes(activeOption)) ||
+		(!activeOption && inputValue)
 	) {
-		if (inputValue && filteredLower.includes(inputValue.toLowerCase())) {
-			// Autoselect exact matches
-			activeOption = inputValue;
-		} else if (
-			(activeOption && !filtered.includes(activeOption)) ||
-			(!activeOption && inputValue)
-		) {
-			activeOption = filtered[0];
-		}
+		activeOption = filtered[0];
 	}
-
-	$: updateActiveOption(filtered, filteredLower, inputValue);
 
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
@@ -66,12 +49,6 @@
 	}
 
 	$: filterReadonly = isFilterReadonly(value) && !showOptions;
-
-	$: if (!multiselect && showOptions && value) {
-		placeholder = value as string;
-	} else {
-		placeholder = "";
-	}
 
 	function add(option: string) {
 		if (Array.isArray(value)) {
@@ -241,7 +218,6 @@
 					{disabled}
 					readonly={filterReadonly}
 					autocomplete="off"
-					{placeholder}
 					bind:value={inputValue}
 					bind:this={filterInput}
 					on:focus={() => {
