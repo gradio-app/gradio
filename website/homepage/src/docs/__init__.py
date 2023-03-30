@@ -168,7 +168,6 @@ def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
 
 
 def build_pip_template(version, jinja_env):
-    docs_files = os.listdir("src/docs")
     template = jinja_env.get_template("docs/template.html")
     output = template.render(
         docs=docs, find_cls=find_cls, version="pip", gradio_version=version, canonical_suffix="", ordered_events=ordered_events
