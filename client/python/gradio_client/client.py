@@ -499,6 +499,7 @@ class Job(Future):
             timeout = timeout or math.inf
             start = datetime.now()
             while True:
+                assert self.communicator
                 if (datetime.now() - start).seconds > timeout:
                     raise concurrent.futures.TimeoutError(
                         "The operation exceeded the given deadline"
