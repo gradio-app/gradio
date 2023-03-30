@@ -955,20 +955,29 @@ with gr.Blocks(theme=theme) as demo:
         )
 
         def upload_to_hub(data):
-            theme_url = data[current_theme].push_to_hub(
-                repo_name=data[theme_name],
-                version=data[theme_version] or None,
-                hf_token=data[theme_hf_token],
-                theme_name=data[theme_name],
-            )
-            space_name = "/".join(theme_url.split("/")[-2:])
-            return (
-                gr.Markdown.update(
-                    value=f"Theme uploaded [here!]({theme_url})! Load it as `gr.Blocks(theme='{space_name}')`",
-                    visible=True,
-                ),
-                "Upload to Hub",
-            )
+            try:
+                theme_url = data[current_theme].push_to_hub(
+                    repo_name=data[theme_name],
+                    version=data[theme_version] or None,
+                    hf_token=data[theme_hf_token],
+                    theme_name=data[theme_name],
+                )
+                space_name = "/".join(theme_url.split("/")[-2:])
+                return (
+                    gr.Markdown.update(
+                        value=f"Theme uploaded [here!]({theme_url})! Load it as `gr.Blocks(theme='{space_name}')`",
+                        visible=True,
+                    ),
+                    "Upload to Hub",
+                )
+            except Exception as e:
+                return (
+                    gr.Markdown.update(
+                        value=f"Error: {e}",
+                        visible=True,
+                    ),
+                    "Upload to Hub",
+                )
 
         upload_to_hub_btn.click(lambda: "Uploading...", None, upload_to_hub_btn).then(
             upload_to_hub,
