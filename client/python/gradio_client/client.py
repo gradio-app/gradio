@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
-import math
 import re
 import threading
 import time
@@ -496,7 +495,7 @@ class Job(Future):
     def result(self, timeout: float | None = None):
         if self.is_generator:
             # Coerce to inf here because the parent class can't handle inf
-            timeout = timeout or math.inf
+            timeout = timeout or float("inf")
             start = datetime.now()
             assert self.communicator
             while True:

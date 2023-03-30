@@ -167,11 +167,11 @@ async def get_pred_from_ws(
                     eta=resp.get("rank_eta"),
                 )
                 output = resp.get("output", {}).get("data", [])
-                if output and status_update.code == Status.ITERATING:
+                if output:
                     try:
                         result = helper.deserialize(*output)
                     except Exception as e:
-                        result = (f"Encountered error deserializing output:  {str(e)}",)
+                        result = e
                     helper.job.outputs.append(list(result))
                 helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":
