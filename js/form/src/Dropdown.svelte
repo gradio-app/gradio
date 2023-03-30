@@ -24,7 +24,7 @@
 		showOptions = false,
 		filterInput: HTMLElement;
 
-	$: choicesLower = choices.map((o) => o.toLowerCase());
+	$: choicesLower = choices.map((o) => o?.toLowerCase());
 
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
