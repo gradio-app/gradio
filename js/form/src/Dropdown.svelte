@@ -120,7 +120,7 @@
 		}
 	}
 
-	function handleKeyup(e: any) {
+	function handleKeydown(e: any) {
 		if (e.key === "Enter" && activeOption != undefined) {
 			if (!multiselect) {
 				value = activeOption;
@@ -172,7 +172,6 @@
                     <span
                         class="single-select"
                         on:mousedown|preventDefault={(e) => {
-                            console.log("span mousedown")
                             showOptions = !showOptions;
                             if (showOptions) {
                                 filterInput.focus();
@@ -185,14 +184,16 @@
             {/if}
 			<div class="secondary-wrap"
 					on:mousedown|preventDefault={(e) => {
-                        console.log("div mousedown")
 						showOptions = !showOptions;
                         if (showOptions) {
                             filterInput.focus();
                         }
+                        else {
+                            filterInput.blur();
+                            inputValue = "";
+                        }
 					}}
 					on:focusout={(e) => {
-                        console.log("input blur");
                         showOptions = false;
                         inputValue = "";
                     }}
@@ -206,13 +207,17 @@
 					bind:value={inputValue}
                     bind:this={filterInput}
 					on:focus={(e) => {
-                        // Don't reopen options from focus not triggered by input
+                        // Don't reopen the dropdown from focus not triggered by input
+                        // (for example releasing the mouse in the edges of the wrapper box)
                         if (e.sourceCapabilities) {
-                             console.log("input focus");
                              showOptions = true;
                         }
+                        else if (!showOptions) {
+                             filterInput.blur();
+                             inputValue = "";
+                        }
 					}}
-					on:keyup={handleKeyup}
+					on:keydown={handleKeydown}
 				/>
 				<div
 					class:hide={!multiselect || !value?.length || disabled}
