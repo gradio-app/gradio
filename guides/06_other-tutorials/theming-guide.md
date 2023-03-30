@@ -39,6 +39,8 @@ gr.themes.builder()
 
 $demo_theme_builder
 
+You can use the Theme Builder running on Spaces above, though it runs much faster when you launch it locally via `gr.themes.builder()`. 
+
 As you edit the values in the Theme Builder, the app will preview updates in real time. You can download the code to generate the theme you've created so you can use it in any Gradio app.
 
 In the rest of the guide, we will cover building themes programatically.
