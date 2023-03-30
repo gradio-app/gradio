@@ -33,13 +33,19 @@
 		inputValue ? o.includes(inputValue.toLowerCase()) : o
 	);
 
-	$: if (inputValue && filteredLower.includes(inputValue.toLowerCase()))
-        activeOption = inputValue;
-    else if (
-		(activeOption && !filtered.includes(activeOption)) ||
-		(!activeOption && inputValue)
-	)
-		activeOption = filtered[0];
+ function updateActiveOption(filtered, filteredLower, inputValue) {
+     if (inputValue && filteredLower.includes(inputValue.toLowerCase())) {
+         // Autoselect exact matches
+         activeOption = inputValue;
+     }
+     else if ((activeOption && !filtered.includes(activeOption)) ||
+              (!activeOption && inputValue)
+     ) {
+         activeOption = filtered[0];
+     }
+    }
+
+	$: updateActiveOption(filtered, filteredLower, inputValue)
 
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
@@ -47,7 +53,7 @@
 		dispatch("change", value);
 	}
 
-    function is_filter_readonly(value: any): bool {
+    function isFilterReadonly(value: any): bool {
         if (multiselect) {
             return Array.isArray(value) && value.length === max_choices;
         }
@@ -56,7 +62,7 @@
         }
     }
 
-	$: filter_readonly = is_filter_readonly(value) && !showOptions;
+	$: filterReadonly = isFilterReadonly(value) && !showOptions;
 
     $: if (!multiselect && showOptions && value) {
         placeholder = value;
@@ -139,7 +145,7 @@
 				inputValue = "";
 			}
 		}
-		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+		else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 			const increment = e.key === "ArrowUp" ? -1 : 1;
 			const calcIndex = filtered.indexOf(activeOption) + increment;
 			activeOption =
@@ -148,14 +154,16 @@
 					: calcIndex === filtered.length
 					? filtered[0]
 					: filtered[calcIndex];
+            e.preventDefault();
 		}
-		if (e.key === "Escape") {
+		else if (e.key === "Escape") {
 			showOptions = false;
             inputValue = "";
 		}
-        if (e.key === "Backspace") {
+        else if (e.key === "Backspace") {
             if (multiselect && (!inputValue || inputValue === "") && Array.isArray(value) && value.length > 0) {
-                remove(value[value.length - 1])
+                remove(value[value.length - 1]);
+				inputValue = "";
             }
         }
 	}
@@ -214,7 +222,7 @@
 				<input
 					class="border-none input"
 					{disabled}
-					readonly={filter_readonly}
+					readonly={filterReadonly}
 					autocomplete="off"
                     placeholder={placeholder}
 					bind:value={inputValue}
