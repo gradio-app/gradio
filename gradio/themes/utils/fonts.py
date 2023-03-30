@@ -34,11 +34,6 @@ class Font:
             else f"'{self.name}'"
         )
     
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, Font):
-            return False
-        return self.name == other.name
-
     def stylesheet(self) -> str:
         return None
 
