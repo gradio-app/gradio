@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import pathlib
 import shutil
@@ -8,7 +7,6 @@ import textwrap
 from typing import Optional
 
 import huggingface_hub
-import requests
 from utils import get_latest_stable
 
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")

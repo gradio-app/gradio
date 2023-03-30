@@ -1,6 +1,5 @@
 import os
 import re
-import shutil
 
 import markdown2
 

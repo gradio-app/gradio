@@ -2,8 +2,7 @@ import os
 import shutil
 
 import jinja2
-import requests
-from src import changelog, demos, docs, guides, index
+from src import docs
 from utils import get_latest_stable
 
 SRC_DIR = "src"

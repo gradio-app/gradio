@@ -3,7 +3,6 @@ import os
 import shutil
 
 import jinja2
-import requests
 from src import changelog, demos, docs, guides, index
 from utils import get_latest_stable
 

@@ -5,7 +5,6 @@ import numpy as np
 from PIL import Image
 import open3d as o3d
 from pathlib import Path
-import os
 
 feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
 model = DPTForDepthEstimation.from_pretrained("Intel/dpt-large")
