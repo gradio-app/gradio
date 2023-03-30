@@ -1929,6 +1929,9 @@ class Image(
             inputs: List of inputs
             outputs: List of outputs
             _js: Optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+            api_name: TODO: undocumented
+            preprocess: TODO: undocumented
+            postprocess: TODO: undocumented
         """
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
@@ -2445,6 +2448,9 @@ class Audio(
             inputs: List of inputs
             outputs: List of outputs
             _js: Optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+            api_name: TODO: undocumented
+            preprocess: TODO: undocumented
+            postprocess: TODO: undocumented
         """
         if self.source != "microphone":
             raise ValueError(

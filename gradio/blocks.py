@@ -184,6 +184,7 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
+            queue: TODO: undocumented
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
@@ -1063,8 +1064,8 @@ class Blocks(BlockContext):
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
-            username: name of user if authentication is set up (not used)
             state: data stored from stateful components for session (key is input block id)
+            request: TODO: undocumented
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
@@ -1430,6 +1431,7 @@ class Blocks(BlockContext):
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
             file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
+            _frontend: TODO: undocumented
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo

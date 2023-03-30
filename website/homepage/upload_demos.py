@@ -35,6 +35,7 @@ def upload_demo_to_space(
         space_id: The id of the space to upload the demo to.
         hf_token: HF api token. Need to have permission to write to space_id for this to work.
         gradio_version: If not None, will set the gradio version in the created space to the given version.
+        gradio_wheel_url: TODO: undocumented
     """
 
     with tempfile.TemporaryDirectory() as tmpdir:

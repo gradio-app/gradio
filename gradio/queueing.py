@@ -209,9 +209,6 @@ class Queue:
     async def gather_event_data(self, event: Event, receive_timeout=60) -> bool:
         """
         Gather data for the event
-
-        Parameters:
-            event:
         """
         if not event.data:
             client_awake = await self.send_message(event, {"msg": "send_data"})
