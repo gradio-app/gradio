@@ -1,6 +1,8 @@
 import os
-from gradio.documentation import generate_documentation, document_cls
+
+from gradio.documentation import document_cls, generate_documentation
 from gradio.events import EventListener
+
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)

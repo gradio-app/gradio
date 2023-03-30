@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "demo"))
 DIR = os.path.dirname(__file__)

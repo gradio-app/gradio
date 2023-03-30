@@ -1,12 +1,13 @@
+import argparse
+import json
+import os
 import pathlib
 import shutil
 import tempfile
 import textwrap
 from typing import Optional
+
 import huggingface_hub
-import os
-import json
-import argparse
 import requests
 from utils import get_latest_stable
 

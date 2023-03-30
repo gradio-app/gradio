@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 import requests
 
 DIR = os.path.dirname(__file__)
