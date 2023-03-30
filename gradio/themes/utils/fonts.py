@@ -33,7 +33,7 @@ class Font:
             if self.name in ["sans-serif", "serif", "monospace", "cursive", "fantasy"]
             else f"'{self.name}'"
         )
-    
+
     def stylesheet(self) -> str:
         return None
 
