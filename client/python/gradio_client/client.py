@@ -9,7 +9,7 @@ import uuid
 from concurrent.futures import Future
 from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Literal, Tuple
 
 import huggingface_hub
 import requests
@@ -115,13 +115,15 @@ class Client:
     def view_api(
         self,
         all_endpoints: bool | None = None,
-        return_info: bool = False,
-    ) -> Dict | None:
+        print_info: bool = True,
+        return_format: Literal["dict", "str"] | None = None,
+    ) -> Dict | str | None:
         """
         Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately.
         Parameters:
             all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
-            return_info: If False (default), prints the usage info to the console. If True, returns the usage info as a dictionary that can be programmatically parsed (does not print), and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+            print_info: If True, prints the usage info to the console. If False, does not print the usage info.
+            return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. True, returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Dictionary format:
             {
                 "named_endpoints": {
@@ -153,9 +155,6 @@ class Client:
                 else:
                     info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
 
-        if return_info:
-            return info
-
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -175,7 +174,13 @@ class Client:
             if num_unnamed_endpoints > 0:
                 human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
 
-        print(human_info)
+        if print_info:
+            print(human_info)
+        if return_format == "str":
+            return human_info
+        elif return_format == "dict":
+            return info
+
 
     def _render_endpoints_info(
         self,
@@ -211,10 +216,10 @@ class Client:
         return human_info
 
     def __repr__(self):
-        return self.view_api()
+        return self.view_api(print_info=False, return_format="str")
 
     def __str__(self):
-        return self.view_api()
+        return self.view_api(print_info=False, return_format="str")
 
     def _telemetry_thread(self) -> None:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
