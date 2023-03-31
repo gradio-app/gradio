@@ -1,8 +1,52 @@
 
 # Upcoming Release
 
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+
+
+# Version 3.24.0
 
 ## New Features:
+
+- Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)
+- Created Theme Builder, which allows users to create themes without writing any code, by [@aliabid94](https://github.com/aliabid94) in [PR 3664](https://github.com/gradio-app/gradio/pull/3664). Launch by:
+    
+    ```python
+    import gradio as gr
+    gr.themes.builder()
+    ```
+
+    ![Theme Builder](https://user-images.githubusercontent.com/7870876/228204929-d71cbba5-69c2-45b3-bd20-e3a201d98b12.png)
+
+- The `Dropdown` component now has a `allow_custom_value` parameter that lets users type in custom values not in the original list of choices.
+- The `Colorpicker` component now has a `.blur()` event
 
 ### Added a download button for videos! 📥
 
