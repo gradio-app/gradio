@@ -7,7 +7,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-- Basically when the chatbot is being passed as a whole back and forth between the frontend and backend, everytime it goes from backend to frontend, the postprocess runs the markdown->html method on the messages. Part of that step is to convert "\n" into  "<br>", but it actually converts "\n" to "<br>\n". As html, this is fine, but when it goes through the postprocess loop again, the "\n" keeps becoming another "<br>\n". Manually converted "\n" to "<br>" to fix. Fixed by [@aliabid94](https://github.com/aliabid94) in [PR 3713](https://github.com/gradio-app/gradio/pull/3713).
+- Basically when the chatbot is being passed as a whole back and forth between the frontend and backend, everytime it goes from backend to frontend, the postprocess runs the markdown->html method on the messages. Part of that step is to convert "\n" into  "<br>", but it actually converts "\n" to "<br>\n". As html, this is fine, but when it goes through the postprocess loop again, the "\n" keeps becoming another "<br>\n". Manually converted "\n" to "<br>" to fix. Fixed by [@aliabid94](https://github.com/aliabid94) in [PR 3717](https://github.com/gradio-app/gradio/pull/3717).
 
 
 ## Documentation Changes:
