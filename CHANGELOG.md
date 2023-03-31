@@ -23,7 +23,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+* Bumped the minimum version of `gradio_client` to 0.0.6 to fix an issue with serializer mapping in version 0.0.5 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3722](https://github.com/gradio-app/gradio/pull/3722)
 
 ## Contributors Shoutout:
 
