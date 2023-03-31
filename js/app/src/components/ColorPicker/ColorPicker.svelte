@@ -37,6 +37,7 @@
 		{show_label}
 		on:change
 		on:submit
+		on:blur
 		disabled={mode === "static"}
 	/>
 </Block>

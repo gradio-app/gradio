@@ -577,6 +577,7 @@ class TestDropdown:
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
+            "allow_custom_value": False,
             "choices": ["a", "b", "c"],
             "value": ["a", "c"],
             "name": "dropdown",
@@ -1292,6 +1293,7 @@ class TestVideo:
         assert output1.endswith("mp4")
         output2 = video_output.postprocess(y_vid_path)["name"]
         assert output1 == output2
+        assert video_output.postprocess(y_vid_path)["orig_name"] == "video_sample.mp4"
 
         assert video_output.deserialize(
             {
@@ -1698,8 +1700,8 @@ class TestChatbot:
         Postprocess, get_config
         """
         chatbot = gr.Chatbot()
-        assert chatbot.postprocess([["You are **cool**", "so are *you*"]]) == [
-            ["You are <strong>cool</strong>", "so are <em>you</em>"]
+        assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
+            ["You are <strong>cool</strong><br>and fun", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
