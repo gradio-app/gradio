@@ -113,19 +113,22 @@ class EventListenerMethod:
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            queue: If True, will place the request on the queue, if the queue exists
+            queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
-            _js: Optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+            _js: Experimental parameter (API may change): optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         """
         if status_tracker:
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
+        if isinstance(self, Streamable):
+            self.check_streamable()
+
         dep, dep_index = self.trigger.set_event_trigger(
             self.event_name,
             fn,
@@ -238,6 +241,9 @@ class Streamable(EventListener):
         This event is triggered when the user streams the component (e.g. a live webcam
         component). This method can be used when this component is in a Gradio Blocks.
         """
+
+    def check_streamable(self):
+        pass
 
 
 @document("*blur", inherit=True)

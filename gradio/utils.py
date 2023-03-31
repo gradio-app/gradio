@@ -207,8 +207,8 @@ def integration_analytics(data: Dict[str, Any]) -> None:
 def error_analytics(message: str) -> None:
     """
     Send error analytics if there is network
-
-    :param message: Details about error
+    Parameters:
+        message: Details about error
     """
     data = {"ip_address": get_local_ip_address(), "error": message}
 

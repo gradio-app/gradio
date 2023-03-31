@@ -473,7 +473,6 @@ class Progress(Iterable):
             desc: description to display.
             total: estimated total number of steps.
             unit: unit of iterations.
-            _tqdm: TODO: undocumented
         """
         if self._callback:
             if iterable is None:
@@ -606,7 +605,7 @@ def special_args(
         fn: function to check.
         inputs: array to load special arguments into.
         request: request to load into inputs.
-        event_data: TODO: undocumented
+        event_data: event-related data to load into inputs.
     Returns:
         updated inputs, progress index, event data index.
     """
