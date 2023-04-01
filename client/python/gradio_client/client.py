@@ -32,7 +32,7 @@ class Client:
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/pictionary") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. If not provided, only public Spaces can be loaded.
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         """
         self.hf_token = hf_token
@@ -123,7 +123,7 @@ class Client:
         Parameters:
             all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
             print_info: If True, prints the usage info to the console. If False, does not print the usage info.
-            return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. True, returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+            return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Dictionary format:
             {
                 "named_endpoints": {
@@ -216,7 +216,7 @@ class Client:
         return human_info
 
     def __repr__(self):
-        return self.view_api(print_info=False, return_format="str")
+        return self.view_api(print_info=False, return_format="str/")
 
     def __str__(self):
         return self.view_api(print_info=False, return_format="str")
