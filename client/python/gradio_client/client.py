@@ -252,7 +252,9 @@ class Client:
         elif fn_index is not None:
             inferred_fn_index = fn_index
         else:
-            valid_endpoints = [e for e in self.endpoints if e.is_valid and e.api_name is not None]
+            valid_endpoints = [
+                e for e in self.endpoints if e.is_valid and e.api_name is not None
+            ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
             else:

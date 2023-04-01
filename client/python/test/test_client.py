@@ -21,11 +21,17 @@ class TestPredictionsFromSpaces:
         client = Client("gradio-tests/titanic-survival")
         output = client.predict("male", 77, 10, api_name="/predict").result()
         assert json.load(open(output))["label"] == "Perishes"
-        with pytest.raises(ValueError, match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`"):
+        with pytest.raises(
+            ValueError,
+            match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
+        ):
             client.predict("male", 77, 10)
-        with pytest.raises(ValueError, match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?"):
+        with pytest.raises(
+            ValueError,
+            match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?",
+        ):
             client.predict("male", 77, 10, api_name="predict")
-            
+
     @pytest.mark.flaky
     def test_private_space(self):
         client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
