@@ -215,7 +215,7 @@ class Client:
         return human_info
 
     def __repr__(self):
-        return self.view_api(print_info=False, return_format="str/")
+        return self.view_api(print_info=False, return_format="str")
 
     def __str__(self):
         return self.view_api(print_info=False, return_format="str")
