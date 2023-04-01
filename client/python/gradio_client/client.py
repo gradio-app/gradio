@@ -253,7 +253,9 @@ class Client:
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
             else:
-                raise ValueError("This Gradio app has multiple endpoints. Please specify an `api_name` or `fn_index`")
+                raise ValueError(
+                    "This Gradio app has multiple endpoints. Please specify an `api_name` or `fn_index`"
+                )
         return inferred_fn_index
 
     def __del__(self):

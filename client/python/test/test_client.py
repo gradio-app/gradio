@@ -19,20 +19,20 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        output = client.predict("male", 77, 10).result()
+        output = client.predict("male", 77, 10, api_name="/predict").result()
         assert json.load(open(output))["label"] == "Perishes"
 
     @pytest.mark.flaky
     def test_private_space(self):
         client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
-        output = client.predict("abc").result()
+        output = client.predict("abc", api_name="/predict").result()
         assert output == "abc"
 
     @pytest.mark.flaky
     def test_job_status(self):
         statuses = []
         client = Client(src="gradio/calculator")
-        job = client.predict(5, "add", 4)
+        job = client.predict(5, "add", 4, api_name="/predict")
         while not job.done():
             time.sleep(0.1)
             statuses.append(job.status())
@@ -227,7 +227,7 @@ class TestEndpoints:
         }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
-                "predict": {
+                "/predict": {
                     "parameters": {
                         "sex": ["Any", "", "Radio"],
                         "age": ["Any", "", "Slider"],
@@ -235,7 +235,7 @@ class TestEndpoints:
                     },
                     "returns": {"output": ["str", "filepath to json file", "Label"]},
                 },
-                "predict_1": {
+                "/predict_1": {
                     "parameters": {
                         "sex": ["Any", "", "Radio"],
                         "age": ["Any", "", "Slider"],
@@ -243,7 +243,7 @@ class TestEndpoints:
                     },
                     "returns": {"output": ["str", "filepath to json file", "Label"]},
                 },
-                "predict_2": {
+                "/predict_2": {
                     "parameters": {
                         "sex": ["Any", "", "Radio"],
                         "age": ["Any", "", "Slider"],
@@ -274,7 +274,7 @@ class TestEndpoints:
         }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
-                "predict": {
+                "/predict": {
                     "parameters": {"x": ["Any", "", "Textbox"]},
                     "returns": {"output": ["Any", "", "Textbox"]},
                 }
