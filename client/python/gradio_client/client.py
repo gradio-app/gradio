@@ -181,7 +181,6 @@ class Client:
         elif return_format == "dict":
             return info
 
-
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
