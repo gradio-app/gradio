@@ -77,8 +77,8 @@ class Client:
         """
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
-            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one API endpoint.
-            fn_index: The index of the API endpoint to call, e.g. 0. Does not need to be provided if the Gradio app has only one API endpoint. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
+            fn_index: The index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
@@ -238,23 +238,26 @@ class Client:
         inferred_fn_index = None
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
-                if "/" + d.get("api_name", "") == api_name:
+                config_api_name = d.get("api_name")
+                if config_api_name is None:
+                    continue
+                if "/" + config_api_name == api_name:
                     inferred_fn_index = i
                     break
             else:
-                error_message = f"Cannot find a function with api_name: {api_name}."
+                error_message = f"Cannot find a function with `api_name`: {api_name}."
                 if not api_name.startswith("/"):
                     error_message += " Did you mean to use a leading slash?"
                 raise ValueError(error_message)
         elif fn_index is not None:
             inferred_fn_index = fn_index
         else:
-            valid_endpoints = [e for e in self.endpoints if e.is_valid]
+            valid_endpoints = [e for e in self.endpoints if e.is_valid and e.api_name is not None]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
             else:
                 raise ValueError(
-                    "This Gradio app has multiple endpoints. Please specify an `api_name` or `fn_index`"
+                    "This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`"
                 )
         return inferred_fn_index
 
