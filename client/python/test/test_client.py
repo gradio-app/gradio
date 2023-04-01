@@ -224,7 +224,7 @@ class TestEndpoints:
             },
             "returns": {"output": ["str", "filepath to json file", "Label"]},
         }
-        assert client.view_api(return_info=True) == {
+        assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "predict": {
                     "parameters": {
@@ -264,7 +264,7 @@ class TestEndpoints:
             "parameters": {"x": ["Any", "", "Textbox"]},
             "returns": {"output": ["Any", "", "Textbox"]},
         }
-        assert client.view_api(return_info=True) == {
+        assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "predict": {
                     "parameters": {"x": ["Any", "", "Textbox"]},
