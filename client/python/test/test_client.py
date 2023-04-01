@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from gradio_client import Client
+from gradio_client.serializing import SimpleSerializable
 from gradio_client.utils import Communicator, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
@@ -253,6 +254,13 @@ class TestEndpoints:
             },
             "unnamed_endpoints": {},
         }
+
+    @pytest.mark.flaky
+    def test_serializable_in_mapping(self):
+        client = Client("freddyaboulton/calculator")
+        assert all(
+            [c.__class__ == SimpleSerializable for c in client.endpoints[0].serializers]
+        )
 
     @pytest.mark.flaky
     def test_private_space(self):
