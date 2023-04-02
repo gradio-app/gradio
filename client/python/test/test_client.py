@@ -41,22 +41,22 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_state(self):
         client = Client("gradio-tests/increment")
-        output = client.predict(None, api_name="/increment_without_queue").result()
-        assert output == (None, 1)
-        output = client.predict(None, api_name="/increment_without_queue").result()
-        assert output == (None, 2)
-        output = client.predict(None, api_name="/increment_without_queue").result()
-        assert output == (None, 3)
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 2
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 3
         client.reset_session()
-        output = client.predict(None, api_name="/increment_without_queue").result()
-        assert output == (None, 1)
-        output = client.predict(None, api_name="/increment_with_queue").result()
-        assert output == (None, 2)
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 2
         client.reset_session()
-        output = client.predict(None, api_name="/increment_with_queue").result()
-        assert output == (None, 1)
-        output = client.predict(None, api_name="/increment_with_queue").result()
-        assert output == (None, 2)
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 2
 
     @pytest.mark.flaky
     def test_job_status(self):

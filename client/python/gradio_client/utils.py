@@ -20,6 +20,7 @@ from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "{}/api/predict/"
 WS_URL = "{}/queue/join"
+STATE_COMPONENT = "state"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -169,7 +170,6 @@ async def get_pred_from_ws(
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":
-            print(hash_data)
             await websocket.send(hash_data)
         elif resp["msg"] == "send_data":
             await websocket.send(data)

@@ -42,7 +42,6 @@ from gradio_client.serializing import (
     NumberSerializable,
     Serializable,
     SimpleSerializable,
-    StateSerializer,
     StringSerializable,
 )
 from pandas.api.types import is_numeric_dtype
@@ -3133,7 +3132,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class State(IOComponent, StateSerializer):
+class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.

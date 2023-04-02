@@ -206,14 +206,18 @@ class Client:
             raise ValueError("name_or_index must be a string or integer")
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
-            human_info += "    Parameters:\n"
-        for label, info in endpoints_info["parameters"].items():
-            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for label, info in endpoints_info["parameters"].items():
+                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+        else:
+            human_info += "     - None\n"
+        human_info += "    Returns:\n"
         if endpoints_info["returns"]:
-            human_info += "    Returns:\n"
-        for label, info in endpoints_info["returns"].items():
-            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for label, info in endpoints_info["returns"].items():
+                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+        else:
+            human_info += "     - None\n"
 
         return human_info
 
@@ -301,6 +305,8 @@ class Endpoint:
         if self.api_name:
             self.api_name = "/" + self.api_name
         self.use_ws = self._use_websocket(self.dependency)
+        self.input_component_types = []
+        self.output_component_types = []
         try:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
@@ -339,8 +345,10 @@ class Endpoint:
                     else:
                         info = self.serializers[i].input_api_info()
                     info = list(info)
-                    info.append(component.get("type", "component").capitalize())
-                    parameters[label] = info
+                    component_type = component.get("type", "component").capitalize()
+                    info.append(component_type)
+                    if not component_type.lower() == utils.STATE_COMPONENT:
+                        parameters[label] = info
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.client.config["components"]:
@@ -356,10 +364,18 @@ class Endpoint:
                     else:
                         info = self.deserializers[o].output_api_info()
                     info = list(info)
-                    info.append(component.get("type", "component").capitalize())
-                    returns[label] = list(info)
+                    component_type = component.get("type", "component").capitalize()
+                    info.append(component_type)
+                    if not component_type.lower() == utils.STATE_COMPONENT:
+                        returns[label] = info
 
         return {"parameters": parameters, "returns": returns}
+
+    def __repr__(self):
+        return json.dumps(self.get_info(), indent=4)
+
+    def __str__(self):
+        return json.dumps(self.get_info(), indent=4)
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
 
@@ -371,7 +387,16 @@ class Endpoint:
             inputs = self.serialize(*data)
             predictions = _predict(*inputs)
             outputs = self.deserialize(*predictions)
-            if len(self.dependency["outputs"]) == 1:
+            if (
+                len(
+                    [
+                        oct
+                        for oct in self.output_component_types
+                        if not oct == utils.STATE_COMPONENT
+                    ]
+                )
+                == 1
+            ):
                 return outputs[0]
             return outputs
 
@@ -423,6 +448,11 @@ class Endpoint:
         return outputs
 
     def serialize(self, *data) -> Tuple:
+        for i, input_component_type in enumerate(self.input_component_types):
+            if input_component_type == utils.STATE_COMPONENT:
+                data = list(data)
+                data.insert(i, None)
+                data = tuple(data)
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
@@ -435,7 +465,10 @@ class Endpoint:
         return tuple(
             [
                 s.deserialize(d, hf_token=self.client.hf_token)
-                for s, d in zip(self.deserializers, data)
+                for s, d, oct in zip(
+                    self.deserializers, data, self.output_component_types
+                )
+                if not oct == utils.STATE_COMPONENT
             ]
         )
 
@@ -446,6 +479,8 @@ class Endpoint:
         for i in inputs:
             for component in self.client.config["components"]:
                 if component["id"] == i:
+                    component_name = component["type"]
+                    self.input_component_types.append(component_name)
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         assert (
@@ -453,7 +488,6 @@ class Endpoint:
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     else:
-                        component_name = component["type"]
                         assert (
                             component_name in serializing.COMPONENT_MAPPING
                         ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
@@ -465,6 +499,8 @@ class Endpoint:
         for i in outputs:
             for component in self.client.config["components"]:
                 if component["id"] == i:
+                    component_name = component["type"]
+                    self.output_component_types.append(component_name)
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         assert (
@@ -472,7 +508,6 @@ class Endpoint:
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     else:
-                        component_name = component["type"]
                         assert (
                             component_name in serializing.COMPONENT_MAPPING
                         ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
