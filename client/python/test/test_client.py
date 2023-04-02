@@ -19,14 +19,44 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        output = client.predict("male", 77, 10).result()
+        output = client.predict("male", 77, 10, api_name="/predict").result()
         assert json.load(open(output))["label"] == "Perishes"
+        with pytest.raises(
+            ValueError,
+            match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
+        ):
+            client.predict("male", 77, 10)
+        with pytest.raises(
+            ValueError,
+            match="Cannot find a function with `api_name`: predict. Did you mean to use a leading slash?",
+        ):
+            client.predict("male", 77, 10, api_name="predict")
 
     @pytest.mark.flaky
     def test_private_space(self):
         client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
-        output = client.predict("abc").result()
+        output = client.predict("abc", api_name="/predict").result()
         assert output == "abc"
+
+    @pytest.mark.flaky
+    def test_state(self):
+        client = Client("gradio-tests/increment")
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 2
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 3
+        client.reset_session()
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 2
+        client.reset_session()
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 2
 
     @pytest.mark.flaky
     def test_job_status(self):
@@ -50,7 +80,7 @@ class TestPredictionsFromSpaces:
     def test_job_status_queue_disabled(self):
         statuses = []
         client = Client(src="freddyaboulton/sentiment-classification")
-        job = client.predict("I love the gradio python client")
+        job = client.predict("I love the gradio python client", fn_index=0)
         while not job.done():
             time.sleep(0.02)
             statuses.append(job.status())
@@ -128,7 +158,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.predict(5, "add", 6, fn_index=0)
+        job = client.predict(5, "add", 6)
 
         statuses = []
         while not job.done():
@@ -200,8 +230,8 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job_1 = client.predict(5, "add", 6, fn_index=0)
-        job_2 = client.predict(11, "subtract", 1, fn_index=0)
+        job_1 = client.predict(5, "add", 6)
+        job_2 = client.predict(11, "subtract", 1)
 
         statuses_1 = []
         statuses_2 = []
@@ -213,7 +243,7 @@ class TestStatusUpdates:
         assert all(s in messages_1 for s in statuses_1)
 
 
-class TestEndpoints:
+class TestAPIInfo:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
@@ -225,9 +255,9 @@ class TestEndpoints:
             },
             "returns": {"output": ["str", "filepath to json file", "Label"]},
         }
-        assert client.view_api(return_info=True) == {
+        assert client.view_api(return_format="dict") == {
             "named_endpoints": {
-                "predict": {
+                "/predict": {
                     "parameters": {
                         "sex": ["Any", "", "Radio"],
                         "age": ["Any", "", "Slider"],
@@ -235,7 +265,7 @@ class TestEndpoints:
                     },
                     "returns": {"output": ["str", "filepath to json file", "Label"]},
                 },
-                "predict_1": {
+                "/predict_1": {
                     "parameters": {
                         "sex": ["Any", "", "Radio"],
                         "age": ["Any", "", "Slider"],
@@ -243,7 +273,7 @@ class TestEndpoints:
                     },
                     "returns": {"output": ["str", "filepath to json file", "Label"]},
                 },
-                "predict_2": {
+                "/predict_2": {
                     "parameters": {
                         "sex": ["Any", "", "Radio"],
                         "age": ["Any", "", "Slider"],
@@ -272,9 +302,9 @@ class TestEndpoints:
             "parameters": {"x": ["Any", "", "Textbox"]},
             "returns": {"output": ["Any", "", "Textbox"]},
         }
-        assert client.view_api(return_info=True) == {
+        assert client.view_api(return_format="dict") == {
             "named_endpoints": {
-                "predict": {
+                "/predict": {
                     "parameters": {"x": ["Any", "", "Textbox"]},
                     "returns": {"output": ["Any", "", "Textbox"]},
                 }
