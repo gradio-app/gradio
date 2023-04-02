@@ -39,6 +39,26 @@ class TestPredictionsFromSpaces:
         assert output == "abc"
 
     @pytest.mark.flaky
+    def test_state(self):
+        client = Client("gradio-tests/increment")
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 2
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 3
+        client.reset_session()
+        output = client.predict(api_name="/increment_without_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 2
+        client.reset_session()
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 1
+        output = client.predict(api_name="/increment_with_queue").result()
+        assert output == 2
+
+    @pytest.mark.flaky
     def test_job_status(self):
         statuses = []
         client = Client(src="gradio/calculator")

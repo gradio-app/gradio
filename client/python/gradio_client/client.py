@@ -55,6 +55,7 @@ class Client:
         self.api_url = utils.API_URL.format(self.src)
         self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
         self.config = self._get_config()
+        self.session_hash = str(uuid.uuid4())
 
         self.endpoints = [
             Endpoint(self, fn_index, dependency)
@@ -180,6 +181,9 @@ class Client:
         elif return_format == "dict":
             return info
 
+    def reset_session(self) -> None:
+        self.session_hash = str(uuid.uuid4())
+
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
@@ -202,14 +206,18 @@ class Client:
             raise ValueError("name_or_index must be a string or integer")
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
+        human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
-            human_info += "    Parameters:\n"
-        for label, info in endpoints_info["parameters"].items():
-            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for label, info in endpoints_info["parameters"].items():
+                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+        else:
+            human_info += "     - None\n"
+        human_info += "    Returns:\n"
         if endpoints_info["returns"]:
-            human_info += "    Returns:\n"
-        for label, info in endpoints_info["returns"].items():
-            human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for label, info in endpoints_info["returns"].items():
+                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+        else:
+            human_info += "     - None\n"
 
         return human_info
 
@@ -290,17 +298,15 @@ class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
     def __init__(self, client: Client, fn_index: int, dependency: Dict):
-        self.api_url = client.api_url
-        self.ws_url = client.ws_url
+        self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
         self.api_name: str | None = dependency.get("api_name")
         if self.api_name:
             self.api_name = "/" + self.api_name
-        self.headers = client.headers
-        self.config = client.config
         self.use_ws = self._use_websocket(self.dependency)
-        self.hf_token = client.hf_token
+        self.input_component_types = []
+        self.output_component_types = []
         try:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
@@ -326,7 +332,7 @@ class Endpoint:
         """
         parameters = {}
         for i, input in enumerate(self.dependency["inputs"]):
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == input:
                     label = (
                         component["props"]
@@ -339,11 +345,13 @@ class Endpoint:
                     else:
                         info = self.serializers[i].input_api_info()
                     info = list(info)
-                    info.append(component.get("type", "component").capitalize())
-                    parameters[label] = info
+                    component_type = component.get("type", "component").capitalize()
+                    info.append(component_type)
+                    if not component_type.lower() == utils.STATE_COMPONENT:
+                        parameters[label] = info
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == output:
                     label = (
                         component["props"]
@@ -356,10 +364,18 @@ class Endpoint:
                     else:
                         info = self.deserializers[o].output_api_info()
                     info = list(info)
-                    info.append(component.get("type", "component").capitalize())
-                    returns[label] = list(info)
+                    component_type = component.get("type", "component").capitalize()
+                    info.append(component_type)
+                    if not component_type.lower() == utils.STATE_COMPONENT:
+                        returns[label] = info
 
         return {"parameters": parameters, "returns": returns}
+
+    def __repr__(self):
+        return json.dumps(self.get_info(), indent=4)
+
+    def __str__(self):
+        return json.dumps(self.get_info(), indent=4)
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
 
@@ -371,7 +387,16 @@ class Endpoint:
             inputs = self.serialize(*data)
             predictions = _predict(*inputs)
             outputs = self.deserialize(*predictions)
-            if len(self.dependency["outputs"]) == 1:
+            if (
+                len(
+                    [
+                        oct
+                        for oct in self.output_component_types
+                        if not oct == utils.STATE_COMPONENT
+                    ]
+                )
+                == 1
+            ):
                 return outputs[0]
             return outputs
 
@@ -379,15 +404,27 @@ class Endpoint:
 
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> Tuple:
-            data = json.dumps({"data": data, "fn_index": self.fn_index})
-            hash_data = json.dumps(
-                {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
+            data = json.dumps(
+                {
+                    "data": data,
+                    "fn_index": self.fn_index,
+                    "session_hash": self.client.session_hash,
+                }
             )
+            hash_data = json.dumps(
+                {
+                    "fn_index": self.fn_index,
+                    "session_hash": self.client.session_hash,
+                }
+            )
+
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 output = result["data"]
             else:
-                response = requests.post(self.api_url, headers=self.headers, data=data)
+                response = requests.post(
+                    self.client.api_url, headers=self.client.headers, data=data
+                )
                 result = json.loads(response.content.decode("utf-8"))
                 try:
                     output = result["data"]
@@ -411,6 +448,11 @@ class Endpoint:
         return outputs
 
     def serialize(self, *data) -> Tuple:
+        for i, input_component_type in enumerate(self.input_component_types):
+            if input_component_type == utils.STATE_COMPONENT:
+                data = list(data)
+                data.insert(i, None)
+                data = tuple(data)
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
@@ -422,8 +464,11 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         return tuple(
             [
-                s.deserialize(d, hf_token=self.hf_token)
-                for s, d in zip(self.deserializers, data)
+                s.deserialize(d, hf_token=self.client.hf_token)
+                for s, d, oct in zip(
+                    self.deserializers, data, self.output_component_types
+                )
+                if not oct == utils.STATE_COMPONENT
             ]
         )
 
@@ -432,8 +477,10 @@ class Endpoint:
         serializers = []
 
         for i in inputs:
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == i:
+                    component_name = component["type"]
+                    self.input_component_types.append(component_name)
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         assert (
@@ -441,7 +488,6 @@ class Endpoint:
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     else:
-                        component_name = component["type"]
                         assert (
                             component_name in serializing.COMPONENT_MAPPING
                         ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
@@ -451,8 +497,10 @@ class Endpoint:
         outputs = self.dependency["outputs"]
         deserializers = []
         for i in outputs:
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == i:
+                    component_name = component["type"]
+                    self.output_component_types.append(component_name)
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
                         assert (
@@ -460,7 +508,6 @@ class Endpoint:
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
                     else:
-                        component_name = component["type"]
                         assert (
                             component_name in serializing.COMPONENT_MAPPING
                         ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
@@ -470,16 +517,16 @@ class Endpoint:
         return serializers, deserializers
 
     def _use_websocket(self, dependency: Dict) -> bool:
-        queue_enabled = self.config.get("enable_queue", False)
+        queue_enabled = self.client.config.get("enable_queue", False)
         queue_uses_websocket = version.parse(
-            self.config.get("version", "2.0")
+            self.client.config.get("version", "2.0")
         ) >= version.Version("3.2")
         dependency_uses_queue = dependency.get("queue", False) is not False
         return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
     async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
-            self.ws_url, open_timeout=10, extra_headers=self.headers
+            self.client.ws_url, open_timeout=10, extra_headers=self.client.headers
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
