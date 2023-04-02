@@ -180,8 +180,8 @@ class Client:
             return human_info
         elif return_format == "dict":
             return info
-        
-    def reset_session(self):
+
+    def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
 
     def _render_endpoints_info(
@@ -294,15 +294,13 @@ class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
     def __init__(self, client: Client, fn_index: int, dependency: Dict):
-        self.api_url = client.api_url
-        self.ws_url = client.ws_url
+        self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
         self.api_name: str | None = dependency.get("api_name")
         if self.api_name:
             self.api_name = "/" + self.api_name
         self.use_ws = self._use_websocket(self.dependency)
-        self.client: Client = client
         try:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
@@ -381,29 +379,26 @@ class Endpoint:
 
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> Tuple:
-            data = {
-                "data": data, 
-                "fn_index": self.fn_index
-            }
-            hash_data =  {
-                "fn_index": self.fn_index, 
-                "session_hash": self.client.session_hash
-            }
-            
+            data = json.dumps(
+                {
+                    "data": data,
+                    "fn_index": self.fn_index,
+                    "session_hash": self.client.session_hash,
+                }
+            )
+            hash_data = json.dumps(
+                {
+                    "fn_index": self.fn_index,
+                    "session_hash": self.client.session_hash,
+                }
+            )
+
             if self.use_ws:
-                result = utils.synchronize_async(
-                    self._ws_fn, 
-                    json.dumps(data), 
-                    json.dumps(hash_data), 
-                    helper
-                )
+                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 output = result["data"]
             else:
-                data["session_hash"] = self.client.session_hash
                 response = requests.post(
-                    self.api_url, 
-                    headers=self.client.headers, 
-                    data=json.dumps(data)
+                    self.client.api_url, headers=self.client.headers, data=data
                 )
                 result = json.loads(response.content.decode("utf-8"))
                 try:
@@ -496,7 +491,7 @@ class Endpoint:
 
     async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
-            self.ws_url, open_timeout=10, extra_headers=self.client.headers
+            self.client.ws_url, open_timeout=10, extra_headers=self.client.headers
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 

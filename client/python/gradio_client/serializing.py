@@ -94,6 +94,16 @@ class NumberSerializable(Serializable):
         return "int | float", "value"
 
 
+class StateSerializer(Serializable):
+    """Ignores input and returns None as output as state is entirely managed by the server."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "None", "no input should be provided for state via API"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "None", "state is not returned via API"
+
+
 class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is ."""
 
@@ -324,7 +334,7 @@ COMPONENT_MAPPING: Dict[str, type] = {
     "file": FileSerializable,
     "dataframe": JSONSerializable,
     "timeseries": JSONSerializable,
-    "state": SimpleSerializable,
+    "state": StateSerializer,
     "button": StringSerializable,
     "uploadbutton": FileSerializable,
     "colorpicker": StringSerializable,
