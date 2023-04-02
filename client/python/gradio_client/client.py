@@ -55,6 +55,7 @@ class Client:
         self.api_url = utils.API_URL.format(self.src)
         self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
         self.config = self._get_config()
+        self.session_hash = str(uuid.uuid4())
 
         self.endpoints = [
             Endpoint(self, fn_index, dependency)
@@ -179,6 +180,9 @@ class Client:
             return human_info
         elif return_format == "dict":
             return info
+        
+    def reset_session(self):
+        self.session_hash = str(uuid.uuid4())
 
     def _render_endpoints_info(
         self,
@@ -297,10 +301,8 @@ class Endpoint:
         self.api_name: str | None = dependency.get("api_name")
         if self.api_name:
             self.api_name = "/" + self.api_name
-        self.headers = client.headers
-        self.config = client.config
         self.use_ws = self._use_websocket(self.dependency)
-        self.hf_token = client.hf_token
+        self.client: Client = client
         try:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
@@ -326,7 +328,7 @@ class Endpoint:
         """
         parameters = {}
         for i, input in enumerate(self.dependency["inputs"]):
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == input:
                     label = (
                         component["props"]
@@ -343,7 +345,7 @@ class Endpoint:
                     parameters[label] = info
         returns = {}
         for o, output in enumerate(self.dependency["outputs"]):
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == output:
                     label = (
                         component["props"]
@@ -379,15 +381,30 @@ class Endpoint:
 
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> Tuple:
-            data = json.dumps({"data": data, "fn_index": self.fn_index})
-            hash_data = json.dumps(
-                {"fn_index": self.fn_index, "session_hash": str(uuid.uuid4())}
-            )
+            data = {
+                "data": data, 
+                "fn_index": self.fn_index
+            }
+            hash_data =  {
+                "fn_index": self.fn_index, 
+                "session_hash": self.client.session_hash
+            }
+            
             if self.use_ws:
-                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
+                result = utils.synchronize_async(
+                    self._ws_fn, 
+                    json.dumps(data), 
+                    json.dumps(hash_data), 
+                    helper
+                )
                 output = result["data"]
             else:
-                response = requests.post(self.api_url, headers=self.headers, data=data)
+                data["session_hash"] = self.client.session_hash
+                response = requests.post(
+                    self.api_url, 
+                    headers=self.client.headers, 
+                    data=json.dumps(data)
+                )
                 result = json.loads(response.content.decode("utf-8"))
                 try:
                     output = result["data"]
@@ -422,7 +439,7 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         return tuple(
             [
-                s.deserialize(d, hf_token=self.hf_token)
+                s.deserialize(d, hf_token=self.client.hf_token)
                 for s, d in zip(self.deserializers, data)
             ]
         )
@@ -432,7 +449,7 @@ class Endpoint:
         serializers = []
 
         for i in inputs:
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == i:
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
@@ -451,7 +468,7 @@ class Endpoint:
         outputs = self.dependency["outputs"]
         deserializers = []
         for i in outputs:
-            for component in self.config["components"]:
+            for component in self.client.config["components"]:
                 if component["id"] == i:
                     if component.get("serializer"):
                         serializer_name = component["serializer"]
@@ -470,16 +487,16 @@ class Endpoint:
         return serializers, deserializers
 
     def _use_websocket(self, dependency: Dict) -> bool:
-        queue_enabled = self.config.get("enable_queue", False)
+        queue_enabled = self.client.config.get("enable_queue", False)
         queue_uses_websocket = version.parse(
-            self.config.get("version", "2.0")
+            self.client.config.get("version", "2.0")
         ) >= version.Version("3.2")
         dependency_uses_queue = dependency.get("queue", False) is not False
         return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
     async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
-            self.ws_url, open_timeout=10, extra_headers=self.headers
+            self.ws_url, open_timeout=10, extra_headers=self.client.headers
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
