@@ -1905,36 +1905,9 @@ class Image(
         )
         return self
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
@@ -2419,38 +2392,11 @@ class Audio(
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def style(
         self,
