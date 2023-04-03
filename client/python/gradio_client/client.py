@@ -311,7 +311,7 @@ class Endpoint:
         try:
             assert client.src
             self.serializers, self.deserializers = self._setup_serializers(
-                src=client.src + "/"
+                src=client.src + "/" if not client.src.endswith("/") else client.src
             )
             self.is_valid = self.dependency[
                 "backend_fn"
