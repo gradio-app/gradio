@@ -11,7 +11,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3709](https://github.com/gradio-app/gradio/pull/3709)
+- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3740](https://github.com/gradio-app/gradio/pull/3740)
 
 ## Testing and Infrastructure Changes:
 
