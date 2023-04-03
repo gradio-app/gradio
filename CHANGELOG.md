@@ -11,7 +11,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3709](https://github.com/gradio-app/gradio/pull/3709)
 
 ## Testing and Infrastructure Changes:
 
@@ -83,7 +83,6 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3581](https://git
 - Documented `HuggingFaceDatasetJSONSaver` by [@osanseviero](https://github.com/osanseviero) in [PR 3604](https://github.com/gradio-app/gradio/pull/3604)
 - Makes some additions to documentation of `Audio` and `State` components, and fixes the `pictionary` demo by [@abidlabs](https://github.com/abidlabs) in [PR 3611](https://github.com/gradio-app/gradio/pull/3611)
 - Fix outdated sharing your app guide by [@aliabd](https://github.com/aliabd) in [PR 3699](https://github.com/gradio-app/gradio/pull/3699)
-- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3709](https://github.com/gradio-app/gradio/pull/3709)
 
 
 ## Testing and Infrastructure Changes:
