@@ -602,9 +602,10 @@ def special_args(
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
     If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
-        block_fn: function to check.
+        fn: function to check.
         inputs: array to load special arguments into.
         request: request to load into inputs.
+        event_data: event-related data to load into inputs.
     Returns:
         updated inputs, progress index, event data index.
     """

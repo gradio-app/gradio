@@ -182,8 +182,9 @@ class Block:
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
             api_name: Defining this parameter exposes the endpoint in the api docs
-            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
+            js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
+            queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
@@ -1063,8 +1064,8 @@ class Blocks(BlockContext):
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
-            username: name of user if authentication is set up (not used)
             state: data stored from stateful components for session (key is input block id)
+            request: the gr.Request object containing information about the network request (e.g. IP address, headers, query parameters, username)
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
@@ -1261,7 +1262,6 @@ class Blocks(BlockContext):
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
             warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:
