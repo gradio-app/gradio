@@ -11,7 +11,7 @@
 <div class="input-checkbox-group">
 	<BlockTitle>{label}</BlockTitle>
 	{#each choices as choice, i}
-		<button class="checkbox-item " class:selected={original.includes(choice)}>
+		<button class="checkbox-item" class:selected={original.includes(choice)}>
 			<div
 				class="checkbox"
 				style={"background-color: " + getSaliencyColor(interpretation[i][0])}

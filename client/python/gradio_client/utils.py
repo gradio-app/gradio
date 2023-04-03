@@ -7,8 +7,12 @@ import os
 import pkgutil
 import shutil
 import tempfile
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from threading import Lock
+from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
 import requests
@@ -16,6 +20,7 @@ from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "{}/api/predict/"
 WS_URL = "{}/queue/join"
+STATE_COMPONENT = "state"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -38,6 +43,92 @@ class InvalidAPIEndpointError(Exception):
     pass
 
 
+class Status(Enum):
+    """Status codes presented to client users."""
+
+    STARTING = "STARTING"
+    JOINING_QUEUE = "JOINING_QUEUE"
+    QUEUE_FULL = "QUEUE_FULL"
+    IN_QUEUE = "IN_QUEUE"
+    SENDING_DATA = "SENDING_DATA"
+    PROCESSING = "PROCESSSING"
+    ITERATING = "ITERATING"
+    FINISHED = "FINISHED"
+
+    @staticmethod
+    def ordering(status: "Status") -> int:
+        """Order of messages. Helpful for testing."""
+        order = [
+            Status.STARTING,
+            Status.JOINING_QUEUE,
+            Status.QUEUE_FULL,
+            Status.IN_QUEUE,
+            Status.SENDING_DATA,
+            Status.PROCESSING,
+            Status.ITERATING,
+            Status.FINISHED,
+        ]
+        return order.index(status)
+
+    def __lt__(self, other: "Status"):
+        return self.ordering(self) < self.ordering(other)
+
+    @staticmethod
+    def msg_to_status(msg: str) -> "Status":
+        """Map the raw message from the backend to the status code presented to users."""
+        return {
+            "send_hash": Status.JOINING_QUEUE,
+            "queue_full": Status.QUEUE_FULL,
+            "estimation": Status.IN_QUEUE,
+            "send_data": Status.SENDING_DATA,
+            "process_starts": Status.PROCESSING,
+            "process_generating": Status.ITERATING,
+            "process_completed": Status.FINISHED,
+        }[msg]
+
+
+@dataclass
+class StatusUpdate:
+    """Update message sent from the worker thread to the Job on the main thread."""
+
+    code: Status
+    rank: int | None
+    queue_size: int | None
+    eta: float | None
+    success: bool | None
+    time: datetime | None
+
+
+def create_initial_status_update():
+    return StatusUpdate(
+        code=Status.STARTING,
+        rank=None,
+        queue_size=None,
+        eta=None,
+        success=None,
+        time=datetime.now(),
+    )
+
+
+@dataclass
+class JobStatus:
+    """The job status.
+
+    Keeps strack of the latest status update and intermediate outputs (not yet implements).
+    """
+
+    latest_status: StatusUpdate = field(default_factory=create_initial_status_update)
+    outputs: List[Any] = field(default_factory=list)
+
+
+@dataclass
+class Communicator:
+    """Helper class to help communicate between the worker thread and main thread."""
+
+    lock: Lock
+    job: JobStatus
+
+
 ########################
 # Network utils
 ########################
@@ -55,13 +146,27 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol, data: str, hash_data: str
+    websocket: WebSocketCommonProtocol,
+    data: str,
+    hash_data: str,
+    helper: Communicator | None = None,
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
         msg = await websocket.recv()
         resp = json.loads(msg)
+        if helper:
+            with helper.lock:
+                status_update = StatusUpdate(
+                    code=Status.msg_to_status(resp["msg"]),
+                    queue_size=resp.get("queue_size"),
+                    rank=resp.get("rank", None),
+                    success=resp.get("success"),
+                    time=datetime.now(),
+                    eta=resp.get("rank_eta"),
+                )
+                helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":
