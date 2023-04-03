@@ -309,7 +309,9 @@ class Endpoint:
         self.input_component_types = []
         self.output_component_types = []
         try:
-            self.serializers, self.deserializers = self._setup_serializers()
+            self.serializers, self.deserializers = self._setup_serializers(
+                src=client.src + "/"
+            )
             self.is_valid = self.dependency[
                 "backend_fn"
             ]  # Only a real API endpoint if backend_fn is True and serializers are valid
@@ -473,7 +475,9 @@ class Endpoint:
             ]
         )
 
-    def _setup_serializers(self) -> Tuple[List[Serializable], List[Serializable]]:
+    def _setup_serializers(
+        self, src: str
+    ) -> Tuple[List[Serializable], List[Serializable]]:
         inputs = self.dependency["inputs"]
         serializers = []
 
@@ -513,7 +517,7 @@ class Endpoint:
                             component_name in serializing.COMPONENT_MAPPING
                         ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
                         deserializer = serializing.COMPONENT_MAPPING[component_name]
-                    deserializers.append(deserializer())  # type: ignore
+                    deserializers.append(deserializer(root_url=src))  # type: ignore
 
         return serializers, deserializers
 

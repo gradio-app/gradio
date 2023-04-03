@@ -11,6 +11,9 @@ from gradio_client import utils
 
 
 class Serializable(ABC):
+    def __init__(self, root_url: str | None = None):
+        self.root_url = root_url
+
     @abstractmethod
     def input_api_info(self) -> Tuple[str, str]:
         """
@@ -196,9 +199,9 @@ class FileSerializable(Serializable):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
             if x.get("is_file", False):
-                if root_url is not None:
+                if self.root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
-                        root_url + "file=" + x["name"],
+                        self.root_url + "file=" + x["name"],
                         hf_token=hf_token,
                         dir=save_dir,
                     ).name
