@@ -23,7 +23,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+- Fixed IPv6 listening to work with bracket [::1] notation. by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
 
 ## Contributors Shoutout:
 
