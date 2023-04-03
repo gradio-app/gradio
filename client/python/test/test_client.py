@@ -81,7 +81,7 @@ class TestPredictionsFromSpaces:
     def test_job_status_queue_disabled(self):
         statuses = []
         client = Client(src="freddyaboulton/sentiment-classification")
-        job = client.predict("I love the gradio python client", fn_index=0)
+        job = client.predict("I love the gradio python client", api_name="/classify")
         while not job.done():
             time.sleep(0.02)
             statuses.append(job.status())
@@ -93,7 +93,7 @@ class TestPredictionsFromSpaces:
         self,
     ):
         client = Client(src="gradio/count_generator")
-        job = client.predict(3, fn_index=0)
+        job = client.predict(3, api_name="/count")
 
         while not job.done():
             time.sleep(0.1)
@@ -104,14 +104,14 @@ class TestPredictionsFromSpaces:
     def test_timeout(self):
         with pytest.raises(TimeoutError):
             client = Client(src="gradio/count_generator")
-            job = client.predict(fn_index=2)
+            job = client.predict(api_name="/sleep")
             job.result(timeout=0.05)
 
     @pytest.mark.flaky
     def test_timeout_no_queue(self):
         with pytest.raises(TimeoutError):
             client = Client(src="freddyaboulton/sentiment-classification")
-            job = client.predict(None, fn_index=1)
+            job = client.predict(api_name="/sleep")
             job.result(timeout=0.1)
 
     @pytest.mark.flaky
@@ -125,7 +125,7 @@ class TestPredictionsFromSpaces:
     def test_raises_exception_no_queue(self):
         with pytest.raises(Exception):
             client = Client(src="freddyaboulton/sentiment-classification")
-            job = client.predict([5], fn_index=0)
+            job = client.predict([5], api_name="/sleep")
             job.result()
 
 
