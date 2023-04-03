@@ -1006,6 +1006,7 @@ class Blocks(BlockContext):
             wanted = ", ".join(wanted_args)
             received = ", ".join(received_args)
 
+            # JS func didn't pass enough arguments
             raise ValueError(f"""An event handler{name} didn't receive enough input values (needed: {len(dep_inputs)}, got: {len(inputs)}).
 Check if the event handler calls a Javascript function, and make sure its return value is correct.
 Wanted inputs:
@@ -1058,7 +1059,6 @@ Received inputs:
             wanted = ", ".join(wanted_args)
             received = ", ".join(received_args)
 
-            # JS func didn't pass enough arguments
             raise ValueError(f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
 Wanted outputs:
     [{wanted}]
