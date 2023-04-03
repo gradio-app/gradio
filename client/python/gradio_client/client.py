@@ -7,7 +7,7 @@ import re
 import threading
 import time
 import uuid
-from concurrent.futures import Future
+from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from threading import Lock
 from typing import Any, Callable, Dict, List, Literal, Tuple
@@ -98,7 +98,6 @@ class Client:
         job = Job(
             future,
             communicator=helper,
-            is_generator=self.endpoints[fn_index].is_generator,
         )
 
         if result_callbacks:
@@ -404,8 +403,13 @@ class Endpoint:
                 )
                 == 1
             ):
-                return outputs[0]
-            return outputs
+                output = outputs[0]
+            else:
+                output = outputs
+            if helper:
+                with helper.lock:
+                    helper.job.outputs.append(output)
+            return output
 
         return _inner
 
@@ -446,10 +450,6 @@ class Endpoint:
             return tuple(output)
 
         return _predict
-
-    @property
-    def is_generator(self):
-        return self.dependency.get("types", {}).get("generator", False)
 
     def _predict_resolve(self, *data) -> Any:
         """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
@@ -537,9 +537,9 @@ class Endpoint:
 
     async def _ws_fn(self, data, hash_data, helper: Communicator):
         async with websockets.connect(  # type: ignore
-            self.ws_url,
+            self.client.ws_url,
             open_timeout=10,
-            extra_headers=self.headers,
+            extra_headers=self.client.headers,
             max_size=1024 * 1024 * 1024,
         ) as websocket:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
@@ -552,11 +552,9 @@ class Job(Future):
         self,
         future: Future,
         communicator: Communicator | None = None,
-        is_generator: bool = False,
     ):
         self.future = future
         self.communicator = communicator
-        self.is_generator = is_generator
 
     def outputs(
         self,
@@ -567,45 +565,77 @@ class Job(Future):
             with self.communicator.lock:
                 return self.communicator.job.outputs
 
-    def result(self, timeout: float | None = None):
-        if self.is_generator:
-            # Coerce to inf here because the parent class can't handle inf
+    def _get_first_output_if_present(self):
+        with self.communicator.lock:
+            if len(self.communicator.job.outputs) >= 1:
+                return self.communicator.job.outputs[0]
+            return None
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+
+        Returns:
+            The result of the call that the future represents.
+
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        if self.communicator:
             timeout = timeout or float("inf")
+            if self.future._exception:
+                raise self.future._exception
+            with self.communicator.lock:
+                if self.communicator.job.outputs:
+                    return self.communicator.job.outputs[0]
             start = datetime.now()
-            assert self.communicator
             while True:
                 if (datetime.now() - start).seconds > timeout:
-                    raise concurrent.futures.TimeoutError(
-                        "The operation exceeded the given deadline"
-                    )
+                    raise TimeoutError()
+                if self.future._exception:
+                    raise self.future._exception
                 with self.communicator.lock:
                     if self.communicator.job.outputs:
                         return self.communicator.job.outputs[0]
-                time.sleep(0.05)
+                time.sleep(0.01)
         else:
-            return super().result(timeout)
+            return super().result(timeout=timeout)
 
     def status(self) -> StatusUpdate:
-        if not self.communicator:
-            time = datetime.now()
-            if self.done():
-                return StatusUpdate(
-                    code=Status.FINISHED,
-                    rank=0,
-                    queue_size=None,
-                    success=None,
-                    time=time,
-                    eta=None,
-                )
-            else:
-                return StatusUpdate(
-                    code=Status.PROCESSING,
-                    rank=0,
-                    queue_size=None,
-                    success=None,
-                    time=time,
-                    eta=None,
-                )
+        time = datetime.now()
+        if self.done() and not self.future._exception:
+            return StatusUpdate(
+                code=Status.FINISHED,
+                rank=0,
+                queue_size=None,
+                success=True,
+                time=time,
+                eta=None,
+            )
+        elif self.done() and self.future._exception:
+            return StatusUpdate(
+                code=Status.FINISHED,
+                rank=0,
+                queue_size=None,
+                success=False,
+                time=time,
+                eta=None,
+            )
+        elif not self.done() and not self.communicator:
+            return StatusUpdate(
+                code=Status.PROCESSING,
+                rank=0,
+                queue_size=None,
+                success=None,
+                time=time,
+                eta=None,
+            )
         else:
             with self.communicator.lock:
                 return self.communicator.job.latest_status

@@ -168,7 +168,7 @@ async def get_pred_from_ws(
                     eta=resp.get("rank_eta"),
                 )
                 output = resp.get("output", {}).get("data", [])
-                if output:
+                if output and status_update.code != Status.FINISHED:
                     try:
                         result = helper.deserialize(*output)
                     except Exception as e:

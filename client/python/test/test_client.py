@@ -97,7 +97,7 @@ class TestPredictionsFromSpaces:
         while not job.done():
             time.sleep(0.1)
 
-        assert job.outputs() == [[str(i)] for i in range(3)]
+        assert job.outputs() == [[str(i)] for i in range(3)] + ["2"]
 
 
 class TestStatusUpdates:
