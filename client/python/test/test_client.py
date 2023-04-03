@@ -105,7 +105,7 @@ class TestPredictionsFromSpaces:
         with pytest.raises(TimeoutError):
             client = Client(src="gradio/count_generator")
             job = client.predict(10, fn_index=0)
-            job.result(timeout=0.1)
+            job.result(timeout=0.05)
 
     @pytest.mark.flaky
     def test_timeout_no_queue(self):
