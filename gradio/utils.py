@@ -110,7 +110,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
     def initiated_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
+                analytics_url + "gradio-initiated-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -124,7 +124,7 @@ def launch_analytics(data: Dict[str, Any]) -> None:
     def launch_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-analytics/", data=data, timeout=3
+                analytics_url + "gradio-launched-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -158,6 +158,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
             str(blocks.blocks[y]) for y in x["outputs"]
         ]
     additional_data = {
+        "version": GRADIO_VERSION,
         "is_kaggle": blocks.is_kaggle,
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
@@ -182,11 +183,10 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     def launched_telemtry_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-telemetry/", data=data, timeout=3
+                analytics_url + "gradio-launched-telemetry/", data=data, timeout=5
             )
-        except Exception as e:
-            print("Error while sending telemetry: {}".format(e))
-
+        except Exception:
+            pass
     threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
 
 
@@ -196,7 +196,7 @@ def integration_analytics(data: Dict[str, Any]) -> None:
     def integration_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-integration-analytics/", data=data, timeout=3
+                analytics_url + "gradio-integration-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -215,7 +215,7 @@ def error_analytics(message: str) -> None:
     def error_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-error-analytics/", data=data, timeout=3
+                analytics_url + "gradio-error-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
