@@ -7,7 +7,38 @@ No changes to highlight.
 
 ## Bug Fixes:
 
+- Increase timeout for sending analytics data by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3647](https://github.com/gradio-app/gradio/pull/3647)
+
+## Documentation Changes:
+
 No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+- Fixed IPv6 listening to work with bracket [::1] notation. by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# Version 3.24.1
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Fixes Chatbot issue where new lines were being created every time a message was sent back and forth by [@aliabid94](https://github.com/aliabid94) in [PR 3717](https://github.com/gradio-app/gradio/pull/3717).
+
 
 ## Documentation Changes:
 
