@@ -1,4 +1,3 @@
-import os
 from urllib.request import urlretrieve
 
 import tensorflow as tf
