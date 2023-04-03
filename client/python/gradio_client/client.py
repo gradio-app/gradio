@@ -583,8 +583,8 @@ class Job(Future):
         """
         if self.communicator:
             timeout = timeout or float("inf")
-            if self.future._exception:
-                raise self.future._exception
+            if self.future._exception:  # type: ignore
+                raise self.future._exception  # type: ignore
             with self.communicator.lock:
                 if self.communicator.job.outputs:
                     return self.communicator.job.outputs[0]
@@ -592,8 +592,8 @@ class Job(Future):
             while True:
                 if (datetime.now() - start).seconds > timeout:
                     raise TimeoutError()
-                if self.future._exception:
-                    raise self.future._exception
+                if self.future._exception:  # type: ignore
+                    raise self.future._exception  # type: ignore
                 with self.communicator.lock:
                     if self.communicator.job.outputs:
                         return self.communicator.job.outputs[0]
@@ -603,36 +603,38 @@ class Job(Future):
 
     def status(self) -> StatusUpdate:
         time = datetime.now()
-        if self.done() and not self.future._exception:
-            return StatusUpdate(
-                code=Status.FINISHED,
-                rank=0,
-                queue_size=None,
-                success=True,
-                time=time,
-                eta=None,
-            )
-        elif self.done() and self.future._exception:
-            return StatusUpdate(
-                code=Status.FINISHED,
-                rank=0,
-                queue_size=None,
-                success=False,
-                time=time,
-                eta=None,
-            )
-        elif not self.done() and not self.communicator:
-            return StatusUpdate(
-                code=Status.PROCESSING,
-                rank=0,
-                queue_size=None,
-                success=None,
-                time=time,
-                eta=None,
-            )
+        if self.done():
+            if not self.future._exception:  # type: ignore
+                return StatusUpdate(
+                    code=Status.FINISHED,
+                    rank=0,
+                    queue_size=None,
+                    success=True,
+                    time=time,
+                    eta=None,
+                )
+            else:
+                return StatusUpdate(
+                    code=Status.FINISHED,
+                    rank=0,
+                    queue_size=None,
+                    success=False,
+                    time=time,
+                    eta=None,
+                )
         else:
-            with self.communicator.lock:
-                return self.communicator.job.latest_status
+            if not self.communicator:
+                return StatusUpdate(
+                    code=Status.PROCESSING,
+                    rank=0,
+                    queue_size=None,
+                    success=None,
+                    time=time,
+                    eta=None,
+                )
+            else:
+                with self.communicator.lock:
+                    return self.communicator.job.latest_status
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""

@@ -114,6 +114,21 @@ class TestPredictionsFromSpaces:
             job = client.predict(None, fn_index=1)
             job.result(timeout=0.1)
 
+    @pytest.mark.flaky
+    def test_raises_exception(self):
+        with pytest.raises(Exception):
+            client = Client(src="freddyaboulton/calculator")
+            job = client.predict("foo", "add", 9, fn_index=0)
+            job.result()
+
+    @pytest.mark.flaky
+    def test_raises_exception_no_queue(self):
+        breakpoint()
+        with pytest.raises(Exception):
+            client = Client(src="freddyaboulton/sentiment-classification")
+            job = client.predict([5], fn_index=0)
+            job.result()
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")

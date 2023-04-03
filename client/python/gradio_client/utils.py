@@ -172,7 +172,7 @@ async def get_pred_from_ws(
                     try:
                         result = helper.deserialize(*output)
                     except Exception as e:
-                        result = e
+                        result = [e]
                     helper.job.outputs.append(list(result))
                 helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":
