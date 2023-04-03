@@ -384,7 +384,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
@@ -442,7 +443,7 @@
 				set_api_docs_visible(false);
 			}}
 		/>
-		<div class="api-docs-wrap ">
+		<div class="api-docs-wrap">
 			<ApiDocs
 				on:close={() => {
 					set_api_docs_visible(false);

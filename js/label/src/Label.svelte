@@ -32,7 +32,7 @@
 					dispatch("select", { index: i, value: confidence_set.label });
 				}}
 			>
-				<div class="inner-wrap ">
+				<div class="inner-wrap">
 					<div class="bar" style="width: {confidence_set.confidence * 100}%" />
 					<div class="label">
 						<div class="text">{confidence_set.label}</div>

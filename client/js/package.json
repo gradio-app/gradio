@@ -3,7 +3,28 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "dist/index.js",
 	"author": "",
-	"license": "ISC"
+	"license": "ISC",
+	"exports": {
+		".": {
+			"import": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"ws": "^8.13.0"
+	},
+	"devDependencies": {
+		"@types/ws": "^8.5.4",
+		"esbuild": "^0.17.14"
+	},
+	"scripts": {
+		"bundle": "vite build --ssr",
+		"generate_types": "tsc",
+		"build": "pnpm bundle && pnpm generate_types"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	}
 }

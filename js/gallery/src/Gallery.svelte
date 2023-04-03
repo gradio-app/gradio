@@ -175,7 +175,7 @@
 					<button
 						bind:this={el[i]}
 						on:click={() => (selected_image = i)}
-						class="thumbnail-item thumbnail-small "
+						class="thumbnail-item thumbnail-small"
 						class:selected={selected_image === i}
 					>
 						<img

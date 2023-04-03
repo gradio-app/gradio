@@ -20,7 +20,7 @@
 </script>
 
 <nav class="inline-block">
-	<ul class="flex flex-col px-6 ">
+	<ul class="flex flex-col px-6">
 		{#each comp_routes as [section, comps]}
 			<li>
 				<h2 class="text-xs uppercase font-bold">{section}</h2>
