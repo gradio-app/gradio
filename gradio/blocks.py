@@ -1082,7 +1082,7 @@ Received outputs:
                 predictions,
             ]
 
-        self.validate_outputs(fn_index, predictions)
+        self.validate_outputs(fn_index, predictions)  # type: ignore
 
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
