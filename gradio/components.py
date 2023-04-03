@@ -1383,7 +1383,9 @@ class Radio(
 
 
 @document("style")
-class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(
+    Changeable, Selectable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1408,6 +1410,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
+        allow_custom_value: bool = False,
         **kwargs,
     ):
         """
@@ -1425,6 +1428,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1442,6 +1446,11 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
         self.max_choices = max_choices
+        self.allow_custom_value = allow_custom_value
+        if multiselect and allow_custom_value:
+            raise ValueError(
+                "Custom values are not supported when `multiselect` is True."
+            )
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
@@ -1484,6 +1493,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
+            "allow_custom_value": self.allow_custom_value,
             **IOComponent.get_config(self),
         }
 
@@ -1494,6 +1504,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
+        placeholder: str | None = None,
         visible: bool | None = None,
     ):
         return {
@@ -1504,6 +1515,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "placeholder": placeholder,
             "__type__": "update",
         }
 
@@ -1525,7 +1537,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 return [self.choices.index(c) for c in x]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x)
+                    return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
                 "Unknown type: "
@@ -3407,7 +3419,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Submittable, IOComponent, StringSerializable):
+class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -4290,6 +4302,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(chat_message, str):
+            chat_message = chat_message.replace("\n", "<br>")
             return self.md.renderInline(chat_message)
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")

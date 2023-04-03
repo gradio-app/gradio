@@ -137,6 +137,14 @@ def start_server(
     else:
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
+    # Strip IPv6 brackets from the address if they exist.
+    # This is needed as http://[::1]:port/ is a valid browser address,
+    # but not a valid IPv6 address, so asyncio will throw an exception.
+    if server_name.startswith("[") and server_name.endswith("]"):
+        host = server_name[1:-1]
+    else:
+        host = server_name
+
     app = App.create_app(blocks)
 
     if blocks.save_to is not None:  # Used for selenium tests
@@ -144,7 +152,7 @@ def start_server(
     config = uvicorn.Config(
         app=app,
         port=port,
-        host=server_name,
+        host=host,
         log_level="warning",
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,

@@ -577,6 +577,7 @@ class TestDropdown:
             max_choices=2,
         )
         assert dropdown_input_multiselect.get_config() == {
+            "allow_custom_value": False,
             "choices": ["a", "b", "c"],
             "value": ["a", "c"],
             "name": "dropdown",
@@ -1699,8 +1700,8 @@ class TestChatbot:
         Postprocess, get_config
         """
         chatbot = gr.Chatbot()
-        assert chatbot.postprocess([["You are **cool**", "so are *you*"]]) == [
-            ["You are <strong>cool</strong>", "so are <em>you</em>"]
+        assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
+            ["You are <strong>cool</strong><br>and fun", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
