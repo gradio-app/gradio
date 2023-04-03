@@ -123,7 +123,6 @@ class TestPredictionsFromSpaces:
 
     @pytest.mark.flaky
     def test_raises_exception_no_queue(self):
-        breakpoint()
         with pytest.raises(Exception):
             client = Client(src="freddyaboulton/sentiment-classification")
             job = client.predict([5], fn_index=0)
