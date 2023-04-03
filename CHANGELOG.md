@@ -11,7 +11,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3740](https://github.com/gradio-app/gradio/pull/3740)
 
 ## Testing and Infrastructure Changes:
 
@@ -23,7 +23,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-- Fixed IPv6 listening to work with bracket [::1] notation. by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
+- Fixed IPv6 listening to work with bracket [::1] notation, by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
 
 ## Contributors Shoutout:
 
@@ -42,7 +42,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3740](https://github.com/gradio-app/gradio/pull/3740)
+No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
