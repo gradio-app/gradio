@@ -344,7 +344,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "examples": example_data,
         }
 
-    if p is None or not (p in pipelines):
+    if p is None or p not in pipelines:
         raise ValueError("Unsupported pipeline type: {}".format(p))
 
     pipeline = pipelines[p]
