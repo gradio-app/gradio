@@ -35,6 +35,8 @@ jobs:
         run: pnpm format:check
       - name: build css
         run: pnpm css
+      - name: build client
+        run: pnpm --filter @gradio/client build
       - name: typecheck
         run: pnpm ts:check
       - name: unit tests
