@@ -258,9 +258,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching_with_batch(self):
         def trim_words(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[:l])
+            trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return [trimmed_words]
 
         io = gr.Interface(
@@ -278,9 +276,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching_with_batch_multiple_outputs(self):
         def trim_words(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[:l])
+            trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return trimmed_words, lens
 
         io = gr.Interface(

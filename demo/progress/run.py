@@ -87,7 +87,7 @@ with gr.Blocks() as demo:
 
     def bind_internal_tqdm(data, progress=gr.Progress(track_tqdm=True)):
         outdir = "__tmp/" + str(uuid4())
-        dataset = load_dataset("beans", split="train", cache_dir=outdir)
+        load_dataset("beans", split="train", cache_dir=outdir)
         shutil.rmtree(outdir)
         return "done"
     bind_internal_tqdm_btn.click(bind_internal_tqdm, {text, textb}, text2)

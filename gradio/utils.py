@@ -187,6 +187,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
             )
         except Exception:
             pass
+
     threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
 
 
