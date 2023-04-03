@@ -22,12 +22,14 @@
 <label class:disabled>
 	<input
 		bind:checked={value}
-		on:input={(evt) =>
+		on:input={(evt) => {
+			value = evt.currentTarget.checked;
 			dispatch("select", {
 				index: 0,
 				value: label,
 				selected: evt.currentTarget.checked
-			})}
+			});
+		}}
 		{disabled}
 		type="checkbox"
 		name="test"

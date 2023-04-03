@@ -107,7 +107,7 @@
 </script>
 
 {#if active_api_count}
-	<div class="banner-wrap ">
+	<div class="banner-wrap">
 		<ApiBanner on:close {root} {active_api_count} />
 	</div>
 	<div class="docs-wrap">
