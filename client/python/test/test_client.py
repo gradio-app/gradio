@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -98,6 +99,20 @@ class TestPredictionsFromSpaces:
             time.sleep(0.1)
 
         assert job.outputs() == [[str(i)] for i in range(3)] + ["2"]
+
+    @pytest.mark.flaky
+    def test_timeout(self):
+        with pytest.raises(TimeoutError):
+            client = Client(src="gradio/count_generator")
+            job = client.predict(10, fn_index=0)
+            job.result(timeout=0.1)
+
+    @pytest.mark.flaky
+    def test_timeout_no_queue(self):
+        with pytest.raises(TimeoutError):
+            client = Client(src="freddyaboulton/sentiment-classification")
+            job = client.predict(None, fn_index=1)
+            job.result(timeout=0.1)
 
 
 class TestStatusUpdates:
