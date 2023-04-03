@@ -565,12 +565,6 @@ class Job(Future):
             with self.communicator.lock:
                 return self.communicator.job.outputs
 
-    def _get_first_output_if_present(self):
-        with self.communicator.lock:
-            if len(self.communicator.job.outputs) >= 1:
-                return self.communicator.job.outputs[0]
-            return None
-
     def result(self, timeout=None):
         """Return the result of the call that the future represents.
 
