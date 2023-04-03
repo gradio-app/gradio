@@ -122,7 +122,7 @@ class Queue:
                 await asyncio.sleep(self.sleep_when_free)
                 continue
 
-            if not (None in self.active_jobs):
+            if None not in self.active_jobs:
                 await asyncio.sleep(self.sleep_when_free)
                 continue
             # Using mutex to avoid editing a list in use

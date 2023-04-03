@@ -1,5 +1,4 @@
 import gradio as gr
-import random
 
 secret_word = "gradio"
 

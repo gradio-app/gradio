@@ -1,4 +1,5 @@
 import argparse
+
 import requests
 
 WORKFLOW_RUN_ENDPOINT = "https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/artifacts"

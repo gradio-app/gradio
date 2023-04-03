@@ -1,6 +1,7 @@
-from upload_demos import demos, upload_demo_to_space, AUTH_TOKEN, latest_gradio_stable
-from gradio.networking import url_ok
 import huggingface_hub
+from upload_demos import AUTH_TOKEN, demos, latest_gradio_stable, upload_demo_to_space
+
+from gradio.networking import url_ok
 
 for demo in demos:
     space_id = "gradio/" + demo

@@ -1,8 +1,7 @@
-import time
-import requests
-import warnings
 import os
 import sys
+import time
+
 from homepage.utils import get_latest_stable
 
 VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "gradio", "version.txt"))

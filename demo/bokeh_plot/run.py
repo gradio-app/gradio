@@ -1,6 +1,5 @@
 import gradio as gr
 import xyzservices.providers as xyz
-from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider
 from bokeh.models import ColumnDataSource, Whisker
 from bokeh.plotting import figure

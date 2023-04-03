@@ -685,9 +685,7 @@ class TestCallFunction:
 class TestBatchProcessing:
     def test_raise_exception_if_batching_an_event_thats_not_queued(self):
         def trim(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[: int(l)])
+            trimmed_words = [word[: int(length)] for word, length in zip(words, lens)]
             return [trimmed_words]
 
         msg = "In order to use batching, the queue must be enabled."

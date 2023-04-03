@@ -887,7 +887,6 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1019,7 +1018,6 @@ class Checkbox(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1140,7 +1138,6 @@ class CheckboxGroup(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1322,7 +1319,6 @@ class Radio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1511,7 +1507,6 @@ class Dropdown(
             "choices": choices,
             "label": label,
             "show_label": show_label,
-            "interactive": interactive,
             "visible": visible,
             "value": value,
             "interactive": interactive,
@@ -1707,7 +1702,6 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2054,7 +2048,6 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2274,7 +2267,6 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2591,7 +2583,6 @@ class File(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2856,7 +2847,6 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3073,7 +3063,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3331,7 +3320,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 

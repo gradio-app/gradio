@@ -160,7 +160,7 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -219,7 +219,7 @@ class App(FastAPI):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
 
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 config = app.get_blocks().config
             else:
                 config = {

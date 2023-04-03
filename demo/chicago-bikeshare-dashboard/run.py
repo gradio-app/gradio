@@ -1,7 +1,6 @@
 import os
 import gradio as gr
 import matplotlib
-import matplotlib.pyplot as plt
 import pandas as pd
 
 matplotlib.use("Agg")

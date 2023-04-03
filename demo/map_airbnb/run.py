@@ -1,5 +1,4 @@
 import gradio as gr
-import pandas as pd
 import plotly.graph_objects as go
 from datasets import load_dataset
 

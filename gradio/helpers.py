@@ -172,7 +172,7 @@ class Examples:
         input_has_examples = [False] * len(inputs)
         for example in examples:
             for idx, example_for_input in enumerate(example):
-                if not (example_for_input is None):
+                if example_for_input is not None:
                     try:
                         input_has_examples[idx] = True
                     except IndexError:
