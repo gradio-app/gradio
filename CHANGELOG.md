@@ -7,7 +7,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Increase timeout for sending analytics data by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3647](https://github.com/gradio-app/gradio/pull/3647)
 
 ## Documentation Changes:
 
@@ -23,7 +23,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+- Fixed IPv6 listening to work with bracket [::1] notation. by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
 
 ## Contributors Shoutout:
 
