@@ -191,7 +191,7 @@ class FileSerializable(Serializable):
         Parameters:
             x: Base64 representation of file to deserialize into a string filepath
             save_dir: Path to directory to save the deserialized file to
-            root_url: If this component is loaded from an external Space, this is the URL of the Space
+            root_url: If this component is loaded from an external Space, this is the URL of the Space. If set during init, this parameter has no effect.
             hf_token: If this component is loaded from an external private Space, this is the access token for the Space
         """
         _root_url = self.root_url or root_url
