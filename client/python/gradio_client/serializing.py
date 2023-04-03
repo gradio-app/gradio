@@ -194,6 +194,7 @@ class FileSerializable(Serializable):
             root_url: If this component is loaded from an external Space, this is the URL of the Space
             hf_token: If this component is loaded from an external private Space, this is the access token for the Space
         """
+        _root_url = self.root_url or root_url
         if x is None:
             return None
         if isinstance(save_dir, Path):
@@ -202,9 +203,9 @@ class FileSerializable(Serializable):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
             if x.get("is_file", False):
-                if self.root_url is not None:
+                if _root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
-                        self.root_url + "file=" + x["name"],
+                        _root_url + "file=" + x["name"],
                         hf_token=hf_token,
                         dir=save_dir,
                     ).name
