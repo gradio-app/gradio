@@ -1,5 +1,6 @@
 import gradio as gr
-import torch, torchaudio
+import torch
+import torchaudio
 from timeit import default_timer as timer
 from data_setups import audio_preprocess, resample
 import gdown

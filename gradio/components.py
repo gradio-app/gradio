@@ -887,7 +887,6 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1019,7 +1018,6 @@ class Checkbox(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1140,7 +1138,6 @@ class CheckboxGroup(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1322,7 +1319,6 @@ class Radio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1383,7 +1379,9 @@ class Radio(
 
 
 @document("style")
-class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(
+    Changeable, Selectable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1408,6 +1406,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
+        allow_custom_value: bool = False,
         **kwargs,
     ):
         """
@@ -1425,6 +1424,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1442,6 +1442,11 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
         self.max_choices = max_choices
+        self.allow_custom_value = allow_custom_value
+        if multiselect and allow_custom_value:
+            raise ValueError(
+                "Custom values are not supported when `multiselect` is True."
+            )
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
@@ -1484,6 +1489,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
+            "allow_custom_value": self.allow_custom_value,
             **IOComponent.get_config(self),
         }
 
@@ -1494,16 +1500,17 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
+        placeholder: str | None = None,
         visible: bool | None = None,
     ):
         return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
-            "interactive": interactive,
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "placeholder": placeholder,
             "__type__": "update",
         }
 
@@ -1525,7 +1532,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 return [self.choices.index(c) for c in x]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x)
+                    return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
                 "Unknown type: "
@@ -1695,7 +1702,6 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1899,36 +1905,9 @@ class Image(
         )
         return self
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
@@ -2042,7 +2021,6 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2262,7 +2240,6 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2415,38 +2392,11 @@ class Audio(
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def style(
         self,
@@ -2579,7 +2529,6 @@ class File(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2844,7 +2793,6 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3061,7 +3009,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3319,7 +3266,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3407,7 +3353,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Submittable, IOComponent, StringSerializable):
+class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -4290,6 +4236,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(chat_message, str):
+            chat_message = chat_message.replace("\n", "<br>")
             return self.md.renderInline(chat_message)
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")

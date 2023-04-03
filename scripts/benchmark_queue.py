@@ -16,15 +16,17 @@ to with the -o parameter:
 >> python scripts/benchmark_queue.py -n 1000 -o results.json
 '''
 
+import argparse
+import asyncio
+import json
+import random
+import time
+
+import pandas as pd
+import websockets
+
 import gradio as gr
 from gradio import media_data
-import asyncio
-import websockets
-import json
-import time
-import random
-import pandas as pd
-import argparse
 
 
 def identity_with_sleep(x):

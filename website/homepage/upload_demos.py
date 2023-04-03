@@ -1,13 +1,12 @@
+import argparse
+import os
 import pathlib
 import shutil
 import tempfile
 import textwrap
 from typing import Optional
+
 import huggingface_hub
-import os
-import json
-import argparse
-import requests
 from utils import get_latest_stable
 
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
@@ -27,14 +26,19 @@ DEMOS_TO_SKIP = {"all_demos", "reset_components", "custom_path", "kitchen_sink_r
 
 
 def upload_demo_to_space(
-    demo_name: str, space_id: str, hf_token: str, gradio_version: Optional[str], gradio_wheel_url: Optional[str] = None
+    demo_name: str, 
+    space_id: str, 
+    hf_token: str, 
+    gradio_version: str | None, 
+    gradio_wheel_url: str | None = None
 ):
     """Upload a demo in the demo directory to a huggingface space.
-    Args:
+    Parameters:
         demo_name: The name of the demo to upload.
         space_id: The id of the space to upload the demo to.
         hf_token: HF api token. Need to have permission to write to space_id for this to work.
-        gradio_version: If not None, will set the gradio version in the created space to the given version.
+        gradio_version: If not None, will set the gradio version in the created Space to the given version.
+        gradio_wheel_url: If not None, will install the version of gradio using the wheel url in the created Space.
     """
 
     with tempfile.TemporaryDirectory() as tmpdir:

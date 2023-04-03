@@ -36,7 +36,7 @@
 	<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
 		<StatusTracker {...loading_status} />
 
-		<BlockLabel Icon={CodeIcon} {show_label} {label} />
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
 		{#if !value}
 			<Empty size="large" unpadded_box={true}>
@@ -52,7 +52,7 @@
 	<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
 		<StatusTracker {...loading_status} />
 
-		<BlockLabel Icon={CodeIcon} {show_label} {label} />
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
 		<Code bind:value {language} {lines} {dark_mode} />
 	</Block>

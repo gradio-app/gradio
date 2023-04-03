@@ -41,3 +41,11 @@ include = [
   "/README.md",
   "/requirements.txt",
 ]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.isort]
+known-first-party = [
+  "gradio_client"
+]

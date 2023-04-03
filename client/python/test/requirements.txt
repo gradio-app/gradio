@@ -1,5 +1,4 @@
 black==22.6.0
-flake8==4.0.1
-isort==5.10.1
-pytest==7.1.2
 pytest-asyncio
+pytest==7.1.2
+ruff==0.0.260
