@@ -4,6 +4,7 @@ import os
 import urllib
 import warnings
 
+import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
@@ -53,13 +54,17 @@ class TestInterfaceErrors:
 
 
 class TestStartServer:
-    def test_start_server(self):
+
+    # Test IPv4 and IPv6 hostnames as they would be passed from --server-name.
+    @pytest.mark.parametrize("host", ["127.0.0.1", "[::1]"])
+    def test_start_server(self, host):
         io = Interface(lambda x: x, "number", "number")
         io.favicon_path = None
         io.config = io.get_config_file()
         io.show_error = True
         io.flagging_callback.setup(gr.Number(), io.flagging_dir)
         io.auth = None
+        io.host = host
 
         port = networking.get_first_available_port(
             networking.INITIAL_PORT_VALUE,
