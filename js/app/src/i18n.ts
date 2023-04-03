@@ -14,7 +14,7 @@ export function process_langs() {
 
 	for (const lang in langs) {
 		const code = (lang.split("/").pop() as string).split(".").shift() as string;
-		_langs[code] = langs[lang].default;
+		_langs[code] = (langs[lang] as Record<string, any>).default;
 	}
 
 	return _langs;
