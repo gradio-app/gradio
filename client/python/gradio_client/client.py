@@ -309,6 +309,7 @@ class Endpoint:
         self.input_component_types = []
         self.output_component_types = []
         try:
+            assert client.src
             self.serializers, self.deserializers = self._setup_serializers(
                 src=client.src + "/"
             )

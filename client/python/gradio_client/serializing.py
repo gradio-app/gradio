@@ -167,7 +167,10 @@ class FileSerializable(Serializable):
         """
         if x is None or x == "":
             return None
-        filename = str(Path(load_dir) / x)
+        if utils.is_valid_url(x):
+            filename = x
+        else:
+            filename = str(Path(load_dir) / x)
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),
