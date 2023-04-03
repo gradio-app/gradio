@@ -32,6 +32,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: install dependencies
         run: pnpm install
+      - name: Build packages
+        run: pnpm --filter @gradio/client build
       - name: Setup npmrc
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
       - name: create and publish versions
