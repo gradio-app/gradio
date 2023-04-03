@@ -38,7 +38,7 @@ No changes to highlight.
 
 ## New Features:
 
-No changes to highlight.
+- Improve error messages when number of inputs/outputs to event handlers mismatch, by [@space-nuko](https://github.com/space-nuko) in [PR 3519](https://github.com/gradio-app/gradio/pull/3519)
 
 ## Bug Fixes:
 
