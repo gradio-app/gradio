@@ -120,7 +120,6 @@ class EventListenerMethod:
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
-            _js: Experimental parameter (API may change): optional frontend JavaScript method to run before running 'fn'. Input arguments for the method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         """
         if status_tracker:
             warnings.warn(
