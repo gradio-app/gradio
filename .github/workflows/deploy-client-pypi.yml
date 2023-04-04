@@ -28,7 +28,7 @@ jobs:
       with:
         python-version: '3.x'
     - name: Check new pypi version
-      run: python scripts/check_pypi.py
+      run: python client/python/scripts/check_pypi.py
     - name: Install build tool dependencies
       run: python -m pip install build
     - name: Publish package
