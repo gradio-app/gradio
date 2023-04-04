@@ -21,7 +21,7 @@ class TestPredictionsFromSpaces:
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
         output = client.predict("male", 77, 10, api_name="/predict").result()
-        assert json.load(open(output))["label"] == "Perishes"
+        assert output["label"] == "Perishes"
         with pytest.raises(
             ValueError,
             match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",

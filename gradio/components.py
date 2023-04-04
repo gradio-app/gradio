@@ -2651,7 +2651,7 @@ class File(
 
 
 @document("style")
-class Dataframe(Changeable, Selectable, IOComponent, DictSerializable):
+class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -2762,6 +2762,12 @@ class Dataframe(Changeable, Selectable, IOComponent, DictSerializable):
             value=value,
             **kwargs,
         )
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "Dict[str, Any]", f"Dictionary with key 'label' which has the primary label, and optional key 'confidences' which has a list of label-confidence pairs."
+
+    def get_output_type(self) -> Tuple[str, str]:
+        return "Dict[str, Any]", f"Dictionary with key 'label' which has the primary label, and optional key 'confidences' which has a list of label-confidence pairs."
 
     def get_config(self):
         return {
@@ -2929,7 +2935,7 @@ class Dataframe(Changeable, Selectable, IOComponent, DictSerializable):
 
 
 @document("style")
-class Timeseries(Changeable, IOComponent, DictSerializable):
+class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
@@ -3520,6 +3526,12 @@ class Label(Changeable, Selectable, IOComponent, DictSerializable):
             **kwargs,
         )
 
+    def input_api_info(self) -> Tuple[str, str]:
+        return "Dict[str, Any]", f"Dictionary with key 'label' which has the primary label, and optional key 'confidences' which has a list of label-confidence pairs."
+
+    def get_output_type(self) -> Tuple[str, str]:
+        return "Dict[str, Any]", f"Dictionary with key 'label' which has the primary label, and optional key 'confidences' which has a list of label-confidence pairs."
+
     def get_config(self):
         return {
             "num_top_classes": self.num_top_classes,
@@ -3607,7 +3619,7 @@ class Label(Changeable, Selectable, IOComponent, DictSerializable):
 
 
 @document("style")
-class HighlightedText(Changeable, Selectable, IOComponent, ListSerializable):
+class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -4185,6 +4197,12 @@ class Chatbot(Changeable, Selectable, IOComponent, ListSerializable):
             "__type__": "update",
         }
         return updated_config
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "List[Tuple]", f"List of pairs of messages."
+
+    def get_output_type(self) -> Tuple[str, str]:
+        return "List[Tuple]", f"List of pairs of messages."
 
     def _preprocess_chat_messages(
         self, chat_message: str | Dict | None
