@@ -487,7 +487,9 @@ class Endpoint:
                     serializer = serializing.COMPONENT_MAPPING.get("component_name")
                     if serializer is None:
                         serializer_name = component.get("serializer")
-                        assert serializer_name is not None, f"No serializer found for component: {component_name}"
+                        assert (
+                            serializer_name is not None
+                        ), f"No serializer found for component: {component_name}"
                         assert (
                             serializer_name in serializing.SERIALIZER_MAPPING
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
@@ -504,7 +506,9 @@ class Endpoint:
                     serializer = serializing.COMPONENT_MAPPING.get("component_name")
                     if serializer is None:
                         serializer_name = component.get("serializer")
-                        assert serializer_name is not None, f"No serializer found for component: {component_name}"
+                        assert (
+                            serializer_name is not None
+                        ), f"No serializer found for component: {component_name}"
                         assert (
                             serializer_name in serializing.SERIALIZER_MAPPING
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
