@@ -167,7 +167,9 @@ class App(FastAPI):
             )
 
         async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get("access-token")
+            token = websocket.cookies.get("access-token") or websocket.cookies.get(
+                "access-token-unsecure"
+            )
             return token  # token is returned to allow request in queue
 
         @app.get("/token")
