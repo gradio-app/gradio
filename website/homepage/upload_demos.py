@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import os
 import pathlib
 import shutil
 import tempfile
 import textwrap
-from typing import Optional
 
 import huggingface_hub
 from utils import get_latest_stable
