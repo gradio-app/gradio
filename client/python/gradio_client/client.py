@@ -9,13 +9,14 @@ import uuid
 from concurrent.futures import Future
 from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List, Literal, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import huggingface_hub
 import requests
 import websockets
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
+from typing_extensions import Literal
 
 from gradio_client import serializing, utils
 from gradio_client.serializing import Serializable
