@@ -96,10 +96,7 @@ class Client:
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
-        job = Job(
-            future,
-            communicator=helper,
-        )
+        job = Job(future, communicator=helper)
 
         if result_callbacks:
             if isinstance(result_callbacks, Callable):
@@ -393,23 +390,13 @@ class Endpoint:
                 raise utils.InvalidAPIEndpointError()
             inputs = self.serialize(*data)
             predictions = _predict(*inputs)
-            outputs = self.deserialize(*predictions)
-            if (
-                len(
-                    [
-                        oct
-                        for oct in self.output_component_types
-                        if not oct == utils.STATE_COMPONENT
-                    ]
-                )
-                == 1
-            ):
-                output = outputs[0]
-            else:
-                output = outputs
+            output = self.deserialize(*predictions)
+            # Append final output only if not already present
+            # for consistency between generators and not generators
             if helper:
                 with helper.lock:
-                    helper.job.outputs.append(output)
+                    if not helper.job.outputs:
+                        helper.job.outputs.append(output)
             return output
 
         return _inner
@@ -470,11 +457,11 @@ class Endpoint:
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
         return tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
 
-    def deserialize(self, *data) -> Tuple:
+    def deserialize(self, *data) -> Tuple | Any:
         assert len(data) == len(
             self.deserializers
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
-        return tuple(
+        outputs = tuple(
             [
                 s.deserialize(d, hf_token=self.client.hf_token)
                 for s, d, oct in zip(
@@ -483,6 +470,20 @@ class Endpoint:
                 if not oct == utils.STATE_COMPONENT
             ]
         )
+        if (
+            len(
+                [
+                    oct
+                    for oct in self.output_component_types
+                    if not oct == utils.STATE_COMPONENT
+                ]
+            )
+            == 1
+        ):
+            output = outputs[0]
+        else:
+            output = outputs
+        return output
 
     def _setup_serializers(self) -> Tuple[List[Serializable], List[Serializable]]:
         inputs = self.dependency["inputs"]
