@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: backend-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
