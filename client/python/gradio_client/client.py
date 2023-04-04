@@ -484,17 +484,14 @@ class Endpoint:
                 if component["id"] == i:
                     component_name = component["type"]
                     self.input_component_types.append(component_name)
-                    if component.get("serializer"):
-                        serializer_name = component["serializer"]
+                    serializer = serializing.COMPONENT_MAPPING.get("component_name")
+                    if serializer is None:
+                        serializer_name = component.get("serializer")
+                        assert serializer_name is not None, f"No serializer found for component: {component_name}"
                         assert (
                             serializer_name in serializing.SERIALIZER_MAPPING
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        assert (
-                            component_name in serializing.COMPONENT_MAPPING
-                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        serializer = serializing.COMPONENT_MAPPING[component_name]
                     serializers.append(serializer())  # type: ignore
 
         outputs = self.dependency["outputs"]
@@ -504,18 +501,15 @@ class Endpoint:
                 if component["id"] == i:
                     component_name = component["type"]
                     self.output_component_types.append(component_name)
-                    if component.get("serializer"):
-                        serializer_name = component["serializer"]
+                    serializer = serializing.COMPONENT_MAPPING.get("component_name")
+                    if serializer is None:
+                        serializer_name = component.get("serializer")
+                        assert serializer_name is not None, f"No serializer found for component: {component_name}"
                         assert (
                             serializer_name in serializing.SERIALIZER_MAPPING
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                        deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    else:
-                        assert (
-                            component_name in serializing.COMPONENT_MAPPING
-                        ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        deserializer = serializing.COMPONENT_MAPPING[component_name]
-                    deserializers.append(deserializer())  # type: ignore
+                        serializer = serializing.SERIALIZER_MAPPING[serializer_name]
+                    deserializers.append(serializer())  # type: ignore
 
         return serializers, deserializers
 
