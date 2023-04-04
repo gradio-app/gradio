@@ -163,6 +163,7 @@ pygments==2.12.0
     # via ipython
 pyparsing==3.0.9
     # via packaging
+pyright==1.1.298
 pyrsistent==0.18.1
     # via jsonschema
 pytest==7.1.2
