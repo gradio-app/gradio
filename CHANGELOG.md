@@ -8,10 +8,11 @@ No changes to highlight.
 ## Bug Fixes:
 
 - Increase timeout for sending analytics data by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3647](https://github.com/gradio-app/gradio/pull/3647)
+- Fix bug where http token was not accessed over websocket connections by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3735](https://github.com/gradio-app/gradio/pull/3735)
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Fix invalid argument docstrings, by [@akx](https://github.com/akx) in [PR 3740](https://github.com/gradio-app/gradio/pull/3740)
 
 ## Testing and Infrastructure Changes:
 
@@ -23,7 +24,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-- Fixed IPv6 listening to work with bracket [::1] notation. by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
+- Fixed IPv6 listening to work with bracket [::1] notation, by [@dsully](https://github.com/dsully) in [PR 3695](https://github.com/gradio-app/gradio/pull/3695)
 
 ## Contributors Shoutout:
 
