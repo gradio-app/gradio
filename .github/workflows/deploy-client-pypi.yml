@@ -31,7 +31,7 @@ jobs:
       run: python client/python/scripts/check_pypi.py
     - name: Build pypi package
       run: |
-        client/python/scripts/upload_pypi.sh
+        client/python/scripts/build_pypi.sh
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
       with:
