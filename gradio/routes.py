@@ -113,6 +113,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
+        self.enable_https = False
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -197,13 +198,24 @@ class App(FastAPI):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
-                response.set_cookie(
-                    key="access-token",
-                    value=token,
-                    httponly=True,
-                    samesite="none",
-                    secure=True,
-                )
+                # When auth is enabled, if the HTTPS request is not used when accessing the UI remotely, the client
+                # will not pass the access-token parameter for the websocket request, which will cause the interface
+                # to report a 403 error. Therefore, in order to avoid such problems, a new https control parameter is
+                # added to expose to the foreground business, so that auth can be used normally in non-https scenarios.
+                if app.enable_https:
+                    response.set_cookie(
+                        key="access-token",
+                        value=token,
+                        httponly=True,
+                        samesite="none",
+                        secure=True,
+                    )
+                else:
+                    response.set_cookie(
+                        key="access-token",
+                        value=token,
+                        httponly=True,
+                    )
                 response.set_cookie(
                     key="access-token-unsecure", value=token, httponly=True
                 )
