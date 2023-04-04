@@ -9,13 +9,14 @@ import uuid
 from concurrent.futures import Future
 from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List, Literal, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import huggingface_hub
 import requests
 import websockets
 from huggingface_hub.utils import build_hf_headers, send_telemetry
 from packaging import version
+from typing_extensions import Literal
 
 from gradio_client import serializing, utils
 from gradio_client.serializing import Serializable
@@ -43,13 +44,14 @@ class Client:
         )
 
         if src.startswith("http://") or src.startswith("https://"):
-            self.src = src
+            _src = src
         else:
-            self.src = self._space_name_to_src(src)
-            if self.src is None:
+            _src = self._space_name_to_src(src)
+            if _src is None:
                 raise ValueError(
                     f"Could not find Space: {src}. If it is a private Space, please provide an hf_token."
                 )
+        self.src = _src
         print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = utils.API_URL.format(self.src)
@@ -307,6 +309,7 @@ class Endpoint:
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
+        self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         try:
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
@@ -464,7 +467,7 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         return tuple(
             [
-                s.deserialize(d, hf_token=self.client.hf_token)
+                s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
                 for s, d, oct in zip(
                     self.deserializers, data, self.output_component_types
                 )
