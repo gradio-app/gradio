@@ -164,7 +164,10 @@ class FileSerializable(Serializable):
         """
         if x is None or x == "":
             return None
-        filename = str(Path(load_dir) / x)
+        if utils.is_valid_url(x):
+            filename = x
+        else:
+            filename = str(Path(load_dir) / x)
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),
@@ -185,7 +188,7 @@ class FileSerializable(Serializable):
         Parameters:
             x: Base64 representation of file to deserialize into a string filepath
             save_dir: Path to directory to save the deserialized file to
-            root_url: If this component is loaded from an external Space, this is the URL of the Space
+            root_url: If this component is loaded from an external Space, this is the URL of the Space.
             hf_token: If this component is loaded from an external private Space, this is the access token for the Space
         """
         if x is None:

@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import time
 from datetime import datetime, timedelta
 from unittest.mock import patch
@@ -86,6 +87,15 @@ class TestPredictionsFromSpaces:
             statuses.append(job.status())
         statuses.append(job.status())
         assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+
+    @pytest.mark.flaky
+    def test_job_output_video(self):
+        client = Client(src="gradio/video_component")
+        job = client.predict(
+            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+            fn_index=0,
+        )
+        assert pathlib.Path(job.result()).exists()
 
 
 class TestStatusUpdates:
@@ -244,6 +254,12 @@ class TestStatusUpdates:
 
 
 class TestAPIInfo:
+    @pytest.mark.parametrize("trailing_char", ["/", ""])
+    def test_test_endpoint_src(self, trailing_char):
+        src = "https://gradio-calculator.hf.space" + trailing_char
+        client = Client(src=src)
+        assert client.endpoints[0].root_url == "https://gradio-calculator.hf.space/"
+
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
