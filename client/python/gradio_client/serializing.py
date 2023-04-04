@@ -94,6 +94,26 @@ class NumberSerializable(Serializable):
         return "int | float", "value"
 
 
+class ListSerializable(Serializable):
+    """Expects a list as input/output but performs no serialization."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "List", "value"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "List", "value"
+    
+
+class DictSerializable(Serializable):
+    """Expects a dict as input/output but performs no serialization."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "Dict", "value"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "Dict", "value"
+
+
 class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is ."""
 
@@ -325,18 +345,18 @@ COMPONENT_MAPPING: Dict[str, type] = {
     "video": FileSerializable,
     "audio": FileSerializable,
     "file": FileSerializable,
-    "dataframe": JSONSerializable,
-    "timeseries": JSONSerializable,
+    "dataframe": DictSerializable,
+    "timeseries": DictSerializable,
     "state": SimpleSerializable,
     "button": StringSerializable,
     "uploadbutton": FileSerializable,
     "colorpicker": StringSerializable,
-    "label": JSONSerializable,
-    "highlightedtext": JSONSerializable,
+    "label": DictSerializable,
+    "highlightedtext": ListSerializable,
     "json": JSONSerializable,
     "html": StringSerializable,
     "gallery": GallerySerializable,
-    "chatbot": JSONSerializable,
+    "chatbot": ListSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
     "markdown": StringSerializable,

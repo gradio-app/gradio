@@ -315,7 +315,8 @@ class Endpoint:
             self.is_valid = self.dependency[
                 "backend_fn"
             ]  # Only a real API endpoint if backend_fn is True and serializers are valid
-        except AssertionError:
+        except AssertionError as e:
+            print(e)
             self.is_valid = False
 
     def get_info(self) -> Dict[str, Dict[str, List[str]]]:
@@ -484,7 +485,7 @@ class Endpoint:
                 if component["id"] == i:
                     component_name = component["type"]
                     self.input_component_types.append(component_name)
-                    serializer = serializing.COMPONENT_MAPPING.get("component_name")
+                    serializer = serializing.COMPONENT_MAPPING.get(component_name)
                     if serializer is None:
                         serializer_name = component.get("serializer")
                         assert (
@@ -503,7 +504,7 @@ class Endpoint:
                 if component["id"] == i:
                     component_name = component["type"]
                     self.output_component_types.append(component_name)
-                    serializer = serializing.COMPONENT_MAPPING.get("component_name")
+                    serializer = serializing.COMPONENT_MAPPING.get(component_name)
                     if serializer is None:
                         serializer_name = component.get("serializer")
                         assert (
