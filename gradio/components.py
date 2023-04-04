@@ -34,10 +34,12 @@ from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.serializing import (
     BooleanSerializable,
+    DictSerializable,
     FileSerializable,
     GallerySerializable,
     ImgSerializable,
     JSONSerializable,
+    ListSerializable,
     ListStringSerializable,
     NumberSerializable,
     Serializable,
@@ -2649,7 +2651,7 @@ class File(
 
 
 @document("style")
-class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Changeable, Selectable, IOComponent, DictSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -2927,7 +2929,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
-class Timeseries(Changeable, IOComponent, JSONSerializable):
+class Timeseries(Changeable, IOComponent, DictSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
@@ -3460,7 +3462,7 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
 
 
 @document("style")
-class Label(Changeable, Selectable, IOComponent, JSONSerializable):
+class Label(Changeable, Selectable, IOComponent, DictSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
@@ -3605,7 +3607,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
-class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
+class HighlightedText(Changeable, Selectable, IOComponent, ListSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -4101,7 +4103,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("style")
-class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
+class Chatbot(Changeable, Selectable, IOComponent, ListSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
