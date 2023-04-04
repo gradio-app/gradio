@@ -560,9 +560,16 @@ class Job(Future):
         self.future = future
         self.communicator = communicator
 
-    def outputs(
-        self,
-    ):
+    def outputs(self) -> List[Tuple | Any]:
+        """Returns a list containing the latest outputs from the Job.
+
+        If the endpoint has multiple output components, the list will contain
+        a tuple of results. Otherwise, it will contain the results without storing them
+        in tuples.
+
+        For endpoints that are queued, this list will contain the final job output even
+        if that endpoint does not use a generator function.
+        """
         if not self.communicator:
             return []
         else:
