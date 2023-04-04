@@ -574,6 +574,8 @@ class Job(Future):
 
         while True:
             with self.communicator.lock:
+                if self.communicator.job.latest_status.code == Status.FINISHED:
+                    raise StopIteration()
                 if len(self.communicator.job.outputs) == self._counter + 1:
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
