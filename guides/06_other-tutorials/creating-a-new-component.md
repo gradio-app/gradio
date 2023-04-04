@@ -8,7 +8,7 @@ The purpose of this guide is to illustrate how to add a new component, which you
 
 Make sure you have followed the [CONTRIBUTING.md](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) guide in order to setup your local development environment (both client and server side).
 
-Here's how to create a new component on Gradio: 
+Here's how to create a new component on Gradio:
 
 1. [Create a New Python Class and Import it](#1-create-a-new-python-class-and-import-it)
 2. [Create a New Svelte Component](#2-create-a-new-svelte-component)
@@ -79,14 +79,14 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
     ):
-        updated_config = {
+        return {
             "value": value,
             "label": label,
             "show_label": show_label,
             "visible": visible,
+            "interactive": interactive,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     # Input Functionalities
     def preprocess(self, x: str | None) -> Any:
@@ -111,9 +111,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         else:
             return str(x)
 
-    def generate_sample(self) -> str:
-        return "#000000"
-
     # Output Functionalities
     def postprocess(self, y: str | None):
         """
@@ -135,7 +132,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         return x
 ```
 
-
 Once defined, it is necessary to import the new class inside the [\_\_init\_\_](https://github.com/gradio-app/gradio/blob/main/gradio/__init__.py) module class in order to make it module visible.
 
 ```python
@@ -156,7 +152,7 @@ When developing new components, you should also write a suite of unit tests for 
 class TestColorPicker(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, get_config
         """
         color_picker_input = gr.ColorPicker()
         self.assertEqual(color_picker_input.preprocess("#000000"), "#000000")
@@ -180,7 +176,6 @@ class TestColorPicker(unittest.TestCase):
                 "name": "colorpicker",
             },
         )
-        self.assertIsInstance(color_picker_input.generate_sample(), str)
 
     def test_in_interface_as_input(self):
         """
@@ -208,7 +203,8 @@ class TestColorPicker(unittest.TestCase):
 ## 2. Create a New Svelte Component
 
 Let's see the steps you need to follow to create the frontend of your new component and to map it to its python code:
-- Create a new UI-side Svelte component and figure out where to place it. The options are: create a package for the new component in the [ui/packages folder](https://github.com/gradio-app/gradio/tree/main/ui/packages), if this is completely different from existing components or add the new component to an existing package, such as to the [form package](https://github.com/gradio-app/gradio/tree/main/ui/packages/form). The ColorPicker component for example, was included in the form package because it is similar to components that already exist.
+
+- Create a new UI-side Svelte component and figure out where to place it. The options are: create a package for the new component in the [js folder](https://github.com/gradio-app/gradio/tree/main/js/), if this is completely different from existing components or add the new component to an existing package, such as to the [form package](https://github.com/gradio-app/gradio/tree/main/js/form). The ColorPicker component for example, was included in the form package because it is similar to components that already exist.
 - Create a file with an appropriate name in the src folder of the package where you placed the Svelte component, note: the name must start with a capital letter. This is the 'core' component and it's the generic component that has no knowledge of Gradio specific functionality. Initially add any text/html to this file so that the component renders something. The Svelte application code for the ColorPicker looks like this:
 
 ```typescript
@@ -251,8 +247,8 @@ Let's see the steps you need to follow to create the frontend of your new compon
 </label>
 ```
 
-- Export this file inside the index.ts file of the package where you placed the Svelte component by doing `export { default as FileName } from "./FileName.svelte"`. The ColorPicker file is exported in the [index.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/form/src/index.ts) file and the export is performed by doing: `export { default as ColorPicker } from "./ColorPicker.svelte";`.
-- Create the Gradio specific component in [ui/packages/app/src/components](https://github.com/gradio-app/gradio/tree/main/ui/packages/app/src/components). This is a Gradio wrapper that handles the specific logic of the library, passes the necessary data down to the core component and attaches any necessary event listeners. Copy the folder of another component, rename it and edit the code inside it, keeping the structure. 
+- Export this file inside the index.ts file of the package where you placed the Svelte component by doing `export { default as FileName } from "./FileName.svelte"`. The ColorPicker file is exported in the [index.ts](https://github.com/gradio-app/gradio/blob/main/js/form/src/index.ts) file and the export is performed by doing: `export { default as ColorPicker } from "./ColorPicker.svelte";`.
+- Create the Gradio specific component in [js/app/src/components](https://github.com/gradio-app/gradio/tree/main/js/app/src/components). This is a Gradio wrapper that handles the specific logic of the library, passes the necessary data down to the core component and attaches any necessary event listeners. Copy the folder of another component, rename it and edit the code inside it, keeping the structure.
 
 Here you will have three files, the first file is for the Svelte application, and it will look like this:
 
@@ -363,7 +359,7 @@ export { default as Component } from "./ColorPicker.svelte";
 export const modes = ["static", "dynamic"];
 ```
 
-- Add the mapping for your component in the [directory.ts file](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/directory.ts). To do this, copy and paste the mapping line of any component and edit its text. The key name must be the lowercase version of the actual component name in the Python library. So for example, for the ColorPicker component the mapping looks like this: 
+- Add the mapping for your component in the [directory.ts file](https://github.com/gradio-app/gradio/blob/main/js/app/src/components/directory.ts). To do this, copy and paste the mapping line of any component and edit its text. The key name must be the lowercase version of the actual component name in the Python library. So for example, for the ColorPicker component the mapping looks like this:
 
 ```typescript
 export const component_map = {
@@ -375,17 +371,17 @@ colorpicker: () => import("./ColorPicker"),
 
 ### 2.1 Writing Unit Test for Svelte Component
 
-When developing new components, you should also write a suite of unit tests for it. The tests should be placed in the new component's folder in a file named MyAwesomeComponent.test.ts. Again, as above, take a cue from the tests of other components (e.g. [Textbox.test.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/Textbox/Textbox.test.ts)) and add as many unit tests as you think are appropriate to test all the different aspects and functionalities of the new component.
+When developing new components, you should also write a suite of unit tests for it. The tests should be placed in the new component's folder in a file named MyAwesomeComponent.test.ts. Again, as above, take a cue from the tests of other components (e.g. [Textbox.test.ts](https://github.com/gradio-app/gradio/blob/main/js/app/src/components/Textbox/Textbox.test.ts)) and add as many unit tests as you think are appropriate to test all the different aspects and functionalities of the new component.
 
 ### 3. Create a New Demo
 
-The last step is to create a demo in the [gradio/demo folder](https://github.com/gradio-app/gradio/tree/main/demo), which will use the newly added component. Again, the suggestion is to reference an existing demo. Write the code for the demo in a file called run.py, add the necessary requirements and an image showing the application interface. Finally add a gif showing its usage. 
+The last step is to create a demo in the [gradio/demo folder](https://github.com/gradio-app/gradio/tree/main/demo), which will use the newly added component. Again, the suggestion is to reference an existing demo. Write the code for the demo in a file called run.py, add the necessary requirements and an image showing the application interface. Finally add a gif showing its usage.
 You can take a look at the [demo](https://github.com/gradio-app/gradio/tree/main/demo/color_picker) created for the ColorPicker, where an icon and a color selected through the new component is taken as input, and the same icon colored with the selected color is returned as output.
 
 To test the application:
 
 - run on a terminal `python path/demo/run.py` which starts the backend at the address [http://localhost:7860](http://localhost:7860);
-- in another terminal, from the ui folder, run `pnpm dev` to start the frontend at [http://localhost:9876](http://localhost:9876) with hot reload functionalities.
+- in another terminal, run `pnpm dev` to start the frontend at [http://localhost:9876](http://localhost:9876) with hot reload functionalities.
 
 ## Conclusion
 

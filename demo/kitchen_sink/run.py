@@ -19,6 +19,7 @@ def fn(
     checkboxes,
     radio,
     dropdown,
+    multi_dropdown,
     im1,
     im2,
     im3,
@@ -96,6 +97,7 @@ demo = gr.Interface(
         gr.CheckboxGroup(label="CheckboxGroup", choices=CHOICES, value=CHOICES[0:2]),
         gr.Radio(label="Radio", choices=CHOICES, value=CHOICES[2]),
         gr.Dropdown(label="Dropdown", choices=CHOICES),
+        gr.Dropdown(label="Multiselect Dropdown (Max choice: 2)", choices=CHOICES, multiselect=True, max_choices=2),
         gr.Image(label="Image"),
         gr.Image(label="Image w/ Cropper", tool="select"),
         gr.Image(label="Sketchpad", source="canvas"),
@@ -135,6 +137,7 @@ demo = gr.Interface(
             ["foo", "baz"],
             "baz",
             "bar",
+            ["foo", "bar"],
             os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
             os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
             os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
@@ -148,7 +151,6 @@ demo = gr.Interface(
         ]
     ]
     * 3,
-    theme="default",
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",

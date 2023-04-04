@@ -4,6 +4,15 @@ This guide covers how to style Blocks with more flexibility, as well as adding J
 
 ## Custom CSS
 
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` constructor. For example:
+
+```python
+with gr.Blocks(theme=gr.themes.Glass()):
+    ...
+```
+
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
+
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
@@ -15,23 +24,23 @@ with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
 If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"file="`, for example:
 
 ```python
-with gr.Blocks(css=".gradio-container {background-image: url('file=clouds.jpg')}") as demo:
+with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as demo:
     ...
 ```
 
 You can also pass the filepath to a CSS file to the `css` argument.
 
-## The `elem_id` Argument
+## The `elem_id` amd `elem_classes` Arguments
 
-You can `elem_id` to add an HTML element `id` to any component. This will allow you to select elements more easily with CSS.
+You can `elem_id` to add an HTML element `id` to any component, and `elem_classes` to add a class or list of classes. This will allow you to select elements more easily with CSS.
 
 ```python
-with gr.Blocks(css="#warning {color: red}") as demo:
-    box1 = gr.Textbox(value="Good Job")
-    box2 = gr.Textbox(value="Failure", elem_id="warning")
+with gr.Blocks(css="#warning {background-color: red} .feedback {font-size: 24px}") as demo:
+    box1 = gr.Textbox(value="Good Job", elem_classes="feedback")
+    box2 = gr.Textbox(value="Failure", elem_id="warning", elem_classes="feedback")
 ```
 
-The CSS ruleset will only target the second Textbox here.
+The CSS `#warning` ruleset will only target the second Textbox, while the `.feedback` ruleset will target both.
 
 ## Custom JS
 

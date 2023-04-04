@@ -136,6 +136,14 @@
         {% endwith %}
       {% endfor %}
     </div>
+    <a class="thin-link px-4 block" href="#themes">Themes</a>
+    <div class="sub-links hidden" hash="#themes">
+      {% for theme in docs["themes"] %}
+        {% with obj=theme %}
+          <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+        {% endwith %}
+      {% endfor %}
+    </div>
     <a class="link px-4 my-2 block" href="#components">Components</a>
     {% for component in docs["component"] %}
       <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
@@ -239,6 +247,21 @@
             </p>
             <div class="flex flex-col gap-10">
               {% for layout in docs["layout"] %}
+                {% with obj=layout, is_class=True, parent="gradio" %}
+                  {% include "docs/obj_doc_template.html" %}
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </section>
+          <section id="themes" class="pt-2 mb-8">
+            <h3 class="text-3xl font-light my-4">
+              Themes
+            </h3>
+            <p class="mb-12">
+              Customize the look of your app by writing your own custom theme
+            </p>
+            <div class="flex flex-col gap-10">
+              {% for layout in docs["themes"] %}
                 {% with obj=layout, is_class=True, parent="gradio" %}
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}

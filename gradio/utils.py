@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import functools
 import inspect
 import json
 import json.decoder
@@ -29,7 +30,6 @@ from typing import (
     Dict,
     Generator,
     List,
-    NewType,
     Tuple,
     Type,
     TypeVar,
@@ -37,23 +37,28 @@ from typing import (
 )
 
 import aiohttp
-import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
 import requests
-from pydantic import BaseModel, Json, parse_obj_as
+from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath.index import dollarmath_plugin
+from mdit_py_plugins.footnote.index import footnote_plugin
+from pydantic import BaseModel, parse_obj_as
 
 import gradio
 from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import BlockContext
+    from gradio.blocks import Block, BlockContext
     from gradio.components import Component
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
+GRADIO_VERSION = (
+    (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
+)
 
 T = TypeVar("T")
 
@@ -105,7 +110,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
     def initiated_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
+                analytics_url + "gradio-initiated-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -119,12 +124,71 @@ def launch_analytics(data: Dict[str, Any]) -> None:
     def launch_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-analytics/", data=data, timeout=3
+                analytics_url + "gradio-launched-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
     threading.Thread(target=launch_analytics_thread, args=(data,)).start()
+
+
+def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
+    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
+        [],
+        [],
+        [],
+        [],
+    )
+
+    from gradio.blocks import BlockContext
+
+    for x in list(blocks.blocks.values()):
+        blocks_telemetry.append(x.get_block_name()) if isinstance(
+            x, BlockContext
+        ) else blocks_telemetry.append(str(x))
+
+    for x in blocks.dependencies:
+        targets_telemetry = targets_telemetry + [
+            str(blocks.blocks[y]) for y in x["targets"]
+        ]
+        inputs_telemetry = inputs_telemetry + [
+            str(blocks.blocks[y]) for y in x["inputs"]
+        ]
+        outputs_telemetry = outputs_telemetry + [
+            str(blocks.blocks[y]) for y in x["outputs"]
+        ]
+    additional_data = {
+        "version": GRADIO_VERSION,
+        "is_kaggle": blocks.is_kaggle,
+        "is_sagemaker": blocks.is_sagemaker,
+        "using_auth": blocks.auth is not None,
+        "dev_mode": blocks.dev_mode,
+        "show_api": blocks.show_api,
+        "show_error": blocks.show_error,
+        "title": blocks.title,
+        "inputs": blocks.input_components
+        if blocks.mode == "interface"
+        else inputs_telemetry,
+        "outputs": blocks.output_components
+        if blocks.mode == "interface"
+        else outputs_telemetry,
+        "targets": targets_telemetry,
+        "blocks": blocks_telemetry,
+        "events": [str(x["trigger"]) for x in blocks.dependencies],
+    }
+
+    data.update(additional_data)
+    data.update({"ip_address": get_local_ip_address()})
+
+    def launched_telemtry_thread(data: Dict[str, Any]) -> None:
+        try:
+            requests.post(
+                analytics_url + "gradio-launched-telemetry/", data=data, timeout=5
+            )
+        except Exception:
+            pass
+
+    threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
 
 
 def integration_analytics(data: Dict[str, Any]) -> None:
@@ -133,7 +197,7 @@ def integration_analytics(data: Dict[str, Any]) -> None:
     def integration_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-integration-analytics/", data=data, timeout=3
+                analytics_url + "gradio-integration-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -144,15 +208,15 @@ def integration_analytics(data: Dict[str, Any]) -> None:
 def error_analytics(message: str) -> None:
     """
     Send error analytics if there is network
-    :param ip_address: IP address where error occurred
-    :param message: Details about error
+    Parameters:
+        message: Details about error
     """
     data = {"ip_address": get_local_ip_address(), "error": message}
 
     def error_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-error-analytics/", data=data, timeout=3
+                analytics_url + "gradio-error-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -265,7 +329,7 @@ def get_default_args(func: Callable) -> List[Any]:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: Dict, config2: Dict, root_keys: Tuple = ("mode", "theme")
+    config1: Dict, config2: Dict, root_keys: Tuple = ("mode",)
 ):
     """Allows you to test if two different Blocks configs produce the same demo.
 
@@ -273,7 +337,7 @@ def assert_configs_are_equivalent_besides_ids(
     config1 (dict): nested dict with config from the first Blocks instance
     config2 (dict): nested dict with config from the second Blocks instance
     root_keys (Tuple): an interable consisting of which keys to test for equivalence at
-        the root level of the config. By default, only "mode" and "theme" are tested,
+        the root level of the config. By default, only "mode" is tested,
         so keys like "version" are ignored.
     """
     config1 = copy.deepcopy(config1)
@@ -394,24 +458,6 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args, **kwargs) -> Any:
-    """
-    Runs async functions in sync scopes.
-
-    Can be used in any scope. See run_coro_in_background for more details.
-
-    Example:
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
-
-    Args:
-        func:
-        *args:
-        **kwargs:
-    """
-    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
-
-
 def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     Runs coroutines in background.
@@ -467,7 +513,6 @@ class AsyncRequest:
     You can see example usages in test_utils.py.
     """
 
-    ResponseJson = NewType("ResponseJson", Json)
     client = httpx.AsyncClient()
 
     class Method(str, Enum):
@@ -570,9 +615,7 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(
-        self, response: ResponseJson
-    ) -> Union[BaseModel, ResponseJson | None]:
+    def _validate_response_data(self, response):
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -601,7 +644,7 @@ class AsyncRequest:
 
         return validated_response
 
-    def _validate_response_by_model(self, response: ResponseJson) -> BaseModel:
+    def _validate_response_by_model(self, response) -> BaseModel:
         """
         Validate response json using the validation model.
         Args:
@@ -614,9 +657,7 @@ class AsyncRequest:
             validated_data = parse_obj_as(self._validation_model, response)
         return validated_data
 
-    def _validate_response_by_validation_function(
-        self, response: ResponseJson
-    ) -> ResponseJson | None:
+    def _validate_response_by_validation_function(self, response):
         """
         Validate response json using the validation function.
         Args:
@@ -681,19 +722,6 @@ def set_directory(path: Path | str):
         yield
     finally:
         os.chdir(origin)
-
-
-def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
-    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
-    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
-    filename_len = len(filename.encode())
-    if filename_len > max_bytes:
-        while filename_len > max_bytes:
-            if len(filename) == 0:
-                break
-            filename = filename[:-1]
-            filename_len = len(filename.encode())
-    return filename
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -816,10 +844,14 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     """
 
     def is_special_typed_parameter(name):
+        from gradio.helpers import EventData
         from gradio.routes import Request
 
-        """Checks if parameter has a type hint designating it as a gr.Request"""
-        return parameter_types.get(name, "") == Request
+        """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
+        is_request = parameter_types.get(name, "") == Request
+        # use int in the fall-back as that will always be false
+        is_event_data = issubclass(parameter_types.get(name, int), EventData)
+        return is_request or is_event_data
 
     signature = inspect.signature(fn)
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
@@ -829,7 +861,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
-            if not (is_special_typed_parameter(name)):
+            if not is_special_typed_parameter(name):
                 if not has_default:
                     min_args += 1
                 max_args += 1
@@ -883,6 +915,12 @@ def tex2svg(formula, *args):
     svg_start = xml_code.index("<svg ")
     svg_code = xml_code[svg_start:]
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+    svg_code = re.sub(r' width="[^"]+"', "", svg_code)
+    height_match = re.search(r'height="([\d.]+)pt"', svg_code)
+    if height_match:
+        height = float(height_match.group(1))
+        new_height = height / FONTSIZE  # conversion from pt to em
+        svg_code = re.sub(r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
@@ -893,3 +931,61 @@ def abspath(path: str | Path) -> Path:
         return Path.cwd() / path
     else:
         return Path(path).resolve()
+
+
+def get_serializer_name(block: Block) -> str | None:
+    if not hasattr(block, "serialize"):
+        return None
+
+    def get_class_that_defined_method(meth: Callable):
+        # Adapted from: https://stackoverflow.com/a/25959545/5209347
+        if isinstance(meth, functools.partial):
+            return get_class_that_defined_method(meth.func)
+        if inspect.ismethod(meth) or (
+            inspect.isbuiltin(meth)
+            and getattr(meth, "__self__", None) is not None
+            and getattr(meth.__self__, "__class__", None)
+        ):
+            for cls in inspect.getmro(meth.__self__.__class__):
+                if meth.__name__ in cls.__dict__:
+                    return cls
+            meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
+        if inspect.isfunction(meth):
+            cls = getattr(
+                inspect.getmodule(meth),
+                meth.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[0],
+                None,
+            )
+            if isinstance(cls, type):
+                return cls
+        return getattr(meth, "__objclass__", None)
+
+    cls = get_class_that_defined_method(block.serialize)  # type: ignore
+    if cls:
+        return cls.__name__
+
+
+def get_markdown_parser() -> MarkdownIt:
+    md = (
+        MarkdownIt(
+            "js-default",
+            {
+                "linkify": True,
+                "typographer": True,
+                "html": True,
+                "breaks": True,
+            },
+        )
+        .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)
+        .use(footnote_plugin)
+        .enable("table")
+    )
+
+    # Add target="_blank" to all links. Taken from MarkdownIt docs: https://github.com/executablebooks/markdown-it-py/blob/master/docs/architecture.md
+    def render_blank_link(self, tokens, idx, options, env):
+        tokens[idx].attrSet("target", "_blank")
+        return self.renderToken(tokens, idx, options, env)
+
+    md.add_render_rule("link_open", render_blank_link)
+
+    return md

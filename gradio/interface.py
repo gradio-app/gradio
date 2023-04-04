@@ -8,17 +8,12 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import pkgutil
 import re
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
-from markdown_it import MarkdownIt
-from mdit_py_plugins.dollarmath.index import dollarmath_plugin
-from mdit_py_plugins.footnote.index import footnote_plugin
-
-from gradio import Examples, interpretation, utils
+from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -34,6 +29,7 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
+from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("interface")
 
@@ -80,9 +76,10 @@ class Interface(Blocks):
         api_key: str | None = None,
         alias: str | None = None,
         **kwargs,
-    ) -> Interface:
+    ) -> Blocks:
         """
-        Class method that constructs an Interface from a Hugging Face repo. Can accept
+        Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead. This is a class
+        method that constructs a Blocks from a Hugging Face repo. Can accept
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
@@ -92,14 +89,11 @@ class Interface(Blocks):
             alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
         Returns:
             a Gradio Interface object for the given model
-        Example:
-            import gradio as gr
-            description = "Story generation with GPT"
-            examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
-            demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
-            demo.launch()
         """
-        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+        warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")
+        return external.load(
+            name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+        )
 
     @classmethod
     def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
@@ -136,10 +130,10 @@ class Interface(Blocks):
         description: str | None = None,
         article: str | None = None,
         thumbnail: str | None = None,
-        theme: str = "default",
+        theme: Theme | str | None = None,
         css: str | None = None,
         allow_flagging: str | None = None,
-        flagging_options: List[str] | None = None,
+        flagging_options: List[str] | List[Tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: bool | None = None,
@@ -163,10 +157,10 @@ class Interface(Blocks):
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
             thumbnail: path or url to image to use as display image when the web demo is shared on social media.
-            theme: Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
+            theme: Theme to use, loaded from gradio.themes.
             css: custom css or path to custom css file to use with interface.
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
-            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
+            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
@@ -245,10 +239,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.input_components = [
-            get_component_instance(i, render=False) for i in inputs
+            get_component_instance(i, render=False) for i in inputs  # type: ignore
         ]
         self.output_components = [
-            get_component_instance(o, render=False) for o in outputs
+            get_component_instance(o, render=False) for o in outputs  # type: ignore
         ]
 
         for component in self.input_components + self.output_components:
@@ -298,20 +292,7 @@ class Interface(Blocks):
             cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
 
-        md = (
-            MarkdownIt(
-                "js-default",
-                {
-                    "linkify": True,
-                    "typographer": True,
-                    "html": True,
-                },
-            )
-            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
-            .use(footnote_plugin)
-            .enable("table")
-        )
-
+        md = utils.get_markdown_parser()
         simple_description = None
         if description is not None:
             description = md.render(description)
@@ -324,9 +305,6 @@ class Interface(Blocks):
         self.article = article
 
         self.thumbnail = thumbnail
-        self.theme = theme or os.getenv("GRADIO_THEME", "default")
-        if not (self.theme == "default"):
-            warnings.warn("Currently, only the 'default' theme is supported.")
 
         self.examples = examples
         self.num_shap = num_shap
@@ -334,13 +312,8 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For analytics_enabled and allow_flagging: (1) first check for
-        # parameter, (2) check for env variable, (3) default to True/"manual"
-        self.analytics_enabled = (
-            analytics_enabled
-            if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
-        )
+        # For allow_flagging: (1) first check for parameter,
+        # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
         if allow_flagging is True:
@@ -369,7 +342,21 @@ class Interface(Blocks):
                 "Must be: 'auto', 'manual', or 'never'."
             )
 
-        self.flagging_options = flagging_options
+        if flagging_options is None:
+            self.flagging_options = [("Flag", "")]
+        elif not (isinstance(flagging_options, list)):
+            raise ValueError(
+                "flagging_options must be a list of strings or list of (string, string) tuples."
+            )
+        elif all([isinstance(x, str) for x in flagging_options]):
+            self.flagging_options = [(f"Flag as {x}", x) for x in flagging_options]
+        elif all([isinstance(x, tuple) for x in flagging_options]):
+            self.flagging_options = flagging_options
+        else:
+            raise ValueError(
+                "flagging_options must be a list of strings or list of (string, string) tuples."
+            )
+
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
         self.batch = batch
@@ -381,28 +368,12 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
-
-        if self.analytics_enabled:
-            data = {
-                "mode": self.mode,
-                "fn": fn,
-                "inputs": inputs,
-                "outputs": outputs,
-                "live": live,
-                "interpretation": interpretation,
-                "allow_flagging": allow_flagging,
-                "custom_css": self.css is not None,
-                "theme": self.theme,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
-            }
-            utils.initiated_analytics(data)
-
         utils.version_check()
         Interface.instances.add(self)
 
         param_names = inspect.getfullargspec(self.fn)[0]
+        if len(param_names) > 0 and inspect.ismethod(self.fn):
+            param_names = param_names[1:]
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, IOComponent)
             if component.label is None:
@@ -480,7 +451,7 @@ class Interface(Blocks):
                 interpret_component_column,
             )
 
-            self.render_flagging_buttons(flag_btns)
+            self.attach_flagging_events(flag_btns, clear_btn)
             self.render_examples()
             self.render_article()
 
@@ -496,17 +467,8 @@ class Interface(Blocks):
         if self.description:
             Markdown(self.description)
 
-    def render_flag_btns(self) -> List[Tuple[Button, str | None]]:
-        if self.flagging_options is None:
-            return [(Button("Flag"), None)]
-        else:
-            return [
-                (
-                    Button("Flag as " + flag_option),
-                    flag_option,
-                )
-                for flag_option in self.flagging_options
-            ]
+    def render_flag_btns(self) -> List[Button]:
+        return [Button(label) for label, _ in self.flagging_options]
 
     def render_input_column(
         self,
@@ -514,7 +476,7 @@ class Interface(Blocks):
         Button | None,
         Button | None,
         Button | None,
-        List | None,
+        List[Button] | None,
         Column,
         Column | None,
         List[Interpretation] | None,
@@ -556,7 +518,7 @@ class Interface(Blocks):
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
                     elif self.allow_flagging == "auto":
-                        flag_btns = [(submit_btn, None)]
+                        flag_btns = [submit_btn]
         return (
             submit_btn,
             clear_btn,
@@ -593,7 +555,7 @@ class Interface(Blocks):
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
                     assert submit_btn is not None, "Submit button not rendered"
-                    flag_btns = [(submit_btn, None)]
+                    flag_btns = [submit_btn]
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
 
@@ -750,27 +712,51 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def render_flagging_buttons(self, flag_btns: List | None):
+    def attach_flagging_events(self, flag_btns: List[Button] | None, clear_btn: Button):
         if flag_btns:
             if self.interface_type in [
                 InterfaceTypes.STANDARD,
                 InterfaceTypes.OUTPUT_ONLY,
                 InterfaceTypes.UNIFIED,
             ]:
-                if (
-                    self.interface_type == InterfaceTypes.UNIFIED
-                    or self.allow_flagging == "auto"
-                ):
+                if self.allow_flagging == "auto":
+                    flag_method = FlagMethod(
+                        self.flagging_callback, "", "", visual_feedback=False
+                    )
+                    flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
+                        flag_method,
+                        inputs=self.input_components,
+                        outputs=None,
+                        preprocess=False,
+                        queue=False,
+                    )
+                    return
+
+                if self.interface_type == InterfaceTypes.UNIFIED:
                     flag_components = self.input_components
                 else:
                     flag_components = self.input_components + self.output_components
-                for flag_btn, flag_option in flag_btns:
-                    flag_method = FlagMethod(self.flagging_callback, flag_option)
+
+                for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+                    assert isinstance(value, str)
+                    flag_method = FlagMethod(self.flagging_callback, label, value)
+                    flag_btn.click(
+                        lambda: Button.update(value="Saving...", interactive=False),
+                        None,
+                        flag_btn,
+                        queue=False,
+                    )
                     flag_btn.click(
                         flag_method,
                         inputs=flag_components,
-                        outputs=[],
+                        outputs=flag_btn,
                         preprocess=False,
+                        queue=False,
+                    )
+                    clear_btn.click(
+                        flag_method.reset,
+                        None,
+                        flag_btn,
                         queue=False,
                     )
 
@@ -841,7 +827,7 @@ class TabbedInterface(Blocks):
         interface_list: List[Interface],
         tab_names: List[str] | None = None,
         title: str | None = None,
-        theme: str = "default",
+        theme: Theme | None = None,
         analytics_enabled: bool | None = None,
         css: str | None = None,
     ):
@@ -850,7 +836,6 @@ class TabbedInterface(Blocks):
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
-            theme: which theme to use - right now, only "default" is supported.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             css: custom css or path to custom css file to apply to entire Blocks
         Returns:

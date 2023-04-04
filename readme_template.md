@@ -3,8 +3,8 @@
   [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
   <em>Build & share delightful machine learning apps easily</em>
 
-  [<img src="https://circleci.com/gh/gradio-app/gradio.svg?style=svg" alt="circleci">](https://circleci.com/gh/gradio-app/gradio)
-  [<img src="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg" alt="codecov">](https://app.codecov.io/gh/gradio-app/gradio)
+  [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
+  [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
   [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
   [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
   ![Python version](https://img.shields.io/badge/python-3.7+-important)
@@ -15,6 +15,7 @@
   | [Guides](https://gradio.app/guides/)
   | [Getting Started](https://gradio.app/getting_started/)
   | [Examples](demo/)
+  | [中文](readme_files/zh-cn#readme)
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python

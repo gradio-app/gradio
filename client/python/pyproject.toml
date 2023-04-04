@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gradio_client"
+dynamic = ["version", "dependencies", "readme"]
+description = "Python library for easily interacting with trained machine learning models"
+license = "Apache-2.0"
+requires-python = ">=3.7"
+authors = [
+  { name = "Abubakar Abid", email = "team@gradio.app" },
+  { name = "Ali Abid", email = "team@gradio.app" },
+  { name = "Ali Abdalla", email = "team@gradio.app" },
+  { name = "Dawood Khan", email = "team@gradio.app" },
+  { name = "Ahsen Khaliq", email = "team@gradio.app" },
+  { name = "Pete Allen", email = "team@gradio.app" },
+  { name = "Freddy Boulton", email = "team@gradio.app" },
+]
+keywords = ["machine learning", "client", "API"]
+
+[project.urls]
+Homepage = "https://github.com/gradio-app/gradio"
+
+[tool.hatch.version]
+path = "gradio_client/version.txt"
+pattern = "(?P<version>.+)"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+filename = "requirements.txt"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+fragments = [
+  { path = "README.md" },
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/gradio_client",
+  "/README.md",
+  "/requirements.txt",
+]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.isort]
+known-first-party = [
+  "gradio_client"
+]

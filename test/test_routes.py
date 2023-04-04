@@ -271,6 +271,27 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}",
+                inputs=input_,
+                outputs=output,
+                queue=True,
+                api_name="greet",
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event greet"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
+
 
 class TestGeneratorRoutes:
     def test_generator(self):
@@ -434,6 +455,61 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_get_headers(self):
+        def identity(name, request: gr.Request):
+            assert isinstance(request.headers["user-agent"], str)
+            assert isinstance(request.headers.items(), list)
+            assert isinstance(request.headers.keys(), list)
+            assert isinstance(request.headers.values(), list)
+            assert isinstance(dict(request.headers), dict)
+            user_agent = request.headers["user-agent"]
+            assert "testclient" in user_agent
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_includes_username_as_none_if_no_auth(self):
+        def identity(name, request: gr.Request):
+            assert request.username is None
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_includes_username_with_auth(self):
+        def identity(name, request: gr.Request):
+            assert request.username == "admin"
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True, auth=("admin", "password")
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data=dict(username="admin", password="password"),
+        )
         response = client.post("/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())

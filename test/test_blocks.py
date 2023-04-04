@@ -8,20 +8,20 @@ import random
 import sys
 import time
 import unittest.mock as mock
+import uuid
 import warnings
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
 from unittest.mock import patch
 
-import mlflow
 import pytest
 import uvicorn
-import wandb
 import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -46,16 +46,9 @@ def captured_output():
 class TestBlocksMethods:
     maxDiff = None
 
-    def test_set_share(self):
+    def test_set_share_is_false_by_default(self):
         with gr.Blocks() as demo:
-            # self.share is False when instantiating the class
             assert not demo.share
-            # default is False, if share is None
-            demo.share = None
-            assert not demo.share
-            # if set to True, it doesn't change
-            demo.share = True
-            assert demo.share
 
     @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
@@ -133,6 +126,7 @@ class TestBlocksMethods:
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
+        print(config)
         assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
@@ -202,62 +196,6 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    def test_integration_wandb(self):
-        with captured_output() as (out, err):
-            wandb.log = mock.MagicMock()
-            wandb.Html = mock.MagicMock()
-            demo = gr.Blocks()
-            with demo:
-                gr.Textbox("Hi there!")
-            demo.integrate(wandb=wandb)
-
-            assert (
-                out.getvalue().strip()
-                == "The WandB integration requires you to `launch(share=True)` first."
-            )
-            demo.share_url = "tmp"
-            demo.integrate(wandb=wandb)
-            wandb.log.assert_called_once()
-
-    @mock.patch("comet_ml.Experiment")
-    def test_integration_comet(self, mock_experiment):
-        experiment = mock_experiment()
-        experiment.log_text = mock.MagicMock()
-        experiment.log_other = mock.MagicMock()
-
-        demo = gr.Blocks()
-        with demo:
-            gr.Textbox("Hi there!")
-
-        demo.launch(prevent_thread_lock=True)
-        demo.integrate(comet_ml=experiment)
-        experiment.log_text.assert_called_with("gradio: " + demo.local_url)
-        demo.share_url = "tmp"  # used to avoid creating real share links.
-        demo.integrate(comet_ml=experiment)
-        experiment.log_text.assert_called_with("gradio: " + demo.share_url)
-        assert experiment.log_other.call_count == 2
-        demo.share_url = None
-        demo.close()
-
-    def test_integration_mlflow(self):
-        mlflow.log_param = mock.MagicMock()
-        demo = gr.Blocks()
-        with demo:
-            gr.Textbox("Hi there!")
-
-        demo.launch(prevent_thread_lock=True)
-        demo.integrate(mlflow=mlflow)
-        mlflow.log_param.assert_called_with(
-            "Gradio Interface Local Link", demo.local_url
-        )
-        demo.share_url = "tmp"  # used to avoid creating real share links.
-        demo.integrate(mlflow=mlflow)
-        mlflow.log_param.assert_called_with(
-            "Gradio Interface Share Link", demo.share_url
-        )
-        demo.share_url = None
-        demo.close()
-
     @mock.patch("requests.post")
     def test_initiated_analytics(self, mock_post):
         with gr.Blocks(analytics_enabled=True):
@@ -325,6 +263,37 @@ class TestBlocksMethods:
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
 
+    def test_function_types_documented_in_config(self):
+        def continuous_fn():
+            return 42
+
+        def generator_function():
+            for index in range(10):
+                yield index
+
+        with gr.Blocks() as demo:
+
+            gr.Number(value=lambda: 2, every=2)
+            meaning_of_life = gr.Number()
+            counter = gr.Number()
+            generator_btn = gr.Button(value="Generate")
+            greeting = gr.Textbox()
+            greet_btn = gr.Button(value="Greet")
+
+            greet_btn.click(lambda: "Hello!", inputs=None, outputs=[greeting])
+            generator_btn.click(generator_function, inputs=None, outputs=[counter])
+            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
+
+        for i, dependency in enumerate(demo.config["dependencies"]):
+            if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+            if i == 0:
+                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 1:
+                assert dependency["types"] == {"continuous": False, "generator": True}
+            if i == 2:
+                assert dependency["types"] == {"continuous": True, "generator": True}
+
     @pytest.mark.asyncio
     async def test_run_without_launching(self):
         """Test that we can start the app and use queue without calling .launch().
@@ -358,6 +327,40 @@ class TestBlocksMethods:
         finally:
             server.close()
 
+    @patch(
+        "gradio.themes.ThemeClass.from_hub",
+        side_effect=ValueError("Something went wrong!"),
+    )
+    def test_use_default_theme_as_fallback(self, mock_from_hub):
+        with pytest.warns(
+            UserWarning, match="Cannot load freddyaboulton/this-theme-does-not-exist"
+        ):
+            with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
+                assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+
+    def test_exit_called_at_launch(self):
+        with gr.Blocks() as demo:
+            gr.Textbox(uuid.uuid4)
+        demo.launch(prevent_thread_lock=True)
+        assert len(demo.get_config_file()["dependencies"]) == 1
+
+    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -383,15 +386,16 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.load_event
+                    assert not component.load_event_to_attach
                 else:
-                    assert component.load_event
+                    assert component.load_event_to_attach
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
-        assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+        # Queue should be explicitly false for these events
+        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
@@ -417,6 +421,7 @@ class TestComponentsInBlocks:
 
 class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+
         io_components = [
             c()
             for c in io_components
@@ -451,6 +456,22 @@ class TestBlocksPostprocessing:
 
         output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
+
+    def test_blocks_does_not_del_dict_keys_inplace(self):
+        with gr.Blocks() as demo:
+            im_list = [gr.Image() for i in range(2)]
+
+            def change_visibility(value):
+                return [gr.update(visible=value)] * 2
+
+            checkbox = gr.Checkbox(value=True, label="Show image")
+            checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
+
+        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state={})
+        assert output == [
+            {"visible": False, "__type__": "update"},
+            {"visible": False, "__type__": "update"},
+        ]
 
     def test_blocks_returns_correct_output_dict_single_key(self):
         with gr.Blocks() as demo:
@@ -527,7 +548,6 @@ class TestBlocksPostprocessing:
         for fn_index in range(2):
             output = await demo.process_api(fn_index, [], state={})
             assert output["data"][0] == {
-                "interactive": True,
                 "__type__": "update",
                 "mode": "dynamic",
             }
@@ -665,9 +685,7 @@ class TestCallFunction:
 class TestBatchProcessing:
     def test_raise_exception_if_batching_an_event_thats_not_queued(self):
         def trim(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[: int(l)])
+            trimmed_words = [word[: int(length)] for word, length in zip(words, lens)]
             return [trimmed_words]
 
         msg = "In order to use batching, the queue must be enabled."
@@ -840,11 +858,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
-            "type": None,
+            "interactive": False,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
-            "mode": "static",
         }
 
         specific_update = gr.Textbox.get_specific_update(
@@ -857,10 +874,10 @@ class TestSpecificUpdate:
             "label": None,
             "show_label": None,
             "type": None,
+            "interactive": True,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
-            "mode": "dynamic",
         }
 
     def test_with_generic_update(self):
@@ -878,7 +895,6 @@ class TestSpecificUpdate:
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
-            "mode": "dynamic",
             "interactive": True,
             "__type__": "update",
         }
@@ -1031,7 +1047,7 @@ class TestCancel:
         def iteration(a):
             yield a
 
-        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        msg = "Queue needs to be enabled!"
         with pytest.raises(ValueError, match=msg):
             gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
                 prevent_thread_lock=True
@@ -1281,7 +1297,10 @@ class TestProgressBar:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
+                    if msg[
+                        "progress_data"
+                    ]:  # Ignore empty lists which sometimes appear on Windows
+                        progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
@@ -1393,6 +1412,113 @@ class TestAddRequests:
         inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
 
+    def test_default_args(self):
+        def moo(a, b, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs + [42]
+
+        inputs = [1, 2, 24]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs
+
+    def test_default_args_with_progress(self):
+        pr = gr.Progress()
+
+        def moo(a, b, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [42, pr]
+        assert progress_index == 3
+
+        inputs = [1, 2, 24]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [pr]
+        assert progress_index == 3
+
+        def moo(a, b, pr=pr, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [pr, 42]
+        assert progress_index == 2
+
+    def test_default_args_with_request(self):
+        pr = gr.Progress()
+
+        def moo(a, b, req: gr.Request, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs + [request, 42]
+
+        def moo(a, b, req: gr.Request, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [request, 42, pr]
+        assert progress_index == 4
+
+    def test_default_args_with_event_data(self):
+        pr = gr.Progress()
+        target = gr.Textbox()
+
+        def moo(a, b, ed: SelectData, c=42):
+            return a + b + c
+
+        event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request, event_data
+        )[0]
+        assert len(inputs_) == 4
+        new_event_data = inputs_[2]
+        assert inputs_ == inputs + [new_event_data, 42]
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
+
+        def moo(a, b, ed: SelectData, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request, event_data
+        )
+        assert len(inputs_) == 5
+        new_event_data = inputs_[2]
+        assert inputs_ == inputs + [new_event_data, 42, pr]
+        assert progress_index == 4
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
+
 
 def test_queue_enabled_for_fn():
     with gr.Blocks() as demo:
@@ -1443,7 +1569,7 @@ async def test_queue_when_using_auth():
             await ws.recv()
     assert e.type == websockets.InvalidStatusCode
 
-    async def run_ws(_loop, _time, i):
+    async def run_ws(i):
         async with websockets.connect(
             f"{demo.local_url.replace('http', 'ws')}queue/join",
             extra_headers={"Cookie": f"access-token={token}"},
@@ -1472,15 +1598,9 @@ async def test_queue_when_using_auth():
                 if msg["msg"] == "process_completed":
                     assert msg["success"]
                     assert msg["output"]["data"] == [f"Hello {i}!"]
-                    assert _loop.time() > _time
                     break
 
-    loop = asyncio.get_event_loop()
-    tm = loop.time()
-    group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
-    )
-    await group
+    await asyncio.gather(*[run_ws(i) for i in range(3)])
 
 
 def test_temp_file_sets_get_extended():

@@ -26,7 +26,7 @@ Continue learning about examples in the [More On Examples](https://gradio.app/mo
 
 ## Errors
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#errors).
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
 
 ## Descriptive Content
 
@@ -42,10 +42,10 @@ There are three arguments in the `Interface` constructor to specify where this c
 
 If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
 
-Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`.
+Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`. You can also add the `info=` keyword argument to form elements like `Textbox` or `Radio` to provide further information on their usage.
 
 ```python
-gr.Number(label='Age')
+gr.Number(label='Age', info='In years, must be greater than 0')
 ```
 
 ## Flagging
@@ -119,13 +119,14 @@ Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-
 
 ## Styling
 
-Many components can be styled through the `style()` method. For example:
+Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Interface` constructor. For example:
 
 ```python
-img = gr.Image("lion.jpg").style(height='24', rounded=False)
+demo = gr.Interface(..., theme=gr.themes.Monochrome())
 ```
 
-Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
+
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
@@ -134,6 +135,15 @@ The base class for the Gradio app is `gradio-container`, so here's an example th
 with gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
+
+Some components can be additionally styled through the `style()` method. For example:
+
+```python
+img = gr.Image("lion.jpg").style(height='24', rounded=False)
+```
+
+Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
+
 
 ## Queuing
 

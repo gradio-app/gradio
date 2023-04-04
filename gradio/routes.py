@@ -12,6 +12,7 @@ import posixpath
 import secrets
 import tempfile
 import traceback
+from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Type
@@ -44,7 +45,7 @@ from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
-from gradio.processing_utils import TempFileManager
+from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
@@ -159,7 +160,7 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -218,13 +219,14 @@ class App(FastAPI):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
 
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 config = app.get_blocks().config
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
+                    "root": app.get_blocks().root,
                 }
 
             try:
@@ -232,7 +234,8 @@ class App(FastAPI):
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
                 return templates.TemplateResponse(
-                    template, {"request": request, "config": config}
+                    template,
+                    {"request": request, "config": config},
                 )
             except TemplateNotFound:
                 if blocks.share:
@@ -279,8 +282,8 @@ class App(FastAPI):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             url = httpx.URL(url_path)
             headers = {}
-            if Context.access_token is not None:
-                headers["Authorization"] = f"Bearer {Context.access_token}"
+            if Context.hf_token is not None:
+                headers["Authorization"] = f"Bearer {Context.hf_token}"
             rp_req = client.build_request("GET", url, headers=headers)
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
@@ -352,7 +355,6 @@ class App(FastAPI):
             body: PredictBody,
             request: Request | List[Request],
             fn_index_inferred: int,
-            username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
@@ -377,7 +379,14 @@ class App(FastAPI):
             event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
-            batch = app.get_blocks().dependencies[fn_index_inferred]["batch"]
+
+            dependency = app.get_blocks().dependencies[fn_index_inferred]
+            target = dependency["targets"][0] if len(dependency["targets"]) else None
+            event_data = EventData(
+                app.get_blocks().blocks[target] if target else None,
+                body.event_data,
+            )
+            batch = dependency["batch"]
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
@@ -388,6 +397,7 @@ class App(FastAPI):
                     state=session_state,
                     iterators=iterators,
                     event_id=event_id,
+                    event_data=event_data,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
@@ -450,16 +460,17 @@ class App(FastAPI):
                 body.data = [body.session_hash]
             if body.request:
                 if body.batched:
-                    gr_request = [Request(**req) for req in body.request]
+                    gr_request = [
+                        Request(username=username, **req) for req in body.request
+                    ]
                 else:
                     assert isinstance(body.request, dict)
-                    gr_request = Request(**body.request)
+                    gr_request = Request(username=username, **body.request)
             else:
-                gr_request = Request(request)
+                gr_request = Request(username=username, request=request)
             result = await run_predict(
                 body=body,
                 fn_index_inferred=fn_index_inferred,
-                username=username,
                 request=gr_request,
             )
             return result
@@ -479,8 +490,20 @@ class App(FastAPI):
             await websocket.accept()
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
-            await websocket.send_json({"msg": "send_hash"})
-            session_info = await websocket.receive_json()
+            try:
+                await asyncio.wait_for(
+                    websocket.send_json({"msg": "send_hash"}), timeout=1
+                )
+            except AsyncTimeOutError:
+                return
+
+            try:
+                session_info = await asyncio.wait_for(
+                    websocket.receive_json(), timeout=1
+                )
+            except AsyncTimeOutError:
+                return
+
             event = Event(
                 websocket, session_info["session_hash"], session_info["fn_index"]
             )
@@ -524,7 +547,7 @@ class App(FastAPI):
             files: List[UploadFile] = File(...),
         ):
             output_files = []
-            file_manager = TempFileManager()
+            file_manager = gradio.File()
             for input_file in files:
                 output_files.append(
                     await file_manager.save_uploaded_file(
@@ -541,6 +564,10 @@ class App(FastAPI):
                 app.startup_events_triggered = True
                 return True
             return False
+
+        @app.get("/theme.css", response_class=PlainTextResponse)
+        def theme_css():
+            return PlainTextResponse(app.get_blocks().theme_css, media_type="text/css")
 
         @app.get("/robots.txt", response_class=PlainTextResponse)
         def robots_txt():
@@ -608,8 +635,42 @@ class Obj:
     Credit: https://www.geeksforgeeks.org/convert-nested-python-dictionary-to-object/
     """
 
-    def __init__(self, dict1):
-        self.__dict__.update(dict1)
+    def __init__(self, dict_):
+        self.__dict__.update(dict_)
+        for key, value in dict_.items():
+            if isinstance(value, (dict, list)):
+                value = Obj(value)
+            setattr(self, key, value)
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    def __setitem__(self, item, value):
+        self.__dict__[item] = value
+
+    def __iter__(self):
+        for key, value in self.__dict__.items():
+            if isinstance(value, Obj):
+                yield (key, dict(value))
+            else:
+                yield (key, value)
+
+    def __contains__(self, item) -> bool:
+        if item in self.__dict__:
+            return True
+        for value in self.__dict__.values():
+            if isinstance(value, Obj) and item in value:
+                return True
+        return False
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
+
+    def items(self):
+        return self.__dict__.items()
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -624,7 +685,8 @@ class Request:
     A Gradio request object that can be used to access the request headers, cookies,
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
-    of this class include: `headers`, `client`, `query_params`, and `path_params`,
+    of this class include: `headers`, `client`, `query_params`, and `path_params`. If
+    auth is enabled, the `username` attribute can be used to get the logged in user.
     Example:
         import gradio as gr
         def echo(name, request: gr.Request):
@@ -634,7 +696,12 @@ class Request:
         io = gr.Interface(echo, "textbox", "textbox").launch()
     """
 
-    def __init__(self, request: fastapi.Request | None = None, **kwargs):
+    def __init__(
+        self,
+        request: fastapi.Request | None = None,
+        username: str | None = None,
+        **kwargs,
+    ):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
         attributes (needed for websocket-based queueing).
@@ -642,6 +709,7 @@ class Request:
             request: A fastapi.Request
         """
         self.request = request
+        self.username = username
         self.kwargs: Dict = kwargs
 
     def dict_to_obj(self, d):
@@ -687,7 +755,9 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
+    blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
+    blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")

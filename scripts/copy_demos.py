@@ -1,8 +1,8 @@
-import shutil
+import argparse
 import os
 import pathlib
+import shutil
 import textwrap
-import argparse
 
 
 def copy_all_demos(source_dir: str, dest_dir: str):
@@ -18,6 +18,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "calculator",
         "cancel_events",
         "chatbot_multimodal",
+        "code",
         "fake_gan",
         "fake_diffusion_with_gif",
         "gender_sentence_default_interpretation",

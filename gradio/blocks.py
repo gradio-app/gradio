@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import copy
-import getpass
 import inspect
 import json
 import os
-import pkgutil
 import random
 import secrets
 import sys
@@ -19,25 +17,30 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tupl
 import anyio
 import requests
 from anyio import CapacityLimiter
+from gradio_client import serializing
+from gradio_client import utils as client_utils
 from typing_extensions import Literal
 
 from gradio import (
     components,
-    encryptor,
     external,
     networking,
     queueing,
     routes,
     strings,
+    themes,
     utils,
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.helpers import create_tracker, skip, special_args
+from gradio.helpers import EventData, create_tracker, skip, special_args
+from gradio.themes import Default as DefaultTheme
+from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
+    GRADIO_VERSION,
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
@@ -48,12 +51,21 @@ from gradio.utils import (
 
 set_documentation_group("blocks")
 
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import comet_ml
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
+
+BUILT_IN_THEMES: Dict[str, Theme] = {
+    t.name: t
+    for t in [
+        themes.Base(),
+        themes.Default(),
+        themes.Monochrome(),
+        themes.Soft(),
+        themes.Glass(),
+    ]
+}
 
 
 class Block:
@@ -62,6 +74,7 @@ class Block:
         *,
         render: bool = True,
         elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
         visible: bool = True,
         root_url: str | None = None,  # URL that is prepended to all file paths
         _skip_init_processing: bool = False,  # Used for loading from Spaces
@@ -71,11 +84,15 @@ class Block:
         Context.id += 1
         self.visible = visible
         self.elem_id = elem_id
+        self.elem_classes = (
+            [elem_classes] if isinstance(elem_classes, str) else elem_classes
+        )
         self.root_url = root_url
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
+        self.root = ""
 
         if render:
             self.render()
@@ -93,7 +110,7 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            if isinstance(self, components.TempFileManager):
+            if isinstance(self, components.IOComponent):
                 Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
@@ -149,7 +166,10 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
-    ) -> Dict[str, Any]:
+        collects_event_data: bool | None = None,
+        trigger_after: int | None = None,
+        trigger_only_on_success: bool = False,
+    ) -> Tuple[Dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -162,12 +182,17 @@ class Block:
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
             api_name: Defining this parameter exposes the endpoint in the api docs
-            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
+            js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
+            queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-        Returns: None
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            collects_event_data: whether to collect event data for this event
+            trigger_after: if set, this event will be triggered after 'trigger_after' function index
+            trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
+        Returns: dependency information, dependency index
         """
         # Support for singular parameter
         if isinstance(inputs, set):
@@ -208,8 +233,19 @@ class Block:
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
 
+        _, progress_index, event_data_index = (
+            special_args(fn) if fn else (None, None, None)
+        )
         Context.root_block.fns.append(
-            BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
+            BlockFunction(
+                fn,
+                inputs,
+                outputs,
+                preprocess,
+                postprocess,
+                inputs_as_dict,
+                progress_index is not None,
+            )
         )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -220,6 +256,9 @@ class Block:
                     "api_name {} already exists, using {}".format(api_name, api_name_)
                 )
                 api_name = api_name_
+
+        if collects_event_data is None:
+            collects_event_data = event_data_index is not None
 
         dependency = {
             "targets": [self._id] if not no_target else [],
@@ -236,14 +275,22 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
+            "types": {
+                "continuous": bool(every),
+                "generator": inspect.isgeneratorfunction(fn) or bool(every),
+            },
+            "collects_event_data": collects_event_data,
+            "trigger_after": trigger_after,
+            "trigger_only_on_success": trigger_only_on_success,
         }
         Context.root_block.dependencies.append(dependency)
-        return dependency
+        return dependency, len(Context.root_block.dependencies) - 1
 
     def get_config(self):
         return {
             "visible": self.visible,
             "elem_id": self.elem_id,
+            "elem_classes": self.elem_classes,
             "style": self._style,
             "root_url": self.root_url,
         }
@@ -255,6 +302,7 @@ class Block:
 
     @classmethod
     def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+        generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
         return specific_update
@@ -273,7 +321,7 @@ class BlockContext(Block):
             render: If False, this will not be included in the Blocks config file at all.
         """
         self.children: List[Block] = []
-        super().__init__(visible=visible, render=render, **kwargs)
+        Block.__init__(self, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -327,12 +375,14 @@ class BlockFunction:
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
+        tracks_progress: bool = False,
     ):
         self.fn = fn
         self.inputs = inputs
         self.outputs = outputs
         self.preprocess = preprocess
         self.postprocess = postprocess
+        self.tracks_progress = tracks_progress
         self.total_runtime = 0
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
@@ -372,6 +422,9 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict = block.get_specific_update(update_dict)
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
+    interactive = update_dict.pop("interactive", None)
+    if interactive is not None:
+        update_dict["mode"] = "dynamic" if interactive else "static"
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         assert isinstance(
@@ -408,7 +461,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("load")
+@document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -446,7 +499,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: str = "default",
+        theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -455,7 +508,7 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            theme: which theme to use - right now, only "default" is supported.
+            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -464,7 +517,23 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        self.theme = theme
+        if theme is None:
+            theme = DefaultTheme()
+        elif isinstance(theme, str):
+            if theme.lower() in BUILT_IN_THEMES:
+                theme = BUILT_IN_THEMES[theme.lower()]
+            else:
+                try:
+                    theme = Theme.from_hub(theme)
+                except Exception as e:
+                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+                    theme = DefaultTheme()
+        if not isinstance(theme, Theme):
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+            theme = DefaultTheme()
+        self.theme: Theme = theme
+        self.theme_css = theme._get_theme_css()
+        self.stylesheets = theme._stylesheets
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -483,7 +552,8 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-
+        if not self.analytics_enabled:
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
@@ -517,13 +587,16 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
+            is_custom_theme = not any(
+                self.theme.to_dict() == built_in_theme.to_dict()
+                for built_in_theme in BUILT_IN_THEMES.values()
+            )
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
-                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
-                .decode("ascii")
-                .strip(),
+                "theme": self.theme.name,
+                "is_custom_theme": is_custom_theme,
+                "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
 
@@ -544,6 +617,7 @@ class Blocks(BlockContext):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
+        theme = config.get("theme", "default")
         original_mapping: Dict[int, Block] = {}
 
         def get_block_instance(id: int) -> Block:
@@ -579,7 +653,9 @@ class Blocks(BlockContext):
                     with block:
                         iterate_over_children(children)
 
-        with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+        derived_fields = ["types"]
+
+        with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -590,12 +666,14 @@ class Blocks(BlockContext):
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
                 # We used to add a "fake_event" to the config to cache examples
-                # without removing it. This was causing bugs in calling gr.Interface.load
+                # without removing it. This was causing bugs in calling gr.load
                 # We fixed the issue by removing "fake_event" from the config in examples.py
                 # but we still need to skip these events when loading the config to support
                 # older demos
                 if dependency["trigger"] == "fake_event":
                     continue
+                for field in derived_fields:
+                    dependency.pop(field, None)
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
@@ -613,7 +691,7 @@ class Blocks(BlockContext):
                 for target in targets:
                     dependency = original_mapping[target].set_event_trigger(
                         event_name=trigger, fn=fn, **dependency
-                    )
+                    )[0]
                     if first_dependency is None:
                         first_dependency = dependency
 
@@ -682,6 +760,8 @@ class Blocks(BlockContext):
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
                 ]
+                if dependency.get("trigger_after") is not None:
+                    dependency["trigger_after"] += dependency_offset
                 # Recreate the cancel function so that it has the latest
                 # dependency fn indices. This is necessary to properly cancel
                 # events in the backend
@@ -760,7 +840,7 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(
+        outputs = client_utils.synchronize_async(
             self.process_api,
             fn_index=fn_index,
             inputs=processed_inputs,
@@ -784,6 +864,7 @@ class Blocks(BlockContext):
         iterator: Iterator[Any] | None = None,
         requests: routes.Request | List[routes.Request] | None = None,
         event_id: str | None = None,
+        event_data: EventData | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -793,6 +874,7 @@ class Blocks(BlockContext):
             iterator: iterator to use if function is a generator
             requests: requests to pass to function
             event_id: id of event in queue
+            event_data: data associated with event trigger
         """
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
@@ -810,10 +892,8 @@ class Blocks(BlockContext):
             request = requests[0]
         else:
             request = requests
-        processed_input, progress_index = special_args(
-            block_fn.fn,
-            processed_input,
-            request,
+        processed_input, progress_index, _ = special_args(
+            block_fn.fn, processed_input, request, event_data
         )
         progress_tracker = (
             processed_input[progress_index] if progress_index is not None else None
@@ -892,7 +972,9 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
-            deserialized = block.deserialize(outputs[o], root_url=block.root_url)
+            deserialized = block.deserialize(
+                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
+            )
             predictions.append(deserialized)
 
         return predictions
@@ -974,6 +1056,7 @@ class Blocks(BlockContext):
         request: routes.Request | List[routes.Request] | None = None,
         iterators: Dict[int, Any] | None = None,
         event_id: str | None = None,
+        event_data: EventData | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -981,9 +1064,11 @@ class Blocks(BlockContext):
         Parameters:
             fn_index: Index of function to run.
             inputs: input data received from the frontend
-            username: name of user if authentication is set up (not used)
             state: data stored from stateful components for session (key is input block id)
+            request: the gr.Request object containing information about the network request (e.g. IP address, headers, query parameters, username)
             iterators: the in-progress iterators for each generator function (key is function index)
+            event_id: id of event that triggered this API call
+            event_data: data associated with the event trigger itself
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1010,7 +1095,7 @@ class Blocks(BlockContext):
                 self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
             ]
             result = await self.call_function(
-                fn_index, list(zip(*inputs)), None, request
+                fn_index, list(zip(*inputs)), None, request, event_id, event_data
             )
             preds = result["prediction"]
             data = [
@@ -1022,7 +1107,7 @@ class Blocks(BlockContext):
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
             result = await self.call_function(
-                fn_index, inputs, iterator, request, event_id
+                fn_index, inputs, iterator, request, event_id, event_data
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1053,8 +1138,8 @@ class Blocks(BlockContext):
             "version": routes.VERSION,
             "mode": self.mode,
             "dev_mode": self.dev_mode,
+            "analytics_enabled": self.analytics_enabled,
             "components": [],
-            "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,
@@ -1062,6 +1147,9 @@ class Blocks(BlockContext):
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
+            "stylesheets": self.stylesheets,
+            "root": self.root,
+            "theme": self.theme.name,
         }
 
         def getLayout(block):
@@ -1075,15 +1163,21 @@ class Blocks(BlockContext):
         config["layout"] = getLayout(self)
 
         for _id, block in self.blocks.items():
-            config["components"].append(
-                {
-                    "id": _id,
-                    "type": (block.get_block_name()),
-                    "props": utils.delete_none(block.get_config())
-                    if hasattr(block, "get_config")
-                    else {},
+            props = block.get_config() if hasattr(block, "get_config") else {}
+            block_config = {
+                "id": _id,
+                "type": block.get_block_name(),
+                "props": utils.delete_none(props),
+            }
+            serializer = utils.get_serializer_name(block)
+            if serializer:
+                assert isinstance(block, serializing.Serializable)
+                block_config["serializer"] = serializer
+                block_config["info"] = {
+                    "input": list(block.input_api_info()),  # type: ignore
+                    "output": list(block.output_api_info()),  # type: ignore
                 }
-            )
+            config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
 
@@ -1092,6 +1186,7 @@ class Blocks(BlockContext):
             Context.root_block = self
         self.parent = Context.block
         Context.block = self
+        self.exited = False
         return self
 
     def __exit__(self, *args):
@@ -1105,10 +1200,8 @@ class Blocks(BlockContext):
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
-        self.progress_tracking = any(
-            block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
-            for block_fn in self.fns
-        )
+        self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
+        self.exited = True
 
     @class_or_instancemethod
     def load(
@@ -1138,7 +1231,7 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Warning: this method will be deprecated. Use the equivalent `gradio.load()` instead.
 
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
@@ -1169,13 +1262,15 @@ class Blocks(BlockContext):
                 demo.load(get_time, inputs=None, outputs=dt)
             demo.launch()
         """
-        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
+            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
+            return external.load(
+                name=name, src=src, hf_token=api_key, alias=alias, **kwargs
+            )
         else:
             return self_or_cls.set_event_trigger(
                 event_name="load",
@@ -1193,7 +1288,7 @@ class Blocks(BlockContext):
                 max_batch_size=max_batch_size,
                 every=every,
                 no_target=True,
-            )
+            )[0]
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1222,8 +1317,14 @@ class Blocks(BlockContext):
             default_enabled: Deprecated and has no effect.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-        Example:
-            demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
+        Example: (Blocks)
+            with gr.Blocks() as demo:
+                button = gr.Button(label="Generate Image")
+                button.click(fn=image_generator, inputs=gr.Textbox(), outputs=gr.Image())
+            demo.queue(concurrency_count=3)
+            demo.launch()
+        Example: (Interface)
+            demo = gr.Interface(image_generator, gr.Textbox(), gr.Image())
             demo.queue(concurrency_count=3)
             demo.launch()
         """
@@ -1247,6 +1348,33 @@ class Blocks(BlockContext):
         self.app = routes.App.create_app(self)
         return self
 
+    def validate_queue_settings(self):
+        if not self.enable_queue and self.progress_tracking:
+            raise ValueError("Progress tracking requires queuing to be enabled.")
+
+        for fn_index, dep in enumerate(self.dependencies):
+            if not self.enable_queue and self.queue_enabled_for_fn(fn_index):
+                raise ValueError(
+                    f"The queue is enabled for event {dep['api_name'] if dep['api_name'] else fn_index} "
+                    "but the queue has not been enabled for the app. Please call .queue() "
+                    "on your app. Consult https://gradio.app/docs/#blocks-queue for information on how "
+                    "to configure the queue."
+                )
+            for i in dep["cancels"]:
+                if not self.queue_enabled_for_fn(i):
+                    raise ValueError(
+                        "Queue needs to be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
+            if dep["batch"] and (
+                dep["queue"] is False
+                or (dep["queue"] is None and not self.enable_queue)
+            ):
+                raise ValueError("In order to use batching, the queue must be enabled.")
+
     def launch(
         self,
         inline: bool | None = None,
@@ -1264,7 +1392,7 @@ class Blocks(BlockContext):
         show_tips: bool = False,
         height: int = 500,
         width: int | str = "100%",
-        encrypt: bool = False,
+        encrypt: bool | None = None,
         favicon_path: str | None = None,
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
@@ -1294,7 +1422,7 @@ class Blocks(BlockContext):
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
-            encrypt: If True, flagged data will be encrypted by key provided by creator at launch
+            encrypt: DEPRECATED. Has no effect.
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1306,13 +1434,24 @@ class Blocks(BlockContext):
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
             share_url: Publicly accessible link to the demo (if share=True, otherwise None)
-        Example:
+        Example: (Blocks)
+            import gradio as gr
+            def reverse(text):
+                return text[::-1]
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Reverse")
+                button.click(reverse, gr.Textbox(), gr.Textbox())
+            demo.launch(share=True, auth=("username", "password"))
+        Example:  (Interface)
             import gradio as gr
             def reverse(text):
                 return text[::-1]
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        if not self.exited:
+            self.__exit__()
+
         self.dev_mode = False
         if (
             auth
@@ -1336,6 +1475,11 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
+        if encrypt is not None:
+            warnings.warn(
+                "The `encrypt` parameter has been deprecated and has no effect.",
+                DeprecationWarning,
+            )
 
         if self.is_space:
             self.enable_queue = self.enable_queue is not False
@@ -1346,35 +1490,15 @@ class Blocks(BlockContext):
         self.show_api = self.api_open if self.enable_queue else show_api
 
         self.file_directories = file_directories if file_directories is not None else []
+        if not isinstance(self.file_directories, list):
+            raise ValueError("file_directories must be a list of directories.")
 
-        if not self.enable_queue and self.progress_tracking:
-            raise ValueError("Progress tracking requires queuing to be enabled.")
-
-        for dep in self.dependencies:
-            for i in dep["cancels"]:
-                if not self.queue_enabled_for_fn(i):
-                    raise ValueError(
-                        "In order to cancel an event, the queue for that event must be enabled! "
-                        "You may get this error by either 1) passing a function that uses the yield keyword "
-                        "into an interface without enabling the queue or 2) defining an event that cancels "
-                        "another event without enabling the queue. Both can be solved by calling .queue() "
-                        "before .launch()"
-                    )
-            if dep["batch"] and (
-                dep["queue"] is False
-                or (dep["queue"] is None and not self.enable_queue)
-            ):
-                raise ValueError("In order to use batching, the queue must be enabled.")
+        self.validate_queue_settings()
 
         self.config = self.get_config_file()
-        self.encrypt = encrypt
         self.max_threads = max(
             self._queue.max_thread_count if self.enable_queue else 0, max_threads
         )
-        if self.encrypt:
-            self.encryption_key = encryptor.get_key(
-                getpass.getpass("Enter key for encryption: ")
-            )
 
         if self.is_running:
             assert isinstance(
@@ -1416,9 +1540,6 @@ class Blocks(BlockContext):
             # Workaround by triggering the app endpoint
             requests.get(f"{self.local_url}startup-events")
 
-            if self.enable_queue:
-                if self.encrypt:
-                    raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
         if share is None:
@@ -1482,7 +1603,7 @@ class Blocks(BlockContext):
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except RuntimeError:
+            except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
                     utils.error_analytics("Not able to set up tunnel")
                 self.share_url = None
@@ -1575,6 +1696,7 @@ class Blocks(BlockContext):
                 "mode": self.mode,
             }
             utils.launch_analytics(data)
+            utils.launched_telemetry(self, data)
 
         utils.show_tip(self)
 
@@ -1591,7 +1713,7 @@ class Blocks(BlockContext):
 
     def integrate(
         self,
-        comet_ml: comet_ml.Experiment | None = None,
+        comet_ml=None,
         wandb: ModuleType | None = None,
         mlflow: ModuleType | None = None,
     ) -> None:
@@ -1685,15 +1807,20 @@ class Blocks(BlockContext):
                 ):
                     load_fn, every = component.load_event_to_attach
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
-                    self.set_event_trigger(
+                    dep = self.set_event_trigger(
                         "load",
                         load_fn,
                         None,
                         component,
                         no_target=True,
-                        queue=False,
+                        # If every is None, for sure skip the queue
+                        # else, let the enable_queue parameter take precedence
+                        # this will raise a nice error message is every is used
+                        # without queue
+                        queue=False if every is None else None,
                         every=every,
-                    )
+                    )[0]
+                    component.load_event = dep
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""

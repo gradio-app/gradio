@@ -258,9 +258,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching_with_batch(self):
         def trim_words(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[:l])
+            trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return [trimmed_words]
 
         io = gr.Interface(
@@ -278,9 +276,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching_with_batch_multiple_outputs(self):
         def trim_words(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[:l])
+            trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return trimmed_words, lens
 
         io = gr.Interface(
@@ -330,10 +326,10 @@ class TestProcessExamples:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"fn_index": 3, "data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
         assert response.json()["data"] == ["Hello,"]
 
-        response = client.post("/api/predict/", json={"fn_index": 3, "data": [1]})
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
         assert response.json()["data"] == ["Michael"]
 
     def test_end_to_end_cache_examples(self):
@@ -351,8 +347,8 @@ class TestProcessExamples:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"fn_index": 3, "data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
         assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
 
-        response = client.post("/api/predict/", json={"fn_index": 3, "data": [1]})
+        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
