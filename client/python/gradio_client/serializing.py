@@ -11,9 +11,6 @@ from gradio_client import utils
 
 
 class Serializable(ABC):
-    def __init__(self, root_url: str | None = None):
-        self.root_url = root_url
-
     @abstractmethod
     def input_api_info(self) -> Tuple[str, str]:
         """
@@ -191,10 +188,9 @@ class FileSerializable(Serializable):
         Parameters:
             x: Base64 representation of file to deserialize into a string filepath
             save_dir: Path to directory to save the deserialized file to
-            root_url: If this component is loaded from an external Space, this is the URL of the Space. If set during init, this parameter has no effect.
+            root_url: If this component is loaded from an external Space, this is the URL of the Space.
             hf_token: If this component is loaded from an external private Space, this is the access token for the Space
         """
-        _root_url = self.root_url or root_url
         if x is None:
             return None
         if isinstance(save_dir, Path):
@@ -203,9 +199,9 @@ class FileSerializable(Serializable):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
             if x.get("is_file", False):
-                if _root_url is not None:
+                if root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
-                        _root_url + "file=" + x["name"],
+                        root_url + "file=" + x["name"],
                         hf_token=hf_token,
                         dir=save_dir,
                     ).name

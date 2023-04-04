@@ -258,10 +258,7 @@ class TestAPIInfo:
     def test_test_endpoint_src(self, trailing_char):
         src = "https://gradio-calculator.hf.space" + trailing_char
         client = Client(src=src)
-        assert (
-            client.endpoints[0].deserializers[0].root_url
-            == "https://gradio-calculator.hf.space/"
-        )
+        assert client.endpoints[0].root_url == "https://gradio-calculator.hf.space/"
 
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):

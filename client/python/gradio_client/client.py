@@ -44,13 +44,14 @@ class Client:
         )
 
         if src.startswith("http://") or src.startswith("https://"):
-            self.src = src
+            _src = src
         else:
-            self.src = self._space_name_to_src(src)
-            if self.src is None:
+            _src = self._space_name_to_src(src)
+            if _src is None:
                 raise ValueError(
                     f"Could not find Space: {src}. If it is a private Space, please provide an hf_token."
                 )
+        self.src = _src
         print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = utils.API_URL.format(self.src)
@@ -308,11 +309,9 @@ class Endpoint:
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
+        self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         try:
-            assert client.src
-            self.serializers, self.deserializers = self._setup_serializers(
-                src=client.src + "/" if not client.src.endswith("/") else client.src
-            )
+            self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
                 "backend_fn"
             ]  # Only a real API endpoint if backend_fn is True and serializers are valid
@@ -468,7 +467,7 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         return tuple(
             [
-                s.deserialize(d, hf_token=self.client.hf_token)
+                s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
                 for s, d, oct in zip(
                     self.deserializers, data, self.output_component_types
                 )
@@ -476,9 +475,7 @@ class Endpoint:
             ]
         )
 
-    def _setup_serializers(
-        self, src: str
-    ) -> Tuple[List[Serializable], List[Serializable]]:
+    def _setup_serializers(self) -> Tuple[List[Serializable], List[Serializable]]:
         inputs = self.dependency["inputs"]
         serializers = []
 
@@ -518,7 +515,7 @@ class Endpoint:
                             component_name in serializing.COMPONENT_MAPPING
                         ), f"Unknown component: {component_name}, you may need to update your gradio_client version."
                         deserializer = serializing.COMPONENT_MAPPING[component_name]
-                    deserializers.append(deserializer(root_url=src))  # type: ignore
+                    deserializers.append(deserializer())  # type: ignore
 
         return serializers, deserializers
 
