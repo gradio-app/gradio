@@ -9,7 +9,13 @@ import uuid
 from concurrent.futures import Future
 from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List, Literal, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 
 import huggingface_hub
 import requests
