@@ -3,6 +3,7 @@ set -e
 
 cd "$(dirname ${0})/.."
 
-python -m pip install build twine
+python3 -m pip install build twine
 rm -rf dist/*
-python -m build
+rm -rf build/*
+python3 -m build
