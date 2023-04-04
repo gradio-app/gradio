@@ -101,6 +101,11 @@ class TestPredictionsFromSpaces:
 
         assert job.outputs() == [str(i) for i in range(3)]
 
+        outputs = []
+        for o in client.predict(3, api_name="/count"):
+            outputs.append(o)
+        assert outputs == [str(i) for i in range(3)]
+
     @pytest.mark.flaky
     def test_timeout(self):
         with pytest.raises(TimeoutError):
