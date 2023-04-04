@@ -102,7 +102,7 @@ class ListSerializable(Serializable):
 
     def output_api_info(self) -> Tuple[str, str]:
         return "List", "value"
-    
+
 
 class DictSerializable(Serializable):
     """Expects a dict as input/output but performs no serialization."""

@@ -315,7 +315,7 @@ class Endpoint:
             self.is_valid = self.dependency[
                 "backend_fn"
             ]  # Only a real API endpoint if backend_fn is True and serializers are valid
-        except AssertionError as e:
+        except AssertionError:
             self.is_valid = False
 
     def get_info(self) -> Dict[str, Dict[str, List[str]]]:
