@@ -7,7 +7,6 @@ from unittest.mock import patch
 import pytest
 
 from gradio_client import Client
-from gradio_client.serializing import SimpleSerializable
 from gradio_client.utils import Communicator, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
@@ -264,48 +263,42 @@ class TestAPIInfo:
         client = Client("gradio-tests/titanic-survival")
         assert client.endpoints[0].get_info() == {
             "parameters": {
-                "sex": ["Any", "", "Radio"],
-                "age": ["Any", "", "Slider"],
-                "fare_(british_pounds)": ["Any", "", "Slider"],
+                "sex": ["str", "value", "Radio"],
+                "age": ["int | float", "value", "Slider"],
+                "fare_(british_pounds)": ["int | float", "value", "Slider"],
             },
-            "returns": {"output": ["str", "filepath to json file", "Label"]},
+            "returns": {"output": ["Dict", "value", "Label"]},
         }
+
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
                     "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                        "sex": ["str", "value", "Radio"],
+                        "age": ["int | float", "value", "Slider"],
+                        "fare_(british_pounds)": ["int | float", "value", "Slider"],
                     },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "returns": {"output": ["Dict", "value", "Label"]},
                 },
                 "/predict_1": {
                     "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                        "sex": ["str", "value", "Radio"],
+                        "age": ["int | float", "value", "Slider"],
+                        "fare_(british_pounds)": ["int | float", "value", "Slider"],
                     },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "returns": {"output": ["Dict", "value", "Label"]},
                 },
                 "/predict_2": {
                     "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
+                        "sex": ["str", "value", "Radio"],
+                        "age": ["int | float", "value", "Slider"],
+                        "fare_(british_pounds)": ["int | float", "value", "Slider"],
                     },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "returns": {"output": ["Dict", "value", "Label"]},
                 },
             },
             "unnamed_endpoints": {},
         }
-
-    @pytest.mark.flaky
-    def test_serializable_in_mapping(self):
-        client = Client("freddyaboulton/calculator")
-        assert all(
-            [c.__class__ == SimpleSerializable for c in client.endpoints[0].serializers]
-        )
 
     @pytest.mark.flaky
     def test_private_space(self):
@@ -314,22 +307,23 @@ class TestAPIInfo:
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
         assert client.endpoints[0].get_info() == {
-            "parameters": {"x": ["Any", "", "Textbox"]},
-            "returns": {"output": ["Any", "", "Textbox"]},
+            "parameters": {"x": ["str", "value", "Textbox"]},
+            "returns": {"output": ["str", "value", "Textbox"]},
         }
+
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {"x": ["Any", "", "Textbox"]},
-                    "returns": {"output": ["Any", "", "Textbox"]},
+                    "parameters": {"x": ["str", "value", "Textbox"]},
+                    "returns": {"output": ["str", "value", "Textbox"]},
                 }
             },
             "unnamed_endpoints": {
                 2: {
-                    "parameters": {"parameter_0": ["Any", "", "Dataset"]},
+                    "parameters": {"parameter_0": ["str", "value", "Dataset"]},
                     "returns": {
-                        "x": ["Any", "", "Textbox"],
-                        "output": ["Any", "", "Textbox"],
+                        "x": ["str", "value", "Textbox"],
+                        "output": ["str", "value", "Textbox"],
                     },
                 }
             },
