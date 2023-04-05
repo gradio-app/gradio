@@ -2,7 +2,7 @@ import os
 import json
 import re
 
-GRADIO_DIR = "../../../../"
+GRADIO_DIR = "../../../"
 CHANGELOG_FILE = os.path.join(GRADIO_DIR, "CHANGELOG.md")
 
 def clean():

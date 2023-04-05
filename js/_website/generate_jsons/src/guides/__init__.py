@@ -6,7 +6,7 @@ import json
 
 # DIR = os.path.dirname(__file__)
 
-GRADIO_DIR = "../../../../"
+GRADIO_DIR = "../../../"
 GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets")
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")

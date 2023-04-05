@@ -5,7 +5,7 @@ from gradio.events import EventListener
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
-GRADIO_DIR = "../../../../"
+GRADIO_DIR = "../../../"
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 
 docs = generate_documentation()
