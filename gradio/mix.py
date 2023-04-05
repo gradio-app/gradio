@@ -5,7 +5,7 @@ import asyncio
 import warnings
 
 import gradio
-from gradio.documentation import document, set_documentation_group
+from gradio_client.documentation import document, set_documentation_group
 
 set_documentation_group("mix_interface")
 
