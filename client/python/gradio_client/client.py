@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
-from pathlib import Path
-import urllib.parse
 import re
 import threading
 import time
+import urllib.parse
 import uuid
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
+from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
@@ -58,7 +58,9 @@ class Client:
         print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
-        self.ws_url =  urllib.parse.urljoin(self.src.replace('http', 'ws', 1), utils.WS_URL)
+        self.ws_url = urllib.parse.urljoin(
+            self.src.replace("http", "ws", 1), utils.WS_URL
+        )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
@@ -450,22 +452,32 @@ class Endpoint:
         if len(self.dependency["outputs"]) == 1:
             return outputs[0]
         return outputs
-    
-    def upload(self, file_paths: List[str]) -> List[str]:
+
+    def upload(self, file_paths: List[str]) -> List[str] | List[Dict[str, Any]]:
         if not file_paths:
             return []
         files = [("files", (Path(f).name, open(f, "rb"))) for f in file_paths]
-        r = requests.post(self.client.upload_url, headers=self.client.headers, files=files)
-        return [{"is_file": True, "name": f, "orig_name": Path(o).name, "data": None} for f, o in zip(r.json(), file_paths)]
+        r = requests.post(
+            self.client.upload_url, headers=self.client.headers, files=files
+        )
+        if r.status_code != 200:
+            uploaded = file_paths
+        else:
+            uploaded = [
+                {"is_file": True, "name": f, "orig_name": Path(o).name, "data": None}
+                for f, o in zip(r.json(), file_paths)
+            ]
+        return uploaded
 
-    def _add_uploaded_files_to_data(self, files: List[Dict], data: List[Any]) -> None:
+    def _add_uploaded_files_to_data(
+        self, files: List[Dict[str, Any]] | List[str], data: List[Any]
+    ) -> None:
         """Helper function to modify the input data with the uploaded files."""
         file_counter = 0
         for i, t in enumerate(self.input_component_types):
-            if t == 'file':
+            if t == "file":
                 data[i] = files[file_counter]
                 file_counter += 1
-
 
     def serialize(self, *data) -> Tuple:
         data = list(data)
@@ -476,7 +488,7 @@ class Endpoint:
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
 
-        files = [f for f, t in zip(data, self.input_component_types) if t == 'file'] 
+        files = [f for f, t in zip(data, self.input_component_types) if t == "file"]
         uploaded_files = self.upload(files)
         self._add_uploaded_files_to_data(uploaded_files, data)
 
