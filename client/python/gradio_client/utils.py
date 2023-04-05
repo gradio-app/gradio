@@ -286,6 +286,11 @@ def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     return base64.b64decode(data), extension
 
 
+def santize_parameter_name(original_parameter_name: str) -> str:
+    original_parameter_name = original_parameter_name.replace(" ", "_").lower()
+    return "".join([char for char in original_parameter_name if char.isalnum() or char in "_"])
+
+
 def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
     """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
     filename = "".join([char for char in filename if char.isalnum() or char in "._- "])

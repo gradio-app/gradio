@@ -10,12 +10,13 @@ import uuid
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, get_type_hints
 
 import huggingface_hub
 import requests
 import websockets
 from huggingface_hub.utils import build_hf_headers, send_telemetry
+from makefun import with_signature
 from packaging import version
 from typing_extensions import Literal
 
@@ -75,6 +76,7 @@ class Client:
         self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
+        self.default_fn_index = None
 
         self.endpoints = [
             Endpoint(self, fn_index, dependency)
@@ -87,6 +89,51 @@ class Client:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
 
+    def set_endpoint(
+        self,
+        api_name: str | None = None,
+        fn_index: int | None = None,
+    ) -> None:
+        """
+        Sets the API endpoint to call when calling predict() or submit(). Sets the parameter names of the predict() and submit() methods to match the API endpoint for IDE autocomplete. Can be called multiple times to switch between API endpoints.
+        Parameters:
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict".
+            fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+        """
+        if api_name is not None:
+            self.default_fn_index = self._api_name_to_fn_index(api_name)
+            print(f"Default API endpoint set to: {api_name} ✔")
+        elif fn_index is not None:
+            self.default_fn_index = fn_index
+            print(f"Default API function index set to: {fn_index} ✔")
+        else:
+            raise ValueError("Must provide either api_name or fn_index.")
+       
+        info = self.endpoints[self.default_fn_index].get_info()
+        parameters = info ['parameters'].keys()
+        parameter_signature = "(" + ", ".join(parameters) + ")"
+        
+        @with_signature(parameter_signature, doc="Calls the Gradio API and returns the result (this is a blocking call).")
+        def _predict(*args, **kwargs):
+            _parameters = list(args)
+            for p in parameters:
+                if p in kwargs:
+                    _parameters.append(kwargs.pop(p))
+            return self._submit(*_parameters, **kwargs).result()
+        
+        self.predict = _predict
+        
+        parameter_signature = "(" + ", ".join(parameters) + ", result_callbacks=None)"
+        @with_signature(parameter_signature, doc="Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.")
+        def _submit(*args, **kwargs):
+            _parameters = list(args)
+            for p in parameters:
+                if p in kwargs:
+                    _parameters.append(kwargs.pop(p))
+            return self._submit(*_parameters, **kwargs).result()
+        
+        self.submit = _submit
+        
     def predict(
         self,
         *args,
@@ -97,7 +144,7 @@ class Client:
         Calls the Gradio API and returns the result (this is a blocking call).
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
-            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint. Should not be provided (will raise exception) if set_endpoint() has been called.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
@@ -120,7 +167,7 @@ class Client:
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
-            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint. Should not be provided (will raise exception) if set_endpoint() has been called.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
         Returns:
@@ -134,6 +181,15 @@ class Client:
             job.result()  # blocking call
             >> 9.0
         """
+        return self._submit(*args, api_name=api_name, fn_index=fn_index, result_callbacks=result_callbacks)
+        
+    def _submit(
+        self,
+        *args,
+        api_name: str | None = None,
+        fn_index: int | None = None,
+        result_callbacks: Callable | List[Callable] | None = None,
+    ) -> Job:        
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
@@ -294,23 +350,26 @@ class Client:
         except Exception:
             pass
 
+    def _api_name_to_fn_index(self, api_name: str):
+        for index, dependency in enumerate(self.config["dependencies"]):
+            config_api_name = dependency.get("api_name")
+            if config_api_name is None:
+                continue
+            if "/" + config_api_name == api_name:
+                return index
+        else:
+            error_message = f"Cannot find a function with `api_name`: {api_name}."
+            if not api_name.startswith("/"):
+                error_message += " Did you mean to use a leading slash?"
+            raise ValueError(error_message)
+        
     def _infer_fn_index(self, api_name: str | None, fn_index: int | None) -> int:
-        inferred_fn_index = None
         if api_name is not None:
-            for i, d in enumerate(self.config["dependencies"]):
-                config_api_name = d.get("api_name")
-                if config_api_name is None:
-                    continue
-                if "/" + config_api_name == api_name:
-                    inferred_fn_index = i
-                    break
-            else:
-                error_message = f"Cannot find a function with `api_name`: {api_name}."
-                if not api_name.startswith("/"):
-                    error_message += " Did you mean to use a leading slash?"
-                raise ValueError(error_message)
+            inferred_fn_index = self._api_name_to_fn_index(api_name)
         elif fn_index is not None:
             inferred_fn_index = fn_index
+        elif self.default_fn_index is not None:
+            inferred_fn_index = self.default_fn_index
         else:
             valid_endpoints = [
                 e for e in self.endpoints if e.is_valid and e.api_name is not None
@@ -387,11 +446,9 @@ class Endpoint:
         for i, input in enumerate(self.dependency["inputs"]):
             for component in self.client.config["components"]:
                 if component["id"] == input:
-                    label = (
+                    label = utils.santize_parameter_name(
                         component["props"]
                         .get("label", f"parameter_{i}")
-                        .lower()
-                        .replace(" ", "_")
                     )
                     if "info" in component:
                         info = component["info"]["input"]
@@ -406,11 +463,9 @@ class Endpoint:
         for o, output in enumerate(self.dependency["outputs"]):
             for component in self.client.config["components"]:
                 if component["id"] == output:
-                    label = (
+                    label = utils.santize_parameter_name(
                         component["props"]
                         .get("label", f"value_{o}")
-                        .lower()
-                        .replace(" ", "_")
                     )
                     if "info" in component:
                         info = component["info"]["output"]
