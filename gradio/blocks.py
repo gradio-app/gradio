@@ -19,6 +19,7 @@ import requests
 from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 from typing_extensions import Literal
 
 from gradio import (
@@ -33,7 +34,6 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio_client.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme

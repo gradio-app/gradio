@@ -10,7 +10,7 @@ import uuid
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple, get_type_hints
+from typing import Any, Callable, Dict, List, Tuple
 
 import huggingface_hub
 import requests
@@ -44,14 +44,14 @@ class Client:
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         Example:
             from gradio_client import Client
-            
+
             client = Client("abidlabs/whisper-large-v2")  # connecting to a Hugging Face Space
-            client.predict("test.mp4", api_name="/predict") 
+            client.predict("test.mp4", api_name="/predict")
             >> What a nice recording! # returns the result of the remote API call
 
             client = Client("https://bec81a83-5b5c-471e.gradio.live")  # connecting to a temporary Gradio share URL
-            job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread 
-            job.result()  
+            job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread
+            job.result()
             >> 49 # returns the result of the remote API call (blocking call)
         """
         self.hf_token = hf_token
@@ -108,32 +108,39 @@ class Client:
             print(f"Default API function index set to: {fn_index} ✔")
         else:
             raise ValueError("Must provide either api_name or fn_index.")
-       
+
         info = self.endpoints[self.default_fn_index].get_info()
-        parameters = info ['parameters'].keys()
+        parameters = info["parameters"].keys()
         parameter_signature = "(" + ", ".join(parameters) + ")"
-        
-        @with_signature(parameter_signature, doc="Calls the Gradio API and returns the result (this is a blocking call).")
+
+        @with_signature(
+            parameter_signature,
+            doc="Calls the Gradio API and returns the result (this is a blocking call).",
+        )
         def _predict(*args, **kwargs):
             _parameters = list(args)
             for p in parameters:
                 if p in kwargs:
                     _parameters.append(kwargs.pop(p))
             return self._submit(*_parameters, **kwargs).result()
-        
+
         self.predict = _predict
-        
+
         parameter_signature = "(" + ", ".join(parameters) + ", result_callbacks=None)"
-        @with_signature(parameter_signature, doc="Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.")
+
+        @with_signature(
+            parameter_signature,
+            doc="Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.",
+        )
         def _submit(*args, **kwargs):
             _parameters = list(args)
             for p in parameters:
                 if p in kwargs:
                     _parameters.append(kwargs.pop(p))
             return self._submit(*_parameters, **kwargs).result()
-        
+
         self.submit = _submit
-        
+
     def predict(
         self,
         *args,
@@ -149,7 +156,7 @@ class Client:
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
-            from gradio_client import Client            
+            from gradio_client import Client
             client = Client(src="gradio/calculator")
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
@@ -181,15 +188,20 @@ class Client:
             job.result()  # blocking call
             >> 9.0
         """
-        return self._submit(*args, api_name=api_name, fn_index=fn_index, result_callbacks=result_callbacks)
-        
+        return self._submit(
+            *args,
+            api_name=api_name,
+            fn_index=fn_index,
+            result_callbacks=result_callbacks,
+        )
+
     def _submit(
         self,
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
         result_callbacks: Callable | List[Callable] | None = None,
-    ) -> Job:        
+    ) -> Job:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
@@ -362,7 +374,7 @@ class Client:
             if not api_name.startswith("/"):
                 error_message += " Did you mean to use a leading slash?"
             raise ValueError(error_message)
-        
+
     def _infer_fn_index(self, api_name: str | None, fn_index: int | None) -> int:
         if api_name is not None:
             inferred_fn_index = self._api_name_to_fn_index(api_name)
@@ -447,8 +459,7 @@ class Endpoint:
             for component in self.client.config["components"]:
                 if component["id"] == input:
                     label = utils.santize_parameter_name(
-                        component["props"]
-                        .get("label", f"parameter_{i}")
+                        component["props"].get("label", f"parameter_{i}")
                     )
                     if "info" in component:
                         info = component["info"]["input"]
@@ -464,8 +475,7 @@ class Endpoint:
             for component in self.client.config["components"]:
                 if component["id"] == output:
                     label = utils.santize_parameter_name(
-                        component["props"]
-                        .get("label", f"value_{o}")
+                        component["props"].get("label", f"value_{o}")
                     )
                     if "info" in component:
                         info = component["info"]["output"]
