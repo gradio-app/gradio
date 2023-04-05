@@ -27,7 +27,7 @@ from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 set_documentation_group("py-client")
 
 
-@document("predict", "submit", "set_endpoint", "view_api")
+@document("predict", "submit", "view_api")
 class Client:
     def __init__(
         self,
@@ -74,21 +74,6 @@ class Client:
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
-
-    def set_endpoint(
-        self,
-        api_name: str | None = None,
-        fn_index: str | None = None,
-    ):
-        """
-        Sets the default API endpoint to call when predict() or submit() are  called without specifying an api_name or fn_index.
-        """
-        if not api_name and not fn_index:
-            raise ValueError("Must provide either api_name or fn_index.")
-        elif api_name and fn_index:
-            raise ValueError("Cannot provide both api_name and fn_index.")
-        elif api_name:
-            pass  # TODO
 
     def predict(
         self,
