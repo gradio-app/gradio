@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+from pathlib import Path
+import urllib.parse
 import re
 import threading
 import time
@@ -76,8 +78,9 @@ class Client:
         self.src = _src
         print(f"Loaded as API: {self.src} ✔")
 
-        self.api_url = utils.API_URL.format(self.src)
-        self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
+        self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.ws_url =  urllib.parse.urljoin(self.src.replace('http', 'ws', 1), utils.WS_URL)
+        self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
 
@@ -517,17 +520,38 @@ class Endpoint:
         if len(self.dependency["outputs"]) == 1:
             return outputs[0]
         return outputs
+    
+    def upload(self, file_paths: List[str]) -> List[str]:
+        if not file_paths:
+            return []
+        files = [("files", (Path(f).name, open(f, "rb"))) for f in file_paths]
+        r = requests.post(self.client.upload_url, headers=self.client.headers, files=files)
+        return [{"is_file": True, "name": f, "orig_name": Path(o).name, "data": None} for f, o in zip(r.json(), file_paths)]
+
+    def _add_uploaded_files_to_data(self, files: List[Dict], data: List[Any]) -> None:
+        """Helper function to modify the input data with the uploaded files."""
+        file_counter = 0
+        for i, t in enumerate(self.input_component_types):
+            if t == 'file':
+                data[i] = files[file_counter]
+                file_counter += 1
+
 
     def serialize(self, *data) -> Tuple:
+        data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
-                data = list(data)
                 data.insert(i, None)
-                data = tuple(data)
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
-        return tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+
+        files = [f for f, t in zip(data, self.input_component_types) if t == 'file'] 
+        uploaded_files = self.upload(files)
+        self._add_uploaded_files_to_data(uploaded_files, data)
+
+        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        return o
 
     def deserialize(self, *data) -> Tuple | Any:
         assert len(data) == len(

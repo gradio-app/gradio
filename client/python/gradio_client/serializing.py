@@ -152,7 +152,7 @@ class FileSerializable(Serializable):
 
     def serialize(
         self,
-        x: str | None,
+        x: str | dict | None,
         load_dir: str | Path = "",
     ) -> Dict | None:
         """
@@ -164,6 +164,8 @@ class FileSerializable(Serializable):
         """
         if x is None or x == "":
             return None
+        if isinstance(x, dict):
+            return x
         if utils.is_valid_url(x):
             filename = x
         else:
@@ -312,6 +314,7 @@ class GallerySerializable(Serializable):
 
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
 SERIALIZER_MAPPING["Serializable"] = SimpleSerializable
+SERIALIZER_MAPPING["File"] = FileSerializable
 
 COMPONENT_MAPPING: Dict[str, type] = {
     "textbox": StringSerializable,
