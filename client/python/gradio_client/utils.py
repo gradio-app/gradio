@@ -127,6 +127,7 @@ class Communicator:
 
     lock: Lock
     job: JobStatus
+    deserialize: Callable[..., Tuple]
 
 
 ########################
@@ -166,6 +167,13 @@ async def get_pred_from_ws(
                     time=datetime.now(),
                     eta=resp.get("rank_eta"),
                 )
+                output = resp.get("output", {}).get("data", [])
+                if output and status_update.code != Status.FINISHED:
+                    try:
+                        result = helper.deserialize(*output)
+                    except Exception as e:
+                        result = [e]
+                    helper.job.outputs.append(result)
                 helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
