@@ -90,7 +90,10 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3581](https://git
 - Trigger the release event when Slider number input is released or unfocused  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3589](https://github.com/gradio-app/gradio/pull/3589)   
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 ## Bug Fixes:
 
 - Fixed bug where text for altair plots was not legible in dark mode by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3555](https://github.com/gradio-app/gradio/pull/3555)  
