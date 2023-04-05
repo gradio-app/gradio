@@ -101,6 +101,18 @@ class TestPredictionsFromSpaces:
 
         assert job.outputs() == [str(i) for i in range(3)]
 
+        outputs = []
+        for o in client.predict(3, api_name="/count"):
+            outputs.append(o)
+        assert outputs == [str(i) for i in range(3)]
+
+    @pytest.mark.flaky
+    def test_break_in_loop_if_error(self):
+        calculator = Client(src="gradio/calculator")
+        job = calculator.predict("foo", "add", 4, fn_index=0)
+        output = [o for o in job]
+        assert output == []
+
     @pytest.mark.flaky
     def test_timeout(self):
         with pytest.raises(TimeoutError):

@@ -559,6 +559,27 @@ class Job(Future):
     ):
         self.future = future
         self.communicator = communicator
+        self._counter = 0
+
+    def __iter__(self) -> Job:
+        return self
+
+    def __next__(self) -> Tuple | Any:
+        if not self.communicator:
+            raise StopIteration()
+
+        with self.communicator.lock:
+            if self.communicator.job.latest_status.code == Status.FINISHED:
+                raise StopIteration()
+
+        while True:
+            with self.communicator.lock:
+                if len(self.communicator.job.outputs) == self._counter + 1:
+                    o = self.communicator.job.outputs[self._counter]
+                    self._counter += 1
+                    return o
+                if self.communicator.job.latest_status.code == Status.FINISHED:
+                    raise StopIteration()
 
     def outputs(self) -> List[Tuple | Any]:
         """Returns a list containing the latest outputs from the Job.
