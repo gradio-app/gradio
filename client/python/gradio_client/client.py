@@ -90,9 +90,8 @@ class Client:
             TODO
             
 
-    def submit(
-        
-    )
+    def submit(self):
+        pass
 
     def predict(
         self,
