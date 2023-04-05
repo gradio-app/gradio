@@ -87,7 +87,7 @@
 		let audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(audio_blob),
-			name
+			name: "audio.wav"
 		};
 		dispatch(event, value);
 	};

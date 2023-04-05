@@ -1,8 +1,10 @@
+import pytest
 import transformers
 
 import gradio as gr
 
 
+@pytest.mark.flaky
 class TestLoadFromPipeline:
     def test_text_to_text_model_from_pipeline(self):
         pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
