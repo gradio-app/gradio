@@ -2,3 +2,4 @@ black==22.6.0
 pytest-asyncio
 pytest==7.1.2
 ruff==0.0.260
+pyright==1.1.298
