@@ -1,10 +1,12 @@
 import json
 import os
 import pathlib
+import tempfile
 import time
 from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
+import gradio as gr
 
 import pytest
 
@@ -148,6 +150,44 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
+    
+    def test_upload_file(self):
+        
+        with gr.Blocks() as interface:
+            number = gr.Number()
+            text = gr.Textbox()
+            file1 = gr.File()
+            file2 = gr.File()
+            file1.upload(lambda a, b, x:x.name, [number, text, file1], file2)
+
+        _, local_url, _ =  interface.launch(prevent_thread_lock=True)
+
+        try:
+            with tempfile.NamedTemporaryFile(mode="w") as f:
+                f.write("Hello from test!")
+
+                client = Client(src=local_url)
+                output = client.predict(1, "foo", f.name, fn_index=0).result()
+                open(output).read() == "Hello from test!"
+        finally:
+            interface.close()
+
+    def test_upload_file_private_space(self):
+
+        client = Client(src="gradio-tests/not-actually-private-file-upload",
+                        hf_token=HF_TOKEN)
+
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            f.write("Hello from test!")
+
+            client = Client(src=local_url)
+            output = client.predict(1, "foo", f.name, fn_index=0).result()
+            open(output).read() == "Hello from test!"
+
+
+
+        
+        
 
 
 class TestStatusUpdates:
