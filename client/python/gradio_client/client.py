@@ -574,12 +574,12 @@ class Job(Future):
 
         while True:
             with self.communicator.lock:
-                if self.communicator.job.latest_status.code == Status.FINISHED:
-                    raise StopIteration()
                 if len(self.communicator.job.outputs) == self._counter + 1:
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o
+                if self.communicator.job.latest_status.code == Status.FINISHED:
+                    raise StopIteration()
 
     def outputs(self) -> List[Tuple | Any]:
         """Returns a list containing the latest outputs from the Job.
