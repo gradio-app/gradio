@@ -33,7 +33,7 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import document, set_documentation_group
+from gradio_client.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme

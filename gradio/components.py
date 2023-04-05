@@ -50,7 +50,7 @@ from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.documentation import document, set_documentation_group
+from gradio_client.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
     Changeable,

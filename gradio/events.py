@@ -7,7 +7,7 @@ import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple
 
 from gradio.blocks import Block
-from gradio.documentation import document, set_documentation_group
+from gradio_client.documentation import document, set_documentation_group
 from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
