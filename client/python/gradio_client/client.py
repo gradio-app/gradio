@@ -76,6 +76,7 @@ class Client:
         threading.Thread(target=self._telemetry_thread).start()
 
     def set_endpoint(
+        self,
         api_name: str | None = None,
         fn_index: str | None = None,
     ):

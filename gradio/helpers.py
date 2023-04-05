@@ -20,10 +20,10 @@ import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils, routes, utils
 from gradio.context import Context
-from gradio_client.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
