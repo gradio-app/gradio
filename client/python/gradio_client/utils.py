@@ -19,8 +19,8 @@ import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "/api/predict/"
-WS_URL = "/queue/join/"
-UPLOAD_URL = "/upload/"
+WS_URL = "/queue/join"
+UPLOAD_URL = "/upload"
 STATE_COMPONENT = "state"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()

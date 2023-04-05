@@ -6,8 +6,8 @@ import time
 from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
-import gradio as gr
 
+import gradio as gr
 import pytest
 
 from gradio_client import Client
@@ -150,44 +150,64 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
-    
+
     def test_upload_file(self):
-        
+
         with gr.Blocks() as interface:
             number = gr.Number()
             text = gr.Textbox()
             file1 = gr.File()
             file2 = gr.File()
-            file1.upload(lambda a, b, x:x.name, [number, text, file1], file2)
+            file1.upload(lambda a, b, x: x.name, [number, text, file1], file2)
 
-        _, local_url, _ =  interface.launch(prevent_thread_lock=True)
+        _, local_url, _ = interface.launch(prevent_thread_lock=True)
+
+        client = Client(src=local_url)
 
         try:
-            with tempfile.NamedTemporaryFile(mode="w") as f:
-                f.write("Hello from test!")
+            with patch.object(
+                client.endpoints[0], "upload", wraps=client.endpoints[0].upload
+            ) as upload:
+                with tempfile.NamedTemporaryFile(mode="w") as f:
+                    f.write("Hello from test!")
 
-                client = Client(src=local_url)
-                output = client.predict(1, "foo", f.name, fn_index=0).result()
-                open(output).read() == "Hello from test!"
+                    output = client.predict(1, "foo", f.name, fn_index=0).result()
+                    open(output).read() == "Hello from test!"
+                    upload.assert_called_once()
         finally:
             interface.close()
 
     def test_upload_file_private_space(self):
 
-        client = Client(src="gradio-tests/not-actually-private-file-upload",
-                        hf_token=HF_TOKEN)
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
 
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            f.write("Hello from test!")
+        with patch.object(
+            client.endpoints[0], "upload", wraps=client.endpoints[0].upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w") as f:
+                f.write("Hello from private space!")
 
-            client = Client(src=local_url)
-            output = client.predict(1, "foo", f.name, fn_index=0).result()
-            open(output).read() == "Hello from test!"
+                output = client.predict(1, "foo", f.name, fn_index=0).result()
+                open(output).read() == "Hello from private space!"
+                upload.assert_called_once()
 
+    def test_upload_file_upload_route_does_not_exist(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload-old-version",
+            hf_token=HF_TOKEN,
+        )
 
+        with patch.object(
+            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+        ) as serialize:
+            with tempfile.NamedTemporaryFile(mode="w") as f:
+                f.write("Hello from private space!")
 
-        
-        
+                output = client.predict(1, "foo", f.name, fn_index=0).result()
+                open(output).read() == "Hello from private space!"
+                serialize.assert_called_once_with(1, "foo", f.name)
 
 
 class TestStatusUpdates:
