@@ -36,10 +36,22 @@ class Client:
         max_workers: int = 40,
     ):
         """
+        The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
         Parameters:
-            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/pictionary") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
+            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+        Example:
+            from gradio_client import Client
+            
+            client = Client("abidlabs/whisper-large-v2")  # connecting to a Hugging Face Space
+            client.predict("test.mp4", api_name="/predict") 
+            >> What a nice recording! # returns the result of the remote API call
+
+            client = Client("https://bec81a83-5b5c-471e.gradio.live")  # connecting to a temporary Gradio share URL
+            job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread 
+            job.result()  
+            >> 49 # returns the result of the remote API call (blocking call)
         """
         self.hf_token = hf_token
         self.headers = build_hf_headers(
@@ -85,10 +97,15 @@ class Client:
         Calls the Gradio API and returns the result (this is a blocking call).
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
-            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
+        Example:
+            from gradio_client import Client            
+            client = Client(src="gradio/calculator")
+            client.predict(5, "add", 4, api_name="/predict")
+            >> 9.0
         """
         return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
@@ -103,11 +120,19 @@ class Client:
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
-            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            job = client.submit(5, "add", 4, api_name="/predict")
+            job.status()
+            >> <Status.STARTING: 'STARTING'>
+            job.result()  # blocking call
+            >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
