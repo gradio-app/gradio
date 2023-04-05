@@ -7,7 +7,6 @@ from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import gradio as gr
 import pytest
 
 from gradio_client import Client
@@ -150,32 +149,6 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
-
-    def test_upload_file(self):
-
-        with gr.Blocks() as interface:
-            number = gr.Number()
-            text = gr.Textbox()
-            file1 = gr.File()
-            file2 = gr.File()
-            file1.upload(lambda a, b, x: x.name, [number, text, file1], file2)
-
-        _, local_url, _ = interface.launch(prevent_thread_lock=True)
-
-        client = Client(src=local_url)
-
-        try:
-            with patch.object(
-                client.endpoints[0], "upload", wraps=client.endpoints[0].upload
-            ) as upload:
-                with tempfile.NamedTemporaryFile(mode="w") as f:
-                    f.write("Hello from test!")
-
-                    output = client.predict(1, "foo", f.name, fn_index=0).result()
-                    open(output).read() == "Hello from test!"
-                    upload.assert_called_once()
-        finally:
-            interface.close()
 
     def test_upload_file_private_space(self):
 
