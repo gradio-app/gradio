@@ -23,11 +23,10 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 
-
 set_documentation_group("py-client")
 
 
-@document("predict", "submit", "view_api")
+@document("predict", "submit", "set_endpoint", "view_api")
 class Client:
     def __init__(
         self,
@@ -87,13 +86,25 @@ class Client:
         elif api_name and fn_index:
             raise ValueError("Cannot provide both api_name and fn_index.")
         elif api_name:
-            TODO
-            
-
-    def submit(self):
-        pass
+            pass  # TODO
 
     def predict(
+        self,
+        *args,
+        api_name: str | None = None,
+        fn_index: int | None = None,
+    ) -> Any:
+        """
+        Calls the Gradio API and returns the result (this is a blocking call).
+        Parameters:
+            *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.
+            fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+        Returns:
+            The result of the API call. Will be a Tuple if the API has multiple outputs.
+        """
+
+    def submit(
         self,
         *args,
         api_name: str | None = None,
@@ -101,6 +112,7 @@ class Client:
         result_callbacks: Callable | List[Callable] | None = None,
     ) -> Future:
         """
+        Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.

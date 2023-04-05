@@ -4,7 +4,7 @@ import warnings
 from typing import Type
 
 from gradio.blocks import BlockContext
-from gradio.documentation import document, set_documentation_group
+from gradio_client.documentation import document, set_documentation_group
 from gradio.events import Changeable, Selectable
 
 set_documentation_group("layout")
