@@ -95,7 +95,7 @@ class Client:
         fn_index: int | None = None,
     ) -> None:
         """
-        Sets the API endpoint to call when calling predict() or submit(). Sets the parameter names of the predict() and submit() methods to match the API endpoint for IDE autocomplete. Can be called multiple times to switch between API endpoints.
+        Sets the API endpoint to call when calling predict() or submit(). Sets the parameter names of the predict() and submit() methods to match the API endpoint for IDE autocomplete in interactive environments like jupyter notebooks and allows passing parameters in as keywords. Can be called multiple times to switch between API endpoints.
         Parameters:
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict".
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
@@ -146,6 +146,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+        **kwargs,
     ) -> Any:
         """
         Calls the Gradio API and returns the result (this is a blocking call).
@@ -153,6 +154,7 @@ class Client:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint. Should not be provided (will raise exception) if set_endpoint() has been called.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+            **kwargs: The keyword arguments to pass to the remote API. Keyword arguments can only be used if .set_endpoint() has been called.
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         Example:
@@ -169,6 +171,7 @@ class Client:
         api_name: str | None = None,
         fn_index: int | None = None,
         result_callbacks: Callable | List[Callable] | None = None,
+        **kwargs,
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
@@ -177,6 +180,7 @@ class Client:
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint. Should not be provided (will raise exception) if set_endpoint() has been called.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
+            **kwargs: The keyword arguments to pass to the remote API. Keyword arguments can only be used if .set_endpoint() has been called.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
         Example:
