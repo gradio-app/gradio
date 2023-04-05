@@ -159,7 +159,7 @@ class TestPredictionsFromSpaces:
         with patch.object(
             client.endpoints[0], "upload", wraps=client.endpoints[0].upload
         ) as upload:
-            with tempfile.NamedTemporaryFile(mode="w") as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
                 output = client.predict(1, "foo", f.name, fn_index=0).result()
@@ -175,7 +175,7 @@ class TestPredictionsFromSpaces:
         with patch.object(
             client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
         ) as serialize:
-            with tempfile.NamedTemporaryFile(mode="w") as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
                 output = client.predict(1, "foo", f.name, fn_index=0).result()
