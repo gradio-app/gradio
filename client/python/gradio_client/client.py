@@ -114,6 +114,7 @@ class Client:
 
         return job
 
+
     def view_api(
         self,
         all_endpoints: bool | None = None,
