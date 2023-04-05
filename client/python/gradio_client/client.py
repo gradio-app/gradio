@@ -19,10 +19,15 @@ from packaging import version
 from typing_extensions import Literal
 
 from gradio_client import serializing, utils
+from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 
 
+set_documentation_group("py-client")
+
+
+@document("predict", "submit", "view_api")
 class Client:
     def __init__(
         self,
@@ -70,6 +75,25 @@ class Client:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
 
+    def set_endpoint(
+        api_name: str | None = None,
+        fn_index: str | None = None,
+    ):
+        """
+        Sets the default API endpoint to call when predict() or submit() are  called without specifying an api_name or fn_index.
+        """
+        if not api_name and not fn_index:
+            raise ValueError("Must provide either api_name or fn_index.")
+        elif api_name and fn_index:
+            raise ValueError("Cannot provide both api_name and fn_index.")
+        elif api_name:
+            TODO
+            
+
+    def submit(
+        
+    )
+
     def predict(
         self,
         *args,
@@ -80,8 +104,8 @@ class Client:
         """
         Parameters:
             *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
-            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
-            fn_index: The index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint, or if set_endpoint() has been called.
+            fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
