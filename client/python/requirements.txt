@@ -4,4 +4,4 @@ packaging
 fsspec
 huggingface_hub>=0.13.0
 typing_extensions
-makefun==1.15.1
+makefun==1.15.1  # pinning as this we don't any breaking changes to affect the gradio_client library
