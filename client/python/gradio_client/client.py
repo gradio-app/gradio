@@ -104,6 +104,7 @@ class Client:
         Returns:
             The result of the API call. Will be a Tuple if the API has multiple outputs.
         """
+        return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
     def submit(
         self,
