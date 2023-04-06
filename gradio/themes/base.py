@@ -10,9 +10,9 @@ from typing import Dict, Iterable
 import huggingface_hub
 import requests
 import semantic_version as semver
+from gradio_client.documentation import document, set_documentation_group
 from huggingface_hub import CommitOperationAdd
 
-from gradio.documentation import document, set_documentation_group
 from gradio.themes.utils import (
     colors,
     fonts,
