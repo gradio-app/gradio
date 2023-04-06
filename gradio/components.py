@@ -5350,7 +5350,7 @@ class BarPlot(Plot):
         width: int | None = None,
         y_lim: List[int] | None = None,
         caption: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
         label: str | None = None,
         show_label: bool = True,
         visible: bool = True,
@@ -5649,6 +5649,7 @@ class Code(Changeable, IOComponent, StringSerializable):
         value: str | Tuple[str] | None = None,
         language: str | None = None,
         *,
+        lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
         show_label: bool = True,
@@ -5670,6 +5671,7 @@ class Code(Changeable, IOComponent, StringSerializable):
         """
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
+        self.lines = lines
         IOComponent.__init__(
             self,
             label=label,
@@ -5686,6 +5688,7 @@ class Code(Changeable, IOComponent, StringSerializable):
         return {
             "value": self.value,
             "language": self.language,
+            "lines": self.lines,
             **IOComponent.get_config(self),
         }
 
@@ -5709,7 +5712,7 @@ class Code(Changeable, IOComponent, StringSerializable):
         show_label: bool | None = None,
         visible: bool | None = None,
         language: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
     ):
         return {
             "label": label,
