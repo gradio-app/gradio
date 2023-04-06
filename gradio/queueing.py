@@ -430,7 +430,7 @@ class Queue:
                 except Exception:
                     pass
             self.active_jobs[self.active_jobs.index(events)] = None
-            for event in awake_events:
+            for event in events:
                 await self.clean_event(event)
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect
