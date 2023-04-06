@@ -272,34 +272,29 @@ class TestBlocksMethods:
 
         io = gr.Interface(iterate, None, gr.Number()).queue()
 
-        try:
-            with patch("gradio.queueing.Queue.reset_iterators") as mock_reset:
+        with patch("gradio.queueing.Queue.reset_iterators") as mock_reset:
 
-                # io.app.routes[index] = mock_reset
-                io.launch(prevent_thread_lock=True)
+            io.launch(prevent_thread_lock=True)
 
-                async with websockets.connect(
-                    f"{io.local_url.replace('http', 'ws')}queue/join"
-                ) as ws:
-                    completed = False
-                    i = 0
-                    while not completed:
-                        msg = json.loads(await ws.recv())
-                        if msg["msg"] == "send_data":
-                            await ws.send(
-                                json.dumps({"data": ["freddy"], "fn_index": 0})
-                            )
-                        if msg["msg"] == "send_hash":
-                            await ws.send(
-                                json.dumps({"fn_index": 0, "session_hash": "shdce"})
-                            )
-                        if msg["msg"] == "process_generating":
-                            i += 1
-                            if i == 3:
-                                completed = True
-                mock_reset.assert_called_once()
-        finally:
-            io.close()
+            async with websockets.connect(
+                f"{io.local_url.replace('http', 'ws')}queue/join"
+            ) as ws:
+                i = 0
+                completed = False
+                while not completed:
+                    msg = json.loads(await ws.recv())
+                    if msg["msg"] == "send_data":
+                        await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                    if msg["msg"] == "send_hash":
+                        await ws.send(
+                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
+                        )
+                    if msg["msg"] == "process_generating":
+                        if i == 2:
+                            completed = True
+                        i += 1
+            time.sleep(1)
+            mock_reset.assert_called_once()
 
     def test_function_types_documented_in_config(self):
         def continuous_fn():
