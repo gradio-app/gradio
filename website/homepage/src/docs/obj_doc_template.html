@@ -1,5 +1,9 @@
 {% if parent != "gradio" %}
-<div class="obj" id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}">
+  {% if parent == "gradio_client" %}
+    <div class="obj" id="{{ parent.lower() + '-' + obj['name'].lower() }}">
+  {% else %}
+    <div class="obj" id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}">
+  {% endif %}
 {% else %}
 <div class="obj" id="{{ obj['name'].lower() }}">
 {% endif %}

@@ -33,16 +33,16 @@ class Client:
     The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
     
     Example:
-            from gradio_client import Client
-            
-            client = Client("abidlabs/whisper-large-v2")  # connecting to a Hugging Face Space
-            client.predict("test.mp4", api_name="/predict") 
-            >> What a nice recording! # returns the result of the remote API call
+        from gradio_client import Client
+        
+        client = Client("abidlabs/whisper-large-v2")  # connecting to a Hugging Face Space
+        client.predict("test.mp4", api_name="/predict") 
+        >> What a nice recording! # returns the result of the remote API call
 
-            client = Client("https://bec81a83-5b5c-471e.gradio.live")  # connecting to a temporary Gradio share URL
-            job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread 
-            job.result()  
-            >> 49 # returns the result of the remote API call (blocking call)
+        client = Client("https://bec81a83-5b5c-471e.gradio.live")  # connecting to a temporary Gradio share URL
+        job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread 
+        job.result()  
+        >> 49 # returns the result of the remote API call (blocking call)
 
     """
     def __init__(
@@ -177,29 +177,45 @@ class Client:
         return_format: Literal["dict", "str"] | None = None,
     ) -> Dict | str | None:
         """
-        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the infor is returned in dictionary format, as shown below.
-            {
-                "named_endpoints": {
-                    "endpoint_1_name": {
-                        "parameters": {
-                            "parameter_1_name": ["python type", "description", "component_type"],
-                            "parameter_2_name": ["python type", "description", "component_type"],
-                        },
-                        "returns": {
-                            "value_1_name": ["python type", "description", "component_type"],
-                        }
-                    ...
-                "unnamed_endpoints": {
-                    "fn_index_1": {
-                        ...
-                    }
-                    ...
-            }
+        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
         
         Parameters:
             all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
             print_info: If True, prints the usage info to the console. If False, does not print the usage info.
             return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            client.view_api(return_format="dict")
+            >> {
+                'named_endpoints': {
+                    '/predict': {
+                        'parameters': {
+                            'num1': ['int | float', 'value', 'Number'],
+                            'operation': ['str', 'value', 'Radio'],
+                            'num2': ['int | float', 'value', 'Number']
+                            },
+                        'returns': {
+                            'output': ['int | float', 'value', 'Number']
+                            }
+                        }
+                    },
+                'unnamed_endpoints': {
+                    2: {
+                        'parameters': {
+                            'parameter_0': ['str', 'value', 'Dataset']
+                            },
+                        'returns': {
+                            'num1': ['int | float', 'value', 'Number'],
+                            'operation': ['str', 'value', 'Radio'],
+                            'num2': ['int | float', 'value', 'Number'],
+                            'output': ['int | float', 'value', 'Number']
+                            }
+                        }
+                    }
+                }
+            }
+
         """
         info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
             "named_endpoints": {},
