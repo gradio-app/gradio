@@ -2623,6 +2623,7 @@ class TestCode:
         assert code.get_config() == {
             "value": None,
             "language": None,
+            "lines": 5,
             "name": "code",
             "show_label": True,
             "label": None,
