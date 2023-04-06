@@ -382,22 +382,25 @@
           <div>
             <h2 id="clients-header"
                 class="text-4xl font-light mb-2 pt-2 text-orange-500">
-              Clients
+              Client libraries
             </h2>
             <p class="mt-8 text-lg">
-              Gradio supports two clients (Python and JS) that allow you to use any app as API.
+              The lightweight Gradio client libraries make it easy to use any Gradio app as an API.
+              We currently support a Python client libraries and are developing client 
+              libraries in other languages. 
             </p>
           </div>
         <div>
           <h3 class="text-4xl font-light my-4" id="python-client">
-            Python Client
+            Python client library
           </h3>
           <p class="mt-8 text-lg">
-            The Python client used for interacting with Gradio demos as an API is gradio_client. 
-            
-            You can install it using pip:
+            The Python client library is `gradio_client`. It is included in the latest
+            versions of the `gradio` package, but for a more lightweight experience, you
+            can install it using `pip` without having to install `gradio`:
           </p>
           <div class="codeblock"><pre><code class="lang-bash">pip install gradio_client</code></pre></div>
+          Here are the key classes and methods in the Python client library:
         </div>
         {% for component in docs["py-client"] %}
           {% with obj=component, parent="gradio_client" %}
