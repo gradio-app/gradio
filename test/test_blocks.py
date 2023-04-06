@@ -295,6 +295,7 @@ class TestBlocksMethods:
                         i += 1
             time.sleep(1)
             mock_reset.assert_called_once()
+            io.close()
 
     def test_function_types_documented_in_config(self):
         def continuous_fn():
