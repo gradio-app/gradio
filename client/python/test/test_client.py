@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 import time
+from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -20,7 +21,7 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        output = client.predict("male", 77, 10, api_name="/predict").result()
+        output = client.predict("male", 77, 10, api_name="/predict")
         assert json.load(open(output))["label"] == "Perishes"
         with pytest.raises(
             ValueError,
@@ -36,34 +37,34 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_private_space(self):
         client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
-        output = client.predict("abc", api_name="/predict").result()
+        output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
     @pytest.mark.flaky
     def test_state(self):
         client = Client("gradio-tests/increment")
-        output = client.predict(api_name="/increment_without_queue").result()
+        output = client.predict(api_name="/increment_without_queue")
         assert output == 1
-        output = client.predict(api_name="/increment_without_queue").result()
+        output = client.predict(api_name="/increment_without_queue")
         assert output == 2
-        output = client.predict(api_name="/increment_without_queue").result()
+        output = client.predict(api_name="/increment_without_queue")
         assert output == 3
         client.reset_session()
-        output = client.predict(api_name="/increment_without_queue").result()
+        output = client.predict(api_name="/increment_without_queue")
         assert output == 1
-        output = client.predict(api_name="/increment_with_queue").result()
+        output = client.predict(api_name="/increment_with_queue")
         assert output == 2
         client.reset_session()
-        output = client.predict(api_name="/increment_with_queue").result()
+        output = client.predict(api_name="/increment_with_queue")
         assert output == 1
-        output = client.predict(api_name="/increment_with_queue").result()
+        output = client.predict(api_name="/increment_with_queue")
         assert output == 2
 
     @pytest.mark.flaky
     def test_job_status(self):
         statuses = []
         client = Client(src="gradio/calculator")
-        job = client.predict(5, "add", 4)
+        job = client.submit(5, "add", 4)
         while not job.done():
             time.sleep(0.1)
             statuses.append(job.status())
@@ -81,7 +82,7 @@ class TestPredictionsFromSpaces:
     def test_job_status_queue_disabled(self):
         statuses = []
         client = Client(src="freddyaboulton/sentiment-classification")
-        job = client.predict("I love the gradio python client", fn_index=0)
+        job = client.submit("I love the gradio python client", api_name="/classify")
         while not job.done():
             time.sleep(0.02)
             statuses.append(job.status())
@@ -89,9 +90,60 @@ class TestPredictionsFromSpaces:
         assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
 
     @pytest.mark.flaky
+    def test_intermediate_outputs(
+        self,
+    ):
+        client = Client(src="gradio/count_generator")
+        job = client.submit(3, api_name="/count")
+
+        while not job.done():
+            time.sleep(0.1)
+
+        assert job.outputs() == [str(i) for i in range(3)]
+
+        outputs = []
+        for o in client.submit(3, api_name="/count"):
+            outputs.append(o)
+        assert outputs == [str(i) for i in range(3)]
+
+    @pytest.mark.flaky
+    def test_break_in_loop_if_error(self):
+        calculator = Client(src="gradio/calculator")
+        job = calculator.submit("foo", "add", 4, fn_index=0)
+        output = [o for o in job]
+        assert output == []
+
+    @pytest.mark.flaky
+    def test_timeout(self):
+        with pytest.raises(TimeoutError):
+            client = Client(src="gradio/count_generator")
+            job = client.submit(api_name="/sleep")
+            job.result(timeout=0.05)
+
+    @pytest.mark.flaky
+    def test_timeout_no_queue(self):
+        with pytest.raises(TimeoutError):
+            client = Client(src="freddyaboulton/sentiment-classification")
+            job = client.submit(api_name="/sleep")
+            job.result(timeout=0.1)
+
+    @pytest.mark.flaky
+    def test_raises_exception(self):
+        with pytest.raises(Exception):
+            client = Client(src="freddyaboulton/calculator")
+            job = client.submit("foo", "add", 9, fn_index=0)
+            job.result()
+
+    @pytest.mark.flaky
+    def test_raises_exception_no_queue(self):
+        with pytest.raises(Exception):
+            client = Client(src="freddyaboulton/sentiment-classification")
+            job = client.submit([5], api_name="/sleep")
+            job.result()
+
     def test_job_output_video(self):
         client = Client(src="gradio/video_component")
-        job = client.predict(
+        job = client.submit(
             "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
             fn_index=0,
         )
@@ -168,7 +220,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.predict(5, "add", 6)
+        job = client.submit(5, "add", 6)
 
         statuses = []
         while not job.done():
@@ -240,8 +292,8 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job_1 = client.predict(5, "add", 6)
-        job_2 = client.predict(11, "subtract", 1)
+        job_1 = client.submit(5, "add", 6)
+        job_2 = client.submit(11, "subtract", 1)
 
         statuses_1 = []
         statuses_2 = []
