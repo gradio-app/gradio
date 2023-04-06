@@ -33,6 +33,7 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
@@ -43,7 +44,6 @@ import gradio.ranged_response as ranged_response
 from gradio import utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
-from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event

@@ -15,6 +15,9 @@ RUN pnpm build
 RUN pnpm build:website
 RUN pip install build awscli requests
 RUN pip install .
+WORKDIR /gradio/client/python
+RUN pip install .
+WORKDIR /gradio
 RUN python -m build -w
 ARG AWS_ACCESS_KEY_ID
 ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID

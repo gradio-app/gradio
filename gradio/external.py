@@ -10,11 +10,11 @@ from typing import TYPE_CHECKING, Callable, Dict
 
 import requests
 from gradio_client import Client
+from gradio_client.documentation import document, set_documentation_group
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
