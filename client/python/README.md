@@ -1,21 +1,25 @@
-# `gradio_client`: Use any Gradio app as an API -- in 3 lines of Python
+# `gradio_client`: Use a Gradio app as an API -- in 3 lines of Python
 
-This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. Warning: This library is **currently in alpha, and APIs may change**.
+This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. 
 
-As an example, consider the Stable Diffusion Gradio app, which is hosted on Hugging Face Spaces, and which generates images given a text prompt. Using the `gradio_client` library, we can easily use the Gradio as an API to generates images programmatically.
+As an example, consider [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/whisper-screenshot.jpg)
+
+Using the `gradio_client` library, we can easily use the Gradio as an API to transcribe audio files programmatically.
 
 Here's the entire code to do it:
 
 ```python
-import gradio_client as grc
+from gradio_client import Client
 
-client = grc.Client("stabilityai/stable-diffusion")
-job = client.predict("a hyperrealistic portrait of a cat wearing cyberpunk armor", "", fn_index=1)
-job.result()
+client = Client("abidlabs/whisper") 
+client.predict("audio_sample.wav")  
 
->> /Users/usersname/b8c26657-df87-4508-aa75-eb37cd38735f  # Path to generatoed gallery of images
-
+>> "This is a test of the whisper speech recognition model."
 ```
+
+The client works with any Gradio Space, whether it be an image generator, a stateful chatbot, or a tax calculator.
 
 ## Installation
 
@@ -31,53 +35,53 @@ $ pip install gradio_client
 
 ### Connecting to a Space or a Gradio app
 
-Start by connecting instantiating a `Client` object and connecting it to a Gradio app 
-that is running on Spaces (or anywhere else)!
+Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Spaces (or anywhere else)!
 
 **Connecting to a Space**
 
 ```python
-import gradio_client as grc
+from gradio_client import Client
 
-client = grc.Client("abidlabs/en2fr")
+client = Client("abidlabs/en2fr")  # a Space that translates from English to French
 ```
 
 **Connecting a general Gradio app**
 
-If your app is running somewhere else, provide the full URL instead to the `src` argument. Here's an example of making predictions to a Gradio app that is running on a share URL:
+If your app is running somewhere else, just provide the full URL instead. Here's an example of making predictions to a Gradio app that is running on a share URL:
 
 ```python
-import gradio_client as grc
+from gradio_client import Client
 
-client = grc.Client(src="btd372-js72hd.gradio.app")
+client = Client("https://bec81a83-5b5c-471e.gradio.live")
 ```
 
 ### Making a prediction
 
-The simplest way to make a prediction is simply to call the `.predict()` function with the appropriate arguments and then immediately calling `.result()`, like this:
+The simplest way to make a prediction is simply to call the `.predict()` function with the appropriate arguments:
 
 ```python
-import gradio_client as grc
+from gradio_client import Client
 
-client = grc.Client(space="abidlabs/en2fr")
-
-client.predict("Hello").result()
+client = Client("abidlabs/en2fr")
+client.predict("Hello")
 
 >> Bonjour
 ```
 
+For certain inputs, such as images, you should pass in the filepath or URL to the file. Likewise, for the corresponding output types, you will get a filepath or URL returned. 
+
+
 **Running jobs asyncronously**
 
-Oe should note that `.result()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
+Oe should note that `.predict()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
 
-In many cases, you may be better off letting the job run asynchronously and waiting to call `.result()` when you need the results of the prediction. For example:
+In many cases, you may be better off letting the job run in the background until you need the results of the prediction. You can do this by creating a job using the `.submit()` method, and then calling `.result()` on the job to get the result. For example:
 
 ```python
-import gradio_client as grc
+from gradio_client import Client
 
-client = grc.Client(space="abidlabs/en2fr")
-
-job = client.predict("Hello")
+client = Client(space="abidlabs/en2fr")
+job = client.submit("Hello")
 
 # Do something else
 
@@ -88,16 +92,18 @@ job.result()
 
 **Adding callbacks**
 
-Alternatively, one can add callbacks to perform actions after the job has completed running, like this:
+Alternatively, one can add one or more callbacks to perform actions after the job has completed running, like this:
 
 ```python
-import gradio_client as grc
-
+from gradio_client import Client
 
 def print_result(x):
     print("The translated result is: {x}")
 
-client = grc.Client(space="abidlabs/en2fr")
+client = Client(space="abidlabs/en2fr")
 
-job = client.predict("Hello", callbacks=[print_result])
+job = client.predict("Hello", result_callbacks=[print_result])
+
+>> The translated result is: Bonjour
+
 ```
