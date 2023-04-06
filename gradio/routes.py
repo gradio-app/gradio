@@ -346,7 +346,6 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
-            print("RESETTING")
             if body.session_hash not in app.iterators:
                 return {"success": False}
             async with app.lock:
