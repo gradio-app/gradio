@@ -93,7 +93,7 @@ def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
-            if not(line.startswith("    ") or line.strip() == ""):
+            if not (line.startswith("    ") or line.strip() == ""):
                 print(line)
             assert (
                 line.startswith("    ") or line.strip() == ""
