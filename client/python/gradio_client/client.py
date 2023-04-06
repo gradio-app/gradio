@@ -20,11 +20,32 @@ from packaging import version
 from typing_extensions import Literal
 
 from gradio_client import serializing, utils
+from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 
+set_documentation_group("py-client")
 
+
+@document("predict", "submit", "view_api")
 class Client:
+    """
+    The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
+
+    Example:
+        from gradio_client import Client
+
+        client = Client("abidlabs/whisper-large-v2")  # connecting to a Hugging Face Space
+        client.predict("test.mp4", api_name="/predict")
+        >> What a nice recording! # returns the result of the remote API call
+
+        client = Client("https://bec81a83-5b5c-471e.gradio.live")  # connecting to a temporary Gradio share URL
+        job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread
+        job.result()
+        >> 49 # returns the result of the remote API call (blocking call)
+
+    """
+
     def __init__(
         self,
         src: str,
@@ -33,7 +54,7 @@ class Client:
     ):
         """
         Parameters:
-            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/pictionary") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
+            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         """
@@ -76,16 +97,49 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+    ) -> Any:
+        """
+        Calls the Gradio API and returns the result (this is a blocking call).
+
+        Parameters:
+            args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
+            fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+        Returns:
+            The result of the API call. Will be a Tuple if the API has multiple outputs.
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            client.predict(5, "add", 4, api_name="/predict")
+            >> 9.0
+        """
+        return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
+
+    def submit(
+        self,
+        *args,
+        api_name: str | None = None,
+        fn_index: int | None = None,
         result_callbacks: Callable | List[Callable] | None = None,
     ) -> Job:
         """
+        Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
+
         Parameters:
-            *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
-            fn_index: The index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
+            fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
         Returns:
             A Job object that can be used to retrieve the status and result of the remote API call.
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            job = client.submit(5, "add", 4, api_name="/predict")
+            job.status()
+            >> <Status.STARTING: 'STARTING'>
+            job.result()  # blocking call
+            >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
@@ -124,29 +178,45 @@ class Client:
         return_format: Literal["dict", "str"] | None = None,
     ) -> Dict | str | None:
         """
-        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately.
+        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
+
         Parameters:
             all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
             print_info: If True, prints the usage info to the console. If False, does not print the usage info.
             return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
-        Dictionary format:
-            {
-                "named_endpoints": {
-                    "endpoint_1_name": {
-                        "parameters": {
-                            "parameter_1_name": ["python type", "description", "component_type"],
-                            "parameter_2_name": ["python type", "description", "component_type"],
-                        },
-                        "returns": {
-                            "value_1_name": ["python type", "description", "component_type"],
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            client.view_api(return_format="dict")
+            >> {
+                'named_endpoints': {
+                    '/predict': {
+                        'parameters': {
+                            'num1': ['int | float', 'value', 'Number'],
+                            'operation': ['str', 'value', 'Radio'],
+                            'num2': ['int | float', 'value', 'Number']
+                            },
+                        'returns': {
+                            'output': ['int | float', 'value', 'Number']
+                            }
                         }
-                    ...
-                "unnamed_endpoints": {
-                    "fn_index_1": {
-                        ...
+                    },
+                'unnamed_endpoints': {
+                    2: {
+                        'parameters': {
+                            'parameter_0': ['str', 'value', 'Dataset']
+                            },
+                        'returns': {
+                            'num1': ['int | float', 'value', 'Number'],
+                            'operation': ['str', 'value', 'Radio'],
+                            'num2': ['int | float', 'value', 'Number'],
+                            'output': ['int | float', 'value', 'Number']
+                            }
+                        }
                     }
-                    ...
+                }
             }
+
         """
         info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
             "named_endpoints": {},
@@ -549,14 +619,28 @@ class Endpoint:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
 
+@document("result", "outputs", "status")
 class Job(Future):
-    """A Job is a thin wrapper over the Future class that can be cancelled."""
+    """
+    A Job is a wrapper over the Future class that represents a prediction call that has been
+    submitted by the Gradio client. This class is not meant to be instantiated directly, but rather
+    is created by the Client.submit() method.
+
+    A Job object includes methods to get the status of the prediction call, as well to get the outputs of
+    the prediction call. Job objects are also iterable, and can be used in a loop to get the outputs
+    of prediction calls as they become available for generator endpoints.
+    """
 
     def __init__(
         self,
         future: Future,
         communicator: Communicator | None = None,
     ):
+        """
+        Parameters:
+            future: The future object that represents the prediction call, created by the Client.submit() method
+            communicator: The communicator object that is used to communicate between the client and the background thread running the job
+        """
         self.future = future
         self.communicator = communicator
         self._counter = 0
@@ -581,37 +665,20 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def outputs(self) -> List[Tuple | Any]:
-        """Returns a list containing the latest outputs from the Job.
-
-        If the endpoint has multiple output components, the list will contain
-        a tuple of results. Otherwise, it will contain the results without storing them
-        in tuples.
-
-        For endpoints that are queued, this list will contain the final job output even
-        if that endpoint does not use a generator function.
+    def result(self, timeout=None) -> Any:
         """
-        if not self.communicator:
-            return []
-        else:
-            with self.communicator.lock:
-                return self.communicator.job.outputs
+        Return the result of the call that the future represents. Raises CancelledError: If the future was cancelled, TimeoutError: If the future didn't finish executing before the given timeout, and Exception: If the call raised then that exception will be raised.
 
-    def result(self, timeout=None):
-        """Return the result of the call that the future represents.
-
-        Args:
-            timeout: The number of seconds to wait for the result if the future
-                isn't done. If None, then there is no limit on the wait time.
-
+        Parameters:
+            timeout: The number of seconds to wait for the result if the future isn't done. If None, then there is no limit on the wait time.
         Returns:
             The result of the call that the future represents.
-
-        Raises:
-            CancelledError: If the future was cancelled.
-            TimeoutError: If the future didn't finish executing before the given
-                timeout.
-            Exception: If the call raised then that exception will be raised.
+        Example:
+            from gradio_client import Client
+            calculator = Client(src="gradio/calculator")
+            job = calculator.submit("foo", "add", 4, fn_index=0)
+            job.result(timeout=5)
+            >> 9
         """
         if self.communicator:
             timeout = timeout or float("inf")
@@ -633,7 +700,46 @@ class Job(Future):
         else:
             return super().result(timeout=timeout)
 
+    def outputs(self) -> List[Tuple | Any]:
+        """
+        Returns a list containing the latest outputs from the Job.
+
+        If the endpoint has multiple output components, the list will contain
+        a tuple of results. Otherwise, it will contain the results without storing them
+        in tuples.
+
+        For endpoints that are queued, this list will contain the final job output even
+        if that endpoint does not use a generator function.
+
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/count_generator")
+            job = client.submit(3, api_name="/count")
+            while not job.done():
+                time.sleep(0.1)
+            job.outputs()
+            >> ['0', '1', '2']
+        """
+        if not self.communicator:
+            return []
+        else:
+            with self.communicator.lock:
+                return self.communicator.job.outputs
+
     def status(self) -> StatusUpdate:
+        """
+        Returns the latest status update from the Job in the form of a StatusUpdate
+        object, which contains the following fields: code, rank, queue_size, success, time, eta.
+
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            job = client.submit(5, "add", 4, api_name="/predict")
+            job.status()
+            >> <Status.STARTING: 'STARTING'>
+            job.status().eta
+            >> 43.241  # seconds
+        """
         time = datetime.now()
         if self.done():
             if not self.future._exception:  # type: ignore
@@ -671,14 +777,3 @@ class Job(Future):
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
         return getattr(self.future, name)
-
-    def cancel(self) -> bool:
-        """Cancels the job."""
-        if self.future.cancelled() or self.future.done():
-            pass
-            return False
-        elif self.future.running():
-            pass  # TODO: Handle this case
-            return True
-        else:
-            return self.future.cancel()

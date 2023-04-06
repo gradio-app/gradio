@@ -32,6 +32,7 @@ import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
     BooleanSerializable,
     FileSerializable,
@@ -50,7 +51,6 @@ from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
     Changeable,
