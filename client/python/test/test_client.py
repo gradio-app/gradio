@@ -1,6 +1,8 @@
 import json
 import os
+import pathlib
 import time
+from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -80,12 +82,72 @@ class TestPredictionsFromSpaces:
     def test_job_status_queue_disabled(self):
         statuses = []
         client = Client(src="freddyaboulton/sentiment-classification")
-        job = client.predict("I love the gradio python client", fn_index=0)
+        job = client.predict("I love the gradio python client", api_name="/classify")
         while not job.done():
             time.sleep(0.02)
             statuses.append(job.status())
         statuses.append(job.status())
         assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+
+    @pytest.mark.flaky
+    def test_intermediate_outputs(
+        self,
+    ):
+        client = Client(src="gradio/count_generator")
+        job = client.predict(3, api_name="/count")
+
+        while not job.done():
+            time.sleep(0.1)
+
+        assert job.outputs() == [str(i) for i in range(3)]
+
+        outputs = []
+        for o in client.predict(3, api_name="/count"):
+            outputs.append(o)
+        assert outputs == [str(i) for i in range(3)]
+
+    @pytest.mark.flaky
+    def test_break_in_loop_if_error(self):
+        calculator = Client(src="gradio/calculator")
+        job = calculator.predict("foo", "add", 4, fn_index=0)
+        output = [o for o in job]
+        assert output == []
+
+    @pytest.mark.flaky
+    def test_timeout(self):
+        with pytest.raises(TimeoutError):
+            client = Client(src="gradio/count_generator")
+            job = client.predict(api_name="/sleep")
+            job.result(timeout=0.05)
+
+    @pytest.mark.flaky
+    def test_timeout_no_queue(self):
+        with pytest.raises(TimeoutError):
+            client = Client(src="freddyaboulton/sentiment-classification")
+            job = client.predict(api_name="/sleep")
+            job.result(timeout=0.1)
+
+    @pytest.mark.flaky
+    def test_raises_exception(self):
+        with pytest.raises(Exception):
+            client = Client(src="freddyaboulton/calculator")
+            job = client.predict("foo", "add", 9, fn_index=0)
+            job.result()
+
+    @pytest.mark.flaky
+    def test_raises_exception_no_queue(self):
+        with pytest.raises(Exception):
+            client = Client(src="freddyaboulton/sentiment-classification")
+            job = client.predict([5], api_name="/sleep")
+            job.result()
+
+    def test_job_output_video(self):
+        client = Client(src="gradio/video_component")
+        job = client.predict(
+            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+            fn_index=0,
+        )
+        assert pathlib.Path(job.result()).exists()
 
 
 class TestStatusUpdates:
@@ -244,6 +306,12 @@ class TestStatusUpdates:
 
 
 class TestAPIInfo:
+    @pytest.mark.parametrize("trailing_char", ["/", ""])
+    def test_test_endpoint_src(self, trailing_char):
+        src = "https://gradio-calculator.hf.space" + trailing_char
+        client = Client(src=src)
+        assert client.endpoints[0].root_url == "https://gradio-calculator.hf.space/"
+
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
