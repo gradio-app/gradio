@@ -649,7 +649,7 @@ class Job(Future):
         """
         Parameters:
             future: The future object that represents the prediction call, created by the Client.submit() method
-            communicator: The c ommunicator object that is used to communicate between the client and the background thread running the job
+            communicator: The communicator object that is used to communicate between the client and the background thread running the job
             verbose: Whether to print any status-related messages to the console
             space_id: The space ID corresponding to the Client object that created this Job object
         """
@@ -787,7 +787,7 @@ class Job(Future):
             else:
                 with self.communicator.lock:
                     eta = self.communicator.job.latest_status.eta
-                    if self.verbose and self.space_id and eta and eta > 0:
+                    if self.verbose and self.space_id and eta and eta > 30:
                         print(
                             f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
                             f"For faster predictions without waiting in queue, you may duplicate the space: {utils.DUPLICATE_URL.format(self.space_id)}"
