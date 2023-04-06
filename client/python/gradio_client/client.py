@@ -545,7 +545,7 @@ class Endpoint:
         """Helper function to modify the input data with the uploaded files."""
         file_counter = 0
         for i, t in enumerate(self.input_component_types):
-            if t == "file":
+            if t in ["file", "uploadbutton"]:
                 data[i] = files[file_counter]
                 file_counter += 1
 
@@ -558,7 +558,11 @@ class Endpoint:
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
 
-        files = [f for f, t in zip(data, self.input_component_types) if t == "file"]
+        files = [
+            f
+            for f, t in zip(data, self.input_component_types)
+            if t in ["file", "uploadbutton"]
+        ]
         uploaded_files = self.upload(files)
         self._add_uploaded_files_to_data(uploaded_files, data)
 
