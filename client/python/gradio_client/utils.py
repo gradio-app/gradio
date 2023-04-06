@@ -13,6 +13,7 @@ from enum import Enum
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
+from concurrent.futures import CancelledError
 
 import fsspec.asyn
 import requests
@@ -129,6 +130,7 @@ class Communicator:
     lock: Lock
     job: JobStatus
     deserialize: Callable[..., Tuple]
+    should_cancel: bool = False
 
 
 ########################
@@ -156,6 +158,10 @@ async def get_pred_from_ws(
     completed = False
     resp = {}
     while not completed:
+        if helper:
+            with helper.lock:
+                if helper.should_cancel:
+                    raise CancelledError()
         msg = await websocket.recv()
         resp = json.loads(msg)
         if helper:

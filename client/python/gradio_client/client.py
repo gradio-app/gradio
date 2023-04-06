@@ -797,3 +797,11 @@ class Job(Future):
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
         return getattr(self.future, name)
+
+    def cancel(self) -> bool:
+        """Cancels the job."""
+        if self.communicator:
+            with self.communicator.lock:
+                self.communicator.should_cancel = True
+                return True
+        return self.future.cancel()
