@@ -596,8 +596,11 @@ class Endpoint:
             return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
 
+@document("result", "outputs", "status")
 class Job(Future):
-    """A Job is a thin wrapper over the Future class that can be cancelled."""
+    """A Job is a wrapper over the Future class that represents a prediction call that has been
+    submitted by the Gradio client. It can be used to get the status of, or the intermediate or final 
+    results, of the prediction call."""
 
     def __init__(
         self,
@@ -628,37 +631,24 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def outputs(self) -> List[Tuple | Any]:
-        """Returns a list containing the latest outputs from the Job.
-
-        If the endpoint has multiple output components, the list will contain
-        a tuple of results. Otherwise, it will contain the results without storing them
-        in tuples.
-
-        For endpoints that are queued, this list will contain the final job output even
-        if that endpoint does not use a generator function.
-        """
-        if not self.communicator:
-            return []
-        else:
-            with self.communicator.lock:
-                return self.communicator.job.outputs
-
-    def result(self, timeout=None):
+    def result(self, timeout=None) -> Any:
         """Return the result of the call that the future represents.
-
-        Args:
+        Parameters:
             timeout: The number of seconds to wait for the result if the future
                 isn't done. If None, then there is no limit on the wait time.
-
         Returns:
             The result of the call that the future represents.
-
         Raises:
             CancelledError: If the future was cancelled.
             TimeoutError: If the future didn't finish executing before the given
                 timeout.
             Exception: If the call raised then that exception will be raised.
+        Example:
+            from gradio_client import Client
+            calculator = Client(src="gradio/calculator")
+            job = calculator.submit("foo", "add", 4, fn_index=0)
+            job.result(timeout=5)
+            >> 9
         """
         if self.communicator:
             timeout = timeout or float("inf")
@@ -680,7 +670,43 @@ class Job(Future):
         else:
             return super().result(timeout=timeout)
 
+
+    def outputs(self) -> List[Tuple | Any]:
+        """Returns a list containing the latest outputs from the Job.
+
+        If the endpoint has multiple output components, the list will contain
+        a tuple of results. Otherwise, it will contain the results without storing them
+        in tuples.
+
+        For endpoints that are queued, this list will contain the final job output even
+        if that endpoint does not use a generator function.
+        
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/count_generator")
+            job = client.submit(3, api_name="/count")
+            while not job.done():
+                time.sleep(0.1)
+            job.outputs()
+            >> ['0', '1', '2']
+        """
+        if not self.communicator:
+            return []
+        else:
+            with self.communicator.lock:
+                return self.communicator.job.outputs
+
+
     def status(self) -> StatusUpdate:
+        """Returns the latest status update from the Job in the form of a StatusUpdate
+        object, which contains the following fields: code, rank, queue_size, success, time, eta.
+        Example:
+            from gradio_client import Client
+            client = Client(src="gradio/calculator")
+            job = client.submit(5, "add", 4, api_name="/predict")
+            job.status()
+            >> <Status.STARTING: 'STARTING'>
+        """
         time = datetime.now()
         if self.done():
             if not self.future._exception:  # type: ignore
@@ -718,14 +744,3 @@ class Job(Future):
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
         return getattr(self.future, name)
-
-    def cancel(self) -> bool:
-        """Cancels the job."""
-        if self.future.cancelled() or self.future.done():
-            pass
-            return False
-        elif self.future.running():
-            pass  # TODO: Handle this case
-            return True
-        else:
-            return self.future.cancel()
