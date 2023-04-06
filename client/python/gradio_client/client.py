@@ -625,8 +625,8 @@ class Job(Future):
     A Job is a wrapper over the Future class that represents a prediction call that has been
     submitted by the Gradio client. This class is not meant to be instantiated directly, but rather
     is created by the Client.submit() method.
-    
-    A Job object includes methods to get the status of the prediction call, as well to get the outputs of 
+
+    A Job object includes methods to get the status of the prediction call, as well to get the outputs of
     the prediction call. Job objects are also iterable, and can be used in a loop to get the outputs
     of prediction calls as they become available for generator endpoints.
     """
