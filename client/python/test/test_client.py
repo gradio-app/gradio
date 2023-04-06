@@ -162,7 +162,19 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-                output = client.predict(1, "foo", f.name, fn_index=0).result()
+                output = client.submit(
+                    1, "foo", f.name, api_name="/file_upload"
+                ).result()
+                open(output).read() == "Hello from private space!"
+                upload.assert_called_once()
+
+        with patch.object(
+            client.endpoints[1], "upload", wraps=client.endpoints[0].upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                f.write("Hello from private space!")
+
+                output = client.submit(f.name, api_name="/upload_btn").result()
                 open(output).read() == "Hello from private space!"
                 upload.assert_called_once()
 
@@ -178,7 +190,7 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-                output = client.predict(1, "foo", f.name, fn_index=0).result()
+                output = client.submit(1, "foo", f.name, fn_index=0).result()
                 open(output).read() == "Hello from private space!"
                 serialize.assert_called_once_with(1, "foo", f.name)
 

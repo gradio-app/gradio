@@ -315,6 +315,7 @@ class GallerySerializable(Serializable):
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
 SERIALIZER_MAPPING["Serializable"] = SimpleSerializable
 SERIALIZER_MAPPING["File"] = FileSerializable
+SERIALIZER_MAPPING["UploadButton"] = FileSerializable
 
 COMPONENT_MAPPING: Dict[str, type] = {
     "textbox": StringSerializable,
