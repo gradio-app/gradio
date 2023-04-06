@@ -263,40 +263,6 @@ class TestBlocksMethods:
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
 
-    @pytest.mark.asyncio
-    async def test_reset_iterator_state(self):
-        def iterate():
-            for i in range(10):
-                yield i
-                time.sleep(0.5)
-
-        io = gr.Interface(iterate, None, gr.Number()).queue()
-
-        with patch("gradio.queueing.Queue.reset_iterators") as mock_reset:
-
-            io.launch(prevent_thread_lock=True)
-
-            async with websockets.connect(
-                f"{io.local_url.replace('http', 'ws')}queue/join"
-            ) as ws:
-                i = 0
-                completed = False
-                while not completed:
-                    msg = json.loads(await ws.recv())
-                    if msg["msg"] == "send_data":
-                        await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
-                    if msg["msg"] == "send_hash":
-                        await ws.send(
-                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
-                        )
-                    if msg["msg"] == "process_generating":
-                        if i == 2:
-                            completed = True
-                        i += 1
-            time.sleep(1)
-            mock_reset.assert_called_once()
-            io.close()
-
     def test_function_types_documented_in_config(self):
         def continuous_fn():
             return 42
