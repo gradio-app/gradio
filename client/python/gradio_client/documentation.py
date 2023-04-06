@@ -93,6 +93,8 @@ def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
+            if not(line.startswith("    ") or line.strip() == ""):
+                print(line)
             assert (
                 line.startswith("    ") or line.strip() == ""
             ), f"Documentation format for {fn.__name__} has format error in line: {line}"
@@ -114,7 +116,7 @@ def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
     for param_name, param in signature.parameters.items():
         if param_name.startswith("_"):
             continue
-        if param_name == "kwargs" and param_name not in parameters:
+        if param_name in ["kwargs", "args"] and param_name not in parameters:
             continue
         parameter_doc = {
             "name": param_name,
@@ -130,8 +132,11 @@ def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
             if default.__class__.__module__ != "builtins":
                 default = f"{default.__class__.__name__}()"
             parameter_doc["default"] = default
-        elif parameter_doc["doc"] is not None and "kwargs" in parameter_doc["doc"]:
-            parameter_doc["kwargs"] = True
+        elif parameter_doc["doc"] is not None:
+            if "kwargs" in parameter_doc["doc"]:
+                parameter_doc["kwargs"] = True
+            if "args" in parameter_doc["doc"]:
+                parameter_doc["args"] = True
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0

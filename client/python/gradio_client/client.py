@@ -29,19 +29,10 @@ set_documentation_group("py-client")
 
 @document("predict", "submit", "view_api")
 class Client:
-    def __init__(
-        self,
-        src: str,
-        hf_token: str | None = None,
-        max_workers: int = 40,
-    ):
-        """
-        The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
-        Parameters:
-            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
-            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-        Example:
+    """
+    The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
+    
+    Example:
             from gradio_client import Client
             
             client = Client("abidlabs/whisper-large-v2")  # connecting to a Hugging Face Space
@@ -52,6 +43,19 @@ class Client:
             job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread 
             job.result()  
             >> 49 # returns the result of the remote API call (blocking call)
+
+    """
+    def __init__(
+        self,
+        src: str,
+        hf_token: str | None = None,
+        max_workers: int = 40,
+    ):
+        """
+        Parameters:
+            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
+            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
         """
         self.hf_token = hf_token
         self.headers = build_hf_headers(
@@ -95,8 +99,9 @@ class Client:
     ) -> Any:
         """
         Calls the Gradio API and returns the result (this is a blocking call).
+
         Parameters:
-            *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
         Returns:
@@ -118,8 +123,9 @@ class Client:
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
+        
         Parameters:
-            *args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
+            args: The arguments to pass to the remote API. The order of the arguments must match the order of the inputs in the Gradio app.
             api_name: The name of the API endpoint to call starting with a leading slash, e.g. "/predict". Does not need to be provided if the Gradio app has only one named API endpoint.
             fn_index: As an alternative to api_name, this parameter takes the index of the API endpoint to call, e.g. 0. Both api_name and fn_index can be provided, but if they conflict, api_name will take precedence.
             result_callbacks: A callback function, or list of callback functions, to be called when the result is ready. If a list of functions is provided, they will be called in order. The return values from the remote API are provided as separate parameters into the callback. If None, no callback will be called.
@@ -171,12 +177,7 @@ class Client:
         return_format: Literal["dict", "str"] | None = None,
     ) -> Dict | str | None:
         """
-        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately.
-        Parameters:
-            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
-            print_info: If True, prints the usage info to the console. If False, does not print the usage info.
-            return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
-        Dictionary format:
+        Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the infor is returned in dictionary format, as shown below.
             {
                 "named_endpoints": {
                     "endpoint_1_name": {
@@ -194,6 +195,11 @@ class Client:
                     }
                     ...
             }
+        
+        Parameters:
+            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
+            print_info: If True, prints the usage info to the console. If False, does not print the usage info.
+            return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         """
         info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
             "named_endpoints": {},
@@ -598,9 +604,11 @@ class Endpoint:
 
 @document("result", "outputs", "status")
 class Job(Future):
-    """A Job is a wrapper over the Future class that represents a prediction call that has been
+    """
+    A Job is a wrapper over the Future class that represents a prediction call that has been
     submitted by the Gradio client. It can be used to get the status of, or the intermediate or final 
-    results, of the prediction call."""
+    results, of the prediction call.
+    """
 
     def __init__(
         self,
@@ -632,17 +640,13 @@ class Job(Future):
                     raise StopIteration()
 
     def result(self, timeout=None) -> Any:
-        """Return the result of the call that the future represents.
+        """
+        Return the result of the call that the future represents. Raises CancelledError: If the future was cancelled, TimeoutError: If the future didn't finish executing before the given timeout, and Exception: If the call raised then that exception will be raised.
+
         Parameters:
-            timeout: The number of seconds to wait for the result if the future
-                isn't done. If None, then there is no limit on the wait time.
+            timeout: The number of seconds to wait for the result if the future isn't done. If None, then there is no limit on the wait time.
         Returns:
             The result of the call that the future represents.
-        Raises:
-            CancelledError: If the future was cancelled.
-            TimeoutError: If the future didn't finish executing before the given
-                timeout.
-            Exception: If the call raised then that exception will be raised.
         Example:
             from gradio_client import Client
             calculator = Client(src="gradio/calculator")
@@ -672,7 +676,8 @@ class Job(Future):
 
 
     def outputs(self) -> List[Tuple | Any]:
-        """Returns a list containing the latest outputs from the Job.
+        """
+        Returns a list containing the latest outputs from the Job.
 
         If the endpoint has multiple output components, the list will contain
         a tuple of results. Otherwise, it will contain the results without storing them
@@ -698,8 +703,10 @@ class Job(Future):
 
 
     def status(self) -> StatusUpdate:
-        """Returns the latest status update from the Job in the form of a StatusUpdate
+        """
+        Returns the latest status update from the Job in the form of a StatusUpdate
         object, which contains the following fields: code, rank, queue_size, success, time, eta.
+
         Example:
             from gradio_client import Client
             client = Client(src="gradio/calculator")

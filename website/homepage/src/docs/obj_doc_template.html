@@ -68,7 +68,7 @@
   {% else %}
   <div class="codeblock"><pre><code class="lang-python">{{ parent }}{% if obj["name"] != "__call__" %}.<span>{{ obj["name"] }}{% endif %}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "kwargs" not in param and "default" not in param and param["name"] != "self" %}<!--
+  -->{% if "kwargs" not in param and "args" not in param and "default" not in param and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
@@ -149,7 +149,7 @@
               <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
               {% if "default" in param %}
               <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
-              {% elif "kwargs" not in param %}
+              {% elif "kwargs" not in param and "args" not in param %}
               <p class="text-orange-600 font-semibold italic">required</p>
               {% endif %}
             </td>
