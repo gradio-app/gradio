@@ -16,7 +16,11 @@
 	export let root: string = "";
 	export let root_url: null | string = null;
 	export let value: Array<string> | Array<FileData> | null = null;
-	export let style: Styles = { grid: [2], height: "auto" };
+	export let style: Styles = {
+		grid_cols: [2],
+		object_fit: "cover",
+		height: "auto"
+	};
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -123,8 +127,7 @@
 	$: can_zoom = window_height >= height;
 
 	function add_height_to_styles(style: Styles): string {
-		styles = get_styles(style, ["grid"]).styles;
-
+		styles = get_styles(style, ["grid_cols", "grid_rows", "object_fit"]).styles;
 		return styles + ` height: ${style.height}`;
 	}
 
@@ -312,7 +315,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		overflow: hidden;
-		object-fit: cover;
+		object-fit: var(--object-fit);
 	}
 
 	.grid-wrap {
@@ -323,6 +326,7 @@
 
 	.grid-container {
 		display: grid;
+		grid-template-rows: var(--grid-rows);
 		grid-template-columns: var(--grid-cols);
 		gap: var(--spacing-lg);
 	}
@@ -356,7 +360,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		overflow: hidden;
-		object-fit: cover;
+		object-fit: var(--object-fit);
 	}
 
 	.thumbnail-lg:hover .caption-label {
