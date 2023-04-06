@@ -2,7 +2,7 @@
 
 This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. 
 
-As an example, consider [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
+As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/whisper-screenshot.jpg)
 
@@ -19,7 +19,7 @@ client.predict("audio_sample.wav")
 >> "This is a test of the whisper speech recognition model."
 ```
 
-The client works with any Gradio Space, whether it be an image generator, a stateful chatbot, or a tax calculator.
+The Gradio client works with any Gradio Space, whether it be an image generator, a stateful chatbot, or a tax calculator.
 
 ## Installation
 
@@ -45,11 +45,18 @@ from gradio_client import Client
 client = Client("abidlabs/en2fr")  # a Space that translates from English to French
 ```
 
-You can also connect to private Spaces by passing in your HF token with the `hf_token` parameter.
+You can also connect to private Spaces by passing in your HF token with the `hf_token` parameter. You can get your HF token here: https://huggingface.co/settings/tokens
+
+```python
+from gradio_client import Client
+
+client = Client("abidlabs/my-private-space", hf_token="...") 
+```
+
 
 **Connecting a general Gradio app**
 
-If your app is running somewhere else, just provide the full URL instead. Here's an example of making predictions to a Gradio app that is running on a share URL:
+If your app is running somewhere else, just provide the full URL instead, including the "http://" or "https://". Here's an example of making predictions to a Gradio app that is running on a share URL:
 
 ```python
 from gradio_client import Client
@@ -73,7 +80,7 @@ Named API endpoints: 1
      - [Textbox] value_0: str (value)
 ```
 
-This shows us how to use the API endpoint: we should call the `.predict()` method, providing a parameter `input_audio` of type `str`, which is a `filepath or URL`. 
+This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method, providing a parameter `input_audio` of type `str`, which is a `filepath or URL`. 
 
 We should also provide the `api_name='/predict'` argument. Although this isn't necessary if a Gradio app has a single named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
 
@@ -119,17 +126,17 @@ client.predict("https://audio-samples.github.io/samples/mp3/blizzard_uncondition
 
 Oe should note that `.predict()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
 
-In many cases, you may be better off letting the job run in the background until you need the results of the prediction. You can do this by creating a `Job` instance using the `.submit()` method, and then calling `.result()` on the job to get the result. For example:
+In many cases, you may be better off letting the job run in the background until you need the results of the prediction. You can do this by creating a `Job` instance using the `.submit()` method, and then later calling `.result()` on the job to get the result. For example:
 
 ```python
 from gradio_client import Client
 
 client = Client(space="abidlabs/en2fr")
-job = client.submit("Hello")
+job = client.submit("Hello", api_name="/predict")  # This is not blocking
 
 # Do something else
 
-job.result()
+job.result()  # This is blocking
 
 >> Bonjour
 ```
@@ -146,7 +153,9 @@ def print_result(x):
 
 client = Client(space="abidlabs/en2fr")
 
-job = client.predict("Hello", result_callbacks=[print_result])
+job = client.submit("Hello", api_name="/predict", result_callbacks=[print_result])
+
+# Do something else
 
 >> The translated result is: Bonjour
 
@@ -154,7 +163,7 @@ job = client.predict("Hello", result_callbacks=[print_result])
 
 **Status**
 
-The `Job` object also allows you to get the status of the running job by calling the `.status()` method. This returns a `StatusUpdate` object with attributes such as `code` and `eta`. 
+The `Job` object also allows you to get the status of the running job by calling the `.status()` method. This returns a `StatusUpdate` object with the following attributes: `code` (the status code, one of a set of defined strings representing the status. See the `utils.Status` class), `rank` (the current position of this job in the queue), `queue_size` (the total queue size),  `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` (the time that the status was generated). 
 
 ```py
 from gradio_client import Client
@@ -185,3 +194,19 @@ job.outputs()
 ```
 
 Note that running `job.result()` on a generator endpoint only gives you the *first* value returned by the endpoint. 
+
+The `Job` object is also iterable, which means you can use it to display the results of a generator function as they are returned from the endpoint. Here's the equivalent example using the `Job` as a generator:
+
+```py
+from gradio_client import Client
+
+client = Client(src="gradio/count_generator")
+job = client.submit(3, api_name="/count")
+
+for o in job:
+    print(o)
+
+>> 0
+>> 1
+>> 2
+```
