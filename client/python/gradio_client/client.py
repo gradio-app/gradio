@@ -356,12 +356,21 @@ class Client:
 
     def _get_config(self) -> Dict:
         r = requests.get(utils.CONFIG_URL.format(self.src), headers=self.headers)
-        if not r.ok:
-            raise ValueError(
-                f"Error fetching config from {self.src}. Please make sure the Space is "
-                "running Gradio 3.0 or higher."
-            )
-        return r.json()
+        if r.ok:
+            return r.json()
+        else:  # to support older versions of Gradio
+            r = requests.get(self.src, headers=self.headers)
+            # some basic regex to extract the config
+            result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
+            try:
+                config = json.loads(result.group(1))  # type: ignore
+            except AttributeError:
+                raise ValueError(f"Could not get Gradio config from: {self.src}")
+            if "allow_flagging" in config:
+                raise ValueError(
+                    "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
+                )
+            return config
 
 
 class Endpoint:
