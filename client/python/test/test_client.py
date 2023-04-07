@@ -5,7 +5,7 @@ import tempfile
 import time
 from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -162,11 +162,9 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-                output = client.submit(
-                    1, "foo", f.name, api_name="/file_upload"
-                ).result()
-                open(output).read() == "Hello from private space!"
-                upload.assert_called_once()
+            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
+            assert open(output).read() == "Hello from private space!"
+            upload.assert_called_once()
 
         with patch.object(
             client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
@@ -174,9 +172,25 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-                output = client.submit(f.name, api_name="/upload_btn").result()
-                open(output).read() == "Hello from private space!"
-                upload.assert_called_once()
+            output = client.submit(f.name, api_name="/upload_btn").result()
+            open(output).read() == "Hello from private space!"
+            upload.assert_called_once()
+
+        with patch.object(
+            client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
+
+                    f1.write("File1")
+                    f2.write("File2")
+
+            output = client.submit(
+                [f1.name, f2.name], api_name="/upload_multiple"
+            ).result()
+            assert open(output[0]).read() == "File1"
+            assert open(output[1]).read() == "File2"
+            upload.assert_called_once()
 
     def test_upload_file_upload_route_does_not_exist(self):
         client = Client(
@@ -432,3 +446,43 @@ class TestAPIInfo:
                 }
             },
         }
+
+
+class TestEndpoints:
+    @patch("builtins.open")
+    @patch("requests.post")
+    def test_upload(self, mock_post, mock_open):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
+
+        response = MagicMock(status_code=200)
+        response.json.return_value = [
+            "file1",
+            "file2",
+            "file3",
+            "file4",
+            "file5",
+            "file6",
+            "file7",
+        ]
+        mock_post.return_value = response
+        with patch.object(pathlib.Path, "name") as mock_name:
+            mock_name.side_effect = lambda x: x
+            results = client.endpoints[0]._upload(
+                ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+            )
+
+        res = []
+        for re in results:
+            if isinstance(re, list):
+                res.append([r["name"] for r in re])
+            else:
+                res.append(re["name"])
+
+        assert res == [
+            "file1",
+            ["file2", "file3", "file4"],
+            ["file5", "file6"],
+            "file7",
+        ]

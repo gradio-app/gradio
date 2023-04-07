@@ -531,24 +531,58 @@ class Endpoint:
             return outputs[0]
         return outputs
 
-    def _upload(self, file_paths: List[str]) -> List[str] | List[Dict[str, Any]]:
+    def _upload(
+        self, file_paths: List[str | List[str]]
+    ) -> List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]]:
         if not file_paths:
             return []
-        files = [("files", (Path(f).name, open(f, "rb"))) for f in file_paths]
+        # Put all the filepaths in one file
+        # but then keep track of which index in the
+        # original list they came from so we can recreate
+        # the original structure
+        files = []
+        indices = []
+        for i, fs in enumerate(file_paths):
+            if not isinstance(fs, list):
+                fs = [fs]
+            for f in fs:
+                files.append(("files", (Path(f).name, open(f, "rb"))))
+                indices.append(i)
         r = requests.post(
             self.client.upload_url, headers=self.client.headers, files=files
         )
         if r.status_code != 200:
             uploaded = file_paths
         else:
-            uploaded = [
-                {"is_file": True, "name": f, "orig_name": Path(o).name, "data": None}
-                for f, o in zip(r.json(), file_paths)
-            ]
+            uploaded = []
+            result = r.json()
+            for i, fs in enumerate(file_paths):
+                if isinstance(fs, list):
+                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
+                    res = [
+                        {
+                            "is_file": True,
+                            "name": o,
+                            "orig_name": Path(f).name,
+                            "data": None,
+                        }
+                        for f, o in zip(fs, output)
+                    ]
+                else:
+                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
+                    res = {
+                        "is_file": True,
+                        "name": o,
+                        "orig_name": Path(fs).name,
+                        "data": None,
+                    }
+                uploaded.append(res)
         return uploaded
 
     def _add_uploaded_files_to_data(
-        self, files: List[Dict[str, Any]] | List[str], data: List[Any]
+        self,
+        files: List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]],
+        data: List[Any],
     ) -> None:
         """Helper function to modify the input data with the uploaded files."""
         file_counter = 0
