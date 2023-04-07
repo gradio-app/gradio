@@ -179,7 +179,6 @@ class Client:
 
         return job
 
-
     def view_api(
         self,
         all_endpoints: bool | None = None,
@@ -230,9 +229,9 @@ class Client:
         r = requests.get(utils.API_INFO_URL.format(self.src), headers=self.headers)
         if r.ok:
             info = r.json()
-        else:  
-            pass # TODO: support older versions of Gradio
-        
+        else:
+            pass  # TODO: support older versions of Gradio
+
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -383,7 +382,7 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | None = None if api_name is None else "/" + api_name 
+        self.api_name: str | None = None if api_name is None else "/" + api_name
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
@@ -398,7 +397,7 @@ class Endpoint:
 
     def __repr__(self):
         return "{}"
-    
+
     def __str__(self):
         return json.dumps(self.get_info(), indent=4)
 

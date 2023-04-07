@@ -151,11 +151,17 @@ class ImgSerializable(Serializable):
 
 class FileSerializable(Serializable):
     """Expects a dict with base64 representation of object as input/output which is serialized to a filepath."""
-    
+
     def api_info(self) -> Dict[str, Tuple[str, str]]:
         return {
-            "raw_input": ("str | Dict", "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)"),
-            "raw_output": ("Dict", "dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False)"),
+            "raw_input": (
+                "str | Dict",
+                "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)",
+            ),
+            "raw_output": (
+                "Dict",
+                "dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False)",
+            ),
             "serialized_input": ("str", "filepath or URL to file"),
             "serialized_output": ("str", "filepath or URL to file"),
         }

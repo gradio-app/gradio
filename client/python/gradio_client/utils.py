@@ -303,7 +303,12 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
-def decode_base64_to_file(encoding: str, file_path: str | None =None, dir: str | Path | None =None, prefix: str | None =None):
+def decode_base64_to_file(
+    encoding: str,
+    file_path: str | None = None,
+    dir: str | Path | None = None,
+    prefix: str | None = None,
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
