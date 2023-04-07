@@ -1,6 +1,6 @@
 import os
 
-from gradio.documentation import document_cls, generate_documentation
+from gradio_client.documentation import document_cls, generate_documentation
 from gradio.events import EventListener
 
 from ..guides import guides
