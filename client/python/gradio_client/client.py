@@ -223,7 +223,7 @@ class Client:
         if r.ok:
             info = r.json()
         else:  
-            pass # TODO(@freddy): support older versions of Gradio
+            pass # TODO: support older versions of Gradio
         
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
@@ -390,7 +390,7 @@ class Endpoint:
 
     def __repr__(self):
         return "{}"
-api_name
+    
     def __str__(self):
         return json.dumps(self.get_info(), indent=4)
 

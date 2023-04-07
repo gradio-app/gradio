@@ -262,7 +262,7 @@ def encode_file_to_base64(f):
         )
 
 
-def encode_url_to_base64(url):
+def encode_url_to_base64(url: str):
     encoded_string = base64.b64encode(requests.get(url).content)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
@@ -279,7 +279,7 @@ def encode_url_or_file_to_base64(path: str | Path):
         return encode_file_to_base64(path)
 
 
-def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
+def decode_base64_to_binary(encoding: str) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
     try:
         data = encoding.split(",")[1]
@@ -301,7 +301,7 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
-def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
+def decode_base64_to_file(encoding: str, file_path: str | None =None, dir: str | Path | None =None, prefix: str | None =None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
@@ -329,7 +329,7 @@ def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
     return file_obj
 
 
-def dict_or_str_to_json_file(jsn, dir=None):
+def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | None = None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
 
@@ -343,7 +343,7 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path: str | Path) -> Dict:
+def file_to_json(file_path: str | Path) -> Dict | List:
     with open(file_path) as f:
         return json.load(f)
 

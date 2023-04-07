@@ -842,11 +842,13 @@ class Slider(
         self.cleared_value = self.value
         self.test_input = self.value
 
-    def input_api_info(self) -> Tuple[str, str]:
-        return "int | float", f"value between {self.minimum} and {self.maximum}"
-
-    def get_output_type(self) -> Tuple[str, str]:
-        return "int | float", f"value between {self.minimum} and {self.maximum})"
+    def api_info(self) -> Dict[str, Tuple[str, str]]:
+        return {
+            "raw_input": ("int | float", "value"),
+            "raw_output": ("int | float", "value"),
+            "serialized_input": ("int | float", "value"),
+            "serialized_output": ("int | float", "value"),
+        }
 
     def get_config(self):
         return {
