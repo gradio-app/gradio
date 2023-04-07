@@ -150,51 +150,30 @@ class FileSerializable(Serializable):
     def output_api_info(self) -> Tuple[str, str]:
         return "str", "filepath or URL"
 
-    def serialize(
-        self,
-        x: str | None,
-        load_dir: str | Path = "",
-    ) -> Dict | None:
-        """
-        Convert from human-friendly version of a file (string filepath) to a
-        seralized representation (base64)
-        Parameters:
-            x: String path to file to serialize
-            load_dir: Path to directory containing x
-        """
-        if x is None or x == "":
-            return None
+    def _serialize_single(self, x: str | dict, load_dir: str | Path = ""):
+        if isinstance(x, dict):
+            return x
         if utils.is_valid_url(x):
             filename = x
+            size = None
         else:
             filename = str(Path(load_dir) / x)
+            size = Path(filename).stat().st_size
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),
             "orig_name": Path(filename).name,
             "is_file": False,
+            "size": size,
         }
 
-    def deserialize(
+    def _deserialize_single(
         self,
-        x: str | Dict | None,
-        save_dir: Path | str | None = None,
+        x: str | dict,
+        save_dir: str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | None:
-        """
-        Convert from serialized representation of a file (base64) to a human-friendly
-        version (string filepath). Optionally, save the file to the directory specified by `save_dir`
-        Parameters:
-            x: Base64 representation of file to deserialize into a string filepath
-            save_dir: Path to directory to save the deserialized file to
-            root_url: If this component is loaded from an external Space, this is the URL of the Space.
-            hf_token: If this component is loaded from an external private Space, this is the access token for the Space
-        """
-        if x is None:
-            return None
-        if isinstance(save_dir, Path):
-            save_dir = str(save_dir)
+    ) -> str:
         if isinstance(x, str):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
@@ -216,6 +195,57 @@ class FileSerializable(Serializable):
                 f"A FileSerializable component can only deserialize a string or a dict, not a: {type(x)}"
             )
         return file_name
+
+    def serialize(
+        self,
+        x: str | dict | List[str | dict] | None,
+        load_dir: str | Path = "",
+    ) -> Dict | List[Dict] | None:
+        """
+        Convert from human-friendly version of a file (string filepath) to a
+        seralized representation (base64)
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+        """
+        if x is None or x == "":
+            return None
+        if isinstance(x, list):
+            return [self._serialize_single(f, load_dir=load_dir) for f in x]
+        else:
+            return self._serialize_single(x, load_dir=load_dir)
+
+    def deserialize(
+        self,
+        x: str | Dict | List[Dict | str] | None,
+        save_dir: Path | str | None = None,
+        root_url: str | None = None,
+        hf_token: str | None = None,
+    ) -> str | List[str] | None:
+        """
+        Convert from serialized representation of a file (base64) to a human-friendly
+        version (string filepath). Optionally, save the file to the directory specified by `save_dir`
+        Parameters:
+            x: Base64 representation of file to deserialize into a string filepath
+            save_dir: Path to directory to save the deserialized file to
+            root_url: If this component is loaded from an external Space, this is the URL of the Space.
+            hf_token: If this component is loaded from an external private Space, this is the access token for the Space
+        """
+        if x is None:
+            return None
+        if isinstance(save_dir, Path):
+            save_dir = str(save_dir)
+        if isinstance(x, list):
+            return [
+                self._deserialize_single(
+                    f, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+                )
+                for f in x
+            ]
+        else:
+            return self._deserialize_single(
+                x, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+            )
 
 
 class JSONSerializable(Serializable):
@@ -312,6 +342,8 @@ class GallerySerializable(Serializable):
 
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
 SERIALIZER_MAPPING["Serializable"] = SimpleSerializable
+SERIALIZER_MAPPING["File"] = FileSerializable
+SERIALIZER_MAPPING["UploadButton"] = FileSerializable
 
 COMPONENT_MAPPING: Dict[str, type] = {
     "textbox": StringSerializable,
