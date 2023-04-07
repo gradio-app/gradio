@@ -843,11 +843,12 @@ class Slider(
         self.test_input = self.value
 
     def api_info(self) -> Dict[str, Tuple[str, str]]:
+        description = f"numeric value between {self.minimum} and {self.maximum}"
         return {
-            "raw_input": ("int | float", "value"),
-            "raw_output": ("int | float", "value"),
-            "serialized_input": ("int | float", "value"),
-            "serialized_output": ("int | float", "value"),
+            "raw_input": ("int | float", description),
+            "raw_output": ("int | float", description),
+            "serialized_input": ("int | float", description),
+            "serialized_output": ("int | float", description),
         }
 
     def get_config(self):
@@ -1473,17 +1474,19 @@ class Dropdown(
 
         self.cleared_value = self.value or ([] if multiselect else "")
 
-    def input_api_info(self) -> Tuple[str, str]:
+    def api_info(self) -> Dict[str, Tuple[str, str]]:
         if self.multiselect:
-            return "List[str]", f"List of options from: {self.choices}"
+            type = "List[str]"
+            description = f"List of options from: {self.choices}"
         else:
-            return "str", f"Option from: {self.choices}"
-
-    def get_output_type(self) -> Tuple[str, str]:
-        if self.multiselect:
-            return "List[str]", f"List of options from: {self.choices}"
-        else:
-            return "str", f"Option from: {self.choices}"
+            type = "str"
+            description = f"Option from: {self.choices}"
+        return {
+            "raw_input": (type, description),
+            "raw_output": (type, description),
+            "serialized_input": (type, description),
+            "serialized_output": (type, description),
+        }
 
     def get_config(self):
         return {

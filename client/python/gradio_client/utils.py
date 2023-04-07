@@ -331,7 +331,7 @@ def decode_base64_to_file(encoding: str, file_path: str | None =None, dir: str |
     return file_obj
 
 
-def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | None = None):
+def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
 

@@ -79,10 +79,10 @@ class BooleanSerializable(Serializable):
 
     def api_info(self) -> Dict[str, Tuple[str, str]]:
         return {
-            "raw_input": ("bool", "value"),
-            "raw_output": ("bool", "value"),
-            "serialized_input": ("bool", "value"),
-            "serialized_output": ("bool", "value"),
+            "raw_input": ("bool", "boolean value"),
+            "raw_output": ("bool", "boolean value"),
+            "serialized_input": ("bool", "boolean value"),
+            "serialized_output": ("bool", "boolean value"),
         }
 
 
