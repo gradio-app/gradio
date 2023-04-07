@@ -175,6 +175,7 @@ class FileSerializable(Serializable):
             "data": utils.encode_url_or_file_to_base64(filename),
             "orig_name": Path(filename).name,
             "is_file": False,
+            "size": Path(filename).stat().st_size,
         }
 
     def deserialize(
