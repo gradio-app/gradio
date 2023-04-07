@@ -1035,11 +1035,14 @@ Received inputs:
             processed_input = inputs
         return processed_input
 
-    def validate_outputs(self, fn_index: int, predictions: List[Any]):
+    def validate_outputs(self, fn_index: int, predictions: Any | List[Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
         dep_outputs = dependency["outputs"]
+
+        if type(predictions) is not list:
+            predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
             name = f" ({block_fn.name})" if block_fn.name and block_fn.name != "<lambda>" else ""
