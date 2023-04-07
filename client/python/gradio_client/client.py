@@ -219,18 +219,12 @@ class Client:
             }
 
         """
-        info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
-            "named_endpoints": {},
-            "unnamed_endpoints": {},
-        }
-
-        for endpoint in self.endpoints:
-            if endpoint.is_valid:
-                if endpoint.api_name:
-                    info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
-                else:
-                    info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
-
+        r = requests.get(utils.API_INFO_URL.format(self.src), headers=self.headers)
+        if r.ok:
+            info = r.json()
+        else:  
+            pass # TODO(@freddy): support older versions of Gradio
+        
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -380,9 +374,8 @@ class Endpoint:
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
-        self.api_name: str | None = dependency.get("api_name")
-        if self.api_name:
-            self.api_name = "/" + self.api_name
+        api_name = dependency.get("api_name")
+        self.api_name: str | None = None if api_name is None else "/" + api_name 
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
@@ -395,65 +388,9 @@ class Endpoint:
         except AssertionError:
             self.is_valid = False
 
-    def get_info(self) -> Dict[str, Dict[str, List[str]]]:
-        """
-        Dictionary format:
-            {
-                "parameters": {
-                    "parameter_1_name": ["type", "description", "component_type"],
-                    "parameter_2_name": ["type", "description", "component_type"],
-                    ...
-                },
-                "returns": {
-                    "value_1_name": ["type", "description", "component_type"],
-                    ...
-                }
-            }
-        """
-        parameters = {}
-        for i, input in enumerate(self.dependency["inputs"]):
-            for component in self.client.config["components"]:
-                if component["id"] == input:
-                    label = (
-                        component["props"]
-                        .get("label", f"parameter_{i}")
-                        .lower()
-                        .replace(" ", "_")
-                    )
-                    if "info" in component:
-                        info = component["info"]["input"]
-                    else:
-                        info = self.serializers[i].input_api_info()
-                    info = list(info)
-                    component_type = component.get("type", "component").capitalize()
-                    info.append(component_type)
-                    if not component_type.lower() == utils.STATE_COMPONENT:
-                        parameters[label] = info
-        returns = {}
-        for o, output in enumerate(self.dependency["outputs"]):
-            for component in self.client.config["components"]:
-                if component["id"] == output:
-                    label = (
-                        component["props"]
-                        .get("label", f"value_{o}")
-                        .lower()
-                        .replace(" ", "_")
-                    )
-                    if "info" in component:
-                        info = component["info"]["output"]
-                    else:
-                        info = self.deserializers[o].output_api_info()
-                    info = list(info)
-                    component_type = component.get("type", "component").capitalize()
-                    info.append(component_type)
-                    if not component_type.lower() == utils.STATE_COMPONENT:
-                        returns[label] = info
-
-        return {"parameters": parameters, "returns": returns}
-
     def __repr__(self):
-        return json.dumps(self.get_info(), indent=4)
-
+        return "{}"
+api_name
     def __str__(self):
         return json.dumps(self.get_info(), indent=4)
 
