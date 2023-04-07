@@ -1180,18 +1180,15 @@ class Blocks(BlockContext):
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
-    
+
     def get_api_info(self):
         """
         Gets the information needed to generate the API docs. Should be run after the
         blocks has been exited (so that the config has been generated).
         """
-        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-        
+
         for dependency in self.config["dependencies"]:
-            
-            
-        
+            self.dependency["inputs"]
 
     def __enter__(self):
         if Context.block is None:

@@ -254,22 +254,7 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def get_api_info():
-            app.get_blocks().config
-            info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
-                "named_endpoints": {},
-                "unnamed_endpoints": {},
-            }
-
-            for endpoint in self.endpoints:
-                if endpoint.is_valid:
-                    if endpoint.api_name:
-                        info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
-                    else:
-                        info["unnamed_endpoints"][
-                            endpoint.fn_index
-                        ] = endpoint.get_info()
-
-            return app.get_blocks().config
+            return app.get_blocks().get_api_info()
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
