@@ -171,7 +171,7 @@ class FileSerializable(Serializable):
         self,
         x: str | dict | List[str | dict] | None,
         load_dir: str | Path = "",
-    ) -> Dict | None:
+    ) -> Dict | List[Dict] | None:
         """
         Convert from human-friendly version of a file (string filepath) to a
         seralized representation (base64)
