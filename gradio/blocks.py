@@ -1041,7 +1041,7 @@ Received inputs:
 
         dep_outputs = dependency["outputs"]
 
-        if type(predictions) is not list:
+        if type(predictions) is not list and type(predictions) is not tuple:
             predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
