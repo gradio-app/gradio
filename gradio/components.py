@@ -1577,6 +1577,7 @@ class Image(
     Clearable,
     Changeable,
     Streamable,
+    Selectable,
     Uploadable,
     IOComponent,
     ImgSerializable,
@@ -1683,6 +1684,7 @@ class Image(
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
