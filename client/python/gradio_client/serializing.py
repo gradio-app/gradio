@@ -168,14 +168,16 @@ class FileSerializable(Serializable):
             return x
         if utils.is_valid_url(x):
             filename = x
+            size = None
         else:
             filename = str(Path(load_dir) / x)
+            size = Path(filename).stat().st_size
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),
             "orig_name": Path(filename).name,
             "is_file": False,
-            "size": Path(filename).stat().st_size,
+            "size": size,
         }
 
     def deserialize(
