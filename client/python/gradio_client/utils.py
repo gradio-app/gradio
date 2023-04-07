@@ -22,6 +22,8 @@ API_URL = "{}/api/predict/"
 WS_URL = "{}/queue/join"
 CONFIG_URL = "{}/config"
 API_INFO_URL = "{}/info"
+DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+
 STATE_COMPONENT = "state"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
