@@ -20,8 +20,9 @@ import fsspec.asyn
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
-API_URL = "{}/api/predict/"
-WS_URL = "{}/queue/join"
+API_URL = "/api/predict/"
+WS_URL = "/queue/join"
+UPLOAD_URL = "/upload"
 DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
 STATE_COMPONENT = "state"
 
