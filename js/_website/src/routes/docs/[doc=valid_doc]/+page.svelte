@@ -17,6 +17,8 @@
     let components = data.components;
     let helpers = data.helpers;
     let routes = data.routes;
+    let py_client = data.py_client;
+
     let headers;
     let method_headers;
     $: headers = data.headers;
@@ -75,7 +77,7 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 
-  <DocsNav current_nav_link={obj.name.toLowerCase()} components={components} helpers={helpers} routes={routes} />
+  <DocsNav current_nav_link={obj.name.toLowerCase()} components={components} helpers={helpers} routes={routes} py_client={py_client} />
     
     <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
         <div>

@@ -4,6 +4,7 @@
     export let components;
     export let helpers;
     export let routes;
+    export let py_client;
 
     export let current_nav_link = "";
     
@@ -98,5 +99,11 @@ type="button" class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center ju
     {#each Object.entries(routes) as  [name, obj] ( name )}
         <a class:current-nav-link={current_nav_link == name}
         class="px-4 block thin-link" href="/docs/{ name }/">{ obj.name }</a>
-    {/each}       
+    {/each}   
+    <a class:current-nav-link={current_nav_link == 'python-client'} 
+    class="link px-4 my-2 block" href="/docs/python-client/">Python Client</a>
+    {#each Object.entries(py_client) as  [name, obj] ( name )}
+        <a class:current-nav-link={current_nav_link == name}
+        class="px-4 block thin-link" href="/docs/{ name }/">{ obj.name }</a>
+    {/each}           
 </div>

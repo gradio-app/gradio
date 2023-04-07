@@ -12,6 +12,8 @@ let docs = docs_json.docs;
 let components = docs_json.docs.components;
 let helpers = docs_json.docs.helpers;
 let routes = docs_json.docs.routes;
+let py_client = docs_json.docs["py-client"];
+
 
 const COLOR_SETS = [
     ["from-green-100", "to-green-50"],
@@ -104,6 +106,7 @@ export async function load({params}) {
         components,
         helpers,
         routes,
+        py_client,
         COLOR_SETS,
         headers,
         method_headers

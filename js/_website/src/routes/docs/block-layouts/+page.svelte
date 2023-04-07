@@ -18,6 +18,8 @@
     let routes = data.routes;
     let headers = data.headers;
     let method_headers = data.method_headers;
+    let py_client = data.py_client;
+
 
     let current_selection = 0;
     function handleAnchorClick (event) {
@@ -63,7 +65,7 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 
-    <DocsNav current_nav_link={"block-layouts"} components={components} helpers={helpers} routes={routes} />
+    <DocsNav current_nav_link={"block-layouts"} components={components} helpers={helpers} routes={routes} py_client={py_client} />
     
     <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
         <div>

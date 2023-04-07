@@ -146,7 +146,9 @@ def organize_docs(d):
                  "components": {}, 
                  "helpers": {}, 
                  "routes": {}, 
-                 "events": {}}
+                 "events": {},
+                 "py-client": {}
+                }
     pages = []
     for mode in d:
         for c in d[mode]: 
@@ -168,7 +170,7 @@ def organize_docs(d):
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
-            elif mode in ["helpers", "routes"]:
+            elif mode in ["helpers", "routes", "py-client"]:
                 organized[mode][c["name"].lower()] = c
                 pages.append(c["name"].lower())
             else:
@@ -206,9 +208,20 @@ def organize_docs(d):
             organized["routes"][cls]["next_obj"] =  organized["routes"][c_keys[1]]["name"]
         elif i == len(c_keys) - 1:
             organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[len(c_keys) - 2]]["name"]
+            organized["routes"][cls]["next_obj"] = "Python-Client"
         else:
             organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[i-1]]["name"]
             organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[i+1]]["name"]
+    c_keys = list(organized["py-client"].keys())
+    for i, cls in enumerate(organized["py-client"]): 
+        if not i: 
+            organized["py-client"][cls]["prev_obj"] = "Python-Client"
+            organized["py-client"][cls]["next_obj"] =  organized["py-client"][c_keys[1]]["name"]
+        elif i == len(c_keys) - 1:
+            organized["py-client"][cls]["prev_obj"] = organized["py-client"][c_keys[len(c_keys) - 2]]["name"]
+        else:
+            organized["py-client"][cls]["prev_obj"] = organized["py-client"][c_keys[i-1]]["name"]
+            organized["py-client"][cls]["next_obj"] = organized["py-client"][c_keys[i+1]]["name"]
 
     organized["ordered_events"] = ordered_events
     return {"docs": organized, "pages": pages}
