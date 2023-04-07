@@ -449,7 +449,6 @@ class Textbox(
         )
         TokenInterpretable.__init__(self)
         self.cleared_value = ""
-        self.test_input = value
         self.type = type
 
     def get_config(self):
@@ -643,7 +642,6 @@ class Number(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.test_input = self.value if self.value is not None else 1
 
     @staticmethod
     def _round_to_precision(num: float | int, precision: int | None) -> float | int:
@@ -840,7 +838,6 @@ class Slider(
         )
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
-        self.test_input = self.value
 
     def api_info(self) -> Dict[str, Tuple[str, str]]:
         description = f"numeric value between {self.minimum} and {self.maximum}"
@@ -979,7 +976,6 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.test_input = True
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects Checkbox.
@@ -1093,7 +1089,6 @@ class CheckboxGroup(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = self.choices
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects within CheckboxGroup.
@@ -1276,7 +1271,6 @@ class Radio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = self.choices[0] if len(self.choices) else None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Radio option.
@@ -1450,7 +1444,6 @@ class Dropdown(
             raise ValueError(
                 "Custom values are not supported when `multiselect` is True."
             )
-        self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
         """
@@ -1659,7 +1652,6 @@ class Image(
         else:
             self.tool = tool
         self.invert_colors = invert_colors
-        self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
@@ -2201,7 +2193,6 @@ class Audio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.streaming = streaming
         if streaming and source != "microphone":
             raise ValueError(
@@ -2491,7 +2482,6 @@ class File(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
         self.type = type
-        self.test_input = None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects file from list.
@@ -2740,7 +2730,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.test_input = [
+        self.empty_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
@@ -2834,7 +2824,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
-            return self.postprocess(self.test_input)
+            return self.postprocess(self.empty_input)
         if isinstance(y, dict):
             return y
         if isinstance(y, str):
@@ -3394,7 +3384,6 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.cleared_value = "#000000"
-        self.test_input = value
         IOComponent.__init__(
             self,
             label=label,
