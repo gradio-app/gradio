@@ -989,7 +989,11 @@ class Blocks(BlockContext):
         # Only check not enough args case, ignore extra arguments (for now)
         # TODO: make this stricter?
         if len(inputs) < len(dep_inputs):
-            name = f" ({block_fn.name})" if block_fn.name and block_fn.name != "<lambda>" else ""
+            name = (
+                f" ({block_fn.name})"
+                if block_fn.name and block_fn.name != "<lambda>"
+                else ""
+            )
 
             wanted_args = []
             received_args = []
@@ -1007,12 +1011,14 @@ class Blocks(BlockContext):
             received = ", ".join(received_args)
 
             # JS func didn't pass enough arguments
-            raise ValueError(f"""An event handler{name} didn't receive enough input values (needed: {len(dep_inputs)}, got: {len(inputs)}).
+            raise ValueError(
+                f"""An event handler{name} didn't receive enough input values (needed: {len(dep_inputs)}, got: {len(inputs)}).
 Check if the event handler calls a Javascript function, and make sure its return value is correct.
 Wanted inputs:
     [{wanted}]
 Received inputs:
-    [{received}]""")
+    [{received}]"""
+            )
 
     def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
         block_fn = self.fns[fn_index]
@@ -1045,7 +1051,11 @@ Received inputs:
             predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
-            name = f" ({block_fn.name})" if block_fn.name and block_fn.name != "<lambda>" else ""
+            name = (
+                f" ({block_fn.name})"
+                if block_fn.name and block_fn.name != "<lambda>"
+                else ""
+            )
 
             wanted_args = []
             received_args = []
@@ -1062,11 +1072,13 @@ Received inputs:
             wanted = ", ".join(wanted_args)
             received = ", ".join(received_args)
 
-            raise ValueError(f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
+            raise ValueError(
+                f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
 Wanted outputs:
     [{wanted}]
 Received outputs:
-    [{received}]""")
+    [{received}]"""
+            )
 
     def postprocess_data(
         self, fn_index: int, predictions: List | Dict, state: Dict[int, Any]
