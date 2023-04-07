@@ -29,8 +29,8 @@
 
 	export let mode: "static" | "dynamic";
 
-	const dispatch = createEventDispatcher<{ 
-		change: undefined,
+	const dispatch = createEventDispatcher<{
+		change: undefined;
 	}>();
 
 	$: value, dispatch("change");
