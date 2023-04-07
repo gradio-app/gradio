@@ -186,7 +186,7 @@ class TestPredictionsFromSpaces:
                     f2.write("File2")
 
             output = client.submit(
-                [f1.name, f2.name], api_name="/upload_multiple"
+                3, [f1.name, f2.name], "hello", api_name="/upload_multiple"
             ).result()
             assert open(output[0]).read() == "File1"
             assert open(output[1]).read() == "File2"
