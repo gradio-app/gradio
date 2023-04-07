@@ -396,10 +396,10 @@ class Endpoint:
             self.is_valid = False
 
     def __repr__(self):
-        return "{}"
+        return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 
     def __str__(self):
-        return json.dumps(self.get_info(), indent=4)
+        return self.__repr__()
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
 
