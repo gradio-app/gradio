@@ -38,6 +38,7 @@ No changes to highlight.
 
 ## New Features:
 
+- No changes to highlight.
 
 ## Bug Fixes:
 
