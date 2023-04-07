@@ -755,13 +755,26 @@ class Job(Future):
             >> 43.241  # seconds
         """
         time = datetime.now()
+        cancelled = False
+        if self.communicator:
+            with self.communicator.lock:
+                cancelled = self.communicator.should_cancel
+        if cancelled:
+            return StatusUpdate(
+                code=Status.CANCELLED,
+                rank=0,
+                queue_size=None,
+                success=False,
+                time=time,
+                eta=None,
+            )
         if self.done():
             if not self.future._exception:  # type: ignore
                 return StatusUpdate(
                     code=Status.FINISHED,
                     rank=0,
                     queue_size=None,
-                    success=True,
+                    success=False,
                     time=time,
                     eta=None,
                 )
@@ -799,7 +812,20 @@ class Job(Future):
         return getattr(self.future, name)
 
     def cancel(self) -> bool:
-        """Cancels the job."""
+        """Cancels the job as best as possible.
+
+        If the app you are connecting to has the gradio queue enabled, the job
+        will be cancelled locally as soon as possible. For apps that do not use the
+        queue, the job cannot be cancelled if it's been sent to the local executor
+        (for the time being).
+
+        Note: In general, this DOES not stop the process from running in the upstream server
+        except for the following situations:
+
+        1. If the job is queued upstream, it will be removed from the queue and the server will not run the job
+        2. If the job has iterative outputs, the job will finish as soon as the current iteration finishes running
+        3. If the job has not been picked up by the queue yet, the queue will not pick up the job
+        """
         if self.communicator:
             with self.communicator.lock:
                 self.communicator.should_cancel = True

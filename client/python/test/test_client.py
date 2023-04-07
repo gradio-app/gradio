@@ -2,7 +2,7 @@ import json
 import os
 import pathlib
 import time
-from concurrent.futures import TimeoutError
+from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -148,6 +148,42 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
+
+    def test_cancel_from_client_queued(self):
+        client = Client(src="gradio-tests/test-cancel-from-client")
+        start = time.time()
+        job = client.submit(api_name="/long")
+        while not job.done():
+            if job.status().code == Status.STARTING:
+                job.cancel()
+                break
+        with pytest.raises(CancelledError):
+            job.result()
+        # The whole prediction takes 10 seconds to run
+        # and does not iterate. So this tests that we can cancel
+        # halfway through a prediction
+        assert time.time() - start < 10
+        assert job.status().code == Status.CANCELLED
+
+        job = client.submit(api_name="/iterate")
+        iteration_count = 0
+        while not job.done():
+            if job.status().code == Status.ITERATING:
+                iteration_count += 1
+                if iteration_count == 3:
+                    job.cancel()
+                    break
+                time.sleep(0.5)
+        # Result for iterative jobs is always the first result
+        assert job.result() == 0
+        # The whole prediction takes 10 seconds to run
+        # and does not iterate. So this tests that we can cancel
+        # halfway through a prediction
+        assert time.time() - start < 10
+
+        # Test that we did not iterate all the way to the end
+        assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
+        assert job.status().code == Status.CANCELLED
 
 
 class TestStatusUpdates:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import mimetypes
@@ -7,13 +8,13 @@ import os
 import pkgutil
 import shutil
 import tempfile
+from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
-from concurrent.futures import CancelledError
 
 import fsspec.asyn
 import requests
@@ -56,6 +57,7 @@ class Status(Enum):
     PROCESSING = "PROCESSSING"
     ITERATING = "ITERATING"
     FINISHED = "FINISHED"
+    CANCELLED = "CANCELLED"
 
     @staticmethod
     def ordering(status: "Status") -> int:
@@ -69,6 +71,7 @@ class Status(Enum):
             Status.PROCESSING,
             Status.ITERATING,
             Status.FINISHED,
+            Status.CANCELLED,
         ]
         return order.index(status)
 
@@ -158,11 +161,21 @@ async def get_pred_from_ws(
     completed = False
     resp = {}
     while not completed:
-        if helper:
-            with helper.lock:
-                if helper.should_cancel:
-                    raise CancelledError()
-        msg = await websocket.recv()
+        # Receive message in the background so that we can
+        # cancel even while running a long pred
+        task = asyncio.create_task(websocket.recv())
+        while not task.done():
+            if helper:
+                with helper.lock:
+                    if helper.should_cancel:
+                        # Retrieve cancel exception from task
+                        # otherwise will get nasty warning in console
+                        task.cancel()
+                        await asyncio.gather(task, return_exceptions=True)
+                        raise CancelledError()
+            # Need to suspend this coroutine so that task actually runs
+            await asyncio.sleep(0.01)
+        msg = task.result()
         resp = json.loads(msg)
         if helper:
             with helper.lock:
