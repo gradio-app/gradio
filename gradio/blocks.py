@@ -1178,12 +1178,12 @@ class Blocks(BlockContext):
         config["dependencies"] = self.dependencies
         return config
 
-    def get_api_info(self, raw=False):
+    def get_api_info(self, serialize=True):
         """
         Gets the information needed to generate the API docs. Should be run after the
         blocks has been exited (so that the config has been generated).
         Parameters:
-            raw: If False, returns the serialized version of the typed information. If True, returns the raw version.
+            serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
         """
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 

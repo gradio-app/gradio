@@ -253,14 +253,8 @@ class App(FastAPI):
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
-        def get_api_info():
-            print(app.get_blocks().get_api_info())
-            return app.get_blocks().get_api_info()
-
-        @app.get("/info/raw/", dependencies=[Depends(login_check)])
-        @app.get("/info/raw", dependencies=[Depends(login_check)])
-        def get_api_info_raw():
-            return app.get_blocks().get_api_info(raw=True)
+        def get_api_info(serialize: bool = True):
+            return app.get_blocks().get_api_info(serialize=serialize)
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
