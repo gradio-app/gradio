@@ -3,7 +3,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Improve error messages when number of inputs/outputs to event handlers mismatch, by [@space-nuko](https://github.com/space-nuko) in [PR 3519](https://github.com/gradio-app/gradio/pull/3519)
 
 ## Bug Fixes:
 
@@ -13,6 +13,7 @@ No changes to highlight.
 - Fix bug where recording an audio file through the microphone resulted in a corrupted file name by [@abidlabs](https://github.com/abidlabs) in [PR 3770](https://github.com/gradio-app/gradio/pull/3770)
 - Fix bug where iterators where not being reset for processes that terminated early by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3777](https://github.com/gradio-app/gradio/pull/3777)
 - Fix bug where the upload button was not properly handling the `file_count='multiple'` case by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3782](https://github.com/gradio-app/gradio/pull/3782)
+- Fix bug where use Via API button was giving error by [@Devang-C](https://github.com/Devang-C) in [PR 3783](https://github.com/gradio-app/gradio/pull/3783)
 
 ## Documentation Changes:
 
@@ -38,7 +39,7 @@ No changes to highlight.
 
 ## New Features:
 
-No changes to highlight.
+- No changes to highlight.
 
 ## Bug Fixes:
 
