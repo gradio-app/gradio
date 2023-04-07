@@ -254,6 +254,7 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def get_api_info():
+            print(app.get_blocks().get_api_info())
             return app.get_blocks().get_api_info()
 
         @app.get("/info/raw/", dependencies=[Depends(login_check)])
