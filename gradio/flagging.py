@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING, Any, List
 
 import pkg_resources
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 
 import gradio as gr
 from gradio import utils
-from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:
     from gradio.components import IOComponent

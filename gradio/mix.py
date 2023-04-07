@@ -4,8 +4,9 @@ Ways to transform interfaces to produce new interfaces
 import asyncio
 import warnings
 
+from gradio_client.documentation import document, set_documentation_group
+
 import gradio
-from gradio.documentation import document, set_documentation_group
 
 set_documentation_group("mix_interface")
 
