@@ -415,16 +415,18 @@ class Endpoint:
         def _inner(*data):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
-            inputs = self.serialize(*data)
-            predictions = _predict(*inputs)
-            output = self.deserialize(*predictions)
+            if self.client.serialize:
+                data = self.serialize(*data)
+            predictions = _predict(*data)
+            if self.client.serialize:
+                predictions = self.deserialize(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
                 with helper.lock:
                     if not helper.job.outputs:
-                        helper.job.outputs.append(output)
-            return output
+                        helper.job.outputs.append(predictions)
+            return predictions
 
         return _inner
 
