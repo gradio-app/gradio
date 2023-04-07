@@ -68,7 +68,6 @@ export async function load() {
         objs, 
         mode,
         description,
-        docs,
         components,
         helpers,
         routes,

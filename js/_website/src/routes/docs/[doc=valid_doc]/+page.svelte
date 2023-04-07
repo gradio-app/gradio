@@ -13,7 +13,6 @@
     let name = data.name;
     let obj = data.obj;
     let mode = data.mode;
-    let docs = data.docs;
     let components = data.components;
     let helpers = data.helpers;
     let routes = data.routes;
@@ -55,15 +54,8 @@
         }
     }
 
-
-    $: for (const key in docs) {
-        for (const o in docs[key]) {
-            if (o == $page.params.doc) {
-                obj = docs[key][o];
-                mode = key;
-            }
-        }
-    }
+    $: obj = data.obj;
+    $: mode = data.mode;
 
 </script>
 

@@ -102,7 +102,6 @@ export async function load({params}) {
         name, 
         obj, 
         mode,
-        docs,
         components,
         helpers,
         routes,

@@ -12,7 +12,6 @@
     let objs = data.objs;
     let mode = data.mode;
     let description = data.description;
-    let docs = data.docs;
     let components = data.components;
     let helpers = data.helpers;
     let routes = data.routes;
