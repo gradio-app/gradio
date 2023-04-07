@@ -1,3 +1,4 @@
+import os
 import tempfile
 
 from gradio import components
@@ -16,17 +17,25 @@ def test_check_component_fallback_serializers():
 
 def test_file_serializing():
 
-    serializing = FileSerializable()
-    with tempfile.NamedTemporaryFile(delete=False, mode="w") as f1:
-        with tempfile.NamedTemporaryFile(delete=False, mode="w") as f2:
-            f1.write("Hello World!")
-            f2.write("Greetings!")
+    try:
+        serializing = FileSerializable()
+        with tempfile.NamedTemporaryFile(delete=False, mode="w") as f1:
+            with tempfile.NamedTemporaryFile(delete=False, mode="w") as f2:
+                f1.write("Hello World!")
+                f2.write("Greetings!")
 
-            output = serializing.serialize(f1.name)
-            assert output["data"] == encode_url_or_file_to_base64(f1.name)
-            output = serializing.serialize([f1.name, f2.name])
-            assert output[0]["data"] == encode_url_or_file_to_base64(f1.name)
-            assert output[1]["data"] == encode_url_or_file_to_base64(f2.name)
+        output = serializing.serialize(f1.name)
+        assert output["data"] == encode_url_or_file_to_base64(f1.name)
+        output = serializing.serialize([f1.name, f2.name])
+        assert output[0]["data"] == encode_url_or_file_to_base64(f1.name)
+        assert output[1]["data"] == encode_url_or_file_to_base64(f2.name)
 
-            # no-op for dict
-            assert serializing.serialize(output) == output
+        # no-op for dict
+        assert serializing.serialize(output) == output
+
+        files = serializing.deserialize(output)
+        assert open(files[0]).read() == "Hello World!"
+        assert open(files[1]).read() == "Greetings!"
+    finally:
+        os.remove(f1.name)
+        os.remove(f2.name)

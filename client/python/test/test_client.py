@@ -157,7 +157,7 @@ class TestPredictionsFromSpaces:
         )
 
         with patch.object(
-            client.endpoints[0], "upload", wraps=client.endpoints[0].upload
+            client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
@@ -169,7 +169,7 @@ class TestPredictionsFromSpaces:
                 upload.assert_called_once()
 
         with patch.object(
-            client.endpoints[1], "upload", wraps=client.endpoints[0].upload
+            client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")

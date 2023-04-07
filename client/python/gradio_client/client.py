@@ -531,7 +531,7 @@ class Endpoint:
             return outputs[0]
         return outputs
 
-    def upload(self, file_paths: List[str]) -> List[str] | List[Dict[str, Any]]:
+    def _upload(self, file_paths: List[str]) -> List[str] | List[Dict[str, Any]]:
         if not file_paths:
             return []
         files = [("files", (Path(f).name, open(f, "rb"))) for f in file_paths]
@@ -571,7 +571,7 @@ class Endpoint:
             for f, t in zip(data, self.input_component_types)
             if t in ["file", "uploadbutton"]
         ]
-        uploaded_files = self.upload(files)
+        uploaded_files = self._upload(files)
         self._add_uploaded_files_to_data(uploaded_files, data)
 
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
