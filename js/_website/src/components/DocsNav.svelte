@@ -81,6 +81,8 @@ type="button" class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center ju
     class="thin-link px-4 block" href="/docs/blocks/">Blocks<sup class="text-orange-500">NEW</sup></a>
     <a class:current-nav-link={current_nav_link == 'block-layouts'} 
     class="thin-link px-4 block" href="/docs/block-layouts/">Block Layouts</a>
+    <a class:current-nav-link={current_nav_link == 'themes'} 
+    class="thin-link px-4 block" href="/docs/themes/">Themes</a>
     <a class:current-nav-link={current_nav_link == 'components'} 
     class="link px-4 my-2 block" href="/docs/components/">Components</a>
     {#each Object.entries(components) as  [name, obj] ( name )}

@@ -32,6 +32,7 @@
       })
     }
 
+
     let y;
     let header_targets = {};
     let target_elem;
@@ -48,22 +49,20 @@
           header_targets[target]?.classList.remove("current-nav-link");
         }
     }
-
-
 </script>
 
 
-  <MetaTags title={"Gradio Block Layouts Docs"} 
-            url={"https://gradio.app/docs/block-layouts"} 
-            canonical={"https://gradio.app/docs/block-layouts"}
-            description={description}/>
+  <MetaTags title={"Gradio Themes Docs"} 
+            url={"https://gradio.app/docs/theming"} 
+            canonical={"https://gradio.app/docs/theming"}
+            description={"Customize the look of your app by writing your own custom theme."}/>
 
-<svelte:window bind:scrollY={y}/>
+            <svelte:window bind:scrollY={y}/>
 
 
 <main class="container mx-auto px-4 flex gap-4">
 
-    <DocsNav current_nav_link={"block-layouts"} components={components} helpers={helpers} routes={routes} />
+    <DocsNav current_nav_link={"themes"} components={components} helpers={helpers} routes={routes} />
     
     <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
         <div>
@@ -76,13 +75,13 @@
         </div>
 
         <div class="flex justify-between mt-4">
-            <a href="/docs/blocks"
+            <a href="/docs/block-layouts"
                 class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
-            <div class="text-lg"><span class="text-orange-500">&#8592;</span> Blocks</div>
+            <div class="text-lg"><span class="text-orange-500">&#8592;</span> Block Layouts</div>
             </a>
-            <a href="/docs/themes"
+            <a href="/docs/components"
                 class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
-            <div class="text-lg">Themes <span class="text-orange-500">&#8594;</span></div>
+            <div class="text-lg">Components <span class="text-orange-500">&#8594;</span></div>
             </a>
         </div>
 
@@ -92,29 +91,30 @@
         
             <div class="lg:w-3/4 lg:ml-10 lg:mr-24">
 
-        <div class="obj" id="block-layouts"></div>
+        <div class="obj" id="themes">
 
         <div class="flex flex-row items-center justify-between"> 
-            <h3 id="block-layouts-header" class="group text-3xl font-light pt-4">Block Layouts
-            <a href="#block-layouts-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
-
+            <h3 id="themes-header" class="group text-3xl font-light py-4">Themes
+                <a href="#themes" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
             </h3>
         </div>
 
-        <div id="description">            
-        <h4 class="mt-4 text-xl text-orange-500 font-light group">Description
+        <h4 class="mt-2 text-xl text-orange-500 font-light group" id="description">Description
             <a href="#description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
-        <p class="mb-2 text-lg text-gray-600">{@html description }</p>
-        </div>
+        <p class="mb-2 text-lg text-gray-600">Customize the look of your app by writing your own custom theme
 
+        </p>
+        
+        </div>
+        
         {#each objs as obj}
         
-            <div class="obj" id={ obj.slug }>
+            <div class="obj" id={obj.slug}>
                 
                 <div class="flex flex-row items-center justify-between"> 
-                    <h3 id="{ obj.slug }" class="group text-3xl font-light py-4">{ obj.name }
-                    <a href="#{ obj.slug }" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
+                    <h3 id="{ obj.slug }-header" class="group text-3xl font-light py-4">{ obj.name }
+                        <a href="#{ obj.slug }-header" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
                     </h3>
                 </div>
                 
@@ -135,11 +135,13 @@
                         <gradio-app space={"gradio/" + obj.name.toLowerCase() + "_component"} />
                     </div>
                 {/if}
-
+                
+                {#if obj.description}
                 <h4 class="mt-8 text-xl text-orange-500 font-light group" id="{obj.name}-description">Description
                     <a href="#{obj.name}-description" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
                 </h4>
                 <p class="mb-2 text-lg text-gray-600">{@html obj.description }</p>
+                {/if}
 
                 {#if mode === "components" }
                         <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {@html obj.preprocessing }</p>
@@ -153,18 +155,19 @@
                 {/if}
 
                 {#if obj.example }
-                <h4 class="mt-4 text-xl text-orange-500 font-light group" id="{obj.name}-example-usage">Example Usage
-                    <a href="#{obj.name}-example-usage" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
-                </h4>                       
-                <div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
-                        <pre><code class="code language-python">{@html obj.highlighted_example }</code></pre>
+                    <h4 class="mt-4 text-xl text-orange-500 font-light group" id="{obj.name}-example-usage">Example Usage
+                        <a href="#{obj.name}-example-usage" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
+                    </h4>
+                      <div class="codeblock bg-gray-50 mx-auto p-3 mt-2">
+                        <pre><code class="code language-python">{@html  obj.highlighted_example }</code></pre>
                     </div>
                 {/if}
 
             {#if (obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1 }
             <h4 class="mt-6 text-xl text-orange-500 font-light group" id="{obj.name}-initialization">Initialization
-                <a href="#{obj.name}-initialization" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
+            <a href="#{obj.name}-initialization" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
             </h4>
+
             <table class="table-fixed w-full leading-loose">
             <thead class="text-left">
                 <tr>
@@ -237,12 +240,10 @@
             {/if}
 
             {#if obj.guides && obj.guides.length > 0  }
-        
-        <div id="guides">
-          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">Guides
+
+          <h4 class="mt-4 p-3 text-xl text-orange-500 font-light group"  id="guides">Guides
             <a href="#guides" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
           </h4>
-        
 
           <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4 pb-3 px-3">
 
@@ -253,19 +254,18 @@
                 </div>
               </a>
             {/each}
-          </div>
-        </div>
+            </div>
           {/if}
 
             
             {#if obj.demos }
-                <div id="examples">
+
                 <div class="category my-8" id="examples">
-                <h2 class="group mb-4 text-2xl font-thin block" id="{obj.name}-examples">✨ {obj.name} Examples
-                <a href="#{obj.name}-examples" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img" src="{anchor}"/></a>
-                </h2>
-                <div>
-                    <div class="demo-window overflow-y-auto h-full w-full my-4">
+                    <h4 class="text-xl text-orange-500 font-light group"  id="{obj.name}-demos">Demos
+                        <a href="#{obj.name}-demos" class="invisible group-hover-visible" on:click={handleAnchorClick}><img class="anchor-img-small" src="{anchor}"/></a>
+                    </h4>
+                        <div>
+                    <div class="demo-window overflow-y-auto h-full w-full mb-4">
                     <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
                         <div class="flex overflow-auto pt-4">
                         {#each obj.demos as demo, i }
@@ -288,50 +288,51 @@
                     </div>
                 </div>
                 </div>
-                </div>
 
             {/if}
 
             
             </div>
     {/each}
+</div>
 
+<div class="float-right mt-10 hidden lg:block ">
+    <div class='fixed'>
+      <div class="mx-8">
+        <a class="thin-link py-2 block text-lg" href="#themes" on:click={handleAnchorClick}>Themes</a>
+        {#if headers.length > 0}
+        <ul class="text-slate-700 text-lg leading-6">
+          {#each headers as header}
+          <li>
+            <a 
+            bind:this={header_targets[header[1]]}
+            href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
+          </li>
+          {/each}
+          {#if method_headers.length > 0}
+          {#each method_headers as method_header}
+          <li class="ml-4">
+            <a href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{method_header[0]}</a>
+          </li>
+          {/each}
+          {/if}
+        </ul>
+        {/if}
+      </div>
     </div>
-    <div class="float-right mt-10 hidden lg:block ">
-        <div class='fixed'>
-          <div class="px-8">
-            <a class="thin-link py-2 block text-lg" href="#block-layouts" on:click={handleAnchorClick}>Block Layouts</a>
-            {#if headers.length > 0}
-            <ul class="text-slate-700 text-lg leading-6">
-              {#each headers as header}
-              <li>
-                <a 
-                bind:this={header_targets[header[1]]}
-                href="#{header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{header[0]}</a>
-              </li>
-              {/each}
-              {#if method_headers.length > 0}
-              {#each method_headers as method_header}
-              <li class="ml-4">
-                <a href="#{method_header[1]}" class="thin-link block py-2 font-light second-nav-link" on:click={handleAnchorClick}>{method_header[0]}</a>
-              </li>
-              {/each}
-              {/if}
-            </ul>
-            {/if}
-          </div>
-        </div>
-       </div>
-       </div>
+   </div>
+
+
+</div>
 
     <div class="flex justify-between my-4">
-        <a href="/docs/blocks"
+        <a href="/docs/interface"
             class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
-        <div class="text-lg"><span class="text-orange-500">&#8592;</span> Blocks</div>
+        <div class="text-lg"><span class="text-orange-500">&#8592;</span> Interface</div>
         </a>
-        <a href="/docs/components"
+        <a href="/docs/combining-interfaces"
             class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
-        <div class="text-lg">Components <span class="text-orange-500">&#8594;</span></div>
+        <div class="text-lg">Combining Interfaces <span class="text-orange-500">&#8594;</span></div>
         </a>
     </div>
 

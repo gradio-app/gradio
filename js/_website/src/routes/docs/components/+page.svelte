@@ -34,9 +34,9 @@
         </div>
 
         <div class="flex justify-between mt-4">
-            <a href="/docs/block-layouts"
+            <a href="/docs/themes"
                 class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
-            <div class="text-lg"><span class="text-orange-500">&#8592;</span> Block Layouts</div>
+            <div class="text-lg"><span class="text-orange-500">&#8592;</span> Themes</div>
             </a>
             <a href="/docs/audio"
                 class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
