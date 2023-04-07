@@ -51,6 +51,7 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
+        serialize: bool = True,
         verbose: bool = True,
     ):
         """
@@ -58,10 +59,12 @@ class Client:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            serialize: Whether the client should serialize the inputs and outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing them. E.g. you can use this to get an image in base64 format from the remote API instead of a filepath.
             verbose: Whether the client should print statements to the console.
         """
         self.verbose = verbose
         self.hf_token = hf_token
+        self.serialize = serialize
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
@@ -226,11 +229,15 @@ class Client:
             }
 
         """
-        r = requests.get(utils.API_INFO_URL.format(self.src), headers=self.headers)
+        if self.serialize:
+            api_info_url = utils.API_INFO_URL.format(self.src)
+        else:
+            api_info_url = utils.RAW_API_INFO_URL.format(self.src)
+        r = requests.get(api_info_url, headers=self.headers)
         if r.ok:
             info = r.json()
         else:
-            pass  # TODO: support older versions of Gradio
+            pass  # TODO(@freddy): support older versions of Gradio using the API fetcher Space
 
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
