@@ -185,7 +185,7 @@ class TestPredictionsFromSpaces:
         # Test that we did not iterate all the way to the end
         assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
         assert job.status().code == Status.CANCELLED
-        
+
     def test_upload_file_private_space(self):
 
         client = Client(
