@@ -1397,6 +1397,7 @@ class Blocks(BlockContext):
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
+        ssl_verify: bool | None = None,
         quiet: bool = False,
         show_api: bool = True,
         file_directories: List[str] | None = None,
@@ -1427,6 +1428,7 @@ class Blocks(BlockContext):
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+            ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
             file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
@@ -1538,7 +1540,7 @@ class Blocks(BlockContext):
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            requests.get(f"{self.local_url}startup-events")
+            requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
 
         utils.launch_counter()
 
