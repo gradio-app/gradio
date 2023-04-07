@@ -143,6 +143,8 @@ for guide_folder in guide_folders:
 
 
 def generate(json_path):
+    if not os.path.isdir(json_path):
+        os.mkdir(json_path)
     with open(json_path + "guides_by_category.json", 'w+') as f:
         json.dump({
             "guides_by_category": guides_by_category,

@@ -24,7 +24,7 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
-<img style="width: 40%" src="https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true">
+![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
 Share links expire after 72 hours.
 
@@ -98,8 +98,8 @@ You can also customize the appearance and behavior of your web component with at
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
 
 ```html
-&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
-initial_height="0px">&lt;/gradio-app>
+<gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
+initial_height="0px"></gradio-app>
 ```
 
 _Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
@@ -126,7 +126,7 @@ $demo_hello_world
 
 If you click and open the space above, you'll see a "Use via API" link in the footer of the app. 
 
-![Use via API](/assets/guides/use_via_api.png)
+![Use via API](https://github.com/gradio-app/gradio/blob/main/guides/assets/use_via_api.png?raw=true)
 
 This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
 

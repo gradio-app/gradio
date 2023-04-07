@@ -12,6 +12,11 @@
   @apply hover:text-orange-500 transition-colors;
 }
 
+.prose :where(img):not(:where([class~=not-prose] *)) {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
 .group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
     display: flex;
 }
