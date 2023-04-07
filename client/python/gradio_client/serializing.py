@@ -150,20 +150,7 @@ class FileSerializable(Serializable):
     def output_api_info(self) -> Tuple[str, str]:
         return "str", "filepath or URL"
 
-    def serialize(
-        self,
-        x: str | dict | None,
-        load_dir: str | Path = "",
-    ) -> Dict | None:
-        """
-        Convert from human-friendly version of a file (string filepath) to a
-        seralized representation (base64)
-        Parameters:
-            x: String path to file to serialize
-            load_dir: Path to directory containing x
-        """
-        if x is None or x == "":
-            return None
+    def _serialize_single(self, x: str | dict, load_dir: str | Path = ""):
         if isinstance(x, dict):
             return x
         if utils.is_valid_url(x):
@@ -179,6 +166,25 @@ class FileSerializable(Serializable):
             "is_file": False,
             "size": size,
         }
+
+    def serialize(
+        self,
+        x: str | dict | List[str | dict] | None,
+        load_dir: str | Path = "",
+    ) -> Dict | None:
+        """
+        Convert from human-friendly version of a file (string filepath) to a
+        seralized representation (base64)
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+        """
+        if x is None or x == "":
+            return None
+        if isinstance(x, list):
+            return [self._serialize_single(f) for f in x]
+        else:
+            return self._serialize_single(x)
 
     def deserialize(
         self,
