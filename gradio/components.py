@@ -49,7 +49,7 @@ from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
 
-from gradio import media_data, processing_utils, utils
+from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
 from gradio.events import (
     Blurrable,
