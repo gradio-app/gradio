@@ -1206,10 +1206,10 @@ class Blocks(BlockContext):
                     break
                 label = component["props"].get("label", f"parameter_{i}")
                 type = component["type"].capitalize()
-                if raw:
-                    info = component["info"]["raw_input"]
-                else:
+                if serialize:
                     info = component["info"]["serialized_input"]
+                else:
+                    info = component["info"]["raw_input"]
                 dependency_info["parameters"][label] = [info[0], info[1], type]
 
             outputs = dependency["outputs"]
@@ -1227,10 +1227,10 @@ class Blocks(BlockContext):
                     break
                 label = component["props"].get("label", f"value_{o}")
                 type = component["type"].capitalize()
-                if raw:
-                    info = component["info"]["raw_output"]
-                else:
+                if serialize:
                     info = component["info"]["serialized_output"]
+                else:
+                    info = component["info"]["raw_output"]
                 dependency_info["returns"][label] = [info[0], info[1], type]
 
             if not dependency["backend_fn"]:
