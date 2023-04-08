@@ -89,6 +89,7 @@ class Client:
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
+        self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
 
@@ -157,7 +158,10 @@ class Client:
         helper = None
         if self.endpoints[inferred_fn_index].use_ws:
             helper = Communicator(
-                Lock(), JobStatus(), self.endpoints[inferred_fn_index].deserialize
+                Lock(),
+                JobStatus(),
+                self.endpoints[inferred_fn_index].deserialize,
+                self.reset_url,
             )
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)

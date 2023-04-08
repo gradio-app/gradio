@@ -150,6 +150,7 @@ class TestPredictionsFromSpaces:
         )
         assert pathlib.Path(job.result()).exists()
 
+    @pytest.mark.flaky
     def test_cancel_from_client_queued(self):
         client = Client(src="gradio-tests/test-cancel-from-client")
         start = time.time()
@@ -185,6 +186,23 @@ class TestPredictionsFromSpaces:
         # Test that we did not iterate all the way to the end
         assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
         assert job.status().code == Status.CANCELLED
+
+    @pytest.mark.flaky
+    def test_cancel_subsequent_jobs_state_reset(self):
+        client = Client("abidlabs/test-yield")
+        job1 = client.submit("abcdef")
+        time.sleep(3)
+        job1.cancel()
+
+        assert len(job1.outputs()) < 6
+        assert job1.status().code == Status.CANCELLED
+
+        job2 = client.submit("abcdef")
+        while not job2.done():
+            time.sleep(0.1)
+        # Ran all iterations from scratch
+        assert job2.status().code == Status.FINISHED
+        assert len(job2.outputs()) == 7
 
     def test_upload_file_private_space(self):
 

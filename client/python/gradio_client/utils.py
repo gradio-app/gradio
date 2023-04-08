@@ -17,12 +17,14 @@ from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
+import httpx
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "/api/predict/"
 WS_URL = "/queue/join"
 UPLOAD_URL = "/upload"
+RESET_URL = "/reset"
 DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
 STATE_COMPONENT = "state"
 
@@ -134,6 +136,7 @@ class Communicator:
     lock: Lock
     job: JobStatus
     deserialize: Callable[..., Tuple]
+    reset_url: str
     should_cancel: bool = False
 
 
@@ -169,10 +172,16 @@ async def get_pred_from_ws(
             if helper:
                 with helper.lock:
                     if helper.should_cancel:
-                        # Retrieve cancel exception from task
-                        # otherwise will get nasty warning in console
-                        task.cancel()
-                        await asyncio.gather(task, return_exceptions=True)
+                        # Need to reset the iterator state since the client
+                        # will not reset the session
+                        async with httpx.AsyncClient() as http:
+                            reset = http.post(
+                                helper.reset_url, json=json.loads(hash_data)
+                            )
+                            # Retrieve cancel exception from task
+                            # otherwise will get nasty warning in console
+                            task.cancel()
+                            await asyncio.gather(task, reset, return_exceptions=True)
                         raise CancelledError()
             # Need to suspend this coroutine so that task actually runs
             await asyncio.sleep(0.01)
