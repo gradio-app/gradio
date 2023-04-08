@@ -848,7 +848,7 @@ class Job(Future):
                     code=Status.FINISHED,
                     rank=0,
                     queue_size=None,
-                    success=False,
+                    success=True,
                     time=time,
                     eta=None,
                 )
