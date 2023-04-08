@@ -253,8 +253,9 @@ class App(FastAPI):
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
-        def get_api_info(serialize: bool = True):
-            return app.get_blocks().get_api_info(serialize=serialize)
+        def api_info(serialize: bool = True):
+            config = app.get_blocks().config
+            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])

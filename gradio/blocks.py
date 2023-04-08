@@ -461,6 +461,74 @@ def convert_component_dict_to_list(
     return predictions
 
 
+def get_api_info(config: Dict, serialize: bool = True):
+    """
+    Gets the information needed to generate the API docs from a Blocks config.
+    Parameters:
+        config: a Blocks config dictionary
+        serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
+    """
+    api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+
+    for d, dependency in enumerate(config["dependencies"]):
+        dependency_info = {"parameters": {}, "returns": {}}
+        skip_endpoint = False
+
+        inputs = dependency["inputs"]
+        for i in inputs:
+            for component in config["components"]:
+                if component["id"] == i:
+                    break
+            else:
+                skip_endpoint = True  # if component not found, skip this endpoint
+                break
+            if not component.get("serializer"):
+                skip_endpoint = (
+                    True  # if component is not serializable, skip this endpoint
+                )
+                break
+            label = component["props"].get("label", f"parameter_{i}")
+            type = component["type"].capitalize()
+            if serialize:
+                info = component["info"]["serialized_input"]
+            else:
+                info = component["info"]["raw_input"]
+            dependency_info["parameters"][label] = [info[0], info[1], type]
+
+        outputs = dependency["outputs"]
+        for o in outputs:
+            for component in config["components"]:
+                if component["id"] == o:
+                    break
+            else:
+                skip_endpoint = True  # if component not found, skip this endpoint
+                break
+            if not component.get("serializer"):
+                skip_endpoint = (
+                    True  # if component is not serializable, skip this endpoint
+                )
+                break
+            label = component["props"].get("label", f"value_{o}")
+            type = component["type"].capitalize()
+            if serialize:
+                info = component["info"]["serialized_output"]
+            else:
+                info = component["info"]["raw_output"]
+            dependency_info["returns"][label] = [info[0], info[1], type]
+
+        if not dependency["backend_fn"]:
+            skip_endpoint = True
+
+        if skip_endpoint:
+            continue
+        if dependency["api_name"]:
+            api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+        else:
+            api_info["unnamed_endpoints"][str(d)] = dependency_info
+
+    return api_info
+
+
 @document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
@@ -1261,75 +1329,6 @@ Received outputs:
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
-
-    def get_api_info(self, serialize=True):
-        """
-        Gets the information needed to generate the API docs. Should be run after the
-        blocks has been exited (so that the config has been generated).
-        Parameters:
-            serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
-        """
-        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-
-        for d, dependency in enumerate(self.config["dependencies"]):
-            dependency_info = {"parameters": {}, "returns": {}}
-            skip_endpoint = False
-
-            inputs = dependency["inputs"]
-            for i in inputs:
-                for component in self.config["components"]:
-                    if component["id"] == i:
-                        break
-                else:
-                    skip_endpoint = True  # if component not found, skip this endpoint
-                    break
-                if not component.get("serializer"):
-                    skip_endpoint = (
-                        True  # if component is not serializable, skip this endpoint
-                    )
-                    break
-                label = component["props"].get("label", f"parameter_{i}")
-                type = component["type"].capitalize()
-                if serialize:
-                    info = component["info"]["serialized_input"]
-                else:
-                    info = component["info"]["raw_input"]
-                dependency_info["parameters"][label] = [info[0], info[1], type]
-
-            outputs = dependency["outputs"]
-            for o in outputs:
-                for component in self.config["components"]:
-                    if component["id"] == o:
-                        break
-                else:
-                    skip_endpoint = True  # if component not found, skip this endpoint
-                    break
-                if not component.get("serializer"):
-                    skip_endpoint = (
-                        True  # if component is not serializable, skip this endpoint
-                    )
-                    break
-                label = component["props"].get("label", f"value_{o}")
-                type = component["type"].capitalize()
-                if serialize:
-                    info = component["info"]["serialized_output"]
-                else:
-                    info = component["info"]["raw_output"]
-                dependency_info["returns"][label] = [info[0], info[1], type]
-
-            if not dependency["backend_fn"]:
-                skip_endpoint = True
-
-            if skip_endpoint:
-                continue
-            if dependency["api_name"]:
-                api_info["named_endpoints"][
-                    "/" + dependency["api_name"]
-                ] = dependency_info
-            else:
-                api_info["unnamed_endpoints"][str(d)] = dependency_info
-
-        return api_info
 
     def __enter__(self):
         if Context.block is None:
