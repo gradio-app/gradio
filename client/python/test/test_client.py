@@ -189,20 +189,20 @@ class TestPredictionsFromSpaces:
 
     @pytest.mark.flaky
     def test_cancel_subsequent_jobs_state_reset(self):
-        client = Client("abidlabs/test-yield")
-        job1 = client.submit("abcdef")
+        client = Client("gradio/count_generator")
+        job1 = client.submit(5, api_name="/count")
         time.sleep(3)
         job1.cancel()
 
         assert len(job1.outputs()) < 6
         assert job1.status().code == Status.CANCELLED
 
-        job2 = client.submit("abcdef")
+        job2 = client.submit(5, api_name="/count")
         while not job2.done():
             time.sleep(0.1)
         # Ran all iterations from scratch
         assert job2.status().code == Status.FINISHED
-        assert len(job2.outputs()) == 7
+        assert len(job2.outputs()) == 5
 
     def test_upload_file_private_space(self):
 
