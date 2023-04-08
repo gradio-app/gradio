@@ -6,9 +6,11 @@ import json
 import re
 import threading
 import time
+import urllib.parse
 import uuid
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
+from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
@@ -82,8 +84,11 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        self.api_url = utils.API_URL.format(self.src)
-        self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
+        self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.ws_url = urllib.parse.urljoin(
+            self.src.replace("http", "ws", 1), utils.WS_URL
+        )
+        self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
 
@@ -526,16 +531,85 @@ class Endpoint:
             return outputs[0]
         return outputs
 
+    def _upload(
+        self, file_paths: List[str | List[str]]
+    ) -> List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]]:
+        if not file_paths:
+            return []
+        # Put all the filepaths in one file
+        # but then keep track of which index in the
+        # original list they came from so we can recreate
+        # the original structure
+        files = []
+        indices = []
+        for i, fs in enumerate(file_paths):
+            if not isinstance(fs, list):
+                fs = [fs]
+            for f in fs:
+                files.append(("files", (Path(f).name, open(f, "rb"))))
+                indices.append(i)
+        r = requests.post(
+            self.client.upload_url, headers=self.client.headers, files=files
+        )
+        if r.status_code != 200:
+            uploaded = file_paths
+        else:
+            uploaded = []
+            result = r.json()
+            for i, fs in enumerate(file_paths):
+                if isinstance(fs, list):
+                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
+                    res = [
+                        {
+                            "is_file": True,
+                            "name": o,
+                            "orig_name": Path(f).name,
+                            "data": None,
+                        }
+                        for f, o in zip(fs, output)
+                    ]
+                else:
+                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
+                    res = {
+                        "is_file": True,
+                        "name": o,
+                        "orig_name": Path(fs).name,
+                        "data": None,
+                    }
+                uploaded.append(res)
+        return uploaded
+
+    def _add_uploaded_files_to_data(
+        self,
+        files: List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]],
+        data: List[Any],
+    ) -> None:
+        """Helper function to modify the input data with the uploaded files."""
+        file_counter = 0
+        for i, t in enumerate(self.input_component_types):
+            if t in ["file", "uploadbutton"]:
+                data[i] = files[file_counter]
+                file_counter += 1
+
     def serialize(self, *data) -> Tuple:
+        data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
-                data = list(data)
                 data.insert(i, None)
-                data = tuple(data)
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
-        return tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+
+        files = [
+            f
+            for f, t in zip(data, self.input_component_types)
+            if t in ["file", "uploadbutton"]
+        ]
+        uploaded_files = self._upload(files)
+        self._add_uploaded_files_to_data(uploaded_files, data)
+
+        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        return o
 
     def deserialize(self, *data) -> Tuple | Any:
         assert len(data) == len(
