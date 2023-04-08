@@ -837,7 +837,7 @@ def get_cancel_function(
     )
 
 
-def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
+def check_function_inputs_match(fn: Callable, inputs: List, wrapped_inputs: bool):
     """
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
@@ -868,9 +868,8 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         elif param.kind == param.VAR_POSITIONAL:
             max_args = infinity
         elif param.kind == param.KEYWORD_ONLY:
-            if not has_default:
-                return f"Keyword-only args must have default values for function {fn}"
-    arg_count = 1 if inputs_as_dict else len(inputs)
+            max_args += 1
+    arg_count = 1 if wrapped_inputs else len(inputs)
     if min_args == max_args and max_args != arg_count:
         warnings.warn(
             f"Expected {max_args} arguments for function {fn}, received {arg_count}."

@@ -163,7 +163,7 @@ class TestBlocksMethods:
         assert "fn" in str(demo.fns[0])
 
     @pytest.mark.asyncio
-    async def test_dict_inputs_in_config(self):
+    async def test_set_inputs_in_config(self):
         with gr.Blocks() as demo:
             first = gr.Textbox()
             last = gr.Textbox()
@@ -176,6 +176,32 @@ class TestBlocksMethods:
             btn.click(greet, {first, last}, greeting)
 
         result = await demo.process_api(inputs=["huggy", "face"], fn_index=0, state={})
+        assert result["data"] == ["Hello huggy face"]
+
+    @pytest.mark.asyncio
+    async def test_dict_inputs_in_config(self):
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            btn = gr.Button()
+            greeting = gr.Textbox()
+
+            def greet(*, first, last):
+                return f"Hello {first} {last}"
+
+            btn.click(
+                greet,
+                {
+                    "last": last,
+                    "first": first,
+                },
+                greeting,
+                preprocess=True,
+            )
+
+        result = await demo.process_api(
+            inputs={"last": "face", "first": "huggy"}, fn_index=0, state={}
+        )
         assert result["data"] == ["Hello huggy face"]
 
     @pytest.mark.asyncio

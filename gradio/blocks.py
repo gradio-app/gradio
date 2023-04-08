@@ -11,6 +11,7 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+from functools import partial
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
 
@@ -152,7 +153,11 @@ class Block:
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | Set[Component] | None,
+        inputs: Component
+        | List[Component]
+        | Set[Component]
+        | Dict[str, Component]
+        | None,
         outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
@@ -194,16 +199,24 @@ class Block:
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
         Returns: dependency information, dependency index
         """
-        # Support for singular parameter
+        input_to_key = {}
+        inputs_as_dict = False
+
         if isinstance(inputs, set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
+            input_ids = [block._id for block in inputs]
+            input_to_key = {block._id: block for block in inputs}
+        elif isinstance(inputs, dict):
+            inputs = sorted(inputs.items(), key=lambda x: x[1]._id)
+            input_ids = [block[1]._id for block in inputs]
+            input_to_key = {block[1]._id: block[0] for block in inputs}
         else:
-            inputs_as_dict = False
             if inputs is None:
                 inputs = []
             elif not isinstance(inputs, list):
-                inputs = [inputs]
+                inputs = [inputs]  # Support for singular parameter
+            input_ids = [block._id for block in inputs]
 
         if isinstance(outputs, set):
             outputs = sorted(outputs, key=lambda x: x._id)
@@ -263,7 +276,8 @@ class Block:
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
-            "inputs": [block._id for block in inputs],
+            "inputs": input_ids,
+            "input_to_key": input_to_key,
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
@@ -880,14 +894,6 @@ class Blocks(BlockContext):
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
 
-        if block_fn.inputs_as_dict:
-            processed_input = [
-                {
-                    input_component: data
-                    for input_component, data in zip(block_fn.inputs, processed_input)
-                }
-            ]
-
         if isinstance(requests, list):
             request = requests[0]
         else:
@@ -910,12 +916,18 @@ class Blocks(BlockContext):
             else:
                 fn = block_fn.fn
 
+            if isinstance(processed_input, dict):
+                call_args = (partial(fn, **processed_input),)
+            else:
+                call_args = (fn, *processed_input)
+
             if inspect.iscoroutinefunction(fn):
-                prediction = await fn(*processed_input)
+                prediction = await fn(*call_args[1:])
             else:
                 prediction = await anyio.to_thread.run_sync(
-                    fn, *processed_input, limiter=self.limiter
+                    *call_args, limiter=self.limiter
                 )
+
         else:
             prediction = None
 
@@ -979,23 +991,39 @@ class Blocks(BlockContext):
 
         return predictions
 
-    def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
+    def preprocess_data(
+        self, fn_index: int, inputs: List[Any] | Dict[Any], state: Dict[int, Any]
+    ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+        if not block_fn.preprocess:
+            return inputs
 
-        if block_fn.preprocess:
+        if type(inputs) is dict or block_fn.inputs_as_dict:
+            processed_input = {}
+        else:
             processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                assert isinstance(
-                    block, components.Component
-                ), f"{block.__class__} Component with id {input_id} not a valid input component."
-                if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
+
+        for i, input_id in enumerate(dependency["inputs"]):
+            block = self.blocks[input_id]
+            assert isinstance(
+                block, components.Component
+            ), f"{block.__class__} Component with id {input_id} not a valid input component."
+
+            if getattr(block, "stateful", False):
+                processed_input.append(state.get(input_id))
+            else:
+                if type(inputs) is dict:
+                    key = dependency["input_to_key"][input_id]
+                    processed_input[key] = block.preprocess(inputs[key])
+                elif block_fn.inputs_as_dict:
+                    key = dependency["input_to_key"][input_id]
+                    processed_input[key] = block.preprocess(inputs[i])
                 else:
                     processed_input.append(block.preprocess(inputs[i]))
-        else:
-            processed_input = inputs
+
+        if block_fn.inputs_as_dict:
+            processed_input = [processed_input]
         return processed_input
 
     def postprocess_data(
@@ -1073,7 +1101,6 @@ class Blocks(BlockContext):
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
-
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_sizes = [len(inp) for inp in inputs]
