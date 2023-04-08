@@ -18,11 +18,13 @@ import fsspec.asyn
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
-API_URL = "{}/api/predict/"
-WS_URL = "{}/queue/join"
-CONFIG_URL = "{}/config"
-API_INFO_URL = "{}/info"
-RAW_API_INFO_URL = "{}/info/raw"
+API_URL = "/api/predict/"
+WS_URL = "/queue/join"
+UPLOAD_URL = "/upload"
+CONFIG_URL = "/config"
+API_INFO_URL = "/info"
+RAW_API_INFO_URL = "/info?serialize=False"
+
 DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
 
 STATE_COMPONENT = "state"
