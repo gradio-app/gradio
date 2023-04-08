@@ -3,7 +3,7 @@
 
 ## New Features:
 
-* Allow event listeners to accept a single dictionary as its argument, where they keys are user specified, and the values are the component values. This is set by passing passing input components a dictionary with specific key names instead of a list or set. [@jrhe](https://github.com/jrhe) in [PRX](https://github.com/gradio-app/gradio/pull/X)
+* Allow event listeners to accept a single dictionary as its argument, where they keys are user specified, and the values are the component values. This is set by passing passing input components a dictionary with specific key names instead of a list or set. [@jrhe](https://github.com/jrhe) in [3791](https://github.com/gradio-app/gradio/pull/3791)
 
 ## Bug Fixes:
 
