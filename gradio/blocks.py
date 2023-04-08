@@ -483,19 +483,27 @@ def get_api_info(config: Dict, serialize: bool = True):
                 skip_endpoint = True  # if component not found, skip this endpoint
                 break
             type = component["type"]
-            if not component.get("serializer") and not type in serializing.COMPONENT_MAPPING:
+            if (
+                not component.get("serializer")
+                and type not in serializing.COMPONENT_MAPPING
+            ):
                 skip_endpoint = (
                     True  # if component is not serializable, skip this endpoint
                 )
                 break
             label = component["props"].get("label", f"parameter_{i}")
-            if component.get("info"):
+            if component.get("api_info"):
                 if serialize:
-                    info = component["info"]["serialized_input"]
+                    info = component["api_info"]["serialized_input"]
                 else:
-                    info = component["info"]["raw_input"]
+                    info = component["api_info"]["raw_input"]
             else:
-                
+                if serialize:
+                    info = serializing.COMPONENT_MAPPING[type]().api_info()[
+                        "serialized_input"
+                    ]
+                else:
+                    info = serializing.COMPONENT_MAPPING[type]().api_info()["raw_input"]
             dependency_info["parameters"][label] = [info[0], info[1], type.capitalize()]
 
         outputs = dependency["outputs"]
@@ -507,16 +515,29 @@ def get_api_info(config: Dict, serialize: bool = True):
                 skip_endpoint = True  # if component not found, skip this endpoint
                 break
             type = component["type"]
-            if not component.get("serializer") and not type in serializing.COMPONENT_MAPPING:
+            if (
+                not component.get("serializer")
+                and type not in serializing.COMPONENT_MAPPING
+            ):
                 skip_endpoint = (
                     True  # if component is not serializable, skip this endpoint
                 )
                 break
             label = component["props"].get("label", f"value_{o}")
-            if serialize:
-                info = component["info"]["serialized_output"]
+            if component.get("api_info"):
+                if serialize:
+                    info = component["api_info"]["serialized_output"]
+                else:
+                    info = component["api_info"]["raw_output"]
             else:
-                info = component["info"]["raw_output"]
+                if serialize:
+                    info = serializing.COMPONENT_MAPPING[type]().api_info()[
+                        "serialized_output"
+                    ]
+                else:
+                    info = serializing.COMPONENT_MAPPING[type]().api_info()[
+                        "raw_output"
+                    ]
             dependency_info["returns"][label] = [info[0], info[1], type.capitalize()]
 
         if not dependency["backend_fn"]:
@@ -1328,7 +1349,7 @@ Received outputs:
             if serializer:
                 assert isinstance(block, serializing.Serializable)
                 block_config["serializer"] = serializer
-                block_config["info"] = block.api_info()
+                block_config["api_info"] = block.api_info()
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config

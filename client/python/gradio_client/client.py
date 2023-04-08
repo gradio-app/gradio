@@ -235,9 +235,9 @@ class Client:
 
         """
         if self.serialize:
-            api_info_url = utils.API_INFO_URL.format(self.src)
+            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
         else:
-            api_info_url = utils.RAW_API_INFO_URL.format(self.src)
+            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         r = requests.get(api_info_url, headers=self.headers)
         if r.ok:
             info = r.json()
@@ -368,7 +368,9 @@ class Client:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _get_config(self) -> Dict:
-        r = requests.get(utils.CONFIG_URL.format(self.src), headers=self.headers)
+        r = requests.get(
+            urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
+        )
         if r.ok:
             return r.json()
         else:  # to support older versions of Gradio
