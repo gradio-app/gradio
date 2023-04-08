@@ -20,13 +20,15 @@ client.predict("audio_sample.wav")
 >> "This is a test of the whisper speech recognition model."
 ```
 
-The Gradio client works with any Gradio Space, whether it be an image generator, a stateful chatbot, or a tax calculator.
+The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
+
+**Prequisites**: To use the Gradio client, you do *not* need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
 ## Installation
 
 If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency. 
 
-Otherwise, the lightweight `gradio_client` package can be installed from pip (or pip3) and works with Python versions 3.9 or higher:
+Otherwise, the lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with Python versions 3.9 or higher:
 
 ```bash
 $ pip install gradio_client
@@ -34,11 +36,11 @@ $ pip install gradio_client
 
 ## Usage
 
-### Connecting to a Space or a Gradio app
+### Connecting to a running Gradio App
 
-Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Spaces (or anywhere else)!
+Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Hugging Face Spaces or generally anywhere on the web.
 
-**Connecting to a Space**
+**Connecting to a Hugging Face Space**
 
 ```python
 from gradio_client import Client
@@ -81,9 +83,9 @@ Named API endpoints: 1
      - [Textbox] value_0: str (value)
 ```
 
-This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method, providing a parameter `input_audio` of type `str`, which is a `filepath or URL`. 
+This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`. 
 
-We should also provide the `api_name='/predict'` argument. Although this isn't necessary if a Gradio app has a single named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
+We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
 
 
 ### Making a prediction
@@ -93,7 +95,7 @@ The simplest way to make a prediction is simply to call the `.predict()` functio
 ```python
 from gradio_client import Client
 
-client = Client("abidlabs/en2fr")
+client = Client("abidlabs/en2fr", api_name='/predict')
 client.predict("Hello")
 
 >> Bonjour
