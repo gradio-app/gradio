@@ -3,7 +3,8 @@
 
 ## New Features:
 
-No changes to highlight.
+- Add `select` listener to Images, allowing users to click on any part of an image and get the coordinates of the click by [@aliabid94](https://github.com/aliabid94) in [PR 3786](https://github.com/gradio-app/gradio/pull/3786).
+
 
 ## Bug Fixes:
 
