@@ -177,7 +177,23 @@ job.status()
 >> <Status.STARTING: 'STARTING'>
 ```
 
-The `Job` object also has a `done()` instance method which returns a boolean indicating whether the job has completed.
+*Note*: The `Job` class also has a `.done()` instance method which returns a boolean indicating whether the job has completed.
+
+## Cancelling Jobs
+
+The `Job` class also has a `.cancel()` instance method that cancels jobs that have been queued but not started. For example, if you run:
+
+```py
+client = Client("abidlabs/whisper") 
+job1 = client.submit("audio_sample1.wav")  
+job2 = client.submit("audio_sample2.wav")  
+job1.cancel()  # will return False, assuming the job has started
+job2.cancel()  # will return True, indicating that the job has been canceled
+```
+
+If the first job has started processing, then it will not be canceled. If the second job
+has not yet started, it will be successfully canceled and removed from the queue. 
+
 
 ## Generator Endpoints
 
@@ -211,4 +227,16 @@ for o in job:
 >> 0
 >> 1
 >> 2
+```
+
+You can also cancel jobs that that have iterative outputs, in which case the job will finish as soon as the current iteration finishes running.
+
+```py
+from gradio_client import Client
+import time
+
+client = Client("abidlabs/test-yield")
+job = client.submit("abcdef")
+time.sleep(3)
+job.cancel()  # job cancels after 2 iterations
 ```
