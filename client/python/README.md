@@ -31,7 +31,7 @@ Otherwise, the lightweight `gradio_client` package can be installed from pip (or
 $ pip install gradio_client
 ```
 
-## Usage
+## Basic Usage
 
 ### Connecting to a Space or a Gradio app
 
@@ -122,91 +122,6 @@ client.predict("https://audio-samples.github.io/samples/mp3/blizzard_uncondition
 ```
 
 
-**Running jobs asyncronously**
+## Advanced Usage
 
-Oe should note that `.predict()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
-
-In many cases, you may be better off letting the job run in the background until you need the results of the prediction. You can do this by creating a `Job` instance using the `.submit()` method, and then later calling `.result()` on the job to get the result. For example:
-
-```python
-from gradio_client import Client
-
-client = Client(space="abidlabs/en2fr")
-job = client.submit("Hello", api_name="/predict")  # This is not blocking
-
-# Do something else
-
-job.result()  # This is blocking
-
->> Bonjour
-```
-
-**Adding callbacks**
-
-Alternatively, one can add one or more callbacks to perform actions after the job has completed running, like this:
-
-```python
-from gradio_client import Client
-
-def print_result(x):
-    print("The translated result is: {x}")
-
-client = Client(space="abidlabs/en2fr")
-
-job = client.submit("Hello", api_name="/predict", result_callbacks=[print_result])
-
-# Do something else
-
->> The translated result is: Bonjour
-
-```
-
-**Status**
-
-The `Job` object also allows you to get the status of the running job by calling the `.status()` method. This returns a `StatusUpdate` object with the following attributes: `code` (the status code, one of a set of defined strings representing the status. See the `utils.Status` class), `rank` (the current position of this job in the queue), `queue_size` (the total queue size),  `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` (the time that the status was generated). 
-
-```py
-from gradio_client import Client
-
-client = Client(src="gradio/calculator")
-job = client.submit(5, "add", 4, api_name="/predict")
-job.status()
-
->> <Status.STARTING: 'STARTING'>
-```
-
-The `Job` object also has a `done()` instance method which returns a boolean indicating whether the job has completed.
-
-### Generator Endpoints
-
-Some Gradio API endpoints do not return a single value, rather they return a series of values. You can get the series of values that have been returned at any time from such a generator endpoint by running `job.outputs()`:
-
-```py
-from gradio_client import Client
-
-client = Client(src="gradio/count_generator")
-job = client.submit(3, api_name="/count")
-while not job.done():
-    time.sleep(0.1)
-job.outputs()
-
->> ['0', '1', '2']
-```
-
-Note that running `job.result()` on a generator endpoint only gives you the *first* value returned by the endpoint. 
-
-The `Job` object is also iterable, which means you can use it to display the results of a generator function as they are returned from the endpoint. Here's the equivalent example using the `Job` as a generator:
-
-```py
-from gradio_client import Client
-
-client = Client(src="gradio/count_generator")
-job = client.submit(3, api_name="/count")
-
-for o in job:
-    print(o)
-
->> 0
->> 1
->> 2
-```
+For more ways to use the Gradio Python Client, check out our dedicated Guide on the Python client, available here: https://www.gradio.app/getting-started-with-the-python-client/
