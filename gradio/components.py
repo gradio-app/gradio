@@ -2621,13 +2621,6 @@ class File(
                 "is_file": True,
             }
 
-    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir)
-        if serialized is None:
-            return None
-        serialized["size"] = Path(serialized["name"]).stat().st_size
-        return serialized
-
     def style(
         self,
         **kwargs,
@@ -3324,13 +3317,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
                 return [process_single_file(f) for f in x]
             else:
                 return process_single_file(x)
-
-    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir)
-        if serialized is None:
-            return None
-        serialized["size"] = Path(serialized["name"]).stat().st_size
-        return serialized
 
     def style(
         self,
