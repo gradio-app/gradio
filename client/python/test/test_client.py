@@ -3,7 +3,7 @@ import os
 import pathlib
 import tempfile
 import time
-from concurrent.futures import TimeoutError
+from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -149,6 +149,60 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
+
+    @pytest.mark.flaky
+    def test_cancel_from_client_queued(self):
+        client = Client(src="gradio-tests/test-cancel-from-client")
+        start = time.time()
+        job = client.submit(api_name="/long")
+        while not job.done():
+            if job.status().code == Status.STARTING:
+                job.cancel()
+                break
+        with pytest.raises(CancelledError):
+            job.result()
+        # The whole prediction takes 10 seconds to run
+        # and does not iterate. So this tests that we can cancel
+        # halfway through a prediction
+        assert time.time() - start < 10
+        assert job.status().code == Status.CANCELLED
+
+        job = client.submit(api_name="/iterate")
+        iteration_count = 0
+        while not job.done():
+            if job.status().code == Status.ITERATING:
+                iteration_count += 1
+                if iteration_count == 3:
+                    job.cancel()
+                    break
+                time.sleep(0.5)
+        # Result for iterative jobs is always the first result
+        assert job.result() == 0
+        # The whole prediction takes 10 seconds to run
+        # and does not iterate. So this tests that we can cancel
+        # halfway through a prediction
+        assert time.time() - start < 10
+
+        # Test that we did not iterate all the way to the end
+        assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
+        assert job.status().code == Status.CANCELLED
+
+    @pytest.mark.flaky
+    def test_cancel_subsequent_jobs_state_reset(self):
+        client = Client("abidlabs/test-yield")
+        job1 = client.submit("abcdefefadsadfs")
+        time.sleep(5)
+        job1.cancel()
+
+        assert len(job1.outputs()) < len("abcdefefadsadfs")
+        assert job1.status().code == Status.CANCELLED
+
+        job2 = client.submit("abcd")
+        while not job2.done():
+            time.sleep(0.1)
+        # Ran all iterations from scratch
+        assert job2.status().code == Status.FINISHED
+        assert len(job2.outputs()) == 5
 
     def test_upload_file_private_space(self):
 
