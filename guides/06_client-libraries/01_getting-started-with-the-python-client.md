@@ -34,13 +34,12 @@ Otherwise, the lightweight `gradio_client` package can be installed from pip (or
 $ pip install gradio_client
 ```
 
-## Usage
 
-### Connecting to a running Gradio App
+## Connecting to a running Gradio App
 
 Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Hugging Face Spaces or generally anywhere on the web.
 
-**Connecting to a Hugging Face Space**
+## Connecting to a Hugging Face Space
 
 ```python
 from gradio_client import Client
@@ -57,7 +56,7 @@ client = Client("abidlabs/my-private-space", hf_token="...")
 ```
 
 
-**Connecting a general Gradio app**
+## Connecting a general Gradio app
 
 If your app is running somewhere else, just provide the full URL instead, including the "http://" or "https://". Here's an example of making predictions to a Gradio app that is running on a share URL:
 
@@ -67,11 +66,11 @@ from gradio_client import Client
 client = Client("https://bec81a83-5b5c-471e.gradio.live")
 ```
 
-### Inspecting the API endpoints
+## Inspecting the API endpoints
 
 Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `Client.view_api()` method. For the Whisper Space, we see the following:
 
-```
+```bash
 Client.predict() Usage Info
 ---------------------------
 Named API endpoints: 1
@@ -88,7 +87,7 @@ This shows us that we have 1 API endpoint in this space, and shows us how to use
 We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
 
 
-### Making a prediction
+## Making a prediction
 
 The simplest way to make a prediction is simply to call the `.predict()` function with the appropriate arguments:
 
@@ -125,7 +124,7 @@ client.predict("https://audio-samples.github.io/samples/mp3/blizzard_uncondition
 ```
 
 
-**Running jobs asyncronously**
+## Running jobs asyncronously
 
 Oe should note that `.predict()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
 
@@ -144,7 +143,7 @@ job.result()  # This is blocking
 >> Bonjour
 ```
 
-**Adding callbacks**
+## Adding callbacks
 
 Alternatively, one can add one or more callbacks to perform actions after the job has completed running, like this:
 
@@ -164,7 +163,7 @@ job = client.submit("Hello", api_name="/predict", result_callbacks=[print_result
 
 ```
 
-**Status**
+## Status
 
 The `Job` object also allows you to get the status of the running job by calling the `.status()` method. This returns a `StatusUpdate` object with the following attributes: `code` (the status code, one of a set of defined strings representing the status. See the `utils.Status` class), `rank` (the current position of this job in the queue), `queue_size` (the total queue size),  `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` (the time that the status was generated). 
 
@@ -180,7 +179,7 @@ job.status()
 
 The `Job` object also has a `done()` instance method which returns a boolean indicating whether the job has completed.
 
-### Generator Endpoints
+## Generator Endpoints
 
 Some Gradio API endpoints do not return a single value, rather they return a series of values. You can get the series of values that have been returned at any time from such a generator endpoint by running `job.outputs()`:
 
