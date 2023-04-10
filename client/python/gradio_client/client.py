@@ -286,6 +286,7 @@ class Client:
         endpoints_info: Dict[str, Dict[str, List[str]]],
     ) -> str:
         parameter_names = list(endpoints_info["parameters"].keys())
+        parameter_names = [p.lower() for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
             rendered_parameters = rendered_parameters + ", "
