@@ -174,10 +174,8 @@
 />
 
 <div
-	class:fixed-height={source !== "webcam" ||
-		tool === "sketch" ||
-		tool === "color-sketch"}
 	data-testid="image"
+	class="image-container"
 	bind:offsetHeight={max_height}
 	bind:offsetWidth={max_width}
 >
@@ -359,9 +357,12 @@
 </div>
 
 <style>
+	.image-container,
 	img {
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+	img {
 		object-fit: contain;
 	}
 

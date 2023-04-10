@@ -17,7 +17,6 @@
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
-<div class="fixed-height">
 {#if value === null}
 	<Empty size="large" unpadded_box={true}><Image /></Empty>
 {:else}
@@ -32,7 +31,6 @@
 	</div>
 	<img src={value} alt="" />
 {/if}
-</div>
 
 <style>
 	img {

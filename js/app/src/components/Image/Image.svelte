@@ -46,8 +46,8 @@
 	{elem_id}
 	{elem_classes}
 	style={{
-		height: style.height || source === "webcam" ? undefined : FIXED_HEIGHT,
-		width: style.width,
+		height: style.height || (source === "webcam" ? undefined : FIXED_HEIGHT),
+		width: style.width
 	}}
 	allow_overflow={false}
 >
