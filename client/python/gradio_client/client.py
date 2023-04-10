@@ -89,6 +89,7 @@ class Client:
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
+        self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
 
@@ -157,7 +158,10 @@ class Client:
         helper = None
         if self.endpoints[inferred_fn_index].use_ws:
             helper = Communicator(
-                Lock(), JobStatus(), self.endpoints[inferred_fn_index].deserialize
+                Lock(),
+                JobStatus(),
+                self.endpoints[inferred_fn_index].deserialize,
+                self.reset_url,
             )
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -829,6 +833,19 @@ class Job(Future):
             >> 43.241  # seconds
         """
         time = datetime.now()
+        cancelled = False
+        if self.communicator:
+            with self.communicator.lock:
+                cancelled = self.communicator.should_cancel
+        if cancelled:
+            return StatusUpdate(
+                code=Status.CANCELLED,
+                rank=0,
+                queue_size=None,
+                success=False,
+                time=time,
+                eta=None,
+            )
         if self.done():
             if not self.future._exception:  # type: ignore
                 return StatusUpdate(
@@ -871,3 +888,24 @@ class Job(Future):
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
         return getattr(self.future, name)
+
+    def cancel(self) -> bool:
+        """Cancels the job as best as possible.
+
+        If the app you are connecting to has the gradio queue enabled, the job
+        will be cancelled locally as soon as possible. For apps that do not use the
+        queue, the job cannot be cancelled if it's been sent to the local executor
+        (for the time being).
+
+        Note: In general, this DOES not stop the process from running in the upstream server
+        except for the following situations:
+
+        1. If the job is queued upstream, it will be removed from the queue and the server will not run the job
+        2. If the job has iterative outputs, the job will finish as soon as the current iteration finishes running
+        3. If the job has not been picked up by the queue yet, the queue will not pick up the job
+        """
+        if self.communicator:
+            with self.communicator.lock:
+                self.communicator.should_cancel = True
+                return True
+        return self.future.cancel()
