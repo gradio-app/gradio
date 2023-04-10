@@ -1,19 +1,30 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import type { SelectData } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
+	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import { Image } from "@gradio/icons";
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
+	export let selectable: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
+		select: SelectData;
 	}>();
 
 	$: value && dispatch("change", value);
+
+	const handle_click = (evt: MouseEvent) => {
+		let coordinates = get_coordinates_of_clicked_image(evt);
+		if (coordinates) {
+			dispatch("select", { index: coordinates, value: null });
+		}
+	};
 </script>
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
@@ -29,7 +40,8 @@
 			<IconButton Icon={Download} label="Download" />
 		</a>
 	</div>
-	<img src={value} alt="" />
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
+	<img src={value} alt="" class:selectable on:click={handle_click} />
 {/if}
 
 <style>
@@ -37,6 +49,10 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+	}
+
+	.selectable {
+		cursor: crosshair;
 	}
 
 	.download {

@@ -7,6 +7,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import UploadText from "../UploadText.svelte";
+	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -22,12 +23,15 @@
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
 	export let brush_radius: number;
+	export let selectable: boolean = false;
 
 	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
 
 	$: value, dispatch("change");
 	let dragging: boolean;
@@ -53,7 +57,7 @@
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
-		<StaticImage {value} {label} {show_label} />
+		<StaticImage on:select {value} {label} {show_label} {selectable} />
 	{:else}
 		<Image
 			{brush_radius}
@@ -61,12 +65,14 @@
 			bind:value
 			{source}
 			{tool}
+			{selectable}
 			on:edit
 			on:clear
 			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload
+			on:select
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";

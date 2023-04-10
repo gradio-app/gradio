@@ -1577,6 +1577,7 @@ class Image(
     Clearable,
     Changeable,
     Streamable,
+    Selectable,
     Uploadable,
     IOComponent,
     ImgSerializable,
@@ -1658,6 +1659,12 @@ class Image(
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user clicks on a pixel within the image.
+        Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
+        See EventData documentation on how to use this event data.
+        """
 
         IOComponent.__init__(
             self,
@@ -1683,6 +1690,7 @@ class Image(
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
