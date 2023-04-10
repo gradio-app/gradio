@@ -1659,6 +1659,12 @@ class Image(
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user clicks on a pixel within the image.
+        Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
+        See EventData documentation on how to use this event data.
+        """
 
         IOComponent.__init__(
             self,
