@@ -2035,12 +2035,12 @@ class Video(
         if x is None:
             return None
 
-        x = x[0]
+        video = x[0]
 
         file_name, file_data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
+            video["name"],
+            video["data"],
+            video.get("is_file", False),
         )
         if is_file:
             file_name = Path(self.make_temp_copy_if_needed(file_name))
@@ -2079,16 +2079,28 @@ class Video(
 
     def postprocess(
         self, y: str | Tuple[str, str | None] | None
-    ) -> Dict[str, Any] | None:
+    ) -> Tuple[Dict[str, Any], Dict[str, Any] | None] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
             y: video data in either of the following formats: a tuple of (video, subtitles), or a string filepath or URL to an video file, or None.
         Returns:
-            a dictionary with the following keys: 'name' (containing the file path
-            to a temporary copy of the video), 'data' (None), and 'is_file` (True).
+            a tuple with the two dictionary, reresent to video and subtitle(optional), which following formats:
+
+            - The first dictionary represents the video file and contains the following keys:
+                - 'name': a file path to a temporary copy of the processed video.
+                - 'data': None
+                - 'is_file': True
+            - The second dictionary represents the subtitle file and contains the following keys:
+                - 'name': None
+                - 'data': Base64 encode the processed subtitle data.
+                - 'is_file': False
+
+            - If subtitle is None, returns (video, None).
+            - If video is None, returns None.
         """
+
         if y is None or y == [None, None] or y == (None, None):
             return None
 
@@ -2099,17 +2111,32 @@ class Video(
                 len(y) == 2
             ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
 
-            if isinstance(y[1], tempfile._TemporaryFileWrapper):
-                y[1] = y[1].name
+            video = y[0]
+            subtitle = (
+                y[1].name if isinstance(y[1], tempfile._TemporaryFileWrapper) else y[1]
+            )
 
-            processed_files = (self._format_video(y[0]), self._format_subtitle(y[1]))
+            processed_files = (
+                self._format_video(video),
+                self._format_subtitle(subtitle),
+            )
         else:
             raise Exception(f"Cannot process type as video: {type(y)}")
 
         return processed_files
 
     def _format_video(self, video):
-        """Convert subtitle format to VTT to meet HTML5 requirements."""
+        """
+        Processes a video to ensure that it is in the correct format.
+        Parameters:
+            video: video data in either of the following formats: a string filepath or URL to an video file, or None.
+        Returns:
+            a dictionary with the following keys:
+
+            - 'name': a file path to a temporary copy of the processed video.
+            - 'data': None
+            - 'is_file': True
+        """
         if video is None:
             return None
 
@@ -2151,7 +2178,17 @@ class Video(
         }
 
     def _format_subtitle(self, subtitle):
-        """Convert subtitle format to VTT to meet HTML5 requirements."""
+        """
+        Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
+        Parameters:
+            subtitle: subtitle path in either of the VTT and SRT format.
+        Returns:
+            a dictionary with the following keys:
+
+            - 'name': None
+            - 'data': Base64 encode the processed subtitle data.
+            - 'is_file': False
+        """
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
@@ -2193,7 +2230,7 @@ class Video(
             subtitle = temp_file.name
 
         subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
-        return {"name": subtitle, "data": subtitle_data, "is_file": False}
+        return {"name": None, "data": subtitle_data, "is_file": False}
 
     def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
