@@ -21,6 +21,7 @@ import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -125,6 +126,7 @@ class TestBlocksMethods:
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
+        print(config)
         assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
@@ -342,6 +344,23 @@ class TestBlocksMethods:
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
 
+    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -542,9 +561,52 @@ class TestBlocksPostprocessing:
             button.click(lambda x: x, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match="Number of output components does not match number of values returned from from function <lambda>",
+            match=r'An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
         ):
             demo.postprocess_data(fn_index=0, predictions=["test"], state={})
+
+    def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
+        def infer(x):
+            return x
+
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(infer, textbox1, [textbox1, textbox2])
+        with pytest.raises(
+            ValueError,
+            match=r'An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
+        ):
+            demo.postprocess_data(fn_index=0, predictions=["test"], state={})
+
+    def test_error_raised_if_num_outputs_mismatch_single_output(self):
+        with gr.Blocks() as demo:
+            num1 = gr.Number()
+            num2 = gr.Number()
+            btn = gr.Button(value="1")
+            btn.click(lambda a: a, num1, [num1, num2])
+        with pytest.raises(
+            ValueError,
+            match=r"An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[number, number\]\nReceived outputs:\n    \[1\]",
+        ):
+            demo.postprocess_data(fn_index=0, predictions=1, state={})
+
+    def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
+        def infer(a, b):
+            return a, b
+
+        with gr.Blocks() as demo:
+            num1 = gr.Number()
+            num2 = gr.Number()
+            num3 = gr.Number()
+            btn = gr.Button(value="1")
+            btn.click(infer, num1, [num1, num2, num3])
+        with pytest.raises(
+            ValueError,
+            match=r"An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:\n    \[number, number, number\]\nReceived outputs:\n    \[1, 2\]",
+        ):
+            demo.postprocess_data(fn_index=0, predictions=(1, 2), state={})
 
 
 class TestCallFunction:
@@ -666,9 +728,7 @@ class TestCallFunction:
 class TestBatchProcessing:
     def test_raise_exception_if_batching_an_event_thats_not_queued(self):
         def trim(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[: int(l)])
+            trimmed_words = [word[: int(length)] for word, length in zip(words, lens)]
             return [trimmed_words]
 
         msg = "In order to use batching, the queue must be enabled."
@@ -1030,7 +1090,7 @@ class TestCancel:
         def iteration(a):
             yield a
 
-        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        msg = "Queue needs to be enabled!"
         with pytest.raises(ValueError, match=msg):
             gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
                 prevent_thread_lock=True
@@ -1394,6 +1454,113 @@ class TestAddRequests:
         request = gr.Request()
         inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
+
+    def test_default_args(self):
+        def moo(a, b, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs + [42]
+
+        inputs = [1, 2, 24]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs
+
+    def test_default_args_with_progress(self):
+        pr = gr.Progress()
+
+        def moo(a, b, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [42, pr]
+        assert progress_index == 3
+
+        inputs = [1, 2, 24]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [pr]
+        assert progress_index == 3
+
+        def moo(a, b, pr=pr, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [pr, 42]
+        assert progress_index == 2
+
+    def test_default_args_with_request(self):
+        pr = gr.Progress()
+
+        def moo(a, b, req: gr.Request, c=42):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        assert inputs_ == inputs + [request, 42]
+
+        def moo(a, b, req: gr.Request, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request
+        )
+        assert inputs_ == inputs + [request, 42, pr]
+        assert progress_index == 4
+
+    def test_default_args_with_event_data(self):
+        pr = gr.Progress()
+        target = gr.Textbox()
+
+        def moo(a, b, ed: SelectData, c=42):
+            return a + b + c
+
+        event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request, event_data
+        )[0]
+        assert len(inputs_) == 4
+        new_event_data = inputs_[2]
+        assert inputs_ == inputs + [new_event_data, 42]
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
+
+        def moo(a, b, ed: SelectData, c=42, pr=pr):
+            return a + b + c
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_, progress_index, _ = gr.helpers.special_args(
+            moo, copy.deepcopy(inputs), request, event_data
+        )
+        assert len(inputs_) == 5
+        new_event_data = inputs_[2]
+        assert inputs_ == inputs + [new_event_data, 42, pr]
+        assert progress_index == 4
+        assert isinstance(new_event_data, SelectData)
+        assert new_event_data.target == target
+        assert new_event_data.index == 24
+        assert new_event_data.value == "foo"
 
 
 def test_queue_enabled_for_fn():

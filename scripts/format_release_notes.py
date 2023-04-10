@@ -1,5 +1,5 @@
-import pathlib
 import argparse
+import pathlib
 import textwrap
 
 current_dir = (pathlib.Path(__file__).parent / "..").resolve()

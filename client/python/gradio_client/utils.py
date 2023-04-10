@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import mimetypes
@@ -7,15 +8,25 @@ import os
 import pkgutil
 import shutil
 import tempfile
+from concurrent.futures import CancelledError
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from threading import Lock
+from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
+import httpx
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
-API_URL = "{}/api/predict/"
-WS_URL = "{}/queue/join"
+API_URL = "/api/predict/"
+WS_URL = "/queue/join"
+UPLOAD_URL = "/upload"
+RESET_URL = "/reset"
+DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+STATE_COMPONENT = "state"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -38,6 +49,97 @@ class InvalidAPIEndpointError(Exception):
     pass
 
 
+class Status(Enum):
+    """Status codes presented to client users."""
+
+    STARTING = "STARTING"
+    JOINING_QUEUE = "JOINING_QUEUE"
+    QUEUE_FULL = "QUEUE_FULL"
+    IN_QUEUE = "IN_QUEUE"
+    SENDING_DATA = "SENDING_DATA"
+    PROCESSING = "PROCESSSING"
+    ITERATING = "ITERATING"
+    FINISHED = "FINISHED"
+    CANCELLED = "CANCELLED"
+
+    @staticmethod
+    def ordering(status: "Status") -> int:
+        """Order of messages. Helpful for testing."""
+        order = [
+            Status.STARTING,
+            Status.JOINING_QUEUE,
+            Status.QUEUE_FULL,
+            Status.IN_QUEUE,
+            Status.SENDING_DATA,
+            Status.PROCESSING,
+            Status.ITERATING,
+            Status.FINISHED,
+            Status.CANCELLED,
+        ]
+        return order.index(status)
+
+    def __lt__(self, other: "Status"):
+        return self.ordering(self) < self.ordering(other)
+
+    @staticmethod
+    def msg_to_status(msg: str) -> "Status":
+        """Map the raw message from the backend to the status code presented to users."""
+        return {
+            "send_hash": Status.JOINING_QUEUE,
+            "queue_full": Status.QUEUE_FULL,
+            "estimation": Status.IN_QUEUE,
+            "send_data": Status.SENDING_DATA,
+            "process_starts": Status.PROCESSING,
+            "process_generating": Status.ITERATING,
+            "process_completed": Status.FINISHED,
+        }[msg]
+
+
+@dataclass
+class StatusUpdate:
+    """Update message sent from the worker thread to the Job on the main thread."""
+
+    code: Status
+    rank: int | None
+    queue_size: int | None
+    eta: float | None
+    success: bool | None
+    time: datetime | None
+
+
+def create_initial_status_update():
+    return StatusUpdate(
+        code=Status.STARTING,
+        rank=None,
+        queue_size=None,
+        eta=None,
+        success=None,
+        time=datetime.now(),
+    )
+
+
+@dataclass
+class JobStatus:
+    """The job status.
+
+    Keeps strack of the latest status update and intermediate outputs (not yet implements).
+    """
+
+    latest_status: StatusUpdate = field(default_factory=create_initial_status_update)
+    outputs: List[Any] = field(default_factory=list)
+
+
+@dataclass
+class Communicator:
+    """Helper class to help communicate between the worker thread and main thread."""
+
+    lock: Lock
+    job: JobStatus
+    deserialize: Callable[..., Tuple]
+    reset_url: str
+    should_cancel: bool = False
+
+
 ########################
 # Network utils
 ########################
@@ -55,13 +157,54 @@ def is_valid_url(possible_url: str) -> bool:
 
 
 async def get_pred_from_ws(
-    websocket: WebSocketCommonProtocol, data: str, hash_data: str
+    websocket: WebSocketCommonProtocol,
+    data: str,
+    hash_data: str,
+    helper: Communicator | None = None,
 ) -> Dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
-        msg = await websocket.recv()
+        # Receive message in the background so that we can
+        # cancel even while running a long pred
+        task = asyncio.create_task(websocket.recv())
+        while not task.done():
+            if helper:
+                with helper.lock:
+                    if helper.should_cancel:
+                        # Need to reset the iterator state since the client
+                        # will not reset the session
+                        async with httpx.AsyncClient() as http:
+                            reset = http.post(
+                                helper.reset_url, json=json.loads(hash_data)
+                            )
+                            # Retrieve cancel exception from task
+                            # otherwise will get nasty warning in console
+                            task.cancel()
+                            await asyncio.gather(task, reset, return_exceptions=True)
+                        raise CancelledError()
+            # Need to suspend this coroutine so that task actually runs
+            await asyncio.sleep(0.01)
+        msg = task.result()
         resp = json.loads(msg)
+        if helper:
+            with helper.lock:
+                status_update = StatusUpdate(
+                    code=Status.msg_to_status(resp["msg"]),
+                    queue_size=resp.get("queue_size"),
+                    rank=resp.get("rank", None),
+                    success=resp.get("success"),
+                    time=datetime.now(),
+                    eta=resp.get("rank_eta"),
+                )
+                output = resp.get("output", {}).get("data", [])
+                if output and status_update.code != Status.FINISHED:
+                    try:
+                        result = helper.deserialize(*output)
+                    except Exception as e:
+                        result = [e]
+                    helper.job.outputs.append(result)
+                helper.job.latest_status = status_update
         if resp["msg"] == "queue_full":
             raise QueueError("Queue is full! Please try again.")
         if resp["msg"] == "send_hash":

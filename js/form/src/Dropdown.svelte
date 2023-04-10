@@ -12,10 +12,14 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
+	export let allow_custom_value: boolean = false;
+
+	let focused = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
 		select: SelectData;
+		blur: undefined;
 	}>();
 
 	let inputValue: string,
@@ -32,8 +36,9 @@
 		activeOption = filtered[0];
 
 	$: readonly =
-		(!multiselect && typeof value === "string" && value.length > 0) ||
-		(multiselect && Array.isArray(value) && value.length === max_choices);
+		((!multiselect && typeof value === "string" && value.length > 0) ||
+			(multiselect && Array.isArray(value) && value.length === max_choices)) &&
+		!allow_custom_value;
 
 	// The initial value of value is [] so that can
 	// cause infinite loops in the non-multiselect case
@@ -82,12 +87,15 @@
 
 	function handleOptionMousedown(e: any) {
 		const option = e.detail.target.dataset.value;
-		inputValue = "";
+		if (allow_custom_value) {
+			inputValue = option;
+		} else {
+			inputValue = "";
+		}
 
 		if (option !== undefined) {
 			if (!multiselect) {
 				value = option;
-				inputValue = "";
 				showOptions = false;
 				dispatch("select", {
 					index: choices.indexOf(option),
@@ -114,8 +122,7 @@
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
-		}
-		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+		} else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 			const increment = e.key === "ArrowUp" ? -1 : 1;
 			const calcIndex = filtered.indexOf(activeOption) + increment;
 			activeOption =
@@ -124,9 +131,11 @@
 					: calcIndex === filtered.length
 					? filtered[0]
 					: filtered[calcIndex];
-		}
-		if (e.key === "Escape") {
+		} else if (e.key === "Escape") {
 			showOptions = false;
+		} else if (allow_custom_value) {
+			value = inputValue;
+			dispatch("change", value);
 		}
 	}
 </script>
@@ -150,7 +159,7 @@
 						</div>
 					</div>
 				{/each}
-			{:else}
+			{:else if !allow_custom_value}
 				<span class="single-select">{value}</span>
 			{/if}
 			<div class="secondary-wrap">
@@ -165,12 +174,17 @@
 					}}
 					on:focus={() => {
 						showOptions = true;
+						focused = true;
 					}}
-					on:blur={() => (showOptions = false)}
+					on:blur={() => {
+						dispatch("blur");
+						showOptions = false;
+						focused = false;
+					}}
 					on:keyup={handleKeyup}
 				/>
 				<div
-					class:hide={!value?.length || disabled}
+					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
 					title="Remove All"
 					on:click={remove_all}
@@ -280,5 +294,9 @@
 		margin-left: var(--size-1);
 		width: 20px;
 		height: 20px;
+	}
+
+	.hide {
+		display: none;
 	}
 </style>

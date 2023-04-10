@@ -10,11 +10,11 @@ from typing import TYPE_CHECKING, Callable, Dict
 
 import requests
 from gradio_client import Client
+from gradio_client.documentation import document, set_documentation_group
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
@@ -344,7 +344,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "examples": example_data,
         }
 
-    if p is None or not (p in pipelines):
+    if p is None or p not in pipelines:
         raise ValueError("Unsupported pipeline type: {}".format(p))
 
     pipeline = pipelines[p]
@@ -452,7 +452,7 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
-    client = Client(space=space, hf_token=api_key)
+    client = Client(space, hf_token=api_key)
     predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 

@@ -5,20 +5,32 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from gradio_client import utils
 
 
 class Serializable(ABC):
     @abstractmethod
-    def serialize(self, x: Any, load_dir: str | Path = ""):
+    def input_api_info(self) -> Tuple[str, str]:
         """
-        Convert data from human-readable format to serialized format for a browser.
+        Get the type of input that should be provided via API, and a human-readable description of the input as a tuple (for documentation generation).
         """
         pass
 
     @abstractmethod
+    def output_api_info(self) -> Tuple[str, str]:
+        """
+        Get the type of output that should be returned via API, and a human-readable description of the output as a tuple (for documentation generation).
+        """
+        pass
+
+    def serialize(self, x: Any, load_dir: str | Path = ""):
+        """
+        Convert data from human-readable format to serialized format for a browser.
+        """
+        return x
+
     def deserialize(
         self,
         x: Any,
@@ -29,38 +41,68 @@ class Serializable(ABC):
         """
         Convert data from serialized format for a browser to human-readable format.
         """
-        pass
+        return x
 
 
 class SimpleSerializable(Serializable):
-    def serialize(self, x: Any, load_dir: str | Path = "") -> Any:
-        """
-        Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
-        Parameters:
-            x: Input data to serialize
-            load_dir: Ignored
-        """
-        return x
+    """General class that does not perform any serialization or deserialization."""
 
-    def deserialize(
-        self,
-        x: Any,
-        save_dir: str | Path | None = None,
-        root_url: str | None = None,
-        hf_token: str | None = None,
-    ):
-        """
-        Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
-        Parameters:
-            x: Input data to deserialize
-            save_dir: Ignored
-            root_url: Ignored
-            hf_token: Ignored
-        """
-        return x
+    def input_api_info(self) -> Tuple[str, str]:
+        return "Any", ""
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "Any", ""
+
+
+class StringSerializable(Serializable):
+    """Expects a string as input/output but performs no serialization."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "value"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "value"
+
+
+class ListStringSerializable(Serializable):
+    """Expects a list of strings as input/output but performs no serialization."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "List[str]", "values"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "List[str]", "values"
+
+
+class BooleanSerializable(Serializable):
+    """Expects a boolean as input/output but performs no serialization."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "bool", "value"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "bool", "value"
+
+
+class NumberSerializable(Serializable):
+    """Expects a number (int/float) as input/output but performs no serialization."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "int | float", "value"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "int | float", "value"
 
 
 class ImgSerializable(Serializable):
+    """Expects a base64 string as input/output which is ."""
+
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
+
     def serialize(
         self,
         x: str | None,
@@ -102,48 +144,36 @@ class ImgSerializable(Serializable):
 
 
 class FileSerializable(Serializable):
-    def serialize(
-        self,
-        x: str | None,
-        load_dir: str | Path = "",
-    ) -> Dict | None:
-        """
-        Convert from human-friendly version of a file (string filepath) to a
-        seralized representation (base64)
-        Parameters:
-            x: String path to file to serialize
-            load_dir: Path to directory containing x
-        """
-        if x is None or x == "":
-            return None
-        filename = str(Path(load_dir) / x)
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath or URL"
+
+    def _serialize_single(self, x: str | dict, load_dir: str | Path = ""):
+        if isinstance(x, dict):
+            return x
+        if utils.is_valid_url(x):
+            filename = x
+            size = None
+        else:
+            filename = str(Path(load_dir) / x)
+            size = Path(filename).stat().st_size
         return {
             "name": filename,
             "data": utils.encode_url_or_file_to_base64(filename),
             "orig_name": Path(filename).name,
             "is_file": False,
+            "size": size,
         }
 
-    def deserialize(
+    def _deserialize_single(
         self,
-        x: str | Dict | None,
-        save_dir: Path | str | None = None,
+        x: str | dict,
+        save_dir: str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | None:
-        """
-        Convert from serialized representation of a file (base64) to a human-friendly
-        version (string filepath). Optionally, save the file to the directory specified by `save_dir`
-        Parameters:
-            x: Base64 representation of file to deserialize into a string filepath
-            save_dir: Path to directory to save the deserialized file to
-            root_url: If this component is loaded from an external Space, this is the URL of the Space
-            hf_token: If this component is loaded from an external private Space, this is the access token for the Space
-        """
-        if x is None:
-            return None
-        if isinstance(save_dir, Path):
-            save_dir = str(save_dir)
+    ) -> str:
         if isinstance(x, str):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
@@ -162,12 +192,69 @@ class FileSerializable(Serializable):
                 file_name = utils.decode_base64_to_file(x["data"], dir=save_dir).name
         else:
             raise ValueError(
-                f"A FileSerializable component cannot only deserialize a string or a dict, not a: {type(x)}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a: {type(x)}"
             )
         return file_name
 
+    def serialize(
+        self,
+        x: str | dict | List[str | dict] | None,
+        load_dir: str | Path = "",
+    ) -> Dict | List[Dict] | None:
+        """
+        Convert from human-friendly version of a file (string filepath) to a
+        seralized representation (base64)
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+        """
+        if x is None or x == "":
+            return None
+        if isinstance(x, list):
+            return [self._serialize_single(f, load_dir=load_dir) for f in x]
+        else:
+            return self._serialize_single(x, load_dir=load_dir)
+
+    def deserialize(
+        self,
+        x: str | Dict | List[Dict | str] | None,
+        save_dir: Path | str | None = None,
+        root_url: str | None = None,
+        hf_token: str | None = None,
+    ) -> str | List[str] | None:
+        """
+        Convert from serialized representation of a file (base64) to a human-friendly
+        version (string filepath). Optionally, save the file to the directory specified by `save_dir`
+        Parameters:
+            x: Base64 representation of file to deserialize into a string filepath
+            save_dir: Path to directory to save the deserialized file to
+            root_url: If this component is loaded from an external Space, this is the URL of the Space.
+            hf_token: If this component is loaded from an external private Space, this is the access token for the Space
+        """
+        if x is None:
+            return None
+        if isinstance(save_dir, Path):
+            save_dir = str(save_dir)
+        if isinstance(x, list):
+            return [
+                self._deserialize_single(
+                    f, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+                )
+                for f in x
+            ]
+        else:
+            return self._deserialize_single(
+                x, save_dir=save_dir, root_url=root_url, hf_token=hf_token
+            )
+
 
 class JSONSerializable(Serializable):
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath to json file"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "filepath to json file"
+
     def serialize(
         self,
         x: str | None,
@@ -206,6 +293,12 @@ class JSONSerializable(Serializable):
 
 
 class GallerySerializable(Serializable):
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "path to directory with images and captions.json"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str", "path to directory with images and captions.json"
+
     def serialize(
         self, x: str | None, load_dir: str | Path = ""
     ) -> List[List[str]] | None:
@@ -248,14 +341,17 @@ class GallerySerializable(Serializable):
 
 
 SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
+SERIALIZER_MAPPING["Serializable"] = SimpleSerializable
+SERIALIZER_MAPPING["File"] = FileSerializable
+SERIALIZER_MAPPING["UploadButton"] = FileSerializable
 
-COMPONENT_MAPPING = {
-    "textbox": SimpleSerializable,
-    "number": SimpleSerializable,
-    "slider": SimpleSerializable,
-    "checkbox": SimpleSerializable,
-    "checkboxgroup": SimpleSerializable,
-    "radio": SimpleSerializable,
+COMPONENT_MAPPING: Dict[str, type] = {
+    "textbox": StringSerializable,
+    "number": NumberSerializable,
+    "slider": NumberSerializable,
+    "checkbox": BooleanSerializable,
+    "checkboxgroup": ListStringSerializable,
+    "radio": StringSerializable,
     "dropdown": SimpleSerializable,
     "image": ImgSerializable,
     "video": FileSerializable,
@@ -264,18 +360,18 @@ COMPONENT_MAPPING = {
     "dataframe": JSONSerializable,
     "timeseries": JSONSerializable,
     "state": SimpleSerializable,
-    "button": SimpleSerializable,
+    "button": StringSerializable,
     "uploadbutton": FileSerializable,
-    "colorpicker": SimpleSerializable,
+    "colorpicker": StringSerializable,
     "label": JSONSerializable,
     "highlightedtext": JSONSerializable,
     "json": JSONSerializable,
-    "html": SimpleSerializable,
+    "html": StringSerializable,
     "gallery": GallerySerializable,
     "chatbot": JSONSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
-    "markdown": SimpleSerializable,
-    "dataset": SimpleSerializable,
-    "code": SimpleSerializable,
+    "markdown": StringSerializable,
+    "dataset": StringSerializable,
+    "code": StringSerializable,
 }
