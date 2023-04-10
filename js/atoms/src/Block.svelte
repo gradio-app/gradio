@@ -32,7 +32,6 @@
 		"" +
 		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
 		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
-	console.log(style);
 </script>
 
 <svelte:element
