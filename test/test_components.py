@@ -650,6 +650,7 @@ class TestImage:
             "interactive": None,
             "root_url": None,
             "mirror_webcam": True,
+            "selectable": False,
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image(invert_colors=True)
