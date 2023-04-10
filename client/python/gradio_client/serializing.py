@@ -143,6 +143,14 @@ class ImgSerializable(Serializable):
         return file.name
 
 
+class VideoSerializable(Serializable):
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str | Tuple[str, str]", "Filepath or URL to a video file, or a tuple of (video file, subtitle file)"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return "str | Tuple[str, str]", "Filepath or URL to a video file, or a tuple of (video file, subtitle file)"
+    
+
 class FileSerializable(Serializable):
     def input_api_info(self) -> Tuple[str, str]:
         return "str", "filepath or URL"

@@ -44,6 +44,7 @@ from gradio_client.serializing import (
     Serializable,
     SimpleSerializable,
     StringSerializable,
+    VideoSerializable,
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
@@ -1935,7 +1936,7 @@ class Video(
     Playable,
     Uploadable,
     IOComponent,
-    FileSerializable,
+    VideoSerializable,
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -1968,7 +1969,7 @@ class Video(
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
@@ -2016,7 +2017,7 @@ class Video(
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str | Tuple[str, str | None] | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         source: str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -2038,7 +2039,7 @@ class Video(
         Parameters:
             x: a dictionary with the following keys: 'name' (containing the file path to a video), 'data' (with either the file URL or base64 representation of the video), and 'is_file` (True if `data` contains the file URL).
         Returns:
-            a string file path to the preprocessed video
+            A string file path or URL to the preprocessed video, or a tuple of (file path, subtitle path).
         """
         if x is None:
             return None
