@@ -3766,6 +3766,145 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
+class ImageSections(Selectable, IOComponent, JSONSerializable):
+    """
+    Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], Optional[str])]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 binary masks of the same shape as the image. A label can optionally be provided for each subsection.
+
+    Demos: image_segmentation
+    """
+
+    def __init__(
+        self,
+        value: Tuple[
+            np.ndarray | PIL.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
+        ],
+        *,
+        show_legend: bool = True,
+        label: str | None = None,
+        every: float | None = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Tuple of base image and list of subsections.
+            show_legend: If True, will show a legend of the subsections.
+            label: component name in interface.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.show_legend = show_legend
+        self.color_map = None
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects Image subsection.
+        Uses event data gradio.SelectData to carry `value` referring to selected subsection label, and `index` to refer to subsection index.
+        See EventData documentation on how to use this event data.
+        """
+        IOComponent.__init__(
+            self,
+            label=label,
+            every=every,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "color_map": self.color_map,
+            "show_legend": self.show_legend,
+            "value": self.value,
+            "selectable": self.selectable,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Tuple[
+            np.ndarray | PIL.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
+        ] = _Keywords.NO_VALUE,
+        color_map: Dict[str, str] | None = None,
+        show_legend: bool | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "color_map": color_map,
+            "show_legend": show_legend,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
+
+    def postprocess(
+        self, y: Tuple[
+            np.ndarray | PIL.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
+        ]
+    ) -> List[Tuple[str, str | float | None]] | None:
+        """
+        Parameters:
+            y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a binary mask, and the second element is the label.
+        Returns:
+            Tuple[str, List[Tuple[str, List, str]]]
+        """
+        if y is None:
+            return None
+        base_img = y[0]
+        if isinstance(base_img, str):
+            base_img = PIL.Image.open(base_img)
+        if not isinstance(base_img, np.ndarray):
+            base_img = np.array(base_img)
+
+        for mask, label in y[1]:
+            mask_img = PIL.Image.new("L", (base_img.shape[1], base_img.shape[0]), 0)
+            if isinstance(mask, np.ndarray):
+                mask_img = mask_img * mask
+            else:
+                x1, y1, x2, y2 = mask
+                PIL.ImageDraw.Draw(mask_img).rectangle(
+                    (x1, y1, x2, y2), outline=255, fill=255
+                )   
+
+    def style(
+        self,
+        *,
+        color_map: Dict[str, str] | None = None,
+        container: bool | None = None,
+        **kwargs,
+    ):
+        """
+        This method can be used to change the appearance of the HighlightedText component.
+        Parameters:
+            color_map: Map between category and respective colors.
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
+        if color_map is not None:
+            self._style["color_map"] = color_map
+
+        Component.style(self, container=container, **kwargs)
+        return self
+
+
+@document("style")
 class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
