@@ -35,7 +35,6 @@
 
 	$: {
 		_value = normalise_file(value, root, root_url);
-		console.log(value, _value, label);
 
 		if (_value != null) {
 			[_video, _subtitle] = _value;
@@ -63,6 +62,7 @@
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
+
 			dispatch("change");
 		}
 	}
