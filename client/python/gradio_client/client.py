@@ -46,8 +46,7 @@ class Client:
         job.result()
         >> 49 # returns the result of the remote API call (blocking call)
 
-    """
-
+    """   
     def __init__(
         self,
         src: str,
@@ -58,7 +57,7 @@ class Client:
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
@@ -103,6 +102,60 @@ class Client:
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
+
+    @classmethod
+    def duplicate_from(
+        cls,
+        from_id: str,
+        to_id: str | None = None, 
+        hf_token: str | None = None, 
+        private: bool = True,
+        hardware: str | None = None,
+        max_workers: int = 40,
+        verbose: bool = True
+    ):
+        """
+        Duplicates a Hugging Face Space under your account and returns a Client object 
+        for the new Space. No duplication is created if the Space already exists in your 
+        account (to override this, provide a new name for the new Space using `to_id`). 
+        To use this method, you must provide an `hf_token` or be logged in via the Hugging 
+        Face Hub CLI. 
+        
+        The new Space will be private by default and use the same hardware as the original
+        Space. This can be changed by using the `private` and `hardware` parameters. For
+        hardware upgrades (beyond the basic CPU tier), you may be required to provide
+        billing information on Hugging Face: https://huggingface.co/settings/billing
+        
+        Parameters:
+            from_id: The name of the Hugging Face Space to duplicate, e.g. "abidlabs/whisper".
+            to_id: The name of the new Hugging Face Space to create, e.g. "nateraw/whisper". If not provided, the new Space will be named "{you_hf_username}/{from_id}".
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
+            private: Whether the new Space should be private (True) or public (False). Defaults to True.
+            hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
+            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            verbose: Whether the client should print statements to the console.
+        """
+        # Duplicate a Hugging Face Space
+        if verbose:
+            print(f"Creating a duplicate of `{from_id}` for your own use 🤗")
+        space_id = huggingface_hub.hf_api.duplicate_space(
+            from_id=from_id, 
+            to_id=to_id, 
+            token=hf_token,
+            exist_ok=True,
+            private=private,
+        ).repo_id
+        huggingface_hub.hf_api.request_space_hardware(space_id, hardware)
+        if verbose:
+            print(f"Created Space: `{space_id}` and assigned: {hardware}. See it here: {}")
+        # Create a Client object from a Hugging Face Space
+        client = cls(
+            space_id, 
+            hf_token=hf_token, 
+            max_workers=max_workers, 
+            verbose=verbose
+        )
+        return client
 
     def predict(
         self,
