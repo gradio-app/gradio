@@ -202,7 +202,6 @@ export async function client(
 						? payload.fn_index
 						: api_map[trimmed_endpoint];
 				if (skip_queue(fn_index, config)) {
-					console.log("SKIP");
 					fire_event({
 						type: "status",
 						endpoint,
