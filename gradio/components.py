@@ -2017,7 +2017,10 @@ class Video(
 
     @staticmethod
     def update(
-        value: str | Tuple[str, str | None] | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | Tuple[str, str | None]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         source: str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -2185,7 +2188,7 @@ class Video(
             "is_file": True,
             "orig_name": Path(video).name,
         }
-        
+
     def _format_subtitle(self, subtitle: str | None) -> Dict[str, Any] | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
@@ -2223,7 +2226,7 @@ class Video(
 
         valid_extensions = (".srt", ".vtt")
 
-        if not Path(subtitle).suffix in valid_extensions:
+        if Path(subtitle).suffix not in valid_extensions:
             raise ValueError(
                 f"Invalid value for parameter `subtitle`: {subtitle}. Please choose a file with one of these extensions: {valid_extensions}"
             )
