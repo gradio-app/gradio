@@ -3,6 +3,8 @@
 	import { createEventDispatcher, tick, onMount } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
+	import type { SelectData } from "@gradio/utils";
+	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
@@ -26,6 +28,7 @@
 	export let pending: boolean = false;
 	export let mirror_webcam: boolean;
 	export let brush_radius: number;
+	export let selectable: boolean = false;
 
 	let sketch: Sketch;
 	let cropper: Cropper;
@@ -90,6 +93,7 @@
 		clear: undefined;
 		drag: boolean;
 		upload: FileData;
+		select: SelectData;
 	}>();
 
 	$: dispatch("change", value as string);
@@ -165,6 +169,13 @@
 			handle_image_load({ currentTarget: value_img });
 		}
 	});
+
+	const handle_click = (evt: MouseEvent) => {
+		let coordinates = get_coordinates_of_clicked_image(evt);
+		if (coordinates) {
+			dispatch("select", { index: coordinates, value: null });
+		}
+	};
 </script>
 
 <BlockLabel
@@ -199,10 +210,13 @@
 					editable
 				/>
 
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<img
 					src={value}
 					alt=""
 					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+					class:selectable
+					on:click={handle_click}
 				/>
 			{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
 				{#key static_image}
@@ -246,10 +260,13 @@
 					{/if}
 				{/if}
 			{:else}
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<img
 					src={value.image || value}
 					alt="hello"
 					class:webcam={source === "webcam" && mirror_webcam}
+					class:selectable
+					on:click={handle_click}
 				/>
 			{/if}
 		</Upload>
@@ -302,10 +319,13 @@
 			editable
 		/>
 
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<img
 			src={value}
 			alt=""
+			class:selectable
 			class:webcam={source === "webcam" && mirror_webcam}
+			on:click={handle_click}
 		/>
 	{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
 		{#key static_image}
@@ -348,10 +368,13 @@
 			{/if}
 		{/if}
 	{:else}
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<img
 			src={value.image || value}
 			alt=""
 			class:webcam={source === "webcam" && mirror_webcam}
+			class:selectable
+			on:click={handle_click}
 		/>
 	{/if}
 </div>
@@ -364,6 +387,10 @@
 	}
 	img {
 		object-fit: contain;
+	}
+
+	.selectable {
+		cursor: crosshair;
 	}
 
 	.absolute-img {

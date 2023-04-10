@@ -4,6 +4,21 @@
 ## New Features:
 
 - Improve error messages when number of inputs/outputs to event handlers mismatch, by [@space-nuko](https://github.com/space-nuko) in [PR 3519](https://github.com/gradio-app/gradio/pull/3519)
+- Add `select` listener to Images, allowing users to click on any part of an image and get the coordinates of the click by [@aliabid94](https://github.com/aliabid94) in [PR 3786](https://github.com/gradio-app/gradio/pull/3786).
+
+```python
+with gr.Blocks() as demo:
+    img = gr.Image()
+    textbox = gr.Textbox()
+
+    def select_handler(img, evt: gr.SelectData):
+        selected_pixel = img[evt.index[1], evt.index[0]]
+        return f"Selected pixel: {selected_pixel}"
+    
+    img.select(select_handler, img, textbox)    
+```
+![Recording 2023-04-08 at 17 44 39](https://user-images.githubusercontent.com/7870876/230748572-90a2a8d5-116d-4769-bb53-5516555fbd0f.gif)
+
 
 ## Bug Fixes:
 
