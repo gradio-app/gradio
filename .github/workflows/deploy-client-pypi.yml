@@ -1,0 +1,40 @@
+# This workflow will upload a Python Package when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Upload Gradio Client Python Package
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: closed
+    branches:
+      - main
+    paths:
+      - 'client/python/gradio_client/version.txt'
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true || github.event.action == ''
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+    - name: Check new pypi version
+      run: python client/python/scripts/check_pypi.py
+    - name: Build pypi package
+      run: |
+        client/python/scripts/build_pypi.sh
+    - name: Publish package
+      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}
+        packages_dir: client/python/dist

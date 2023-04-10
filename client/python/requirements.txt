@@ -3,3 +3,5 @@ websockets
 packaging
 fsspec
 huggingface_hub>=0.13.0
+typing_extensions
+httpx

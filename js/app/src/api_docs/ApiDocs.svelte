@@ -72,7 +72,7 @@
 			return;
 		}
 		let [response, status_code] = await post_data(
-			`${root}/run/${dependency.api_name}`,
+			`${root}run/${dependency.api_name}`,
 			{
 				data: inputs
 			}
@@ -107,7 +107,7 @@
 </script>
 
 {#if active_api_count}
-	<div class="banner-wrap ">
+	<div class="banner-wrap">
 		<ApiBanner on:close {root} {active_api_count} />
 	</div>
 	<div class="docs-wrap">

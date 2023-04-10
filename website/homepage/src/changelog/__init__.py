@@ -1,7 +1,7 @@
 import os
-import markdown2
-import shutil
 import re
+
+import markdown2
 
 DIR = os.path.dirname(__file__)
 INNER_TEMPLATE_FILE = os.path.join(DIR, "inner_template.html")

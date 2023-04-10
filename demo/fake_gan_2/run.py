@@ -1,6 +1,5 @@
 # This demo needs to be run from the repo folder.
 # python demo/fake_gan/run.py
-import os
 import random
 import time
 

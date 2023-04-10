@@ -33,6 +33,7 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
@@ -43,7 +44,6 @@ import gradio.ranged_response as ranged_response
 from gradio import utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
-from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event
@@ -160,14 +160,16 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
         async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get("access-token")
+            token = websocket.cookies.get("access-token") or websocket.cookies.get(
+                "access-token-unsecure"
+            )
             return token  # token is returned to allow request in queue
 
         @app.get("/token")
@@ -219,7 +221,7 @@ class App(FastAPI):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
 
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 config = app.get_blocks().config
             else:
                 config = {
@@ -757,6 +759,7 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
+    blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")

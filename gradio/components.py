@@ -32,13 +32,18 @@ import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
+    BooleanSerializable,
     FileSerializable,
     GallerySerializable,
     ImgSerializable,
     JSONSerializable,
+    ListStringSerializable,
+    NumberSerializable,
     Serializable,
     SimpleSerializable,
+    StringSerializable,
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
@@ -46,7 +51,6 @@ from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -367,7 +371,7 @@ class Textbox(
     Submittable,
     Blurrable,
     IOComponent,
-    SimpleSerializable,
+    StringSerializable,
     TokenInterpretable,
 ):
     """
@@ -584,7 +588,7 @@ class Number(
     Submittable,
     Blurrable,
     IOComponent,
-    SimpleSerializable,
+    NumberSerializable,
     NeighborInterpretable,
 ):
     """
@@ -764,7 +768,7 @@ class Slider(
     Changeable,
     Releaseable,
     IOComponent,
-    SimpleSerializable,
+    NumberSerializable,
     NeighborInterpretable,
 ):
     """
@@ -838,6 +842,12 @@ class Slider(
         self.cleared_value = self.value
         self.test_input = self.value
 
+    def input_api_info(self) -> Tuple[str, str]:
+        return "int | float", f"value between {self.minimum} and {self.maximum}"
+
+    def get_output_type(self) -> Tuple[str, str]:
+        return "int | float", f"value between {self.minimum} and {self.maximum})"
+
     def get_config(self):
         return {
             "minimum": self.minimum,
@@ -877,7 +887,6 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -929,7 +938,7 @@ class Checkbox(
     Changeable,
     Selectable,
     IOComponent,
-    SimpleSerializable,
+    BooleanSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1009,7 +1018,6 @@ class Checkbox(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1033,7 +1041,7 @@ class CheckboxGroup(
     Changeable,
     Selectable,
     IOComponent,
-    SimpleSerializable,
+    ListStringSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1130,7 +1138,6 @@ class CheckboxGroup(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1217,7 +1224,7 @@ class Radio(
     Selectable,
     Changeable,
     IOComponent,
-    SimpleSerializable,
+    StringSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1312,7 +1319,6 @@ class Radio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1373,7 +1379,9 @@ class Radio(
 
 
 @document("style")
-class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(
+    Changeable, Selectable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1398,6 +1406,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
+        allow_custom_value: bool = False,
         **kwargs,
     ):
         """
@@ -1415,6 +1424,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1432,6 +1442,11 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
         self.max_choices = max_choices
+        self.allow_custom_value = allow_custom_value
+        if multiselect and allow_custom_value:
+            raise ValueError(
+                "Custom values are not supported when `multiselect` is True."
+            )
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
@@ -1456,12 +1471,25 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
 
         self.cleared_value = self.value or ([] if multiselect else "")
 
+    def input_api_info(self) -> Tuple[str, str]:
+        if self.multiselect:
+            return "List[str]", f"List of options from: {self.choices}"
+        else:
+            return "str", f"Option from: {self.choices}"
+
+    def get_output_type(self) -> Tuple[str, str]:
+        if self.multiselect:
+            return "List[str]", f"List of options from: {self.choices}"
+        else:
+            return "str", f"Option from: {self.choices}"
+
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
+            "allow_custom_value": self.allow_custom_value,
             **IOComponent.get_config(self),
         }
 
@@ -1472,16 +1500,17 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
+        placeholder: str | None = None,
         visible: bool | None = None,
     ):
         return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
-            "interactive": interactive,
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "placeholder": placeholder,
             "__type__": "update",
         }
 
@@ -1503,7 +1532,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 return [self.choices.index(c) for c in x]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x)
+                    return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
                 "Unknown type: "
@@ -1673,7 +1702,6 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1877,36 +1905,9 @@ class Image(
         )
         return self
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
@@ -2020,7 +2021,6 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2116,7 +2116,7 @@ class Video(
             y = output_file_name
 
         y = self.make_temp_copy_if_needed(y)
-        return {"name": y, "data": None, "is_file": True}
+        return {"name": y, "data": None, "is_file": True, "orig_name": Path(y).name}
 
     def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
@@ -2240,7 +2240,6 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2393,38 +2392,11 @@ class Audio(
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def style(
         self,
@@ -2454,7 +2426,7 @@ class File(
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
@@ -2557,7 +2529,6 @@ class File(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2647,13 +2618,6 @@ class File(
                 "data": None,
                 "is_file": True,
             }
-
-    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir)
-        if serialized is None:
-            return None
-        serialized["size"] = Path(serialized["name"]).stat().st_size
-        return serialized
 
     def style(
         self,
@@ -2822,7 +2786,6 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3039,7 +3002,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3135,7 +3097,7 @@ class Variable(State):
 
 
 @document("style")
-class Button(Clickable, IOComponent, SimpleSerializable):
+class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -3297,7 +3259,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3355,13 +3316,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             else:
                 return process_single_file(x)
 
-    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir)
-        if serialized is None:
-            return None
-        serialized["size"] = Path(serialized["name"]).stat().st_size
-        return serialized
-
     def style(
         self,
         *,
@@ -3385,7 +3339,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
+class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -3902,7 +3856,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class HTML(Changeable, IOComponent, SimpleSerializable):
+class HTML(Changeable, IOComponent, StringSerializable):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -4092,25 +4046,39 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self,
         *,
         grid: int | Tuple | None = None,
+        columns: int | Tuple | None = None,
+        rows: int | Tuple | None = None,
         height: str | None = None,
         container: bool | None = None,
         preview: bool | None = None,
+        object_fit: str | None = None,
         **kwargs,
     ):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            grid: ('grid' has been renamed to 'columns') Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints            columns: Represents the number of columns in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
+            object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
         """
         if grid is not None:
-            self._style["grid"] = grid
+            warnings.warn(
+                "The 'grid' parameter will be deprecated. Please use 'columns' instead.",
+            )
+            self._style["grid_cols"] = grid
+        if columns is not None:
+            self._style["grid_cols"] = columns
+        if rows is not None:
+            self._style["grid_rows"] = rows
         if height is not None:
             self._style["height"] = height
         if preview is not None:
             self._style["preview"] = preview
+        if object_fit is not None:
+            self._style["object_fit"] = object_fit
 
         Component.style(self, container=container, **kwargs)
         return self
@@ -4268,6 +4236,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(chat_message, str):
+            chat_message = chat_message.replace("\n", "<br>")
             return self.md.renderInline(chat_message)
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
@@ -5367,7 +5336,7 @@ class BarPlot(Plot):
         width: int | None = None,
         y_lim: List[int] | None = None,
         caption: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
         label: str | None = None,
         show_label: bool = True,
         visible: bool = True,
@@ -5564,7 +5533,7 @@ class BarPlot(Plot):
 
 
 @document()
-class Markdown(IOComponent, Changeable, SimpleSerializable):
+class Markdown(IOComponent, Changeable, StringSerializable):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
@@ -5639,7 +5608,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("languages")
-class Code(Changeable, IOComponent, SimpleSerializable):
+class Code(Changeable, IOComponent, StringSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -5666,6 +5635,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         value: str | Tuple[str] | None = None,
         language: str | None = None,
         *,
+        lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
         show_label: bool = True,
@@ -5687,6 +5657,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         """
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
+        self.lines = lines
         IOComponent.__init__(
             self,
             label=label,
@@ -5703,6 +5674,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         return {
             "value": self.value,
             "language": self.language,
+            "lines": self.lines,
             **IOComponent.get_config(self),
         }
 
@@ -5726,7 +5698,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         show_label: bool | None = None,
         visible: bool | None = None,
         language: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
     ):
         return {
             "label": label,
@@ -5748,7 +5720,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Selectable, Component, SimpleSerializable):
+class Dataset(Clickable, Selectable, Component, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
