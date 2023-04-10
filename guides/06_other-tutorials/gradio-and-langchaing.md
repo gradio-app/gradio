@@ -21,7 +21,7 @@ The core abstraction is the `GradioTool`, which lets you define a new tool for y
 class GradioTool(BaseTool):
     name = "GradioTool"
     description: str
-    client: grc.Client
+    src: str
     
     @abstractmethod
     def create_job(self, query: str) -> Job:
@@ -35,7 +35,7 @@ class GradioTool(BaseTool):
 The requirements are:
 1. The name for your tool. This is the user-facing name printed to the console of the LLM agent.
 2. The description for your tool. This is crucial! Agents decide which tool to use based on their description. Be precise and be sure to inclue example of what the input and the output of the tool should look like.
-3. The [gradio client](https://github.com/gradio-app/gradio/blob/main/client/python/README.md) instance. Gradio Tools leverage gradio applications via API and the gradio client makes that super easy. Be sure to click the link and learn more about the gradio client library if you are not familiar with it.
+3. The url or space id, e.g. `freddyaboulton/calculator`, of the Gradio application. Based on this value, `gradio_tool` will create a [gradio client](https://github.com/gradio-app/gradio/blob/main/client/python/README.md) instance to query the upstream application via API. Be sure to click the link and learn more about the gradio client library if you are not familiar with it.
 4. create_job - Given a string, this method should parse that string and return a job from the client. Most times, this is as simple as passing the string to the `submit` function of the client. More info on creating jobs [here](https://github.com/gradio-app/gradio/blob/main/client/python/README.md#making-a-prediction)
 5. postprocess - Given the result of the job, convert it to a string the LLM can display to the user.
 
@@ -46,9 +46,7 @@ And that's it!
 Here is the code for a tool that queries a stable diffusion space to generate images from text:
 
 ```python
-import gradio_client as grc
 from gradio_tool import GradioTool
-from pydantic import Field
 import os
 
 class StableDiffusionTool(GradioTool):
@@ -57,9 +55,8 @@ class StableDiffusionTool(GradioTool):
     name = "StableDiffusion"
     description = ("An image generator. Use this to generate images based on "
                    "text input. Input should be a description of what the image should "
-                   "look like. The output will be a path to an image file. "
-                   "If the output is the string QUEUE_FULL you should try this action again and never stop until you don't see this message.")
-    client: grc.Client = Field(default_factory=lambda: grc.Client(src="stabilityai/stable-diffusion"))
+                   "look like. The output will be a path to an image file.")
+    src = "stabilityai/stable-diffusion"
 
     def create_job(self, query: str) -> Job:
         return self.client.submit(query, "", 9, fn_index=1)
@@ -69,10 +66,11 @@ class StableDiffusionTool(GradioTool):
 ```
 
 Some notes on this implementation:
-1. GradioTools inherit from LangChain's BaseTool, which themselves are [pydantic models](https://docs.pydantic.dev/). The fact `name`, `description` and `client` are defined in the body of the class is standard syntax for pydantic.
-2. We use `Field` and `default_factory` from pydantic since we want a new instance of the client to be created for every new instance of the tool. Otherwise all instance of StableDiffusionTool would share the same client!
+1. GradioTools inherit from LangChain's BaseTool, which themselves are [pydantic models](https://docs.pydantic.dev/). The fact `name`, `description` and `src` are defined in the body of the class is standard syntax for pydantic.
+2. All instances of `GradioTool` have an attribute called `client` that is a pointed to the underlying [gradio client](https://github.com/gradio-app/gradio/tree/main/client/python#gradio_client-use-a-gradio-app-as-an-api----in-3-lines-of-python). That is what you should use
+in the `create_job` method.
 3. `create_job` just passes the query string to the `submit` function of the client with some other parameters hardcoded, i.e. the negative prompt sting and the guidance scale. We could modify our tool to also accept these values from the input string in a subsequent version.
-4. The `postprocess` method simply returns the first image from the gallery of images created by the stavle diffusion space. We use the `os` module to get the full path of the image.
+4. The `postprocess` method simply returns the first image from the gallery of images created by the stable diffusion space. We use the `os` module to get the full path of the image.
 
 The code for defining custom tools is pretty compact! The StableDiffusionTool is already built into the `gradio_tool` library along with these other tools:
 
