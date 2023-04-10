@@ -20,14 +20,27 @@
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
 		await tick();
-		upload_files(root, [detail.blob!]).then(async (response) => {
+		let files = (Array.isArray(detail) ? detail : [detail]).map(
+			(file_data) => file_data.blob!
+		);
+
+		upload_files(root, files).then(async (response) => {
 			if (response.error) {
-				detail.data = await blobToBase64(detail.blob!);
+				(Array.isArray(detail) ? detail : [detail]).forEach(
+					async (file_data, i) => {
+						file_data.data = await blobToBase64(file_data.blob!);
+					}
+				);
 			} else {
-				detail.orig_name = detail.name;
-				detail.name = response.files![0];
-				detail.is_file = true;
+				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
+					if (response.files) {
+						file_data.orig_name = file_data.name;
+						file_data.name = response.files[i];
+						file_data.is_file = true;
+					}
+				});
 			}
+
 			dispatch("change", value);
 			dispatch("upload", detail);
 		});
