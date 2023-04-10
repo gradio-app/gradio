@@ -2079,7 +2079,7 @@ class Video(
 
     def postprocess(
         self, y: str | Tuple[str, str | None] | None
-    ) -> Tuple[Dict[str, Any], Dict[str, Any] | None] | None:
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]] | Tuple[Dict[str, Any], None] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
@@ -2105,7 +2105,7 @@ class Video(
             return None
 
         if isinstance(y, str):  # type: string
-            processed_files = (self._format_video(y), self._format_subtitle(None))
+            processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
             assert (
                 len(y) == 2
@@ -2125,7 +2125,7 @@ class Video(
 
         return processed_files
 
-    def _format_video(self, video):
+    def _format_video(self, video: str | None) -> Dict[str, Any] | None:
         """
         Processes a video to ensure that it is in the correct format.
         Parameters:
@@ -2176,8 +2176,8 @@ class Video(
             "is_file": True,
             "orig_name": Path(video).name,
         }
-
-    def _format_subtitle(self, subtitle):
+        
+    def _format_subtitle(self, subtitle: str | None) -> Dict[str, Any] | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         Parameters:
