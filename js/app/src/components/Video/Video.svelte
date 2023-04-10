@@ -14,8 +14,8 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: FileData | null | string = null;
-	let old_value: FileData | null | string = null;
+	export let value: Array<FileData> | null = null;
+	let old_value: Array<FileData> | null = null;
 
 	export let label: string;
 	export let source: string;
@@ -29,8 +29,20 @@
 
 	export let mode: "static" | "dynamic";
 
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
+	let _value: Array<FileData> | null = null;
+	let _video: FileData | null = null;
+	let _subtitle: FileData | null = null;
+
+	$: {
+		_value = normalise_file(value, root, root_url);
+		console.log(value, _value, label);
+
+		if (_value != null) {
+			[_video, _subtitle] = _value;
+		} else {
+			[_video, _subtitle] = [null, null];
+		}
+	}
 
 	let dragging = false;
 
@@ -38,10 +50,19 @@
 		change: undefined;
 	}>();
 
-	$: {
-		if (value !== old_value) {
-			old_value = value;
+	function handle_change({ detail }: CustomEvent<FileData | null>) {
+		if (detail != null) {
+			value = [detail, null] as Array<FileData>;
+		} else {
+			value = null;
+		}
 
+		dispatch("change");
+	}
+
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
 			dispatch("change");
 		}
 	}
@@ -62,11 +83,19 @@
 	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
-		<StaticVideo value={_value} {label} {show_label} on:play on:pause />
+		<StaticVideo
+			value={_video}
+			subtitle={_subtitle}
+			{label}
+			{show_label}
+			on:play
+			on:pause
+		/>
 	{:else}
 		<Video
-			value={_value}
-			on:change={({ detail }) => (value = detail)}
+			value={_video}
+			subtitle={_subtitle}
+			on:change={handle_change}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};

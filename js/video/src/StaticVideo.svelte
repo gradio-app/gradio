@@ -7,6 +7,7 @@
 	import Player from "./Player.svelte";
 
 	export let value: FileData | null = null;
+	export let subtitle: FileData | null = null;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean = true;
 
@@ -25,7 +26,14 @@
 	<Empty size="large" unpadded_box={true}><Video /></Empty>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<Player src={value.data} on:play on:pause on:ended mirror={false} />
+	<Player
+		src={value.data}
+		subtitle={subtitle?.data}
+		on:play
+		on:pause
+		on:ended
+		mirror={false}
+	/>
 	<div class="download" data-testid="download-div">
 		<a
 			href={value.data}
