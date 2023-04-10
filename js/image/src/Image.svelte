@@ -20,7 +20,7 @@
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" | "sketch" = "editor";
+	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let shape: [number, number];
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
@@ -174,10 +174,8 @@
 />
 
 <div
-	class:fixed-height={source !== "webcam" ||
-		tool === "sketch" ||
-		tool === "color-sketch"}
 	data-testid="image"
+	class="image-container"
 	bind:offsetHeight={max_height}
 	bind:offsetWidth={max_width}
 >
@@ -359,13 +357,12 @@
 </div>
 
 <style>
-	.fixed-height {
-		height: var(--size-60);
-	}
-
+	.image-container,
 	img {
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+	img {
 		object-fit: contain;
 	}
 
