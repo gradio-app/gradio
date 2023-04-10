@@ -14,21 +14,19 @@ def video_demo(video, subtitle=None):
     return [video, subtitle]
 
 
-inputs = [
-    gr.Video(type="file", label="In", interactive=True),
-    gr.File(label="Subtitle", accept=".srt,.vtt"),
-]
-
-outputs = gr.Video(label="Out", interactive=True)
-
-examples = [
-    [a, s1],
-    [b, s2],
-    [a, None],
-]
-
-demo = gr.Interface(fn=video_demo, inputs=inputs, outputs=outputs, examples=examples)
-
+demo = gr.Interface(
+    fn=video_demo,
+    inputs=[
+        gr.Video(type="file", label="In", interactive=True),
+        gr.File(label="Subtitle", accept=".srt,.vtt"),
+    ],
+    outputs=gr.Video(label="Out"),
+    examples=[
+        [a, s1],
+        [b, s2],
+        [a, None],
+    ],
+)
 
 if __name__ == "__main__":
-    demo.launch(inline=False, block=gr.Block(title="Video Subtitle Demo"))
+    demo.launch()
