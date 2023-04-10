@@ -242,7 +242,14 @@ class Client:
         if r.ok:
             info = r.json()
         else:
-            pass  # TODO(@freddy): support older versions of Gradio using the API fetcher Space
+            fetch = requests.post(
+                utils.SPACE_FETCHER_URL,
+                json={"serialize": self.serialize, "config": json.dumps(self.config)},
+            )
+            if fetch.ok:
+                info = fetch.json()["api"]
+            else:
+                raise ValueError(f"Could not fetch api info for {self.src}")
 
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])

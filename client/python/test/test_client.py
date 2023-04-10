@@ -7,6 +7,7 @@ from concurrent.futures import TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
+import gradio as gr
 import pytest
 
 from gradio_client import Client
@@ -445,6 +446,61 @@ class TestAPIInfo:
                     },
                 }
             },
+        }
+
+    @pytest.mark.flaky
+    def test_fetch_old_version_space(self):
+        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+            "named_endpoints": {
+                "/predict": {
+                    "parameters": {
+                        "num1": ["int | float", "numeric value", "Number"],
+                        "operation": ["str", "string value", "Radio"],
+                        "num2": ["int | float", "numeric value", "Number"],
+                    },
+                    "returns": {"output": ["int | float", "numeric value", "Number"]},
+                }
+            },
+            "unnamed_endpoints": {
+                "2": {
+                    "parameters": {"parameter_17": ["str", "string value", "Dataset"]},
+                    "returns": {
+                        "num1": ["int | float", "numeric value", "Number"],
+                        "operation": ["str", "string value", "Radio"],
+                        "num2": ["int | float", "numeric value", "Number"],
+                        "output": ["int | float", "numeric value", "Number"],
+                    },
+                }
+            },
+        }
+
+    @pytest.mark.flaky
+    def test_fetch_api_local_space(self):
+        def welcome(name):
+            return f"Welcome to Gradio, {name}!"
+
+        with gr.Blocks() as demo:
+            gr.Markdown(
+                """
+            # Hello World!
+            Start typing below to see the output.
+            """
+            )
+            inp = gr.Textbox(placeholder="What is your name?")
+            out = gr.Textbox()
+            inp.change(welcome, inp, out, api_name="greet")
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+
+        client = Client(local_url)
+        assert client.view_api(return_format="dict") == {
+            "named_endpoints": {
+                "/greet": {
+                    "parameters": {"parameter_2": ["str", "string value", "Textbox"]},
+                    "returns": {"value_3": ["str", "string value", "Textbox"]},
+                }
+            },
+            "unnamed_endpoints": {},
         }
 
 

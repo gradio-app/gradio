@@ -24,6 +24,7 @@ UPLOAD_URL = "/upload"
 CONFIG_URL = "/config"
 API_INFO_URL = "/info"
 RAW_API_INFO_URL = "/info?serialize=False"
+SPACE_FETCHER_URL = "https://gradio-space-api-fetcher.hf.space/api"
 
 DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
 
