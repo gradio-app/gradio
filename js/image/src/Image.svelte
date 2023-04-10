@@ -20,7 +20,7 @@
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" | "sketch" = "editor";
+	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let shape: [number, number];
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
@@ -359,10 +359,6 @@
 </div>
 
 <style>
-	.fixed-height {
-		height: 100%;
-	}
-
 	img {
 		width: var(--size-full);
 		height: var(--size-full);

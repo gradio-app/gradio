@@ -13,7 +13,7 @@
 	export let visible: boolean = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" = "editor";
+	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;
 	export let show_label: boolean;
 	export let streaming: boolean;
@@ -31,6 +31,7 @@
 
 	$: value, dispatch("change");
 	let dragging: boolean;
+	const FIXED_HEIGHT = 240;
 
 	$: value = !value ? null : value;
 </script>
@@ -44,7 +45,10 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	style={{ height: style.height, width: style.width }}
+	style={{
+		height: style.height || source === "webcam" ? undefined : FIXED_HEIGHT,
+		width: style.width,
+	}}
 	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
