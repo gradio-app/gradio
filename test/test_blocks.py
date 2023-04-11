@@ -261,6 +261,57 @@ class TestBlocksMethods:
                 if msg["msg"] == "process_completed":
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
+    
+    @pytest.mark.asyncio
+    async def test_async_generators(self):
+        async def async_iteration(count: int):
+            for i in range(count):
+                yield i
+                await asyncio.sleep(0.2)
+
+
+        def iteration(count: int):
+            for i in range(count):
+                yield i
+                time.sleep(0.2)
+
+
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    num1 = gr.Number(value=4, precision=0)
+                    o1 = gr.Number()
+                    async_iterate = gr.Button(value="Async Iteration")
+                    async_iterate.click(async_iteration, num1, o1)
+                with gr.Column():
+                    num2 = gr.Number(value=4, precision=0)
+                    o2 = gr.Number()
+                    iterate = gr.Button(value="Iterate")
+                    iterate.click(iteration, num2, o2)
+
+        demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+
+        def _get_ws_pred(data, fn_index):
+            async def wrapped():
+                async with websockets.connect(
+                f"{demo.local_url.replace('http', 'ws')}queue/join"
+            ) as ws:
+                    completed = False
+                    while not completed:
+                        msg = json.loads(await ws.recv())
+                        if msg["msg"] == "send_data":
+                            await ws.send(json.dumps({"data": [data], "fn_index": fn_index}))
+                        if msg["msg"] == "send_hash":
+                            await ws.send(json.dumps({"fn_index": fn_index, "session_hash": "shdce"}))
+                        if msg["msg"] == "process_completed":
+                            completed = True
+                    assert msg["output"]["data"][0] == data - 1 
+            return wrapped
+        try:
+            await asyncio.gather(_get_ws_pred(3, 0)(), _get_ws_pred(4, 1)())
+        finally:
+            demo.close()
+
 
     def test_function_types_documented_in_config(self):
         def continuous_fn():

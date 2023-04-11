@@ -919,17 +919,17 @@ class Blocks(BlockContext):
         else:
             prediction = None
 
-        if inspect.isasyncgenfunction(block_fn.fn):
-            raise ValueError("Gradio does not support async generators.")
-        if inspect.isgeneratorfunction(block_fn.fn):
+        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(
+            block_fn.fn
+        ):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
                     iterator = prediction
-                prediction = await anyio.to_thread.run_sync(
-                    utils.async_iteration, iterator, limiter=self.limiter
-                )
+                if inspect.isgenerator(iterator):
+                    iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
+                prediction = await utils.async_iteration(iterator)
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))

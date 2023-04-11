@@ -509,12 +509,17 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        if inspect.isgeneratorfunction(self.fn):
+                        if inspect.isgeneratorfunction(
+                            self.fn
+                        ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Submit", variant="primary")
-                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                    if (
+                        inspect.isgeneratorfunction(self.fn)
+                        or inspect.isasyncgenfunction(self.fn)
+                    ) and not self.live:
                         stop_btn = Button("Stop", variant="stop")
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
@@ -545,7 +550,10 @@ class Interface(Blocks):
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Generate", variant="primary")
-                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                    if (
+                        inspect.isgeneratorfunction(self.fn)
+                        or inspect.isasyncgenfunction(self.fn)
+                    ) and not self.live:
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
                         # is created. We use whether a generator function is provided
@@ -611,15 +619,23 @@ class Interface(Blocks):
             if stop_btn:
 
                 # Wrap the original function to show/hide the "Stop" button
-                def fn(*args):
+                async def fn(*args):
                     # The main idea here is to call the original function
                     # and append some updates to keep the "Submit" button
                     # hidden and the "Stop" button visible
                     # The 'finally' block hides the "Stop" button and
                     # shows the "submit" button. Having a 'finally' block
                     # will make sure the UI is "reset" even if there is an exception
+
+                    if inspect.isasyncgenfunction(self.fn):
+                        iterator = self.fn(*args)
+                    else:
+                        iterator = utils.SyncToAsyncIterator(
+                            self.fn(*args), limiter=self.limiter
+                        )
+                    print(type(iterator))
                     try:
-                        for output in self.fn(*args):
+                        async for output in iterator:
                             if len(self.output_components) == 1 and not self.batch:
                                 output = [output]
                             output = [o for o in output]

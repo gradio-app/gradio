@@ -37,6 +37,7 @@ from typing import (
 )
 
 import aiohttp
+import anyio
 import httpx
 import matplotlib.pyplot as plt
 import requests
@@ -486,12 +487,32 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     return event_loop.create_task(func(*args, **kwargs))
 
 
-def async_iteration(iterator):
+def run_sync_iterator_async(iterator):
+    """Helper for yielding StopAsyncIteration from sync iterators."""
     try:
         return next(iterator)
     except StopIteration:
-        # raise a ValueError here because co-routines can't raise StopIteration themselves
         raise StopAsyncIteration()
+
+
+class SyncToAsyncIterator:
+    """Treat a synchronous iterator as async one."""
+    def __init__(self, iterator, limiter) -> None:
+        self.iterator = iterator
+        self.limiter = limiter
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        return await anyio.to_thread.run_sync(
+            run_sync_iterator_async, self.iterator, limiter=self.limiter
+        )
+
+
+async def async_iteration(iterator):
+    # anext not introduced until 3.10 :(
+    return await iterator.__anext__()
 
 
 class AsyncRequest:
