@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub.utils import build_hf_headers, send_telemetry
+from huggingface_hub.utils import build_hf_headers, send_telemetry, RepositoryNotFoundError
 from packaging import version
 from typing_extensions import Literal
 
@@ -111,6 +111,7 @@ class Client:
         hf_token: str | None = None, 
         private: bool = True,
         hardware: str | None = None,
+        secrets: dict | None = None,
         max_workers: int = 40,
         verbose: bool = True
     ):
@@ -128,27 +129,55 @@ class Client:
         
         Parameters:
             from_id: The name of the Hugging Face Space to duplicate, e.g. "abidlabs/whisper".
-            to_id: The name of the new Hugging Face Space to create, e.g. "nateraw/whisper". If not provided, the new Space will be named "{you_hf_username}/{from_id}".
+            to_id: The name of the new Hugging Face Space to create, e.g. "whisper-duplicate". Do not add your Hugging Face username. If not provided, the new Space will be named "{you_hf_username}/{from_id}".
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
+            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
         # Duplicate a Hugging Face Space
-        if verbose:
-            print(f"Creating a duplicate of `{from_id}` for your own use 🤗")
-        space_id = huggingface_hub.hf_api.duplicate_space(
-            from_id=from_id, 
-            to_id=to_id, 
-            token=hf_token,
-            exist_ok=True,
-            private=private,
-        ).repo_id
-        huggingface_hub.hf_api.request_space_hardware(space_id, hardware)
-        if verbose:
-            print(f"Created Space: `{space_id}` and assigned: {hardware}. Check billing info here: https://huggingface.co/settings/billing")
+        try:
+            info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+        except RepositoryNotFoundError:
+            raise ValueError(f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`.")
+        if to_id:
+            full_to_name = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        else:
+            full_to_name = huggingface_hub.get_full_repo_name(from_id.split("/")[1], token=hf_token)
+        try:
+            huggingface_hub.get_space_runtime(full_to_name, token=hf_token)
+            if verbose:
+                print(f"Using your existing Space: {full_to_name} 🤗")
+            space_id = full_to_name
+        except RepositoryNotFoundError:
+            if verbose:
+                print(f"Creating a duplicate of {from_id} for your own use 🤗")
+            space_id = huggingface_hub.duplicate_space(
+                from_id=from_id, 
+                to_id=to_id,
+                token=hf_token,
+                exist_ok=True,
+                private=private,
+            ).repo_id    # type: ignore
+            if verbose:
+                print(f"Created a new Space: {space_id}")
+        current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
+        current_hardware = current_info.hardware or "cpu-basic"
+        if hardware is None:
+            hardware = info.hardware
+        print("current hardware", current_hardware)
+        print("hardware", hardware)
+        if not current_hardware == hardware:
+            huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
+            print(f"Setting hardware tier to {hardware}... see usage info at https://huggingface.co/settings/billing")
+        if secrets is not None:
+            for key, value in secrets.items():
+                huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
         # Create a Client object from a Hugging Face Space
+        if verbose:
+            print("")
         client = cls(
             space_id, 
             hf_token=hf_token, 
