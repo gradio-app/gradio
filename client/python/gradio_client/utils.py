@@ -30,6 +30,7 @@ STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     "NO_APP_FILE",
     "CONFIG_ERROR",
+    "BUILDING",
     "BUILD_ERROR",
     "RUNTIME_ERROR",
     "PAUSED",
