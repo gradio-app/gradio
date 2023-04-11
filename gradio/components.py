@@ -48,7 +48,7 @@ from gradio_client.serializing import (
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from typing_extensions import Literal
+from typing_extensions import Literal, NotRequired
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -78,9 +78,11 @@ if TYPE_CHECKING:
         data: List[List[str | int | bool]]
         
     class FileData(TypedDict):
-        name: str  # filename
-        data: str  # base64 encoded data
-        size: int  # size in bytes
+        name: str | None  # filename
+        data: str | None # base64 encoded data
+        size: NotRequired[int] # size in bytes
+        is_file: NotRequired[bool]  # whether the data corresponds to a file or base64 encoded data
+        orig_name: NotRequired[str]  # original filename
 
 
 set_documentation_group("component")
@@ -2057,20 +2059,24 @@ class Video(
             video = x[0]
 
         file_name, file_data, is_file = (
-            video["name"],
+            video.get("name"),
             video["data"],
             video.get("is_file", False),
         )
+        
         if is_file:
+            assert file_name is not None, "Received file data without a file name."
             file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
+            assert file_data is not None, "Received empty file data."
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
-        modify_format = self.format is not None and uploaded_format != self.format
+        needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
-        if modify_format or flip:
-            format = f".{self.format if modify_format else uploaded_format}"
+        
+        if needs_formatting or flip:
+            format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
             output_options += ["-an"] if not self.include_audio else []
             flip_suffix = "_flip" if flip else ""
@@ -2097,16 +2103,16 @@ class Video(
             return str(file_name)
 
     def postprocess(
-        self, y: str | Tuple[str, str | None] | None
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]] | Tuple[Dict[str, Any], None] | None:
+        self, 
+        y: str | Tuple[str, str | None] | None
+    ) -> Tuple[FileData | None, FileData | None] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
-            y: video data in either of the following formats: a tuple of (video, subtitles), or a string filepath or URL to an video file, or None.
+            y: video data in either of the following formats: a tuple of (str video filepath, str subtitle filepath), or a string filepath or URL to an video file, or None.
         Returns:
-            a tuple with the two dictionary, reresent to video and subtitle(optional), which following formats:
-
+            a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
             - The first dictionary represents the video file and contains the following keys:
                 - 'name': a file path to a temporary copy of the processed video.
                 - 'data': None
@@ -2115,26 +2121,20 @@ class Video(
                 - 'name': None
                 - 'data': Base64 encode the processed subtitle data.
                 - 'is_file': False
-
             - If subtitle is None, returns (video, None).
-            - If video is None, returns None.
+            - If both video and subtitle are None, returns None.
         """
 
         if y is None or y == [None, None] or y == (None, None):
             return None
-
         if isinstance(y, str):  # type: string
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
             assert (
                 len(y) == 2
             ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
-
             video = y[0]
-            subtitle = (
-                y[1].name if isinstance(y[1], tempfile._TemporaryFileWrapper) else y[1]
-            )
-
+            subtitle = y[1]
             processed_files = (
                 self._format_video(video),
                 self._format_subtitle(subtitle),
@@ -2144,7 +2144,7 @@ class Video(
 
         return processed_files
 
-    def _format_video(self, video: str | None) -> Dict[str, Any] | None:
+    def _format_video(self, video: str | None) -> FileData | None:
         """
         Processes a video to ensure that it is in the correct format.
         Parameters:
@@ -2196,16 +2196,15 @@ class Video(
             "orig_name": Path(video).name,
         }
 
-    def _format_subtitle(self, subtitle: str | None) -> Dict[str, Any] | None:
+    def _format_subtitle(self, subtitle: str | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         Parameters:
             subtitle: subtitle path in either of the VTT and SRT format.
         Returns:
             a dictionary with the following keys:
-
             - 'name': None
-            - 'data': Base64 encode the processed subtitle data.
+            - 'data': base64-encoded subtitle data.
             - 'is_file': False
         """
 
@@ -2239,7 +2238,7 @@ class Video(
             )
 
         # HTML5 only support vtt format
-        if subtitle.lower().endswith(".srt"):
+        if Path(subtitle).suffix == ".srt":
             temp_file = tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=".vtt",
