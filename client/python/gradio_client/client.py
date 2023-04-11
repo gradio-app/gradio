@@ -167,15 +167,12 @@ class Client:
         current_hardware = current_info.hardware or "cpu-basic"
         if hardware is None:
             hardware = info.hardware
-        print("current hardware", current_hardware)
-        print("hardware", hardware)
         if not current_hardware == hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(f"Setting hardware tier to {hardware}... see usage info at https://huggingface.co/settings/billing")
         if secrets is not None:
             for key, value in secrets.items():
                 huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
-        # Create a Client object from a Hugging Face Space
         if verbose:
             print("")
         client = cls(
