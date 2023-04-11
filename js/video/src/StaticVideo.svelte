@@ -3,7 +3,7 @@
 		createEventDispatcher,
 		afterUpdate,
 		tick,
-		beforeUpdate,
+		beforeUpdate
 	} from "svelte";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
