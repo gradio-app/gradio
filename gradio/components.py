@@ -76,12 +76,14 @@ if TYPE_CHECKING:
     class DataframeData(TypedDict):
         headers: List[str]
         data: List[List[str | int | bool]]
-        
+
     class FileData(TypedDict):
         name: str | None  # filename
-        data: str | None # base64 encoded data
-        size: NotRequired[int] # size in bytes
-        is_file: NotRequired[bool]  # whether the data corresponds to a file or base64 encoded data
+        data: str | None  # base64 encoded data
+        size: NotRequired[int]  # size in bytes
+        is_file: NotRequired[
+            bool
+        ]  # whether the data corresponds to a file or base64 encoded data
         orig_name: NotRequired[str]  # original filename
 
 
@@ -2044,10 +2046,12 @@ class Video(
             "__type__": "update",
         }
 
-    def preprocess(self, x: Tuple[FileData, FileData | None] | FileData | None) -> str | None:
+    def preprocess(
+        self, x: Tuple[FileData, FileData | None] | FileData | None
+    ) -> str | None:
         """
         Parameters:
-            x: A tuple of (video file data, subtitle file data) or just video file data. 
+            x: A tuple of (video file data, subtitle file data) or just video file data.
         Returns:
             A string file path or URL to the preprocessed video. Subtitle file data is ignored.
         """
@@ -2063,7 +2067,7 @@ class Video(
             video["data"],
             video.get("is_file", False),
         )
-        
+
         if is_file:
             assert file_name is not None, "Received file data without a file name."
             file_name = Path(self.make_temp_copy_if_needed(file_name))
@@ -2074,7 +2078,7 @@ class Video(
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
-        
+
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
@@ -2103,8 +2107,7 @@ class Video(
             return str(file_name)
 
     def postprocess(
-        self, 
-        y: str | Tuple[str, str | None] | None
+        self, y: str | Tuple[str, str | None] | None
     ) -> Tuple[FileData | None, FileData | None] | None:
         """
         Processes a video to ensure that it is in the correct format before
