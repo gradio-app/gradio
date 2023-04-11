@@ -89,13 +89,15 @@ test("test outputs", async ({ page }) => {
 			},
 			BASE64_AUDIO,
 			BASE64_IMAGE,
-			[{
-				name: "worldt30a4ike.mp4",
-				data: ""
+			[
+				{
+					name: "worldt30a4ike.mp4",
+					data: ""
 			}, {
-				name: null,
-				data: null
-			}]
+					name: null,
+					data: null
+				}
+			],
 			[
 				["The", "art"],
 				["quick brown", "adj"],
