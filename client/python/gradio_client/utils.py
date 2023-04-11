@@ -258,6 +258,8 @@ def create_tmp_copy_of_file(
 
 
 def get_mimetype(filename: str) -> str | None:
+    if filename.endswith(".vtt"):
+        return "text/vtt"
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
