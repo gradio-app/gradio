@@ -76,6 +76,11 @@ if TYPE_CHECKING:
     class DataframeData(TypedDict):
         headers: List[str]
         data: List[List[str | int | bool]]
+        
+    class FileData(TypedDict):
+        name: str  # filename
+        data: str  # base64 encoded data
+        size: int  # size in bytes
 
 
 set_documentation_group("component")
@@ -1945,9 +1950,9 @@ class Video(
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} filepath to a video which is displayed.
-    Examples-format: a {str} filepath to a local file that contains the video.
-    Demos: video_identity
+    Postprocessing: expects a {str} filepath to a video which is displayed, or a {Tuple[str, str]} where the first element is a filepath to a video and the second element is a filepath to a subtitle file.
+    Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
+    Demos: video_identity, video_subtitle
     """
 
     def __init__(
@@ -2037,17 +2042,19 @@ class Video(
             "__type__": "update",
         }
 
-    def preprocess(self, x: Tuple[Dict[str, str], Dict[str, str]] | None) -> str | None:
+    def preprocess(self, x: Tuple[FileData, FileData | None] | FileData | None) -> str | None:
         """
         Parameters:
-            x: a dictionary with the following keys: 'name' (containing the file path to a video), 'data' (with either the file URL or base64 representation of the video), and 'is_file` (True if `data` contains the file URL).
+            x: A tuple of (video file data, subtitle file data) or just video file data. 
         Returns:
-            A string file path or URL to the preprocessed video, or a tuple of (file path, subtitle path).
+            A string file path or URL to the preprocessed video. Subtitle file data is ignored.
         """
         if x is None:
             return None
-
-        video = x[0]
+        elif isinstance(x, dict):
+            video = x
+        else:
+            video = x[0]
 
         file_name, file_data, is_file = (
             video["name"],
@@ -3251,6 +3258,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
+            interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
