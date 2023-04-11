@@ -497,6 +497,7 @@ def run_sync_iterator_async(iterator):
 
 class SyncToAsyncIterator:
     """Treat a synchronous iterator as async one."""
+
     def __init__(self, iterator, limiter) -> None:
         self.iterator = iterator
         self.limiter = limiter
