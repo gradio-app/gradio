@@ -84,7 +84,6 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        print("self.src", self.src)
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
