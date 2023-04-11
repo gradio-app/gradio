@@ -11,7 +11,7 @@ def video_demo(video, subtitle=None):
     if subtitle is None:
         return video
 
-    return [video, subtitle]
+    return [video, subtitle.name]
 
 
 demo = gr.Interface(
