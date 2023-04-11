@@ -172,11 +172,13 @@ class FileSerializable(Serializable):
 
     def _deserialize_single(
         self,
-        x: str | FileData,
+        x: str | FileData | None,
         save_dir: str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str:
+    ) -> str | None:
+        if x is None:
+            return None
         if isinstance(x, str):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
@@ -197,7 +199,7 @@ class FileSerializable(Serializable):
                 file_name = utils.decode_base64_to_file(x["data"], dir=save_dir).name
         else:
             raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a: {type(x)}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
             )
         return file_name
 
@@ -222,11 +224,11 @@ class FileSerializable(Serializable):
 
     def deserialize(
         self,
-        x: str | FileData | List[FileData | str] | None,
+        x: str | FileData | None | List[str | FileData | None],
         save_dir: Path | str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | List[str] | None:
+    ) -> str | None | List[str | None]:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
@@ -263,17 +265,30 @@ class VideoSerializable(FileSerializable):
             "Filepath or URL to a video file, or a tuple of (video file, subtitle file)",
         )
 
+    def serialize(
+        self, x: str | None, load_dir: str | Path = ""
+    ) -> Tuple[FileData | None, None]:
+        return (super().serialize(x, load_dir), None)  # type: ignore
+
     def deserialize(
         self,
-        x: str | FileData | List[FileData | str] | None,
+        x: Tuple[FileData | None, FileData | None] | None,
         save_dir: Path | str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | Tuple[str] | None:
-        deserialized_file = super().deserialize(x, save_dir, root_url, hf_token)
+    ) -> str | Tuple[str | None, str | None] | None:
+        """
+        Convert from serialized representation of a file (base64) to a human-friendly
+        version (string filepath). Optionally, save the file to the directory specified by `save_dir`
+        """
+        if isinstance(x, tuple):
+            assert len(x) == 2, f"Expected tuple of length 2. Received: {x}"
+            x_as_list = [x[0], x[1]]
+        else:
+            raise ValueError(f"Expected tuple of length 2. Received: {x}")
+        deserialized_file = super().deserialize(x_as_list, save_dir, root_url, hf_token)
         if isinstance(deserialized_file, list):
-            return tuple(deserialized_file)
-        return deserialized_file
+            return deserialized_file[0]  # ignore subtitles
 
 
 class JSONSerializable(Serializable):
