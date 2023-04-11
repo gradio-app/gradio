@@ -633,7 +633,6 @@ class Interface(Blocks):
                         iterator = utils.SyncToAsyncIterator(
                             self.fn(*args), limiter=self.limiter
                         )
-                    print(type(iterator))
                     try:
                         async for output in iterator:
                             if len(self.output_components) == 1 and not self.batch:
