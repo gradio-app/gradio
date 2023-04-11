@@ -1,42 +1,40 @@
 import gradio as gr
-import torch
-import random
 import numpy as np
-from transformers import MaskFormerFeatureExtractor, MaskFormerForInstanceSegmentation
+import random
 
-device = torch.device("cpu")
-model = MaskFormerForInstanceSegmentation.from_pretrained("facebook/maskformer-swin-tiny-ade").to(device)
-model.eval()
-preprocessor = MaskFormerFeatureExtractor.from_pretrained("facebook/maskformer-swin-tiny-ade")
+with gr.Blocks() as demo:
+    section_labels = ["apple", "banana", "carrot", "donut", "eggplant", "fish", "grapes", "hamburger", "ice cream", "juice"]
 
-def visualize_instance_seg_mask(mask):
-    image = np.zeros((mask.shape[0], mask.shape[1], 3))
-    labels = np.unique(mask)
-    label2color = {label: (random.randint(0, 1), random.randint(0, 255), random.randint(0, 255)) for label in labels}
-    for i in range(image.shape[0]):
-      for j in range(image.shape[1]):
-        image[i, j, :] = label2color[mask[i, j]]
-    image = image / 255
-    return image
+    with gr.Row():
+        num_boxes = gr.Slider(0, 5, 1, label="Number of boxes")
+        num_segments = gr.Slider(0, 5, 1, label="Number of segments")
 
-def query_image(img):
-    target_size = (img.shape[0], img.shape[1])
-    inputs = preprocessor(images=img, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model(**inputs)
-    outputs.class_queries_logits = outputs.class_queries_logits.cpu()
-    outputs.masks_queries_logits = outputs.masks_queries_logits.cpu()
-    results = preprocessor.post_process_segmentation(outputs=outputs, target_size=target_size)[0].cpu().detach()
-    results = torch.argmax(results, dim=0).numpy()
-    results = visualize_instance_seg_mask(results)
-    return results
+    with gr.Row():
+        img_input = gr.Image()
+        img_output = gr.ImageSections()
 
-demo = gr.Interface(
-    query_image, 
-    inputs=[gr.Image()], 
-    outputs="image",
-    title="MaskFormer Demo",
-    examples=[["example_2.png"]]
-)
+    section_btn = gr.Button("Identify Sections")
+
+    def section(img, num_boxes, num_segments):
+        sections = []
+        for i, _ in enumerate(num_boxes):
+            x = random.randint(0, img.shape[1])
+            y = random.randint(0, img.shape[0])
+            w = random.randint(0, img.shape[1] - x)
+            h = random.randint(0, img.shape[0] - y)
+            sections.append((x, y, w, h), section_labels[i])
+        for j, _ in enumerate(num_segments):
+            x = random.randint(0, img.shape[1])
+            y = random.randint(0, img.shape[0])
+            w = random.randint(0, img.shape[1] - x)
+            h = random.randint(0, img.shape[0] - y)
+            mask = np.random.randint(0, 2, img.shape[:2])
+            mask_area = np.zeros(img.shape[:2])
+            mask_area[y:y+h, x:x+w] = mask[y:y+h, x:x+w]
+            sections.append(mask_area, section_labels[i + j])
+        return sections
+    
+    section_btn.click(section, [img_input, num_boxes, num_segments], img_output)
+
 
 demo.launch()

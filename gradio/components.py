@@ -3803,7 +3803,6 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.show_legend = show_legend
-        self.color_map = None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Image subsection.
@@ -3824,7 +3823,6 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
 
     def get_config(self):
         return {
-            "color_map": self.color_map,
             "show_legend": self.show_legend,
             "value": self.value,
             "selectable": self.selectable,
@@ -3837,14 +3835,12 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             np.ndarray | PIL.Image | str,
             List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
         ] = _Keywords.NO_VALUE,
-        color_map: Dict[str, str] | None = None,
         show_legend: bool | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
     ):
         updated_config = {
-            "color_map": color_map,
             "show_legend": show_legend,
             "label": label,
             "show_label": show_label,
@@ -3870,19 +3866,39 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             return None
         base_img = y[0]
         if isinstance(base_img, str):
-            base_img = PIL.Image.open(base_img)
-        if not isinstance(base_img, np.ndarray):
+            base_img_path = base_img
+            base_img = np.ndarray(PIL.Image.open(base_img))
+        elif isinstance(base_img, np.ndarray):
+            base_file = processing_utils.save_array_to_file(base_img)
+            base_img_path = str(utils.abspath(base_file.name))
+        elif isinstance(base_img, PIL.Image.Image):
+            base_file = processing_utils.save_pil_to_file(base_img)
+            base_img_path = str(utils.abspath(base_file.name))
             base_img = np.array(base_img)
+        else:
+            raise ValueError("ImageSections only accepts filepaths, PIL images or numpy arrays for the base image.")
+        self.temp_files.add(base_img_path)
 
+        sections = []
         for mask, label in y[1]:
-            mask_img = PIL.Image.new("L", (base_img.shape[1], base_img.shape[0]), 0)
+            mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
             if isinstance(mask, np.ndarray):
-                mask_img = mask_img * mask
+                mask_array[mask > 0] = 1
             else:
                 x1, y1, x2, y2 = mask
-                PIL.ImageDraw.Draw(mask_img).rectangle(
-                    (x1, y1, x2, y2), outline=255, fill=255
-                )   
+                mask_array[y1:y2, x1:x2] = 1
+
+            red_mask = np.zeros((base_img.shape[0], base_img.shape[1], 3))
+            red_mask[:, :, 0] = mask_array
+            red_mask_img = PIL.Image.fromarray((red_mask * 255).astype(np.uint8))
+
+            mask_file = processing_utils.save_pil_to_file(red_mask_img)
+            mask_file_path = str(utils.abspath(mask_file.name))
+            self.temp_files.add(mask_file_path)
+            
+            sections.append((mask_file_path, list(mask), label))
+
+        return base_img_path, sections
 
     def style(
         self,
