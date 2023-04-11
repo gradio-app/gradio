@@ -27,6 +27,14 @@ UPLOAD_URL = "/upload"
 RESET_URL = "/reset"
 DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
 STATE_COMPONENT = "state"
+INVALID_RUNTIME = [
+    "NO_APP_FILE",
+    "CONFIG_ERROR",
+    "BUILD_ERROR",
+    "RUNTIME_ERROR",
+    "PAUSED",
+    "SLEEPING",
+]
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
