@@ -286,7 +286,7 @@ class VideoSerializable(FileSerializable):
             x_as_list = [x[0], x[1]]
         else:
             raise ValueError(f"Expected tuple of length 2. Received: {x}")
-        deserialized_file = super().deserialize(x_as_list, save_dir, root_url, hf_token)
+        deserialized_file = super().deserialize(x_as_list, save_dir, root_url, hf_token)  # type: ignore
         if isinstance(deserialized_file, list):
             return deserialized_file[0]  # ignore subtitles
 
