@@ -32,6 +32,7 @@ import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
+from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
     BooleanSerializable,
@@ -44,6 +45,7 @@ from gradio_client.serializing import (
     Serializable,
     SimpleSerializable,
     StringSerializable,
+    VideoSerializable,
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
@@ -304,7 +306,8 @@ class IOComponent(Component):
         self, base64_encoding: str, file_name: str | None = None
     ) -> str:
         """Converts a base64 encoding to a file and returns the path to the file if
-        the file doesn't already exist. Otherwise returns the path to the existing file."""
+        the file doesn't already exist. Otherwise returns the path to the existing file.
+        """
         temp_dir = self.hash_base64(base64_encoding)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
@@ -1855,7 +1858,7 @@ class Image(
         segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
         tokens, masks, leave_one_out_tokens = [], [], []
         replace_color = np.mean(resized_and_cropped_image, axis=(0, 1))
-        for (i, segment_value) in enumerate(np.unique(segments_slic)):
+        for i, segment_value in enumerate(np.unique(segments_slic)):
             mask = segments_slic == segment_value
             image_screen = np.copy(resized_and_cropped_image)
             image_screen[segments_slic == segment_value] = replace_color
@@ -1934,7 +1937,7 @@ class Video(
     Playable,
     Uploadable,
     IOComponent,
-    FileSerializable,
+    VideoSerializable,
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -1943,14 +1946,14 @@ class Video(
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} filepath to a video which is displayed.
-    Examples-format: a {str} filepath to a local file that contains the video.
-    Demos: video_identity
+    Postprocessing: expects a {str} filepath to a video which is displayed, or a {Tuple[str, str]} where the first element is a filepath to a video and the second element is a filepath to a subtitle file.
+    Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
+    Demos: video_identity, video_subtitle
     """
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Tuple[str, str | None] | Callable | None = None,
         *,
         format: str | None = None,
         source: str = "upload",
@@ -1967,7 +1970,7 @@ class Video(
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
@@ -2015,7 +2018,10 @@ class Video(
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | Tuple[str, str | None]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         source: str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -2032,31 +2038,41 @@ class Video(
             "__type__": "update",
         }
 
-    def preprocess(self, x: Dict[str, str] | None) -> str | None:
+    def preprocess(
+        self, x: Tuple[FileData, FileData | None] | FileData | None
+    ) -> str | None:
         """
         Parameters:
-            x: a dictionary with the following keys: 'name' (containing the file path to a video), 'data' (with either the file URL or base64 representation of the video), and 'is_file` (True if `data` contains the file URL).
+            x: A tuple of (video file data, subtitle file data) or just video file data.
         Returns:
-            a string file path to the preprocessed video
+            A string file path or URL to the preprocessed video. Subtitle file data is ignored.
         """
         if x is None:
-            return x
+            return None
+        elif isinstance(x, dict):
+            video = x
+        else:
+            video = x[0]
 
         file_name, file_data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
+            video.get("name"),
+            video["data"],
+            video.get("is_file", False),
         )
+
         if is_file:
+            assert file_name is not None, "Received file data without a file name."
             file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
+            assert file_data is not None, "Received empty file data."
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
-        modify_format = self.format is not None and uploaded_format != self.format
+        needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
-        if modify_format or flip:
-            format = f".{self.format if modify_format else uploaded_format}"
+
+        if needs_formatting or flip:
+            format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
             output_options += ["-an"] if not self.include_audio else []
             flip_suffix = "_flip" if flip else ""
@@ -2082,20 +2098,63 @@ class Video(
         else:
             return str(file_name)
 
-    def postprocess(self, y: str | None) -> Dict[str, Any] | None:
+    def postprocess(
+        self, y: str | Tuple[str, str | None] | None
+    ) -> Tuple[FileData | None, FileData | None] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
-            y: a path or URL to the video file
+            y: video data in either of the following formats: a tuple of (str video filepath, str subtitle filepath), or a string filepath or URL to an video file, or None.
         Returns:
-            a dictionary with the following keys: 'name' (containing the file path
-            to a temporary copy of the video), 'data' (None), and 'is_file` (True).
+            a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
+            - The first dictionary represents the video file and contains the following keys:
+                - 'name': a file path to a temporary copy of the processed video.
+                - 'data': None
+                - 'is_file': True
+            - The second dictionary represents the subtitle file and contains the following keys:
+                - 'name': None
+                - 'data': Base64 encode the processed subtitle data.
+                - 'is_file': False
+            - If subtitle is None, returns (video, None).
+            - If both video and subtitle are None, returns None.
         """
-        if y is None:
+
+        if y is None or y == [None, None] or y == (None, None):
+            return None
+        if isinstance(y, str):
+            processed_files = (self._format_video(y), None)
+        elif isinstance(y, (tuple, list)):
+            assert (
+                len(y) == 2
+            ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+            video = y[0]
+            subtitle = y[1]
+            processed_files = (
+                self._format_video(video),
+                self._format_subtitle(subtitle),
+            )
+        else:
+            raise Exception(f"Cannot process type as video: {type(y)}")
+
+        return processed_files
+
+    def _format_video(self, video: str | None) -> FileData | None:
+        """
+        Processes a video to ensure that it is in the correct format.
+        Parameters:
+            video: video data in either of the following formats: a string filepath or URL to an video file, or None.
+        Returns:
+            a dictionary with the following keys:
+
+            - 'name': a file path to a temporary copy of the processed video.
+            - 'data': None
+            - 'is_file': True
+        """
+        if video is None:
             return None
 
-        returned_format = y.split(".")[-1].lower()
+        returned_format = video.split(".")[-1].lower()
 
         if self.format is None or returned_format == self.format:
             conversion_needed = False
@@ -2103,28 +2162,82 @@ class Video(
             conversion_needed = True
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
-        if utils.validate_url(y) and not (conversion_needed):
-            return {"name": y, "data": None, "is_file": True}
+        if utils.validate_url(video) and not (conversion_needed):
+            return {"name": video, "data": None, "is_file": True}
 
         # For cases where the video needs to be converted to another format
-        if utils.validate_url(y):
-            y = self.download_temp_copy_if_needed(y)
+        if utils.validate_url(video):
+            video = self.download_temp_copy_if_needed(video)
         if (
             processing_utils.ffmpeg_installed()
-            and not processing_utils.video_is_playable(y)
+            and not processing_utils.video_is_playable(video)
         ):
             warnings.warn(
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
-            y = processing_utils.convert_video_to_playable_mp4(y)
+            video = processing_utils.convert_video_to_playable_mp4(video)
         if self.format is not None and returned_format != self.format:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
+            output_file_name = video[0 : video.rindex(".") + 1] + self.format
+            ff = FFmpeg(inputs={video: None}, outputs={output_file_name: None})
             ff.run()
-            y = output_file_name
+            video = output_file_name
 
-        y = self.make_temp_copy_if_needed(y)
-        return {"name": y, "data": None, "is_file": True, "orig_name": Path(y).name}
+        video = self.make_temp_copy_if_needed(video)
+
+        return {
+            "name": video,
+            "data": None,
+            "is_file": True,
+            "orig_name": Path(video).name,
+        }
+
+    def _format_subtitle(self, subtitle: str | None) -> FileData | None:
+        """
+        Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
+        Parameters:
+            subtitle: subtitle path in either of the VTT and SRT format.
+        Returns:
+            a dictionary with the following keys:
+            - 'name': None
+            - 'data': base64-encoded subtitle data.
+            - 'is_file': False
+        """
+
+        def srt_to_vtt(srt_file_path, vtt_file_path):
+            """Convert an SRT subtitle file to a VTT subtitle file"""
+            with open(srt_file_path, "r", encoding="utf-8") as srt_file, open(
+                vtt_file_path, "w", encoding="utf-8"
+            ) as vtt_file:
+                vtt_file.write("WEBVTT\n\n")
+                for subtitle_block in srt_file.read().strip().split("\n\n"):
+                    subtitle_lines = subtitle_block.split("\n")
+                    subtitle_timing = subtitle_lines[1].replace(",", ".")
+                    subtitle_text = "\n".join(subtitle_lines[2:])
+                    vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
+                    vtt_file.write(f"{subtitle_text}\n\n")
+
+        if subtitle is None:
+            return None
+
+        valid_extensions = (".srt", ".vtt")
+
+        if Path(subtitle).suffix not in valid_extensions:
+            raise ValueError(
+                f"Invalid value for parameter `subtitle`: {subtitle}. Please choose a file with one of these extensions: {valid_extensions}"
+            )
+
+        # HTML5 only support vtt format
+        if Path(subtitle).suffix == ".srt":
+            temp_file = tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=".vtt",
+            )
+
+            srt_to_vtt(subtitle, temp_file.name)
+            subtitle = temp_file.name
+
+        subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
+        return {"name": None, "data": subtitle_data, "is_file": False}
 
     def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
@@ -2542,9 +2655,12 @@ class File(
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
-    ) -> bytes | tempfile._TemporaryFileWrapper | List[
-        bytes | tempfile._TemporaryFileWrapper
-    ] | None:
+    ) -> (
+        bytes
+        | tempfile._TemporaryFileWrapper
+        | List[bytes | tempfile._TemporaryFileWrapper]
+        | None
+    ):
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -3130,6 +3246,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
+            interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -3272,9 +3389,12 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
-    ) -> bytes | tempfile._TemporaryFileWrapper | List[
-        bytes | tempfile._TemporaryFileWrapper
-    ] | None:
+    ) -> (
+        bytes
+        | tempfile._TemporaryFileWrapper
+        | List[bytes | tempfile._TemporaryFileWrapper]
+        | None
+    ):
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
