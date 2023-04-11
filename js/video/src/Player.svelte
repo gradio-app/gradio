@@ -16,7 +16,7 @@
 
 	function video_move() {
 		clearTimeout(show_controls_timeout);
-		show_controls_timeout = setTimeout(() => (show_controls = false), 2500);
+		show_controls_timeout = setTimeout(() => (show_controls = false), 500);
 		show_controls = true;
 	}
 
