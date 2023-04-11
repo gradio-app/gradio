@@ -24,4 +24,6 @@ F
 
 6
 0:00:03.000 --> 0:00:10.000
-This is multiple line test. \nWhy did the tomato turn red? Because it saw the salad dressing. \nIn Africa, every 60 seconds a minute passes
+This is multiple line test. 
+Why did the tomato turn red? Because it saw the salad dressing. 
+In Africa, every 60 seconds a minute passes

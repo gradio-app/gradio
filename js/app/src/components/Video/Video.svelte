@@ -62,7 +62,6 @@
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-
 			dispatch("change");
 		}
 	}
