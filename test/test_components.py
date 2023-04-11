@@ -1284,24 +1284,36 @@ class TestVideo:
         assert "flip" not in output_video
 
         assert filecmp.cmp(
-            video_input.serialize(x_video["name"])["name"], x_video["name"]
+            video_input.serialize(x_video["name"])[0]["name"], x_video["name"]
         )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
+        subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path)["name"]
+        output1 = video_output.postprocess(y_vid_path)[0]["name"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path)["name"]
+        output2 = video_output.postprocess(y_vid_path)[0]["name"]
         assert output1 == output2
-        assert video_output.postprocess(y_vid_path)["orig_name"] == "video_sample.mp4"
+        assert (
+            video_output.postprocess(y_vid_path)[0]["orig_name"] == "video_sample.mp4"
+        )
+        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
+        assert output_with_subtitles[1] == {
+            "name": None,
+            "data": "data:;base64,V0VCVlRUDQoNCjA6MDA6MDAuMDAwIC0tPiAwOjAwOjAwLjUwMCAtLT4gMDowMDowMC4wMDAgLS0+IDA6MDA6MDAuNTAwDQpBDQoNCjA6MDA6MDAuNTAwIC0tPiAwOjAwOjAxLjAwMCAtLT4gMDowMDowMC41MDAgLS0+IDA6MDA6MDEuMDAwDQpCDQoNCjA6MDA6MDEuMDAwIC0tPiAwOjAwOjAxLjUwMCAtLT4gMDowMDowMS4wMDAgLS0+IDA6MDA6MDEuNTAwDQpDDQoNCjA6MDA6MDEuNTAwIC0tPiAwOjAwOjAyLjAwMCAtLT4gMDowMDowMS41MDAgLS0+IDA6MDA6MDIuMDAwDQpEDQoNCjA6MDA6MDIuMDAwIC0tPiAwOjAwOjAyLjUwMCAtLT4gMDowMDowMi4wMDAgLS0+IDA6MDA6MDIuNTAwDQpFDQoNCjA6MDA6MDIuNTAwIC0tPiAwOjAwOjAzLjAwMCAgLS0+IDA6MDA6MDIuNTAwIC0tPiAwOjAwOjAzLjAwMCANCkYNCg0KMDowMDowMy4wMDAgLS0+IDA6MDA6MTAuMDAwIC0tPiAwOjAwOjAzLjAwMCAtLT4gMDowMDoxMC4wMDANClRoaXMgaXMgbXVsdGlwbGUgbGluZSB0ZXN0LiBcbldoeSBkaWQgdGhlIHRvbWF0byB0dXJuIHJlZD8gQmVjYXVzZSBpdCBzYXcgdGhlIHNhbGFkIGRyZXNzaW5nLiBcbkluIEFmcmljYSwgZXZlcnkgNjAgc2Vjb25kcyBhIG1pbnV0ZSBwYXNzZXMNCg0K",
+            "is_file": False,
+        }
 
         assert video_output.deserialize(
-            {
-                "name": None,
-                "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                "is_file": False,
-            }
+            (
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                    "is_file": False,
+                },
+                None,
+            )
         ).endswith(".mp4")
 
     def test_in_interface(self):

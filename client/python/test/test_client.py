@@ -1,3 +1,4 @@
+import builtins
 import json
 import os
 import pathlib
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
@@ -503,13 +505,10 @@ class TestAPIInfo:
 
 
 class TestEndpoints:
-    @patch("builtins.open")
-    @patch("requests.post")
-    def test_upload(self, mock_post, mock_open):
+    def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )
-
         response = MagicMock(status_code=200)
         response.json.return_value = [
             "file1",
@@ -520,7 +519,10 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        mock_post.return_value = response
+        requests.post = MagicMock()
+        requests.post.return_value = response
+        builtins.open = MagicMock()
+
         with patch.object(pathlib.Path, "name") as mock_name:
             mock_name.side_effect = lambda x: x
             results = client.endpoints[0]._upload(
