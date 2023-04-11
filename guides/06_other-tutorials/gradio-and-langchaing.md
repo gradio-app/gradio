@@ -56,7 +56,7 @@ class StableDiffusionTool(GradioTool):
     description = ("An image generator. Use this to generate images based on "
                    "text input. Input should be a description of what the image should "
                    "look like. The output will be a path to an image file.")
-    src = "stabilityai/stable-diffusion"
+    src = "gradio-client-demos/stable-diffusion"
 
     def create_job(self, query: str) -> Job:
         return self.client.submit(query, "", 9, fn_index=1)
