@@ -1,4 +1,3 @@
-import builtins
 import json
 import os
 import pathlib
@@ -9,7 +8,6 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
@@ -519,15 +517,13 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        requests.post = MagicMock()
-        requests.post.return_value = response
-        builtins.open = MagicMock()
-
-        with patch.object(pathlib.Path, "name") as mock_name:
-            mock_name.side_effect = lambda x: x
-            results = client.endpoints[0]._upload(
-                ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
-            )
+        with patch("requests.post", MagicMock(return_value=response)):
+            with patch("builtins.open", MagicMock()):
+                with patch.object(pathlib.Path, "name") as mock_name:
+                    mock_name.side_effect = lambda x: x
+                    results = client.endpoints[0]._upload(
+                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    )
 
         res = []
         for re in results:
