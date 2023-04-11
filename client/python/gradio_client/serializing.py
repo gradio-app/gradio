@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from gradio_client import utils
+from gradio_client.data_classes import FileData
 
 
 class Serializable(ABC):
@@ -143,20 +144,6 @@ class ImgSerializable(Serializable):
         return file.name
 
 
-class VideoSerializable(Serializable):
-    def input_api_info(self) -> Tuple[str, str]:
-        return (
-            "str | Tuple[str, str]",
-            "Filepath or URL to a video file, or a tuple of (video file, subtitle file)",
-        )
-
-    def output_api_info(self) -> Tuple[str, str]:
-        return (
-            "str | Tuple[str, str]",
-            "Filepath or URL to a video file, or a tuple of (video file, subtitle file)",
-        )
-
-
 class FileSerializable(Serializable):
     def input_api_info(self) -> Tuple[str, str]:
         return "str", "filepath or URL"
@@ -164,8 +151,10 @@ class FileSerializable(Serializable):
     def output_api_info(self) -> Tuple[str, str]:
         return "str", "filepath or URL"
 
-    def _serialize_single(self, x: str | dict, load_dir: str | Path = ""):
-        if isinstance(x, dict):
+    def _serialize_single(
+        self, x: str | FileData | None, load_dir: str | Path = ""
+    ) -> FileData | None:
+        if x is None or isinstance(x, dict):
             return x
         if utils.is_valid_url(x):
             filename = x
@@ -183,7 +172,7 @@ class FileSerializable(Serializable):
 
     def _deserialize_single(
         self,
-        x: str | dict,
+        x: str | FileData,
         save_dir: str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
@@ -192,15 +181,17 @@ class FileSerializable(Serializable):
             file_name = utils.decode_base64_to_file(x, dir=save_dir).name
         elif isinstance(x, dict):
             if x.get("is_file", False):
+                filepath = x.get("name")
+                assert filepath is not None, f"The 'name' field is missing in {x}"
                 if root_url is not None:
                     file_name = utils.download_tmp_copy_of_file(
-                        root_url + "file=" + x["name"],
+                        root_url + "file=" + filepath,
                         hf_token=hf_token,
                         dir=save_dir,
                     ).name
                 else:
                     file_name = utils.create_tmp_copy_of_file(
-                        x["name"], dir=save_dir
+                        filepath, dir=save_dir
                     ).name
             else:
                 file_name = utils.decode_base64_to_file(x["data"], dir=save_dir).name
@@ -212,9 +203,9 @@ class FileSerializable(Serializable):
 
     def serialize(
         self,
-        x: str | dict | List[str | dict] | None,
+        x: str | FileData | None | List[str | FileData | None],
         load_dir: str | Path = "",
-    ) -> Dict | List[Dict] | None:
+    ) -> FileData | None | List[FileData | None]:
         """
         Convert from human-friendly version of a file (string filepath) to a
         seralized representation (base64)
@@ -231,7 +222,7 @@ class FileSerializable(Serializable):
 
     def deserialize(
         self,
-        x: str | Dict | List[Dict | str] | None,
+        x: str | FileData | List[FileData | str] | None,
         save_dir: Path | str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
@@ -260,6 +251,29 @@ class FileSerializable(Serializable):
             return self._deserialize_single(
                 x, save_dir=save_dir, root_url=root_url, hf_token=hf_token
             )
+
+
+class VideoSerializable(FileSerializable):
+    def input_api_info(self) -> Tuple[str, str]:
+        return "str", "Filepath or URL to a video file"
+
+    def output_api_info(self) -> Tuple[str, str]:
+        return (
+            "str | Tuple[str, str]",
+            "Filepath or URL to a video file, or a tuple of (video file, subtitle file)",
+        )
+
+    def deserialize(
+        self,
+        x: str | FileData | List[FileData | str] | None,
+        save_dir: Path | str | None = None,
+        root_url: str | None = None,
+        hf_token: str | None = None,
+    ) -> str | Tuple[str] | None:
+        deserialized_file = super().deserialize(x, save_dir, root_url, hf_token)
+        if isinstance(deserialized_file, list):
+            return tuple(deserialized_file)
+        return deserialized_file
 
 
 class JSONSerializable(Serializable):

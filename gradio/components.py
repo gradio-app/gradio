@@ -32,6 +32,7 @@ import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
+from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
     BooleanSerializable,
@@ -48,7 +49,7 @@ from gradio_client.serializing import (
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from typing_extensions import Literal, NotRequired
+from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -76,15 +77,6 @@ if TYPE_CHECKING:
     class DataframeData(TypedDict):
         headers: List[str]
         data: List[List[str | int | bool]]
-
-    class FileData(TypedDict):
-        name: str | None  # filename
-        data: str | None  # base64 encoded data
-        size: NotRequired[int]  # size in bytes
-        is_file: NotRequired[
-            bool
-        ]  # whether the data corresponds to a file or base64 encoded data
-        orig_name: NotRequired[str]  # original filename
 
 
 set_documentation_group("component")
