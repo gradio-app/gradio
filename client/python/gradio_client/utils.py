@@ -279,11 +279,11 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
-def encode_file_to_base64(f):
+def encode_file_to_base64(f: str | Path):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
         base64_str = str(encoded_string, "utf-8")
-        mimetype = get_mimetype(f)
+        mimetype = get_mimetype(str(f))
         return (
             "data:"
             + (mimetype if mimetype is not None else "")
@@ -292,7 +292,7 @@ def encode_file_to_base64(f):
         )
 
 
-def encode_url_to_base64(url):
+def encode_url_to_base64(url: str):
     encoded_string = base64.b64encode(requests.get(url).content)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
