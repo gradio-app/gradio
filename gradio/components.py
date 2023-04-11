@@ -2122,7 +2122,7 @@ class Video(
 
         if y is None or y == [None, None] or y == (None, None):
             return None
-        if isinstance(y, str):  # type: string
+        if isinstance(y, str):
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
             assert (
