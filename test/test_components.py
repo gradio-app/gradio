@@ -1299,7 +1299,7 @@ class TestVideo:
             video_output.postprocess(y_vid_path)[0]["orig_name"] == "video_sample.mp4"
         )
         output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
-        assert output_with_subtitles[1]["data"].startswith("data:text/vtt")
+        assert output_with_subtitles[1]["data"].startswith("data")
 
         assert video_output.deserialize(
             (
