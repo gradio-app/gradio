@@ -14,8 +14,8 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: Array<FileData> | null = null;
-	let old_value: Array<FileData> | null = null;
+	export let value: [FileData, FileData | null] | null = null;
+	let old_value: [FileData, FileData | null] | null = null;
 
 	export let label: string;
 	export let source: string;
@@ -29,17 +29,16 @@
 
 	export let mode: "static" | "dynamic";
 
-	let _value: Array<FileData> | null = null;
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
 
 	$: {
-		_value = normalise_file(value, root, root_url);
-
-		if (_value != null) {
-			[_video, _subtitle] = _value;
+		if (value != null) {
+			_video = normalise_file(value[0], root, root_url);
+			_subtitle = normalise_file(value[1], root, root_url);
 		} else {
-			[_video, _subtitle] = [null, null];
+			_video = null;
+			_subtitle = null;
 		}
 	}
 
@@ -51,7 +50,7 @@
 
 	function handle_change({ detail }: CustomEvent<FileData | null>) {
 		if (detail != null) {
-			value = [detail, null] as Array<FileData>;
+			value = [detail, null] as [FileData, FileData | null];
 		} else {
 			value = null;
 		}

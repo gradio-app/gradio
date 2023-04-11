@@ -2208,17 +2208,11 @@ class Video(
             with open(srt_file_path, "r", encoding="utf-8") as srt_file, open(
                 vtt_file_path, "w", encoding="utf-8"
             ) as vtt_file:
-                # Write the VTT file header
                 vtt_file.write("WEBVTT\n\n")
-                # Process each subtitle block
                 for subtitle_block in srt_file.read().strip().split("\n\n"):
-                    # Parse the subtitle block
                     subtitle_lines = subtitle_block.split("\n")
-                    # subtitle_index = subtitle_lines[0]
                     subtitle_timing = subtitle_lines[1].replace(",", ".")
-                    # Replace comma with period
                     subtitle_text = "\n".join(subtitle_lines[2:])
-                    # Write the VTT subtitle block
                     vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
                     vtt_file.write(f"{subtitle_text}\n\n")
 
