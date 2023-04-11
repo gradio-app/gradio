@@ -7,6 +7,7 @@
 
 - Allow the video component to accept subtitles as input, by [@tomchang25](https://github.com/tomchang25) in [PR 3673](https://github.com/gradio-app/gradio/pull/3673). To provide subtitles, simply return a tuple consisting of `(path_to_video, path_to_subtitles)` from your function. Both `.srt` and `.vtt` formats are supported:
 
+
 ```py
 with gr.Blocks() as demo:
     gr.Video(("video.mp4", "captions.srt"))
