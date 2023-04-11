@@ -12,7 +12,17 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Callable,
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Type,
+)
 
 import anyio
 import requests
@@ -861,7 +871,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         processed_input: List[Any],
-        iterator: Iterator[Any] | None = None,
+        iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | List[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
