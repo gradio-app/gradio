@@ -147,7 +147,7 @@ class Client:
         ).repo_id
         huggingface_hub.hf_api.request_space_hardware(space_id, hardware)
         if verbose:
-            print(f"Created Space: `{space_id}` and assigned: {hardware}. See it here: {}")
+            print(f"Created Space: `{space_id}` and assigned: {hardware}. Check billing info here: https://huggingface.co/settings/billing")
         # Create a Client object from a Hugging Face Space
         client = cls(
             space_id, 

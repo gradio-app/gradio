@@ -53,6 +53,24 @@ from gradio_client import Client
 client = Client("abidlabs/my-private-space", hf_token="...") 
 ```
 
+**Duplicating a Space for private use**
+
+While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space,
+and then use it to make as many requests as you'd like!
+
+The `gradio_client` includes a class method: `Client.duplicate` to make this process simple:
+
+```python
+from gradio_client import Client
+
+client = Client.duplicate_from("abidlabs/whisper") 
+client.predict("audio_sample.wav")  
+
+>> "This is a test of the whisper speech recognition model."
+```
+
+**Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 1 hour of inactivity. You can also set the hardware using the `hardware` parameter of `duplicate()`.
+
 
 **Connecting a general Gradio app**
 
@@ -64,9 +82,10 @@ from gradio_client import Client
 client = Client("https://bec81a83-5b5c-471e.gradio.live")
 ```
 
+
 ### Inspecting the API endpoints
 
-Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `Client.view_api()` method. For the Whisper Space, we see the following:
+Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `.view_api()` method. For the Whisper Space, we see the following:
 
 ```
 Client.predict() Usage Info
