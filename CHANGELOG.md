@@ -3,7 +3,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Support for asynchronous iterators by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3821](https://github.com/gradio-app/gradio/pull/3821)
 
 ## Bug Fixes:
 
