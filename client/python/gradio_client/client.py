@@ -184,7 +184,9 @@ class Client:
                 exist_ok=True,
                 private=private,
             )
-            utils.set_space_timeout(space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout*60)
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
+            )
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
