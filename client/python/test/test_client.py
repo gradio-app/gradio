@@ -5,7 +5,7 @@ import tempfile
 import time
 from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -554,12 +554,9 @@ class TestDuplication:
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
         mock_init.assert_called_with(
-            "gradio-tests/test", 
-            hf_token=HF_TOKEN, 
-            max_workers=40, 
-            verbose=True
-            )
-        
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
     @pytest.mark.flaky
     @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
     @patch("gradio_client.client.Client.__init__", return_value=None)
@@ -568,26 +565,27 @@ class TestDuplication:
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_runtime.assert_any_call("gradio-tests/calculator", token=HF_TOKEN)
         mock_init.assert_called_with(
-            "gradio-tests/calculator", 
-            hf_token=HF_TOKEN, 
-            max_workers=40, 
-            verbose=True
-            )
-        
+            "gradio-tests/calculator", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
     @pytest.mark.flaky
     @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
     @patch("huggingface_hub.add_space_secret")
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_add_secrets(self, mock_init, mock_add_secret, mock_runtime):
-        Client.duplicate("gradio/calculator", hf_token=HF_TOKEN, secrets={"test_key": "test_value", "test_key2": "test_value2"})                
+        Client.duplicate(
+            "gradio/calculator",
+            hf_token=HF_TOKEN,
+            secrets={"test_key": "test_value", "test_key2": "test_value2"},
+        )
         mock_add_secret.assert_any_call(
-            "gradio-tests/calculator", 
+            "gradio-tests/calculator",
             "test_key",
             "test_value",
             token=HF_TOKEN,
         )
         mock_add_secret.assert_any_call(
-            "gradio-tests/calculator", 
+            "gradio-tests/calculator",
             "test_key2",
             "test_value2",
             token=HF_TOKEN,
