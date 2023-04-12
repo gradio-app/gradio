@@ -20,6 +20,11 @@ HF_TOKEN = "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"  # Intentionally reveali
 
 class TestPredictionsFromSpaces:
     @pytest.mark.flaky
+    def test_raise_error_invalid_state(self):
+        with pytest.raises(ValueError, match="invalid state"):
+            Client("gradio-tests/paused-space")
+
+    @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
         output = client.predict("male", 77, 10, api_name="/predict")
@@ -503,13 +508,10 @@ class TestAPIInfo:
 
 
 class TestEndpoints:
-    @patch("builtins.open")
-    @patch("requests.post")
-    def test_upload(self, mock_post, mock_open):
+    def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )
-
         response = MagicMock(status_code=200)
         response.json.return_value = [
             "file1",
@@ -520,12 +522,13 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        mock_post.return_value = response
-        with patch.object(pathlib.Path, "name") as mock_name:
-            mock_name.side_effect = lambda x: x
-            results = client.endpoints[0]._upload(
-                ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
-            )
+        with patch("requests.post", MagicMock(return_value=response)):
+            with patch("builtins.open", MagicMock()):
+                with patch.object(pathlib.Path, "name") as mock_name:
+                    mock_name.side_effect = lambda x: x
+                    results = client.endpoints[0]._upload(
+                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    )
 
         res = []
         for re in results:

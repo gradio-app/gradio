@@ -1284,24 +1284,32 @@ class TestVideo:
         assert "flip" not in output_video
 
         assert filecmp.cmp(
-            video_input.serialize(x_video["name"])["name"], x_video["name"]
+            video_input.serialize(x_video["name"])[0]["name"], x_video["name"]
         )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
+        subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path)["name"]
+        output1 = video_output.postprocess(y_vid_path)[0]["name"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path)["name"]
+        output2 = video_output.postprocess(y_vid_path)[0]["name"]
         assert output1 == output2
-        assert video_output.postprocess(y_vid_path)["orig_name"] == "video_sample.mp4"
+        assert (
+            video_output.postprocess(y_vid_path)[0]["orig_name"] == "video_sample.mp4"
+        )
+        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
+        assert output_with_subtitles[1]["data"].startswith("data")
 
         assert video_output.deserialize(
-            {
-                "name": None,
-                "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                "is_file": False,
-            }
+            (
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                    "is_file": False,
+                },
+                None,
+            )
         ).endswith(".mp4")
 
     def test_in_interface(self):
