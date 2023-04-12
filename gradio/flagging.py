@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import datetime
+import filelock
 import json
 import os
 import time
@@ -363,6 +364,173 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.repo.push_to_hub(commit_message="Flagged sample #{}".format(line_count))
 
         return line_count
+
+
+class SaferHuggingFaceDatasetSaver(FlaggingCallback):
+    """
+    A callback that saves each flagged sample (both the input and output data) to a HuggingFace dataset.
+
+    Example:
+
+    ```python
+    import gradio as gr
+
+    hf_writer = gr.SaferHuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
+
+    def image_classifier(inp):
+        return {'cat': 0.3, 'dog': 0.7}
+
+    demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label", allow_flagging="manual", flagging_callback=hf_writer)
+    demo.launch()
+    ```
+
+    Guides: using_flagging
+    """
+
+    def __init__(
+        self,
+        dataset_id: str,
+        hf_token: str | None = None,
+        private: bool = False,
+        logs_filename: str = "data.csv",
+        info_filename: str = "dataset_info.json",
+    ):
+        """
+        Parameters:
+            dataset_id: The repo_id of the dataset to save the data to, e.g. "image-classifier-1" or "username/image-classifier-1".
+            hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset (defaults to the registered one).
+            private: Whether the dataset should be private (defaults to False).
+            logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
+            info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
+        """
+        self.hf_token = hf_token
+        self.dataset_id = dataset_id
+        self.dataset_private = private
+        self.logs_filename = logs_filename
+        self.info_filename = info_filename
+
+    def setup(self, components: List[IOComponent], flagging_dir: str):
+        """
+        Params:
+        flagging_dir (str): local directory where the dataset is cloned,
+        updated, and pushed from.
+        """
+        try:
+            import huggingface_hub
+        except (ImportError, ModuleNotFoundError):
+            raise ImportError(
+                "Package `huggingface_hub` not found is needed for SaferHuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
+            )
+        hh_version = pkg_resources.get_distribution("huggingface_hub").version
+        try:
+            if StrictVersion(hh_version) < StrictVersion("0.12.0"):
+                raise ImportError(
+                    "The `huggingface_hub` package must be version 0.12.0 or higher"
+                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
+                )
+        except ValueError:
+            pass
+
+        # Setup dataset on the Hub
+        self.dataset_id = huggingface_hub.create_repo(
+            repo_id=self.dataset_id,
+            token=self.hf_token,
+            private=self.dataset_private,
+            repo_type="dataset",
+            exist_ok=True,
+        ).repo_id
+
+        # Setup flagging dir
+        self.components = components
+        self.dataset_dir = Path(flagging_dir) / self.dataset_id.split("/")[-1]
+        self.dataset_dir.mkdir(parents=True, exist_ok=True)
+        self.lock_file = self.dataset_dir / "data.lock"
+        self.log_file = self.dataset_dir / self.logs_filename
+        self.infos_file = self.dataset_dir / self.info_filename
+
+        # Download remote files to local
+        try:
+            huggingface_hub.hf_hub_download(
+                repo_id=self.dataset_id,
+                repo_type="dataset",
+                filename=self.logs_filename,
+                local_dir=self.dataset_dir,
+                token=self.hf_token,
+            )
+        except huggingface_hub.utils.EntryNotFoundError:
+            pass
+
+        try:
+            huggingface_hub.hf_hub_download(
+                repo_id=self.dataset_id,
+                repo_type="dataset",
+                filename=self.info_filename,
+                local_dir=self.dataset_dir,
+                token=self.hf_token,
+            )
+        except huggingface_hub.utils.EntryNotFoundError:
+            pass
+
+    def flag(self, flag_data: List[Any], flag_option: str = "") -> int:
+        # Only 1 user can flag at a time
+        with filelock.FileLock(self.lock_file):
+            return self._flag_thread_safe(flag_data, flag_option)
+
+    def _flag_thread_safe(self, flag_data: List[Any], flag_option: str = "") -> int:
+        import huggingface_hub
+
+        is_new = not self.log_file.exists()
+
+        with self.log_file.open("a", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+
+            # File previews for certain input and output types
+            infos, file_preview_types, headers = _get_dataset_features_info(
+                is_new, self.components
+            )
+
+            # Generate the headers and dataset_infos
+            if is_new:
+                writer.writerow(utils.sanitize_list_for_csv(headers))
+
+            # Generate the row corresponding to the flagged sample
+            csv_data = []
+            for component, sample in zip(self.components, flag_data):
+                save_dir = (
+                    self.dataset_dir
+                    / client_utils.strip_invalid_filename_characters(
+                        component.label or ""
+                    )
+                )
+                filepath = component.deserialize(sample, save_dir, None)
+                csv_data.append(filepath)
+                if isinstance(component, tuple(file_preview_types)):
+                    csv_data.append(
+                        huggingface_hub.hf_hub_url(
+                            repo_id=self.dataset_id,
+                            filename=filepath,
+                            repo_type="dataset",
+                        )
+                    )
+            csv_data.append(flag_option)
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
+
+        if not self.infos_file.exists():
+            self.infos_file.write_text(json.dumps(infos))
+
+        with self.log_file.open(encoding="utf-8") as csvfile:
+            sample_nb = len([None for row in csv.reader(csvfile)]) - 1
+
+        huggingface_hub.upload_folder(
+            repo_id=self.dataset_id,
+            repo_type="dataset",
+            commit_message=f"Flagged sample #{sample_nb}",
+            ignore_patterns="*.lock",
+            folder_path=self.dataset_dir,
+            token=self.hf_token,
+        )
+
+        return sample_nb
 
 
 @document()
