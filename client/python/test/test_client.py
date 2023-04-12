@@ -122,8 +122,8 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_timeout(self):
         with pytest.raises(TimeoutError):
-            client = Client(src="gradio/count_generator")
-            job = client.submit(3, fn_index=0)
+            client = Client(src="gradio-tests/sleep")
+            job = client.submit("ping", api_name="/predict")
             job.result(timeout=0.05)
 
     @pytest.mark.flaky
