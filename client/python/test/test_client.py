@@ -549,5 +549,5 @@ class TestEndpoints:
 #     @pytest.mark.flaky
 #     @patch("huggingface_hub.get_space_runtime")
 #     def test_to_id(self, mock_runtime):
-#         Client.duplicate_from("gradio-tests/titanic-survival", "ts")
+#         Client.duplicate("gradio-tests/titanic-survival", "ts")
 #         assert mock_runtime.
