@@ -7,13 +7,14 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import UploadText from "../UploadText.svelte";
+	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" = "editor";
+	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;
 	export let show_label: boolean;
 	export let streaming: boolean;
@@ -22,15 +23,19 @@
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
 	export let brush_radius: number;
+	export let selectable: boolean = false;
 
 	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
 
 	$: value, dispatch("change");
 	let dragging: boolean;
+	const FIXED_HEIGHT = 240;
 
 	$: value = !value ? null : value;
 </script>
@@ -44,12 +49,15 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	style={{ height: style.height, width: style.width }}
+	style={{
+		height: style.height || (source === "webcam" ? undefined : FIXED_HEIGHT),
+		width: style.width
+	}}
 	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
-		<StaticImage {value} {label} {show_label} />
+		<StaticImage on:select {value} {label} {show_label} {selectable} />
 	{:else}
 		<Image
 			{brush_radius}
@@ -57,12 +65,14 @@
 			bind:value
 			{source}
 			{tool}
+			{selectable}
 			on:edit
 			on:clear
 			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload
+			on:select
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";
