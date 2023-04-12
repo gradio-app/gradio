@@ -128,7 +128,7 @@ class Client:
         hf_token: str | None = None,
         private: bool = True,
         hardware: str | None = None,
-        secrets: dict | None = None,
+        secrets: Dict[str, str] | None = None,
         max_workers: int = 40,
         verbose: bool = True,
     ):
@@ -192,7 +192,7 @@ class Client:
         if not current_hardware == hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
-                f"Setting hardware tier to {hardware}... see usage info at https://huggingface.co/settings/billing"
+                f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
         if secrets is not None:
             for key, value in secrets.items():
