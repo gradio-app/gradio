@@ -288,7 +288,7 @@
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
-		overflow: visible;
+		overflow: clip;
 	}
 
 	.thumbnail-item:hover {
