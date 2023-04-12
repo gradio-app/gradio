@@ -19,7 +19,7 @@ with gr.Blocks() as demo:
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Updates the "view API" page in Gradio apps to use the `gradio_client` library by [@aliabd](https://github.com/aliabd) in [PR 3765](https://github.com/gradio-app/gradio/pull/3765)
 
 ## Testing and Infrastructure Changes:
 
