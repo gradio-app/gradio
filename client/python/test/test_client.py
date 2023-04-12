@@ -100,7 +100,7 @@ class TestPredictionsFromSpaces:
         self,
     ):
         client = Client(src="gradio/count_generator")
-        job = client.submit(3, api_name="/count")
+        job = client.submit(3, fn_index=0)
 
         while not job.done():
             time.sleep(0.1)
@@ -108,7 +108,7 @@ class TestPredictionsFromSpaces:
         assert job.outputs() == [str(i) for i in range(3)]
 
         outputs = []
-        for o in client.submit(3, api_name="/count"):
+        for o in client.submit(3, fn_index=0):
             outputs.append(o)
         assert outputs == [str(i) for i in range(3)]
 
@@ -123,7 +123,7 @@ class TestPredictionsFromSpaces:
     def test_timeout(self):
         with pytest.raises(TimeoutError):
             client = Client(src="gradio/count_generator")
-            job = client.submit(api_name="/sleep")
+            job = client.submit(3, fn_index=0)
             job.result(timeout=0.05)
 
     @pytest.mark.flaky
