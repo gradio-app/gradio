@@ -587,22 +587,26 @@ class Endpoint:
 
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                output = result["data"]
+                if "error" in result:
+                    raise ValueError(result["error"])
             else:
                 response = requests.post(
                     self.client.api_url, headers=self.client.headers, data=data
                 )
                 result = json.loads(response.content.decode("utf-8"))
-                try:
-                    output = result["data"]
-                except KeyError:
-                    if "error" in result and "429" in result["error"]:
-                        raise utils.TooManyRequestsError(
-                            "Too many requests to the Hugging Face API"
-                        )
-                    raise KeyError(
-                        f"Could not find 'data' key in response. Response received: {result}"
+            try:
+                output = result["data"]
+            except KeyError:
+                is_public_space = self.client.space_id and not huggingface_hub.space_info(self.client.space_id).private
+                if "error" in result and "429" in result["error"] and is_public_space:
+                    raise utils.TooManyRequestsError(
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate_from({self.client.space_id}) and pass in your Hugging Face token."
                     )
+                elif "error" in result:
+                    raise ValueError(result["error"])
+                raise KeyError(
+                    f"Could not find 'data' key in response. Response received: {result}"
+                )
             return tuple(output)
 
         return _predict
@@ -960,7 +964,7 @@ class Job(Future):
                     if self.verbose and self.space_id and eta and eta > 30:
                         print(
                             f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
-                            f"For faster predictions without waiting in queue, you may duplicate the space: {utils.DUPLICATE_URL.format(self.space_id)}"
+                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate_from({self.space_id})"
                         )
                     return self.communicator.job.latest_status
 
