@@ -211,8 +211,8 @@ class Client:
     def _get_space_state(self):
         if not self.space_id:
             return None
-        api = huggingface_hub.HfApi(token=self.hf_token)
-        return api.get_space_runtime(self.space_id).stage
+        info = huggingface_hub.get_space_runtime(self.space_id, token=self.hf_token)
+        return info.stage
 
     def predict(
         self,
