@@ -17,7 +17,11 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub.utils import build_hf_headers, send_telemetry, RepositoryNotFoundError
+from huggingface_hub.utils import (
+    RepositoryNotFoundError,
+    build_hf_headers,
+    send_telemetry,
+)
 from packaging import version
 from typing_extensions import Literal
 
@@ -46,7 +50,8 @@ class Client:
         job.result()
         >> 49 # returns the result of the remote API call (blocking call)
 
-    """   
+    """
+
     def __init__(
         self,
         src: str,
@@ -113,26 +118,26 @@ class Client:
     def duplicate_from(
         cls,
         from_id: str,
-        to_id: str | None = None, 
-        hf_token: str | None = None, 
+        to_id: str | None = None,
+        hf_token: str | None = None,
         private: bool = True,
         hardware: str | None = None,
         secrets: dict | None = None,
         max_workers: int = 40,
-        verbose: bool = True
+        verbose: bool = True,
     ):
         """
-        Duplicates a Hugging Face Space under your account and returns a Client object 
-        for the new Space. No duplication is created if the Space already exists in your 
-        account (to override this, provide a new name for the new Space using `to_id`). 
-        To use this method, you must provide an `hf_token` or be logged in via the Hugging 
-        Face Hub CLI. 
-        
+        Duplicates a Hugging Face Space under your account and returns a Client object
+        for the new Space. No duplication is created if the Space already exists in your
+        account (to override this, provide a new name for the new Space using `to_id`).
+        To use this method, you must provide an `hf_token` or be logged in via the Hugging
+        Face Hub CLI.
+
         The new Space will be private by default and use the same hardware as the original
         Space. This can be changed by using the `private` and `hardware` parameters. For
         hardware upgrades (beyond the basic CPU tier), you may be required to provide
         billing information on Hugging Face: https://huggingface.co/settings/billing
-        
+
         Parameters:
             from_id: The name of the Hugging Face Space to duplicate, e.g. "abidlabs/whisper".
             to_id: The name of the new Hugging Face Space to create, e.g. "whisper-duplicate". Do not add your Hugging Face username. If not provided, the new Space will be named "{you_hf_username}/{from_id}".
@@ -147,43 +152,52 @@ class Client:
         try:
             info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
         except RepositoryNotFoundError:
-            raise ValueError(f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`.")
+            raise ValueError(
+                f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
+            )
         if to_id:
             space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
         else:
-            space_id = huggingface_hub.get_full_repo_name(from_id.split("/")[1], token=hf_token)
+            space_id = huggingface_hub.get_full_repo_name(
+                from_id.split("/")[1], token=hf_token
+            )
         try:
             huggingface_hub.get_space_runtime(space_id, token=hf_token)
-            if verbose: print(f"Using your existing Space: {space_id} 🤗")
+            if verbose:
+                print(
+                    f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
+                )
         except RepositoryNotFoundError:
-            if verbose: print(f"Creating a duplicate of {from_id} for your own use... 🤗")
+            if verbose:
+                print(f"Creating a duplicate of {from_id} for your own use... 🤗")
             huggingface_hub.duplicate_space(
-                from_id=from_id, 
+                from_id=from_id,
                 to_id=space_id,
                 token=hf_token,
                 exist_ok=True,
                 private=private,
-            )  
-            if verbose: print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
+            )
+            if verbose:
+                print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
         current_hardware = current_info.hardware or "cpu-basic"
         if hardware is None:
             hardware = info.hardware
         if not current_hardware == hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
-            print(f"Setting hardware tier to {hardware}... see usage info at https://huggingface.co/settings/billing")
+            print(
+                f"Setting hardware tier to {hardware}... see usage info at https://huggingface.co/settings/billing"
+            )
         if secrets is not None:
             for key, value in secrets.items():
                 huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
-        if verbose: print("")
+        if verbose:
+            print("")
         client = cls(
-            space_id, 
-            hf_token=hf_token, 
-            max_workers=max_workers, 
-            verbose=verbose
+            space_id, hf_token=hf_token, max_workers=max_workers, verbose=verbose
         )
         return client
-        
+
     def _get_space_state(self):
         if not self.space_id:
             return None
@@ -604,7 +618,10 @@ class Endpoint:
             try:
                 output = result["data"]
             except KeyError:
-                is_public_space = self.client.space_id and not huggingface_hub.space_info(self.client.space_id).private
+                is_public_space = (
+                    self.client.space_id
+                    and not huggingface_hub.space_info(self.client.space_id).private
+                )
                 if "error" in result and "429" in result["error"] and is_public_space:
                     raise utils.TooManyRequestsError(
                         f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate_from({self.client.space_id}) and pass in your Hugging Face token."
