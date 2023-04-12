@@ -85,14 +85,20 @@ class Client:
                 )
             self.space_id = src
         self.src = _src
-        if self.verbose:
-            print(f"Loaded as API: {self.src} ✔")
         state = self._get_space_state()
+        if state == utils.BUILDING_RUNTIME:
+            if self.verbose:
+                print("Space is still building. Please wait...")
+            while self._get_space_state() == utils.BUILDING_RUNTIME:
+                time.sleep(2)  # so we don't get rate limited by the API
+                pass
         if state in utils.INVALID_RUNTIME:
             raise ValueError(
                 f"The current space is in the invalid state: {state}. "
                 "Please contact the owner to fix this."
             )
+        if self.verbose:
+            print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.ws_url = urllib.parse.urljoin(

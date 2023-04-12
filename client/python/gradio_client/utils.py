@@ -34,6 +34,7 @@ INVALID_RUNTIME = [
     "RUNTIME_ERROR",
     "PAUSED",
 ]
+BUILDING_RUNTIME = "BUILDING"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
