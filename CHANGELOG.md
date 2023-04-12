@@ -3,7 +3,15 @@
 
 ## New Features:
 
-No changes to highlight.
+### `Video` component supports subtitles
+
+- Allow the video component to accept subtitles as input, by [@tomchang25](https://github.com/tomchang25) in [PR 3673](https://github.com/gradio-app/gradio/pull/3673). To provide subtitles, simply return a tuple consisting of `(path_to_video, path_to_subtitles)` from your function. Both `.srt` and `.vtt` formats are supported:
+
+
+```py
+with gr.Blocks() as demo:
+    gr.Video(("video.mp4", "captions.srt"))
+```
 
 ## Bug Fixes:
 - Fix code markdown support in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3816](https://github.com/gradio-app/gradio/pull/3816)
@@ -34,6 +42,7 @@ No changes to highlight.
 ## New Features:
 
 - Improve error messages when number of inputs/outputs to event handlers mismatch, by [@space-nuko](https://github.com/space-nuko) in [PR 3519](https://github.com/gradio-app/gradio/pull/3519)
+
 - Add `select` listener to Images, allowing users to click on any part of an image and get the coordinates of the click by [@aliabid94](https://github.com/aliabid94) in [PR 3786](https://github.com/gradio-app/gradio/pull/3786).
 
 ```python
