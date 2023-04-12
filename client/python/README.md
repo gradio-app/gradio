@@ -58,18 +58,18 @@ client = Client("abidlabs/my-private-space", hf_token="...")
 While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space,
 and then use it to make as many requests as you'd like!
 
-The `gradio_client` includes a class method: `Client.duplicate_from` to make this process simple:
+The `gradio_client` includes a class method: `Client.duplicate()` to make this process simple:
 
 ```python
 from gradio_client import Client
 
-client = Client.duplicate_from("abidlabs/whisper") 
+client = Client.duplicate("abidlabs/whisper") 
 client.predict("audio_sample.wav")  
 
 >> "This is a test of the whisper speech recognition model."
 ```
 
-If you have previously duplicated a Space, re-running `duplicate_from` will *not* create a new Space. Instead, the Client will attach to the previously-created Space. So it is safe to re-run the `Client.duplicate_from` method multiple times. 
+If you have previously duplicated a Space, re-running `duplicate()` will *not* create a new Space. Instead, the Client will attach to the previously-created Space. So it is safe to re-run the `Client.duplicate()` method multiple times. 
 
 **Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 1 hour of inactivity. You can also set the hardware using the `hardware` parameter of `duplicate()`.
 

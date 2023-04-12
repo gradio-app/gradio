@@ -121,7 +121,7 @@ class Client:
         threading.Thread(target=self._telemetry_thread).start()
 
     @classmethod
-    def duplicate_from(
+    def duplicate(
         cls,
         from_id: str,
         to_id: str | None = None,
@@ -630,7 +630,7 @@ class Endpoint:
                 )
                 if "error" in result and "429" in result["error"] and is_public_space:
                     raise utils.TooManyRequestsError(
-                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate_from({self.client.space_id}) and pass in your Hugging Face token."
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate({self.client.space_id}) and pass in your Hugging Face token."
                     )
                 elif "error" in result:
                     raise ValueError(result["error"])
@@ -994,7 +994,7 @@ class Job(Future):
                     if self.verbose and self.space_id and eta and eta > 30:
                         print(
                             f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
-                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate_from({self.space_id})"
+                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
                         )
                     return self.communicator.job.latest_status
 
