@@ -5,7 +5,7 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from gradio_client import utils
 from gradio_client.data_classes import FileData
