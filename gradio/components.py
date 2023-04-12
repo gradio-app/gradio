@@ -3770,7 +3770,7 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], Optional[str])]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 binary masks of the same shape as the image. A label can optionally be provided for each subsection.
+    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 binary masks of the same shape as the image. A label can optionally be provided for each subsection.
 
     Demos: image_segmentation
     """
@@ -3779,8 +3779,9 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
         self,
         value: Tuple[
             np.ndarray | PIL.Image | str,
-            List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
-        ],
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ]
+        | None = None,
         *,
         show_legend: bool = True,
         label: str | None = None,
@@ -3851,16 +3852,17 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
         return updated_config
 
     def postprocess(
-        self, y: Tuple[
+        self,
+        y: Tuple[
             np.ndarray | PIL.Image | str,
             List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
-        ]
-    ) -> List[Tuple[str, str | float | None]] | None:
+        ],
+    ) -> Tuple[dict, List[Tuple[dict, str]]] | None:
         """
         Parameters:
             y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a binary mask, and the second element is the label.
         Returns:
-            Tuple[str, List[Tuple[str, List, str]]]
+            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
         """
         if y is None:
             return None
@@ -3876,7 +3878,9 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             base_img_path = str(utils.abspath(base_file.name))
             base_img = np.array(base_img)
         else:
-            raise ValueError("ImageSections only accepts filepaths, PIL images or numpy arrays for the base image.")
+            raise ValueError(
+                "ImageSections only accepts filepaths, PIL images or numpy arrays for the base image."
+            )
         self.temp_files.add(base_img_path)
 
         sections = []
@@ -3886,7 +3890,11 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
                 mask_array[mask > 0] = 1
             else:
                 x1, y1, x2, y2 = mask
-                mask_array[y1:y2, x1:x2] = 1
+                BORDER_WIDTH = 3
+                mask_array[y1:y2, x1 : x1 + BORDER_WIDTH] = 1
+                mask_array[y1:y2, x2 - BORDER_WIDTH : x2] = 1
+                mask_array[y1 : y1 + BORDER_WIDTH, x1:x2] = 1
+                mask_array[y2 - BORDER_WIDTH : y2, x1:x2] = 1
 
             red_mask = np.zeros((base_img.shape[0], base_img.shape[1], 3))
             red_mask[:, :, 0] = mask_array
@@ -3895,10 +3903,12 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             mask_file = processing_utils.save_pil_to_file(red_mask_img)
             mask_file_path = str(utils.abspath(mask_file.name))
             self.temp_files.add(mask_file_path)
-            
-            sections.append((mask_file_path, list(mask), label))
 
-        return base_img_path, sections
+            sections.append(
+                ({"name": mask_file_path, "data": None, "is_file": True}, label)
+            )
+
+        return {"name": base_img_path, "data": None, "is_file": True}, sections
 
     def style(
         self,
