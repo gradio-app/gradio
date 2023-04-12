@@ -202,7 +202,7 @@ class Client:
         client = cls(
             space_id, hf_token=hf_token, max_workers=max_workers, verbose=verbose
         )
-        return client        
+        return client
 
     def _get_space_state(self):
         if not self.space_id:

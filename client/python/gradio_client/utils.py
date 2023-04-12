@@ -401,9 +401,9 @@ def set_space_timeout(
         library_version=__version__,
     )
     requests.post(
-        f"https://huggingface.co/api/spaces/{space_id}/sleeptime", 
-        json={"seconds": timeout_in_seconds}, 
-        headers=headers
+        f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
+        json={"seconds": timeout_in_seconds},
+        headers=headers,
     )
 
 
