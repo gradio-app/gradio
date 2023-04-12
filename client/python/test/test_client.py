@@ -20,6 +20,11 @@ HF_TOKEN = "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"  # Intentionally reveali
 
 class TestPredictionsFromSpaces:
     @pytest.mark.flaky
+    def test_raise_error_invalid_state(self):
+        with pytest.raises(ValueError, match="invalid state"):
+            Client("gradio-tests/paused-space")
+
+    @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
         output = client.predict("male", 77, 10, api_name="/predict")

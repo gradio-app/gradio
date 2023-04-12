@@ -83,6 +83,12 @@ class Client:
         self.src = _src
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
+        state = self._get_space_state()
+        if state in utils.INVALID_RUNTIME:
+            raise ValueError(
+                f"The current space is in the invalid state: {state}. "
+                "Please contact the owner to fix this."
+            )
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.ws_url = urllib.parse.urljoin(
@@ -103,6 +109,12 @@ class Client:
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
+
+    def _get_space_state(self):
+        if not self.space_id:
+            return None
+        api = huggingface_hub.HfApi(token=self.hf_token)
+        return api.get_space_runtime(self.space_id).stage
 
     def predict(
         self,
