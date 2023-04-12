@@ -154,7 +154,6 @@ class Client:
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
-        # Duplicate a Hugging Face Space
         try:
             info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
         except RepositoryNotFoundError:
