@@ -392,8 +392,8 @@ def file_to_json(file_path: str | Path) -> Dict:
 ###########################
 def set_space_timeout(
     space_id: str,
-    timeout_in_seconds: int = 300,
     hf_token: str | None = None,
+    timeout_in_seconds: int = 300,
 ):
     headers = huggingface_hub.utils.build_hf_headers(
         token=hf_token,

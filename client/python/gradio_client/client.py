@@ -129,6 +129,7 @@ class Client:
         private: bool = True,
         hardware: str | None = None,
         secrets: Dict[str, str] | None = None,
+        sleep_timeout: int = 5,
         max_workers: int = 40,
         verbose: bool = True,
     ):
@@ -151,6 +152,7 @@ class Client:
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
             secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None.
+            sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
@@ -182,7 +184,7 @@ class Client:
                 exist_ok=True,
                 private=private,
             )
-            utils.set_space_timeout(space_id, hf_token=hf_token)
+            utils.set_space_timeout(space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout*60)
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
