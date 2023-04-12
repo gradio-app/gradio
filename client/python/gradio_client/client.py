@@ -154,12 +154,10 @@ class Client:
             full_to_name = huggingface_hub.get_full_repo_name(from_id.split("/")[1], token=hf_token)
         try:
             huggingface_hub.get_space_runtime(full_to_name, token=hf_token)
-            if verbose:
-                print(f"Using your existing Space: {full_to_name} 🤗")
+            if verbose: print(f"Using your existing Space: {full_to_name} 🤗")
             space_id = full_to_name
         except RepositoryNotFoundError:
-            if verbose:
-                print(f"Creating a duplicate of {from_id} for your own use 🤗")
+            if verbose: print(f"Creating a duplicate of {from_id} for your own use... 🤗")
             space_id = huggingface_hub.duplicate_space(
                 from_id=from_id, 
                 to_id=to_id,
@@ -167,8 +165,7 @@ class Client:
                 exist_ok=True,
                 private=private,
             ).repo_id    # type: ignore
-            if verbose:
-                print(f"Created a new Space: {space_id}")
+            if verbose: print(f"Created a new Space: {space_id}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
         current_hardware = current_info.hardware or "cpu-basic"
         if hardware is None:
@@ -179,8 +176,7 @@ class Client:
         if secrets is not None:
             for key, value in secrets.items():
                 huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
-        if verbose:
-            print("")
+        if verbose: print("")
         client = cls(
             space_id, 
             hf_token=hf_token, 
