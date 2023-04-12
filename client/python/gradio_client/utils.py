@@ -18,6 +18,7 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
 import httpx
+import huggingface_hub
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
@@ -384,6 +385,26 @@ def dict_or_str_to_json_file(jsn, dir=None):
 def file_to_json(file_path: str | Path) -> Dict:
     with open(file_path) as f:
         return json.load(f)
+
+
+###########################
+# HuggingFace Hub API Utils
+###########################
+def set_space_timeout(
+    space_id: str,
+    timeout_in_seconds: int = 300,
+    hf_token: str | None = None,
+):
+    headers = huggingface_hub.utils.build_hf_headers(
+        token=hf_token,
+        library_name="gradio_client",
+        library_version=__version__,
+    )
+    requests.post(
+        f"https://huggingface.co/api/spaces/{space_id}/sleeptime", 
+        json={"seconds": timeout_in_seconds}, 
+        headers=headers
+    )
 
 
 ########################

@@ -183,6 +183,7 @@ class Client:
                 exist_ok=True,
                 private=private,
             )
+            utils.set_space_timeout(space_id, hf_token=hf_token)
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
@@ -202,7 +203,7 @@ class Client:
         client = cls(
             space_id, hf_token=hf_token, max_workers=max_workers, verbose=verbose
         )
-        return client
+        return client        
 
     def _get_space_state(self):
         if not self.space_id:
