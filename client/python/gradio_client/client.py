@@ -163,6 +163,8 @@ class Client:
                 f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
             )
         if to_id:
+            if "/" in to_id:
+                to_id = to_id.split("/")[1]
             space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
         else:
             space_id = huggingface_hub.get_full_repo_name(

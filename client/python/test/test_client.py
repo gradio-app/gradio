@@ -556,6 +556,12 @@ class TestDuplication:
         mock_init.assert_called_with(
             "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
         )
+        Client.duplicate("gradio/calculator", "gradio-tests/test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
 
     @pytest.mark.flaky
     @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
