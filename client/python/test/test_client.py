@@ -1,10 +1,11 @@
 import json
 import os
 import pathlib
+import tempfile
 import time
-from concurrent.futures import TimeoutError
+from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -18,6 +19,11 @@ HF_TOKEN = "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"  # Intentionally reveali
 
 
 class TestPredictionsFromSpaces:
+    @pytest.mark.flaky
+    def test_raise_error_invalid_state(self):
+        with pytest.raises(ValueError, match="invalid state"):
+            Client("gradio-tests/paused-space")
+
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
@@ -94,7 +100,7 @@ class TestPredictionsFromSpaces:
         self,
     ):
         client = Client(src="gradio/count_generator")
-        job = client.submit(3, api_name="/count")
+        job = client.submit(3, fn_index=0)
 
         while not job.done():
             time.sleep(0.1)
@@ -102,7 +108,7 @@ class TestPredictionsFromSpaces:
         assert job.outputs() == [str(i) for i in range(3)]
 
         outputs = []
-        for o in client.submit(3, api_name="/count"):
+        for o in client.submit(3, fn_index=0):
             outputs.append(o)
         assert outputs == [str(i) for i in range(3)]
 
@@ -116,8 +122,8 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_timeout(self):
         with pytest.raises(TimeoutError):
-            client = Client(src="gradio/count_generator")
-            job = client.submit(api_name="/sleep")
+            client = Client(src="gradio-tests/sleep")
+            job = client.submit("ping", api_name="/predict")
             job.result(timeout=0.05)
 
     @pytest.mark.flaky
@@ -148,6 +154,118 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
+
+    @pytest.mark.flaky
+    def test_cancel_from_client_queued(self):
+        client = Client(src="gradio-tests/test-cancel-from-client")
+        start = time.time()
+        job = client.submit(api_name="/long")
+        while not job.done():
+            if job.status().code == Status.STARTING:
+                job.cancel()
+                break
+        with pytest.raises(CancelledError):
+            job.result()
+        # The whole prediction takes 10 seconds to run
+        # and does not iterate. So this tests that we can cancel
+        # halfway through a prediction
+        assert time.time() - start < 10
+        assert job.status().code == Status.CANCELLED
+
+        job = client.submit(api_name="/iterate")
+        iteration_count = 0
+        while not job.done():
+            if job.status().code == Status.ITERATING:
+                iteration_count += 1
+                if iteration_count == 3:
+                    job.cancel()
+                    break
+                time.sleep(0.5)
+        # Result for iterative jobs is always the first result
+        assert job.result() == 0
+        # The whole prediction takes 10 seconds to run
+        # and does not iterate. So this tests that we can cancel
+        # halfway through a prediction
+        assert time.time() - start < 10
+
+        # Test that we did not iterate all the way to the end
+        assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
+        assert job.status().code == Status.CANCELLED
+
+    @pytest.mark.flaky
+    def test_cancel_subsequent_jobs_state_reset(self):
+        client = Client("abidlabs/test-yield")
+        job1 = client.submit("abcdefefadsadfs")
+        time.sleep(5)
+        job1.cancel()
+
+        assert len(job1.outputs()) < len("abcdefefadsadfs")
+        assert job1.status().code == Status.CANCELLED
+
+        job2 = client.submit("abcd")
+        while not job2.done():
+            time.sleep(0.1)
+        # Ran all iterations from scratch
+        assert job2.status().code == Status.FINISHED
+        assert len(job2.outputs()) == 5
+
+    def test_upload_file_private_space(self):
+
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
+
+        with patch.object(
+            client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                f.write("Hello from private space!")
+
+            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
+            assert open(output).read() == "Hello from private space!"
+            upload.assert_called_once()
+
+        with patch.object(
+            client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                f.write("Hello from private space!")
+
+            output = client.submit(f.name, api_name="/upload_btn").result()
+            open(output).read() == "Hello from private space!"
+            upload.assert_called_once()
+
+        with patch.object(
+            client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
+        ) as upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
+
+                    f1.write("File1")
+                    f2.write("File2")
+
+            output = client.submit(
+                3, [f1.name, f2.name], "hello", api_name="/upload_multiple"
+            ).result()
+            assert open(output[0]).read() == "File1"
+            assert open(output[1]).read() == "File2"
+            upload.assert_called_once()
+
+    def test_upload_file_upload_route_does_not_exist(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload-old-version",
+            hf_token=HF_TOKEN,
+        )
+
+        with patch.object(
+            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+        ) as serialize:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                f.write("Hello from private space!")
+
+                output = client.submit(1, "foo", f.name, fn_index=0).result()
+                open(output).read() == "Hello from private space!"
+                serialize.assert_called_once_with(1, "foo", f.name)
 
 
 class TestStatusUpdates:
@@ -387,3 +505,94 @@ class TestAPIInfo:
                 }
             },
         }
+
+
+class TestEndpoints:
+    def test_upload(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
+        response = MagicMock(status_code=200)
+        response.json.return_value = [
+            "file1",
+            "file2",
+            "file3",
+            "file4",
+            "file5",
+            "file6",
+            "file7",
+        ]
+        with patch("requests.post", MagicMock(return_value=response)):
+            with patch("builtins.open", MagicMock()):
+                with patch.object(pathlib.Path, "name") as mock_name:
+                    mock_name.side_effect = lambda x: x
+                    results = client.endpoints[0]._upload(
+                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    )
+
+        res = []
+        for re in results:
+            if isinstance(re, list):
+                res.append([r["name"] for r in re])
+            else:
+                res.append(re["name"])
+
+        assert res == [
+            "file1",
+            ["file2", "file3", "file4"],
+            ["file5", "file6"],
+            "file7",
+        ]
+
+
+class TestDuplication:
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_new_space_id(self, mock_init, mock_runtime):
+        Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+        Client.duplicate("gradio/calculator", "gradio-tests/test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_default_space_id(self, mock_init, mock_runtime):
+        Client.duplicate("gradio/calculator", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/calculator", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/calculator", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("huggingface_hub.add_space_secret")
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_add_secrets(self, mock_init, mock_add_secret, mock_runtime):
+        Client.duplicate(
+            "gradio/calculator",
+            hf_token=HF_TOKEN,
+            secrets={"test_key": "test_value", "test_key2": "test_value2"},
+        )
+        mock_add_secret.assert_any_call(
+            "gradio-tests/calculator",
+            "test_key",
+            "test_value",
+            token=HF_TOKEN,
+        )
+        mock_add_secret.assert_any_call(
+            "gradio-tests/calculator",
+            "test_key2",
+            "test_value2",
+            token=HF_TOKEN,
+        )

@@ -6,16 +6,22 @@ import json
 import re
 import threading
 import time
+import urllib.parse
 import uuid
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
+from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub.utils import build_hf_headers, send_telemetry
+from huggingface_hub.utils import (
+    RepositoryNotFoundError,
+    build_hf_headers,
+    send_telemetry,
+)
 from packaging import version
 from typing_extensions import Literal
 
@@ -56,7 +62,7 @@ class Client:
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
@@ -79,11 +85,27 @@ class Client:
                 )
             self.space_id = src
         self.src = _src
+        state = self._get_space_state()
+        if state == utils.BUILDING_RUNTIME:
+            if self.verbose:
+                print("Space is still building. Please wait...")
+            while self._get_space_state() == utils.BUILDING_RUNTIME:
+                time.sleep(2)  # so we don't get rate limited by the API
+                pass
+        if state in utils.INVALID_RUNTIME:
+            raise ValueError(
+                f"The current space is in the invalid state: {state}. "
+                "Please contact the owner to fix this."
+            )
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        self.api_url = utils.API_URL.format(self.src)
-        self.ws_url = utils.WS_URL.format(self.src).replace("http", "ws", 1)
+        self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.ws_url = urllib.parse.urljoin(
+            self.src.replace("http", "ws", 1), utils.WS_URL
+        )
+        self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
+        self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.config = self._get_config()
         self.session_hash = str(uuid.uuid4())
 
@@ -97,6 +119,102 @@ class Client:
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
+
+    @classmethod
+    def duplicate(
+        cls,
+        from_id: str,
+        to_id: str | None = None,
+        hf_token: str | None = None,
+        private: bool = True,
+        hardware: str | None = None,
+        secrets: Dict[str, str] | None = None,
+        sleep_timeout: int = 5,
+        max_workers: int = 40,
+        verbose: bool = True,
+    ):
+        """
+        Duplicates a Hugging Face Space under your account and returns a Client object
+        for the new Space. No duplication is created if the Space already exists in your
+        account (to override this, provide a new name for the new Space using `to_id`).
+        To use this method, you must provide an `hf_token` or be logged in via the Hugging
+        Face Hub CLI.
+
+        The new Space will be private by default and use the same hardware as the original
+        Space. This can be changed by using the `private` and `hardware` parameters. For
+        hardware upgrades (beyond the basic CPU tier), you may be required to provide
+        billing information on Hugging Face: https://huggingface.co/settings/billing
+
+        Parameters:
+            from_id: The name of the Hugging Face Space to duplicate in the format "{username}/{space_id}", e.g. "gradio/whisper".
+            to_id: The name of the new Hugging Face Space to create, e.g. "abidlabs/whisper-duplicate". If not provided, the new Space will be named "{your_HF_username}/{space_id}".
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
+            private: Whether the new Space should be private (True) or public (False). Defaults to True.
+            hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
+            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None.
+            sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
+            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            verbose: Whether the client should print statements to the console.
+        """
+        try:
+            info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+        except RepositoryNotFoundError:
+            raise ValueError(
+                f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
+            )
+        if to_id:
+            if "/" in to_id:
+                to_id = to_id.split("/")[1]
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        else:
+            space_id = huggingface_hub.get_full_repo_name(
+                from_id.split("/")[1], token=hf_token
+            )
+        try:
+            huggingface_hub.get_space_runtime(space_id, token=hf_token)
+            if verbose:
+                print(
+                    f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
+                )
+        except RepositoryNotFoundError:
+            if verbose:
+                print(f"Creating a duplicate of {from_id} for your own use... 🤗")
+            huggingface_hub.duplicate_space(
+                from_id=from_id,
+                to_id=space_id,
+                token=hf_token,
+                exist_ok=True,
+                private=private,
+            )
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
+            )
+            if verbose:
+                print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
+        current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
+        current_hardware = current_info.hardware or "cpu-basic"
+        if hardware is None:
+            hardware = info.hardware
+        if not current_hardware == hardware:
+            huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
+            print(
+                f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
+            )
+        if secrets is not None:
+            for key, value in secrets.items():
+                huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
+        if verbose:
+            print("")
+        client = cls(
+            space_id, hf_token=hf_token, max_workers=max_workers, verbose=verbose
+        )
+        return client
+
+    def _get_space_state(self):
+        if not self.space_id:
+            return None
+        info = huggingface_hub.get_space_runtime(self.space_id, token=self.hf_token)
+        return info.stage
 
     def predict(
         self,
@@ -152,7 +270,10 @@ class Client:
         helper = None
         if self.endpoints[inferred_fn_index].use_ws:
             helper = Communicator(
-                Lock(), JobStatus(), self.endpoints[inferred_fn_index].deserialize
+                Lock(),
+                JobStatus(),
+                self.endpoints[inferred_fn_index].deserialize,
+                self.reset_url,
             )
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -499,22 +620,29 @@ class Endpoint:
 
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                output = result["data"]
+                if "error" in result:
+                    raise ValueError(result["error"])
             else:
                 response = requests.post(
                     self.client.api_url, headers=self.client.headers, data=data
                 )
                 result = json.loads(response.content.decode("utf-8"))
-                try:
-                    output = result["data"]
-                except KeyError:
-                    if "error" in result and "429" in result["error"]:
-                        raise utils.TooManyRequestsError(
-                            "Too many requests to the Hugging Face API"
-                        )
-                    raise KeyError(
-                        f"Could not find 'data' key in response. Response received: {result}"
+            try:
+                output = result["data"]
+            except KeyError:
+                is_public_space = (
+                    self.client.space_id
+                    and not huggingface_hub.space_info(self.client.space_id).private
+                )
+                if "error" in result and "429" in result["error"] and is_public_space:
+                    raise utils.TooManyRequestsError(
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate({self.client.space_id}) and pass in your Hugging Face token."
                     )
+                elif "error" in result:
+                    raise ValueError(result["error"])
+                raise KeyError(
+                    f"Could not find 'data' key in response. Response received: {result}"
+                )
             return tuple(output)
 
         return _predict
@@ -526,16 +654,85 @@ class Endpoint:
             return outputs[0]
         return outputs
 
+    def _upload(
+        self, file_paths: List[str | List[str]]
+    ) -> List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]]:
+        if not file_paths:
+            return []
+        # Put all the filepaths in one file
+        # but then keep track of which index in the
+        # original list they came from so we can recreate
+        # the original structure
+        files = []
+        indices = []
+        for i, fs in enumerate(file_paths):
+            if not isinstance(fs, list):
+                fs = [fs]
+            for f in fs:
+                files.append(("files", (Path(f).name, open(f, "rb"))))
+                indices.append(i)
+        r = requests.post(
+            self.client.upload_url, headers=self.client.headers, files=files
+        )
+        if r.status_code != 200:
+            uploaded = file_paths
+        else:
+            uploaded = []
+            result = r.json()
+            for i, fs in enumerate(file_paths):
+                if isinstance(fs, list):
+                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
+                    res = [
+                        {
+                            "is_file": True,
+                            "name": o,
+                            "orig_name": Path(f).name,
+                            "data": None,
+                        }
+                        for f, o in zip(fs, output)
+                    ]
+                else:
+                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
+                    res = {
+                        "is_file": True,
+                        "name": o,
+                        "orig_name": Path(fs).name,
+                        "data": None,
+                    }
+                uploaded.append(res)
+        return uploaded
+
+    def _add_uploaded_files_to_data(
+        self,
+        files: List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]],
+        data: List[Any],
+    ) -> None:
+        """Helper function to modify the input data with the uploaded files."""
+        file_counter = 0
+        for i, t in enumerate(self.input_component_types):
+            if t in ["file", "uploadbutton"]:
+                data[i] = files[file_counter]
+                file_counter += 1
+
     def serialize(self, *data) -> Tuple:
+        data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
-                data = list(data)
                 data.insert(i, None)
-                data = tuple(data)
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
-        return tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+
+        files = [
+            f
+            for f, t in zip(data, self.input_component_types)
+            if t in ["file", "uploadbutton"]
+        ]
+        uploaded_files = self._upload(files)
+        self._add_uploaded_files_to_data(uploaded_files, data)
+
+        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        return o
 
     def deserialize(self, *data) -> Tuple | Any:
         assert len(data) == len(
@@ -755,6 +952,19 @@ class Job(Future):
             >> 43.241  # seconds
         """
         time = datetime.now()
+        cancelled = False
+        if self.communicator:
+            with self.communicator.lock:
+                cancelled = self.communicator.should_cancel
+        if cancelled:
+            return StatusUpdate(
+                code=Status.CANCELLED,
+                rank=0,
+                queue_size=None,
+                success=False,
+                time=time,
+                eta=None,
+            )
         if self.done():
             if not self.future._exception:  # type: ignore
                 return StatusUpdate(
@@ -790,10 +1000,31 @@ class Job(Future):
                     if self.verbose and self.space_id and eta and eta > 30:
                         print(
                             f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
-                            f"For faster predictions without waiting in queue, you may duplicate the space: {utils.DUPLICATE_URL.format(self.space_id)}"
+                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
                         )
                     return self.communicator.job.latest_status
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""
         return getattr(self.future, name)
+
+    def cancel(self) -> bool:
+        """Cancels the job as best as possible.
+
+        If the app you are connecting to has the gradio queue enabled, the job
+        will be cancelled locally as soon as possible. For apps that do not use the
+        queue, the job cannot be cancelled if it's been sent to the local executor
+        (for the time being).
+
+        Note: In general, this DOES not stop the process from running in the upstream server
+        except for the following situations:
+
+        1. If the job is queued upstream, it will be removed from the queue and the server will not run the job
+        2. If the job has iterative outputs, the job will finish as soon as the current iteration finishes running
+        3. If the job has not been picked up by the queue yet, the queue will not pick up the job
+        """
+        if self.communicator:
+            with self.communicator.lock:
+                self.communicator.should_cancel = True
+                return True
+        return self.future.cancel()
