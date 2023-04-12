@@ -149,23 +149,22 @@ class Client:
         except RepositoryNotFoundError:
             raise ValueError(f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`.")
         if to_id:
-            full_to_name = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
         else:
-            full_to_name = huggingface_hub.get_full_repo_name(from_id.split("/")[1], token=hf_token)
+            space_id = huggingface_hub.get_full_repo_name(from_id.split("/")[1], token=hf_token)
         try:
-            huggingface_hub.get_space_runtime(full_to_name, token=hf_token)
-            if verbose: print(f"Using your existing Space: {full_to_name} 🤗")
-            space_id = full_to_name
+            huggingface_hub.get_space_runtime(space_id, token=hf_token)
+            if verbose: print(f"Using your existing Space: {space_id} 🤗")
         except RepositoryNotFoundError:
             if verbose: print(f"Creating a duplicate of {from_id} for your own use... 🤗")
-            space_id = huggingface_hub.duplicate_space(
+            huggingface_hub.duplicate_space(
                 from_id=from_id, 
-                to_id=to_id,
+                to_id=space_id,
                 token=hf_token,
                 exist_ok=True,
                 private=private,
-            ).repo_id    # type: ignore
-            if verbose: print(f"Created a new Space: {space_id}")
+            )  
+            if verbose: print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
         current_hardware = current_info.hardware or "cpu-basic"
         if hardware is None:

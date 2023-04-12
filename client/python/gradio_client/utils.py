@@ -25,12 +25,11 @@ API_URL = "/api/predict/"
 WS_URL = "/queue/join"
 UPLOAD_URL = "/upload"
 RESET_URL = "/reset"
-DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+SPACE_URL = "https://hf.space/{}"
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     "NO_APP_FILE",
     "CONFIG_ERROR",
-    "BUILDING",
     "BUILD_ERROR",
     "RUNTIME_ERROR",
     "PAUSED",
