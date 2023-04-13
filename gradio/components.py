@@ -3894,7 +3894,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
-class ImageSections(Selectable, IOComponent, JSONSerializable):
+class HighlightedImage(Selectable, IOComponent, JSONSerializable):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
     Preprocessing: this component does *not* accept input.
@@ -4008,7 +4008,7 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             base_img = np.array(base_img)
         else:
             raise ValueError(
-                "ImageSections only accepts filepaths, PIL images or numpy arrays for the base image."
+                "HighlightedImage only accepts filepaths, PIL images or numpy arrays for the base image."
             )
         self.temp_files.add(base_img_path)
 

@@ -1,4 +1,4 @@
-export { default as Component } from "./ImageSections.svelte";
+export { default as Component } from "./HighlightedImage.svelte";
 export const modes = ["static"];
 
 export const document = (config: Record<string, any>) => ({

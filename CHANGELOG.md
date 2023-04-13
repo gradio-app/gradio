@@ -13,16 +13,16 @@ with gr.Blocks() as demo:
     gr.Video(("video.mp4", "captions.srt"))
 ```
 
-### ImageSections Component
+### HighlightedImage Component
 
-New ImageSections component allows users to highlight regions of a component, either by providing bounding boxes, or 0-1 pixel masks. This component is useful for tasks such as image segmentation, object detection, and image captioning.
+New HighlightedImage component allows users to highlight regions of a component, either by providing bounding boxes, or 0-1 pixel masks. This component is useful for tasks such as image segmentation, object detection, and image captioning.
 
 Example usage:
 
 ```python
 with gr.Blocks() as demo:
     img = gr.Image()
-    img_section = gr.ImageSections()
+    img_section = gr.HighlightedImage()
     def mask(img):
         top_left_corner = [0, 0, 20, 20]
         random_mask = np.random.randint(0, 2, img.shape[:2])
