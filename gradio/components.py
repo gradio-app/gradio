@@ -3906,7 +3906,7 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
     def __init__(
         self,
         value: Tuple[
-            np.ndarray | PIL.Image | str,
+            np.ndarray | _Image.Image | str,
             List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
         ]
         | None = None,
@@ -3961,9 +3961,10 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
     @staticmethod
     def update(
         value: Tuple[
-            np.ndarray | PIL.Image | str,
-            List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
-        ] = _Keywords.NO_VALUE,
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ]
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
         show_legend: bool | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -3982,8 +3983,8 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
     def postprocess(
         self,
         y: Tuple[
-            np.ndarray | PIL.Image | str,
-            List[Tuple[np.ndarray | Tuple[int, int, int, int], ...]],
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
         ],
     ) -> Tuple[dict, List[Tuple[dict, str]]] | None:
         """
@@ -3997,11 +3998,11 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
         base_img = y[0]
         if isinstance(base_img, str):
             base_img_path = base_img
-            base_img = np.ndarray(PIL.Image.open(base_img))
+            base_img = np.array(_Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
             base_file = processing_utils.save_array_to_file(base_img)
             base_img_path = str(utils.abspath(base_file.name))
-        elif isinstance(base_img, PIL.Image.Image):
+        elif isinstance(base_img, _Image.Image):
             base_file = processing_utils.save_pil_to_file(base_img)
             base_img_path = str(utils.abspath(base_file.name))
             base_img = np.array(base_img)
@@ -4030,7 +4031,7 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
             solid_mask[solid_mask > 0] = 1
             red_mask[:, :, 0] = solid_mask
             red_mask[:, :, 3] = mask_array
-            red_mask_img = PIL.Image.fromarray((red_mask * 255).astype(np.uint8))
+            red_mask_img = _Image.fromarray((red_mask * 255).astype(np.uint8))
 
             mask_file = processing_utils.save_pil_to_file(red_mask_img)
             mask_file_path = str(utils.abspath(mask_file.name))
