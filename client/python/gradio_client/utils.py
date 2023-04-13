@@ -430,7 +430,6 @@ def set_space_timeout(
         json={"seconds": timeout_in_seconds},
         headers=headers,
     )
-    print("r", r, r.status_code)
     try:
         huggingface_hub.utils.hf_raise_for_status(r)
     except huggingface_hub.utils.HfHubHTTPError:
