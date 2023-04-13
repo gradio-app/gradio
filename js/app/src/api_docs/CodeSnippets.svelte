@@ -51,7 +51,7 @@ client = Client(<span class="token string"
 					>)
 result = client.predict(<!--
 -->{#each endpoint_parameters as {label, type_python, type_description, component, example_input}, i}<!--
-        --><div class="second-level">
+        -->
 				<span class="example-inputs">{represent_value(example_input, 
 						type_python,
 						"py")}</span>,<!--
@@ -63,7 +63,7 @@ result = client.predict(<!--
 			-->representing {type_description} in '{label}' <!--
 			-->{component} component<!--
 			--></span><!--
-        --></div>
+        -->
 	{/each}
 				{#if named}
 					api_name="/{dependency.api_name}"
