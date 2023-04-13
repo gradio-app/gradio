@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from abc import ABC, abstractmethod
+from abc import ABC
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -12,20 +12,29 @@ from gradio_client.data_classes import FileData
 
 
 class Serializable(ABC):
-    @abstractmethod
     def api_info(self) -> Dict[str, List[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
-        pass
+        raise NotImplementedError()
 
-    @abstractmethod
     def example_inputs(self) -> Dict[str, Any]:
         """
         The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
         Keys of the dictionary are: raw, serialized
         """
+        raise NotImplementedError()
+
+    # For backwards compatibility
+    def input_api_info(self) -> Tuple[str, str]:
+        api_info = self.api_info()
+        return (api_info["serialized_input"][0], api_info["serialized_input"][1])
+
+    # For backwards compatibility
+    def output_api_info(self) -> Tuple[str, str]:
+        api_info = self.api_info()
+        return (api_info["serialized_output"][0], api_info["serialized_output"][1])
 
     def serialize(self, x: Any, load_dir: str | Path = ""):
         """
