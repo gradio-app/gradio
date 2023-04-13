@@ -18,6 +18,7 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
 import httpx
+import huggingface_hub
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
@@ -25,8 +26,16 @@ API_URL = "/api/predict/"
 WS_URL = "/queue/join"
 UPLOAD_URL = "/upload"
 RESET_URL = "/reset"
-DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+SPACE_URL = "https://hf.space/{}"
 STATE_COMPONENT = "state"
+INVALID_RUNTIME = [
+    "NO_APP_FILE",
+    "CONFIG_ERROR",
+    "BUILD_ERROR",
+    "RUNTIME_ERROR",
+    "PAUSED",
+]
+BUILDING_RUNTIME = "BUILDING"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -376,6 +385,26 @@ def dict_or_str_to_json_file(jsn, dir=None):
 def file_to_json(file_path: str | Path) -> Dict:
     with open(file_path) as f:
         return json.load(f)
+
+
+###########################
+# HuggingFace Hub API Utils
+###########################
+def set_space_timeout(
+    space_id: str,
+    hf_token: str | None = None,
+    timeout_in_seconds: int = 300,
+):
+    headers = huggingface_hub.utils.build_hf_headers(
+        token=hf_token,
+        library_name="gradio_client",
+        library_version=__version__,
+    )
+    requests.post(
+        f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
+        json={"seconds": timeout_in_seconds},
+        headers=headers,
+    )
 
 
 ########################

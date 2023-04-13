@@ -14,8 +14,8 @@ with gr.Blocks() as demo:
 ```
 
 ## Bug Fixes:
+- Fix code markdown support in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3816](https://github.com/gradio-app/gradio/pull/3816)
 
-No changes to highlight.
 
 ## Documentation Changes:
 
