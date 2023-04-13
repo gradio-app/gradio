@@ -372,7 +372,7 @@ class Client:
                             ...
                             ]
                         }
-                    }                    
+                    }
                 'unnamed_endpoints': {
                     2: {
                         'parameters': [
