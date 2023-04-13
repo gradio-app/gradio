@@ -14,12 +14,7 @@
 	export let is_running: boolean;
 
 	export let root: string;
-	export let endpoint_returns: {
-		label: string;
-		type_python: string;
-		type_description: string;
-		component: string;
-	}[]
+	export let endpoint_returns: any;
 	export let named: boolean;
 
 	const format_url = (desc: string | undefined, data: string | undefined) =>
@@ -38,15 +33,17 @@
 	<div class="response-wrap">
 		<div class:hide={is_running}>
 			{#if endpoint_returns.length > 1}({/if}
-			{#each endpoint_returns as {label, type_python, type_description, component}}
-				<div
-				class:second-level={endpoint_returns.length > 1}
-				>
-					<span class="desc"><!--
-					-->	# {type_python} <!--
+			{#each endpoint_returns as { label, type_python, type_description, component }}
+				<div class:second-level={endpoint_returns.length > 1}>
+					<span class="desc"
+						><!--
+					--> # {type_python}
+						<!--
 					-->representing {type_description} in '{label}' <!--
-					-->{component} component<!--
-					--></span>{#if endpoint_returns.length > 1},{/if}
+					-->{component}
+						component<!--
+					--></span
+					>{#if endpoint_returns.length > 1},{/if}
 				</div>
 			{/each}
 			{#if endpoint_returns.length > 1}){/if}
@@ -96,11 +93,9 @@
 		font-family: var(--font-mono);
 	}
 
-
 	.desc {
 		color: var(--body-text-color-subdued);
 	}
-
 
 	.hide {
 		display: none;
@@ -109,5 +104,4 @@
 	.second-level {
 		margin-left: var(--size-4);
 	}
-
 </style>

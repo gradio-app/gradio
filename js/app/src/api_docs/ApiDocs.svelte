@@ -29,9 +29,9 @@
 	}
 
 	let current_language: "python" | "javascript" = "python";
-	
+
 	const langs = [
-		["python", python],
+		["python", python]
 		// ["javascript", javascript]
 	] as const;
 
@@ -57,21 +57,20 @@
 		new Array(dependency.inputs.length).fill(false)
 	);
 
-	async function get_info () {
+	async function get_info() {
 		let response = await fetch(root + "info");
 		let data = await response.json();
 		return data;
 	}
 
 	let info: {
-		named_endpoints: [];
-		unnamed_endpoints: [];
-	}
+		named_endpoints: any;
+		unnamed_endpoints: any;
+	};
 
 	get_info()
-		.then(data => info = data)
-		.catch(err => console.log(err));
-
+		.then((data) => (info = data))
+		.catch((err) => console.log(err));
 
 	const run = async (index: number) => {
 		is_running = true;
@@ -127,17 +126,26 @@
 			document.body.style.overflow = "auto";
 		};
 	});
-
 </script>
 
 {#if info}
 	{#if Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length}
 		<div class="banner-wrap">
-			<ApiBanner on:close {root} api_count={Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length} />
+			<ApiBanner
+				on:close
+				{root}
+				api_count={Object.keys(info.named_endpoints).length +
+					Object.keys(info.unnamed_endpoints).length}
+			/>
 		</div>
 		<div class="docs-wrap">
 			<div class="client-doc">
-				<h2>Use the <a href="https://pypi.org/project/gradio-client/" target="_blank"><code class="library">gradio_client</code></a> Python library to query the demo via API.</h2>
+				<h2>
+					Use the <a
+						href="https://pypi.org/project/gradio-client/"
+						target="_blank"><code class="library">gradio_client</code></a
+					> Python library to query the demo via API.
+				</h2>
 			</div>
 			<div class="endpoint">
 				<div class="snippets">
@@ -152,98 +160,98 @@
 						</li>
 					{/each}
 				</div>
-			<InstallSnippet
-				{current_language}
-			/>
+				<InstallSnippet {current_language} />
 
-			{#if Object.keys(info.named_endpoints).length}
-			<h2 class="header">Named Endpoints</h2>
-			{/if}
+				{#if Object.keys(info.named_endpoints).length}
+					<h2 class="header">Named Endpoints</h2>
+				{/if}
 
-			{#each dependencies as dependency, dependency_index}
-				{#if dependency.api_name}
-					
-					<div class="endpoint-container">
-						<CodeSnippets
-							named={true}
-							endpoint_parameters={info.named_endpoints["/" + dependency.api_name].parameters}
-							{instance_map}
-							{dependency}
-							{dependency_index}
-							{current_language}
-							{root}
-							{dependency_inputs}
-							{dependencies}
-							{dependency_failures}
+				{#each dependencies as dependency, dependency_index}
+					{#if dependency.api_name}
+						<div class="endpoint-container">
+							<CodeSnippets
+								named={true}
+								endpoint_parameters={info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								{instance_map}
+								{dependency}
+								{dependency_index}
+								{current_language}
+								{root}
+								{dependency_inputs}
+								{dependencies}
+								{dependency_failures}
+							/>
 
-						/>
-
-						<!-- <TryButton
+							<!-- <TryButton
 							named={true}
 							{dependency_index}
 							{run}
 						/> -->
 
-						<ResponseObject
-							named={true}
-							endpoint_returns={info.named_endpoints["/" + dependency.api_name].returns}
-							{instance_map}
-							{dependency}
-							{dependency_index}
-							{is_running}
-							{dependency_outputs}
-							{root}
-						/>
-					</div>
+							<ResponseObject
+								named={true}
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].returns}
+								{instance_map}
+								{dependency}
+								{dependency_index}
+								{is_running}
+								{dependency_outputs}
+								{root}
+							/>
+						</div>
+					{/if}
+				{/each}
+
+				{#if Object.keys(info.unnamed_endpoints).length}
+					<h2 class="header">Unnamed Endpoints</h2>
 				{/if}
-			{/each}
-			
-			{#if Object.keys(info.unnamed_endpoints).length}
-			<h2 class="header">Unnamed Endpoints</h2>
-			{/if}
 
-			{#each dependencies as dependency, dependency_index}
-				{#if info.unnamed_endpoints[dependency_index]}	
-				<div class="endpoint-container">		
-					<CodeSnippets
-						named={false}
-						endpoint_parameters={info.unnamed_endpoints[dependency_index].parameters}
-						{instance_map}
-						{dependency}
-						{dependency_index}
-						{current_language}
-						{root}
-						{dependency_inputs}
-						{dependencies}
-						{dependency_failures}
+				{#each dependencies as dependency, dependency_index}
+					{#if info.unnamed_endpoints[dependency_index]}
+						<div class="endpoint-container">
+							<CodeSnippets
+								named={false}
+								endpoint_parameters={info.unnamed_endpoints[dependency_index]
+									.parameters}
+								{instance_map}
+								{dependency}
+								{dependency_index}
+								{current_language}
+								{root}
+								{dependency_inputs}
+								{dependencies}
+								{dependency_failures}
+							/>
 
-					/>
-
-					<!-- <TryButton 
+							<!-- <TryButton 
 						named={false}
 						{dependency_index}
 						{run}
 					/> -->
 
-					<ResponseObject
-						named={false}
-						endpoint_returns={info.unnamed_endpoints[dependency_index].returns}
-						{instance_map}
-						{dependency}
-						{dependency_index}
-						{is_running}
-						{dependency_outputs}
-						{root}
-					/>
-				</div>
-				{/if}
-		{/each}
-		</div>
+							<ResponseObject
+								named={false}
+								endpoint_returns={info.unnamed_endpoints[dependency_index]
+									.returns}
+								{instance_map}
+								{dependency}
+								{dependency_index}
+								{is_running}
+								{dependency_outputs}
+								{root}
+							/>
+						</div>
+					{/if}
+				{/each}
+			</div>
 		</div>
 	{:else}
 		<NoApi {root} on:close />
 	{/if}
-
 {/if}
 
 <style>
@@ -275,9 +283,9 @@
 	}
 
 	.client-doc {
-		padding-left: var(--size-6);
-		padding-right: var(--size-6);
 		padding-top: var(--size-6);
+		padding-right: var(--size-6);
+		padding-left: var(--size-6);
 		font-size: var(--text-xl);
 	}
 
@@ -286,11 +294,10 @@
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
 		padding-right: var(--size-1);
-		padding-left: var(--size-1);
 		padding-bottom: var(--size-1);
+		padding-left: var(--size-1);
 		color: var(--color-accent);
 	}
-
 
 	.snippets {
 		display: flex;
@@ -338,18 +345,17 @@
 	}
 
 	.header {
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
 		font-size: var(--text-xl);
-		margin-bottom: var(--size-3);
-		margin-top: var(--size-3);
-	}
-	
-	.endpoint-container {
-		border: 1px solid var(--border-color-primary);
-		padding: var(--size-3);
-		padding-top: 0;
-		border-radius: var(--radius-xl);
-		margin-top: var(--size-3);
-		margin-bottom: var(--size-3);
 	}
 
+	.endpoint-container {
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-xl);
+		padding: var(--size-3);
+		padding-top: 0;
+	}
 </style>

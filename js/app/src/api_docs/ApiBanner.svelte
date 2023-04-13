@@ -16,9 +16,8 @@
 		{root}&nbsp;&nbsp;&nbsp;
 	</span>
 	<span class="counts">
-		<span class="url">{api_count}</span> API endpoint{#if api_count>1}s{/if}
+		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
 	</span>
-
 </h2>
 
 <button on:click={() => dispatch("close")}>
@@ -64,11 +63,11 @@
 	}
 
 	.counts {
-		font-weight: var(--weight-light);
-		color: var(--body-text-color);
-		margin-left: auto;
 		margin-top: auto;
-		margin-bottom: auto;
 		margin-right: var(--size-8);
+		margin-bottom: auto;
+		margin-left: auto;
+		color: var(--body-text-color);
+		font-weight: var(--weight-light);
 	}
 </style>

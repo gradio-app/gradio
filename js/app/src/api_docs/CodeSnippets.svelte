@@ -14,70 +14,63 @@
 	export let root: string;
 	export let dependency_inputs: string[][];
 	export let dependency_failures: boolean[][];
-	export let endpoint_parameters: {
-		label: string;
-		type_python: string;
-		type_description: string;
-		component: string;
-		example_input: any;
-	}[];
+	export let endpoint_parameters: any;
 	export let named: boolean;
 
 	export let current_language: "python" | "javascript";
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
-
 </script>
 
 <div class="container">
+	{#if named}
+		<EndpointDetail {named} api_name={dependency.api_name} />
+	{:else}
+		<EndpointDetail {named} fn_index={dependency_index} />
+	{/if}
+	<Block>
+		<code>
+			{#if current_language === "python"}
+				<div class="copy">
+					<CopyButton code={python_code?.innerText} />
+				</div>
+				<div bind:this={python_code}>
+					<pre>from gradio_client import Client
 
-{#if named}
-<EndpointDetail {named} api_name={dependency.api_name}/>
-{:else}
-<EndpointDetail {named} fn_index={dependency_index}/>
-{/if}
-<Block>
-	<code>
-		{#if current_language === "python"}
-			<div class="copy">
-				<CopyButton code={python_code?.innerText} />
-			</div>
-			<div bind:this={python_code}>
-				<pre>from gradio_client import Client
-
-client = Client(<span class="token string"
-						>"{root}"</span
-					>)
+client = Client(<span class="token string">"{root}"</span>)
 result = client.predict(<!--
--->{#each endpoint_parameters as {label, type_python, type_description, component, example_input}, i}<!--
+-->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
         -->
-				<span class="example-inputs">{represent_value(example_input, 
-						type_python,
-						"py")}</span>,<!--
+				<span
+								class="example-inputs"
+								>{represent_value(example_input, type_python, "py")}</span
+							>,<!--
 			-->{#if dependency_failures[dependency_index][i]}<!--
-			--><span class="error">ERROR</span><!--
+			--><span
+									class="error">ERROR</span
+								><!--
 				-->{/if}<!--
-			--><span class="desc"><!--
+			--><span class="desc"
+								><!--
 			-->	# {type_python} <!--
 			-->representing {type_description} in '{label}' <!--
 			-->{component} component<!--
-			--></span><!--
+			--></span
+							><!--
         -->
-	{/each}
+						{/each}
 				{#if named}
-					api_name="/{dependency.api_name}"
-				{:else}
-					fn_index={dependency_index}
-				{/if}
+							api_name="/{dependency.api_name}"
+						{:else}
+							fn_index={dependency_index}
+						{/if}
 )
 print(result)</pre>
-
-
-			</div>
-		{/if}
-	</code>
-</Block>
+				</div>
+			{/if}
+		</code>
+	</Block>
 </div>
 
 <style>
@@ -106,13 +99,12 @@ print(result)</pre>
 	}
 
 	.container {
-		margin-top: var(--size-3);
-		margin-bottom: var(--size-3);
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xxl);
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
 	}
-
 
 	.error {
 		color: var(--error-text-color);

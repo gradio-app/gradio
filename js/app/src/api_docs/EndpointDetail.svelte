@@ -6,12 +6,12 @@
 
 {#if named}
 	<h3>
-		api_name: 
+		api_name:
 		<span class="post">{"/" + api_name}</span>
 	</h3>
 {:else}
 	<h3>
-		fn_index: 
+		fn_index:
 		<span class="post">{fn_index}</span>
 	</h3>
 {/if}
@@ -29,8 +29,8 @@
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
 		padding-right: var(--size-1);
-		padding-left: var(--size-1);
 		padding-bottom: var(--size-1);
+		padding-left: var(--size-1);
 		color: var(--color-accent);
 		font-weight: var(--weight-semibold);
 	}

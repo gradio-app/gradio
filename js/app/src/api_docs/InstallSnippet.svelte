@@ -1,14 +1,12 @@
 <script lang="ts">
 	import CopyButton from "./CopyButton.svelte";
 	import { Block } from "@gradio/atoms";
-	
+
 	export let current_language: "python" | "javascript";
 
 	let py_install: string = "pip install gradio_client";
 	let js_install: string = "pnpm add @gradio/client";
-
 </script>
-
 
 <Block>
 	<code>
@@ -31,7 +29,6 @@
 </Block>
 
 <style>
-
 	code pre {
 		overflow-x: auto;
 		color: var(--body-text-color);
@@ -39,7 +36,6 @@
 		tab-size: 2;
 	}
 
-	
 	code {
 		position: relative;
 	}
@@ -51,5 +47,4 @@
 		margin-top: -5px;
 		margin-right: -5px;
 	}
-
 </style>
