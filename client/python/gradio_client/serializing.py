@@ -212,7 +212,9 @@ class FileSerializable(Serializable):
                         filepath, dir=save_dir
                     ).name
             else:
-                file_name = utils.decode_base64_to_file(x["data"], dir=save_dir).name
+                data = x.get("data")
+                assert data is not None, f"The 'data' field is missing in {x}"
+                file_name = utils.decode_base64_to_file(data, dir=save_dir).name
         else:
             raise ValueError(
                 f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
