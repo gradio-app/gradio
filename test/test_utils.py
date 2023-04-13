@@ -39,7 +39,10 @@ from gradio.utils import (
     sanitize_value_for_csv,
     validate_url,
     version_check,
+    get_type_hints,
+    check_function_inputs_match
 )
+from gradio import EventData
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -587,3 +590,51 @@ class TestAbspath:
     def test_abspath_symlink(self, mock_islink):
         resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
         assert ".." in resolved_path
+
+class TestGetTypeHints:
+    def test_get_type_hints(self):
+        class F:
+            def __call__(self, s:str):
+                return s
+            
+        class C:
+            def f(self, s:str):
+                return s
+        
+        def f(s:str):
+            return s
+        
+        class O:
+            pass
+        
+        test_objs = [F(), C().f, f]
+        
+        for x in test_objs:
+            hints = get_type_hints(x)
+            assert len(hints) == 1
+            assert hints["s"] == str
+
+        assert len(get_type_hints(O())) == 0
+
+class TestCheckFunctionInputsMatch:
+
+    def test_check_function_inputs_match(self):
+
+        class F:
+            def __call__(self, s:str, evt: EventData):
+                return s
+        
+        class C:
+            def f(self, s:str, evt: EventData):
+                return s
+            
+        def f(s:str, evt:EventData):
+            return s
+        
+        test_objs = [F(), C().f, f]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+
+            for x in test_objs:
+                check_function_inputs_match(x, [None], False)

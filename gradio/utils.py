@@ -836,6 +836,12 @@ def get_cancel_function(
         list(fn_to_comp.keys()),
     )
 
+def get_type_hints(fn):
+    if inspect.isfunction(fn) or inspect.ismethod(fn):
+        return typing.get_type_hints(fn)
+    elif callable(fn):
+        return typing.get_type_hints(fn.__call__)
+    return {}
 
 def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
     """
@@ -854,7 +860,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         return is_request or is_event_data
 
     signature = inspect.signature(fn)
-    parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
+    parameter_types = get_type_hints(fn)
     min_args = 0
     max_args = 0
     infinity = -1
