@@ -197,12 +197,11 @@ class Client:
                     huggingface_hub.add_space_secret(
                         space_id, key, value, token=hf_token
                     )
-
-        utils.set_space_timeout(
-            space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
-        )
-        if verbose:
-            print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
+            )
+            if verbose:
+                print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
         current_hardware = (
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
