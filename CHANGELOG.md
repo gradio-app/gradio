@@ -23,11 +23,11 @@ Example usage:
 with gr.Blocks() as demo:
     img = gr.Image()
     img_section = gr.ImageSections()
-    def highlight_handler(img):
+    def mask(img):
         top_left_corner = [0, 0, 20, 20]
         random_mask = np.random.randint(0, 2, img.shape[:2])
-        return img, [(top_left_corner, "left corner"), (random_mask, "random")]
-    img_section.highlight(highlight_handler, img, img_section)
+        return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
+    img.change(highlight_handler, img, img_section)
 ```
 
 See the [image_segmentation demo](https://github.com/gradio-app/gradio/tree/main/demo/image_segmentation) for a full example. By [@aliabid94](https://github.com/aliabid94) in [PR 3836](https://github.com/gradio-app/gradio/pull/3836)
