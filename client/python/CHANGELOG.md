@@ -28,7 +28,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.1.1
+# 0.1.2
 
 First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API. 
 
