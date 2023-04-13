@@ -6,6 +6,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { FileData, normalise_file } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
+	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -15,6 +16,7 @@
 	let _value: [FileData, Array<[FileData, string]>] | null;
 	export let label: string = "Image Sections";
 	export let show_label: boolean = true;
+	export let style: Styles = {};
 	export let root: string;
 	export let root_url: string;
 	let active: string | null = null;
@@ -36,8 +38,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					label
-				])
+					label,
+				]),
 			];
 		} else {
 			_value = null;
@@ -49,9 +51,20 @@
 	function handle_mouseout() {
 		active = null;
 	}
+
+	const FIXED_HEIGHT = 240;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} padding={false}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	padding={false}
+	style={{
+		height: style.height || FIXED_HEIGHT,
+		width: style.width,
+	}}
+>
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 
@@ -90,7 +103,8 @@
 							on:focus={() => handle_mouseover(label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() => dispatch("select", { index: i, value: label })}
+							on:click={() =>
+								dispatch("select", { index: i, value: label })}
 						>
 							{label}
 						</div>
@@ -114,8 +128,6 @@
 		left: 0;
 		flex-grow: 1;
 		width: 100%;
-		height: 100%;
-		min-height: var(--size-60);
 		overflow: hidden;
 	}
 	.image-container img {

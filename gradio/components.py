@@ -4043,23 +4043,19 @@ class ImageSections(Selectable, IOComponent, JSONSerializable):
 
         return {"name": base_img_path, "data": None, "is_file": True}, sections
 
-    def style(
-        self,
-        *,
-        color_map: Dict[str, str] | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
+    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
-        This method can be used to change the appearance of the HighlightedText component.
+        This method can be used to change the appearance of the Image component.
         Parameters:
-            color_map: Map between category and respective colors.
-            container: If True, will place the component in a container - providing some extra padding around the border.
+            height: Height of the image.
+            width: Width of the image.
         """
-        if color_map is not None:
-            self._style["color_map"] = color_map
-
-        Component.style(self, container=container, **kwargs)
+        self._style["height"] = height
+        self._style["width"] = width
+        Component.style(
+            self,
+            **kwargs,
+        )
         return self
 
 
