@@ -399,16 +399,17 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: Dict[str, Dict[str, List[str]]],
+        endpoints_info: Dict[str, List[Dict[str, str]]],
     ) -> str:
-        parameter_names = list(endpoints_info["parameters"].keys())
-        parameter_names = [p.lower() for p in parameter_names]
+        parameter_names = list(p["label"] for p in endpoints_info["parameters"])
+        parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
             rendered_parameters = rendered_parameters + ", "
-        return_value_names = list(endpoints_info["returns"].keys())
-        rendered_return_values = ", ".join(return_value_names)
-        if len(return_value_names) > 1:
+        return_values = list(p["label"] for p in endpoints_info["returns"])
+        return_values = [utils.sanitize_parameter_names(r) for r in return_values]
+        rendered_return_values = ", ".join(return_values)
+        if len(return_values) > 1:
             rendered_return_values = f"({rendered_return_values})"
 
         if isinstance(name_or_index, str):
@@ -421,14 +422,14 @@ class Client:
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
-            for label, info in endpoints_info["parameters"].items():
-                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for info in endpoints_info["parameters"]:
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
         if endpoints_info["returns"]:
-            for label, info in endpoints_info["returns"].items():
-                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for info in endpoints_info["returns"]:
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
         else:
             human_info += "     - None\n"
 

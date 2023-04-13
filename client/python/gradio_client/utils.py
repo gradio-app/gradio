@@ -345,6 +345,11 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
+def sanitize_parameter_names(original_param_name: str) -> str:
+    """Strips invalid characters from a parameter name and replaces spaces with underscores."""
+    return "".join([char for char in original_param_name if char.isalnum() or char in " "]).replace(" ", "_").lower()
+
+
 def decode_base64_to_file(
     encoding: str,
     file_path: str | None = None,
