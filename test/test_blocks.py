@@ -127,7 +127,6 @@ class TestBlocksMethods:
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        print(config)
         assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
