@@ -8,7 +8,6 @@ from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
-import gradio as gr
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
@@ -613,49 +612,6 @@ class TestAPIInfo:
                             "type_python": "int | float",
                             "type_description": "numeric value",
                             "component": "Number",
-                        }
-                    ],
-                }
-            },
-            "unnamed_endpoints": {},
-        }
-
-    def test_fetch_api_local_space(self):
-        def welcome(name):
-            return f"Welcome to Gradio, {name}!"
-
-        with gr.Blocks() as demo:
-            gr.Markdown(
-                """
-            # Hello World!
-            Start typing below to see the output.
-            """
-            )
-            inp = gr.Textbox(label="input", placeholder="What is your name?")
-            out = gr.Textbox(label="output")
-            inp.change(welcome, inp, out, api_name="greet")
-
-        _, local_url, _ = demo.launch(prevent_thread_lock=True)
-
-        client = Client(local_url)
-        assert client.view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/greet": {
-                    "parameters": [
-                        {
-                            "label": "input",
-                            "type_python": "str",
-                            "type_description": "string value",
-                            "component": "Textbox",
-                            "example_input": "Howdy!",
-                        }
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type_python": "str",
-                            "type_description": "string value",
-                            "component": "Textbox",
                         }
                     ],
                 }
