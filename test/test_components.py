@@ -1702,6 +1702,7 @@ class TestHighlightedText:
                 ["oooo", "vowel"],
             ]
 
+
 class TestImageSections:
     def test_postprocess(self):
         """
@@ -1713,18 +1714,17 @@ class TestImageSections:
         mask2 = np.zeros((100, 100), dtype=np.uint8)
         mask2[10:20, 10:20] = 1
 
-
         input = (img, [(mask1, "mask1"), (mask2, "mask2")])
         result = component.postprocess(input)
 
-        base_img_out, (mask1_out, mask2_out) = result 
+        base_img_out, (mask1_out, mask2_out) = result
         base_img_out = PIL.Image.open(base_img_out["name"])
 
         assert mask1_out[1] == "mask1"
 
         mask1_img_out = PIL.Image.open(mask1_out[0]["name"])
         assert mask1_img_out.size == base_img_out.size
-        mask1_array_out = np.array(mask1_img_out)        
+        mask1_array_out = np.array(mask1_img_out)
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
         assert np.max(mask1_array_out[50:60, 50:60]) == 0
 
@@ -1742,7 +1742,7 @@ class TestImageSections:
             "value": None,
             "root_url": None,
             "selectable": False,
-            "interactive": None
+            "interactive": None,
         }
 
     def test_in_interface(self):
@@ -1750,7 +1750,6 @@ class TestImageSections:
             top_left_corner = [0, 0, 20, 20]
             random_mask = np.random.randint(0, 2, img.shape[:2])
             return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
-
 
         iface = gr.Interface(mask, "image", gr.ImageSections())
         output_json = iface("test/test_files/bus.png")
@@ -1763,7 +1762,7 @@ class TestImageSections:
 
         assert output_img.size == input_img.size
         assert mask1_img.size == input_img.size
-        
+
 
 class TestChatbot:
     def test_component_functions(self):
