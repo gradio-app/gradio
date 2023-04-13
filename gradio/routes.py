@@ -113,7 +113,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, docs_url=None, redoc_url=None)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -250,6 +250,12 @@ class App(FastAPI):
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
                     )
+
+        @app.get("/info/", dependencies=[Depends(login_check)])
+        @app.get("/info", dependencies=[Depends(login_check)])
+        def api_info(serialize: bool = True):
+            config = app.get_blocks().config
+            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])

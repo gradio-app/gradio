@@ -435,39 +435,106 @@ class TestAPIInfo:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        assert client.endpoints[0].get_info() == {
-            "parameters": {
-                "sex": ["Any", "", "Radio"],
-                "age": ["Any", "", "Slider"],
-                "fare_(british_pounds)": ["Any", "", "Slider"],
-            },
-            "returns": {"output": ["str", "filepath to json file", "Label"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
                 "/predict_1": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
                 "/predict_2": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
             },
             "unnamed_endpoints": {},
@@ -486,26 +553,70 @@ class TestAPIInfo:
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
-        assert client.endpoints[0].get_info() == {
-            "parameters": {"x": ["Any", "", "Textbox"]},
-            "returns": {"output": ["Any", "", "Textbox"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {"x": ["Any", "", "Textbox"]},
-                    "returns": {"output": ["Any", "", "Textbox"]},
+                    "parameters": [
+                        {
+                            "label": "x",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Textbox",
+                            "example_input": "Howdy!",
+                        }
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Textbox",
+                        }
+                    ],
                 }
             },
-            "unnamed_endpoints": {
-                2: {
-                    "parameters": {"parameter_0": ["Any", "", "Dataset"]},
-                    "returns": {
-                        "x": ["Any", "", "Textbox"],
-                        "output": ["Any", "", "Textbox"],
-                    },
+            "unnamed_endpoints": {},
+        }
+
+    @pytest.mark.flaky
+    def test_fetch_old_version_space(self):
+        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+            "named_endpoints": {
+                "/predict": {
+                    "parameters": [
+                        {
+                            "label": "num1",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "operation",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "num2",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                        }
+                    ],
                 }
             },
+            "unnamed_endpoints": {},
         }
 
 

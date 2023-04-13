@@ -6,7 +6,7 @@ export function represent_value(
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
-	if (type === "string") {
+	if (type === "string" || type === "str") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
 		return lang === null ? parseFloat(value) : value;

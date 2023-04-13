@@ -26,8 +26,13 @@ from websockets.legacy.protocol import WebSocketCommonProtocol
 API_URL = "/api/predict/"
 WS_URL = "/queue/join"
 UPLOAD_URL = "/upload"
+CONFIG_URL = "/config"
+API_INFO_URL = "/info"
+RAW_API_INFO_URL = "/info?serialize=False"
+SPACE_FETCHER_URL = "https://gradio-space-api-fetcher.hf.space/api"
 RESET_URL = "/reset"
 SPACE_URL = "https://hf.space/{}"
+
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
@@ -324,7 +329,7 @@ def encode_url_or_file_to_base64(path: str | Path):
         return encode_file_to_base64(path)
 
 
-def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
+def decode_base64_to_binary(encoding: str) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
     try:
         data = encoding.split(",")[1]
@@ -346,7 +351,21 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
-def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
+def sanitize_parameter_names(original_param_name: str) -> str:
+    """Strips invalid characters from a parameter name and replaces spaces with underscores."""
+    return (
+        "".join([char for char in original_param_name if char.isalnum() or char in " "])
+        .replace(" ", "_")
+        .lower()
+    )
+
+
+def decode_base64_to_file(
+    encoding: str,
+    file_path: str | None = None,
+    dir: str | Path | None = None,
+    prefix: str | None = None,
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
@@ -374,7 +393,7 @@ def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
     return file_obj
 
 
-def dict_or_str_to_json_file(jsn, dir=None):
+def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
 
@@ -388,7 +407,7 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path: str | Path) -> Dict:
+def file_to_json(file_path: str | Path) -> Dict | List:
     with open(file_path) as f:
         return json.load(f)
 
@@ -411,7 +430,6 @@ def set_space_timeout(
         json={"seconds": timeout_in_seconds},
         headers=headers,
     )
-    print("r", r, r.status_code)
     try:
         huggingface_hub.utils.hf_raise_for_status(r)
     except huggingface_hub.utils.HfHubHTTPError:

@@ -9,9 +9,10 @@ import ffmpy
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from gradio_client import media_data
 from PIL import Image
 
-from gradio import media_data, processing_utils
+from gradio import processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

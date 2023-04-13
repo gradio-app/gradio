@@ -3,9 +3,10 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
+from gradio_client import media_data
 
 import gradio.interpretation
-from gradio import Interface, media_data
+from gradio import Interface
 from gradio.processing_utils import decode_base64_to_image
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"

@@ -12,6 +12,7 @@ import starlette.routing
 import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from gradio_client import media_data
 
 import gradio as gr
 from gradio import (
@@ -21,7 +22,6 @@ from gradio import (
     Number,
     Textbox,
     close_all,
-    media_data,
     routes,
 )
 

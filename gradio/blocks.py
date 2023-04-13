@@ -461,6 +461,115 @@ def convert_component_dict_to_list(
     return predictions
 
 
+def get_api_info(config: Dict, serialize: bool = True):
+    """
+    Gets the information needed to generate the API docs from a Blocks config.
+    Parameters:
+        config: a Blocks config dictionary
+        serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
+    """
+    api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+    mode = config.get("mode", None)
+
+    for d, dependency in enumerate(config["dependencies"]):
+        dependency_info = {"parameters": [], "returns": []}
+        skip_endpoint = False
+
+        inputs = dependency["inputs"]
+        for i in inputs:
+            for component in config["components"]:
+                if component["id"] == i:
+                    break
+            else:
+                skip_endpoint = True  # if component not found, skip this endpoint
+                break
+            type = component["type"]
+            if (
+                not component.get("serializer")
+                and type not in serializing.COMPONENT_MAPPING
+            ):
+                skip_endpoint = (
+                    True  # if component is not serializable, skip this endpoint
+                )
+                break
+            label = component["props"].get("label", f"parameter_{i}")
+            # The config has the most specific API info (taking into account the parameters
+            # of the component), so we use that if it exists. Otherwise, we fallback to the
+            # Serializer's API info.
+            if component.get("api_info"):
+                if serialize:
+                    info = component["api_info"]["serialized_input"]
+                    example = component["example_inputs"]["serialized"]
+                else:
+                    info = component["api_info"]["raw_input"]
+                    example = component["example_inputs"]["raw"]
+            else:
+                serializer = serializing.COMPONENT_MAPPING[type]()
+                assert isinstance(serializer, serializing.Serializable)
+                if serialize:
+                    info = serializer.api_info()["serialized_input"]
+                    example = serializer.example_inputs()["serialized"]
+                else:
+                    info = serializer.api_info()["raw_input"]
+                    example = serializer.example_inputs()["raw"]
+            dependency_info["parameters"].append(
+                {
+                    "label": label,
+                    "type_python": info[0],
+                    "type_description": info[1],
+                    "component": type.capitalize(),
+                    "example_input": example,
+                }
+            )
+
+        outputs = dependency["outputs"]
+        for o in outputs:
+            for component in config["components"]:
+                if component["id"] == o:
+                    break
+            else:
+                skip_endpoint = True  # if component not found, skip this endpoint
+                break
+            type = component["type"]
+            if (
+                not component.get("serializer")
+                and type not in serializing.COMPONENT_MAPPING
+            ):
+                skip_endpoint = (
+                    True  # if component is not serializable, skip this endpoint
+                )
+                break
+            label = component["props"].get("label", f"value_{o}")
+            serializer = serializing.COMPONENT_MAPPING[type]()
+            assert isinstance(serializer, serializing.Serializable)
+            if serialize:
+                info = serializer.api_info()["serialized_output"]
+            else:
+                info = serializer.api_info()["raw_output"]
+            dependency_info["returns"].append(
+                {
+                    "label": label,
+                    "type_python": info[0],
+                    "type_description": info[1],
+                    "component": type.capitalize(),
+                }
+            )
+
+        if not dependency["backend_fn"]:
+            skip_endpoint = True
+
+        if skip_endpoint:
+            continue
+        if dependency["api_name"]:
+            api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+        elif mode == "interface" or mode == "tabbed_interface":
+            pass  # Skip unnamed endpoints in interface mode
+        else:
+            api_info["unnamed_endpoints"][str(d)] = dependency_info
+
+    return api_info
+
+
 @document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
@@ -1257,10 +1366,8 @@ Received outputs:
             if serializer:
                 assert isinstance(block, serializing.Serializable)
                 block_config["serializer"] = serializer
-                block_config["info"] = {
-                    "input": list(block.input_api_info()),  # type: ignore
-                    "output": list(block.output_api_info()),  # type: ignore
-                }
+                block_config["api_info"] = block.api_info()  # type: ignore
+                block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
