@@ -30,45 +30,20 @@
 <Block>
 	<div class="response-wrap">
 		<div class:hide={is_running}>
-			&#123;
-			<div class="first-level">"data": [</div>
 			{#each dependency.outputs as component_id, component_index}
-				<div class="second-level">
+				<div>
 					{#if dependency_outputs[dependency_index][component_index] !== undefined}
 						<input
 							disabled
 							type="text"
 							bind:value={dependency_outputs[dependency_index][component_index]}
 						/>
-						:
 					{/if}
-					<span class="type">
-						{instance_map[component_id].documentation?.type?.response_object ||
-							instance_map[component_id].documentation?.type?.payload},
-					</span>
 					<span class="desc">
-						// represents {format_url(
-							instance_map[component_id].documentation?.description
-								?.response_object ||
-								instance_map[component_id].documentation?.description?.payload,
-							dependency_outputs[dependency_index][component_index]
-						)} of
-						{((label) => {
-							return label ? "'" + label + "'" : "the";
-						})(instance_map[component_id].props.label)}
-						<span class="name capitalize">
-							{instance_map[component_id].props.name}
-						</span>
-						component
+						# Type: _type. Represents _description of _label _name component.
 					</span>
 				</div>
 			{/each}
-			<div class="first-level">],</div>
-			<div class="first-level">
-				"duration": (float)
-				<span class="desc">// number of seconds to run function call</span>
-			</div>
-			&#125;
 		</div>
 		{#if is_running}
 			<div class="load-wrap">
@@ -133,6 +108,10 @@
 	input:focus {
 		box-shadow: var(--input-shadow);
 		border-color: var(--input-border-color-focus);
+	}
+
+	input:disabled {
+		background: var(--color-accent-soft);
 	}
 
 	.type {
