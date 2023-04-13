@@ -471,7 +471,7 @@ def get_api_info(config: Dict, serialize: bool = True):
     api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
     for d, dependency in enumerate(config["dependencies"]):
-        dependency_info = {"parameters": {}, "returns": {}}
+        dependency_info = {"parameters": [], "returns": []}
         skip_endpoint = False
 
         inputs = dependency["inputs"]
@@ -511,12 +511,13 @@ def get_api_info(config: Dict, serialize: bool = True):
                 else:
                     info = serializer.api_info()["raw_input"]
                     example = serializer.example_inputs()["raw"]
-            dependency_info["parameters"][label] = [
-                info[0],
-                info[1],
-                type.capitalize(),
-                example,
-            ]
+            dependency_info["parameters"].append({
+                "label": label,
+                "type_python": info[0],
+                "type_description": info[1],
+                "component": type.capitalize(),
+                "example_input": example,
+            })
 
         outputs = dependency["outputs"]
         for o in outputs:
@@ -542,12 +543,13 @@ def get_api_info(config: Dict, serialize: bool = True):
                 info = serializer.api_info()["serialized_output"]
             else:
                 info = serializer.api_info()["raw_output"]
-            dependency_info["returns"][label] = [
-                info[0],
-                info[1],
-                type.capitalize(),
-            ]
-
+            dependency_info["returns"].append({
+                "label": label,
+                "type_python": info[0],
+                "type_description": info[1],
+                "component": type.capitalize(),
+            })
+            
         if not dependency["backend_fn"]:
             skip_endpoint = True
 
