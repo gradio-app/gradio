@@ -2,10 +2,11 @@ import json
 import tempfile
 from copy import deepcopy
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from gradio import media_data
+from requests.exceptions import HTTPError
 
 from gradio_client import utils
 
@@ -98,3 +99,17 @@ async def test_get_pred_from_ws_raises_if_queue_full():
     hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
     with pytest.raises(utils.QueueError, match="Queue is full!"):
         await utils.get_pred_from_ws(mock_ws, data, hash_data)
+
+
+@patch("requests.post")
+def test_sleep_successful(mock_post):
+    utils.set_space_timeout("gradio/calculator")
+
+
+@patch(
+    "requests.post",
+    return_value=MagicMock(raise_for_status=MagicMock(side_effect=HTTPError)),
+)
+def test_sleep_unsuccessful(mock_post):
+    with pytest.raises(utils.SpaceDuplicationError):
+        utils.set_space_timeout("gradio/calculator")
