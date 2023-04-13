@@ -14,6 +14,7 @@ from httpx import AsyncClient, Response
 from pydantic import BaseModel
 from typing_extensions import Literal
 
+from gradio import EventData
 from gradio.context import Context
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
@@ -25,11 +26,13 @@ from gradio.utils import (
     abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
+    check_function_inputs_match,
     colab_check,
     delete_none,
     error_analytics,
     format_ner_list,
     get_local_ip_address,
+    get_type_hints,
     ipython_check,
     kaggle_check,
     launch_analytics,
@@ -39,10 +42,7 @@ from gradio.utils import (
     sanitize_value_for_csv,
     validate_url,
     version_check,
-    get_type_hints,
-    check_function_inputs_match
 )
-from gradio import EventData
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -591,46 +591,46 @@ class TestAbspath:
         resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
         assert ".." in resolved_path
 
+
 class TestGetTypeHints:
     def test_get_type_hints(self):
         class F:
-            def __call__(self, s:str):
+            def __call__(self, s: str):
                 return s
-            
+
         class C:
-            def f(self, s:str):
+            def f(self, s: str):
                 return s
-        
-        def f(s:str):
+
+        def f(s: str):
             return s
-        
-        class O:
+
+        class GenericObject:
             pass
-        
+
         test_objs = [F(), C().f, f]
-        
+
         for x in test_objs:
             hints = get_type_hints(x)
             assert len(hints) == 1
             assert hints["s"] == str
 
-        assert len(get_type_hints(O())) == 0
+        assert len(get_type_hints(GenericObject())) == 0
+
 
 class TestCheckFunctionInputsMatch:
-
     def test_check_function_inputs_match(self):
-
         class F:
-            def __call__(self, s:str, evt: EventData):
+            def __call__(self, s: str, evt: EventData):
                 return s
-        
+
         class C:
-            def f(self, s:str, evt: EventData):
+            def f(self, s: str, evt: EventData):
                 return s
-            
-        def f(s:str, evt:EventData):
+
+        def f(s: str, evt: EventData):
             return s
-        
+
         test_objs = [F(), C().f, f]
 
         with warnings.catch_warnings():
