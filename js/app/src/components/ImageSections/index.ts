@@ -6,6 +6,7 @@ export const document = (config: Record<string, any>) => ({
 		payload: "[string, Array<[string, string]>]"
 	},
 	description: {
-		payload: "path to base image, followed by a list of tuples [mask image path, label]"
+		payload:
+			"path to base image, followed by a list of tuples [mask image path, label]"
 	}
 });

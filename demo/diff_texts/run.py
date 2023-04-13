@@ -30,6 +30,7 @@ demo = gr.Interface(
     gr.HighlightedText(
         label="Diff",
         combine_adjacent=True,
+        show_legend=True,
     ).style(color_map={"+": "red", "-": "green"}),
     theme=gr.themes.Base()
 )
