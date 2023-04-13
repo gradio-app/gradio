@@ -469,6 +469,7 @@ def get_api_info(config: Dict, serialize: bool = True):
         serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
     """
     api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+    mode = config.get("mode", None)
 
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
@@ -561,6 +562,8 @@ def get_api_info(config: Dict, serialize: bool = True):
             continue
         if dependency["api_name"]:
             api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+        elif mode == "interface" or mode == "tabbed_interface":
+            pass  # Skip unnamed endpoints in interface mode
         else:
             api_info["unnamed_endpoints"][str(d)] = dependency_info
 

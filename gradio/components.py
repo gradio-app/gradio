@@ -1126,7 +1126,7 @@ class CheckboxGroup(
             "value": self.value,
             **IOComponent.get_config(self),
         }
-        
+
     def example_inputs(self) -> Dict[str, Any]:
         return {
             "raw": self.choices[0] if self.choices else None,
@@ -1315,12 +1315,12 @@ class Radio(
             "value": self.value,
             **IOComponent.get_config(self),
         }
-        
+
     def example_inputs(self) -> Dict[str, Any]:
         return {
             "raw": self.choices[0] if self.choices else None,
             "serialized": self.choices[0] if self.choices else None,
-        }        
+        }
 
     @staticmethod
     def update(
@@ -3548,12 +3548,12 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
             value=value,
             **kwargs,
         )
-        
+
     def example_inputs(self) -> Dict[str, Any]:
         return {
             "raw": "#000000",
             "serialized": "#000000",
-        }        
+        }
 
     def get_config(self):
         return {
