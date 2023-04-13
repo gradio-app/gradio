@@ -492,19 +492,20 @@ def get_api_info(config: Dict, serialize: bool = True):
                 )
                 break
             label = component["props"].get("label", f"parameter_{i}")
-            if component.get("api_info"):
-                if serialize:
-                    info = component["api_info"]["serialized_input"]
-                else:
-                    info = component["api_info"]["raw_input"]
+            serializer = serializing.COMPONENT_MAPPING[type]()
+            assert isinstance(serializer, serializing.Serializable)
+            if serialize:
+                info = serializer.api_info()["serialized_input"]
+                example = serializer.example_inputs()["serialized"]
             else:
-                if serialize:
-                    info = serializing.COMPONENT_MAPPING[type]().api_info()[
-                        "serialized_input"
-                    ]
-                else:
-                    info = serializing.COMPONENT_MAPPING[type]().api_info()["raw_input"]
-            dependency_info["parameters"][label] = [info[0], info[1], type.capitalize()]
+                info = serializer.api_info()["raw_input"]
+                example = serializer.example_inputs()["raw"]
+            dependency_info["parameters"][label] = [
+                info[0],
+                info[1],
+                type.capitalize(),
+                example,
+            ]
 
         outputs = dependency["outputs"]
         for o in outputs:
@@ -524,21 +525,20 @@ def get_api_info(config: Dict, serialize: bool = True):
                 )
                 break
             label = component["props"].get("label", f"value_{o}")
-            if component.get("api_info"):
-                if serialize:
-                    info = component["api_info"]["serialized_output"]
-                else:
-                    info = component["api_info"]["raw_output"]
+            serializer = serializing.COMPONENT_MAPPING[type]()
+            assert isinstance(serializer, serializing.Serializable)
+            if serialize:
+                info = serializer.api_info()["serialized_output"]
+                example = serializer.example_inputs()["serialized"]
             else:
-                if serialize:
-                    info = serializing.COMPONENT_MAPPING[type]().api_info()[
-                        "serialized_output"
-                    ]
-                else:
-                    info = serializing.COMPONENT_MAPPING[type]().api_info()[
-                        "raw_output"
-                    ]
-            dependency_info["returns"][label] = [info[0], info[1], type.capitalize()]
+                info = serializer.api_info()["raw_output"]
+                example = serializer.example_inputs()["raw"]
+            dependency_info["returns"][label] = [
+                info[0],
+                info[1],
+                type.capitalize(),
+                example,
+            ]
 
         if not dependency["backend_fn"]:
             skip_endpoint = True
@@ -1345,11 +1345,6 @@ Received outputs:
                 "type": block.get_block_name(),
                 "props": utils.delete_none(props),
             }
-            serializer = utils.get_serializer_name(block)
-            if serializer:
-                assert isinstance(block, serializing.Serializable)
-                block_config["serializer"] = serializer
-                block_config["api_info"] = block.api_info()
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config

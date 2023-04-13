@@ -20,6 +20,13 @@ class Serializable(ABC):
         """
         pass
 
+    @abstractmethod
+    def example_inputs(self) -> Dict[str, Any]:
+        """
+        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
+        Keys of the dictionary are: raw, serialized
+        """
+
     def serialize(self, x: Any, load_dir: str | Path = ""):
         """
         Convert data from human-readable format to serialized format for a browser.
