@@ -3,10 +3,10 @@ import os
 import pathlib
 import tempfile
 import time
+import uuid
 from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
-import uuid
 
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
