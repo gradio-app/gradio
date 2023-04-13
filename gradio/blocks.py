@@ -1366,8 +1366,8 @@ Received outputs:
             if serializer:
                 assert isinstance(block, serializing.Serializable)
                 block_config["serializer"] = serializer
-                block_config["api_info"] = block.api_info()
-                block_config["example_inputs"] = block.example_inputs()
+                block_config["api_info"] = block.api_info()  # type: ignore
+                block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config
