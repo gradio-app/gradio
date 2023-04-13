@@ -51,6 +51,8 @@ with gr.Blocks() as demo:
 
 - Updates the "view API" page in Gradio apps to use the `gradio_client` library by [@aliabd](https://github.com/aliabd) in [PR 3765](https://github.com/gradio-app/gradio/pull/3765)
 
+Read more about how to use the `gradio_client` library here: https://gradio.app/getting-started-with-the-python-client/
+
 ## Testing and Infrastructure Changes:
 
 No changes to highlight.

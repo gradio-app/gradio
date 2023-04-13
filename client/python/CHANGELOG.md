@@ -48,3 +48,5 @@ client.predict("audio_sample.wav")
 
 >> "This is a test of the whisper speech recognition model."
 ```
+
+Read more about how to use the `gradio_client` library here: https://gradio.app/getting-started-with-the-python-client/
