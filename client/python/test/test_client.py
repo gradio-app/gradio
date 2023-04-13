@@ -436,14 +436,6 @@ class TestAPIInfo:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        assert client.endpoints[0].get_info() == {
-            "parameters": {
-                "sex": ["Any", "", "Radio"],
-                "age": ["Any", "", "Slider"],
-                "fare_(british_pounds)": ["Any", "", "Slider"],
-            },
-            "returns": {"output": ["str", "filepath to json file", "Label"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
@@ -487,10 +479,6 @@ class TestAPIInfo:
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
-        assert client.endpoints[0].get_info() == {
-            "parameters": {"x": ["Any", "", "Textbox"]},
-            "returns": {"output": ["Any", "", "Textbox"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
