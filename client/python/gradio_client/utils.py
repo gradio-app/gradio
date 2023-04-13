@@ -20,6 +20,7 @@ import fsspec.asyn
 import httpx
 import huggingface_hub
 import requests
+from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "/api/predict/"
@@ -34,13 +35,12 @@ SPACE_URL = "https://hf.space/{}"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
-    "NO_APP_FILE",
-    "CONFIG_ERROR",
-    "BUILD_ERROR",
-    "RUNTIME_ERROR",
-    "PAUSED",
+    SpaceStage.NO_APP_FILE,
+    SpaceStage.CONFIG_ERROR,
+    SpaceStage.BUILD_ERROR,
+    SpaceStage.RUNTIME_ERROR,
+    SpaceStage.PAUSED,
 ]
-BUILDING_RUNTIME = "BUILDING"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -59,6 +59,12 @@ class QueueError(Exception):
 
 class InvalidAPIEndpointError(Exception):
     """Raised when the API endpoint is invalid."""
+
+    pass
+
+
+class SpaceDuplicationError(Exception):
+    """Raised when something goes wrong with a Space Duplication."""
 
     pass
 
@@ -419,11 +425,19 @@ def set_space_timeout(
         library_name="gradio_client",
         library_version=__version__,
     )
-    requests.post(
+    r = requests.post(
         f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
         json={"seconds": timeout_in_seconds},
         headers=headers,
     )
+    print("r", r, r.status_code)
+    try:
+        huggingface_hub.utils.hf_raise_for_status(r)
+    except huggingface_hub.utils.HfHubHTTPError:
+        raise SpaceDuplicationError(
+            f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
+            "to set a timeout manually to reduce billing charges."
+        )
 
 
 ########################

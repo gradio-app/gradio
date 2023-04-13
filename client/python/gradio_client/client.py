@@ -8,6 +8,7 @@ import threading
 import time
 import urllib.parse
 import uuid
+import warnings
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +18,7 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
+from huggingface_hub import SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -89,10 +91,10 @@ class Client:
             self.space_id = src
         self.src = _src
         state = self._get_space_state()
-        if state == utils.BUILDING_RUNTIME:
+        if state == SpaceStage.BUILDING:
             if self.verbose:
                 print("Space is still building. Please wait...")
-            while self._get_space_state() == utils.BUILDING_RUNTIME:
+            while self._get_space_state() == SpaceStage.BUILDING:
                 time.sleep(2)  # so we don't get rate limited by the API
                 pass
         if state in utils.INVALID_RUNTIME:
@@ -154,13 +156,13 @@ class Client:
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
-            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None.
+            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None. Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.
             sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
         try:
-            info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+            original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
         except RepositoryNotFoundError:
             raise ValueError(
                 f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
@@ -179,6 +181,10 @@ class Client:
                 print(
                     f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
                 )
+            if secrets is not None:
+                warnings.warn(
+                    "Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists."
+                )
         except RepositoryNotFoundError:
             if verbose:
                 print(f"Creating a duplicate of {from_id} for your own use... 🤗")
@@ -189,23 +195,26 @@ class Client:
                 exist_ok=True,
                 private=private,
             )
+            if secrets is not None:
+                for key, value in secrets.items():
+                    huggingface_hub.add_space_secret(
+                        space_id, key, value, token=hf_token
+                    )
             utils.set_space_timeout(
                 space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
             )
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
-        current_hardware = current_info.hardware or "cpu-basic"
-        if hardware is None:
-            hardware = info.hardware
+        current_hardware = (
+            current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
+        )
+        hardware = hardware or original_info.hardware
         if not current_hardware == hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
-        if secrets is not None:
-            for key, value in secrets.items():
-                huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
         if verbose:
             print("")
         client = cls(

@@ -3,12 +3,14 @@ import os
 import pathlib
 import tempfile
 import time
+import uuid
 from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
 import pytest
+from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
@@ -631,24 +633,28 @@ class TestDuplication:
         )
 
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
     @patch("huggingface_hub.add_space_secret")
+    @patch("huggingface_hub.duplicate_space")
     @patch("gradio_client.client.Client.__init__", return_value=None)
-    def test_add_secrets(self, mock_init, mock_add_secret, mock_runtime):
-        Client.duplicate(
-            "gradio/calculator",
-            hf_token=HF_TOKEN,
-            secrets={"test_key": "test_value", "test_key2": "test_value2"},
-        )
-        mock_add_secret.assert_any_call(
-            "gradio-tests/calculator",
-            "test_key",
-            "test_value",
-            token=HF_TOKEN,
-        )
-        mock_add_secret.assert_any_call(
-            "gradio-tests/calculator",
-            "test_key2",
-            "test_value2",
-            token=HF_TOKEN,
-        )
+    @patch("gradio_client.utils.set_space_timeout")
+    def test_add_secrets(self, mock_time, mock_init, mock_duplicate, mock_add_secret):
+        with pytest.raises(RepositoryNotFoundError):
+            name = str(uuid.uuid4())
+            Client.duplicate(
+                "gradio/calculator",
+                name,
+                hf_token=HF_TOKEN,
+                secrets={"test_key": "test_value", "test_key2": "test_value2"},
+            )
+            mock_add_secret.assert_called_with(
+                f"gradio-tests/{name}",
+                "test_key",
+                "test_value",
+                token=HF_TOKEN,
+            )
+            mock_add_secret.assert_any_call(
+                f"gradio-tests/{name}",
+                "test_key2",
+                "test_value2",
+                token=HF_TOKEN,
+            )
