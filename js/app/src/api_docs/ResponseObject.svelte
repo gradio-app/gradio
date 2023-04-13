@@ -14,6 +14,10 @@
 	export let is_running: boolean;
 
 	export let root: string;
+	export let endpoint_returns;
+	export let named;
+
+	let return_names = Object.keys(endpoint_returns);
 
 	const format_url = (desc: string | undefined, data: string | undefined) =>
 		desc
@@ -39,9 +43,11 @@
 							bind:value={dependency_outputs[dependency_index][component_index]}
 						/>
 					{/if}
-					<span class="desc">
-						# Type: _type. Represents _description of _label _name component.
-					</span>
+					<span class="desc"><!--
+					-->	# {endpoint_returns[return_names[component_index]][0]} <!--
+					-->representing {endpoint_returns[return_names[component_index]][1]} in '{return_names[component_index]}' <!--
+					-->{endpoint_returns[return_names[component_index]][2]} component<!--
+					--></span>
 				</div>
 			{/each}
 		</div>

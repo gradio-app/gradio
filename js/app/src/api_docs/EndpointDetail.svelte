@@ -1,12 +1,20 @@
 <script lang="ts">
-	export let api_name: string;
-	export let dependency_index: number;
+	export let api_name: string | null = null;
+	export let fn_index: number | null = null;
+	export let named: boolean;
 </script>
 
-<h3>
-	Named Endpoint: 
-	<span class="post">{"/" + api_name}</span>
-</h3>
+{#if named}
+	<h3>
+		api_name: 
+		<span class="post">{"/" + api_name}</span>
+	</h3>
+{:else}
+	<h3>
+		fn_index: 
+		<span class="post">{fn_index}</span>
+	</h3>
+{/if}
 
 <style>
 	h3 {

@@ -14,22 +14,27 @@
 	export let root: string;
 	export let dependency_inputs: string[][];
 	export let dependency_failures: boolean[][];
-
+	export let endpoint_parameters;
+	export let named;
 
 	export let current_language: "python" | "javascript";
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
 
-	function format_label(label: unknown) {
-		return label ? "'" + label + "'" : "the";
-	}
+	let param_names = Object.keys(endpoint_parameters);
+
+	console.log(endpoint_parameters.parameters);
+
 </script>
 
 <div class="container">
 
-<EndpointDetail api_name={dependency.api_name} dependency_index={dependency_index}/>
-
+{#if named}
+<EndpointDetail {named} api_name={dependency.api_name}/>
+{:else}
+<EndpointDetail {named} fn_index={dependency_index}/>
+{/if}
 <Block>
 	<code>
 		{#if current_language === "python"}
@@ -49,17 +54,25 @@ result = client.predict(<!--
 				class=""
 				type="text"
 				bind:value={dependency_inputs[dependency_index][component_index]}
-			/><!--
+				/><!--
+		--><span class="hidden-text">{represent_value(component_value,
+								endpoint_parameters[param_names[component_index]][0],
+								"py")}</span>,<!--
 			-->{#if dependency_failures[dependency_index][component_index]}<!--
 			--><span class="error">ERROR</span><!--
 				-->{/if}<!--
 			--><span class="desc"><!--
-			-->	# Type: _type. <!--
-			-->Represents _description of _label _name component<!--
+			-->	# {endpoint_parameters[param_names[component_index]][0]} <!--
+			-->representing {endpoint_parameters[param_names[component_index]][1]} in '{param_names[component_index]}' <!--
+			-->{endpoint_parameters[param_names[component_index]][2]} component<!--
 			--></span><!--
         --></div>
 	{/each}
-				api_name="/{dependency.api_name}"
+				{#if named}
+					api_name="/{dependency.api_name}"
+				{:else}
+					fn_index={dependency_index}
+				{/if}
 )
 print(result)</pre>
 
@@ -235,5 +248,9 @@ const data = await <span class="token string">response</span>.json();
 
 	.hidden {
 		visibility: hidden;
+	}
+
+	.hidden-text {
+		font-size: 0;
 	}
 </style>

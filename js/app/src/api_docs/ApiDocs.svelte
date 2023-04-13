@@ -10,6 +10,7 @@
 	import ResponseObject from "./ResponseObject.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippets from "./CodeSnippets.svelte";
+
 	import TryButton from "./TryButton.svelte";
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
@@ -31,7 +32,7 @@
 	
 	const langs = [
 		["python", python],
-		["javascript", javascript]
+		// ["javascript", javascript]
 	] as const;
 
 	let is_running = false;
@@ -56,7 +57,18 @@
 		new Array(dependency.inputs.length).fill(false)
 	);
 
-	let active_api_count = dependencies.filter((d) => d.api_name).length;
+	async function get_info () {
+		let response = await fetch(root + "info");
+		let data = await response.json();
+		return data;
+	}
+
+	let info;
+
+	get_info()
+		.then(data => info = data)
+		.catch(err => console.log(err));
+
 
 	const run = async (index: number) => {
 		is_running = true;
@@ -113,38 +125,88 @@
 		};
 	});
 
-$: console.log(current_language);
 </script>
 
-{#if active_api_count}
-	<div class="banner-wrap">
-		<ApiBanner on:close {root} {active_api_count} />
-	</div>
-	<div class="docs-wrap">
-		<div class="client-doc">
-			<h2>Use the <a href="https://pypi.org/project/gradio-client/" target="_blank"><code class="library">gradio_client</code></a> Python library or the <code class="library">@gradio/client</code> JS library to query the demo via API.</h2>
+{#if info}
+	{#if Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length}
+		<div class="banner-wrap">
+			<ApiBanner on:close {root} api_count={Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length} />
 		</div>
-		<div class="endpoint">
-			<div class="snippets">
-				{#each langs as [language, img]}
-					<li
-						class="snippet
-			  {current_language === language ? 'current-lang' : 'inactive-lang'}"
-						on:click={() => (current_language = language)}
-					>
-						<img src={img} alt="" />
-						{language}
-					</li>
-				{/each}
+		<div class="docs-wrap">
+			<div class="client-doc">
+				<h2>Use the <a href="https://pypi.org/project/gradio-client/" target="_blank"><code class="library">gradio_client</code></a> Python library to query the demo via API.</h2>
 			</div>
-		<InstallSnippet
-						{current_language}
-					/>
-		{#each dependencies as dependency, dependency_index}
-			{#if dependency.api_name}
-				
+			<div class="endpoint">
+				<div class="snippets">
+					{#each langs as [language, img]}
+						<li
+							class="snippet
+							{current_language === language ? 'current-lang' : 'inactive-lang'}"
+							on:click={() => (current_language = language)}
+						>
+							<img src={img} alt="" />
+							{language}
+						</li>
+					{/each}
+				</div>
+			<InstallSnippet
+				{current_language}
+			/>
+
+			{#if Object.keys(info.named_endpoints).length}
+			
+			
+			<h2 class="header">Named Endpoints</h2>
+			{/if}
+
+			{#each dependencies as dependency, dependency_index}
+				{#if dependency.api_name}
 					
+					<div class="endpoint-container">
+						<CodeSnippets
+							named={true}
+							endpoint_parameters={info.named_endpoints["/" + dependency.api_name].parameters}
+							{instance_map}
+							{dependency}
+							{dependency_index}
+							{current_language}
+							{root}
+							{dependency_inputs}
+							{dependencies}
+							{dependency_failures}
+
+						/>
+
+						<TryButton
+							named={true}
+							{dependency_index}
+							{run}
+						/>
+
+						<ResponseObject
+							named={true}
+							endpoint_returns={info.named_endpoints["/" + dependency.api_name].returns}
+							{instance_map}
+							{dependency}
+							{dependency_index}
+							{is_running}
+							{dependency_outputs}
+							{root}
+						/>
+					</div>
+				{/if}
+			{/each}
+			
+			{#if Object.keys(info.unnamed_endpoints).length}
+			<h2 class="header">Unnamed Endpoints</h2>
+			{/if}
+
+			{#each dependencies as dependency, dependency_index}
+				{#if info.unnamed_endpoints[dependency_index]}	
+				<div class="endpoint-container">		
 					<CodeSnippets
+						named={false}
+						endpoint_parameters={info.unnamed_endpoints[dependency_index].parameters}
 						{instance_map}
 						{dependency}
 						{dependency_index}
@@ -157,11 +219,14 @@ $: console.log(current_language);
 					/>
 
 					<TryButton 
+						named={false}
 						{dependency_index}
 						{run}
 					/>
 
 					<ResponseObject
+						named={false}
+						endpoint_returns={info.unnamed_endpoints[dependency_index].returns}
 						{instance_map}
 						{dependency}
 						{dependency_index}
@@ -169,12 +234,15 @@ $: console.log(current_language);
 						{dependency_outputs}
 						{root}
 					/>
-			{/if}
+				</div>
+				{/if}
 		{/each}
-	</div>
-	</div>
-{:else}
-	<NoApi {root} on:close />
+		</div>
+		</div>
+	{:else}
+		<NoApi {root} on:close />
+	{/if}
+
 {/if}
 
 <style>
@@ -201,6 +269,7 @@ $: console.log(current_language);
 		border-radius: var(--radius-md);
 		background: var(--background-fill-primary);
 		padding: var(--size-6);
+		padding-top: var(--size-1);
 		font-size: var(--text-md);
 	}
 
@@ -225,7 +294,7 @@ $: console.log(current_language);
 	.snippets {
 		display: flex;
 		align-items: center;
-		margin-bottom: var(--size-3);
+		margin-bottom: var(--size-4);
 	}
 
 	.snippets > * + * {
@@ -265,6 +334,21 @@ $: console.log(current_language);
 	.snippet img {
 		margin-right: var(--size-1-5);
 		width: var(--size-3);
+	}
+
+	.header {
+		font-size: var(--text-xl);
+		margin-bottom: var(--size-3);
+		margin-top: var(--size-3);
+	}
+	
+	.endpoint-container {
+		border: 1px solid var(--border-color-primary);
+		padding: var(--size-3);
+		padding-top: 0;
+		border-radius: var(--radius-xl);
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
 	}
 
 </style>
