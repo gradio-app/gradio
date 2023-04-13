@@ -3,9 +3,7 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { represent_value } from "./utils";
 	import { Block } from "@gradio/atoms";
-
-	import python from "./img/python.svg";
-	import javascript from "./img/javascript.svg";
+	import EndpointDetail from "./EndpointDetail.svelte";
 
 	export let dependency: Dependency;
 	export let dependencies: Dependency[];
@@ -15,40 +13,28 @@
 	};
 	export let root: string;
 	export let dependency_inputs: string[][];
+	export let dependency_failures: boolean[][];
+	export let endpoint_parameters;
+	export let named;
 
 	export let current_language: "python" | "javascript";
 
-	const langs = [
-		["python", python],
-		["javascript", javascript]
-	] as const;
-
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
+
+	let param_names = Object.keys(endpoint_parameters);
+
+	console.log(endpoint_parameters.parameters);
+
 </script>
 
-<h4>
-	<svg width="1em" height="1em" viewBox="0 0 24 24">
-		<path
-			fill="currentColor"
-			d="m8 18l-6-6l6-6l1.425 1.425l-4.6 4.6L9.4 16.6Zm8 0l-1.425-1.425l4.6-4.6L14.6 7.4L16 6l6 6Z"
-		/>
-	</svg>
-	Code snippets
-</h4>
-<div class="snippets">
-	{#each langs as [language, img]}
-		<li
-			class="snippet
-  {current_language === language ? 'current-lang' : 'inactive-lang'}"
-			on:click={() => (current_language = language)}
-		>
-			<img src={img} alt="" />
-			{language}
-		</li>
-	{/each}
-</div>
+<div class="container">
 
+{#if named}
+<EndpointDetail {named} api_name={dependency.api_name}/>
+{:else}
+<EndpointDetail {named} fn_index={dependency_index}/>
+{/if}
 <Block>
 	<code>
 		{#if current_language === "python"}
@@ -56,29 +42,41 @@
 				<CopyButton code={python_code?.innerText} />
 			</div>
 			<div bind:this={python_code}>
-				<pre>import requests
+				<pre>from gradio_client import Client
 
-response = requests.post(<span class="token string"
-						>"{root + "run/" + dependency.api_name}"</span
-					>, json=&lbrace;
-	"data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
-						/><!--
-        -->		<span class="token string"
-							>{represent_value(
-								component_value,
-								instance_map[
-									dependencies[dependency_index].inputs[component_index]
-								].documentation?.type?.input_payload ||
-									instance_map[
-										dependencies[dependency_index].inputs[component_index]
-									].documentation?.type?.payload,
-								"py"
-							)}</span
-						>,{/each}
-	]
-&rbrace;).json()
+client = Client(<span class="token string"
+						>"{root}"</span
+					>)
+result = client.predict(<!--
+-->{#each dependency_inputs[dependency_index] as component_value, component_index}<!--
+        --><div class="second-level">
+				<input
+				class=""
+				type="text"
+				bind:value={dependency_inputs[dependency_index][component_index]}
+				/><!--
+		--><span class="hidden-text">{represent_value(component_value,
+								endpoint_parameters[param_names[component_index]][0],
+								"py")}</span>,<!--
+			-->{#if dependency_failures[dependency_index][component_index]}<!--
+			--><span class="error">ERROR</span><!--
+				-->{/if}<!--
+			--><span class="desc"><!--
+			-->	# {endpoint_parameters[param_names[component_index]][0]} <!--
+			-->representing {endpoint_parameters[param_names[component_index]][1]} in '{param_names[component_index]}' <!--
+			-->{endpoint_parameters[param_names[component_index]][2]} component<!--
+			--></span><!--
+        --></div>
+	{/each}
+				{#if named}
+					api_name="/{dependency.api_name}"
+				{:else}
+					fn_index={dependency_index}
+				{/if}
+)
+print(result)</pre>
 
-data = response[<span class="token string">"data"</span>]</pre>
+
 			</div>
 		{:else if current_language === "javascript"}
 			<div class="copy">
@@ -112,17 +110,15 @@ data = response[<span class="token string">"data"</span>]</pre>
 const data = await <span class="token string">response</span>.json();
 </pre>
 			</div>
-		{:else if current_language === "gradio client"}
-			<pre class="client">Hello World</pre>
 		{/if}
 	</code>
 </Block>
+</div>
 
 <style>
 	h4 {
 		display: flex;
 		align-items: center;
-		margin-top: var(--size-8);
 		margin-bottom: var(--size-3);
 		color: var(--body-text-color);
 		font-weight: var(--weight-bold);
@@ -202,6 +198,59 @@ const data = await <span class="token string">response</span>.json();
 		position: absolute;
 		top: 0;
 		right: 0;
-		margin: 1rem;
+		margin-top: -5px;
+		margin-right: -5px;
+	}
+
+	.container {
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xxl);
+	}
+
+	input[type="text"] {
+		--ring-color: transparent;
+		margin: var(--size-1) 0;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--radius-lg);
+		background: var(--input-background-fill);
+		padding: var(--size-1-5);
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
+	}
+
+	input:focus {
+		box-shadow: var(--input-shadow-focus);
+		border-color: var(--input-border-color-focus);
+	}
+
+	.error {
+		color: var(--error-text-color);
+	}
+
+	.type {
+		color: var(--block-label-text-color);
+	}
+
+	.desc {
+		color: var(--body-text-color-subdued);
+	}
+
+	.name {
+		text-transform: capitalize;
+	}
+
+	.hidden {
+		visibility: hidden;
+	}
+
+	.hidden-text {
+		font-size: 0;
 	}
 </style>
