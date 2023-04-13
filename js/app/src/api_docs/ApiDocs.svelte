@@ -63,7 +63,10 @@
 		return data;
 	}
 
-	let info;
+	let info: {
+		named_endpoints: [];
+		unnamed_endpoints: [];
+	}
 
 	get_info()
 		.then(data => info = data)
@@ -154,8 +157,6 @@
 			/>
 
 			{#if Object.keys(info.named_endpoints).length}
-			
-			
 			<h2 class="header">Named Endpoints</h2>
 			{/if}
 
@@ -177,11 +178,11 @@
 
 						/>
 
-						<TryButton
+						<!-- <TryButton
 							named={true}
 							{dependency_index}
 							{run}
-						/>
+						/> -->
 
 						<ResponseObject
 							named={true}
@@ -218,11 +219,11 @@
 
 					/>
 
-					<TryButton 
+					<!-- <TryButton 
 						named={false}
 						{dependency_index}
 						{run}
-					/>
+					/> -->
 
 					<ResponseObject
 						named={false}

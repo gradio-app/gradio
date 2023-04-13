@@ -14,10 +14,13 @@
 	export let is_running: boolean;
 
 	export let root: string;
-	export let endpoint_returns;
-	export let named;
-
-	let return_names = Object.keys(endpoint_returns);
+	export let endpoint_returns: {
+		label: string;
+		type_python: string;
+		type_description: string;
+		component: string;
+	}[]
+	export let named: boolean;
 
 	const format_url = (desc: string | undefined, data: string | undefined) =>
 		desc
@@ -29,27 +32,24 @@
 	<div class="toggle-icon">
 		<div class="toggle-dot" />
 	</div>
-	Response Object
+	Return Type(s)
 </h4>
 <Block>
 	<div class="response-wrap">
 		<div class:hide={is_running}>
-			{#each dependency.outputs as component_id, component_index}
-				<div>
-					{#if dependency_outputs[dependency_index][component_index] !== undefined}
-						<input
-							disabled
-							type="text"
-							bind:value={dependency_outputs[dependency_index][component_index]}
-						/>
-					{/if}
+			{#if endpoint_returns.length > 1}({/if}
+			{#each endpoint_returns as {label, type_python, type_description, component}}
+				<div
+				class:second-level={endpoint_returns.length > 1}
+				>
 					<span class="desc"><!--
-					-->	# {endpoint_returns[return_names[component_index]][0]} <!--
-					-->representing {endpoint_returns[return_names[component_index]][1]} in '{return_names[component_index]}' <!--
-					-->{endpoint_returns[return_names[component_index]][2]} component<!--
-					--></span>
+					-->	# {type_python} <!--
+					-->representing {type_description} in '{label}' <!--
+					-->{component} component<!--
+					--></span>{#if endpoint_returns.length > 1},{/if}
 				</div>
 			{/each}
+			{#if endpoint_returns.length > 1}){/if}
 		</div>
 		{#if is_running}
 			<div class="load-wrap">
@@ -96,51 +96,18 @@
 		font-family: var(--font-mono);
 	}
 
-	input[type="text"] {
-		--ring-color: transparent;
-		margin: var(--size-1) 0;
-		outline: none !important;
-		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--radius-lg);
-		background: var(--input-background-fill);
-		padding: var(--size-1-5);
-		color: var(--body-text-color);
-		font-weight: var(--input-text-weight);
-		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
-	}
-
-	input:focus {
-		box-shadow: var(--input-shadow);
-		border-color: var(--input-border-color-focus);
-	}
-
-	input:disabled {
-		background: var(--color-accent-soft);
-	}
-
-	.type {
-		color: var(--block-label-text-color);
-	}
 
 	.desc {
 		color: var(--body-text-color-subdued);
 	}
 
-	.name {
-		text-transform: capitalize;
-	}
 
 	.hide {
 		display: none;
 	}
 
-	.first-level {
-		margin-left: 1rem;
+	.second-level {
+		margin-left: var(--size-4);
 	}
 
-	.second-level {
-		margin-left: 2rem;
-	}
 </style>

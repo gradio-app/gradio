@@ -14,17 +14,19 @@
 	export let root: string;
 	export let dependency_inputs: string[][];
 	export let dependency_failures: boolean[][];
-	export let endpoint_parameters;
-	export let named;
+	export let endpoint_parameters: {
+		label: string;
+		type_python: string;
+		type_description: string;
+		component: string;
+		example_input: any;
+	}[];
+	export let named: boolean;
 
 	export let current_language: "python" | "javascript";
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
-
-	let param_names = Object.keys(endpoint_parameters);
-
-	console.log(endpoint_parameters.parameters);
 
 </script>
 
@@ -48,23 +50,18 @@ client = Client(<span class="token string"
 						>"{root}"</span
 					>)
 result = client.predict(<!--
--->{#each dependency_inputs[dependency_index] as component_value, component_index}<!--
+-->{#each endpoint_parameters as {label, type_python, type_description, component, example_input}, i}<!--
         --><div class="second-level">
-				<input
-				class=""
-				type="text"
-				bind:value={dependency_inputs[dependency_index][component_index]}
-				/><!--
-		--><span class="hidden-text">{represent_value(component_value,
-								endpoint_parameters[param_names[component_index]][0],
-								"py")}</span>,<!--
-			-->{#if dependency_failures[dependency_index][component_index]}<!--
+				<span class="example-inputs">{represent_value(example_input, 
+						type_python,
+						"py")}</span>,<!--
+			-->{#if dependency_failures[dependency_index][i]}<!--
 			--><span class="error">ERROR</span><!--
 				-->{/if}<!--
 			--><span class="desc"><!--
-			-->	# {endpoint_parameters[param_names[component_index]][0]} <!--
-			-->representing {endpoint_parameters[param_names[component_index]][1]} in '{param_names[component_index]}' <!--
-			-->{endpoint_parameters[param_names[component_index]][2]} component<!--
+			-->	# {type_python} <!--
+			-->representing {type_description} in '{label}' <!--
+			-->{component} component<!--
 			--></span><!--
         --></div>
 	{/each}
@@ -78,111 +75,17 @@ print(result)</pre>
 
 
 			</div>
-		{:else if current_language === "javascript"}
-			<div class="copy">
-				<CopyButton code={js_code?.innerText} />
-			</div>
-			<div bind:this={js_code}>
-				<pre>const response = await fetch(<span class="token string"
-						>"{root + "run/" + dependency.api_name}"</span
-					>, &lbrace;
-	method: "POST",
-	headers: &lbrace; "Content-Type": "application/json" &rbrace;,
-	body: JSON.stringify(&lbrace;
-		data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
-						/><!--
--->			<span class="token string"
-							>{represent_value(
-								component_value,
-								instance_map[
-									dependencies[dependency_index].inputs[component_index]
-								].documentation?.type?.input_payload ||
-									instance_map[
-										dependencies[dependency_index].inputs[component_index]
-									].documentation?.type?.payload,
-								"js"
-							)}</span
-						>,{/each}
-		]
-	&rbrace;)
-&rbrace;);
-
-const data = await <span class="token string">response</span>.json();
-</pre>
-			</div>
 		{/if}
 	</code>
 </Block>
 </div>
 
 <style>
-	h4 {
-		display: flex;
-		align-items: center;
-		margin-bottom: var(--size-3);
-		color: var(--body-text-color);
-		font-weight: var(--weight-bold);
-	}
-
-	h4 svg {
-		margin-right: var(--size-1-5);
-	}
-
-	.snippets {
-		display: flex;
-		align-items: center;
-		margin-bottom: var(--size-3);
-	}
-
-	.snippets > * + * {
-		margin-left: var(--size-2);
-	}
-
-	.snippet {
-		display: flex;
-		align-items: center;
-		border: 1px solid var(--border-color-primary);
-
-		border-radius: var(--radius-md);
-		padding: var(--size-1) var(--size-1-5);
-		color: var(--body-text-color-subdued);
-		color: var(--body-text-color);
-		line-height: 1;
-		user-select: none;
-		text-transform: capitalize;
-	}
-
-	.current-lang {
-		border: 1px solid var(--body-text-color-subdued);
-		color: var(--body-text-color);
-	}
-
-	.inactive-lang {
-		cursor: pointer;
-		color: var(--body-text-color-subdued);
-	}
-
-	.inactive-lang:hover,
-	.inactive-lang:focus {
-		box-shadow: var(--shadow-drop);
-		color: var(--body-text-color);
-	}
-
-	.snippet img {
-		margin-right: var(--size-1-5);
-		width: var(--size-3);
-	}
-
 	code pre {
 		overflow-x: auto;
 		color: var(--body-text-color);
 		font-family: var(--font-mono);
 		tab-size: 2;
-	}
-
-	.client {
-		white-space: pre-wrap;
-		overflow-wrap: break-word;
 	}
 
 	.token.string {
@@ -210,47 +113,21 @@ const data = await <span class="token string">response</span>.json();
 		gap: var(--spacing-xxl);
 	}
 
-	input[type="text"] {
-		--ring-color: transparent;
-		margin: var(--size-1) 0;
-		outline: none !important;
-		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--radius-lg);
-		background: var(--input-background-fill);
-		padding: var(--size-1-5);
-		color: var(--body-text-color);
-		font-weight: var(--input-text-weight);
-		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
-	}
-
-	input:focus {
-		box-shadow: var(--input-shadow-focus);
-		border-color: var(--input-border-color-focus);
-	}
 
 	.error {
 		color: var(--error-text-color);
-	}
-
-	.type {
-		color: var(--block-label-text-color);
 	}
 
 	.desc {
 		color: var(--body-text-color-subdued);
 	}
 
-	.name {
-		text-transform: capitalize;
-	}
-
-	.hidden {
-		visibility: hidden;
-	}
-
-	.hidden-text {
-		font-size: 0;
+	.example-inputs {
+		border: 1px solid var(--border-color-accent);
+		border-radius: var(--radius-sm);
+		background: var(--color-accent-soft);
+		padding-right: var(--size-1);
+		padding-left: var(--size-1);
+		color: var(--color-accent);
 	}
 </style>

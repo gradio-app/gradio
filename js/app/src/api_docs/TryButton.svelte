@@ -2,7 +2,7 @@
 	import { Button } from "@gradio/button";
     
 	export let dependency_index: number;
-	export let named;
+	export let named: boolean;
 	export let run: (id: number) => Promise<void>;
 
 </script>
