@@ -59,8 +59,8 @@ class SimpleSerializable(Serializable):
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
-            "raw": "Howdy!",
-            "serialized": "Howdy!",
+            "raw": None,
+            "serialized": None,
         }
 
 
