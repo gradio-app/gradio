@@ -19,6 +19,7 @@ import pytest
 import uvicorn
 import websockets
 from fastapi.testclient import TestClient
+from gradio_client import media_data
 
 import gradio as gr
 from gradio.events import SelectData
@@ -492,7 +493,7 @@ class TestBlocksPostprocessing:
     @pytest.mark.asyncio
     async def test_blocks_update_dict_without_postprocessing(self):
         def infer(x):
-            return gr.media_data.BASE64_IMAGE, gr.update(visible=True)
+            return media_data.BASE64_IMAGE, gr.update(visible=True)
 
         with gr.Blocks() as demo:
             prompt = gr.Textbox()
@@ -502,7 +503,7 @@ class TestBlocksPostprocessing:
             run_button.click(infer, prompt, [image, share_button], postprocess=False)
 
         output = await demo.process_api(0, ["test"], state={})
-        assert output["data"][0] == gr.media_data.BASE64_IMAGE
+        assert output["data"][0] == media_data.BASE64_IMAGE
         assert output["data"][1] == {"__type__": "update", "visible": True}
 
     @pytest.mark.asyncio
@@ -510,7 +511,7 @@ class TestBlocksPostprocessing:
         self,
     ):
         def infer(x):
-            return gr.Image.update(value=gr.media_data.BASE64_IMAGE)
+            return gr.Image.update(value=media_data.BASE64_IMAGE)
 
         with gr.Blocks() as demo:
             prompt = gr.Textbox()
@@ -521,7 +522,7 @@ class TestBlocksPostprocessing:
         output = await demo.process_api(0, ["test"], state={})
         assert output["data"][0] == {
             "__type__": "update",
-            "value": gr.media_data.BASE64_IMAGE,
+            "value": media_data.BASE64_IMAGE,
         }
 
     @pytest.mark.asyncio
