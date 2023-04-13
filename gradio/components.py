@@ -851,6 +851,12 @@ class Slider(
             "serialized_output": ("int | float", description),
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.minimum,
+            "serialized": self.minimum,
+        }
+
     def get_config(self):
         return {
             "minimum": self.minimum,
@@ -1483,6 +1489,18 @@ class Dropdown(
             "serialized_input": (type, description),
             "serialized_output": (type, description),
         }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        if self.multiselect:
+            return {
+                "raw": [self.choices[0]] if self.choices else [],
+                "serialized": [self.choices[0]] if self.choices else [],
+            }
+        else:
+            return {
+                "raw": self.choices[0] if self.choices else None,
+                "serialized": self.choices[0] if self.choices else None,
+            }
 
     def get_config(self):
         return {

@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from gradio_client import utils
+from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
 
 
@@ -42,12 +42,18 @@ class Serializable(ABC):
 class SimpleSerializable(Serializable):
     """General class that does not perform any serialization or deserialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
+    def api_info(self) -> Dict[str, str | List[str]]:
         return {
             "raw_input": ["Any", ""],
             "raw_output": ["Any", ""],
             "serialized_input": ["Any", ""],
             "serialized_output": ["Any", ""],
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": "Howdy!",
+            "serialized": "Howdy!",
         }
 
 
@@ -62,6 +68,12 @@ class StringSerializable(Serializable):
             "serialized_output": ["str", "string value"],
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": "Howdy!",
+            "serialized": "Howdy!",
+        }
+
 
 class ListStringSerializable(Serializable):
     """Expects a list of strings as input/output but performs no serialization."""
@@ -72,6 +84,12 @@ class ListStringSerializable(Serializable):
             "raw_output": ["List[str]", "list of string values"],
             "serialized_input": ["List[str]", "list of string values"],
             "serialized_output": ["List[str]", "list of string values"],
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": ["Howdy!", "Merhaba"],
+            "serialized": ["Howdy!", "Merhaba"],
         }
 
 
@@ -86,6 +104,12 @@ class BooleanSerializable(Serializable):
             "serialized_output": ["bool", "boolean value"],
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": True,
+            "serialized": True,
+        }
+
 
 class NumberSerializable(Serializable):
     """Expects a number (int/float) as input/output but performs no serialization."""
@@ -98,6 +122,12 @@ class NumberSerializable(Serializable):
             "serialized_output": ["int | float", "numeric value"],
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": 5,
+            "serialized": 5,
+        }
+
 
 class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is serialized to a filepath."""
@@ -108,6 +138,12 @@ class ImgSerializable(Serializable):
             "raw_output": ["str", "base64 representation of image"],
             "serialized_input": ["str", "filepath or URL to image"],
             "serialized_output": ["str", "filepath or URL to image"],
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": media_data.BASE64_IMAGE,
+            "serialized": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
         }
 
     def serialize(
@@ -165,6 +201,12 @@ class FileSerializable(Serializable):
             ],
             "serialized_input": ["str", "filepath or URL to file"],
             "serialized_output": ["str", "filepath or URL to file"],
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_FILE},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf",
         }
 
     def _serialize_single(
@@ -274,14 +316,25 @@ class FileSerializable(Serializable):
 
 
 class VideoSerializable(FileSerializable):
-    def input_api_info(self) -> Tuple[str, str]:
-        return "str", "Filepath or URL to a video file"
+    def api_info(self) -> Dict[str, List[str]]:
+        return {
+            "raw_input": [
+                "str | Dict",
+                "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)",
+            ],
+            "raw_output": [
+                "Tuple[Dict, Dict]",
+                "a tuple of 2 dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False). First dictionary is for the video, second dictionary is for the subtitles.",
+            ],
+            "serialized_input": ["str", "filepath or URL to file"],
+            "serialized_output": ["str", "filepath or URL to file"],
+        }
 
-    def output_api_info(self) -> Tuple[str, str]:
-        return (
-            "str | Tuple[str, str]",
-            "Filepath or URL to a video file, or a tuple of (video file, subtitle file)",
-        )
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_VIDEO},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/video_sample.mp4",
+        }
 
     def serialize(
         self, x: str | None, load_dir: str | Path = ""
@@ -316,6 +369,12 @@ class JSONSerializable(Serializable):
             "raw_output": ["Dict | List", "dictionary- or list-like object"],
             "serialized_input": ["str", "filepath to JSON file"],
             "serialized_output": ["str", "filepath to JSON file"],
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"a": 1, "b": 2},
+            "serialized": None,
         }
 
     def serialize(
@@ -374,6 +433,15 @@ class GallerySerializable(Serializable):
                 "str",
                 "path to directory with images and a file associating images with captions called captions.json",
             ],
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": [media_data.BASE64_IMAGE] * 2,
+            "serialized": [
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            ]
+            * 2,
         }
 
     def serialize(
