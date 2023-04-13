@@ -63,6 +63,7 @@ XRAY_CONFIG = {
                 "name": "image",
                 "visible": True,
                 "style": {},
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "info": {
@@ -122,6 +123,7 @@ XRAY_CONFIG = {
                 "name": "image",
                 "visible": True,
                 "style": {},
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "info": {
@@ -350,6 +352,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "image",
                 "visible": True,
                 "style": {},
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "info": {
@@ -409,6 +412,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "image",
                 "visible": True,
                 "style": {},
+                "selectable": False,
             },
             "serializer": "ImgSerializable",
             "info": {
@@ -632,6 +636,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "tool": "editor",
                 "name": "image",
                 "style": {},
+                "selectable": False,
             },
         },
         {
@@ -679,6 +684,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "mirror_webcam": True,
                 "name": "image",
                 "style": {},
+                "selectable": False,
             },
         },
         {

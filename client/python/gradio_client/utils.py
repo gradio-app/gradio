@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import mimetypes
@@ -7,6 +8,7 @@ import os
 import pkgutil
 import shutil
 import tempfile
+from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -15,6 +17,8 @@ from threading import Lock
 from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
+import httpx
+import huggingface_hub
 import requests
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
@@ -24,10 +28,19 @@ UPLOAD_URL = "/upload"
 CONFIG_URL = "/config"
 API_INFO_URL = "/info"
 RAW_API_INFO_URL = "/info?serialize=False"
-
-DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+SPACE_FETCHER_URL = "https://gradio-space-api-fetcher.hf.space/api"
+RESET_URL = "/reset"
+SPACE_URL = "https://hf.space/{}"
 
 STATE_COMPONENT = "state"
+INVALID_RUNTIME = [
+    "NO_APP_FILE",
+    "CONFIG_ERROR",
+    "BUILD_ERROR",
+    "RUNTIME_ERROR",
+    "PAUSED",
+]
+BUILDING_RUNTIME = "BUILDING"
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -61,6 +74,7 @@ class Status(Enum):
     PROCESSING = "PROCESSSING"
     ITERATING = "ITERATING"
     FINISHED = "FINISHED"
+    CANCELLED = "CANCELLED"
 
     @staticmethod
     def ordering(status: "Status") -> int:
@@ -74,6 +88,7 @@ class Status(Enum):
             Status.PROCESSING,
             Status.ITERATING,
             Status.FINISHED,
+            Status.CANCELLED,
         ]
         return order.index(status)
 
@@ -135,6 +150,8 @@ class Communicator:
     lock: Lock
     job: JobStatus
     deserialize: Callable[..., Tuple]
+    reset_url: str
+    should_cancel: bool = False
 
 
 ########################
@@ -162,7 +179,27 @@ async def get_pred_from_ws(
     completed = False
     resp = {}
     while not completed:
-        msg = await websocket.recv()
+        # Receive message in the background so that we can
+        # cancel even while running a long pred
+        task = asyncio.create_task(websocket.recv())
+        while not task.done():
+            if helper:
+                with helper.lock:
+                    if helper.should_cancel:
+                        # Need to reset the iterator state since the client
+                        # will not reset the session
+                        async with httpx.AsyncClient() as http:
+                            reset = http.post(
+                                helper.reset_url, json=json.loads(hash_data)
+                            )
+                            # Retrieve cancel exception from task
+                            # otherwise will get nasty warning in console
+                            task.cancel()
+                            await asyncio.gather(task, reset, return_exceptions=True)
+                        raise CancelledError()
+            # Need to suspend this coroutine so that task actually runs
+            await asyncio.sleep(0.01)
+        msg = task.result()
         resp = json.loads(msg)
         if helper:
             with helper.lock:
@@ -235,6 +272,8 @@ def create_tmp_copy_of_file(
 
 
 def get_mimetype(filename: str) -> str | None:
+    if filename.endswith(".vtt"):
+        return "text/vtt"
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
@@ -254,11 +293,11 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
-def encode_file_to_base64(f):
+def encode_file_to_base64(f: str | Path):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
         base64_str = str(encoded_string, "utf-8")
-        mimetype = get_mimetype(f)
+        mimetype = get_mimetype(str(f))
         return (
             "data:"
             + (mimetype if mimetype is not None else "")
@@ -356,6 +395,26 @@ def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = No
 def file_to_json(file_path: str | Path) -> Dict | List:
     with open(file_path) as f:
         return json.load(f)
+
+
+###########################
+# HuggingFace Hub API Utils
+###########################
+def set_space_timeout(
+    space_id: str,
+    hf_token: str | None = None,
+    timeout_in_seconds: int = 300,
+):
+    headers = huggingface_hub.utils.build_hf_headers(
+        token=hf_token,
+        library_name="gradio_client",
+        library_version=__version__,
+    )
+    requests.post(
+        f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
+        json={"seconds": timeout_in_seconds},
+        headers=headers,
+    )
 
 
 ########################
