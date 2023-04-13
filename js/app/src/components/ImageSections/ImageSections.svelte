@@ -38,8 +38,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					label,
-				]),
+					label
+				])
 			];
 		} else {
 			_value = null;
@@ -62,16 +62,16 @@
 	padding={false}
 	style={{
 		height: style.height || FIXED_HEIGHT,
-		width: style.width,
+		width: style.width
 	}}
 >
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 
-	{#if _value == null}
-		<Empty size="large" unpadded_box={true}><Image /></Empty>
-	{:else}
-		<div class="container">
+	<div class="container">
+		{#if _value == null}
+			<Empty size="large" unpadded_box={true}><Image /></Empty>
+		{:else}
 			<div class="image-container">
 				<!-- svelte-ignore a11y-missing-attribute -->
 				<img class="base-image" src={_value ? _value[0].data : null} />
@@ -103,16 +103,15 @@
 							on:focus={() => handle_mouseover(label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() =>
-								dispatch("select", { index: i, value: label })}
+							on:click={() => dispatch("select", { index: i, value: label })}
 						>
 							{label}
 						</div>
 					{/each}
 				</div>
 			{/if}
-		</div>
-	{/if}
+		{/if}
+	</div>
 </Block>
 
 <style>
@@ -120,7 +119,10 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		height: 100%;
+		justify-content: center;
+		align-items: center;
+		width: var(--size-full);
+		height: var(--size-full);
 	}
 	.image-container {
 		position: relative;
