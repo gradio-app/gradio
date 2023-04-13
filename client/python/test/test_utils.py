@@ -4,8 +4,9 @@ from copy import deepcopy
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from gradio import media_data
+import pytest
+from requests.exceptions import HTTPError
 
 from gradio_client import utils
 
@@ -104,7 +105,7 @@ async def test_get_pred_from_ws_raises_if_queue_full():
 def test_sleep_successful(mock_post):
     utils.set_space_timeout("gradio/calculator")
 
-@patch("requests.post", return_value=MagicMock(status_code=500))
+@patch("requests.post", return_value=MagicMock(raise_for_status=MagicMock(side_effect=HTTPError)))
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):
         utils.set_space_timeout("gradio/calculator")

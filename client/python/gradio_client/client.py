@@ -19,9 +19,11 @@ import requests
 import websockets
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
+    HfHubHTTPError,
     build_hf_headers,
     send_telemetry,
 )
+from huggingface_hub import SpaceStage
 from packaging import version
 from typing_extensions import Literal
 
@@ -86,10 +88,10 @@ class Client:
             self.space_id = src
         self.src = _src
         state = self._get_space_state()
-        if state == utils.BUILDING_RUNTIME:
+        if state == SpaceStage.BUILDING:
             if self.verbose:
                 print("Space is still building. Please wait...")
-            while self._get_space_state() == utils.BUILDING_RUNTIME:
+            while self._get_space_state() == SpaceStage.BUILDING:
                 time.sleep(2)  # so we don't get rate limited by the API
                 pass
         if state in utils.INVALID_RUNTIME:
@@ -151,41 +153,51 @@ class Client:
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
-            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None.
+            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None. Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.
             sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
+        # try:
+        #     info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+        # except RepositoryNotFoundError:
+        #     raise ValueError(
+        #         f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
+        #     )
+        # if to_id:
+        #     if "/" in to_id:
+        #         to_id = to_id.split("/")[1]
+        #     space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        # else:
+        #     space_id = huggingface_hub.get_full_repo_name(
+        #         from_id.split("/")[1], token=hf_token
+        #     )
         try:
-            info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
-        except RepositoryNotFoundError:
-            raise ValueError(
-                f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
-            )
-        if to_id:
-            if "/" in to_id:
-                to_id = to_id.split("/")[1]
-            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
-        else:
-            space_id = huggingface_hub.get_full_repo_name(
-                from_id.split("/")[1], token=hf_token
-            )
-        try:
-            huggingface_hub.get_space_runtime(space_id, token=hf_token)
-            if verbose:
-                print(
-                    f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
-                )
-        except RepositoryNotFoundError:
-            if verbose:
-                print(f"Creating a duplicate of {from_id} for your own use... 🤗")
-            huggingface_hub.duplicate_space(
+            space_url = huggingface_hub.duplicate_space(
                 from_id=from_id,
-                to_id=space_id,
+                to_id=to_id,
                 token=hf_token,
-                exist_ok=True,
                 private=private,
             )
+            if verbose:
+                print(f"Created a duplicate of {from_id} for your own use... {space_url} 🤗")
+            is_new = True
+        except RepositoryNotFoundError:
+            raise ValueError(f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`.")
+        except HfHubHTTPError as e:
+            if e.response.status_code == 409:
+                space_url = utils.SPACE_URL.format(space_id)
+                if verbose:
+                    print(f"Using your existing Space: {space_url} 🤗")
+                is_new = False
+            elif e.response.status_code == 403:
+                raise ValueError(f"Cannot duplicate to {to_id}: you don't have permissions for this namespace.") from e
+            elif e.response.status_code == 401:
+                raise ValueError(f"Please make sure you provided a valid write-token.") from e
+            else:
+                raise
+        space_id = space_url.repo_id
+        except RepositoryNotFoundError:
             utils.set_space_timeout(
                 space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
             )
