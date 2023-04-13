@@ -31,6 +31,7 @@ import PIL.ImageOps
 import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
+from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
@@ -2371,6 +2372,12 @@ class Audio(
             **IOComponent.get_config(self),
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_AUDIO},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+        }
+
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -4500,6 +4507,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             "clearColor": self.clear_color,
             "value": self.value,
             **IOComponent.get_config(self),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
         }
 
     @staticmethod
