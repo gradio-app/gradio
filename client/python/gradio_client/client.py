@@ -323,27 +323,55 @@ class Client:
             >> {
                 'named_endpoints': {
                     '/predict': {
-                        'parameters': {
-                            'num1': ['int | float', 'value', 'Number'],
-                            'operation': ['str', 'value', 'Radio'],
-                            'num2': ['int | float', 'value', 'Number']
+                        'parameters': [
+                            {
+                                'label': 'num1',
+                                'type_python': 'int | float',
+                                'type_description': 'numeric value',
+                                'component': 'Number',
+                                'example_input': '5'
                             },
-                        'returns': {
-                            'output': ['int | float', 'value', 'Number']
-                            }
-                        }
+                            {
+                                'label': 'operation',
+                                'type_python': 'str',
+                                'type_description': 'string value',
+                                'component': 'Radio',
+                                'example_input': 'add'
+                            },
+                            {
+                                'label': 'num2',
+                                'type_python': 'int | float',
+                                'type_description': 'numeric value',
+                                'component': 'Number',
+                                'example_input': '5'
+                            },
+                        ],
+                        'returns': [
+                            {
+                                'label': 'output',
+                                'type_python': 'int | float',
+                                'type_description': 'numeric value',
+                                'component': 'Number',
+                            },
+                        ]
                     },
+                    '/flag': {
+                        'parameters': [
+                            ...
+                            ],
+                        'returns': [
+                            ...
+                            ]
+                        }
+                    }                    
                 'unnamed_endpoints': {
                     2: {
-                        'parameters': {
-                            'parameter_0': ['str', 'value', 'Dataset']
-                            },
-                        'returns': {
-                            'num1': ['int | float', 'value', 'Number'],
-                            'operation': ['str', 'value', 'Radio'],
-                            'num2': ['int | float', 'value', 'Number'],
-                            'output': ['int | float', 'value', 'Number']
-                            }
+                        'parameters': [
+                            ...
+                            ],
+                        'returns': [
+                            ...
+                            ]
                         }
                     }
                 }
