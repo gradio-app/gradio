@@ -8,6 +8,7 @@ import threading
 import time
 import urllib.parse
 import uuid
+import warnings
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
@@ -17,13 +18,12 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
+from huggingface_hub import SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
-    HfHubHTTPError,
     build_hf_headers,
     send_telemetry,
 )
-from huggingface_hub import SpaceStage
 from packaging import version
 from typing_extensions import Literal
 
@@ -158,63 +158,61 @@ class Client:
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
         """
-        # try:
-        #     info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
-        # except RepositoryNotFoundError:
-        #     raise ValueError(
-        #         f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
-        #     )
-        # if to_id:
-        #     if "/" in to_id:
-        #         to_id = to_id.split("/")[1]
-        #     space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
-        # else:
-        #     space_id = huggingface_hub.get_full_repo_name(
-        #         from_id.split("/")[1], token=hf_token
-        #     )
         try:
-            space_url = huggingface_hub.duplicate_space(
+            original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+        except RepositoryNotFoundError:
+            raise ValueError(
+                f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
+            )
+        if to_id:
+            if "/" in to_id:
+                to_id = to_id.split("/")[1]
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        else:
+            space_id = huggingface_hub.get_full_repo_name(
+                from_id.split("/")[1], token=hf_token
+            )
+        try:
+            huggingface_hub.get_space_runtime(space_id, token=hf_token)
+            if verbose:
+                print(
+                    f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
+                )
+            if secrets is not None:
+                warnings.warn(
+                    "Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists."
+                )
+        except RepositoryNotFoundError:
+            if verbose:
+                print(f"Creating a duplicate of {from_id} for your own use... 🤗")
+            huggingface_hub.duplicate_space(
                 from_id=from_id,
-                to_id=to_id,
+                to_id=space_id,
                 token=hf_token,
+                exist_ok=True,
                 private=private,
             )
-            if verbose:
-                print(f"Created a duplicate of {from_id} for your own use... {space_url} 🤗")
-            is_new = True
-        except RepositoryNotFoundError:
-            raise ValueError(f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`.")
-        except HfHubHTTPError as e:
-            if e.response.status_code == 409:
-                space_url = utils.SPACE_URL.format(space_id)
-                if verbose:
-                    print(f"Using your existing Space: {space_url} 🤗")
-                is_new = False
-            elif e.response.status_code == 403:
-                raise ValueError(f"Cannot duplicate to {to_id}: you don't have permissions for this namespace.") from e
-            elif e.response.status_code == 401:
-                raise ValueError(f"Please make sure you provided a valid write-token.") from e
-            else:
-                raise
-        space_id = space_url.repo_id
-        except RepositoryNotFoundError:
-            utils.set_space_timeout(
-                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
-            )
-            if verbose:
-                print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
+            if secrets is not None:
+                for key, value in secrets.items():
+                    huggingface_hub.add_space_secret(
+                        space_id, key, value, token=hf_token
+                    )
+
+        utils.set_space_timeout(
+            space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
+        )
+        if verbose:
+            print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
-        current_hardware = current_info.hardware or "cpu-basic"
-        if hardware is None:
-            hardware = info.hardware
+        current_hardware = (
+            current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
+        )
+        hardware = hardware or original_info.hardware
         if not current_hardware == hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
-        if secrets is not None:
-            for key, value in secrets.items():
-                huggingface_hub.add_space_secret(space_id, key, value, token=hf_token)
         if verbose:
             print("")
         client = cls(

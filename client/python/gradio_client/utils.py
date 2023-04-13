@@ -19,8 +19,8 @@ from typing import Any, Callable, Dict, List, Tuple
 import fsspec.asyn
 import httpx
 import huggingface_hub
-from huggingface_hub import SpaceStage
 import requests
+from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "/api/predict/"
@@ -417,8 +417,8 @@ def set_space_timeout(
     except huggingface_hub.utils.HfHubHTTPError:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
-            "to set a timeout manually to reduce billing charges.")
-        
+            "to set a timeout manually to reduce billing charges."
+        )
 
 
 ########################
