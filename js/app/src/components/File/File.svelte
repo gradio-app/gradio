@@ -40,8 +40,8 @@
 		upload: undefined;
 	}>();
 
-	$: {
-		if (_value !== old_value) {
+	$: {	
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = _value;
 			if (_value === null) {
 				dispatch("change");

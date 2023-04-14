@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "@gradio/upload";
+	import { blobToBase64, FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import { Video, StaticVideo } from "@gradio/video";
 	import UploadText from "../UploadText.svelte";
+	import { upload_files } from "@gradio/client";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -32,20 +33,11 @@
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
 
-	$: {
-		if (value != null) {
-			_video = normalise_file(value[0], root, root_url);
-			_subtitle = normalise_file(value[1], root, root_url);
-		} else {
-			_video = null;
-			_subtitle = null;
-		}
-	}
-
 	let dragging = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
+		upload: undefined;
 	}>();
 
 	function handle_change({ detail }: CustomEvent<FileData | null>) {
@@ -59,9 +51,64 @@
 	}
 
 	$: {
+		if (value != null) {
+			_video = normalise_file(value[0], root, root_url);
+			_subtitle = normalise_file(value[1], root, root_url);
+		} else {
+			_video = null;
+			_subtitle = null;
+		}
+	}
+
+
+	let pending_upload = false;
+	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
-			dispatch("change");
+			if (_video === null) {
+				dispatch("change");
+				pending_upload = false;
+			}  else if (
+				!(Array.isArray(_video) ? _video : [_video]).every(
+					(file_data) => file_data.blob
+				)
+			) {
+				pending_upload = false;
+			}
+			else if (mode === "dynamic") {
+				let files = (Array.isArray(_video) ? _video : [_video]).map(
+					(file_data) => file_data.blob!
+				);
+
+				let upload_value = _video;
+				pending_upload = true;
+
+				upload_files(root, files).then((response) => {
+					if (upload_value !== _video) {
+						// value has changed since upload started
+						return;
+					}
+
+					pending_upload = false;
+					if (response.error) {
+						(async () => {
+							_video.data = await blobToBase64(_video.blob!);
+						})();
+
+					} else {
+
+						if (response.files) {
+							_video.orig_name = _video.name;
+							_video.name = response.files[0];
+							_video.is_file = true;
+						}
+
+						_video = normalise_file(_video, root, root_url);
+					}
+					dispatch("change");
+					dispatch("upload");
+				});
+			}
 		}
 	}
 </script>
