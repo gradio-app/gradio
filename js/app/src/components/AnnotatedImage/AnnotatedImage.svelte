@@ -16,6 +16,7 @@
 	let _value: [FileData, Array<[FileData, string]>] | null;
 	export let label: string = "Annotated Image";
 	export let show_label: boolean = true;
+	export let show_legend: boolean = true;
 	export let style: Styles = {};
 	export let root: string;
 	export let root_url: string;
@@ -88,7 +89,7 @@
 					/>
 				{/each}
 			</div>
-			{#if show_label}
+			{#if show_legend}
 				<div class="legend">
 					{#each _value ? _value[1] : [] as [file, label], i}
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
