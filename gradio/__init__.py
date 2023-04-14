@@ -31,6 +31,7 @@ from gradio.components import (
     Highlightedtext,
     Image,
     AnnotatedImage,
+    Annotatedimage,
     Interpretation,
     Json,
     Label,
