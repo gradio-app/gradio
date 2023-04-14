@@ -40,7 +40,7 @@
 		upload: undefined;
 	}>();
 
-	$: {	
+	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = _value;
 			if (_value === null) {

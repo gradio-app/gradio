@@ -60,7 +60,6 @@
 		}
 	}
 
-
 	let pending_upload = false;
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
@@ -68,14 +67,13 @@
 			if (_video === null) {
 				dispatch("change");
 				pending_upload = false;
-			}  else if (
+			} else if (
 				!(Array.isArray(_video) ? _video : [_video]).every(
 					(file_data) => file_data.blob
 				)
 			) {
 				pending_upload = false;
-			}
-			else if (mode === "dynamic") {
+			} else if (mode === "dynamic") {
 				let files = (Array.isArray(_video) ? _video : [_video]).map(
 					(file_data) => file_data.blob!
 				);
@@ -94,9 +92,7 @@
 						(async () => {
 							_video.data = await blobToBase64(_video.blob!);
 						})();
-
 					} else {
-
 						if (response.files) {
 							_video.orig_name = _video.name;
 							_video.name = response.files[0];
