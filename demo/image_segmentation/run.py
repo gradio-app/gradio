@@ -3,7 +3,18 @@ import numpy as np
 import random
 
 with gr.Blocks() as demo:
-    section_labels = ["apple", "banana", "carrot", "donut", "eggplant", "fish", "grapes", "hamburger", "ice cream", "juice"]
+    section_labels = [
+        "apple",
+        "banana",
+        "carrot",
+        "donut",
+        "eggplant",
+        "fish",
+        "grapes",
+        "hamburger",
+        "ice cream",
+        "juice",
+    ]
 
     with gr.Row():
         num_boxes = gr.Slider(0, 5, 2, step=1, label="Number of boxes")
@@ -11,7 +22,9 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         img_input = gr.Image()
-        img_output = gr.AnnotatedImage()
+        img_output = gr.AnnotatedImage().style(
+            color_map={"banana": "#a89a00", "carrot": "#ffae00"}
+        )
 
     section_btn = gr.Button("Identify Sections")
     selected_section = gr.Textbox(label="Selected Section")
@@ -31,17 +44,17 @@ with gr.Blocks() as demo:
             mask = np.zeros(img.shape[:2])
             for i in range(img.shape[0]):
                 for j in range(img.shape[1]):
-                    dist_square = (i - y)**2 + (j - x)**2
+                    dist_square = (i - y) ** 2 + (j - x) ** 2
                     if dist_square < r**2:
                         mask[i, j] = round((r**2 - dist_square) / r**2 * 4) / 4
             sections.append((mask, section_labels[b + num_boxes]))
         return (img, sections)
-    
+
     section_btn.click(section, [img_input, num_boxes, num_segments], img_output)
 
     def select_section(evt: gr.SelectData):
         return section_labels[evt.index]
-    
+
     img_output.select(select_section, None, selected_section)
 
 
