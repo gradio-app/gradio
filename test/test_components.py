@@ -1704,12 +1704,12 @@ class TestHighlightedText:
             ]
 
 
-class TestHighlightedImage:
+class TestAnnotatedImage:
     def test_postprocess(self):
         """
         postprocess
         """
-        component = gr.HighlightedImage()
+        component = gr.AnnotatedImage()
         img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
         mask1 = [40, 40, 50, 50]
         mask2 = np.zeros((100, 100), dtype=np.uint8)
@@ -1730,9 +1730,9 @@ class TestHighlightedImage:
         assert np.max(mask1_array_out[50:60, 50:60]) == 0
 
     def test_component_functions(self):
-        ht_output = gr.HighlightedImage(label="sections", show_legend=False)
+        ht_output = gr.AnnotatedImage(label="sections", show_legend=False)
         assert ht_output.get_config() == {
-            "name": "highlightedimage",
+            "name": "annotatedimage",
             "show_label": True,
             "label": "sections",
             "show_legend": False,
@@ -1752,7 +1752,7 @@ class TestHighlightedImage:
             random_mask = np.random.randint(0, 2, img.shape[:2])
             return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
 
-        iface = gr.Interface(mask, "image", gr.HighlightedImage())
+        iface = gr.Interface(mask, "image", gr.AnnotatedImage())
         output_json = iface("test/test_files/bus.png")
         with open(output_json) as fp:
             output = json.load(fp)

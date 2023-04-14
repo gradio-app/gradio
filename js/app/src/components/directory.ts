@@ -1,5 +1,6 @@
 export const component_map = {
 	accordion: () => import("./Accordion"),
+	annotatedimage: () => import("./AnnotatedImage"),
 	audio: () => import("./Audio"),
 	box: () => import("./Box"),
 	button: () => import("./Button"),
@@ -16,7 +17,6 @@ export const component_map = {
 	form: () => import("./Form"),
 	gallery: () => import("./Gallery"),
 	group: () => import("./Group"),
-	highlightedimage: () => import("./HighlightedImage"),
 	highlightedtext: () => import("./HighlightedText"),
 	html: () => import("./HTML"),
 	image: () => import("./Image"),

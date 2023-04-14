@@ -14,7 +14,7 @@
 	export let value: [FileData, Array<[FileData, string]>] | null;
 	let old_value: [FileData, Array<[FileData, string]>] | null;
 	let _value: [FileData, Array<[FileData, string]>] | null;
-	export let label: string = "Highlighted Image";
+	export let label: string = "Annotated Image";
 	export let show_label: boolean = true;
 	export let style: Styles = {};
 	export let root: string;
