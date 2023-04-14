@@ -83,23 +83,26 @@
 						class:active={active == label}
 						class:inactive={active != label && active != null}
 						src={file.data}
-						style="filter: hue-rotate({_value
-							? Math.round((i * 360) / _value[1].length)
-							: 0}deg)"
+						style={style.color_map && label in style.color_map
+							? null
+							: `filter: hue-rotate(${Math.round(
+									(i * 360) / _value[1].length
+							  )}deg);`}
 					/>
 				{/each}
 			</div>
-			{#if show_legend}
+			{#if show_legend && _value}
 				<div class="legend">
-					{#each _value ? _value[1] : [] as [file, label], i}
+					{#each _value[1] as [_, label], i}
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<div
 							class="legend-item"
-							style="background-color: {_value
-								? `hsla(${Math.round(
+							style="background-color: {style.color_map &&
+							label in style.color_map
+								? style.color_map[label] + '88'
+								: `hsla(${Math.round(
 										(i * 360) / _value[1].length
-								  )}, 100%, 50%, 0.3)`
-								: 'white'}"
+								  )}, 100%, 50%, 0.3)`}"
 							on:mouseover={() => handle_mouseover(label)}
 							on:focus={() => handle_mouseover(label)}
 							on:mouseout={() => handle_mouseout()}

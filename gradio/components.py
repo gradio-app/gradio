@@ -4050,6 +4050,13 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         self.temp_files.add(base_img_path)
 
         sections = []
+        color_map = self._style.get("color_map", {})
+
+        def hex_to_rgb(value):
+            value = value.lstrip("#")
+            lv = len(value)
+            return list(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
         for mask, label in y[1]:
             mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
             if isinstance(mask, np.ndarray):
@@ -4063,14 +4070,22 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
                 mask_array[y1 : y1 + BORDER_WIDTH, x1:x2] = 1
                 mask_array[y2 - BORDER_WIDTH : y2, x1:x2] = 1
 
-            red_mask = np.zeros((base_img.shape[0], base_img.shape[1], 4))
+            if label in color_map:
+                rgb_color = hex_to_rgb(color_map[label])
+            else:
+                rgb_color = [255, 0, 0]
+            colored_mask = np.zeros((base_img.shape[0], base_img.shape[1], 4))
             solid_mask = np.copy(mask_array)
             solid_mask[solid_mask > 0] = 1
-            red_mask[:, :, 0] = solid_mask
-            red_mask[:, :, 3] = mask_array
-            red_mask_img = _Image.fromarray((red_mask * 255).astype(np.uint8))
 
-            mask_file = processing_utils.save_pil_to_file(red_mask_img)
+            colored_mask[:, :, 0] = rgb_color[0] * solid_mask
+            colored_mask[:, :, 1] = rgb_color[1] * solid_mask
+            colored_mask[:, :, 2] = rgb_color[2] * solid_mask
+            colored_mask[:, :, 3] = mask_array * 255
+
+            colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
+
+            mask_file = processing_utils.save_pil_to_file(colored_mask_img)
             mask_file_path = str(utils.abspath(mask_file.name))
             self.temp_files.add(mask_file_path)
 
@@ -4080,15 +4095,24 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
 
         return {"name": base_img_path, "data": None, "is_file": True}, sections
 
-    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
+    def style(
+        self,
+        *,
+        height: int | None = None,
+        width: int | None = None,
+        color_map: Dict[str, str] | None = None,
+        **kwargs,
+    ):
         """
         This method can be used to change the appearance of the Image component.
         Parameters:
             height: Height of the image.
             width: Width of the image.
+            color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
         """
         self._style["height"] = height
         self._style["width"] = width
+        self._style["color_map"] = color_map
         Component.style(
             self,
             **kwargs,
