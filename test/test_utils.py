@@ -634,7 +634,7 @@ class TestCheckFunctionInputsMatch:
         test_objs = [F(), C().f, f]
 
         with warnings.catch_warnings():
-            warnings.simplefilter("error")
+            warnings.simplefilter("error") # Ensure there're no warnings raised here.
 
             for x in test_objs:
                 check_function_inputs_match(x, [None], False)
