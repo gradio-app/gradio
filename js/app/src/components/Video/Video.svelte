@@ -15,23 +15,23 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: [FileData, FileData | null] | null = null;
-	let old_value: [FileData, FileData | null] | null = null;
+	export let value: null | [FileData, FileData | null] = null;
+	let old_value: null | [FileData, FileData | null] = null;
 
+	export let mode: "static" | "dynamic";
 	export let label: string;
 	export let source: string;
 	export let root: string;
 	export let root_url: null | string;
 	export let show_label: boolean;
-	export let loading_status: LoadingStatus;
 	export let style: Styles = {};
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 
-	export let mode: "static" | "dynamic";
+	export let loading_status: LoadingStatus;
 
-	let _video: FileData | null = null;
-	let _subtitle: FileData | null = null;
+	let _video: null | FileData = null;
+	let _subtitle: null | FileData = null;
 
 	let dragging = false;
 

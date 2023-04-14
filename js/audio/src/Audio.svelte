@@ -190,13 +190,6 @@
 		}
 	};
 
-	function clear() {
-		dispatch("change");
-		dispatch("clear");
-		mode = "";
-		value = null;
-	}
-
 	function loaded(node: HTMLAudioElement) {
 		function clamp_playback() {
 			const start_time = (crop_values[0] / 100) * node.duration;
@@ -241,8 +234,16 @@
 		detail: { data: string; name: string; size: number; is_example: boolean };
 	}) {
 		value = detail;
-		dispatch("change", { data: detail.data, name: detail.name });
+		dispatch("change", detail);
 		dispatch("upload", detail);
+	}
+
+	function handle_clear() {
+		mode = "";
+		value = null;
+
+		dispatch("change");
+		dispatch("clear");
 	}
 
 	export let dragging = false;
@@ -276,13 +277,18 @@
 			{/if}
 		</div>
 	{:else if source === "upload"}
-		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
+		<Upload
+			filetype="audio/*"
+			on:load={handle_load}
+			bind:dragging
+			parse_to_data_url={false}
+		>
 			<slot />
 		</Upload>
 	{/if}
 {:else}
 	<ModifyUpload
-		on:clear={clear}
+		on:clear={handle_clear}
 		on:edit={() => (mode = "edit")}
 		editable
 		absolute={true}
