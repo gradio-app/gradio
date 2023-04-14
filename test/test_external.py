@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from gradio_client import media_data
 
 import gradio as gr
-from gradio import media_data
 from gradio.context import Context
 from gradio.exceptions import InvalidApiName
 from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples

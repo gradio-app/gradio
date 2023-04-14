@@ -3,11 +3,13 @@ import os
 import pathlib
 import tempfile
 import time
+import uuid
 from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
@@ -100,7 +102,7 @@ class TestPredictionsFromSpaces:
         self,
     ):
         client = Client(src="gradio/count_generator")
-        job = client.submit(3, api_name="/count")
+        job = client.submit(3, fn_index=0)
 
         while not job.done():
             time.sleep(0.1)
@@ -108,7 +110,7 @@ class TestPredictionsFromSpaces:
         assert job.outputs() == [str(i) for i in range(3)]
 
         outputs = []
-        for o in client.submit(3, api_name="/count"):
+        for o in client.submit(3, fn_index=0):
             outputs.append(o)
         assert outputs == [str(i) for i in range(3)]
 
@@ -122,8 +124,8 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_timeout(self):
         with pytest.raises(TimeoutError):
-            client = Client(src="gradio/count_generator")
-            job = client.submit(api_name="/sleep")
+            client = Client(src="gradio-tests/sleep")
+            job = client.submit("ping", api_name="/predict")
             job.result(timeout=0.05)
 
     @pytest.mark.flaky
@@ -433,39 +435,106 @@ class TestAPIInfo:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        assert client.endpoints[0].get_info() == {
-            "parameters": {
-                "sex": ["Any", "", "Radio"],
-                "age": ["Any", "", "Slider"],
-                "fare_(british_pounds)": ["Any", "", "Slider"],
-            },
-            "returns": {"output": ["str", "filepath to json file", "Label"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
                 "/predict_1": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
                 "/predict_2": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
             },
             "unnamed_endpoints": {},
@@ -484,26 +553,70 @@ class TestAPIInfo:
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
-        assert client.endpoints[0].get_info() == {
-            "parameters": {"x": ["Any", "", "Textbox"]},
-            "returns": {"output": ["Any", "", "Textbox"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {"x": ["Any", "", "Textbox"]},
-                    "returns": {"output": ["Any", "", "Textbox"]},
+                    "parameters": [
+                        {
+                            "label": "x",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Textbox",
+                            "example_input": "Howdy!",
+                        }
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Textbox",
+                        }
+                    ],
                 }
             },
-            "unnamed_endpoints": {
-                2: {
-                    "parameters": {"parameter_0": ["Any", "", "Dataset"]},
-                    "returns": {
-                        "x": ["Any", "", "Textbox"],
-                        "output": ["Any", "", "Textbox"],
-                    },
+            "unnamed_endpoints": {},
+        }
+
+    @pytest.mark.flaky
+    def test_fetch_old_version_space(self):
+        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+            "named_endpoints": {
+                "/predict": {
+                    "parameters": [
+                        {
+                            "label": "num1",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "operation",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "num2",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                        }
+                    ],
                 }
             },
+            "unnamed_endpoints": {},
         }
 
 
@@ -543,3 +656,60 @@ class TestEndpoints:
             ["file5", "file6"],
             "file7",
         ]
+
+
+class TestDuplication:
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_new_space_id(self, mock_init, mock_runtime):
+        Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+        Client.duplicate("gradio/calculator", "gradio-tests/test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_default_space_id(self, mock_init, mock_runtime):
+        Client.duplicate("gradio/calculator", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/calculator", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/calculator", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.add_space_secret")
+    @patch("huggingface_hub.duplicate_space")
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    @patch("gradio_client.utils.set_space_timeout")
+    def test_add_secrets(self, mock_time, mock_init, mock_duplicate, mock_add_secret):
+        with pytest.raises(RepositoryNotFoundError):
+            name = str(uuid.uuid4())
+            Client.duplicate(
+                "gradio/calculator",
+                name,
+                hf_token=HF_TOKEN,
+                secrets={"test_key": "test_value", "test_key2": "test_value2"},
+            )
+            mock_add_secret.assert_called_with(
+                f"gradio-tests/{name}",
+                "test_key",
+                "test_value",
+                token=HF_TOKEN,
+            )
+            mock_add_secret.assert_any_call(
+                f"gradio-tests/{name}",
+                "test_key2",
+                "test_value2",
+                token=HF_TOKEN,
+            )

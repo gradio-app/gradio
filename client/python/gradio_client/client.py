@@ -8,6 +8,7 @@ import threading
 import time
 import urllib.parse
 import uuid
+import warnings
 from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
@@ -17,7 +18,12 @@ from typing import Any, Callable, Dict, List, Tuple
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub.utils import build_hf_headers, send_telemetry
+from huggingface_hub import SpaceStage
+from huggingface_hub.utils import (
+    RepositoryNotFoundError,
+    build_hf_headers,
+    send_telemetry,
+)
 from packaging import version
 from typing_extensions import Literal
 
@@ -53,17 +59,20 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
+        serialize: bool = True,
         verbose: bool = True,
     ):
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI.
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            serialize: Whether the client should serialize the inputs and deserialize the outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing/deserializing them. E.g. you if you set this to False, you'd submit an image in base64 format instead of a filepath, and you'd get back an image in base64 format from the remote API instead of a filepath.
             verbose: Whether the client should print statements to the console.
         """
         self.verbose = verbose
         self.hf_token = hf_token
+        self.serialize = serialize
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
@@ -81,14 +90,20 @@ class Client:
                 )
             self.space_id = src
         self.src = _src
-        if self.verbose:
-            print(f"Loaded as API: {self.src} ✔")
         state = self._get_space_state()
+        if state == SpaceStage.BUILDING:
+            if self.verbose:
+                print("Space is still building. Please wait...")
+            while self._get_space_state() == SpaceStage.BUILDING:
+                time.sleep(2)  # so we don't get rate limited by the API
+                pass
         if state in utils.INVALID_RUNTIME:
             raise ValueError(
                 f"The current space is in the invalid state: {state}. "
                 "Please contact the owner to fix this."
             )
+        if self.verbose:
+            print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.ws_url = urllib.parse.urljoin(
@@ -110,11 +125,108 @@ class Client:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
 
+    @classmethod
+    def duplicate(
+        cls,
+        from_id: str,
+        to_id: str | None = None,
+        hf_token: str | None = None,
+        private: bool = True,
+        hardware: str | None = None,
+        secrets: Dict[str, str] | None = None,
+        sleep_timeout: int = 5,
+        max_workers: int = 40,
+        verbose: bool = True,
+    ):
+        """
+        Duplicates a Hugging Face Space under your account and returns a Client object
+        for the new Space. No duplication is created if the Space already exists in your
+        account (to override this, provide a new name for the new Space using `to_id`).
+        To use this method, you must provide an `hf_token` or be logged in via the Hugging
+        Face Hub CLI.
+
+        The new Space will be private by default and use the same hardware as the original
+        Space. This can be changed by using the `private` and `hardware` parameters. For
+        hardware upgrades (beyond the basic CPU tier), you may be required to provide
+        billing information on Hugging Face: https://huggingface.co/settings/billing
+
+        Parameters:
+            from_id: The name of the Hugging Face Space to duplicate in the format "{username}/{space_id}", e.g. "gradio/whisper".
+            to_id: The name of the new Hugging Face Space to create, e.g. "abidlabs/whisper-duplicate". If not provided, the new Space will be named "{your_HF_username}/{space_id}".
+            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
+            private: Whether the new Space should be private (True) or public (False). Defaults to True.
+            hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
+            secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None. Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.
+            sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
+            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            verbose: Whether the client should print statements to the console.
+        """
+        try:
+            original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
+        except RepositoryNotFoundError:
+            raise ValueError(
+                f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
+            )
+        if to_id:
+            if "/" in to_id:
+                to_id = to_id.split("/")[1]
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        else:
+            space_id = huggingface_hub.get_full_repo_name(
+                from_id.split("/")[1], token=hf_token
+            )
+        try:
+            huggingface_hub.get_space_runtime(space_id, token=hf_token)
+            if verbose:
+                print(
+                    f"Using your existing Space: {utils.SPACE_URL.format(space_id)} 🤗"
+                )
+            if secrets is not None:
+                warnings.warn(
+                    "Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists."
+                )
+        except RepositoryNotFoundError:
+            if verbose:
+                print(f"Creating a duplicate of {from_id} for your own use... 🤗")
+            huggingface_hub.duplicate_space(
+                from_id=from_id,
+                to_id=space_id,
+                token=hf_token,
+                exist_ok=True,
+                private=private,
+            )
+            if secrets is not None:
+                for key, value in secrets.items():
+                    huggingface_hub.add_space_secret(
+                        space_id, key, value, token=hf_token
+                    )
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
+            )
+            if verbose:
+                print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
+        current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
+        current_hardware = (
+            current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
+        )
+        hardware = hardware or original_info.hardware
+        if not current_hardware == hardware:
+            huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
+            print(
+                f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
+            )
+        if verbose:
+            print("")
+        client = cls(
+            space_id, hf_token=hf_token, max_workers=max_workers, verbose=verbose
+        )
+        return client
+
     def _get_space_state(self):
         if not self.space_id:
             return None
-        api = huggingface_hub.HfApi(token=self.hf_token)
-        return api.get_space_runtime(self.space_id).stage
+        info = huggingface_hub.get_space_runtime(self.space_id, token=self.hf_token)
+        return info.stage
 
     def predict(
         self,
@@ -220,44 +332,83 @@ class Client:
             >> {
                 'named_endpoints': {
                     '/predict': {
-                        'parameters': {
-                            'num1': ['int | float', 'value', 'Number'],
-                            'operation': ['str', 'value', 'Radio'],
-                            'num2': ['int | float', 'value', 'Number']
+                        'parameters': [
+                            {
+                                'label': 'num1',
+                                'type_python': 'int | float',
+                                'type_description': 'numeric value',
+                                'component': 'Number',
+                                'example_input': '5'
                             },
-                        'returns': {
-                            'output': ['int | float', 'value', 'Number']
-                            }
-                        }
+                            {
+                                'label': 'operation',
+                                'type_python': 'str',
+                                'type_description': 'string value',
+                                'component': 'Radio',
+                                'example_input': 'add'
+                            },
+                            {
+                                'label': 'num2',
+                                'type_python': 'int | float',
+                                'type_description': 'numeric value',
+                                'component': 'Number',
+                                'example_input': '5'
+                            },
+                        ],
+                        'returns': [
+                            {
+                                'label': 'output',
+                                'type_python': 'int | float',
+                                'type_description': 'numeric value',
+                                'component': 'Number',
+                            },
+                        ]
                     },
+                    '/flag': {
+                        'parameters': [
+                            ...
+                            ],
+                        'returns': [
+                            ...
+                            ]
+                        }
+                    }
                 'unnamed_endpoints': {
                     2: {
-                        'parameters': {
-                            'parameter_0': ['str', 'value', 'Dataset']
-                            },
-                        'returns': {
-                            'num1': ['int | float', 'value', 'Number'],
-                            'operation': ['str', 'value', 'Radio'],
-                            'num2': ['int | float', 'value', 'Number'],
-                            'output': ['int | float', 'value', 'Number']
-                            }
+                        'parameters': [
+                            ...
+                            ],
+                        'returns': [
+                            ...
+                            ]
                         }
                     }
                 }
             }
 
         """
-        info: Dict[str, Dict[str | int, Dict[str, Dict[str, List[str]]]]] = {
-            "named_endpoints": {},
-            "unnamed_endpoints": {},
-        }
+        if self.serialize:
+            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
+        else:
+            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+        r = requests.get(api_info_url, headers=self.headers)
 
-        for endpoint in self.endpoints:
-            if endpoint.is_valid:
-                if endpoint.api_name:
-                    info["named_endpoints"][endpoint.api_name] = endpoint.get_info()
-                else:
-                    info["unnamed_endpoints"][endpoint.fn_index] = endpoint.get_info()
+        # Versions of Gradio older than 3.26 returned format of the API info
+        # from the /info endpoint
+        if (
+            version.parse(self.config.get("version", "2.0")) >= version.Version("3.26")
+            and r.ok
+        ):
+            info = r.json()
+        else:
+            fetch = requests.post(
+                utils.SPACE_FETCHER_URL,
+                json={"serialize": self.serialize, "config": json.dumps(self.config)},
+            )
+            if fetch.ok:
+                info = fetch.json()["api"]
+            else:
+                raise ValueError(f"Could not fetch api info for {self.src}")
 
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
@@ -291,15 +442,17 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: Dict[str, Dict[str, List[str]]],
+        endpoints_info: Dict[str, List[Dict[str, str]]],
     ) -> str:
-        parameter_names = list(endpoints_info["parameters"].keys())
+        parameter_names = list(p["label"] for p in endpoints_info["parameters"])
+        parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
             rendered_parameters = rendered_parameters + ", "
-        return_value_names = list(endpoints_info["returns"].keys())
-        rendered_return_values = ", ".join(return_value_names)
-        if len(return_value_names) > 1:
+        return_values = list(p["label"] for p in endpoints_info["returns"])
+        return_values = [utils.sanitize_parameter_names(r) for r in return_values]
+        rendered_return_values = ", ".join(return_values)
+        if len(return_values) > 1:
             rendered_return_values = f"({rendered_return_values})"
 
         if isinstance(name_or_index, str):
@@ -312,14 +465,14 @@ class Client:
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
-            for label, info in endpoints_info["parameters"].items():
-                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for info in endpoints_info["parameters"]:
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
         if endpoints_info["returns"]:
-            for label, info in endpoints_info["returns"].items():
-                human_info += f"     - [{info[2]}] {label}: {info[0]} ({info[1]})\n"
+            for info in endpoints_info["returns"]:
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
         else:
             human_info += "     - None\n"
 
@@ -383,19 +536,24 @@ class Client:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _get_config(self) -> Dict:
-        assert self.src is not None
-        r = requests.get(self.src, headers=self.headers)
-        # some basic regex to extract the config
-        result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
-        try:
-            config = json.loads(result.group(1))  # type: ignore
-        except AttributeError:
-            raise ValueError(f"Could not get Gradio config from: {self.src}")
-        if "allow_flagging" in config:
-            raise ValueError(
-                "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
-            )
-        return config
+        r = requests.get(
+            urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
+        )
+        if r.ok:
+            return r.json()
+        else:  # to support older versions of Gradio
+            r = requests.get(self.src, headers=self.headers)
+            # some basic regex to extract the config
+            result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
+            try:
+                config = json.loads(result.group(1))  # type: ignore
+            except AttributeError:
+                raise ValueError(f"Could not get Gradio config from: {self.src}")
+            if "allow_flagging" in config:
+                raise ValueError(
+                    "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
+                )
+            return config
 
 
 class Endpoint:
@@ -405,9 +563,8 @@ class Endpoint:
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
-        self.api_name: str | None = dependency.get("api_name")
-        if self.api_name:
-            self.api_name = "/" + self.api_name
+        api_name = dependency.get("api_name")
+        self.api_name: str | None = None if api_name is None else "/" + api_name
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
@@ -420,67 +577,11 @@ class Endpoint:
         except AssertionError:
             self.is_valid = False
 
-    def get_info(self) -> Dict[str, Dict[str, List[str]]]:
-        """
-        Dictionary format:
-            {
-                "parameters": {
-                    "parameter_1_name": ["type", "description", "component_type"],
-                    "parameter_2_name": ["type", "description", "component_type"],
-                    ...
-                },
-                "returns": {
-                    "value_1_name": ["type", "description", "component_type"],
-                    ...
-                }
-            }
-        """
-        parameters = {}
-        for i, input in enumerate(self.dependency["inputs"]):
-            for component in self.client.config["components"]:
-                if component["id"] == input:
-                    label = (
-                        component["props"]
-                        .get("label", f"parameter_{i}")
-                        .lower()
-                        .replace(" ", "_")
-                    )
-                    if "info" in component:
-                        info = component["info"]["input"]
-                    else:
-                        info = self.serializers[i].input_api_info()
-                    info = list(info)
-                    component_type = component.get("type", "component").capitalize()
-                    info.append(component_type)
-                    if not component_type.lower() == utils.STATE_COMPONENT:
-                        parameters[label] = info
-        returns = {}
-        for o, output in enumerate(self.dependency["outputs"]):
-            for component in self.client.config["components"]:
-                if component["id"] == output:
-                    label = (
-                        component["props"]
-                        .get("label", f"value_{o}")
-                        .lower()
-                        .replace(" ", "_")
-                    )
-                    if "info" in component:
-                        info = component["info"]["output"]
-                    else:
-                        info = self.deserializers[o].output_api_info()
-                    info = list(info)
-                    component_type = component.get("type", "component").capitalize()
-                    info.append(component_type)
-                    if not component_type.lower() == utils.STATE_COMPONENT:
-                        returns[label] = info
-
-        return {"parameters": parameters, "returns": returns}
-
     def __repr__(self):
-        return json.dumps(self.get_info(), indent=4)
+        return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
 
     def __str__(self):
-        return json.dumps(self.get_info(), indent=4)
+        return self.__repr__()
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
 
@@ -489,16 +590,18 @@ class Endpoint:
         def _inner(*data):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
-            inputs = self.serialize(*data)
-            predictions = _predict(*inputs)
-            output = self.deserialize(*predictions)
+            if self.client.serialize:
+                data = self.serialize(*data)
+            predictions = _predict(*data)
+            if self.client.serialize:
+                predictions = self.deserialize(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
                 with helper.lock:
                     if not helper.job.outputs:
-                        helper.job.outputs.append(output)
-            return output
+                        helper.job.outputs.append(predictions)
+            return predictions
 
         return _inner
 
@@ -520,22 +623,29 @@ class Endpoint:
 
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                output = result["data"]
+                if "error" in result:
+                    raise ValueError(result["error"])
             else:
                 response = requests.post(
                     self.client.api_url, headers=self.client.headers, data=data
                 )
                 result = json.loads(response.content.decode("utf-8"))
-                try:
-                    output = result["data"]
-                except KeyError:
-                    if "error" in result and "429" in result["error"]:
-                        raise utils.TooManyRequestsError(
-                            "Too many requests to the Hugging Face API"
-                        )
-                    raise KeyError(
-                        f"Could not find 'data' key in response. Response received: {result}"
+            try:
+                output = result["data"]
+            except KeyError:
+                is_public_space = (
+                    self.client.space_id
+                    and not huggingface_hub.space_info(self.client.space_id).private
+                )
+                if "error" in result and "429" in result["error"] and is_public_space:
+                    raise utils.TooManyRequestsError(
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate({self.client.space_id}) and pass in your Hugging Face token."
                     )
+                elif "error" in result:
+                    raise ValueError(result["error"])
+                raise KeyError(
+                    f"Could not find 'data' key in response. Response received: {result}"
+                )
             return tuple(output)
 
         return _predict
@@ -893,7 +1003,7 @@ class Job(Future):
                     if self.verbose and self.space_id and eta and eta > 30:
                         print(
                             f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
-                            f"For faster predictions without waiting in queue, you may duplicate the space: {utils.DUPLICATE_URL.format(self.space_id)}"
+                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
                         )
                     return self.communicator.job.latest_status
 
