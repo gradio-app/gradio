@@ -43,8 +43,16 @@
 
 	let editing: false | string = false;
 	let selected: false | string = false;
+	let selected_invoked: boolean = false;
+
 	$: {
 		if (selected !== false) {
+			selected_invoked = false; // Prevent data updating invoke the `select` event.
+		}
+	}
+	$: {
+		if (selected !== false && !selected_invoked) {
+			selected_invoked = true;
 			const loc = selected.split("-");
 			const row = parseInt(loc[0]);
 			const col = parseInt(loc[1]);
