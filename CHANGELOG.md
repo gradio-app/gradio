@@ -3,6 +3,36 @@
 
 ## New Features:
 
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# Version 3.26.0
+
+## New Features:
+
 ### `Video` component supports subtitles
 
 - Allow the video component to accept subtitles as input, by [@tomchang25](https://github.com/tomchang25) in [PR 3673](https://github.com/gradio-app/gradio/pull/3673). To provide subtitles, simply return a tuple consisting of `(path_to_video, path_to_subtitles)` from your function. Both `.srt` and `.vtt` formats are supported:
@@ -39,7 +69,9 @@ See the [image_segmentation demo](https://github.com/gradio-app/gradio/tree/main
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Updates the "view API" page in Gradio apps to use the `gradio_client` library by [@aliabd](https://github.com/aliabd) in [PR 3765](https://github.com/gradio-app/gradio/pull/3765)
+
+- Read more about how to use the `gradio_client` library here: https://gradio.app/getting-started-with-the-python-client/
 
 ## Testing and Infrastructure Changes:
 

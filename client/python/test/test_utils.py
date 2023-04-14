@@ -5,10 +5,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from gradio import media_data
 from requests.exceptions import HTTPError
 
-from gradio_client import utils
+from gradio_client import media_data, utils
 
 
 def test_encode_url_or_file_to_base64():

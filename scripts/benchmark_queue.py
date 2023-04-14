@@ -26,7 +26,7 @@ import pandas as pd
 import websockets
 
 import gradio as gr
-from gradio import media_data
+from gradio_client import media_data
 
 
 def identity_with_sleep(x):

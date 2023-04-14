@@ -31,6 +31,7 @@ import PIL.ImageOps
 import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
+from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
@@ -51,7 +52,7 @@ from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
 
-from gradio import media_data, processing_utils, utils
+from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
 from gradio.events import (
     Blurrable,
@@ -452,7 +453,6 @@ class Textbox(
         )
         TokenInterpretable.__init__(self)
         self.cleared_value = ""
-        self.test_input = value
         self.type = type
 
     def get_config(self):
@@ -646,7 +646,6 @@ class Number(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.test_input = self.value if self.value is not None else 1
 
     @staticmethod
     def _round_to_precision(num: float | int, precision: int | None) -> float | int:
@@ -843,13 +842,21 @@ class Slider(
         )
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
-        self.test_input = self.value
 
-    def input_api_info(self) -> Tuple[str, str]:
-        return "int | float", f"value between {self.minimum} and {self.maximum}"
+    def api_info(self) -> Dict[str, Tuple[str, str]]:
+        description = f"numeric value between {self.minimum} and {self.maximum}"
+        return {
+            "raw_input": ("int | float", description),
+            "raw_output": ("int | float", description),
+            "serialized_input": ("int | float", description),
+            "serialized_output": ("int | float", description),
+        }
 
-    def get_output_type(self) -> Tuple[str, str]:
-        return "int | float", f"value between {self.minimum} and {self.maximum})"
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.minimum,
+            "serialized": self.minimum,
+        }
 
     def get_config(self):
         return {
@@ -979,7 +986,6 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.test_input = True
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects Checkbox.
@@ -1093,7 +1099,6 @@ class CheckboxGroup(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = self.choices
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects within CheckboxGroup.
@@ -1120,6 +1125,12 @@ class CheckboxGroup(
             "choices": self.choices,
             "value": self.value,
             **IOComponent.get_config(self),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.choices[0] if self.choices else None,
+            "serialized": self.choices[0] if self.choices else None,
         }
 
     @staticmethod
@@ -1276,7 +1287,6 @@ class Radio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = self.choices[0] if len(self.choices) else None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Radio option.
@@ -1304,6 +1314,12 @@ class Radio(
             "choices": self.choices,
             "value": self.value,
             **IOComponent.get_config(self),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.choices[0] if self.choices else None,
+            "serialized": self.choices[0] if self.choices else None,
         }
 
     @staticmethod
@@ -1450,7 +1466,6 @@ class Dropdown(
             raise ValueError(
                 "Custom values are not supported when `multiselect` is True."
             )
-        self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
         """
@@ -1474,17 +1489,31 @@ class Dropdown(
 
         self.cleared_value = self.value or ([] if multiselect else "")
 
-    def input_api_info(self) -> Tuple[str, str]:
+    def api_info(self) -> Dict[str, Tuple[str, str]]:
         if self.multiselect:
-            return "List[str]", f"List of options from: {self.choices}"
+            type = "List[str]"
+            description = f"List of options from: {self.choices}"
         else:
-            return "str", f"Option from: {self.choices}"
+            type = "str"
+            description = f"Option from: {self.choices}"
+        return {
+            "raw_input": (type, description),
+            "raw_output": (type, description),
+            "serialized_input": (type, description),
+            "serialized_output": (type, description),
+        }
 
-    def get_output_type(self) -> Tuple[str, str]:
+    def example_inputs(self) -> Dict[str, Any]:
         if self.multiselect:
-            return "List[str]", f"List of options from: {self.choices}"
+            return {
+                "raw": [self.choices[0]] if self.choices else [],
+                "serialized": [self.choices[0]] if self.choices else [],
+            }
         else:
-            return "str", f"Option from: {self.choices}"
+            return {
+                "raw": self.choices[0] if self.choices else None,
+                "serialized": self.choices[0] if self.choices else None,
+            }
 
     def get_config(self):
         return {
@@ -1658,7 +1687,6 @@ class Image(
         else:
             self.tool = tool
         self.invert_colors = invert_colors
-        self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
@@ -2317,7 +2345,6 @@ class Audio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.streaming = streaming
         if streaming and source != "microphone":
             raise ValueError(
@@ -2343,6 +2370,12 @@ class Audio(
             "value": self.value,
             "streaming": self.streaming,
             **IOComponent.get_config(self),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_AUDIO},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
         }
 
     @staticmethod
@@ -2607,7 +2640,6 @@ class File(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
         self.type = type
-        self.test_input = None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects file from list.
@@ -2852,7 +2884,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.test_input = [
+        self.empty_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
@@ -2946,7 +2978,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
-            return self.postprocess(self.test_input)
+            return self.postprocess(self.empty_input)
         if isinstance(y, dict):
             return y
         if isinstance(y, str):
@@ -3503,7 +3535,6 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.cleared_value = "#000000"
-        self.test_input = value
         IOComponent.__init__(
             self,
             label=label,
@@ -3517,6 +3548,12 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
             value=value,
             **kwargs,
         )
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": "#000000",
+            "serialized": "#000000",
+        }
 
     def get_config(self):
         return {
@@ -4636,6 +4673,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             "clearColor": self.clear_color,
             "value": self.value,
             **IOComponent.get_config(self),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
         }
 
     @staticmethod
