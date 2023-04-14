@@ -574,7 +574,8 @@ class Endpoint:
             self.is_valid = self.dependency[
                 "backend_fn"
             ]  # Only a real API endpoint if backend_fn is True and serializers are valid
-        except AssertionError:
+        except AssertionError as e:
+            print(e)
             self.is_valid = False
 
     def __repr__(self):
