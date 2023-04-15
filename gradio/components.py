@@ -616,6 +616,8 @@ class Number(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         precision: int | None = None,
+        min: float | int | None = None,
+        max: float | int | None = None,
         **kwargs,
     ):
         """
@@ -630,8 +632,13 @@ class Number(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
+            min: Minimum value.
+            max: Maximum value.
         """
         self.precision = precision
+        self.min = min
+        self.max = max
+        
         IOComponent.__init__(
             self,
             label=label,
@@ -666,7 +673,33 @@ class Number(
             return int(round(num, precision))
         else:
             return round(num, precision)
+    
+    @staticmethod
+    def _handle_min_max(num: float | int, min: float | int | None, max: float | int | None) -> float | int:
+        """
+        If the number is greater than max, it returns max. If the number is less than min returns min. If the number is between min and max it returns the original number.
 
+        Args:
+            num (float | int): The input number to be capped.
+            min (int | None): The minimum allowed value. If `None`, no minimum is enforced.
+            max (int | None): The maximum allowed value. If `None`, no maximum is enforced.
+
+        Returns:
+            The input `num` capped between `min` and `max`.
+        """
+        if min is None and max is None:
+            return num
+        elif min is None and num > max:
+            return max
+        elif max is None and num < min:
+            return min
+        elif num > max:
+            return max
+        elif num < min:
+            return min
+        else:
+            return num
+        
     def get_config(self):
         return {
             "value": self.value,
@@ -699,6 +732,8 @@ class Number(
         """
         if x is None:
             return None
+        
+        x = self._handle_min_max(x, self.min, self.max) 
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:
@@ -712,6 +747,8 @@ class Number(
         """
         if y is None:
             return None
+        
+        y = self._handle_min_max(y, self.min, self.max)
         return self._round_to_precision(y, self.precision)
 
     def set_interpret_parameters(
