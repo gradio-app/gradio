@@ -3,7 +3,7 @@
 
 ## New Features:
 
-No changes to highlight.
+Min and max value for gr.Number [@artegoser](https://github.com/artegoser) in [PR 3871](https://github.com/gradio-app/gradio/pull/3871)
 
 ## Bug Fixes:
 
