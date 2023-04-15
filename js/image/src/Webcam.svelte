@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square } from "@gradio/icons";
+	import { Camera, Circle, Square, Undo } from "@gradio/icons";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
+	let facing_mode: string = "user";
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
 
@@ -18,7 +19,7 @@
 	async function access_webcam() {
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
-				video: true,
+				video: { facingMode: facing_mode },
 				audio: include_audio
 			});
 			video_source.srcObject = stream;
@@ -32,6 +33,11 @@
 				throw err;
 			}
 		}
+	}
+
+	function switch_cameras() {
+		facing_mode = facing_mode === "user" ? "environment" : "user";
+		access_webcam();
 	}
 
 	function take_picture() {
@@ -113,23 +119,30 @@
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
-		<button on:click={mode === "image" ? take_picture : take_recording}>
-			{#if mode === "video"}
-				{#if recording}
-					<div class="icon">
-						<Square />
-					</div>
+		<div class="button_container">
+			<button on:click={mode === "image" ? take_picture : take_recording}>
+				{#if mode === "video"}
+					{#if recording}
+						<div class="icon">
+							<Square />
+						</div>
+					{:else}
+						<div class="icon">
+							<Circle />
+						</div>
+					{/if}
 				{:else}
 					<div class="icon">
-						<Circle />
+						<Camera />
 					</div>
 				{/if}
-			{:else}
+			</button>
+			<button on:click={switch_cameras}>
 				<div class="icon">
-					<Camera />
+					<Undo />
 				</div>
-			{/if}
-		</button>
+			</button>
+		</div>
 	{/if}
 </div>
 
@@ -147,14 +160,10 @@
 	}
 
 	button {
-		display: flex;
-		position: absolute;
-		right: 0px;
-		bottom: var(--size-2);
-		left: 0px;
+		display: inline-flex;
+		position: relative;
 		justify-content: center;
 		align-items: center;
-		margin: auto;
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
 		background-color: rgba(0, 0, 0, 0.9);
@@ -162,14 +171,26 @@
 		height: var(--size-10);
 	}
 
+	button:not(:last-child) {
+		margin-right: var(--size-10);
+	}
+
+	.button_container {
+		display: flex;
+		position: absolute;
+		bottom: var(--size-2);
+		justify-content: center;
+		width: 100%;
+	}
+
 	@media (--screen-md) {
-		button {
+		.button_container {
 			bottom: var(--size-4);
 		}
 	}
 
 	@media (--screen-xl) {
-		button {
+		.button_container {
 			bottom: var(--size-8);
 		}
 	}
