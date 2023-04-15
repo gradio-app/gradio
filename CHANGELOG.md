@@ -3,6 +3,36 @@
 
 ## New Features:
 
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# Version 3.27.0
+
+## New Features:
+
 ### AnnotatedImage Component
 
 New AnnotatedImage component allows users to highlight regions of an image, either by providing bounding boxes, or 0-1 pixel masks. This component is useful for tasks such as image segmentation, object detection, and image captioning.
