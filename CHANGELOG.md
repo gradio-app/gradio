@@ -23,7 +23,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+- Add DESCRIPTION.md to image_segmentation demo by [@aliabd](https://github.com/aliabd) in [PR 3866](https://github.com/gradio-app/gradio/pull/3866)
 
 ## Contributors Shoutout:
 
