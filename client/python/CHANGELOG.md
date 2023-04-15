@@ -6,7 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Fixed bug where `Video` components in latest gradio were not able to be deserialized by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3860](https://github.com/gradio-app/gradio/pull/3860)
 
 ## Documentation Changes:
 
