@@ -1729,7 +1729,8 @@ Received outputs:
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            requests.get(f"{self.local_url}startup-events")
+            verify = ssl_certfile if ssl_certfile else True
+            requests.get(f"{self.local_url}startup-events", verify=verify)
 
         utils.launch_counter()
 
