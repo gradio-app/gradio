@@ -2,8 +2,9 @@ import inspect
 import time
 from typing import Iterable
 
-import gradio as gr
 from gradio_client.documentation import document_fn
+
+import gradio as gr
 
 themes = [
     gr.themes.Base,
