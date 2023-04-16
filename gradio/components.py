@@ -687,18 +687,19 @@ class Number(
         Returns:
             The input `num` capped between `min` and `max`.
         """
-        if min is None and max is None:
-            return num
-        elif min is None and num > max:
-            return max
-        elif max is None and num < min:
-            return min
-        elif num > max:
-            return max
-        elif num < min:
-            return min
-        else:
-            return num
+        if min is not None and max is not None:
+            if num > max:
+                return max
+            elif num < min:
+                return min
+        elif min is None:
+            if num > max:
+                return max
+        elif max is None:
+            if num < min:
+                return min
+            
+        return num
         
     def get_config(self):
         return {
