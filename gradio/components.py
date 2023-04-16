@@ -616,8 +616,8 @@ class Number(
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
         precision: int | None = None,
-        min: float | int | None = None,
-        max: float | int | None = None,
+        min: float | int = float("-inf"),
+        max: float | int = float("inf"),
         **kwargs,
     ):
         """
@@ -676,25 +676,23 @@ class Number(
 
     @staticmethod
     def _handle_min_max(
-        num: float | int, min: float | int | None, max: float | int | None
+        num: float | int, min: float | int, max: float | int
     ) -> float | int:
         """
         If the number is greater than max, it returns max. If the number is less than min returns min. If the number is between min and max it returns the original number.
 
         Args:
             num (float | int): The input number to be capped.
-            min (int | None): The minimum allowed value. If `None`, no minimum is enforced.
-            max (int | None): The maximum allowed value. If `None`, no maximum is enforced.
+            min (int | float): The minimum allowed value.
+            max (int | float): The maximum allowed value.
 
         Returns:
             The input `num` capped between `min` and `max`.
         """
-        if min is not None and max is not None:
-            return max if num > max else min if num < min else num
-        elif min is None and max is not None:
-            return max if num > max else num
-        elif max is None and min is not None:
-            return min if num < min else num
+        if num > max:
+            return max
+        elif num < min:
+            return min
         else:
             return num
 
