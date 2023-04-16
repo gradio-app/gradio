@@ -13,4 +13,4 @@ from gradio.themes.utils.sizes import Size  # noqa: F401
 def builder(*args, **kwargs):
     from gradio.themes.builder import demo
 
-    demo.launch(*args, **kwargs)
+    return demo.launch(*args, **kwargs)

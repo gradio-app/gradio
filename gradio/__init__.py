@@ -10,6 +10,8 @@ from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
     JSON,
+    AnnotatedImage,
+    Annotatedimage,
     Audio,
     BarPlot,
     Button,
@@ -30,8 +32,6 @@ from gradio.components import (
     HighlightedText,
     Highlightedtext,
     Image,
-    AnnotatedImage,
-    Annotatedimage,
     Interpretation,
     Json,
     Label,
