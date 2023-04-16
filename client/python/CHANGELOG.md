@@ -28,6 +28,36 @@ No changes to highlight.
 
 No changes to highlight.
 
+# 0.1.3
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Fixed bug where `Video` components in latest gradio were not able to be deserialized by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3860](https://github.com/gradio-app/gradio/pull/3860)
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
 # 0.1.2
 
 First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API. 
