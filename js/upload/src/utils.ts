@@ -5,6 +5,13 @@ export function normalise_file(
 	root: string,
 	root_url: string | null
 ): FileData | null;
+
+export function normalise_file(
+	file: Array<FileData> | null,
+	root: string,
+	root_url: string | null
+): Array<FileData> | null;
+
 export function normalise_file(
 	file: Array<FileData> | FileData | null,
 	root: string,
@@ -12,10 +19,10 @@ export function normalise_file(
 ): Array<FileData> | FileData | null;
 
 export function normalise_file(
-	file: string | FileData | Array<FileData> | null,
+	file: Array<FileData> | FileData | string | null,
 	root: string,
 	root_url: string | null
-): FileData | Array<FileData> | null {
+): Array<FileData> | FileData | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
 		return {
@@ -23,9 +30,17 @@ export function normalise_file(
 			data: file
 		};
 	} else if (Array.isArray(file)) {
+		const normalized_file: Array<FileData | null> = [];
+
 		for (const x of file) {
-			normalise_file(x, root, root_url);
+			if (x === null) {
+				normalized_file.push(null);
+			} else {
+				normalized_file.push(normalise_file(x, root, root_url));
+			}
 		}
+
+		return normalized_file as Array<FileData>;
 	} else if (file.is_file) {
 		if (root_url == null) {
 			file.data = root + "/file=" + file.name;

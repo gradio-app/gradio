@@ -461,6 +461,115 @@ def convert_component_dict_to_list(
     return predictions
 
 
+def get_api_info(config: Dict, serialize: bool = True):
+    """
+    Gets the information needed to generate the API docs from a Blocks config.
+    Parameters:
+        config: a Blocks config dictionary
+        serialize: If True, returns the serialized version of the typed information. If False, returns the raw version.
+    """
+    api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+    mode = config.get("mode", None)
+
+    for d, dependency in enumerate(config["dependencies"]):
+        dependency_info = {"parameters": [], "returns": []}
+        skip_endpoint = False
+
+        inputs = dependency["inputs"]
+        for i in inputs:
+            for component in config["components"]:
+                if component["id"] == i:
+                    break
+            else:
+                skip_endpoint = True  # if component not found, skip this endpoint
+                break
+            type = component["type"]
+            if (
+                not component.get("serializer")
+                and type not in serializing.COMPONENT_MAPPING
+            ):
+                skip_endpoint = (
+                    True  # if component is not serializable, skip this endpoint
+                )
+                break
+            label = component["props"].get("label", f"parameter_{i}")
+            # The config has the most specific API info (taking into account the parameters
+            # of the component), so we use that if it exists. Otherwise, we fallback to the
+            # Serializer's API info.
+            if component.get("api_info"):
+                if serialize:
+                    info = component["api_info"]["serialized_input"]
+                    example = component["example_inputs"]["serialized"]
+                else:
+                    info = component["api_info"]["raw_input"]
+                    example = component["example_inputs"]["raw"]
+            else:
+                serializer = serializing.COMPONENT_MAPPING[type]()
+                assert isinstance(serializer, serializing.Serializable)
+                if serialize:
+                    info = serializer.api_info()["serialized_input"]
+                    example = serializer.example_inputs()["serialized"]
+                else:
+                    info = serializer.api_info()["raw_input"]
+                    example = serializer.example_inputs()["raw"]
+            dependency_info["parameters"].append(
+                {
+                    "label": label,
+                    "type_python": info[0],
+                    "type_description": info[1],
+                    "component": type.capitalize(),
+                    "example_input": example,
+                }
+            )
+
+        outputs = dependency["outputs"]
+        for o in outputs:
+            for component in config["components"]:
+                if component["id"] == o:
+                    break
+            else:
+                skip_endpoint = True  # if component not found, skip this endpoint
+                break
+            type = component["type"]
+            if (
+                not component.get("serializer")
+                and type not in serializing.COMPONENT_MAPPING
+            ):
+                skip_endpoint = (
+                    True  # if component is not serializable, skip this endpoint
+                )
+                break
+            label = component["props"].get("label", f"value_{o}")
+            serializer = serializing.COMPONENT_MAPPING[type]()
+            assert isinstance(serializer, serializing.Serializable)
+            if serialize:
+                info = serializer.api_info()["serialized_output"]
+            else:
+                info = serializer.api_info()["raw_output"]
+            dependency_info["returns"].append(
+                {
+                    "label": label,
+                    "type_python": info[0],
+                    "type_description": info[1],
+                    "component": type.capitalize(),
+                }
+            )
+
+        if not dependency["backend_fn"]:
+            skip_endpoint = True
+
+        if skip_endpoint:
+            continue
+        if dependency["api_name"]:
+            api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+        elif mode == "interface" or mode == "tabbed_interface":
+            pass  # Skip unnamed endpoints in interface mode
+        else:
+            api_info["unnamed_endpoints"][str(d)] = dependency_info
+
+    return api_info
+
+
 @document("launch", "queue", "integrate", "load")
 class Blocks(BlockContext):
     """
@@ -979,9 +1088,52 @@ class Blocks(BlockContext):
 
         return predictions
 
+    def validate_inputs(self, fn_index: int, inputs: List[Any]):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+
+        dep_inputs = dependency["inputs"]
+
+        # This handles incorrect inputs when args are changed by a JS function
+        # Only check not enough args case, ignore extra arguments (for now)
+        # TODO: make this stricter?
+        if len(inputs) < len(dep_inputs):
+            name = (
+                f" ({block_fn.name})"
+                if block_fn.name and block_fn.name != "<lambda>"
+                else ""
+            )
+
+            wanted_args = []
+            received_args = []
+            for input_id in dep_inputs:
+                block = self.blocks[input_id]
+                wanted_args.append(str(block))
+            for inp in inputs:
+                if isinstance(inp, str):
+                    v = f'"{inp}"'
+                else:
+                    v = str(inp)
+                received_args.append(v)
+
+            wanted = ", ".join(wanted_args)
+            received = ", ".join(received_args)
+
+            # JS func didn't pass enough arguments
+            raise ValueError(
+                f"""An event handler{name} didn't receive enough input values (needed: {len(dep_inputs)}, got: {len(inputs)}).
+Check if the event handler calls a Javascript function, and make sure its return value is correct.
+Wanted inputs:
+    [{wanted}]
+Received inputs:
+    [{received}]"""
+            )
+
     def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+
+        self.validate_inputs(fn_index, inputs)
 
         if block_fn.preprocess:
             processed_input = []
@@ -997,6 +1149,45 @@ class Blocks(BlockContext):
         else:
             processed_input = inputs
         return processed_input
+
+    def validate_outputs(self, fn_index: int, predictions: Any | List[Any]):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+
+        dep_outputs = dependency["outputs"]
+
+        if type(predictions) is not list and type(predictions) is not tuple:
+            predictions = [predictions]
+
+        if len(predictions) < len(dep_outputs):
+            name = (
+                f" ({block_fn.name})"
+                if block_fn.name and block_fn.name != "<lambda>"
+                else ""
+            )
+
+            wanted_args = []
+            received_args = []
+            for output_id in dep_outputs:
+                block = self.blocks[output_id]
+                wanted_args.append(str(block))
+            for pred in predictions:
+                if isinstance(pred, str):
+                    v = f'"{pred}"'
+                else:
+                    v = str(pred)
+                received_args.append(v)
+
+            wanted = ", ".join(wanted_args)
+            received = ", ".join(received_args)
+
+            raise ValueError(
+                f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
+Wanted outputs:
+    [{wanted}]
+Received outputs:
+    [{received}]"""
+            )
 
     def postprocess_data(
         self, fn_index: int, predictions: List | Dict, state: Dict[int, Any]
@@ -1014,6 +1205,8 @@ class Blocks(BlockContext):
             predictions = [
                 predictions,
             ]
+
+        self.validate_outputs(fn_index, predictions)  # type: ignore
 
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
@@ -1173,10 +1366,8 @@ class Blocks(BlockContext):
             if serializer:
                 assert isinstance(block, serializing.Serializable)
                 block_config["serializer"] = serializer
-                block_config["info"] = {
-                    "input": list(block.input_api_info()),  # type: ignore
-                    "output": list(block.output_api_info()),  # type: ignore
-                }
+                block_config["api_info"] = block.api_info()  # type: ignore
+                block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
         return config

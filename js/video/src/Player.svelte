@@ -3,6 +3,7 @@
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
+	export let subtitle: string | null = null;
 	export let mirror: boolean;
 
 	let time: number = 0;
@@ -15,7 +16,7 @@
 
 	function video_move() {
 		clearTimeout(show_controls_timeout);
-		show_controls_timeout = setTimeout(() => (show_controls = false), 2500);
+		show_controls_timeout = setTimeout(() => (show_controls = false), 500);
 		show_controls = true;
 	}
 
@@ -130,7 +131,7 @@
 		style:opacity
 		style:transition
 	>
-		<track kind="captions" />
+		<track kind="captions" src={subtitle} default />
 	</video>
 
 	<div
