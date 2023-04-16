@@ -24,3 +24,4 @@ semantic_version
 typing_extensions
 uvicorn
 websockets>=10.0
+wheel
