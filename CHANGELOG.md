@@ -7,7 +7,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Support self-signed certificates for using microphone via https by [@janmaltel](https://github.com/janmaltel) in [PR 3872](https://github.com/gradio-app/gradio/pull/3872).
 
 ## Documentation Changes:
 
