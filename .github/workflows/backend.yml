@@ -104,7 +104,7 @@ jobs:
       shell: bash
       run: |
         bash scripts/install_gradio.sh
-        pip install --upgrade pip
+        python -m pip install --upgrade pip
     - name: Install 3.9 Test Dependencies
       shell: bash
       if: ${{ matrix.python-version == '3.9' }}
