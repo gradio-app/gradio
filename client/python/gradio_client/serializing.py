@@ -368,7 +368,7 @@ class VideoSerializable(FileSerializable):
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
         """
-        if isinstance(x, tuple):
+        if isinstance(x, (tuple, list)):
             assert len(x) == 2, f"Expected tuple of length 2. Received: {x}"
             x_as_list = [x[0], x[1]]
         else:
@@ -501,7 +501,12 @@ class GallerySerializable(Serializable):
         return os.path.abspath(gallery_path)
 
 
-SERIALIZER_MAPPING = {cls.__name__: cls for cls in Serializable.__subclasses__()}
+SERIALIZER_MAPPING = {}
+for cls in Serializable.__subclasses__():
+    SERIALIZER_MAPPING[cls.__name__] = cls
+    for subcls in cls.__subclasses__():
+        SERIALIZER_MAPPING[subcls.__name__] = subcls
+
 SERIALIZER_MAPPING["Serializable"] = SimpleSerializable
 SERIALIZER_MAPPING["File"] = FileSerializable
 SERIALIZER_MAPPING["UploadButton"] = FileSerializable
