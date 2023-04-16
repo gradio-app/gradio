@@ -25,6 +25,7 @@ No changes to highlight.
 
 - Add DESCRIPTION.md to image_segmentation demo by [@aliabd](https://github.com/aliabd) in [PR 3866](https://github.com/gradio-app/gradio/pull/3866)
 - Added a button to the webcam component to allow switching between front and rear cameras by [@thepelkus-too](https://github.com/thepelkus-too) in [PR 3874](https://github.com/gradio-app/gradio/pull/3874)
+- Fix error in running `gr.themes.builder()` by [@deepkyu](https://github.com/deepkyu) in [PR 3869](https://github.com/gradio-app/gradio/pull/3869)
 
 ## Contributors Shoutout:
 
