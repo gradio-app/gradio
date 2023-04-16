@@ -3,6 +3,87 @@
 
 ## New Features:
 
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+- Add DESCRIPTION.md to image_segmentation demo by [@aliabd](https://github.com/aliabd) in [PR 3866](https://github.com/gradio-app/gradio/pull/3866)
+- Fix error in running `gr.themes.builder()` by [@deepkyu](https://github.com/deepkyu) in [PR 3869](https://github.com/gradio-app/gradio/pull/3869)
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# Version 3.27.0
+
+## New Features:
+
+### AnnotatedImage Component
+
+New AnnotatedImage component allows users to highlight regions of an image, either by providing bounding boxes, or 0-1 pixel masks. This component is useful for tasks such as image segmentation, object detection, and image captioning.
+
+![AnnotatedImage screenshot](https://user-images.githubusercontent.com/7870876/232142720-86e0020f-beaf-47b9-a843-689c9621f09c.gif)
+
+Example usage:
+
+```python
+with gr.Blocks() as demo:
+    img = gr.Image()
+    img_section = gr.AnnotatedImage()
+    def mask(img):
+        top_left_corner = [0, 0, 20, 20]
+        random_mask = np.random.randint(0, 2, img.shape[:2])
+        return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
+    img.change(mask, img, img_section)
+```
+
+See the [image_segmentation demo](https://github.com/gradio-app/gradio/tree/main/demo/image_segmentation) for a full example. By [@aliabid94](https://github.com/aliabid94) in [PR 3836](https://github.com/gradio-app/gradio/pull/3836)
+
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# Version 3.26.0
+
+## New Features:
+
 ### `Video` component supports subtitles
 
 - Allow the video component to accept subtitles as input, by [@tomchang25](https://github.com/tomchang25) in [PR 3673](https://github.com/gradio-app/gradio/pull/3673). To provide subtitles, simply return a tuple consisting of `(path_to_video, path_to_subtitles)` from your function. Both `.srt` and `.vtt` formats are supported:
@@ -14,12 +95,14 @@ with gr.Blocks() as demo:
 ```
 
 ## Bug Fixes:
+- Fix code markdown support in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3816](https://github.com/gradio-app/gradio/pull/3816)
 
-No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Updates the "view API" page in Gradio apps to use the `gradio_client` library by [@aliabd](https://github.com/aliabd) in [PR 3765](https://github.com/gradio-app/gradio/pull/3765)
+
+- Read more about how to use the `gradio_client` library here: https://gradio.app/getting-started-with-the-python-client/
 
 ## Testing and Infrastructure Changes:
 
