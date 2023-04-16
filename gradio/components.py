@@ -638,7 +638,7 @@ class Number(
         self.precision = precision
         self.min = min
         self.max = max
-        
+
         IOComponent.__init__(
             self,
             label=label,
@@ -673,9 +673,11 @@ class Number(
             return int(round(num, precision))
         else:
             return round(num, precision)
-    
+
     @staticmethod
-    def _handle_min_max(num: float | int, min: float | int | None, max: float | int | None) -> float | int:
+    def _handle_min_max(
+        num: float | int, min: float | int | None, max: float | int | None
+    ) -> float | int:
         """
         If the number is greater than max, it returns max. If the number is less than min returns min. If the number is between min and max it returns the original number.
 
@@ -698,9 +700,9 @@ class Number(
         elif max is None:
             if num < min:
                 return min
-            
+
         return num
-        
+
     def get_config(self):
         return {
             "value": self.value,
@@ -733,8 +735,8 @@ class Number(
         """
         if x is None:
             return None
-        
-        x = self._handle_min_max(x, self.min, self.max) 
+
+        x = self._handle_min_max(x, self.min, self.max)
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:
@@ -748,7 +750,7 @@ class Number(
         """
         if y is None:
             return None
-        
+
         y = self._handle_min_max(y, self.min, self.max)
         return self._round_to_precision(y, self.precision)
 
