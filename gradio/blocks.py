@@ -692,6 +692,7 @@ class Blocks(BlockContext):
         self.__name__ = None
         self.api_mode = None
         self.progress_tracking = None
+        self.ssl_verify = True
 
         self.file_directories = []
 
@@ -2021,7 +2022,7 @@ Received outputs:
 
         if self.enable_queue:
             utils.run_coro_in_background(
-                self._queue.start, (self.progress_tracking, self.ssl_verify)
+                self._queue.start, self.progress_tracking, self.ssl_verify
             )
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
