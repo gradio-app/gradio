@@ -6,7 +6,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-- Fix issue where `gr.Video()` would not work inside a `gr.Tab()` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3889](https://github.com/gradio-app/gradio/pull/3889)
+- Fix issue where `gr.Video()` would not work inside a `gr.Tab()` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3891](https://github.com/gradio-app/gradio/pull/3891)
 
 
 ## Documentation Changes:
