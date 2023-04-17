@@ -1,1 +1,1 @@
-Image segmentation using DETR. Takes in both an inputu image and the desired confidence, and returns a segmented image.
+Simple image segmentation using gradio's AnnotatedImage component.
