@@ -30,6 +30,7 @@ type client_return = {
 	predict: predict;
 	config: Config;
 	submit: (endpoint: string, payload: Payload) => SubmitReturn;
+	info: () => Record<string, any>;
 };
 
 type SubmitReturn = {
@@ -108,7 +109,9 @@ export async function client(
 		const { status_callback, hf_token } = options;
 		const return_obj = {
 			predict,
-			submit
+			submit,
+			info
+			// duplicate
 		};
 
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
@@ -396,6 +399,25 @@ export async function client(
 				off,
 				cancel
 			};
+		}
+
+		async function info() {
+			const headers: {
+				Authorization?: string;
+				"Content-Type": "application/json";
+			} = { "Content-Type": "application/json" };
+			if (hf_token) {
+				headers.Authorization = `Bearer ${hf_token}`;
+			}
+			try {
+				var response = await fetch(`${http_protocol}//${host}/info`, {
+					headers
+				});
+
+				return await response.json();
+			} catch (e) {
+				return [{ error: BROKEN_CONNECTION_MSG }, 500];
+			}
 		}
 	});
 }
