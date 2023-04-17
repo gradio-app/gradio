@@ -133,8 +133,6 @@ export async function client(
 			jwt = await get_jwt(space_id, hf_token);
 		}
 
-		console.log(jwt);
-
 		function config_success(_config: Config) {
 			config = _config;
 			api_map = map_names_to_ids(_config?.dependencies || []);
@@ -456,7 +454,6 @@ function update_object(object, newValue, stack) {
 }
 
 export function walk_and_store_blobs(param, path = []) {
-	// console.log(NodeBlob);
 	if (globalThis && param instanceof globalThis.Buffer) {
 		return [{ path: path, blob: new NodeBlob([param]) }];
 	} else if (param instanceof Blob) {
