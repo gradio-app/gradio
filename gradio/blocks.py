@@ -1661,6 +1661,7 @@ Received outputs:
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.ssl_verify = ssl_verify
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
@@ -2019,7 +2020,7 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            utils.run_coro_in_background(self._queue.start, (self.progress_tracking, self.ssl_verify))
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)

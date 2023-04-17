@@ -67,9 +67,9 @@ class Queue:
         self.access_token = ""
         self.queue_client = None
 
-    async def start(self, progress_tracking=False):
+    async def start(self, progress_tracking=False, ssl_verify=None):
         # So that the client is attached to the running event loop
-        self.queue_client = httpx.AsyncClient()
+        self.queue_client = httpx.AsyncClient(verify=ssl_verify)
 
         run_coro_in_background(self.start_processing)
         if progress_tracking:
