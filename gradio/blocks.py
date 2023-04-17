@@ -1588,7 +1588,7 @@ Received outputs:
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
-        ssl_verify: bool | None = None,
+        ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
         file_directories: List[str] | None = None,
