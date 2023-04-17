@@ -59,3 +59,4 @@ gradio/frpc_*
 node_modules
 public/build/
 test-results
+client/js/test.js

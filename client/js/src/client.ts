@@ -43,13 +43,21 @@ const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
 export async function post_data(
 	url: string,
-	body: unknown
+	body: unknown,
+	token?: `hf_${string}`
 ): Promise<[PostResponse, number]> {
+	const headers: {
+		Authorization?: string;
+		"Content-Type": "application/json";
+	} = { "Content-Type": "application/json" };
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
 	try {
 		var response = await fetch(url, {
 			method: "POST",
 			body: JSON.stringify(body),
-			headers: { "Content-Type": "application/json" }
+			headers
 		});
 	} catch (e) {
 		return [{ error: BROKEN_CONNECTION_MSG }, 500];
@@ -58,10 +66,20 @@ export async function post_data(
 	return [output, response.status];
 }
 
+export let NodeBlob;
+
 export async function upload_files(
 	root: string,
-	files: Array<File>
+	files: Array<File>,
+	token?: `hf_${string}`
 ): Promise<UploadResponse> {
+	const headers: {
+		Authorization?: string;
+	} = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
 	const formData = new FormData();
 	files.forEach((file) => {
 		formData.append("files", file);
@@ -69,7 +87,8 @@ export async function upload_files(
 	try {
 		var response = await fetch(`${root}/upload`, {
 			method: "POST",
-			body: formData
+			body: formData,
+			headers
 		});
 	} catch (e) {
 		return { error: BROKEN_CONNECTION_MSG };
@@ -80,32 +99,41 @@ export async function upload_files(
 
 export async function client(
 	app_reference: string,
-	space_status_callback?: SpaceStatusCallback
+	options: {
+		hf_token?: `hf_${string}`;
+		status_callback?: SpaceStatusCallback;
+	} = {}
 ): Promise<client_return> {
 	return new Promise(async (res) => {
+		const { status_callback, hf_token } = options;
 		const return_obj = {
 			predict,
 			submit
 		};
 
-		if (
-			typeof window === "undefined" ||
-			!("WebSocket" in window) ||
-			window.WebSocket.CLOSING !== 2
-		) {
+		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
+			NodeBlob = (await import("node:buffer")).Blob;
 			//@ts-ignore
 			global.WebSocket = ws.WebSocket;
 		}
 
 		const { ws_protocol, http_protocol, host, space_id } =
-			await process_endpoint(app_reference);
+			await process_endpoint(app_reference, hf_token);
 		const session_hash = Math.random().toString(36).substring(2);
 		const last_status: Record<string, Status["status"]> = {};
 		let config: Config;
 		let api_map: Record<string, number> = {};
 
 		const listener_map: ListenerMap<EventType> = {};
+
+		let jwt: false | string = false;
+
+		if (hf_token && space_id) {
+			jwt = await get_jwt(space_id, hf_token);
+		}
+
+		console.log(jwt);
 
 		function config_success(_config: Config) {
 			config = _config;
@@ -117,14 +145,14 @@ export async function client(
 		}
 
 		async function handle_space_sucess(status: SpaceStatus) {
-			if (space_status_callback) space_status_callback(status);
+			if (status_callback) status_callback(status);
 			if (status.status === "running")
 				try {
-					config = await resolve_config(`${http_protocol}//${host}`);
+					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
 					res(config_success(config));
 				} catch (e) {
-					if (space_status_callback) {
-						space_status_callback({
+					if (status_callback) {
+						status_callback({
 							status: "error",
 							message: "Could not load this space.",
 							load_status: "error",
@@ -135,7 +163,7 @@ export async function client(
 		}
 
 		try {
-			config = await resolve_config(`${http_protocol}//${host}`);
+			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
 			res(config_success(config));
 		} catch (e) {
 			if (space_id) {
@@ -145,8 +173,8 @@ export async function client(
 					handle_space_sucess
 				);
 			} else {
-				if (space_status_callback)
-					space_status_callback({
+				if (status_callback)
+					status_callback({
 						status: "error",
 						message: "Could not load this space.",
 						load_status: "error",
@@ -181,7 +209,8 @@ export async function client(
 
 			//@ts-ignore
 			handle_blob(`${http_protocol}//${host + config.path}`, payload).then(
-				(file) => {
+				(_payload) => {
+					payload = _payload;
 					if (skip_queue(fn_index, config)) {
 						fire_event({
 							type: "status",
@@ -198,7 +227,8 @@ export async function client(
 							{
 								...payload,
 								session_hash
-							}
+							},
+							hf_token
 						)
 							.then(([output, status_code]) => {
 								if (status_code == 200) {
@@ -247,11 +277,15 @@ export async function client(
 							fn_index
 						});
 
-						const ws_endpoint = `${ws_protocol}://${
-							host + config.path
-						}/queue/join`;
+						let url = new URL(`${ws_protocol}://${host}${config.path}
+						/queue/join`);
 
-						websocket = new WebSocket(ws_endpoint);
+						if (jwt) {
+							url.searchParams.set("__sign", jwt);
+						}
+
+						// const { href: ws_endpoint } = url;
+						websocket = new WebSocket(url);
 
 						websocket.onclose = (evt) => {
 							if (!evt.wasClean) {
@@ -368,18 +402,65 @@ export async function client(
 	});
 }
 
-async function handle_blob(endpoint: string, file: unknown[]): Promise<void> {
-	// await upload_files(endpoint, file)
-	const blob_refs = walk_and_store_blobs(file);
+async function get_jwt(
+	space: string,
+	token: `hf_${string}`
+): Promise<string | false> {
+	try {
+		const r = await fetch(`https://huggingface.co/api/spaces/${space}/jwt`, {
+			headers: {
+				Authorization: `Bearer ${token}`
+			}
+		});
+
+		const jwt = (await r.json()).token;
+
+		return jwt || false;
+	} catch (e) {
+		console.error(e);
+		return false;
+	}
+}
+
+export async function handle_blob(
+	endpoint: string,
+	payload: { data: unknown[] },
+	token?: `hf_${string}`
+): Promise<{ data: unknown[] }> {
+	const blob_refs = walk_and_store_blobs(payload);
 
 	return new Promise((res) => {
-		res();
+		Promise.all(
+			blob_refs.map(async ({ path, blob }) => {
+				const file_url = (await upload_files(endpoint, [blob], token)).files[0];
+				return { path, file_url };
+			})
+		)
+			.then((r) => {
+				r.forEach(({ path, file_url }) => {
+					update_object(payload, `${endpoint}/file=${file_url}`, path);
+				});
+
+				res(payload);
+			})
+			.catch(console.log);
 	});
 }
 
-function walk_and_store_blobs(param, path = []) {
-	if (param instanceof Blob) {
-		return [{ path: path.join("."), blob: param }];
+function update_object(object, newValue, stack) {
+	while (stack.length > 1) {
+		object = object[stack.shift()];
+	}
+
+	object[stack.shift()] = newValue;
+}
+
+export function walk_and_store_blobs(param, path = []) {
+	// console.log(NodeBlob);
+	if (globalThis && param instanceof globalThis.Buffer) {
+		return [{ path: path, blob: new NodeBlob([param]) }];
+	} else if (param instanceof Blob) {
+		return [{ path: path, blob: param }];
 	} else if (typeof param === "object") {
 		let blob_refs = [];
 		for (let key in param) {
@@ -415,7 +496,14 @@ function skip_queue(id: number, config: Config) {
 	);
 }
 
-async function resolve_config(endpoint?: string): Promise<Config> {
+async function resolve_config(
+	endpoint?: string,
+	token?: `hf_${string}`
+): Promise<Config> {
+	const headers: { Authorization?: string } = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
 	if (
 		typeof window !== "undefined" &&
 		window.gradio_config &&
@@ -426,7 +514,7 @@ async function resolve_config(endpoint?: string): Promise<Config> {
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
-		let response = await fetch(`${endpoint}/config`);
+		let response = await fetch(`${endpoint}/config`, { headers });
 
 		if (response.status === 200) {
 			const config = await response.json();
@@ -444,7 +532,7 @@ async function resolve_config(endpoint?: string): Promise<Config> {
 async function check_space_status(
 	id: string,
 	type: "subdomain" | "space_name",
-	space_status_callback: SpaceStatusCallback
+	status_callback: SpaceStatusCallback
 ) {
 	let endpoint =
 		type === "subdomain"
@@ -460,7 +548,7 @@ async function check_space_status(
 		}
 		response = await response.json();
 	} catch (e) {
-		space_status_callback({
+		status_callback({
 			status: "error",
 			load_status: "error",
 			message: "Could not get space status",
@@ -478,7 +566,7 @@ async function check_space_status(
 	switch (stage) {
 		case "STOPPED":
 		case "SLEEPING":
-			space_status_callback({
+			status_callback({
 				status: "sleeping",
 				load_status: "pending",
 				message: "Space is asleep. Waking it up...",
@@ -486,13 +574,13 @@ async function check_space_status(
 			});
 
 			setTimeout(() => {
-				check_space_status(id, type, space_status_callback);
+				check_space_status(id, type, status_callback);
 			}, 1000);
 			break;
 		// poll for status
 		case "RUNNING":
 		case "RUNNING_BUILDING":
-			space_status_callback({
+			status_callback({
 				status: "running",
 				load_status: "complete",
 				message: "",
@@ -502,7 +590,7 @@ async function check_space_status(
 			//  launch
 			break;
 		case "BUILDING":
-			space_status_callback({
+			status_callback({
 				status: "building",
 				load_status: "pending",
 				message: "Space is building...",
@@ -510,11 +598,11 @@ async function check_space_status(
 			});
 
 			setTimeout(() => {
-				check_space_status(id, type, space_status_callback);
+				check_space_status(id, type, status_callback);
 			}, 1000);
 			break;
 		default:
-			space_status_callback({
+			status_callback({
 				status: "space_error",
 				load_status: "error",
 				message: "This space is experiencing an issue.",

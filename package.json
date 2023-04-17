@@ -18,6 +18,7 @@
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
+		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
 		"test:browser": "pnpm --filter @gradio/app test:browser:full",
 		"test:browser:full": "run-s build test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
