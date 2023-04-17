@@ -103,7 +103,9 @@
 	let transition: string = "0.5s";
 
 	$: src && _load();
-	$: if (video) {height = (video.videoHeight / video.videoWidth) * width;}
+	$: if (video) {
+		height = (video.videoHeight / video.videoWidth) * width;
+	}
 </script>
 
 <div
