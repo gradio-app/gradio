@@ -7,7 +7,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Fixed issue with old_value check in File. by [@tomchang25](https://github.com/tomchang25) in [PR 3859](https://github.com/gradio-app/gradio/pull/3859).
 
 ## Documentation Changes:
 
