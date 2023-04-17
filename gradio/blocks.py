@@ -692,6 +692,7 @@ class Blocks(BlockContext):
         self.__name__ = None
         self.api_mode = None
         self.progress_tracking = None
+        self.ssl_verify = True
 
         self.file_directories = []
 
@@ -1588,6 +1589,7 @@ Received outputs:
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
+        ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
         file_directories: List[str] | None = None,
@@ -1618,6 +1620,7 @@ Received outputs:
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+            ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
             file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
@@ -1659,6 +1662,7 @@ Received outputs:
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.ssl_verify = ssl_verify
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
@@ -1729,7 +1733,7 @@ Received outputs:
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            requests.get(f"{self.local_url}startup-events")
+            requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
 
         utils.launch_counter()
 
@@ -2017,7 +2021,9 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            utils.run_coro_in_background(
+                self._queue.start, self.progress_tracking, self.ssl_verify
+            )
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
