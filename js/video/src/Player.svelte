@@ -77,9 +77,6 @@
 		await tick();
 
 		var b = setInterval(async () => {
-			if (video.readyState >= 1) {
-				height = (video.videoHeight / video.videoWidth) * width;
-			}
 			if (video.readyState >= 3) {
 				video.currentTime = 9999;
 				paused = true;
@@ -99,23 +96,24 @@
 		checkforVideo();
 	}
 
-	$: src && _load();
-
 	let height: number;
 	let width: number;
 	let opacity: number = 0;
 	let wrap_opacity: number = 0;
 	let transition: string = "0.5s";
+
+	$: src && _load();
+	$: if (video) {height = (video.videoHeight / video.videoWidth) * width;}
 </script>
 
 <div
 	style:opacity={wrap_opacity}
 	class="wrap"
+	bind:clientHeight={height}
+	bind:clientWidth={width}
 	style:height={`${src && height}px` || `auto`}
 >
 	<video
-		bind:clientHeight={height}
-		bind:clientWidth={width}
 		{src}
 		preload="auto"
 		on:mousemove={video_move}
