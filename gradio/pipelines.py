@@ -159,6 +159,21 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
                 r["labels"][i]: r["scores"][i] for i in range(len(r["labels"]))
             },
         }
+    elif hasattr(transformers, "DocumentQuestionAnswering") and isinstance(
+        pipeline, pipelines.document_question_answering.DocumentQuestionAnsweringPipeline
+    ):        
+        pipeline_info = {
+            "inputs": [
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": [
+                components.Textbox(label="Answer"),
+                components.Label(label="Score"),
+            ],
+            "preprocess": lambda img, q: {"image": img, "question": q},
+            "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
+        }
     else:
         raise ValueError("Unsupported pipeline type: {}".format(type(pipeline)))
 
