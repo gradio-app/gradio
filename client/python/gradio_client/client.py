@@ -163,8 +163,8 @@ class Client:
             import os
             from gradio_client import Client
             HF_TOKEN = os.environ.get("HF_TOKEN")
-            client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN) 
-            client.predict("audio_sample.wav")  
+            client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
+            client.predict("audio_sample.wav")
             >> "This is a test of the whisper speech recognition model."
         """
         try:
