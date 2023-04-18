@@ -38,6 +38,10 @@ Note we pass the entire history of the chatbot to these functions and back to th
 
 Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
 
+## Improving the UI/UX of the Chatbot
+
+
+
 
 ## Adding Markdown, Images, Audio, or Videos 
 
