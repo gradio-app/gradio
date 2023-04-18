@@ -4,7 +4,7 @@ Tags: NLP, TEXT, CHAT
 
 ## Introduction
 
-Chatbots are widely used in natural language processing (NLP) research and industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts. 
+Chatbots are widely used in natural language processing (NLP) research and industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts.
 
 Using `gradio`, you can easily build a demo of your chatbot model and share that with a testing team, or test it yourself using an intuitive chatbot GUI.
 
@@ -22,7 +22,8 @@ Let's start with recreating the simple demo above. As you may have noticed, our 
 $code_chatbot_simple
 
 There are three Gradio components here:
-* A `Chatbot`, whose value stores the entire history of the conversation, as a list of response pairs between the user and bot. 
+
+* A `Chatbot`, whose value stores the entire history of the conversation, as a list of response pairs between the user and bot.
 * A `Textbox` where the user can type their message, and then hit enter/submit to trigger the chatbot response
 * A `Clear` button to clear the entire Chatbot history
 
@@ -38,10 +39,9 @@ Note we pass the entire history of the chatbot to these functions and back to th
 
 Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
 
+## Adding Markdown, Images, Audio, or Videos
 
-## Adding Markdown, Images, Audio, or Videos 
-
-The `gradio.Chatbot` component supports a subset of markdown including bold, italics, and code. For example, we could write a function that responds to a user's message, with a bold **That's cool!**, like this:
+The `gr.Chatbot` component supports a subset of markdown including bold, italics, and code. For example, we could write a function that responds to a user's message, with a bold **That's cool!**, like this:
 
 ```py
 def bot(history):
@@ -60,8 +60,7 @@ def add_file(history, file):
 
 Putting this together, we can create a *multimodal* chatbot with a textbox for a user to submit text and an file upload button to submit images / audio / video files. The rest of the code looks pretty much the same as before:
 
-
 $code_chatbot_multimodal
 $demo_chatbot_multimodal
 
-And you're done! That's all the code you need to build an interface for your chatbot model. 
+And you're done! That's all the code you need to build an interface for your chatbot model.
