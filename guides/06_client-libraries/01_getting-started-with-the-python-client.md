@@ -56,17 +56,20 @@ client = Client("abidlabs/my-private-space", hf_token="...")
 ```
 
 
-## Duplicating a Space for private use**
+## Duplicating a Space for private use
 
 While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space,
-and then use it to make as many requests as you'd like!
+and then use it to make as many requests as you'd like! 
 
-The `gradio_client` includes a class method: `Client.duplicate()` to make this process simple:
+The `gradio_client` includes a class method: `Client.duplicate()` to make this process simple (you'll need to pass in your [Hugging Face token](https://huggingface.co/settings/tokens) or be logged in using the Hugging Face CLI):
 
 ```python
+import os
 from gradio_client import Client
 
-client = Client.duplicate("abidlabs/whisper") 
+HF_TOKEN = os.environ.get("HF_TOKEN")
+
+client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN) 
 client.predict("audio_sample.wav")  
 
 >> "This is a test of the whisper speech recognition model."
