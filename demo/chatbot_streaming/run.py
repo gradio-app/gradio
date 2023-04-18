@@ -13,15 +13,16 @@ with gr.Blocks() as demo:
     def bot(history):
         bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
         history[-1][1] = ""
-        for word in bot_message:
-            history[-1][1].append(word)
-            time.sleep(0.33)
+        for character in bot_message:
+            history[-1][1] += character
+            time.sleep(0.05)
             yield history
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot, chatbot, chatbot
     )
     clear.click(lambda: None, None, chatbot, queue=False)
-
+    
+demo.queue()
 if __name__ == "__main__":
-    demo.queue().launch()
+    demo.launch()
