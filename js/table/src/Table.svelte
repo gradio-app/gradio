@@ -43,20 +43,14 @@
 
 	let editing: false | string = false;
 	let selected: false | string = false;
-	let selected_invoked: boolean = false;
 
+	const get_data_at = (row: number, col: number) => data[row][col].value;
 	$: {
-		if (selected !== false) {
-			selected_invoked = false; // Prevent data updating invoke the `select` event.
-		}
-	}
-	$: {
-		if (selected !== false && !selected_invoked) {
-			selected_invoked = true;
+		if (selected) {
 			const loc = selected.split("-");
 			const row = parseInt(loc[0]);
 			const col = parseInt(loc[1]);
-			dispatch("select", { index: [row, col], value: data[row][col].value });
+			dispatch("select", { index: [row, col], value: get_data_at(row, col) });
 		}
 	}
 	let els: Record<
