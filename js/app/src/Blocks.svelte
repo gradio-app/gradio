@@ -231,25 +231,6 @@
 		});
 	}
 
-	// app.on("data", ({ data, fn_index }) => {
-	// 	handle_update(data, fn_index);
-	// 	let status = loading_status.get_status_for_fn(fn_index);
-	// 	if (status === "complete" || status === "error") {
-	// 		dependencies.forEach((dep, i) => {
-	// 			if (
-	// 				dep.trigger_after === fn_index &&
-	// 				(!dep.trigger_only_on_success || status === "complete")
-	// 			) {
-	// 				trigger_api_call(i, null);
-	// 			}
-	// 		});
-	// 	}
-	// });
-
-	// app.on("status", ({ fn_index, ...status }) => {
-	// 	loading_status.update({ ...status, fn_index });
-	// });
-
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
 
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
