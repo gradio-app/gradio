@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List
-
+import warnings
 import pkg_resources
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -238,136 +238,6 @@ class CSVLogger(FlaggingCallback):
 @document()
 class HuggingFaceDatasetSaver(FlaggingCallback):
     """
-    A callback that saves each flagged sample (both the input and output data)
-    to a HuggingFace dataset.
-    Example:
-        import gradio as gr
-        hf_writer = gr.HuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
-        def image_classifier(inp):
-            return {'cat': 0.3, 'dog': 0.7}
-        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
-                            allow_flagging="manual", flagging_callback=hf_writer)
-    Guides: using_flagging
-    """
-
-    def __init__(
-        self,
-        hf_token: str,
-        dataset_name: str,
-        organization: str | None = None,
-        private: bool = False,
-    ):
-        """
-        Parameters:
-            hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset.
-            dataset_name: The name of the dataset to save the data to, e.g. "image-classifier-1"
-            organization: The organization to save the dataset under. The hf_token must provide write access to this organization. If not provided, saved under the name of the user corresponding to the hf_token.
-            private: Whether the dataset should be private (defaults to False).
-        """
-        self.hf_token = hf_token
-        self.dataset_name = dataset_name
-        self.organization_name = organization
-        self.dataset_private = private
-
-    def setup(self, components: List[IOComponent], flagging_dir: str):
-        """
-        Params:
-        flagging_dir (str): local directory where the dataset is cloned,
-        updated, and pushed from.
-        """
-        try:
-            import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
-            raise ImportError(
-                "Package `huggingface_hub` not found is needed "
-                "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
-            )
-        hh_version = pkg_resources.get_distribution("huggingface_hub").version
-        try:
-            if StrictVersion(hh_version) < StrictVersion("0.6.0"):
-                raise ImportError(
-                    "The `huggingface_hub` package must be version 0.6.0 or higher"
-                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
-                )
-        except ValueError:
-            pass
-        repo_id = huggingface_hub.get_full_repo_name(
-            self.dataset_name, token=self.hf_token
-        )
-        path_to_dataset_repo = huggingface_hub.create_repo(
-            repo_id=repo_id,
-            token=self.hf_token,
-            private=self.dataset_private,
-            repo_type="dataset",
-            exist_ok=True,
-        )
-        self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
-        self.components = components
-        self.flagging_dir = flagging_dir
-        self.dataset_dir = Path(flagging_dir) / self.dataset_name
-        self.repo = huggingface_hub.Repository(
-            local_dir=str(self.dataset_dir),
-            clone_from=path_to_dataset_repo,
-            use_auth_token=self.hf_token,
-        )
-        self.repo.git_pull(lfs=True)
-
-        # Should filename be user-specified?
-        self.log_file = Path(self.dataset_dir) / "data.csv"
-        self.infos_file = Path(self.dataset_dir) / "dataset_infos.json"
-
-    def flag(
-        self,
-        flag_data: List[Any],
-        flag_option: str = "",
-        username: str | None = None,
-    ) -> int:
-        self.repo.git_pull(lfs=True)
-
-        is_new = not Path(self.log_file).exists()
-
-        with open(self.log_file, "a", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-
-            # File previews for certain input and output types
-            infos, file_preview_types, headers = _get_dataset_features_info(
-                is_new, self.components
-            )
-
-            # Generate the headers and dataset_infos
-            if is_new:
-                writer.writerow(utils.sanitize_list_for_csv(headers))
-
-            # Generate the row corresponding to the flagged sample
-            csv_data = []
-            for component, sample in zip(self.components, flag_data):
-                save_dir = Path(
-                    self.dataset_dir
-                ) / client_utils.strip_invalid_filename_characters(
-                    component.label or ""
-                )
-                filepath = component.deserialize(sample, save_dir, None)
-                csv_data.append(filepath)
-                if isinstance(component, tuple(file_preview_types)):
-                    csv_data.append(
-                        "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
-                    )
-            csv_data.append(flag_option)
-            writer.writerow(utils.sanitize_list_for_csv(csv_data))
-
-        if is_new:
-            json.dump(infos, open(self.infos_file, "w"))
-
-        with open(self.log_file, "r", encoding="utf-8") as csvfile:
-            line_count = len([None for row in csv.reader(csvfile)]) - 1
-
-        self.repo.push_to_hub(commit_message="Flagged sample #{}".format(line_count))
-
-        return line_count
-
-
-class SaferHuggingFaceDatasetSaver(FlaggingCallback):
-    """
     A callback that saves each flagged sample (both the input and output data) to a HuggingFace dataset.
 
     Example:
@@ -375,7 +245,7 @@ class SaferHuggingFaceDatasetSaver(FlaggingCallback):
     ```python
     import gradio as gr
 
-    hf_writer = gr.SaferHuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
+    hf_writer = gr.HuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
 
     def image_classifier(inp):
         return {'cat': 0.3, 'dog': 0.7}
@@ -389,11 +259,13 @@ class SaferHuggingFaceDatasetSaver(FlaggingCallback):
 
     def __init__(
         self,
-        dataset_id: str,
-        hf_token: str | None = None,
+        hf_token: str,
+        dataset_name: str,
+        organization: str | None = None,
         private: bool = False,
         logs_filename: str = "data.csv",
         info_filename: str = "dataset_info.json",
+        verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
         """
         Parameters:
@@ -403,8 +275,12 @@ class SaferHuggingFaceDatasetSaver(FlaggingCallback):
             logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
         """
+        if organization is not None:
+            warnings.warn(
+                "Parameter `organization` is not used anymore. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead."
+            )
         self.hf_token = hf_token
-        self.dataset_id = dataset_id
+        self.dataset_id = dataset_name  # TODO: rename parameter (but ensure backward compatibility somehow)
         self.dataset_private = private
         self.logs_filename = logs_filename
         self.info_filename = info_filename
