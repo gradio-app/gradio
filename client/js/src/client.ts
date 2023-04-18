@@ -98,6 +98,61 @@ export async function upload_files(
 	return { files: output };
 }
 
+export async function duplicate(
+	app_reference: string,
+	options: {
+		hf_token: `hf_${string}`;
+		private?: boolean;
+		status_callback: SpaceStatusCallback;
+	}
+) {
+	const { hf_token, private: _private } = options;
+
+	const headers = {
+		Authorization: `Bearer ${hf_token}`
+	};
+
+	const user = (
+		await (
+			await fetch(`https://huggingface.co/api/whoami-v2`, {
+				headers
+			})
+		).json()
+	).name;
+
+	const space_name = app_reference.split("/")[1];
+	const body: {
+		repository: string;
+		private?: boolean;
+	} = {
+		repository: `${user}/${space_name}`
+	};
+
+	if (_private) {
+		body.private = true;
+	}
+
+	try {
+		const response = await fetch(
+			`https://huggingface.co/api/spaces/${app_reference}/duplicate`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json", ...headers },
+				body: JSON.stringify(body)
+			}
+		);
+
+		if (response.status === 409) {
+			return client(`${user}/${space_name}`, options);
+		} else {
+			const duplicated_space = await response.json();
+			return client(duplicated_space.url, options);
+		}
+	} catch (e) {
+		throw new Error(e);
+	}
+}
+
 export async function client(
 	app_reference: string,
 	options: {
