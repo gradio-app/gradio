@@ -46,7 +46,7 @@
 
 	const get_data_at = (row: number, col: number) => data[row][col].value;
 	$: {
-		if (selected) {
+		if (selected !== false) {
 			const loc = selected.split("-");
 			const row = parseInt(loc[0]);
 			const col = parseInt(loc[1]);
