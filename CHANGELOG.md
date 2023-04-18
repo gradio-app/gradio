@@ -12,7 +12,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Make use of `gr` consistent across the docs by [@duerrsimon](https://github.com/duerrsimon) in [PR XXXX](https://github.com/gradio-app/gradio/pull/)
 
 ## Testing and Infrastructure Changes:
 
