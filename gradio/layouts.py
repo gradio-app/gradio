@@ -21,7 +21,7 @@ class Row(BlockContext):
                 gr.Image("lion.jpg")
                 gr.Image("tiger.jpg")
         demo.launch()
-    Guides: controlling_layout
+    Guides: controlling-layout
     """
 
     def __init__(
@@ -89,7 +89,7 @@ class Column(BlockContext):
                 with gradio.Column(scale=4):
                     btn1 = gr.Button("Button 1")
                     btn2 = gr.Button("Button 2")
-    Guides: controlling_layout
+    Guides: controlling-layout
     """
 
     def __init__(
@@ -187,7 +187,7 @@ class Tab(BlockContext, Selectable):
             with gradio.Tab("Tiger"):
                 gr.Image("tiger.jpg")
                 gr.Button("New Tiger")
-    Guides: controlling_layout
+    Guides: controlling-layout
     """
 
     def __init__(

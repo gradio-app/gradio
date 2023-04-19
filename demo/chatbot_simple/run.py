@@ -7,18 +7,13 @@ with gr.Blocks() as demo:
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 
-    def user(user_message, history):
-        return "", history + [[user_message, None]]
-
-    def bot(history):
-        bot_message = random.choice(["Yes", "No"])
-        history[-1][1] = bot_message
+    def respond(message, chat_history):
+        bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
+        chat_history.append((message, bot_message))
         time.sleep(1)
-        return history
+        return "", chat_history
 
-    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, chatbot, chatbot
-    )
+    msg.submit(respond, [msg, chatbot], [msg, chatbot])
     clear.click(lambda: None, None, chatbot, queue=False)
 
 if __name__ == "__main__":
