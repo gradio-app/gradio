@@ -211,7 +211,7 @@
 
 	function handle_update(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
-		data.forEach((value: any, i: number) => {
+		data?.forEach((value: any, i: number) => {
 			if (
 				typeof value === "object" &&
 				value !== null &&
