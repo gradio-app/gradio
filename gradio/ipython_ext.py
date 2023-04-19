@@ -15,7 +15,9 @@ def load_ipython_extension(ipython):
     @needs_local_scope
     def blocks(line, cell, local_ns=None):
         if "gr.Interface" in cell:
-            warnings.warn("Usage of gradio.Interface with %%blocks may result in errors.")
+            warnings.warn(
+                "Usage of gradio.Interface with %%blocks may result in errors."
+            )
         with __demo.clear():
             exec(cell, None, local_ns)
             __demo.launch(quiet=True)
