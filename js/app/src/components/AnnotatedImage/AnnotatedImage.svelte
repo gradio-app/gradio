@@ -52,8 +52,6 @@
 	function handle_mouseout() {
 		active = null;
 	}
-
-	const FIXED_HEIGHT = 240;
 </script>
 
 <Block
@@ -62,9 +60,10 @@
 	{elem_classes}
 	padding={false}
 	style={{
-		height: style.height || FIXED_HEIGHT,
+		height: style.height,
 		width: style.width
 	}}
+	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
@@ -75,11 +74,15 @@
 		{:else}
 			<div class="image-container">
 				<!-- svelte-ignore a11y-missing-attribute -->
-				<img class="base-image" src={_value ? _value[0].data : null} />
+				<img
+					class="base-image"
+					class:fit-height={style.height}
+					src={_value ? _value[0].data : null}
+				/>
 				{#each _value ? _value[1] : [] as [file, label], i}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<img
-						class="mask"
+						class="mask fit-height"
 						class:active={active == label}
 						class:inactive={active != label && active != null}
 						src={file.data}
@@ -136,7 +139,7 @@
 		width: 100%;
 		overflow: hidden;
 	}
-	.image-container img {
+	.fit-height {
 		position: absolute;
 		top: 0;
 		left: 0;
