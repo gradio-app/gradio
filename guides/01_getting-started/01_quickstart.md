@@ -22,6 +22,8 @@ pip install gradio
 
 $code_hello_world
 
+We shorten the imported name to `gr` for better readability of code using Gradio. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it.
+
 3\. The demo below will appear automatically within the Jupyter Notebook, or pop in a browser on [http://localhost:7860](http://localhost:7860) if running from a script:
 
 $demo_hello_world
@@ -36,7 +38,7 @@ Note: you can also do `python app.py`, but it won't provide the automatic reload
 
 ## The `Interface` Class
 
-You'll notice that in order to make the demo, we created a `gradio.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+You'll notice that in order to make the demo, we created a `gr.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The core `Interface` class is initialized with three required parameters:
 
