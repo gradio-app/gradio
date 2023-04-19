@@ -188,7 +188,7 @@ demo2.launch()
 
 ## Iterative Outputs
 
-In some cases, you may want to show a sequence of outputs rather than a single output. For example, you might have an image generation model and you want to show the image that is generated at each step, leading up to the final image.
+In some cases, you may want to stream a sequence of outputs rather than show a single output at once. For example, you might have an image generation model and you want to show the image that is generated at each step, leading up to the final image. Or you might have a chatbot which streams its response one word at a time instead of returning it all at once.
 
 In such cases, you can supply a **generator** function into Gradio instead of a regular function. Creating generators in Python is very simple: instead of a single `return` value, a function should `yield` a series of values instead. Usually the `yield` statement is put in some kind of loop. Here's an example of an generator that simply counts up to a given number:
 

@@ -171,7 +171,7 @@ class CSVLogger(FlaggingCallback):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             flagging_callback=CSVLogger())
-    Guides: using_flagging
+    Guides: using-flagging
     """
 
     def __init__(self):
@@ -246,7 +246,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             allow_flagging="manual", flagging_callback=hf_writer)
-    Guides: using_flagging
+    Guides: using-flagging
     """
 
     def __init__(
@@ -382,7 +382,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             allow_flagging="manual", flagging_callback=hf_writer)
-    Guides: using_flagging
+    Guides: using-flagging
     """
 
     def __init__(
