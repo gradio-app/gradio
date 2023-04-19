@@ -13,7 +13,7 @@ No changes to highlight.
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Make use of `gr` consistent across the docs by [@duerrsimon](https://github.com/duerrsimon) in [PR 3901](https://github.com/gradio-app/gradio/pull/3901)
 
 ## Testing and Infrastructure Changes:
 
@@ -184,7 +184,7 @@ No changes to highlight.
 ## Bug Fixes:
 
 - Fixes Chatbot issue where new lines were being created every time a message was sent back and forth by [@aliabid94](https://github.com/aliabid94) in [PR 3717](https://github.com/gradio-app/gradio/pull/3717).
-
+- Fixes false postive warning which is due to too strict type checking by [@yiyuezhuo](https://github.com/yiyuezhuo) in [PR 3837](https://github.com/gradio-app/gradio/pull/3837).
 
 ## Documentation Changes:
 
