@@ -103,10 +103,7 @@
 	$: src && _load();
 </script>
 
-<div
-	style:opacity={wrap_opacity}
-	class="wrap"
->
+<div style:opacity={wrap_opacity} class="wrap">
 	<video
 		{src}
 		preload="auto"
