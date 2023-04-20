@@ -129,12 +129,12 @@ def override_signature(name, signature):
                 cls["override_signature"] = signature
 
 
-override_signature("Blocks", "with gradio.Blocks():")
-override_signature("Row", "with gradio.Row():")
-override_signature("Column", "with gradio.Column():")
-override_signature("Tab", "with gradio.Tab():")
-override_signature("Group", "with gradio.Group():")
-override_signature("Box", "with gradio.Box():")
+override_signature("Blocks", "with gr.Blocks():")
+override_signature("Row", "with gr.Row():")
+override_signature("Column", "with gr.Column():")
+override_signature("Tab", "with gr.Tab():")
+override_signature("Group", "with gr.Group():")
+override_signature("Box", "with gr.Box():")
 override_signature("Dataset", "gr.Dataset(components, samples)")
 
 
