@@ -283,6 +283,10 @@ class TestRoutes:
         response = test_client.get(r"/file=not-here.js")
         assert response.status_code == 404
 
+    def test_dynamic_file_directory(self, test_client):
+        response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
+
     def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
         with gr.Blocks() as demo:
             with gr.Row():

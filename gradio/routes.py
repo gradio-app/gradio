@@ -318,6 +318,9 @@ class App(FastAPI):
             if in_app_dir or created_by_app or in_file_dir or was_uploaded:
                 if not abs_path.exists():
                     raise HTTPException(404, "File not found")
+                if abs_path.is_dir():
+                    raise HTTPException(403)
+
                 range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
