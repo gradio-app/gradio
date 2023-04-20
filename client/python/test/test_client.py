@@ -157,6 +157,15 @@ class TestPredictionsFromSpaces:
         )
         assert pathlib.Path(job.result()).exists()
 
+    def test_progress_updates(self):
+        client = Client(src="gradio-tests/progress-tracker")
+        job = client.submit("hello", api_name="/predict")
+        statuses = []
+        while not job.done():
+            statuses.append(job.status().code)
+            time.sleep(0.05)
+        assert any(s == Status.PROGRESS for s in statuses)
+
     @pytest.mark.flaky
     def test_cancel_from_client_queued(self):
         client = Client(src="gradio-tests/test-cancel-from-client")
@@ -284,6 +293,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.SENDING_DATA,
@@ -292,6 +302,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now + timedelta(seconds=1),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -300,6 +311,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -308,6 +320,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.ITERATING,
@@ -316,6 +329,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -324,6 +338,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -362,6 +377,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -370,6 +386,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -381,6 +398,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -389,6 +407,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
         ]
 

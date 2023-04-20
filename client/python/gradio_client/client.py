@@ -973,6 +973,7 @@ class Job(Future):
                 success=False,
                 time=time,
                 eta=None,
+                progress_data=None,
             )
         if self.done():
             if not self.future._exception:  # type: ignore
@@ -983,6 +984,7 @@ class Job(Future):
                     success=True,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 return StatusUpdate(
@@ -992,6 +994,7 @@ class Job(Future):
                     success=False,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
         else:
             if not self.communicator:
@@ -1002,6 +1005,7 @@ class Job(Future):
                     success=None,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 with self.communicator.lock:
