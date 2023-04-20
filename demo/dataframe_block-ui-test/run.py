@@ -12,4 +12,4 @@ with gr.Blocks() as demo:
         outputs=[data],
     )
 
-# demo.launch()
+demo.launch()
