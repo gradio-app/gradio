@@ -162,9 +162,10 @@ class TestPredictionsFromSpaces:
         job = client.submit("hello", api_name="/predict")
         statuses = []
         while not job.done():
-            statuses.append(job.status().code)
+            statuses.append(job.status())
             time.sleep(0.05)
-        assert any(s == Status.PROGRESS for s in statuses)
+        assert any(s.code == Status.PROGRESS for s in statuses)
+        assert any(s.progress_data is not None for s in statuses)
 
     @pytest.mark.flaky
     def test_cancel_from_client_queued(self):

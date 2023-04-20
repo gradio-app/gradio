@@ -21,7 +21,6 @@ import httpx
 import huggingface_hub
 import requests
 from huggingface_hub import SpaceStage
-from pydantic import BaseModel
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "/api/predict/"
@@ -119,17 +118,26 @@ class Status(Enum):
         }[msg]
 
 
-class ProgressUnit(BaseModel):
+@dataclass
+class ProgressUnit:
     index: Optional[int]
     length: Optional[int]
     unit: Optional[str]
     progress: Optional[float]
     desc: Optional[str]
 
-
-class Progress(BaseModel):
-    msg: str = "progress"
-    progress_data: List[ProgressUnit]
+    @classmethod
+    def from_ws_msg(cls, data: List[Dict]) -> List["ProgressUnit"]:
+        return [
+            cls(
+                index=d.get("index"),
+                length=d.get("length"),
+                unit=d.get("unit"),
+                progress=d.get("progress"),
+                desc=d.get("desc"),
+            )
+            for d in data
+        ]
 
 
 @dataclass
@@ -142,7 +150,7 @@ class StatusUpdate:
     eta: float | None
     success: bool | None
     time: datetime | None
-    progress_data: Progress | None
+    progress_data: List[ProgressUnit] | None
 
 
 def create_initial_status_update():
@@ -236,7 +244,9 @@ async def get_pred_from_ws(
                     success=resp.get("success"),
                     time=datetime.now(),
                     eta=resp.get("rank_eta"),
-                    progress_data=Progress.parse_obj(resp) if has_progress else None,
+                    progress_data=ProgressUnit.from_ws_msg(resp["progress_data"])
+                    if has_progress
+                    else None,
                 )
                 output = resp.get("output", {}).get("data", [])
                 if output and status_update.code != Status.FINISHED:
