@@ -584,12 +584,27 @@ class TestAbspath:
         resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
         assert ".." not in resolved_path
 
-    @mock.patch(
-        "pathlib.Path.is_symlink", return_value=True
-    )  # Have to patch since Windows doesn't allow creation of sym links without administrative privileges
-    def test_abspath_symlink(self, mock_islink):
-        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
-        assert ".." in resolved_path
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"),
+        reason="Windows doesn't allow creation of sym links without administrative privileges",
+    )
+    def test_abspath_symlink_path(self):
+        os.symlink("gradio/test_data", "gradio/test_link", True)
+        resolved_path = str(abspath("../gradio/gradio/test_link/lion.jpg"))
+        os.unlink("gradio/test_link")
+        assert "test_link" in resolved_path
+
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"),
+        reason="Windows doesn't allow creation of sym links without administrative privileges",
+    )
+    def test_abspath_symlink_dir(self):
+        os.symlink("gradio/test_data", "gradio/test_link", True)
+        full_path = os.path.join(os.getcwd(), "gradio/test_link/lion.jpg")
+        resolved_path = str(abspath(full_path))
+        os.unlink("gradio/test_link")
+        assert "test_link" in resolved_path
+        assert full_path == resolved_path
 
 
 class TestGetTypeHints:

@@ -935,10 +935,20 @@ def tex2svg(formula, *args):
 
 def abspath(path: str | Path) -> Path:
     """Returns absolute path of a str or Path path, but does not resolve symlinks."""
-    if Path(path).is_symlink():
+    path = Path(path)
+
+    if path.is_absolute():
+        return path
+
+    # recursively check if there is a symlink within the path
+    is_symlink = path.is_symlink() or any(
+        parent.is_symlink() for parent in path.parents
+    )
+
+    if is_symlink or path == path.resolve():  # in case path couldn't be resolved
         return Path.cwd() / path
     else:
-        return Path(path).resolve()
+        return path.resolve()
 
 
 def get_serializer_name(block: Block) -> str | None:
