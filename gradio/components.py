@@ -385,7 +385,7 @@ class Textbox(
     Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
     def __init__(
@@ -813,7 +813,7 @@ class Slider(
     Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
-    Guides: create_your_own_friends_with_a_gan
+    Guides: create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -1654,7 +1654,7 @@ class Image(
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -2333,7 +2333,7 @@ class Audio(
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
-    Guides: real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     def __init__(
@@ -3257,7 +3257,7 @@ class State(IOComponent, SimpleSerializable):
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
     Demos: blocks_simple_squares
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     allow_string_shortcut = False
@@ -3651,7 +3651,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
 
     Demos: main_note, titanic_survival
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary-app
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3796,7 +3796,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
-    Guides: named_entity_recognition
+    Guides: named-entity-recognition
     """
 
     def __init__(
@@ -4251,7 +4251,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
     Postprocessing: expects a valid HTML {str}.
 
     Demos: text_analysis
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -4496,6 +4496,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
+    Guides: creating-a-chatbot
     """
 
     def __init__(
@@ -4685,7 +4686,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
 
     Demos: model3D
-    Guides: how_to_use_3D_model_component
+    Guides: how-to-use-3D-model-component
     """
 
     def __init__(
@@ -4813,7 +4814,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
-    Guides: plot_component_for_maps
+    Guides: plot-component-for-maps
     """
 
     def __init__(
@@ -4938,7 +4939,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
-    Guides: creating_a_dashboard_from_bigquery_data
+    Guides: creating-a-dashboard-from-bigquery-data
     """
 
     def __init__(
@@ -5938,7 +5939,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
     Demos: blocks_hello, blocks_kinematics
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -6232,7 +6233,7 @@ class Interpretation(Component, SimpleSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {dict} with keys "original" and "interpretation".
 
-    Guides: custom_interpretations_with_blocks
+    Guides: custom-interpretations-with-blocks
     """
 
     def __init__(
