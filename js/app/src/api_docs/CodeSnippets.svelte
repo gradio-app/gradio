@@ -68,6 +68,39 @@ result = client.predict(<!--
 )
 print(result)</pre>
 				</div>
+			{:else if current_language === "javascript"}
+			<div class="copy">
+				<CopyButton code={js_code?.innerText} />
+			</div>
+			<div bind:this={js_code}>
+				<pre>import &lbrace; client &rbrace; from "@gradio/client";
+					
+const app = await client(<span class="token string">"{root}"</span>);
+const result = await app.predict(&lbrace;data: [<!--
+-->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
+        -->
+		<span
+		class="example-inputs"
+		>{represent_value(example_input, type_python, "py")}</span
+	>,<!--
+-->{#if dependency_failures[dependency_index][i]}<!--
+--><span
+			class="error">ERROR</span
+		><!--
+-->{/if}<!--
+--><span class="desc"
+		><!--
+-->	// {type_python} <!--
+-->representing {type_description} in '{label}' <!--
+-->{component} component<!--
+--></span
+	><!--
+-->,
+{/each}
+]{#if !named}, fn_index: {dependency_index}{/if}&rbrace;{#if named}, "/{dependency.api_name}"{/if});
+</pre>
+			</div>
+
 			{/if}
 		</code>
 	</Block>

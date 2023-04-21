@@ -31,8 +31,8 @@
 	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
-		["python", python]
-		// ["javascript", javascript]
+		["python", python],
+		["javascript", javascript]
 	] as const;
 
 	let is_running = false;
@@ -142,9 +142,12 @@
 			<div class="client-doc">
 				<h2>
 					Use the <a
-						href="https://pypi.org/project/gradio-client/"
+						href="https://gradio.app/docs/#python-client"
 						target="_blank"><code class="library">gradio_client</code></a
-					> Python library to query the demo via API.
+					> Python library or the <a
+					href="https://gradio.app/docs/#javascript-client"
+					target="_blank"><code class="library">@gradio/client</code></a
+				> Javascript package to query the demo via API.
 				</h2>
 			</div>
 			<div class="endpoint">
