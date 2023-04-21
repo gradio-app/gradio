@@ -2,6 +2,8 @@ import inspect
 import time
 from typing import Iterable
 
+from gradio_client.documentation import document_fn
+
 import gradio as gr
 
 themes = [
@@ -16,10 +18,8 @@ sizes = gr.themes.Size.all
 
 palette_range = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]
 size_range = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl"]
-docs_theme_core = gr.documentation.document_fn(gr.themes.Base.__init__, gr.themes.Base)[
-    1
-]
-docs_theme_vars = gr.documentation.document_fn(gr.themes.Base.set, gr.themes.Base)[1]
+docs_theme_core = document_fn(gr.themes.Base.__init__, gr.themes.Base)[1]
+docs_theme_vars = document_fn(gr.themes.Base.set, gr.themes.Base)[1]
 
 
 def get_docstr(var):

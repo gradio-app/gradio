@@ -18,15 +18,29 @@ from typing import Any, Callable, Dict, List, Tuple
 
 import fsspec.asyn
 import httpx
+import huggingface_hub
 import requests
+from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "/api/predict/"
 WS_URL = "/queue/join"
 UPLOAD_URL = "/upload"
+CONFIG_URL = "/config"
+API_INFO_URL = "/info"
+RAW_API_INFO_URL = "/info?serialize=False"
+SPACE_FETCHER_URL = "https://gradio-space-api-fetcher.hf.space/api"
 RESET_URL = "/reset"
-DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+SPACE_URL = "https://hf.space/{}"
+
 STATE_COMPONENT = "state"
+INVALID_RUNTIME = [
+    SpaceStage.NO_APP_FILE,
+    SpaceStage.CONFIG_ERROR,
+    SpaceStage.BUILD_ERROR,
+    SpaceStage.RUNTIME_ERROR,
+    SpaceStage.PAUSED,
+]
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -45,6 +59,12 @@ class QueueError(Exception):
 
 class InvalidAPIEndpointError(Exception):
     """Raised when the API endpoint is invalid."""
+
+    pass
+
+
+class SpaceDuplicationError(Exception):
+    """Raised when something goes wrong with a Space Duplication."""
 
     pass
 
@@ -258,6 +278,8 @@ def create_tmp_copy_of_file(
 
 
 def get_mimetype(filename: str) -> str | None:
+    if filename.endswith(".vtt"):
+        return "text/vtt"
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
@@ -277,11 +299,11 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
-def encode_file_to_base64(f):
+def encode_file_to_base64(f: str | Path):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
         base64_str = str(encoded_string, "utf-8")
-        mimetype = get_mimetype(f)
+        mimetype = get_mimetype(str(f))
         return (
             "data:"
             + (mimetype if mimetype is not None else "")
@@ -290,7 +312,7 @@ def encode_file_to_base64(f):
         )
 
 
-def encode_url_to_base64(url):
+def encode_url_to_base64(url: str):
     encoded_string = base64.b64encode(requests.get(url).content)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
@@ -307,7 +329,7 @@ def encode_url_or_file_to_base64(path: str | Path):
         return encode_file_to_base64(path)
 
 
-def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
+def decode_base64_to_binary(encoding: str) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
     try:
         data = encoding.split(",")[1]
@@ -329,7 +351,21 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
-def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
+def sanitize_parameter_names(original_param_name: str) -> str:
+    """Strips invalid characters from a parameter name and replaces spaces with underscores."""
+    return (
+        "".join([char for char in original_param_name if char.isalnum() or char in " "])
+        .replace(" ", "_")
+        .lower()
+    )
+
+
+def decode_base64_to_file(
+    encoding: str,
+    file_path: str | None = None,
+    dir: str | Path | None = None,
+    prefix: str | None = None,
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
@@ -357,7 +393,7 @@ def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
     return file_obj
 
 
-def dict_or_str_to_json_file(jsn, dir=None):
+def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
 
@@ -371,9 +407,36 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path: str | Path) -> Dict:
+def file_to_json(file_path: str | Path) -> Dict | List:
     with open(file_path) as f:
         return json.load(f)
+
+
+###########################
+# HuggingFace Hub API Utils
+###########################
+def set_space_timeout(
+    space_id: str,
+    hf_token: str | None = None,
+    timeout_in_seconds: int = 300,
+):
+    headers = huggingface_hub.utils.build_hf_headers(
+        token=hf_token,
+        library_name="gradio_client",
+        library_version=__version__,
+    )
+    r = requests.post(
+        f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
+        json={"seconds": timeout_in_seconds},
+        headers=headers,
+    )
+    try:
+        huggingface_hub.utils.hf_raise_for_status(r)
+    except huggingface_hub.utils.HfHubHTTPError:
+        raise SpaceDuplicationError(
+            f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
+            "to set a timeout manually to reduce billing charges."
+        )
 
 
 ########################
