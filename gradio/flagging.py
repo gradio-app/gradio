@@ -208,8 +208,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
     def __init__(
         self,
-        hf_token: str,
-        dataset_name: str,
+        hf_token: str | None = None,
+        dataset_name: str | None = None,
         organization: str | None = None,
         private: bool = False,
         logs_filename: str = "data.csv",
@@ -218,7 +218,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         """
         Parameters:
             hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset (defaults to the registered one).
-            dataset_name: The repo_id of the dataset to save the data to, e.g. "image-classifier-1" or "username/image-classifier-1".
+            dataset_name: The repo_id of the dataset to save the data to, e.g. "image-classifier-1" or "username/image-classifier-1". If None, a random name will be generated.
             private: Whether the dataset should be private (defaults to False).
             logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
@@ -228,7 +228,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 "Parameter `organization` is not used anymore. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead."
             )
         self.hf_token = hf_token
-        self.dataset_id = dataset_name
+        self.dataset_id = dataset_name or self._get_unique_name()
         self.dataset_private = private
         self.logs_filename = logs_filename
         self.info_filename = info_filename
@@ -385,6 +385,10 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
         return infos, file_preview_types, headers
 
+    def _get_unique_name(self):
+        id = uuid.uuid4()
+        return str(id)
+
 
 @document()
 class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
@@ -404,8 +408,8 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
 
     def __init__(
         self,
-        hf_token: str,
-        dataset_name: str,
+        hf_token: str | None = None,
+        dataset_name: str | None = None,
         organization: str | None = None,
         private: bool = False,
         info_filename: str = "dataset_info.json",
@@ -435,7 +439,7 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
         username: str | None = None,
     ) -> int:
         # Generate unique folder for the flagged sample
-        unique_name = self.get_unique_name()  # unique name for folder
+        unique_name = self._get_unique_name()  # unique name for folder
         folder_name = (
             Path(self.dataset_dir) / unique_name
         )  # unique folder for specific example
@@ -504,10 +508,6 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
             token=self.hf_token,
         )
         return sample_nb
-
-    def get_unique_name(self):
-        id = uuid.uuid4()
-        return str(id)
 
     def dump_json(self, thing: dict, file_path: str | Path) -> None:
         with open(file_path, "w+", encoding="utf8") as f:
