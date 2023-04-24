@@ -19,6 +19,7 @@ No changes to highlight.
 ## Documentation Changes:
 
 - Make use of `gr` consistent across the docs by [@duerrsimon](https://github.com/duerrsimon) in [PR 3901](https://github.com/gradio-app/gradio/pull/3901)
+- Fixed typo in theming-guide.md by [@eltociear](https://github.com/eltociear) in [PR 3952](https://github.com/gradio-app/gradio/pull/3952)
 
 ## Testing and Infrastructure Changes:
 

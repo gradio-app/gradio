@@ -191,7 +191,7 @@ Your IDE type hinting should help you navigate these variables. Since there are 
 
 ### CSS Variable Naming Conventions
 
-CSS variable names can get quite long, like `button_primary_background_fill_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Seperated by underscores, the variable name is made up of:
+CSS variable names can get quite long, like `button_primary_background_fill_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Separated by underscores, the variable name is made up of:
 
 1. The target element, such as `button`, `slider`, or `block`.
 2. The target element type or sub-element, such as `button_primary`, or `block_label`.
