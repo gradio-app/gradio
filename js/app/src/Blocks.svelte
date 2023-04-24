@@ -7,14 +7,14 @@
 	import {
 		create_loading_status_store,
 		app_state,
-		LoadingStatusCollection,
+		LoadingStatusCollection
 	} from "./stores";
 
 	import type {
 		ComponentMeta,
 		Dependency,
 		LayoutNode,
-		Documentation,
+		Documentation
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -51,7 +51,7 @@
 		props: {},
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"],
+		component: {} as ComponentMeta["component"]
 	};
 
 	components.push(rootNode);
@@ -157,7 +157,7 @@
 				const c = await component_map[name]();
 				res({
 					name,
-					component: c as LoadedComponent,
+					component: c as LoadedComponent
 				});
 			} catch (e) {
 				console.error("failed to load: " + name);
@@ -258,7 +258,7 @@
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null,
+			event_data: dep.collects_event_data ? event_data : null
 		};
 
 		if (dep.frontend_fn) {
@@ -321,7 +321,7 @@
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
 				t,
-				instance_map[t],
+				instance_map[t]
 			]);
 
 			// page events
