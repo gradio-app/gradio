@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, List
 
 import filelock
+import huggingface_hub
 import pkg_resources
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-import huggingface_hub
 
 import gradio as gr
 from gradio import utils
@@ -214,7 +214,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         private: bool = False,
         logs_filename: str = "data.csv",
         info_filename: str = "dataset_info.json",
-        separate_dir: bool = False
+        separate_dir: bool = False,
     ):
         """
         Parameters:
@@ -223,7 +223,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             private: Whether the dataset should be private (defaults to False).
             logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
-            separate_dir: If True, saves each flagged sample in a separate directory with its own JSONL file instead of a shared CSV file. 
+            separate_dir: If True, saves each flagged sample in a separate directory with its own JSONL file instead of a shared CSV file.
         """
         if organization is not None:
             warnings.warn(
@@ -293,20 +293,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             pass
 
     def flag(
-        self, 
-        flag_data: List[Any], 
-        flag_option: str = "",
-        username: str | None = None
+        self, flag_data: List[Any], flag_option: str = "", username: str | None = None
     ) -> int:
         # Only 1 user can flag at a time
         with filelock.FileLock(self.lock_file):
             return self._flag_thread_safe(flag_data, flag_option)
 
-    def _flag_thread_safe(
-        self, 
-        flag_data: List[Any], 
-        flag_option: str = ""
-    ) -> int:
+    def _flag_thread_safe(self, flag_data: List[Any], flag_option: str = "") -> int:
         is_new = not self.log_file.exists()
 
         with self.log_file.open("a", newline="", encoding="utf-8") as csvfile:
@@ -437,7 +430,7 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
             private: Whether the dataset should be private (defaults to False).
             logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
-            separate_dir: If True, saves each flagged sample in a separate directory with its own JSONL file instead of a shared CSV file. 
+            separate_dir: If True, saves each flagged sample in a separate directory with its own JSONL file instead of a shared CSV file.
         """
         super().__init__(
             hf_token=hf_token,
@@ -448,7 +441,7 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
             info_filename=info_filename,
             separate_dir=True,
         )
-        
+
     def flag(
         self,
         flag_data: List[Any],
@@ -502,7 +495,7 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
                     else None
                 )
             csv_data.append(filepath)
-            
+
         headers.append("flag")
         csv_data.append(flag_option)
 
