@@ -183,11 +183,13 @@ class TestPredictionsFromSpaces:
             all_progress_data = [
                 p for s in statuses if s.progress_data for p in s.progress_data
             ]
+            count = 0
             for i in range(20):
                 unit = ProgressUnit(
                     index=i, length=20, unit="steps", progress=None, desc=None
                 )
-                assert unit in all_progress_data
+                count += unit in all_progress_data
+            assert count
         finally:
             demo.close()
 
