@@ -148,7 +148,7 @@ export async function duplicate(
 			const duplicated_space = await response.json();
 			return client(duplicated_space.url, options);
 		}
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e);
 	}
 }
