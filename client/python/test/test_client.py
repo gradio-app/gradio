@@ -8,12 +8,13 @@ from concurrent.futures import CancelledError, TimeoutError
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
+import gradio as gr
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
-from gradio_client.utils import Communicator, Status, StatusUpdate
+from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
@@ -96,6 +97,7 @@ class TestPredictionsFromSpaces:
             statuses.append(job.status())
         statuses.append(job.status())
         assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+        assert not any(s.progress_data for s in statuses)
 
     @pytest.mark.flaky
     def test_intermediate_outputs(
@@ -156,6 +158,40 @@ class TestPredictionsFromSpaces:
             fn_index=0,
         )
         assert pathlib.Path(job.result()).exists()
+
+    def test_progress_updates(self):
+        def my_function(x, progress=gr.Progress()):
+            progress(0, desc="Starting...")
+            for i in progress.tqdm(range(20)):
+                time.sleep(0.1)
+            return x
+
+        demo = gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue(
+            concurrency_count=20
+        )
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+
+        try:
+            client = Client(src=local_url)
+            job = client.submit("hello", api_name="/predict")
+            statuses = []
+            while not job.done():
+                statuses.append(job.status())
+                time.sleep(0.02)
+            assert any(s.code == Status.PROGRESS for s in statuses)
+            assert any(s.progress_data is not None for s in statuses)
+            all_progress_data = [
+                p for s in statuses if s.progress_data for p in s.progress_data
+            ]
+            count = 0
+            for i in range(20):
+                unit = ProgressUnit(
+                    index=i, length=20, unit="steps", progress=None, desc=None
+                )
+                count += unit in all_progress_data
+            assert count
+        finally:
+            demo.close()
 
     @pytest.mark.flaky
     def test_cancel_from_client_queued(self):
@@ -284,6 +320,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.SENDING_DATA,
@@ -292,6 +329,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now + timedelta(seconds=1),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -300,6 +338,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -308,6 +347,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.ITERATING,
@@ -316,6 +356,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -324,6 +365,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -362,6 +404,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -370,6 +413,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -381,6 +425,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -389,6 +434,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
         ]
 
