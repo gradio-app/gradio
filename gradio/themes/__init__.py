@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import warnings
+from typing import Dict
+
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.default import Default
 from gradio.themes.glass import Glass
@@ -20,6 +25,8 @@ __all__ = [
     "Soft",
     "ThemeClass",
     "colors",
+    "is_custom_theme",
+    "resolve_theme",
     "sizes",
 ]
 
@@ -28,3 +35,58 @@ def builder(*args, **kwargs):
     from gradio.themes.builder import demo
 
     return demo.launch(*args, **kwargs)
+
+
+_built_in_themes: Dict[str, ThemeClass] = {
+    t.name: t
+    for t in [
+        Base(),
+        Default(),
+        Monochrome(),
+        Soft(),
+        Glass(),
+    ]
+}
+
+
+def resolve_theme(theme: ThemeClass | str | None) -> ThemeClass:
+    """
+    Resolve a theme reference to a Theme object.
+
+    Args:
+        theme: A theme reference. Can be a theme object, a string referring to a built-in theme or a hub reference, or None. In case of None, the default theme is returned.
+
+    Returns:
+        A theme object.
+    """
+    if theme is None:
+        return Default()
+    if isinstance(theme, str):
+        if theme.lower() in _built_in_themes:
+            return _built_in_themes[theme.lower()]
+        try:
+            return ThemeClass.from_hub(theme)
+        except Exception as e:
+            warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
+            theme = Default()
+    if not isinstance(theme, ThemeClass):
+        warnings.warn("Theme should be a class loaded from gradio.themes")
+        theme = Default()
+    return theme
+
+
+def is_custom_theme(theme: ThemeClass) -> bool:
+    """
+    Find out whether the given theme differs from any of the built-in themes.
+
+    Args:
+        theme: The theme.
+
+    Returns:
+        True if the theme is custom, False otherwise.
+    """
+    t_dict = theme.to_dict()
+    return not any(
+        t_dict == built_in_theme.to_dict()
+        for built_in_theme in _built_in_themes.values()
+    )

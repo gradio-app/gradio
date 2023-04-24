@@ -29,15 +29,14 @@ from gradio import (
     queueing,
     routes,
     strings,
-    themes,
     utils,
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import EventData, create_tracker, skip, special_args
-from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
+from gradio.themes import is_custom_theme, resolve_theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     GRADIO_VERSION,
@@ -55,17 +54,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component
-
-BUILT_IN_THEMES: Dict[str, Theme] = {
-    t.name: t
-    for t in [
-        themes.Base(),
-        themes.Default(),
-        themes.Monochrome(),
-        themes.Soft(),
-        themes.Glass(),
-    ]
-}
 
 
 class Block:
@@ -626,23 +614,9 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        if theme is None:
-            theme = DefaultTheme()
-        elif isinstance(theme, str):
-            if theme.lower() in BUILT_IN_THEMES:
-                theme = BUILT_IN_THEMES[theme.lower()]
-            else:
-                try:
-                    theme = Theme.from_hub(theme)
-                except Exception as e:
-                    warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-                    theme = DefaultTheme()
-        if not isinstance(theme, Theme):
-            warnings.warn("Theme should be a class loaded from gradio.themes")
-            theme = DefaultTheme()
-        self.theme: Theme = theme
-        self.theme_css = theme._get_theme_css()
-        self.stylesheets = theme._stylesheets
+        self.theme: Theme = resolve_theme(theme)
+        self.theme_css = self.theme._get_theme_css()
+        self.stylesheets = self.theme._stylesheets
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -697,15 +671,11 @@ class Blocks(BlockContext):
         self.file_directories = []
 
         if self.analytics_enabled:
-            is_custom_theme = not any(
-                self.theme.to_dict() == built_in_theme.to_dict()
-                for built_in_theme in BUILT_IN_THEMES.values()
-            )
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
                 "theme": self.theme.name,
-                "is_custom_theme": is_custom_theme,
+                "is_custom_theme": is_custom_theme(self.theme),
                 "version": GRADIO_VERSION,
             }
             utils.initiated_analytics(data)
