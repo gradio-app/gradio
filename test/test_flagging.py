@@ -1,8 +1,7 @@
 import os
 import tempfile
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
-import huggingface_hub
 import pytest
 
 import gradio as gr
@@ -41,20 +40,27 @@ class TestSimpleFlagging:
         io.close()
 
 
+def print_all_files(directory):
+    """Print absolute paths of all files in directory"""
+    for dirpath, _, filenames in os.walk(directory):
+        for f in filenames:
+            print(os.path.abspath(os.path.join(dirpath, f)))
+
+
 class TestHuggingFaceDatasetSaver:
-    def test_saver_setup(self):
-        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
-        huggingface_hub.create_repo = MagicMock()
-        huggingface_hub.Repository = MagicMock()
-        flagger = flagging.HuggingFaceDatasetSaver("test", "test")
+    @patch("huggingface_hub.create_repo")
+    @patch("huggingface_hub.hf_hub_download")
+    def test_saver_setup(self, mock_download, mock_create):
+        flagger = flagging.HuggingFaceDatasetSaver("test_token", "test")
         with tempfile.TemporaryDirectory() as tmpdirname:
             flagger.setup([gr.Audio, gr.Textbox], tmpdirname)
-        huggingface_hub.create_repo.assert_called_once()
+        mock_create.assert_called_once()
+        mock_download.assert_called()
 
-    def test_saver_flag(self):
-        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
-        huggingface_hub.create_repo = MagicMock()
-        huggingface_hub.Repository = MagicMock()
+    @patch("huggingface_hub.create_repo")
+    @patch("huggingface_hub.hf_hub_download")
+    @patch("huggingface_hub.upload_folder")
+    def test_saver_flag(self, mock_upload, mock_download, mock_create):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
                 lambda x: x,
@@ -63,28 +69,30 @@ class TestHuggingFaceDatasetSaver:
                 flagging_dir=tmpdirname,
                 flagging_callback=flagging.HuggingFaceDatasetSaver("test", "test"),
             )
-            os.mkdir(os.path.join(tmpdirname, "test"))
-            io.launch(prevent_thread_lock=True)
             row_count = io.flagging_callback.flag(["test", "test"], "")
             assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
             assert row_count == 2  # 3 rows written including header
+            for _, _, filenames in os.walk(tmpdirname):
+                for f in filenames:
+                    fname = os.path.basename(f)
+                    assert fname == "data.csv" or fname == "dataset_info.json"
 
 
 class TestHuggingFaceDatasetJSONSaver:
-    def test_saver_setup(self):
-        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
-        huggingface_hub.create_repo = MagicMock()
-        huggingface_hub.Repository = MagicMock()
+    @patch("huggingface_hub.create_repo")
+    @patch("huggingface_hub.hf_hub_download")
+    def test_saver_setup(self, mock_download, mock_create):
         flagger = flagging.HuggingFaceDatasetJSONSaver("test", "test")
         with tempfile.TemporaryDirectory() as tmpdirname:
             flagger.setup([gr.Audio, gr.Textbox], tmpdirname)
-        huggingface_hub.create_repo.assert_called_once()
+        mock_create.assert_called_once()
+        mock_download.assert_called()
 
-    def test_saver_flag(self):
-        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
-        huggingface_hub.create_repo = MagicMock()
-        huggingface_hub.Repository = MagicMock()
+    @patch("huggingface_hub.create_repo")
+    @patch("huggingface_hub.hf_hub_download")
+    @patch("huggingface_hub.upload_folder")
+    def test_saver_flag(self, mock_upload, mock_download, mock_create):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
                 lambda x: x,
@@ -93,14 +101,15 @@ class TestHuggingFaceDatasetJSONSaver:
                 flagging_dir=tmpdirname,
                 flagging_callback=flagging.HuggingFaceDatasetJSONSaver("test", "test"),
             )
-            test_dir = os.path.join(tmpdirname, "test")
-            os.mkdir(test_dir)
-            io.launch(prevent_thread_lock=True)
-            row_unique_name = io.flagging_callback.flag(["test", "test"])
-            # Test existence of metadata.jsonl file for that example
-            assert os.path.isfile(
-                os.path.join(os.path.join(test_dir, row_unique_name), "metadata.jsonl")
-            )
+            row_count = io.flagging_callback.flag(["test", "test"], "")
+            assert row_count == 1  # 2 rows written including header
+            row_count = io.flagging_callback.flag(["test", "test"])
+            assert row_count == 2  # 3 rows written including header
+            print_all_files(tmpdirname)
+            for _, _, filenames in os.walk(tmpdirname):
+                for f in filenames:
+                    fname = os.path.basename(f)
+                    assert fname == "metadata.jsonl" or fname == "dataset_info.json"
 
 
 class TestDisableFlagging:

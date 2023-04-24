@@ -267,27 +267,17 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.infos_file = self.dataset_dir / self.info_filename
 
         # Download remote files to local
-        try:
-            huggingface_hub.hf_hub_download(
-                repo_id=self.dataset_id,
-                repo_type="dataset",
-                filename=self.logs_filename,
-                local_dir=self.dataset_dir,
-                token=self.hf_token,
-            )
-        except huggingface_hub.utils.EntryNotFoundError:
-            pass
-
-        try:
-            huggingface_hub.hf_hub_download(
-                repo_id=self.dataset_id,
-                repo_type="dataset",
-                filename=self.info_filename,
-                local_dir=self.dataset_dir,
-                token=self.hf_token,
-            )
-        except huggingface_hub.utils.EntryNotFoundError:
-            pass
+        for filename in [self.logs_filename, self.info_filename]:
+            try:
+                huggingface_hub.hf_hub_download(
+                    repo_id=self.dataset_id,
+                    repo_type="dataset",
+                    filename=filename,
+                    local_dir=self.dataset_dir,
+                    token=self.hf_token,
+                )
+            except huggingface_hub.utils.EntryNotFoundError:
+                pass
 
     def flag(
         self, flag_data: List[Any], flag_option: str = "", username: str | None = None
