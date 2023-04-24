@@ -13,7 +13,7 @@ pnpm add @gradio/client
 
 ## Usage
 
-The JavaScript Gradio Client exposes 2 named imports, `client` and `duplicate`.
+The JavaScript Gradio Client exposes two named imports, `client` and `duplicate`.
 
 ### `client`
 
@@ -25,10 +25,10 @@ The simplest example looks like this:
 import { client } from "@gradio/client";
 
 const app = await client("user/space-name");
-const result = await app.predict(payload);
+const result = await app.predict("/predict");
 ```
 
-This function accepts two parameters: `source` and `options`:
+This function accepts two arguments: `source` and `options`:
 
 #### `source`
 
@@ -60,7 +60,7 @@ This should be a function which will notify your of the status of a space if it 
 
 **Additional context**
 
-Applications hosted on Hugginface spaces can be in a number of different states, as this is a GitOps tool and will rebuild when new changes are pushed to the repository, they have various building, running and error states. If a space is not 'running' then the function passed as the `status_callback` will notify you of the current state of the space and the status of the space as it changes. Spaces that are building or sleeping can take longer than usual to respond, so you can use this information to give users feedback about the progress of their action.
+Applications hosted on Hugginface spaces can be in a number of different states. As spaces are a GitOps tool and will rebuild when new changes are pushed to the repository, they have various building, running and error states. If a space is not 'running' then the function passed as the `status_callback` will notify you of the current state of the space and the status of the space as it changes. Spaces that are building or sleeping can take longer than usual to respond, so you can use this information to give users feedback about the progress of their action.
 
 ```ts
 import { client, type SpaceStatus } from "@gradio/client";
@@ -94,26 +94,24 @@ interface SpaceStatusError {
 type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
 ```
 
-The gradio client returns an object with a number of utility methods and properties:
+The gradio client returns an object with a number of methods and properties:
 
 #### `predict`
 
-The `predict` method allows you to call an api endpoint and get a prediction:
+The `predict` method allows you to call an api endpoint and get a prediction result:
 
 ```ts
 import { client } from "@gradio/client";
 
 const app = await client("user/space-name");
-const result = await app.predict(payload);
+const result = await app.predict("/predict");
 ```
 
-`predict` accepts two parameters, `endpoint` and `payload`.
-
-It returns a promise that resolves to the prediction result.
+`predict` accepts two parameters, `endpoint` and `payload`. It returns a promise that resolves to the prediction result.
 
 ##### `endpoint`
 
-This is the endpoint for an api request and is required. The default endpoint for a `gradio.Interface` is `/predict`. Explicitly named endpoints have a custom name. The endpoint names can be found on the "View API" page of a space.
+This is the endpoint for an api request and is required. The default endpoint for a `gradio.Interface` is `"/predict"`. Explicitly named endpoints have a custom name. The endpoint names can be found on the "View API" page of a space.
 
 ```ts
 import { client } from "@gradio/client";
@@ -124,7 +122,7 @@ const result = await app.predict("/predict");
 
 ##### `payload`
 
-The `payload` argument is generally optional but this depends on the API itself. If the API endpoint depends on paramaters being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space.
+The `payload` argument is generally optional but this depends on the API itself. If the API endpoint depends on values being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space.
 
 ```ts
 import { client } from "@gradio/client";
@@ -137,7 +135,7 @@ const result = await app.predict("/predict", [1, "Hello", "friends"]);
 
 #### `submit`
 
-The submit method provides a more flexible way to call a gradio enpoint, providing you with status updates about the current progress of the prediction as well as supporting more complex endpoint types.
+The `submit` method provides a more flexible way to call an API endpoint, providing you with status updates about the current progress of the prediction as well as supporting more complex endpoint types.
 
 ```ts
 import { client } from "@gradio/client";
@@ -194,7 +192,7 @@ const submission = app
 
 ##### `off`
 
-The `off` method unsubscribes from the submitted job and works similarly to `removeEventListener`. Both the event name and the original callback must be passed in to successfully subscribe:
+The `off` method unsubscribes from a specific event of the submitted job and works similarly to `document.removeEventListener`; both the event name and the original callback must be passed in to successfully unsubscribe:
 
 ```ts
 import { client } from "@gradio/client";
@@ -210,7 +208,7 @@ submission.off("/predict", handle_data);
 
 ##### `cancel`
 
-Certain types of gradio function can run repeatedly and in some cases indefinitely. the `cancel` method will cancel that behaviour and prevent the API from issuing additional updates.
+Certain types of gradio function can run repeatedly and in some cases indefinitely. the `cancel` method will stop such an endpoints and prevent the API from issuing additional updates.
 
 ```ts
 import { client } from "@gradio/client";
@@ -227,7 +225,7 @@ submission.cancel();
 
 #### `info`
 
-The `info` method provides details about the api you are connected too. It returns a JavaScript object of all named enpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
+The `info` method provides details about the API you are connected too. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
 
 ```ts
 import { client } from "@gradio/client";
@@ -240,7 +238,7 @@ console.log(api_info);
 
 #### `config`
 
-The `config` property contain the configuration for the gradio app you are connected to. This object may contain useful meta information about the application.
+The `config` property contains the configuration for the gradio application you are connected to. This object may contain useful meta information about the application.
 
 ```ts
 import { client } from "@gradio/client";
@@ -253,7 +251,7 @@ console.log(app.config);
 
 The duplicate function will attempt to duplicate the space that is referenced and return an instance of `client` connected to that space. If the space has already been duplicated then it will not create a new duplicate and will instead connect to the existing duplicated space. The huggingface token that is passed in will dictate the user under which the space is created.
 
-`duplicate` accepts the same arguments as `client` with the addition of a `private` options property dictating whether the duplicated space should be private or public.
+`duplicate` accepts the same arguments as `client` with the addition of a `private` options property dictating whether the duplicated space should be private or public. A huggingface token is required for duplication to work.
 
 ```ts
 import { duplicate } from "@gradio/client";
@@ -263,7 +261,7 @@ const app = await duplicate("user/space-name", {
 });
 ```
 
-This function accepts two parameters: `source` and `options`:
+This function accepts two arguments: `source` and `options`:
 
 #### `source`
 
@@ -271,13 +269,13 @@ The space to duplicate and connect to. [See `client`'s `source` parameter](#sour
 
 #### `options`
 
-Accepts all options that `client` accepts. [See `client`'s `options` parameter](#source).
+Accepts all options that `client` accepts, except `hf_token` is required. [See `client`'s `options` parameter](#source).
 
-`duplicate` also acceopts one additional `options` property.
+`duplicate` also accepts one additional `options` property.
 
 ##### `private`
 
-This is an optional parameter specific to `duplicate` and will determine whether the space should be public or private. Dupliacted space are public by default.
+This is an optional parameter specific to `duplicate` and will determine whether the space should be public or private. Spaces duplicated via the `duplicate` method are public by default.
 
 ```ts
 import { duplicate } from "@gradio/client";
