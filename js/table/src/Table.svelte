@@ -44,7 +44,6 @@
 	}>();
 
 	let editing: false | string = false;
-	let selected: false | string = false;
 
 	const get_data_at = (row: number, col: number) => data[row][col].value;
 	$: {
