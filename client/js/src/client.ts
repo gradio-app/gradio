@@ -531,7 +531,7 @@ function update_object(object, newValue, stack) {
 }
 
 export function walk_and_store_blobs(param, path = []) {
-	if (globalThis && param instanceof globalThis.Buffer) {
+	if (globalThis.Buffer && param instanceof globalThis.Buffer) {
 		return [{ path: path, blob: new NodeBlob([param]) }];
 	} else if (param instanceof Blob) {
 		return [{ path: path, blob: param }];
