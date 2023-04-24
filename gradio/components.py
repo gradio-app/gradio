@@ -4581,11 +4581,11 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            image_uri = chat_message[0]
-            if utils.validate_url(image_uri):
-                filepath = image_uri
+            file_uri = chat_message[0]
+            if utils.validate_url(file_uri):
+                filepath = file_uri
             else:
-                filepath = self.make_temp_copy_if_needed(image_uri)
+                filepath = self.make_temp_copy_if_needed(file_uri)
 
             mime_type = client_utils.get_mimetype(filepath)
             return {
