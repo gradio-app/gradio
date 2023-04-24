@@ -214,7 +214,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         private: bool = False,
         logs_filename: str = "data.csv",
         info_filename: str = "dataset_info.json",
-        separate_dir: bool = False,
     ):
         """
         Parameters:
@@ -223,7 +222,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             private: Whether the dataset should be private (defaults to False).
             logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
-            separate_dir: If True, saves each flagged sample in a separate directory with its own JSONL file instead of a shared CSV file.
         """
         if organization is not None:
             warnings.warn(
@@ -234,7 +232,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.dataset_private = private
         self.logs_filename = logs_filename
         self.info_filename = info_filename
-        self.separate_dir = separate_dir
 
     def setup(self, components: List[IOComponent], flagging_dir: str):
         """
@@ -439,7 +436,6 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
             private=private,
             logs_filename="data.csv",  # HuggingFaceDatasetJSONSaver doesn't use this
             info_filename=info_filename,
-            separate_dir=True,
         )
 
     def flag(
