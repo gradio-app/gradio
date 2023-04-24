@@ -25,7 +25,7 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-No changes to highlight.
+- CI tool versions were updated by [@akx](https://github.com/akx) in [PR 3961](https://github.com/gradio-app/gradio/pull/3961)
 
 ## Breaking Changes:
 

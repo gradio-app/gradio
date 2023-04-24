@@ -27,13 +27,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Check new pypi version
       run: python scripts/check_pypi.py
     - name: Install pnpm
-      uses: pnpm/action-setup@v2.2.2
+      uses: pnpm/action-setup@v2.2.4
       with:
         version: 7
     - name: Install build tool dependencies
@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
       - name: Set release name
