@@ -3,7 +3,8 @@
 
 ## New Features:
 
-No changes to highlight.
+- You can now set the default theme for all `gr.Blocks()` that don't specify a theme with `gradio.context.Context.default_theme`.
+  Implemented by [@akx](https://github.com/akx) in [PR 3957](https://github.com/gradio-app/gradio/pull/3957)
 
 ## Bug Fixes:
 - Fix duplicate play commands in full-screen mode of 'video'. by [@tomchang25](https://github.com/tomchang25) in [PR 3968](https://github.com/gradio-app/gradio/pull/3968).

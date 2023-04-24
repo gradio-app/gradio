@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 from typing import Dict
 
+from gradio.context import Context
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.default import Default
 from gradio.themes.glass import Glass
@@ -54,13 +55,11 @@ def resolve_theme(theme: ThemeClass | str | None) -> ThemeClass:
     Resolve a theme reference to a Theme object.
 
     Args:
-        theme: A theme reference. Can be a theme object, a string referring to a built-in theme or a hub reference, or None. In case of None, the default theme is returned.
+        theme: A theme reference. Can be a theme object, a string referring to a built-in theme or a hub reference, or None. In case of None, the configured default theme is returned.
 
     Returns:
         A theme object.
     """
-    if theme is None:
-        return Default()
     if isinstance(theme, str):
         if theme.lower() in _built_in_themes:
             return _built_in_themes[theme.lower()]
@@ -68,10 +67,11 @@ def resolve_theme(theme: ThemeClass | str | None) -> ThemeClass:
             return ThemeClass.from_hub(theme)
         except Exception as e:
             warnings.warn(f"Cannot load {theme}. Caught Exception: {str(e)}")
-            theme = Default()
+            theme = None
     if not isinstance(theme, ThemeClass):
-        warnings.warn("Theme should be a class loaded from gradio.themes")
-        theme = Default()
+        if theme is not None:
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+        theme = Context.default_theme or Default()
     return theme
 
 

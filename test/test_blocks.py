@@ -22,10 +22,12 @@ from fastapi.testclient import TestClient
 from gradio_client import media_data
 
 import gradio as gr
+from gradio.context import Context
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
+from gradio.themes import Soft
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
@@ -347,6 +349,15 @@ class TestBlocksMethods:
         ):
             with gr.Blocks(theme="freddyaboulton/this-theme-does-not-exist") as demo:
                 assert demo.theme.to_dict() == gr.themes.Default().to_dict()
+
+    def test_set_default_theme_class(self, monkeypatch):
+        """
+        Test that setting Context.default_theme_class works for Blockses.
+        """
+
+        monkeypatch.setattr(Context, "default_theme_class", Soft)
+        with gr.Blocks() as demo:
+            assert demo.theme.name == "Soft"
 
     def test_exit_called_at_launch(self):
         with gr.Blocks() as demo:

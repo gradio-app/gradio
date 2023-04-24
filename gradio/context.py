@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
+    from gradio.themes import ThemeClass
 
 
 class Context:
@@ -14,3 +15,6 @@ class Context:
     id: int = 0  # Running id to uniquely refer to any block that gets defined
     ip_address: str | None = None  # The IP address of the user.
     hf_token: str | None = None  # The token provided when loading private HF repos
+
+    # The default theme to use for all blocks.
+    default_theme: ThemeClass | None = None
