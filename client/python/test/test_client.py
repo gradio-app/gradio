@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 import tempfile
+import textwrap
 import time
 import uuid
 from concurrent.futures import CancelledError, TimeoutError
@@ -666,6 +667,39 @@ class TestAPIInfo:
             },
             "unnamed_endpoints": {},
         }
+
+    def test_unnamed_endpoints_use_fn_index(self):
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            greet = gr.Button()
+            greet.click(lambda x: f"Hello {x}", name, greeting)
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+
+        expected = textwrap.dedent(
+            """Client.predict() Usage Info
+---------------------------
+Named API endpoints: 0
+
+Unnamed API endpoints: 1
+
+ - predict(parameter1, fn_index=0) -> value2
+    Parameters:
+     - [Textbox] parameter1: str (string value)
+    Returns:
+     - [Textbox] value2: str (string value)
+     """
+        )
+
+        try:
+            client = Client(src=local_url)
+            info = client.view_api(return_format="str")
+            assert info == expected
+
+        finally:
+            demo.close()
 
 
 class TestEndpoints:
