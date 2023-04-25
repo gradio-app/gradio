@@ -1,8 +1,7 @@
 import time
 
-from theme_dropdown import create_theme_dropdown  # noqa: F401
-
 import gradio as gr
+from gradio.themes.utils.theme_dropdown import create_theme_dropdown
 
 dropdown, js = create_theme_dropdown()
 

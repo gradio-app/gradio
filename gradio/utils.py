@@ -837,6 +837,14 @@ def get_cancel_function(
     )
 
 
+def get_type_hints(fn):
+    if inspect.isfunction(fn) or inspect.ismethod(fn):
+        return typing.get_type_hints(fn)
+    elif callable(fn):
+        return typing.get_type_hints(fn.__call__)
+    return {}
+
+
 def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
@@ -854,7 +862,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         return is_request or is_event_data
 
     signature = inspect.signature(fn)
-    parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
+    parameter_types = get_type_hints(fn)
     min_args = 0
     max_args = 0
     infinity = -1
@@ -927,10 +935,20 @@ def tex2svg(formula, *args):
 
 def abspath(path: str | Path) -> Path:
     """Returns absolute path of a str or Path path, but does not resolve symlinks."""
-    if Path(path).is_symlink():
+    path = Path(path)
+
+    if path.is_absolute():
+        return path
+
+    # recursively check if there is a symlink within the path
+    is_symlink = path.is_symlink() or any(
+        parent.is_symlink() for parent in path.parents
+    )
+
+    if is_symlink or path == path.resolve():  # in case path couldn't be resolved
         return Path.cwd() / path
     else:
-        return Path(path).resolve()
+        return path.resolve()
 
 
 def get_serializer_name(block: Block) -> str | None:

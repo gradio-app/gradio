@@ -35,7 +35,7 @@ from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 set_documentation_group("py-client")
 
 
-@document("predict", "submit", "view_api")
+@document("predict", "submit", "view_api", "duplicate")
 class Client:
     """
     The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
@@ -51,7 +51,6 @@ class Client:
         job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread
         job.result()
         >> 49 # returns the result of the remote API call (blocking call)
-
     """
 
     def __init__(
@@ -160,6 +159,13 @@ class Client:
             sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
+        Example:
+            import os
+            from gradio_client import Client
+            HF_TOKEN = os.environ.get("HF_TOKEN")
+            client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
+            client.predict("audio_sample.wav")
+            >> "This is a test of the whisper speech recognition model."
         """
         try:
             original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
@@ -943,7 +949,11 @@ class Job(Future):
     def status(self) -> StatusUpdate:
         """
         Returns the latest status update from the Job in the form of a StatusUpdate
-        object, which contains the following fields: code, rank, queue_size, success, time, eta.
+        object, which contains the following fields: code, rank, queue_size, success, time, eta, and progress_data.
+
+        progress_data is a list of updates emitted by the gr.Progress() tracker of the event handler. Each element
+        of the list has the following fields: index, length, unit, progress, desc. If the event handler does not have
+        a gr.Progress() tracker, the progress_data field will be None.
 
         Example:
             from gradio_client import Client
@@ -967,6 +977,7 @@ class Job(Future):
                 success=False,
                 time=time,
                 eta=None,
+                progress_data=None,
             )
         if self.done():
             if not self.future._exception:  # type: ignore
@@ -977,6 +988,7 @@ class Job(Future):
                     success=True,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 return StatusUpdate(
@@ -986,6 +998,7 @@ class Job(Future):
                     success=False,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
         else:
             if not self.communicator:
@@ -996,6 +1009,7 @@ class Job(Future):
                     success=None,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 with self.communicator.lock:
