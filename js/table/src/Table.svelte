@@ -22,6 +22,8 @@
 	export let editable = true;
 	export let wrap: boolean = false;
 
+	let selected: false | string = false;
+
 	$: {
 		if (values && !Array.isArray(values)) {
 			headers = values.headers;
@@ -29,10 +31,10 @@
 				values.data.length === 0
 					? [Array(headers.length).fill("")]
 					: values.data;
+			selected = false;
 		} else if (values === null) {
 			values = [Array(headers.length).fill("")];
-		} else {
-			values = values;
+			selected = false;
 		}
 	}
 
@@ -42,13 +44,14 @@
 	}>();
 
 	let editing: false | string = false;
-	let selected: false | string = false;
+
+	const get_data_at = (row: number, col: number) => data[row][col].value;
 	$: {
 		if (selected !== false) {
 			const loc = selected.split("-");
 			const row = parseInt(loc[0]);
 			const col = parseInt(loc[1]);
-			dispatch("select", { index: [row, col], value: data[row][col].value });
+			dispatch("select", { index: [row, col], value: get_data_at(row, col) });
 		}
 	}
 	let els: Record<

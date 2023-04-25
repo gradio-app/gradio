@@ -425,7 +425,7 @@ class Textbox(
     Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
     def __init__(
@@ -820,7 +820,7 @@ class Slider(
     Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
-    Guides: create_your_own_friends_with_a_gan
+    Guides: create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -1661,7 +1661,7 @@ class Image(
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -2334,7 +2334,7 @@ class Audio(
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
-    Guides: real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     def __init__(
@@ -3258,7 +3258,7 @@ class State(IOComponent, SimpleSerializable):
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
     Demos: blocks_simple_squares
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     allow_string_shortcut = False
@@ -3652,7 +3652,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
 
     Demos: main_note, titanic_survival
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary-app
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3797,7 +3797,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
-    Guides: named_entity_recognition
+    Guides: named-entity-recognition
     """
 
     def __init__(
@@ -3965,6 +3965,196 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
+class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
+    """
+    Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 confidence masks of the same shape as the image. A label is provided for each subsection.
+
+    Demos: image_segmentation
+    """
+
+    def __init__(
+        self,
+        value: Tuple[
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ]
+        | None = None,
+        *,
+        show_legend: bool = True,
+        label: str | None = None,
+        every: float | None = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Tuple of base image and list of (subsection, label) pairs.
+            show_legend: If True, will show a legend of the subsections.
+            label: component name in interface.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.show_legend = show_legend
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects Image subsection.
+        Uses event data gradio.SelectData to carry `value` referring to selected subsection label, and `index` to refer to subsection index.
+        See EventData documentation on how to use this event data.
+        """
+        IOComponent.__init__(
+            self,
+            label=label,
+            every=every,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "show_legend": self.show_legend,
+            "value": self.value,
+            "selectable": self.selectable,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Tuple[
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ]
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        show_legend: bool | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "show_legend": show_legend,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
+
+    def postprocess(
+        self,
+        y: Tuple[
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ],
+    ) -> Tuple[dict, List[Tuple[dict, str]]] | None:
+        """
+        Parameters:
+            y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+        Returns:
+            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
+        """
+        if y is None:
+            return None
+        base_img = y[0]
+        if isinstance(base_img, str):
+            base_img_path = base_img
+            base_img = np.array(_Image.open(base_img))
+        elif isinstance(base_img, np.ndarray):
+            base_file = processing_utils.save_array_to_file(base_img)
+            base_img_path = str(utils.abspath(base_file.name))
+        elif isinstance(base_img, _Image.Image):
+            base_file = processing_utils.save_pil_to_file(base_img)
+            base_img_path = str(utils.abspath(base_file.name))
+            base_img = np.array(base_img)
+        else:
+            raise ValueError(
+                "AnnotatedImage only accepts filepaths, PIL images or numpy arrays for the base image."
+            )
+        self.temp_files.add(base_img_path)
+
+        sections = []
+        color_map = self._style.get("color_map", {})
+
+        def hex_to_rgb(value):
+            value = value.lstrip("#")
+            lv = len(value)
+            return list(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
+        for mask, label in y[1]:
+            mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
+            if isinstance(mask, np.ndarray):
+                mask_array = mask
+            else:
+                x1, y1, x2, y2 = mask
+                BORDER_WIDTH = 3
+                mask_array[y1:y2, x1:x2] = 0.5
+                mask_array[y1:y2, x1 : x1 + BORDER_WIDTH] = 1
+                mask_array[y1:y2, x2 - BORDER_WIDTH : x2] = 1
+                mask_array[y1 : y1 + BORDER_WIDTH, x1:x2] = 1
+                mask_array[y2 - BORDER_WIDTH : y2, x1:x2] = 1
+
+            if label in color_map:
+                rgb_color = hex_to_rgb(color_map[label])
+            else:
+                rgb_color = [255, 0, 0]
+            colored_mask = np.zeros((base_img.shape[0], base_img.shape[1], 4))
+            solid_mask = np.copy(mask_array)
+            solid_mask[solid_mask > 0] = 1
+
+            colored_mask[:, :, 0] = rgb_color[0] * solid_mask
+            colored_mask[:, :, 1] = rgb_color[1] * solid_mask
+            colored_mask[:, :, 2] = rgb_color[2] * solid_mask
+            colored_mask[:, :, 3] = mask_array * 255
+
+            colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
+
+            mask_file = processing_utils.save_pil_to_file(colored_mask_img)
+            mask_file_path = str(utils.abspath(mask_file.name))
+            self.temp_files.add(mask_file_path)
+
+            sections.append(
+                ({"name": mask_file_path, "data": None, "is_file": True}, label)
+            )
+
+        return {"name": base_img_path, "data": None, "is_file": True}, sections
+
+    def style(
+        self,
+        *,
+        height: int | None = None,
+        width: int | None = None,
+        color_map: Dict[str, str] | None = None,
+        **kwargs,
+    ):
+        """
+        This method can be used to change the appearance of the Image component.
+        Parameters:
+            height: Height of the image.
+            width: Width of the image.
+            color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
+        """
+        self._style["height"] = height
+        self._style["width"] = width
+        self._style["color_map"] = color_map
+        Component.style(
+            self,
+            **kwargs,
+        )
+        return self
+
+
+@document("style")
 class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
@@ -4062,7 +4252,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
     Postprocessing: expects a valid HTML {str}.
 
     Demos: text_analysis
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -4307,6 +4497,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
+    Guides: creating-a-chatbot
     """
 
     def __init__(
@@ -4424,9 +4615,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            filepath = chat_message[0]
+            file_uri = chat_message[0]
+            if utils.validate_url(file_uri):
+                filepath = file_uri
+            else:
+                filepath = self.make_temp_copy_if_needed(file_uri)
+
             mime_type = client_utils.get_mimetype(filepath)
-            filepath = self.make_temp_copy_if_needed(filepath)
             return {
                 "name": filepath,
                 "mime_type": mime_type,
@@ -4496,7 +4691,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
 
     Demos: model3D
-    Guides: how_to_use_3D_model_component
+    Guides: how-to-use-3D-model-component
     """
 
     def __init__(
@@ -4624,7 +4819,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
-    Guides: plot_component_for_maps
+    Guides: plot-component-for-maps
     """
 
     def __init__(
@@ -4749,7 +4944,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
-    Guides: creating_a_dashboard_from_bigquery_data
+    Guides: creating-a-dashboard-from-bigquery-data
     """
 
     def __init__(
@@ -5749,7 +5944,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
     Demos: blocks_hello, blocks_kinematics
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -6043,7 +6238,7 @@ class Interpretation(Component, SimpleSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {dict} with keys "original" and "interpretation".
 
-    Guides: custom_interpretations_with_blocks
+    Guides: custom-interpretations-with-blocks
     """
 
     def __init__(
@@ -6129,6 +6324,7 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
 Text = Textbox
 DataFrame = Dataframe
 Highlightedtext = HighlightedText
+Annotatedimage = AnnotatedImage
 Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries

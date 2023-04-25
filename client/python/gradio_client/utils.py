@@ -14,7 +14,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import fsspec.asyn
 import httpx
@@ -77,8 +77,9 @@ class Status(Enum):
     QUEUE_FULL = "QUEUE_FULL"
     IN_QUEUE = "IN_QUEUE"
     SENDING_DATA = "SENDING_DATA"
-    PROCESSING = "PROCESSSING"
+    PROCESSING = "PROCESSING"
     ITERATING = "ITERATING"
+    PROGRESS = "PROGRESS"
     FINISHED = "FINISHED"
     CANCELLED = "CANCELLED"
 
@@ -92,6 +93,7 @@ class Status(Enum):
             Status.IN_QUEUE,
             Status.SENDING_DATA,
             Status.PROCESSING,
+            Status.PROGRESS,
             Status.ITERATING,
             Status.FINISHED,
             Status.CANCELLED,
@@ -112,7 +114,30 @@ class Status(Enum):
             "process_starts": Status.PROCESSING,
             "process_generating": Status.ITERATING,
             "process_completed": Status.FINISHED,
+            "progress": Status.PROGRESS,
         }[msg]
+
+
+@dataclass
+class ProgressUnit:
+    index: Optional[int]
+    length: Optional[int]
+    unit: Optional[str]
+    progress: Optional[float]
+    desc: Optional[str]
+
+    @classmethod
+    def from_ws_msg(cls, data: List[Dict]) -> List["ProgressUnit"]:
+        return [
+            cls(
+                index=d.get("index"),
+                length=d.get("length"),
+                unit=d.get("unit"),
+                progress=d.get("progress"),
+                desc=d.get("desc"),
+            )
+            for d in data
+        ]
 
 
 @dataclass
@@ -125,6 +150,7 @@ class StatusUpdate:
     eta: float | None
     success: bool | None
     time: datetime | None
+    progress_data: List[ProgressUnit] | None
 
 
 def create_initial_status_update():
@@ -135,6 +161,7 @@ def create_initial_status_update():
         eta=None,
         success=None,
         time=datetime.now(),
+        progress_data=None,
     )
 
 
@@ -209,6 +236,7 @@ async def get_pred_from_ws(
         resp = json.loads(msg)
         if helper:
             with helper.lock:
+                has_progress = "progress_data" in resp
                 status_update = StatusUpdate(
                     code=Status.msg_to_status(resp["msg"]),
                     queue_size=resp.get("queue_size"),
@@ -216,6 +244,9 @@ async def get_pred_from_ws(
                     success=resp.get("success"),
                     time=datetime.now(),
                     eta=resp.get("rank_eta"),
+                    progress_data=ProgressUnit.from_ws_msg(resp["progress_data"])
+                    if has_progress
+                    else None,
                 )
                 output = resp.get("output", {}).get("data", [])
                 if output and status_update.code != Status.FINISHED:
