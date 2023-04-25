@@ -159,7 +159,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
                 r["labels"][i]: r["scores"][i] for i in range(len(r["labels"]))
             },
         }
-    elif hasattr(transformers, "DocumentQuestionAnswering") and isinstance(
+    elif hasattr(transformers, "DocumentQuestionAnsweringPipeline") and isinstance(
         pipeline, pipelines.document_question_answering.DocumentQuestionAnsweringPipeline
     ):        
         pipeline_info = {
@@ -168,11 +168,33 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
                 components.Textbox(label="Question"),
             ],
             "outputs": [
-                components.Textbox(label="Answer"),
                 components.Label(label="Score"),
             ],
             "preprocess": lambda img, q: {"image": img, "question": q},
-            "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
+            "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
+        }
+    elif hasattr(transformers, "VisualQuestionAnsweringPipeline") and isinstance(
+        pipeline, pipelines.visual_question_answering.VisualQuestionAnsweringPipeline
+    ):        
+        pipeline_info = {
+            "inputs": [
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": [
+                components.Label(label="Score"),
+            ],
+            "preprocess": lambda img, q: {"image": img, "question": q},
+            "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
+        }
+    elif hasattr(transformers, "ImageToTextPipeline") and isinstance(
+        pipeline, pipelines.image_to_text.ImageToTextPipeline
+    ):
+        pipeline_info = {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Text"),
+            "preprocess": lambda i: {"images": i},
+            "postprocess": lambda r: r[0]["generated_text"],
         }
     else:
         raise ValueError("Unsupported pipeline type: {}".format(type(pipeline)))
