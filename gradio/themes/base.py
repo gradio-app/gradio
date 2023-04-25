@@ -292,12 +292,6 @@ class ThemeClass:
                 path_in_repo="README.md", path_or_fileobj=readme_file.name
             ),
             CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
-            CommitOperationAdd(
-                path_in_repo="theme_dropdown.py",
-                path_or_fileobj=str(
-                    Path(__file__).parent / "utils" / "theme_dropdown.py"
-                ),
-            ),
         ]
 
         huggingface_hub.create_repo(
