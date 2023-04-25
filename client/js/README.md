@@ -44,7 +44,7 @@ The options object can optionally be passed a second parameter. This object has 
 
 ##### `hf_token`
 
-This should be a hugging face personal access token and is required if you wish to make calls to a private gradio api. This option is optional and should be a string starting with `"hf_"`.
+This should be a Hugging Face personal access token and is required if you wish to make calls to a private gradio api. This option is optional and should be a string starting with `"hf_"`.
 
 Example:
 
@@ -56,11 +56,11 @@ const app = await client("user/space-name", { hf_token: "hf_..." });
 
 ##### `status_callback`
 
-This should be a function which will notify your of the status of a space if it is not running. If the gradio API you are connecting to is awake and running or is not hosted on hugginface space then this function will do nothing.
+This should be a function which will notify your of the status of a space if it is not running. If the gradio API you are connecting to is awake and running or is not hosted on Hugging Face space then this function will do nothing.
 
 **Additional context**
 
-Applications hosted on Hugginface spaces can be in a number of different states. As spaces are a GitOps tool and will rebuild when new changes are pushed to the repository, they have various building, running and error states. If a space is not 'running' then the function passed as the `status_callback` will notify you of the current state of the space and the status of the space as it changes. Spaces that are building or sleeping can take longer than usual to respond, so you can use this information to give users feedback about the progress of their action.
+Applications hosted on Hugging Face spaces can be in a number of different states. As spaces are a GitOps tool and will rebuild when new changes are pushed to the repository, they have various building, running and error states. If a space is not 'running' then the function passed as the `status_callback` will notify you of the current state of the space and the status of the space as it changes. Spaces that are building or sleeping can take longer than usual to respond, so you can use this information to give users feedback about the progress of their action.
 
 ```ts
 import { client, type SpaceStatus } from "@gradio/client";
