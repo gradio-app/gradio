@@ -9,6 +9,7 @@ import inspect
 import json
 import math
 import operator
+import os
 import random
 import secrets
 import shutil
@@ -235,6 +236,15 @@ class IOComponent(Component):
             sha1.update(data)
         return sha1.hexdigest()
 
+    def hash_image(self, image: _Image, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        for y in range(0, image.height, chunk_num_blocks):
+            for x in range(0, image.width, chunk_num_blocks):
+                box = (x, y, x + chunk_num_blocks, y + chunk_num_blocks)
+                chunk = image.crop(box)
+                sha1.update(chunk.tobytes())
+        return sha1.hexdigest()
+
     def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
         for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
@@ -250,12 +260,15 @@ class IOComponent(Component):
         temp_dir.mkdir(exist_ok=True, parents=True)
 
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        print(f.name)
+
         f.name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+        print(full_temp_file_path, f.name)
 
         if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
-
+        print(full_temp_file_path, f.name)
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
 
@@ -332,6 +345,27 @@ class IOComponent(Component):
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
 
+    def image_to_temp_file_if_needed(self, image: _Image) -> str:
+        """Converts a pil image to a file and returns the path to the file if
+        the file doesn't already exist. Otherwise returns the path to the existing file.
+        """
+        temp_dir = Path(self.DEFAULT_TEMP_DIR)
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        temp_filename = self.hash_image(image)
+        temp_filename = Path(temp_filename).with_suffix(".png")
+        temp_filename = client_utils.strip_invalid_filename_characters(
+            Path(temp_filename).name
+        )
+
+        full_temp_file_path = str(utils.abspath(temp_dir / temp_filename))
+
+        if not Path(full_temp_file_path).exists():
+            image.save(full_temp_file_path)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
     def get_config(self):
         config = {
             "label": self.label,
@@ -360,6 +394,12 @@ class IOComponent(Component):
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
         return input_data
+
+    def deconstruct(self):
+        while self.temp_files:
+            temp_filename = Path(self.temp_files.pop())
+            if temp_filename.exists():
+                os.remove(temp_filename)
 
 
 class FormComponent:
@@ -1750,18 +1790,12 @@ class Image(
         """Helper method to format an image based on self.type"""
         if im is None:
             return im
-        fmt = im.format
         if self.type == "pil":
             return im
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "filepath":
-            file_obj = tempfile.NamedTemporaryFile(
-                delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
-            )
-            im.save(file_obj.name)
-            return self.make_temp_copy_if_needed(file_obj.name)
+            return self.image_to_temp_file_if_needed(im)
         else:
             raise ValueError(
                 "Unknown type: "

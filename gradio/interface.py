@@ -609,7 +609,6 @@ class Interface(Blocks):
             fn = self.fn
             extra_output = []
             if stop_btn:
-
                 # Wrap the original function to show/hide the "Stop" button
                 def fn(*args):
                     # The main idea here is to call the original function
@@ -814,6 +813,15 @@ class Interface(Blocks):
         """
         warnings.warn("The Interface.test_launch() function is deprecated.")
 
+    def deconstruct(self):
+        for x in self.input_components:
+            if isinstance(x, IOComponent):
+                x.deconstruct()
+
+        for x in self.output_components:
+            if isinstance(x, IOComponent):
+                x.deconstruct()
+
 
 @document()
 class TabbedInterface(Blocks):
@@ -859,7 +867,7 @@ class TabbedInterface(Blocks):
                     + "</h1>"
                 )
             with Tabs():
-                for (interface, tab_name) in zip(interface_list, tab_names):
+                for interface, tab_name in zip(interface_list, tab_names):
                     with Tab(label=tab_name):
                         interface.render()
 
