@@ -76,7 +76,7 @@ class TestHuggingFaceDatasetSaver:
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:
                     fname = os.path.basename(f)
-                    assert fname == "data.csv" or fname == "dataset_info.json"
+                    assert fname in ["data.csv", "dataset_info.json", "data.lock"]
 
 
 class TestHuggingFaceDatasetJSONSaver:
@@ -109,7 +109,7 @@ class TestHuggingFaceDatasetJSONSaver:
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:
                     fname = os.path.basename(f)
-                    assert fname == "metadata.jsonl" or fname == "dataset_info.json"
+                    assert fname in ["metadata.jsonl", "dataset_info.json"]
 
 
 class TestDisableFlagging:
