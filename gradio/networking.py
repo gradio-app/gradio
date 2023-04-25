@@ -116,6 +116,7 @@ def start_server(
     else:
         try:
             s = socket.socket()
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((LOCALHOST_NAME, server_port))
             s.close()
         except OSError:
