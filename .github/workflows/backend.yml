@@ -15,6 +15,7 @@ env:
 
 jobs:
   client-test:
+    needs: [client-lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -79,6 +80,7 @@ jobs:
     - name: Lint
       run: bash scripts/lint.sh
   test:
+    needs: [lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
