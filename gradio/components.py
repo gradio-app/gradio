@@ -254,9 +254,11 @@ class IOComponent(Component):
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
-        temp_dir = Path(self.DEFAULT_TEMP_DIR)
+        temp_dir = self.hash_file(file_path)
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-        temp_filename = self.hash_file(file_path)
+
+        temp_filename = Path("file").with_suffix(Path(file_path).suffix)
         temp_filename = client_utils.strip_invalid_filename_characters(
             Path(temp_filename).name
         )
@@ -274,13 +276,12 @@ class IOComponent(Component):
         )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
         temp_dir = Path(upload_dir) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-        temp_filename = file.filename
+
+        temp_filename = file.filename if file.filename else "file"
         if temp_filename:
             temp_filename = client_utils.strip_invalid_filename_characters(
                 temp_filename
             )
-        else:
-            temp_filename = "file"
 
         full_temp_file_path = str(utils.abspath(temp_dir / temp_filename))
 
@@ -345,14 +346,11 @@ class IOComponent(Component):
         """Converts a pil image to a file and returns the path to the file if
         the file doesn't already exist. Otherwise returns the path to the existing file.
         """
-        temp_dir = Path(self.DEFAULT_TEMP_DIR)
+        temp_dir = self.hash_image(image)
+        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        temp_filename = self.hash_image(image)
-        temp_filename = Path(temp_filename).with_suffix(".png")
-        temp_filename = client_utils.strip_invalid_filename_characters(
-            Path(temp_filename).name
-        )
+        temp_filename = client_utils.strip_invalid_filename_characters("file.png")
 
         full_temp_file_path = str(utils.abspath(temp_dir / temp_filename))
 
