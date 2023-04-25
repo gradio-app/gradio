@@ -254,20 +254,17 @@ class IOComponent(Component):
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
-        temp_dir = self.hash_file(file_path)
-        temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
+        temp_dir = Path(self.DEFAULT_TEMP_DIR)
         temp_dir.mkdir(exist_ok=True, parents=True)
+        temp_filename = self.hash_file(file_path)
+        temp_filename = client_utils.strip_invalid_filename_characters(
+            Path(temp_filename).name
+        )
 
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        print(f.name)
-
-        f.name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
-        print(full_temp_file_path, f.name)
+        full_temp_file_path = str(utils.abspath(temp_dir / temp_filename))
 
         if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
-        print(full_temp_file_path, f.name)
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
 
@@ -277,15 +274,15 @@ class IOComponent(Component):
         )  # Since the full file is being uploaded anyways, there is no benefit to hashing the file.
         temp_dir = Path(upload_dir) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-        output_file_obj = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-
-        if file.filename:
-            file_name = Path(file.filename).name
-            output_file_obj.name = client_utils.strip_invalid_filename_characters(
-                file_name
+        temp_filename = file.filename
+        if temp_filename:
+            temp_filename = client_utils.strip_invalid_filename_characters(
+                temp_filename
             )
+        else:
+            temp_filename = "file"
 
-        full_temp_file_path = str(utils.abspath(temp_dir / output_file_obj.name))
+        full_temp_file_path = str(utils.abspath(temp_dir / temp_filename))
 
         async with aiofiles.open(full_temp_file_path, "wb") as output_file:
             while True:
