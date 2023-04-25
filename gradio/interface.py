@@ -13,6 +13,8 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
+from gradio_client.documentation import document, set_documentation_group
+
 from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
@@ -24,7 +26,6 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
@@ -55,7 +56,7 @@ class Interface(Blocks):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
-    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features, setting_up_a_gradio_demo_for_maximum_performance
+    Guides: quickstart, key-features, sharing-your-app, interface-state, reactive-interfaces, advanced-interface-features, setting-up-a-gradio-demo-for-maximum-performance
     """
 
     # stores references to all currently existing Interface instances

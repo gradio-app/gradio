@@ -12,6 +12,7 @@ import starlette.routing
 import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from gradio_client import media_data
 
 import gradio as gr
 from gradio import (
@@ -21,7 +22,6 @@ from gradio import (
     Number,
     Textbox,
     close_all,
-    media_data,
     routes,
 )
 
@@ -46,9 +46,9 @@ class TestRoutes:
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
         response = test_client.get(r"/static/..%2findex.html")
-        assert response.status_code == 404
+        assert response.status_code == 403
         response = test_client.get(r"/static/..%2f..%2fapi_docs.html")
-        assert response.status_code == 404
+        assert response.status_code == 403
 
     def test_get_config_route(self, test_client):
         response = test_client.get("/config/")
@@ -202,8 +202,8 @@ class TestRoutes:
         )
         client = TestClient(app)
 
-        with pytest.raises(ValueError):
-            file_response = client.get(f"/file={allowed_file.name}")
+        file_response = client.get(f"/file={allowed_file.name}")
+        assert file_response.status_code == 403
 
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True,
@@ -270,6 +270,43 @@ class TestRoutes:
         with TestClient(app) as client:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
+
+    def test_static_file_missing(self, test_client):
+        response = test_client.get(r"/static/not-here.js")
+        assert response.status_code == 404
+
+    def test_asset_file_missing(self, test_client):
+        response = test_client.get(r"/assets/not-here.js")
+        assert response.status_code == 404
+
+    def test_dynamic_file_missing(self, test_client):
+        response = test_client.get(r"/file=not-here.js")
+        assert response.status_code == 404
+
+    def test_dynamic_file_directory(self, test_client):
+        response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
+
+    def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}",
+                inputs=input_,
+                outputs=output,
+                queue=True,
+                api_name="greet",
+            )
+
+        with pytest.raises(ValueError, match="The queue is enabled for event greet"):
+            demo.launch(prevent_thread_lock=True)
+
+        demo.close()
 
 
 class TestGeneratorRoutes:
