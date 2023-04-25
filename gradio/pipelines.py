@@ -167,9 +167,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
                 components.Image(type="filepath", label="Input Document"),
                 components.Textbox(label="Question"),
             ],
-            "outputs": [
-                components.Label(label="Score"),
-            ],
+            "outputs": components.Label(label="Label"),
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
@@ -181,9 +179,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
                 components.Image(type="filepath", label="Input Image"),
                 components.Textbox(label="Question"),
             ],
-            "outputs": [
-                components.Label(label="Score"),
-            ],
+            "outputs":  components.Label(label="Score"),
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }

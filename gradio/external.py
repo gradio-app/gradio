@@ -319,6 +319,38 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
         },
+        "document-question-answering": {
+            # example model: impira/layoutlm-document-qa
+            "inputs":  [
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {"image": to_binary(img), "question": q},
+            "postprocess": lambda r: {i["answer"]: i["score"] for i in r.json()},
+        },
+        "visual-question-answering": {
+            # example model: dandelin/vilt-b32-finetuned-vqa
+            "inputs": [
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": img,
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: {i["answer"]: i["score"] for i in r.json()},
+        },
+        "image-to-text": {
+            # example model: Salesforce/blip-image-captioning-base
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Generated Text"),
+            "preprocess": to_binary,
+            "postprocess": lambda r: r.json()[0]["generated_text"],
+        },
     }
 
     if p in ["tabular-classification", "tabular-regression"]:
