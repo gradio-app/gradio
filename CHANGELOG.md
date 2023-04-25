@@ -29,7 +29,8 @@ No changes to highlight.
 
 ## Breaking Changes:
 
-No changes to highlight.
+- Some re-exports in `gradio.themes` utilities (introduced in 3.24.0) have been eradicated.
+  By [@akx](https://github.com/akx) in [PR 3958](https://github.com/gradio-app/gradio/pull/3958)
 
 ## Full Changelog:
 
