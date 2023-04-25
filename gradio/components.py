@@ -9,7 +9,6 @@ import inspect
 import json
 import math
 import operator
-import os
 import random
 import secrets
 import shutil
@@ -399,7 +398,7 @@ class IOComponent(Component):
         while self.temp_files:
             temp_filename = Path(self.temp_files.pop())
             if temp_filename.exists():
-                os.remove(temp_filename)
+                temp_filename.unlink()
 
 
 class FormComponent:
