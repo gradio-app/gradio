@@ -30,6 +30,7 @@ No changes to highlight.
 ## Breaking Changes:
 
 - `gr.HuggingFaceDatasetSaver` behavior changed internally. The `flagging/` folder is not a `.git/` folder anymore when using it. `organization` parameter is now ignored in favor of passing a full dataset id as `dataset_name` (e.g. `"username/my-dataset"`).
+- Some re-exports in `gradio.themes` utilities (introduced in 3.24.0) have been eradicated. By [@akx](https://github.com/akx) in [PR 3958](https://github.com/gradio-app/gradio/pull/3958)
 
 ## Full Changelog:
 
