@@ -26,15 +26,17 @@ HF_TOKEN = "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"  # Intentionally reveali
 def connect(demo: gr.Blocks):
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     try:
-        print(f"Launching server on {local_url}")
         yield Client(local_url)
     finally:
+        # A more verbose version of .close()
+        # because we should set a timeout
+        # the tests that call .cancel() can get stuck
+        # waiting for the thread to join
         if demo.enable_queue:
             demo._queue.close()
         demo.is_running = False
         demo.server.should_exit = True
         demo.server.thread.join(timeout=1)
-        print(f"Closing server on {local_url}")
 
 
 class TestPredictionsFromSpaces:

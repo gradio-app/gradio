@@ -79,7 +79,7 @@ def progress():
 def yield_demo():
     def spell(x):
         for i in range(len(x)):
-            time.sleep(1)
+            time.sleep(0.5)
             yield x[:i]
 
     return gr.Interface(spell, "textbox", "textbox").queue()
