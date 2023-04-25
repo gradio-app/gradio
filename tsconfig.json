@@ -38,7 +38,8 @@
 		"**/test/**/*",
 		"**/website/**/*",
 		"**/node_modules/**/*",
-		"**/venv/**/*"
+		"**/venv/**/*",
+		"client/js/**"
 	],
 	"include": [
 		"**/*.d.ts",
