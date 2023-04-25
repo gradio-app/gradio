@@ -48,7 +48,10 @@ def print_all_files(directory):
 
 
 class TestHuggingFaceDatasetSaver:
-    @patch("huggingface_hub.create_repo")
+    @patch(
+        "huggingface_hub.create_repo",
+        return_value=MagicMock(repo_id="gradio-tests/test"),
+    )
     @patch("huggingface_hub.hf_hub_download")
     def test_saver_setup(self, mock_download, mock_create):
         flagger = flagging.HuggingFaceDatasetSaver("test_token", "test")
@@ -57,7 +60,10 @@ class TestHuggingFaceDatasetSaver:
         mock_create.assert_called_once()
         mock_download.assert_called()
 
-    @patch("huggingface_hub.create_repo")
+    @patch(
+        "huggingface_hub.create_repo",
+        return_value=MagicMock(repo_id="gradio-tests/test"),
+    )
     @patch("huggingface_hub.hf_hub_download")
     @patch("huggingface_hub.upload_folder")
     def test_saver_flag(self, mock_upload, mock_download, mock_create):
@@ -80,7 +86,10 @@ class TestHuggingFaceDatasetSaver:
 
 
 class TestHuggingFaceDatasetJSONSaver:
-    @patch("huggingface_hub.create_repo")
+    @patch(
+        "huggingface_hub.create_repo",
+        return_value=MagicMock(repo_id="gradio-tests/test"),
+    )
     @patch("huggingface_hub.hf_hub_download")
     def test_saver_setup(self, mock_download, mock_create):
         flagger = flagging.HuggingFaceDatasetJSONSaver("test", "test")
@@ -89,7 +98,10 @@ class TestHuggingFaceDatasetJSONSaver:
         mock_create.assert_called_once()
         mock_download.assert_called()
 
-    @patch("huggingface_hub.create_repo")
+    @patch(
+        "huggingface_hub.create_repo",
+        return_value=MagicMock(repo_id="gradio-tests/test"),
+    )
     @patch("huggingface_hub.hf_hub_download")
     @patch("huggingface_hub.upload_folder")
     def test_saver_flag(self, mock_upload, mock_download, mock_create):
