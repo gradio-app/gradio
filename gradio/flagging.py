@@ -311,24 +311,17 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.infos_file = self.dataset_dir / self.info_filename
 
         # Download remote files to local
-        try:
-            huggingface_hub.hf_hub_download(
-                repo_id=self.dataset_id,
-                repo_type="dataset",
-                filename=self.info_filename,
-                local_dir=self.dataset_dir,
-                token=self.hf_token,
-            )
-        except huggingface_hub.utils.EntryNotFoundError:
-            pass
-
+        remote_files = [self.info_filename]
         if not self.separate_dirs:
             # No separate dirs => means all data is in the same CSV file => download it to get its current content
+            remote_files.append("data.csv")
+
+        for filename in remote_files:
             try:
                 huggingface_hub.hf_hub_download(
                     repo_id=self.dataset_id,
                     repo_type="dataset",
-                    filename="data.csv",
+                    filename=filename,
                     local_dir=self.dataset_dir,
                     token=self.hf_token,
                 )
@@ -337,24 +330,39 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
     def flag(self, flag_data: List[Any], flag_option: str = "") -> int:
         if self.separate_dirs:
-            data_dir = self.dataset_dir / str(uuid.uuid4())
+            # Unique CSV file
+            unique_id = str(uuid.uuid4())
+            components_dir = self.dataset_dir / str(uuid.uuid4())
+            data_file = components_dir / "metadata.jsonl"
+            path_in_repo = unique_id  # upload in sub folder (safer for concurrency)
         else:
-            data_dir = self.dataset_dir
+            # JSONL files to support dataset preview on the Hub
+            components_dir = self.dataset_dir
+            data_file = components_dir / "data.csv"
+            path_in_repo = None  # upload at root level
 
         self._flag_in_dir(
-            self.dataset_dir / "data.csv", self.dataset_dir, flag_data, flag_option
+            data_file=data_file,
+            components_dir=components_dir,
+            path_in_repo=path_in_repo,
+            flag_data=flag_data,
+            flag_option=flag_option,
         )
 
     def _flag_in_dir(
         self,
         data_file: Path,
-        data_dir: Path,
+        components_dir: Path,
+        path_in_repo: str | None,
         flag_data: List[Any],
         flag_option: str = "",
     ) -> int:
         import huggingface_hub
 
-        features, row = self._deserialize_components(data_dir, flag_data, flag_option)
+        # Deserialize components (write images/audio to files)
+        features, row = self._deserialize_components(
+            components_dir, flag_data, flag_option
+        )
 
         # Write generic info to dataset_infos.json + upload
         with filelock.FileLock(str(self.infos_file) + ".lock"):
@@ -371,35 +379,59 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                     path_or_fileobj=self.infos_file,
                 )
 
-        # Write data to CSV + upload
-        with filelock.FileLock(data_dir / ".lock"):
-            is_new = not data_file.exists()
+        # Write data + upload
+        with filelock.FileLock(components_dir / ".lock"):
+            headers = list(features.keys())
 
-            with data_file.open("a", newline="", encoding="utf-8") as csvfile:
-                writer = csv.writer(csvfile)
-
-                # Write CSV headers if new file
-                if is_new:
-                    writer.writerow(utils.sanitize_list_for_csv(list(features.keys())))
-
-                # Write CSV row for flagged sample
-                writer.writerow(utils.sanitize_list_for_csv(row))
-
-            with data_file.open(encoding="utf-8") as csvfile:
-                sample_nb = sum(1 for _ in csv.reader(csvfile)) - 1
+            if data_file.suffix == ".csv":
+                sample_name = self._save_as_csv(data_file, headers=headers, row=row)
+            else:
+                # JSONL file
+                sample_name = self._save_as_jsonl(data_file, headers=headers, row=row)
 
             huggingface_hub.upload_folder(
                 repo_id=self.dataset_id,
                 repo_type="dataset",
-                commit_message=f"Flagged sample #{sample_nb}",
+                commit_message=f"Flagged sample #{sample_name}",
+                path_in_repo=path_in_repo,
                 ignore_patterns="*.lock",
-                folder_path=data_dir,
+                folder_path=components_dir,
                 token=self.hf_token,
             )
+
+    @staticmethod
+    def _save_as_csv(data_file: Path, headers: List[str], row: List[Any]) -> str:
+        """Save data as CSV and return the sample name (row number)."""
+        is_new = not data_file.exists()
+
+        with data_file.open("a", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+
+            # Write CSV headers if new file
+            if is_new:
+                writer.writerow(utils.sanitize_list_for_csv(headers))
+
+            # Write CSV row for flagged sample
+            writer.writerow(utils.sanitize_list_for_csv(row))
+
+        with data_file.open(encoding="utf-8") as csvfile:
+            return sum(1 for _ in csv.reader(csvfile)) - 1
+
+    @staticmethod
+    def _save_as_jsonl(data_file: Path, headers: List[str], row: List[Any]) -> str:
+        """Save data as JSONL and return the sample name (uuid)."""
+        data_file.write_text(
+            json.dumps({header: item for header, item in zip(headers, row)}),
+        )
+        return data_file.parent.name
 
     def _deserialize_components(
         self, data_dir: Path, flag_data: List[Any], flag_option: str = ""
     ) -> List[Any]:
+        """Deserialize components and return the corresponding row for the flagged sample.
+
+        Images/audio are saved to disk as individual files.
+        """
         import huggingface_hub
 
         # Components that can have a preview on dataset repos
@@ -437,7 +469,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 )
         features["flag"] = {"dtype": "string", "_type": "Value"}
         row.append(flag_option)
-
         return features, row
 
     # def _flag_thread_safe(self, flag_data: List[Any], flag_option: str = "") -> int:
@@ -489,171 +520,158 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     #     )
 
 
-@document()
-class HuggingFaceDatasetJSONSaver(FlaggingCallback):
-    """
-    A callback that saves flagged data (both the input and output data)
-    to a Hugging Face dataset in JSONL format.
-
-    Each data sample is saved in a different JSONL file,
-    allowing multiple users to use flagging simultaneously.
-    Saving to a single CSV would cause errors as only one user can edit at the same time.
-
-    Example:
-        import gradio as gr
-        hf_writer = gr.HuggingFaceDatasetJSONSaver(HF_API_TOKEN, "image-classification-mistakes")
-        def image_classifier(inp):
-            return {'cat': 0.3, 'dog': 0.7}
-        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
-                            allow_flagging="manual", flagging_callback=hf_writer)
-    Guides: using_flagging
-    """
-
+class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
     def __init__(
         self,
         hf_token: str,
         dataset_name: str,
         organization: str | None = None,
         private: bool = False,
-        verbose: bool = True,
+        info_filename: str = "dataset_info.json",
+        separate_dirs: bool = True,
+        verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
-        """
-        Parameters:
-            hf_token: The token to use to access the huggingface API.
-            dataset_name: The name of the dataset to save the data to, e.g. "image-classifier-1"
-            organization: The name of the organization to which to attach the datasets. If None, the dataset attaches to the user only.
-            private: If the dataset does not already exist, whether it should be created as a private dataset or public. Private datasets may require paid huggingface.co accounts
-            verbose: Whether to print out the status of the dataset creation.
-        """
-        self.hf_token = hf_token
-        self.dataset_name = dataset_name
-        self.organization_name = organization
-        self.dataset_private = private
-        self.verbose = verbose
-
-    def setup(self, components: List[IOComponent], flagging_dir: str):
-        """
-        Params:
-        components List[Component]: list of components for flagging
-        flagging_dir (str): local directory where the dataset is cloned,
-        updated, and pushed from.
-        """
-        try:
-            import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
-            raise ImportError(
-                "Package `huggingface_hub` not found is needed "
-                "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
+        if not separate_dirs:
+            raise ValueError(
+                "`separate_dirs` must be set to `True` for "
+                "`HuggingFaceDatasetJSONSaver`. Use `HuggingFaceDatasetSaver` instead."
             )
-        hh_version = pkg_resources.get_distribution("huggingface_hub").version
-        try:
-            if StrictVersion(hh_version) < StrictVersion("0.6.0"):
-                raise ImportError(
-                    "The `huggingface_hub` package must be version 0.6.0 or higher"
-                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
-                )
-        except ValueError:
-            pass
-        repo_id = huggingface_hub.get_full_repo_name(
-            self.dataset_name, token=self.hf_token
+        warnings.warn(
+            "Callback `HuggingFaceDatasetJSONSaver` is deprecated in favor of"
+            " `HuggingFaceDatasetSaver` by passing `separate_dirs=True` as parameter."
         )
-        path_to_dataset_repo = huggingface_hub.create_repo(
-            repo_id=repo_id,
-            token=self.hf_token,
-            private=self.dataset_private,
-            repo_type="dataset",
-            exist_ok=True,
-        )
-        self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
-        self.components = components
-        self.flagging_dir = flagging_dir
-        self.dataset_dir = Path(flagging_dir) / self.dataset_name
-        self.repo = huggingface_hub.Repository(
-            local_dir=str(self.dataset_dir),
-            clone_from=path_to_dataset_repo,
-            use_auth_token=self.hf_token,
-        )
-        self.repo.git_pull(lfs=True)
-
-        self.infos_file = Path(self.dataset_dir) / "dataset_infos.json"
-
-    def flag(
-        self,
-        flag_data: List[Any],
-        flag_option: str = "",
-        username: str | None = None,
-    ) -> str:
-        self.repo.git_pull(lfs=True)
-
-        # Generate unique folder for the flagged sample
-        unique_name = self.get_unique_name()  # unique name for folder
-        folder_name = (
-            Path(self.dataset_dir) / unique_name
-        )  # unique folder for specific example
-        os.makedirs(folder_name)
-
-        # Now uses the existence of `dataset_infos.json` to determine if new
-        is_new = not Path(self.infos_file).exists()
-
-        # File previews for certain input and output types
-        infos, file_preview_types, _ = _get_dataset_features_info(
-            is_new, self.components
+        super().__init__(
+            hf_token=hf_token,
+            dataset_name=dataset_name,
+            organization=organization,
+            private=private,
+            info_filename=info_filename,
+            separate_dirs=True,
         )
 
-        # Generate the row and header corresponding to the flagged sample
-        csv_data = []
-        headers = []
+    # def setup(self, components: List[IOComponent], flagging_dir: str):
+    #     """
+    #     Params:
+    #     components List[Component]: list of components for flagging
+    #     flagging_dir (str): local directory where the dataset is cloned,
+    #     updated, and pushed from.
+    #     """
+    #     try:
+    #         import huggingface_hub
+    #     except (ImportError, ModuleNotFoundError):
+    #         raise ImportError(
+    #             "Package `huggingface_hub` not found is needed "
+    #             "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
+    #         )
+    #     hh_version = pkg_resources.get_distribution("huggingface_hub").version
+    #     try:
+    #         if StrictVersion(hh_version) < StrictVersion("0.6.0"):
+    #             raise ImportError(
+    #                 "The `huggingface_hub` package must be version 0.6.0 or higher"
+    #                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
+    #             )
+    #     except ValueError:
+    #         pass
+    #     repo_id = huggingface_hub.get_full_repo_name(
+    #         self.dataset_name, token=self.hf_token
+    #     )
+    #     path_to_dataset_repo = huggingface_hub.create_repo(
+    #         repo_id=repo_id,
+    #         token=self.hf_token,
+    #         private=self.dataset_private,
+    #         repo_type="dataset",
+    #         exist_ok=True,
+    #     )
+    #     self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
+    #     self.components = components
+    #     self.flagging_dir = flagging_dir
+    #     self.dataset_dir = Path(flagging_dir) / self.dataset_name
+    #     self.repo = huggingface_hub.Repository(
+    #         local_dir=str(self.dataset_dir),
+    #         clone_from=path_to_dataset_repo,
+    #         use_auth_token=self.hf_token,
+    #     )
+    #     self.repo.git_pull(lfs=True)
 
-        for component, sample in zip(self.components, flag_data):
-            headers.append(component.label)
+    #     self.infos_file = Path(self.dataset_dir) / "dataset_infos.json"
 
-            try:
-                save_dir = Path(
-                    folder_name
-                ) / client_utils.strip_invalid_filename_characters(
-                    component.label or ""
-                )
-                filepath = component.deserialize(sample, save_dir, None)
-            except Exception:
-                # Could not parse 'sample' (mostly) because it was None and `component.save_flagged`
-                # does not handle None cases.
-                # for example: Label (line 3109 of components.py raises an error if data is None)
-                filepath = None
+    # def flag(
+    #     self,
+    #     flag_data: List[Any],
+    #     flag_option: str = "",
+    #     username: str | None = None,
+    # ) -> str:
+    #     self.repo.git_pull(lfs=True)
 
-            if isinstance(component, tuple(file_preview_types)):
-                headers.append(component.label or "" + " file")
+    #     # Generate unique folder for the flagged sample
+    #     unique_name = self.get_unique_name()  # unique name for folder
+    #     folder_name = (
+    #         Path(self.dataset_dir) / unique_name
+    #     )  # unique folder for specific example
+    #     os.makedirs(folder_name)
 
-                csv_data.append(
-                    "{}/resolve/main/{}/{}".format(
-                        self.path_to_dataset_repo, unique_name, filepath
-                    )
-                    if filepath is not None
-                    else None
-                )
+    #     # Now uses the existence of `dataset_infos.json` to determine if new
+    #     is_new = not Path(self.infos_file).exists()
 
-            csv_data.append(filepath)
-        headers.append("flag")
-        csv_data.append(flag_option)
+    #     # File previews for certain input and output types
+    #     infos, file_preview_types, _ = _get_dataset_features_info(
+    #         is_new, self.components
+    #     )
 
-        # Creates metadata dict from row data and dumps it
-        metadata_dict = {
-            header: _csv_data for header, _csv_data in zip(headers, csv_data)
-        }
-        self.dump_json(metadata_dict, Path(folder_name) / "metadata.jsonl")
+    #     # Generate the row and header corresponding to the flagged sample
+    #     csv_data = []
+    #     headers = []
 
-        if is_new:
-            json.dump(infos, open(self.infos_file, "w"))
+    #     for component, sample in zip(self.components, flag_data):
+    #         headers.append(component.label)
 
-        self.repo.push_to_hub(commit_message="Flagged sample {}".format(unique_name))
-        return unique_name
+    #         try:
+    #             save_dir = Path(
+    #                 folder_name
+    #             ) / client_utils.strip_invalid_filename_characters(
+    #                 component.label or ""
+    #             )
+    #             filepath = component.deserialize(sample, save_dir, None)
+    #         except Exception:
+    #             # Could not parse 'sample' (mostly) because it was None and `component.save_flagged`
+    #             # does not handle None cases.
+    #             # for example: Label (line 3109 of components.py raises an error if data is None)
+    #             filepath = None
 
-    def get_unique_name(self):
-        id = uuid.uuid4()
-        return str(id)
+    #         if isinstance(component, tuple(file_preview_types)):
+    #             headers.append(component.label or "" + " file")
 
-    def dump_json(self, thing: dict, file_path: str | Path) -> None:
-        with open(file_path, "w+", encoding="utf8") as f:
-            json.dump(thing, f)
+    #             csv_data.append(
+    #                 "{}/resolve/main/{}/{}".format(
+    #                     self.path_to_dataset_repo, unique_name, filepath
+    #                 )
+    #                 if filepath is not None
+    #                 else None
+    #             )
+
+    #         csv_data.append(filepath)
+    #     headers.append("flag")
+    #     csv_data.append(flag_option)
+
+    #     # Creates metadata dict from row data and dumps it
+    #     metadata_dict = {
+    #         header: _csv_data for header, _csv_data in zip(headers, csv_data)
+    #     }
+    #     self.dump_json(metadata_dict, Path(folder_name) / "metadata.jsonl")
+
+    #     if is_new:
+    #         json.dump(infos, open(self.infos_file, "w"))
+
+    #     self.repo.push_to_hub(commit_message="Flagged sample {}".format(unique_name))
+    #     return unique_name
+
+    # def get_unique_name(self):
+    #     id = uuid.uuid4()
+    #     return str(id)
+
+    # def dump_json(self, thing: dict, file_path: str | Path) -> None:
+    #     with open(file_path, "w+", encoding="utf8") as f:
+    #         json.dump(thing, f)
 
 
 class FlagMethod:
