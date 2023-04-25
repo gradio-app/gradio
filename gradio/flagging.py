@@ -26,50 +26,34 @@ if TYPE_CHECKING:
 set_documentation_group("flagging")
 
 
-def _get_dataset_features_info(is_new, components):
-    """
-    Takes in a list of components and returns a dataset features info
+# def _get_dataset_features(components: List[IOComponent]):
+#     """
+#     Takes in a list of components and returns a dataset features info.
 
-    Parameters:
-    is_new: boolean, whether the dataset is new or not
-    components: list of components
+#     Parameters:
+#     components: list of components
 
-    Returns:
-    infos: a dictionary of the dataset features
-    file_preview_types: dictionary mapping of gradio components to appropriate string.
-    header: list of header strings
+#     Returns:
+#     infos: a dictionary of the dataset features
+#     header: list of header strings
+#     """
+#     # Generate the dataset headers and features
+#     features = {}
+#     for component in components:
+#         label = component.label or ""
+#         features[label] = {"dtype": "string", "_type": "Value"}
 
-    """
-    infos = {"flagged": {"features": {}}}
-    # File previews for certain input and output types
-    file_preview_types = {gr.Audio: "Audio", gr.Image: "Image"}
-    headers = []
+#         # Add file preview if applicable
+#         if isinstance(component, tuple(FILE_PREVIEW_TYPES)):
+#             for _component, _type in FILE_PREVIEW_TYPES.items():
+#                 if isinstance(component, _component):
+#                     features[label + " file"] = {"_type": _type}
+#                     break
+#     features["flag"] = {"dtype": "string", "_type": "Value"}
 
-    # Generate the headers and dataset_infos
-    if is_new:
-
-        for component in components:
-            headers.append(component.label)
-            infos["flagged"]["features"][component.label] = {
-                "dtype": "string",
-                "_type": "Value",
-            }
-            if isinstance(component, tuple(file_preview_types)):
-                headers.append(component.label + " file")
-                for _component, _type in file_preview_types.items():
-                    if isinstance(component, _component):
-                        infos["flagged"]["features"][
-                            (component.label or "") + " file"
-                        ] = {"_type": _type}
-                        break
-
-        headers.append("flag")
-        infos["flagged"]["features"]["flag"] = {
-            "dtype": "string",
-            "_type": "Value",
-        }
-
-    return infos, file_preview_types, headers
+#     headers = list(features.keys())  # keys are ordered in Python
+#     infos = {"flagged": {"features": {}}}
+#     return headers, infos
 
 
 class FlaggingCallback(ABC):
@@ -264,8 +248,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         dataset_name: str,
         organization: str | None = None,
         private: bool = False,
-        logs_filename: str = "data.csv",
         info_filename: str = "dataset_info.json",
+        separate_dirs: bool = False,
         verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
         """
@@ -274,8 +258,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             dataset_name: The repo_id of the dataset to save the data to, e.g. "image-classifier-1" or "username/image-classifier-1".
             organization: Deprecated argument. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead.
             private: Whether the dataset should be private (defaults to False).
-            logs_filename: The name of the file to save the flagged samples (defaults to "data.csv").
             info_filename: The name of the file to save the dataset info (defaults to "dataset_infos.json").
+            separate_dirs: If True, each flagged item will be saved in a separate directory. This makes the flagging more robust to concurrent editing, but may be less convenient to use.
         """
         if organization is not None:
             warnings.warn(
@@ -284,8 +268,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.hf_token = hf_token
         self.dataset_id = dataset_name  # TODO: rename parameter (but ensure backward compatibility somehow)
         self.dataset_private = private
-        self.logs_filename = logs_filename
         self.info_filename = info_filename
+        self.separate_dirs = separate_dirs
 
     def setup(self, components: List[IOComponent], flagging_dir: str):
         """
@@ -320,24 +304,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
         # Setup flagging dir
         self.components = components
-        self.dataset_dir = Path(flagging_dir) / self.dataset_id.split("/")[-1]
+        self.dataset_dir = (
+            Path(flagging_dir).absolute() / self.dataset_id.split("/")[-1]
+        )
         self.dataset_dir.mkdir(parents=True, exist_ok=True)
-        self.lock_file = self.dataset_dir / "data.lock"
-        self.log_file = self.dataset_dir / self.logs_filename
         self.infos_file = self.dataset_dir / self.info_filename
 
         # Download remote files to local
-        try:
-            huggingface_hub.hf_hub_download(
-                repo_id=self.dataset_id,
-                repo_type="dataset",
-                filename=self.logs_filename,
-                local_dir=self.dataset_dir,
-                token=self.hf_token,
-            )
-        except huggingface_hub.utils.EntryNotFoundError:
-            pass
-
         try:
             huggingface_hub.hf_hub_download(
                 repo_id=self.dataset_id,
@@ -349,66 +322,171 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         except huggingface_hub.utils.EntryNotFoundError:
             pass
 
-    def flag(self, flag_data: List[Any], flag_option: str = "") -> int:
-        # Only 1 user can flag at a time
-        with filelock.FileLock(self.lock_file):
-            return self._flag_thread_safe(flag_data, flag_option)
-
-    def _flag_thread_safe(self, flag_data: List[Any], flag_option: str = "") -> int:
-        import huggingface_hub
-
-        is_new = not self.log_file.exists()
-
-        with self.log_file.open("a", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-
-            # File previews for certain input and output types
-            infos, file_preview_types, headers = _get_dataset_features_info(
-                is_new, self.components
-            )
-
-            # Generate the headers and dataset_infos
-            if is_new:
-                writer.writerow(utils.sanitize_list_for_csv(headers))
-
-            # Generate the row corresponding to the flagged sample
-            csv_data = []
-            for component, sample in zip(self.components, flag_data):
-                save_dir = (
-                    self.dataset_dir
-                    / client_utils.strip_invalid_filename_characters(
-                        component.label or ""
-                    )
+        if not self.separate_dirs:
+            # No separate dirs => means all data is in the same CSV file => download it to get its current content
+            try:
+                huggingface_hub.hf_hub_download(
+                    repo_id=self.dataset_id,
+                    repo_type="dataset",
+                    filename="data.csv",
+                    local_dir=self.dataset_dir,
+                    token=self.hf_token,
                 )
-                filepath = component.deserialize(sample, save_dir, None)
-                csv_data.append(filepath)
-                if isinstance(component, tuple(file_preview_types)):
-                    csv_data.append(
-                        huggingface_hub.hf_hub_url(
-                            repo_id=self.dataset_id,
-                            filename=filepath,
-                            repo_type="dataset",
-                        )
-                    )
-            csv_data.append(flag_option)
-            writer.writerow(utils.sanitize_list_for_csv(csv_data))
+            except huggingface_hub.utils.EntryNotFoundError:
+                pass
 
-        if not self.infos_file.exists():
-            self.infos_file.write_text(json.dumps(infos))
+    def flag(self, flag_data: List[Any], flag_option: str = "") -> int:
+        if self.separate_dirs:
+            data_dir = self.dataset_dir / str(uuid.uuid4())
+        else:
+            data_dir = self.dataset_dir
 
-        with self.log_file.open(encoding="utf-8") as csvfile:
-            sample_nb = len([None for row in csv.reader(csvfile)]) - 1
-
-        huggingface_hub.upload_folder(
-            repo_id=self.dataset_id,
-            repo_type="dataset",
-            commit_message=f"Flagged sample #{sample_nb}",
-            ignore_patterns="*.lock",
-            folder_path=self.dataset_dir,
-            token=self.hf_token,
+        self._flag_in_dir(
+            self.dataset_dir / "data.csv", self.dataset_dir, flag_data, flag_option
         )
 
-        return sample_nb
+    def _flag_in_dir(
+        self,
+        data_file: Path,
+        data_dir: Path,
+        flag_data: List[Any],
+        flag_option: str = "",
+    ) -> int:
+        import huggingface_hub
+
+        features, row = self._deserialize_components(data_dir, flag_data, flag_option)
+
+        # Write generic info to dataset_infos.json + upload
+        with filelock.FileLock(str(self.infos_file) + ".lock"):
+            if not self.infos_file.exists():
+                self.infos_file.write_text(
+                    json.dumps({"flagged": {"features": features}})
+                )
+
+                huggingface_hub.upload_file(
+                    repo_id=self.dataset_id,
+                    repo_type="dataset",
+                    token=self.hf_token,
+                    path_in_repo=self.infos_file.name,
+                    path_or_fileobj=self.infos_file,
+                )
+
+        # Write data to CSV + upload
+        with filelock.FileLock(data_dir / ".lock"):
+            is_new = not data_file.exists()
+
+            with data_file.open("a", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+
+                # Write CSV headers if new file
+                if is_new:
+                    writer.writerow(utils.sanitize_list_for_csv(list(features.keys())))
+
+                # Write CSV row for flagged sample
+                writer.writerow(utils.sanitize_list_for_csv(row))
+
+            with data_file.open(encoding="utf-8") as csvfile:
+                sample_nb = sum(1 for _ in csv.reader(csvfile)) - 1
+
+            huggingface_hub.upload_folder(
+                repo_id=self.dataset_id,
+                repo_type="dataset",
+                commit_message=f"Flagged sample #{sample_nb}",
+                ignore_patterns="*.lock",
+                folder_path=data_dir,
+                token=self.hf_token,
+            )
+
+    def _deserialize_components(
+        self, data_dir: Path, flag_data: List[Any], flag_option: str = ""
+    ) -> List[Any]:
+        import huggingface_hub
+
+        # Components that can have a preview on dataset repos
+        # NOTE: not at root level to avoid circular imports
+        FILE_PREVIEW_TYPES = {gr.Audio: "Audio", gr.Image: "Image"}
+
+        # Generate the row corresponding to the flagged sample
+        features = {}
+        row = []
+        for component, sample in zip(self.components, flag_data):
+            # Get deserialized object (will save sample to disk if applicable -file, audio, image,...-)
+            label = component.label or ""
+            save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
+            deserialized = component.deserialize(sample, save_dir, None)
+
+            # Add deserialized object to row
+            features[label] = {"dtype": "string", "_type": "Value"}
+            row.append(deserialized)
+
+            # If component is eligible for a preview, add the URL of the file
+            if isinstance(component, tuple(FILE_PREVIEW_TYPES)):
+                for _component, _type in FILE_PREVIEW_TYPES.items():
+                    if isinstance(component, _component):
+                        features[label + " file"] = {"_type": _type}
+                        break
+                path_in_repo = str(  # returned filepath is absolute, we want it relative to compute URL
+                    Path(deserialized).relative_to(self.dataset_dir)
+                )
+                row.append(
+                    huggingface_hub.hf_hub_url(
+                        repo_id=self.dataset_id,
+                        filename=path_in_repo,
+                        repo_type="dataset",
+                    )
+                )
+        features["flag"] = {"dtype": "string", "_type": "Value"}
+        row.append(flag_option)
+
+        return features, row
+
+    # def _flag_thread_safe(self, flag_data: List[Any], flag_option: str = "") -> int:
+    #     import huggingface_hub
+
+    #     is_new = not self.log_file.exists()
+
+    #     with self.log_file.open("a", newline="", encoding="utf-8") as csvfile:
+    #         writer = csv.writer(csvfile)
+
+    #         # File previews for certain input and output types
+    #         infos, file_preview_types, headers = _get_dataset_features_info(
+    #             is_new, self.components
+    #         )
+
+    #         # Generate the headers and dataset_infos
+    #         if is_new:
+    #             writer.writerow(utils.sanitize_list_for_csv(headers))
+
+    #         # Generate the row corresponding to the flagged sample
+    #         csv_data = []
+    #         for component, sample in zip(self.components, flag_data):
+    #             save_dir = (
+    #                 self.dataset_dir
+    #                 / client_utils.strip_invalid_filename_characters(
+    #                     component.label or ""
+    #                 )
+    #             )
+    #             filepath = component.deserialize(sample, save_dir, None)
+    #             csv_data.append(filepath)
+    #             if isinstance(component, tuple(file_preview_types)):
+    #                 csv_data.append(
+    #                     huggingface_hub.hf_hub_url(
+    #                         repo_id=self.dataset_id,
+    #                         filename=filepath,
+    #                         repo_type="dataset",
+    #                     )
+    #                 )
+    #         csv_data.append(flag_option)
+    #         writer.writerow(utils.sanitize_list_for_csv(csv_data))
+
+    #     huggingface_hub.upload_folder(
+    #         repo_id=self.dataset_id,
+    #         repo_type="dataset",
+    #         commit_message=f"Flagged sample #{sample_nb}",
+    #         ignore_patterns="*.lock",
+    #         folder_path=self.dataset_dir,
+    #         token=self.hf_token,
+    #     )
 
 
 @document()
