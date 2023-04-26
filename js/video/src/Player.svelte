@@ -41,15 +41,17 @@
 	}
 
 	async function play_pause() {
-		const isPlaying =
-			video.currentTime > 0 &&
-			!video.paused &&
-			!video.ended &&
-			video.readyState > video.HAVE_CURRENT_DATA;
+		if (document.fullscreenElement != video) {
+			const isPlaying =
+				video.currentTime > 0 &&
+				!video.paused &&
+				!video.ended &&
+				video.readyState > video.HAVE_CURRENT_DATA;
 
-		if (!isPlaying) {
-			await video.play();
-		} else video.pause();
+			if (!isPlaying) {
+				await video.play();
+			} else video.pause();
+		}
 	}
 
 	function handle_click(e: MouseEvent) {
