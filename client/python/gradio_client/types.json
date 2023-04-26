@@ -1,0 +1,22 @@
+{
+    "StringSerializable": {
+        "type": "string"
+    },
+    "ListStringSerializable": {
+        "type": "array",
+        "items": {
+            "type": "string"
+        }
+    },
+    "BooleanSerializable": {
+        "type": "boolean"
+    },
+    "NumberSerializable": {
+        "type": "number"
+    },
+    "ImgSerializable": {
+        "type": "string",
+        "description": {""}
+    }
+
+}
