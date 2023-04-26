@@ -68,8 +68,6 @@ extend-select = [
 ]
 ignore = [
   "E501", # from scripts/lint_backend.sh
-  "F403", # from scripts/lint_backend.sh
-  "F541", # from scripts/lint_backend.sh
 ]
 
 [tool.ruff.per-file-ignores]
