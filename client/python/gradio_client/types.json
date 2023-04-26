@@ -82,5 +82,5 @@
                 {"oneOf": [{"type": "string", "description": "caption of image"}, {"type": "null"}]}
             ]
         }
-    },
+    }
 }
