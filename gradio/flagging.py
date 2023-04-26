@@ -244,7 +244,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             import huggingface_hub
         except (ImportError, ModuleNotFoundError):
             raise ImportError(
-                "Package `huggingface_hub` not found is needed for SaferHuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
+                "Package `huggingface_hub` not found is needed for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
             )
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
         try:
