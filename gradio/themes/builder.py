@@ -511,14 +511,9 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
             font_mono_is_google = [
                 isinstance(f, gr.themes.GoogleFont) for f in font_mono
             ]
-            font = [f.name for f in font]
-            font_mono = [f.name for f in font_mono]
-            pad_to_4 = lambda x: x + [None] * (4 - len(x))
 
-            font, font_is_google = pad_to_4(font), pad_to_4(font_is_google)
-            font_mono, font_mono_is_google = pad_to_4(font_mono), pad_to_4(
-                font_mono_is_google
-            )
+            def pad_to_4(x):
+                return x + [None] * (4 - len(x))
 
             var_output = []
             for variable in flat_variables:
@@ -536,10 +531,10 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                 + text_size.expand()
                 + spacing_size.expand()
                 + radius_size.expand()
-                + font
-                + font_is_google
-                + font_mono
-                + font_mono_is_google
+                + pad_to_4([f.name for f in font])
+                + pad_to_4(font_is_google)
+                + pad_to_4(font_mono)
+                + pad_to_4(font_mono_is_google)
                 + var_output
             )
 
