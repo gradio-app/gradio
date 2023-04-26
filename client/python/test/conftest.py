@@ -12,7 +12,7 @@ def pytest_configure(config):
 
 
 @pytest.fixture
-def calculator():
+def calculator_demo():
     def calculator(num1, operation, num2):
         if operation == "add":
             return num1 + num2
@@ -40,7 +40,7 @@ def calculator():
 
 
 @pytest.fixture
-def increment():
+def increment_demo():
     with gr.Blocks() as demo:
         btn1 = gr.Button("Increment")
         btn2 = gr.Button("Increment")
@@ -65,7 +65,7 @@ def increment():
 
 
 @pytest.fixture
-def progress():
+def progress_demo():
     def my_function(x, progress=gr.Progress()):
         progress(0, desc="Starting...")
         for _ in progress.tqdm(range(20)):
@@ -86,7 +86,7 @@ def yield_demo():
 
 
 @pytest.fixture
-def cancel_from_client():
+def cancel_from_client_demo():
     def iteration():
         for i in range(20):
             print(f"i: {i}")
@@ -110,7 +110,7 @@ def cancel_from_client():
 
 
 @pytest.fixture
-def sentiment_classification():
+def sentiment_classification_demo():
     def classifier(text):
         return {label: random.random() for label in ["POSITIVE", "NEGATIVE", "NEUTRAL"]}
 
@@ -135,7 +135,7 @@ def sentiment_classification():
 
 
 @pytest.fixture
-def count_generator():
+def count_generator_demo():
     def count(n):
         for i in range(int(n)):
             time.sleep(0.5)

@@ -67,8 +67,8 @@ class TestPredictionsFromSpaces:
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
-    def test_state(self, increment):
-        with connect(increment) as client:
+    def test_state(self, increment_demo):
+        with connect(increment_demo) as client:
             output = client.predict(api_name="/increment_without_queue")
             assert output == 1
             output = client.predict(api_name="/increment_without_queue")
@@ -86,8 +86,8 @@ class TestPredictionsFromSpaces:
             output = client.predict(api_name="/increment_with_queue")
             assert output == 2
 
-    def test_job_status(self, calculator):
-        with connect(calculator) as client:
+    def test_job_status(self, calculator_demo):
+        with connect(calculator_demo) as client:
             statuses = []
             job = client.submit(5, "add", 4)
             while not job.done():
@@ -104,8 +104,8 @@ class TestPredictionsFromSpaces:
             ]
 
     @pytest.mark.flaky
-    def test_job_status_queue_disabled(self, sentiment_classification):
-        with connect(sentiment_classification) as client:
+    def test_job_status_queue_disabled(self, sentiment_classification_demo):
+        with connect(sentiment_classification_demo) as client:
             statuses = []
             job = client.submit("I love the gradio python client", api_name="/classify")
             while not job.done():
@@ -116,8 +116,8 @@ class TestPredictionsFromSpaces:
             assert not any(s.progress_data for s in statuses)
 
     @pytest.mark.flaky
-    def test_intermediate_outputs(self, count_generator):
-        with connect(count_generator) as client:
+    def test_intermediate_outputs(self, count_generator_demo):
+        with connect(count_generator_demo) as client:
             job = client.submit(3, fn_index=0)
 
             while not job.done():
@@ -130,35 +130,35 @@ class TestPredictionsFromSpaces:
                 outputs.append(o)
             assert outputs == [str(i) for i in range(3)]
 
-    def test_break_in_loop_if_error(self, calculator):
-        with connect(calculator) as client:
+    def test_break_in_loop_if_error(self, calculator_demo):
+        with connect(calculator_demo) as client:
             job = client.submit("foo", "add", 4, fn_index=0)
             output = [o for o in job]
             assert output == []
 
     @pytest.mark.flaky
-    def test_timeout(self, sentiment_classification):
+    def test_timeout(self, sentiment_classification_demo):
         with pytest.raises(TimeoutError):
-            with connect(sentiment_classification.queue()) as client:
+            with connect(sentiment_classification_demo.queue()) as client:
                 job = client.submit(api_name="/sleep")
                 job.result(timeout=0.05)
 
     @pytest.mark.flaky
-    def test_timeout_no_queue(self, sentiment_classification):
+    def test_timeout_no_queue(self, sentiment_classification_demo):
         with pytest.raises(TimeoutError):
-            with connect(sentiment_classification) as client:
+            with connect(sentiment_classification_demo) as client:
                 job = client.submit(api_name="/sleep")
                 job.result(timeout=0.1)
 
-    def test_raises_exception(self, calculator):
+    def test_raises_exception(self, calculator_demo):
         with pytest.raises(Exception):
-            with connect(calculator) as client:
+            with connect(calculator_demo) as client:
                 job = client.submit("foo", "add", 9, fn_index=0)
                 job.result()
 
-    def test_raises_exception_no_queue(self, sentiment_classification):
+    def test_raises_exception_no_queue(self, sentiment_classification_demo):
         with pytest.raises(Exception):
-            with connect(sentiment_classification) as client:
+            with connect(sentiment_classification_demo) as client:
                 job = client.submit([5], api_name="/sleep")
                 job.result()
 
@@ -171,9 +171,9 @@ class TestPredictionsFromSpaces:
         )
         assert pathlib.Path(job.result()).exists()
 
-    def test_progress_updates(self, progress):
+    def test_progress_updates(self, progress_demo):
 
-        with connect(progress) as client:
+        with connect(progress_demo) as client:
             job = client.submit("hello", api_name="/predict")
             statuses = []
             while not job.done():
@@ -192,8 +192,8 @@ class TestPredictionsFromSpaces:
                 count += unit in all_progress_data
             assert count
 
-    def test_cancel_from_client_queued(self, cancel_from_client):
-        with connect(cancel_from_client) as client:
+    def test_cancel_from_client_queued(self, cancel_from_client_demo):
+        with connect(cancel_from_client_demo) as client:
             start = time.time()
             job = client.submit(api_name="/long")
             while not job.done():
@@ -586,11 +586,11 @@ class TestAPIInfo:
         }
 
     @pytest.mark.flaky
-    def test_serializable_in_mapping(self, calculator):
-        with connect(calculator) as client:
+    def test_serializable_in_mapping(self, calculator_demo):
+        with connect(calculator_demo) as client:
             assert all(
                 [
-                    c.__class__ == SimpleSerializable
+                    isinstance(c, SimpleSerializable)
                     for c in client.endpoints[0].serializers
                 ]
             )
