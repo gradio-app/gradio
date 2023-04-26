@@ -74,20 +74,16 @@ print(result)</pre>
 			</div>
 			<div bind:this={js_code}>
 				<pre>import &lbrace; client &rbrace; from "@gradio/client";
-					
-const app = await client(<span class="token string">"{root}"</span>);
-const result = await app.predict(&lbrace;data: [<!--
+
+async function run() &lbrace;
+	const app = await client(<span class="token string">"{root}"</span>);
+	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}"/predict"{/if}, &lbrace; data: [<!--
 -->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
-        -->
+        -->{#if i != 0}, {/if}
 		<span
 		class="example-inputs"
-		>{represent_value(example_input, type_python, "py")}</span
-	>,<!--
--->{#if dependency_failures[dependency_index][i]}<!--
---><span
-			class="error">ERROR</span
-		><!--
--->{/if}<!--
+		>{represent_value(example_input, type_python, "js")}</span
+	><!--
 --><span class="desc"
 		><!--
 -->	// {type_python} <!--
@@ -95,9 +91,14 @@ const result = await app.predict(&lbrace;data: [<!--
 -->{component} component<!--
 --></span
 	><!--
--->,
+-->
 {/each}
-]{#if !named}, fn_index: {dependency_index}{/if}&rbrace;{#if named}, "/{dependency.api_name}"{/if});
+	]{#if !named}, fn_index: {dependency_index}{/if}&rbrace;);
+
+	console.log(result?.data);
+&rbrace;
+
+run();
 </pre>
 			</div>
 
