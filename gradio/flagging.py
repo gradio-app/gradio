@@ -10,7 +10,7 @@ import warnings
 from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any, List, Tuple, Dict
 
 import filelock
 import pkg_resources
@@ -304,7 +304,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             data_file = components_dir / "data.csv"
             path_in_repo = None  # upload at root level
 
-        self._flag_in_dir(
+        return self._flag_in_dir(
             data_file=data_file,
             components_dir=components_dir,
             path_in_repo=path_in_repo,
@@ -347,10 +347,14 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             headers = list(features.keys())
 
             if data_file.suffix == ".csv":
-                sample_name = self._save_as_csv(data_file, headers=headers, row=row)
+                sample_nb = self._save_as_csv(data_file, headers=headers, row=row)
+                sample_name = str(sample_nb)
             else:
                 # JSONL file
                 sample_name = self._save_as_jsonl(data_file, headers=headers, row=row)
+                sample_nb = len(
+                    [path for path in self.dataset_dir.iterdir() if path.is_dir()]
+                )
 
             huggingface_hub.upload_folder(
                 repo_id=self.dataset_id,
@@ -362,8 +366,10 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 token=self.hf_token,
             )
 
+        return sample_nb
+
     @staticmethod
-    def _save_as_csv(data_file: Path, headers: List[str], row: List[Any]) -> str:
+    def _save_as_csv(data_file: Path, headers: List[str], row: List[Any]) -> int:
         """Save data as CSV and return the sample name (row number)."""
         is_new = not data_file.exists()
 
@@ -390,7 +396,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
     def _deserialize_components(
         self, data_dir: Path, flag_data: List[Any], flag_option: str = ""
-    ) -> List[Any]:
+    ) -> Tuple[Dict[Any, Any], List[Any]]:
         """Deserialize components and return the corresponding row for the flagged sample.
 
         Images/audio are saved to disk as individual files.
