@@ -345,11 +345,8 @@ class TestLoadInterfaceWithExamples:
     def test_root_url(self):
         demo = gr.load("spaces/gradio/test-loading-examples")
         assert all(
-            [
-                c["props"]["root_url"]
-                == "https://gradio-test-loading-examples.hf.space/"
-                for c in demo.get_config_file()["components"]
-            ]
+            c["props"]["root_url"] == "https://gradio-test-loading-examples.hf.space/"
+            for c in demo.get_config_file()["components"]
         )
 
     def test_root_url_deserialization(self):
@@ -427,7 +424,7 @@ def check_dataframe(config):
 def check_dataset(config, readme_examples):
     # No Examples
     if not any(readme_examples.values()):
-        assert not any([c for c in config["components"] if c["type"] == "dataset"])
+        assert not any(c for c in config["components"] if c["type"] == "dataset")
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
         assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]

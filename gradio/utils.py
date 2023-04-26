@@ -825,7 +825,7 @@ def get_cancel_function(
             ]
 
     async def cancel(session_hash: str) -> None:
-        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+        task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
         await cancel_tasks(task_ids)
 
     return (

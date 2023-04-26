@@ -390,12 +390,12 @@ class TestAuthenticatedRoutes:
 
         response = client.post(
             "/login",
-            data=dict(username="test", password="correct_password"),
+            data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
         response = client.post(
             "/login",
-            data=dict(username="test", password="incorrect_password"),
+            data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
@@ -524,7 +524,7 @@ class TestPassingRequest:
 
         client.post(
             "/login",
-            data=dict(username="admin", password="password"),
+            data={"username": "admin", "password": "password"},
         )
         response = client.post("/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200

@@ -265,8 +265,8 @@ class TestQueueProcessEvents:
         # setting up the function to expect further iterative responses.
         # Then we provide a 500 response.
         side_effects = [
-            MagicMock(has_exception=False, status=200, json=dict(is_generating=True)),
-            MagicMock(has_exception=False, status=500, json=dict(error="Foo")),
+            MagicMock(has_exception=False, status=200, json={"is_generating": True}),
+            MagicMock(has_exception=False, status=500, json={"error": "Foo"}),
         ]
         mock_event.disconnect = AsyncMock()
         queue.gather_event_data = AsyncMock(return_value=True)
@@ -301,7 +301,7 @@ class TestQueueProcessEvents:
             ValueError("Can't connect"),
         ]
         queue.call_prediction = AsyncMock(
-            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
+            return_value=MagicMock(has_exception=False, json={"is_generating": False})
         )
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
@@ -326,7 +326,7 @@ class TestQueueProcessEvents:
         mock_event.websocket.receive_json.return_value = {"data": ["test"], "fn": 0}
         mock_event.websocket.send_json = AsyncMock()
         queue.call_prediction = AsyncMock(
-            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
+            return_value=MagicMock(has_exception=False, json={"is_generating": False})
         )
         # No exception should be raised during `process_event`
         mock_event.disconnect = AsyncMock(side_effect=ValueError("..."))

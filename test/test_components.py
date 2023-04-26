@@ -1473,7 +1473,7 @@ class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
     def test_no_duplicate_uncased_names(self):
         subclasses = gr.components.Component.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
+        unique_subclasses_uncased = {s.__name__.lower() for s in subclasses}
         assert len(subclasses) == len(unique_subclasses_uncased)
 
 
@@ -2152,7 +2152,7 @@ def test_dataset_calls_as_example(*mocks):
             ]
         ],
     )
-    assert all([m.called for m in mocks])
+    assert all(m.called for m in mocks)
 
 
 cars = vega_datasets.data.cars()
@@ -2194,7 +2194,7 @@ class TestScatterPlot:
             x_title="Horse",
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "Horsepower"
         assert config["encoding"]["x"]["title"] == "Horse"
@@ -2215,7 +2215,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", tooltip="Name", interactive=False
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert "selection" not in config
 
@@ -2224,7 +2224,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", height=100, width=200
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2379,7 +2379,7 @@ class TestLinePlot:
             x_title="Trading Day",
         )
         output = plot.postprocess(stocks)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         for layer in config["layer"]:
             assert layer["mark"]["type"] in ["line", "point"]
@@ -2394,7 +2394,7 @@ class TestLinePlot:
     def test_height_width(self):
         plot = gr.LinePlot(x="date", y="price", height=100, width=200)
         output = plot.postprocess(stocks)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2543,7 +2543,7 @@ class TestBarPlot:
             x_title="Variable A",
         )
         output = plot.postprocess(simple)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "a"
@@ -2558,7 +2558,7 @@ class TestBarPlot:
     def test_height_width(self):
         plot = gr.BarPlot(x="a", y="b", height=100, width=200)
         output = plot.postprocess(simple)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200

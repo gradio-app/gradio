@@ -82,7 +82,7 @@ class TestInterface:
         )
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
         dataset_check = any(
-            [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
+            c["type"] == "dataset" for c in interface.get_config_file()["components"]
         )
         assert dataset_check
 

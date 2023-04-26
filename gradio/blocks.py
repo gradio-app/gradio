@@ -987,12 +987,7 @@ class Blocks(BlockContext):
         is_generating = False
 
         if block_fn.inputs_as_dict:
-            processed_input = [
-                {
-                    input_component: data
-                    for input_component, data in zip(block_fn.inputs, processed_input)
-                }
-            ]
+            processed_input = [dict(zip(block_fn.inputs, processed_input))]
 
         if isinstance(requests, list):
             request = requests[0]

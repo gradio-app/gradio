@@ -65,9 +65,11 @@ include = [
 target-version = "py37"
 extend-select = [
   "B",
+  "C",
   "I",
 ]
 ignore = [
+  "C901", # function is too complex (TODO: un-ignore this)
   "B023", # function definition in loop (TODO: un-ignore this)
   "B008", # function call in argument defaults
   "B017", # pytest.raises considered evil

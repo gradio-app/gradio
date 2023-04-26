@@ -800,9 +800,7 @@ with gr.Blocks(theme=theme) as demo:
                 font_mono=final_mono_fonts,
             )
 
-            theme.set(
-                **{attr: val for attr, val in zip(flat_variables, remaining_args)}
-            )
+            theme.set(**dict(zip(flat_variables, remaining_args)))
             new_step = (base_theme, args)
             if len(history) == 0 or str(history[-1]) != str(new_step):
                 history.append(new_step)

@@ -510,9 +510,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         csv_data.append(flag_option)
 
         # Creates metadata dict from row data and dumps it
-        metadata_dict = {
-            header: _csv_data for header, _csv_data in zip(headers, csv_data)
-        }
+        metadata_dict = dict(zip(headers, csv_data))
         self.dump_json(metadata_dict, Path(folder_name) / "metadata.jsonl")
 
         if is_new:
