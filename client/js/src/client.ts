@@ -24,19 +24,27 @@ type event = <K extends EventType>(
 	eventType: K,
 	listener: EventListener<K>
 ) => SubmitReturn;
-type predict = (endpoint: string, payload: Payload) => Promise<unknown>;
+type predict = (
+	endpoint: string | number,
+	data?: unknown[],
+	event_data?: unknown
+) => Promise<unknown>;
 
 type client_return = {
 	predict: predict;
 	config: Config;
-	submit: (endpoint: string, payload: Payload) => SubmitReturn;
-	info: () => Record<string, any>;
+	submit: (
+		endpoint: string | number,
+		data: unknown[],
+		event_data: unknown
+	) => SubmitReturn;
+	view_api: () => Record<string, any>;
 };
 
 type SubmitReturn = {
 	on: event;
 	off: event;
-	cancel: (endpoint: string, fn_index?: number) => void;
+	cancel: () => void;
 };
 
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
@@ -165,7 +173,7 @@ export async function client(
 		const return_obj = {
 			predict,
 			submit,
-			info
+			view_api
 			// duplicate
 		};
 
@@ -245,9 +253,9 @@ export async function client(
 		 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
 		 * @return Returns the data for the prediction or an error message.
 		 */
-		function predict(endpoint: string, payload: Payload) {
+		function predict(endpoint: string, data: unknown[], event_data: unknown) {
 			return new Promise((res, rej) => {
-				submit(endpoint, payload)
+				submit(endpoint, data, event_data)
 					.on("data", res)
 					.on("status", (status) => {
 						if (status.status === "error") rej(status);
@@ -255,22 +263,33 @@ export async function client(
 			});
 		}
 
-		function submit(endpoint: string, payload: Payload): SubmitReturn {
-			const trimmed_endpoint = endpoint.replace(/^\//, "");
+		function submit(
+			endpoint: string | number,
+			data: unknown[],
+			event_data: unknown
+		): SubmitReturn {
+			let fn_index: number;
+			if (typeof endpoint === "number") {
+				fn_index = endpoint;
+			} else {
+				const trimmed_endpoint = endpoint.replace(/^\//, "");
+				fn_index = api_map[trimmed_endpoint];
+			}
+
 			let websocket: WebSocket;
-			let fn_index =
-				typeof payload.fn_index === "number"
-					? payload.fn_index
-					: api_map[trimmed_endpoint];
+
+			const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
+			let payload: Payload;
 
 			//@ts-ignore
-			handle_blob(`${http_protocol}//${host + config.path}`, payload).then(
+			handle_blob(`${http_protocol}//${host + config.path}`, data).then(
 				(_payload) => {
-					payload = _payload;
+					payload = { data: _payload, event_data, fn_index };
+					console.log(payload);
 					if (skip_queue(fn_index, config)) {
 						fire_event({
 							type: "status",
-							endpoint,
+							endpoint: _endpoint,
 							status: "pending",
 							queue: false,
 							fn_index
@@ -278,7 +297,7 @@ export async function client(
 
 						post_data(
 							`${http_protocol}//${host + config.path}/run${
-								endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}`,
 							{
 								...payload,
@@ -290,7 +309,7 @@ export async function client(
 								if (status_code == 200) {
 									fire_event({
 										type: "status",
-										endpoint,
+										endpoint: _endpoint,
 										fn_index,
 										status: "complete",
 										eta: output.average_duration,
@@ -299,7 +318,7 @@ export async function client(
 
 									fire_event({
 										type: "data",
-										endpoint,
+										endpoint: _endpoint,
 										fn_index,
 										data: output.data
 									});
@@ -307,7 +326,7 @@ export async function client(
 									fire_event({
 										type: "status",
 										status: "error",
-										endpoint,
+										endpoint: _endpoint,
 										fn_index,
 										message: output.error,
 										queue: false
@@ -319,7 +338,7 @@ export async function client(
 									type: "status",
 									status: "error",
 									message: e.message,
-									endpoint,
+									endpoint: _endpoint,
 									fn_index,
 									queue: false
 								});
@@ -329,7 +348,7 @@ export async function client(
 							type: "status",
 							status: "pending",
 							queue: true,
-							endpoint,
+							endpoint: _endpoint,
 							fn_index
 						});
 
@@ -350,7 +369,7 @@ export async function client(
 									status: "error",
 									message: BROKEN_CONNECTION_MSG,
 									queue: true,
-									endpoint,
+									endpoint: _endpoint,
 									fn_index
 								});
 							}
@@ -365,7 +384,12 @@ export async function client(
 
 							if (type === "update" && status) {
 								// call 'status' listeners
-								fire_event({ type: "status", endpoint, fn_index, ...status });
+								fire_event({
+									type: "status",
+									endpoint: _endpoint,
+									fn_index,
+									...status
+								});
 								if (status.status === "error") {
 									websocket.close();
 								}
@@ -380,7 +404,7 @@ export async function client(
 									...status,
 									status: status?.status!,
 									queue: true,
-									endpoint,
+									endpoint: _endpoint,
 									fn_index
 								});
 								websocket.close();
@@ -390,7 +414,7 @@ export async function client(
 									...status,
 									status: status?.status!,
 									queue: true,
-									endpoint,
+									endpoint: _endpoint,
 									fn_index
 								});
 							}
@@ -398,7 +422,7 @@ export async function client(
 								fire_event({
 									type: "data",
 									data: data.data,
-									endpoint,
+									endpoint: _endpoint,
 									fn_index
 								});
 							}
@@ -437,14 +461,21 @@ export async function client(
 				return { on, off, cancel };
 			}
 
-			function cancel() {
+			async function cancel() {
 				fire_event({
 					type: "status",
-					endpoint,
+					endpoint: _endpoint,
 					fn_index: fn_index,
 					status: "complete",
 					queue: false
 				});
+
+				try {
+					await fetch(`${http_protocol}//${host + config.path}/reset`, {
+						method: "POST",
+						body: JSON.stringify(session_hash)
+					});
+				} catch (e) {}
 
 				websocket.close();
 			}
@@ -456,7 +487,7 @@ export async function client(
 			};
 		}
 
-		async function info() {
+		async function view_api() {
 			const headers: {
 				Authorization?: string;
 				"Content-Type": "application/json";
@@ -499,10 +530,10 @@ async function get_jwt(
 
 export async function handle_blob(
 	endpoint: string,
-	payload: { data: unknown[] },
+	data: unknown[],
 	token?: `hf_${string}`
-): Promise<{ data: unknown[] }> {
-	const blob_refs = walk_and_store_blobs(payload);
+): Promise<unknown[]> {
+	const blob_refs = walk_and_store_blobs(data);
 
 	return new Promise((res) => {
 		Promise.all(
@@ -513,10 +544,10 @@ export async function handle_blob(
 		)
 			.then((r) => {
 				r.forEach(({ path, file_url }) => {
-					update_object(payload, `${endpoint}/file=${file_url}`, path);
+					update_object(data, `${endpoint}/file=${file_url}`, path);
 				});
 
-				res(payload);
+				res(data);
 			})
 			.catch(console.log);
 	});

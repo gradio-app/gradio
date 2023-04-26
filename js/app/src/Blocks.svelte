@@ -242,7 +242,7 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	const trigger_api_call = (dep_index: number, event_data: unknown) => {
+	const trigger_api_call = async (dep_index: number, event_data: unknown) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -250,9 +250,11 @@
 		}
 
 		if (dep.cancels) {
-			dep.cancels.forEach((fn_index) => {
-				submit_map.get(dep_index)?.cancel("/predict", fn_index);
-			});
+			await Promise.all(
+				dep.cancels.map((fn_index) => {
+					submit_map.get(fn_index)?.cancel();
+				})
+			);
 		}
 
 		let payload = {
@@ -284,7 +286,7 @@
 
 		function make_prediction() {
 			const submission = app
-				.submit("/predict", payload)
+				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
 					let status = loading_status.get_status_for_fn(fn_index);
@@ -300,6 +302,7 @@
 					}
 				})
 				.on("status", ({ fn_index, ...status }) => {
+					console.log(status);
 					loading_status.update({ ...status, fn_index });
 				});
 

@@ -22,6 +22,7 @@ export interface Config {
 export interface Payload {
 	data: Array<unknown>;
 	fn_index?: number;
+	event_data?: unknown;
 }
 
 export interface PostResponse {
