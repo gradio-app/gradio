@@ -95,18 +95,33 @@ const app = client("https://bec81a83-5b5c-471e.gradio.live");
 Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `info` method. For the Whisper Space, we see the following:
 
 ```json
-Client.predict() Usage Info
----------------------------
-Named API endpoints: 1
-
- - predict(input_audio, api_name="/predict") -> value_0
-    Parameters:
-     - [Audio] input_audio: str (filepath or URL)
-    Returns:
-     - [Textbox] value_0: str (value)
+{
+  "named_endpoints": {
+    "/predict": {
+      "parameters": [
+        {
+          "label": "Input Audio",
+          "type_python": "str",
+          "type_description": "filepath or URL to file",
+          "component": "Audio",
+          "example_input": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+        }
+      ],
+      "returns": [
+        {
+          "label": "value_7",
+          "type_python": "str",
+          "type_description": "string value",
+          "component": "Textbox"
+        }
+      ]
+    }
+  },
+  "unnamed_endpoints": {}
+}
 ```
 
-This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`. 
+This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `string`, which is a url to a file. 
 
 We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
 
