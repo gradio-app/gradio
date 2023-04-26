@@ -1276,7 +1276,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1332,7 +1332,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 

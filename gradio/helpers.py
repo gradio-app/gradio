@@ -611,7 +611,7 @@ def special_args(
     """
     signature = inspect.signature(fn)
     positional_args = []
-    for i, param in enumerate(signature.parameters.values()):
+    for param in signature.parameters.values():
         if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
             break
         positional_args.append(param)
