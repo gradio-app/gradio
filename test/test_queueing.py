@@ -373,7 +373,7 @@ class TestQueueBatch:
         mock_event.disconnect.assert_called_once()
 
         mock_event2.disconnect.assert_called_once()
-        queue.clean_event.call_count == 2
+        assert queue.clean_event.call_count == 2
 
 
 class TestGetEventsInBatch:
