@@ -68,7 +68,6 @@ extend-select = [
 ]
 ignore = [
   "E501", # from scripts/lint_backend.sh
-  "E722", # from scripts/lint_backend.sh
   "E731", # from scripts/lint_backend.sh
   "F403", # from scripts/lint_backend.sh
   "F541", # from scripts/lint_backend.sh
