@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Progress Updates from `gr.Progress()` can be accessed via `job.status().progress_data` by @freddyaboulton](https://github.com/freddyaboulton) in [PR 3924](https://github.com/gradio-app/gradio/pull/3924)
 
 ## Bug Fixes:
 
