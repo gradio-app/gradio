@@ -21,6 +21,10 @@
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
+
+	let blob_components = ["Audio", "File", "Image", "Video"];
+	let blob_examples: string[] = endpoint_parameters.filter(param => blob_components.includes(param.component));
+
 </script>
 
 <div class="container">
@@ -75,11 +79,28 @@ print(result)</pre>
 			<div bind:this={js_code}>
 				<pre>import &lbrace; client &rbrace; from "@gradio/client";
 
+{#each blob_examples as { label, type_python, type_description, component, example_input }, i}
+const response_{i} = await fetch("{example_input}");
+const example{component} = await response_{i}.blob();
+{/each}
+
 async function run() &lbrace;
 	const app = await client(<span class="token string">"{root}"</span>);
 	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}"/predict"{/if}, &lbrace; data: [<!--
 -->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
-        -->{#if i != 0}, {/if}
+	-->{#if i != 0}, {/if}<!--
+		-->{#if blob_components.includes(component)}
+		<span
+		class="example-inputs"
+		>example{component}</span><!--
+		--><span class="desc"
+				><!--
+		-->	// Blob <!--
+		-->representing input in '{label}' <!--
+		-->{component} component<!--
+		--></span
+			><!--
+		-->{:else}
 		<span
 		class="example-inputs"
 		>{represent_value(example_input, type_python, "js")}</span
@@ -91,7 +112,7 @@ async function run() &lbrace;
 -->{component} component<!--
 --></span
 	><!--
--->
+-->{/if}
 {/each}
 	]{#if !named}, fn_index: {dependency_index}{/if}&rbrace;);
 
