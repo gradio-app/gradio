@@ -40,13 +40,6 @@ class TestSimpleFlagging:
         io.close()
 
 
-def print_all_files(directory):
-    """Print absolute paths of all files in directory"""
-    for dirpath, _, filenames in os.walk(directory):
-        for f in filenames:
-            print(os.path.abspath(os.path.join(dirpath, f)))
-
-
 class TestHuggingFaceDatasetSaver:
     @patch(
         "huggingface_hub.create_repo",
@@ -117,7 +110,6 @@ class TestHuggingFaceDatasetJSONSaver:
             assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
             assert row_count == 2  # 3 rows written including header
-            print_all_files(tmpdirname)
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:
                     fname = os.path.basename(f)
