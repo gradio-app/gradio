@@ -20,18 +20,34 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable: boolean = false;
+	const parser = new DOMParser();
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
 
+	function process_message(message) {
+		if (typeof message === "string") {
+			const parseHtml = parser.parseFromString(message, "text/xml");
+			const codeElement = parseHtml.getElementsByTagName("code");
+			if (codeElement.item(0)) {
+				return {
+					code_block: codeElement.item(0).innerHTML,
+					language: codeElement
+						.item(0)
+						.classList.item(0)
+						.replace("language-", "")
+				};
+			} else {
+				return redirect_src_url(message);
+			}
+		} else {
+			return normalise_file(message, root, root_url);
+		}
+	}
 	$: _value = value
 		? value.map(([user_msg, bot_msg]) => [
-				typeof user_msg === "string"
-					? redirect_src_url(user_msg)
-					: normalise_file(user_msg, root, root_url),
-				typeof bot_msg === "string"
-					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url)
+				process_message(user_msg),
+				process_message(bot_msg)
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;

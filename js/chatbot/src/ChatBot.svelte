@@ -74,6 +74,15 @@
 									{/each}
 								</div>
 							{/if}
+						{:else if message !== null && message["code_block"] !== undefined}
+							{#await import("@gradio/code") then Code}
+								<Code.default
+									value={message.code_block}
+									language={message.language}
+									mode={"static"}
+									target={div}
+								/>
+							{/await}
 						{:else if message !== null && message.mime_type?.includes("audio")}
 							<audio
 								controls
