@@ -86,7 +86,7 @@ const example{component} = await response_{i}.blob();
 
 async function run() &lbrace;
 	const app = await client(<span class="token string">"{root}"</span>);
-	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}"/predict"{/if}, &lbrace; data: [<!--
+	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
 	-->{#if i != 0}, {/if}<!--
 		-->{#if blob_components.includes(component)}
@@ -95,7 +95,7 @@ async function run() &lbrace;
 		>example{component}</span><!--
 		--><span class="desc"
 				><!--
-		-->	// Blob <!--
+		-->	// blob <!--
 		-->representing input in '{label}' <!--
 		-->{component} component<!--
 		--></span
@@ -114,7 +114,7 @@ async function run() &lbrace;
 	><!--
 -->{/if}
 {/each}
-	]{#if !named}, fn_index: {dependency_index}{/if}&rbrace;);
+	]);
 
 	console.log(result?.data);
 &rbrace;
