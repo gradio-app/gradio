@@ -64,9 +64,14 @@ include = [
 [tool.ruff]
 target-version = "py37"
 extend-select = [
+  "B",
   "I",
 ]
 ignore = [
+  "B023", # function definition in loop (TODO: un-ignore this)
+  "B008", # function call in argument defaults
+  "B017", # pytest.raises considered evil
+  "B028", # explicit stacklevel for warnings
   "E501", # from scripts/lint_backend.sh
 ]
 
