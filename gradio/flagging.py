@@ -10,7 +10,7 @@ import warnings
 from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Tuple, Dict
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import filelock
 import pkg_resources
