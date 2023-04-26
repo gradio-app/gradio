@@ -117,7 +117,9 @@ class TestInterface:
         interface.close()
 
     def test_interface_representation(self):
-        prediction_fn = lambda x: x
+        def prediction_fn(x):
+            return x
+
         prediction_fn.__name__ = "prediction_fn"
         repr = str(Interface(prediction_fn, "textbox", "label")).split("\n")
         assert prediction_fn.__name__ in repr[0]

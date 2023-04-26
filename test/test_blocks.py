@@ -87,10 +87,11 @@ class TestBlocksMethods:
         def fake_func():
             return "Hello There"
 
-        xray_model = lambda diseases, img: {
-            disease: random.random() for disease in diseases
-        }
-        ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
+        def xray_model(diseases, img):
+            return {disease: random.random() for disease in diseases}
+
+        def ct_model(diseases, img):
+            return {disease: 0.1 for disease in diseases}
 
         with gr.Blocks() as demo:
             gr.Markdown(
