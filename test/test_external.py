@@ -265,7 +265,7 @@ class TestLoadInterface:
                 ):
                     pass
                 else:
-                    assert False
+                    raise AssertionError()
             else:
                 assert resp.json()["data"] is not None
         finally:
