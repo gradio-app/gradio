@@ -505,6 +505,7 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
             repo_type="dataset",
             commit_message=f"Flagged sample #{sample_nb}",
             folder_path=self.dataset_dir,
+            ignore_patterns="*.lock",
             token=self.hf_token,
         )
         return sample_nb
