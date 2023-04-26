@@ -276,11 +276,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         """
         try:
             import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ImportError(
                 "Package `huggingface_hub` not found is needed "
                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
-            )
+            ) from err
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
         try:
             if StrictVersion(hh_version) < StrictVersion("0.6.0"):
@@ -416,11 +416,11 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         """
         try:
             import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ImportError(
                 "Package `huggingface_hub` not found is needed "
                 "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
-            )
+            ) from err
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
         try:
             if StrictVersion(hh_version) < StrictVersion("0.6.0"):

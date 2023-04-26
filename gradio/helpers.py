@@ -422,7 +422,7 @@ class Progress(Iterable):
                 return next(current_iterable.iterable)  # type: ignore
             except StopIteration:
                 self.iterables.pop()
-                raise StopIteration
+                raise
         else:
             return self
 

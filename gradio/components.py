@@ -1846,10 +1846,10 @@ class Image(
         resized_and_cropped_image = np.array(x)
         try:
             from skimage.segmentation import slic
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ValueError(
                 "Error: running this interpretation for images requires scikit-image, please install it first."
-            )
+            ) from err
         try:
             segments_slic = slic(
                 resized_and_cropped_image,
@@ -3863,10 +3863,11 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             try:
                 text = y["text"]
                 entities = y["entities"]
-            except KeyError:
+            except KeyError as ke:
                 raise ValueError(
-                    "Expected a dictionary with keys 'text' and 'entities' for the value of the HighlightedText component."
-                )
+                    "Expected a dictionary with keys 'text' and 'entities' "
+                    "for the value of the HighlightedText component."
+                ) from ke
             if len(entities) == 0:
                 y = [(text, None)]
             else:

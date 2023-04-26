@@ -189,10 +189,10 @@ async def run_interpret(interface: Interface, raw_input: List):
             elif interp == "shap" or interp == "shapley":
                 try:
                     import shap  # type: ignore
-                except (ImportError, ModuleNotFoundError):
+                except (ImportError, ModuleNotFoundError) as err:
                     raise ValueError(
                         "The package `shap` is required for this interpretation method. Try: `pip install shap`"
-                    )
+                    ) from err
                 input_component = interface.input_components[i]
                 if not isinstance(input_component, TokenInterpretable):
                     raise ValueError(

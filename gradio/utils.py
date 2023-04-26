@@ -488,7 +488,7 @@ def async_iteration(iterator):
         return next(iterator)
     except StopIteration:
         # raise a ValueError here because co-routines can't raise StopIteration themselves
-        raise StopAsyncIteration()
+        raise StopAsyncIteration() from None
 
 
 class AsyncRequest:

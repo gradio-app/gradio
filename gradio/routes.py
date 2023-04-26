@@ -238,17 +238,17 @@ class App(FastAPI):
                     template,
                     {"request": request, "config": config},
                 )
-            except TemplateNotFound:
+            except TemplateNotFound as err:
                 if blocks.share:
                     raise ValueError(
                         "Did you install Gradio from source files? Share mode only "
                         "works when Gradio is installed through the pip package."
-                    )
+                    ) from err
                 else:
                     raise ValueError(
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
-                    )
+                    ) from err
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
@@ -735,8 +735,10 @@ class Request:
         else:
             try:
                 obj = self.kwargs[name]
-            except KeyError:
-                raise AttributeError(f"'Request' object has no attribute '{name}'")
+            except KeyError as ke:
+                raise AttributeError(
+                    f"'Request' object has no attribute '{name}'"
+                ) from ke
             return self.dict_to_obj(obj)
 
 

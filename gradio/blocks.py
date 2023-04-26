@@ -1211,10 +1211,11 @@ Received outputs:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
                     output.append(None)
                     continue
-            except (IndexError, KeyError):
+            except (IndexError, KeyError) as err:
                 raise ValueError(
-                    f"Number of output components does not match number of values returned from from function {block_fn.name}"
-                )
+                    "Number of output components does not match number "
+                    f"of values returned from from function {block_fn.name}"
+                ) from err
             block = self.blocks[output_id]
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
