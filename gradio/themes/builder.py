@@ -495,32 +495,6 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
         def load_theme(theme_name):
             theme = [theme for theme in themes if theme.__name__ == theme_name][0]
 
-            expand_color = lambda color: list(
-                [
-                    color.c50,
-                    color.c100,
-                    color.c200,
-                    color.c300,
-                    color.c400,
-                    color.c500,
-                    color.c600,
-                    color.c700,
-                    color.c800,
-                    color.c900,
-                    color.c950,
-                ]
-            )
-            expand_size = lambda size: list(
-                [
-                    size.xxs,
-                    size.xs,
-                    size.sm,
-                    size.md,
-                    size.lg,
-                    size.xl,
-                    size.xxl,
-                ]
-            )
             parameters = inspect.signature(theme.__init__).parameters
             primary_hue = parameters["primary_hue"].default
             secondary_hue = parameters["secondary_hue"].default
@@ -555,13 +529,13 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
 
             return (
                 [primary_hue.name, secondary_hue.name, neutral_hue.name]
-                + expand_color(primary_hue)
-                + expand_color(secondary_hue)
-                + expand_color(neutral_hue)
+                + primary_hue.expand()
+                + secondary_hue.expand()
+                + neutral_hue.expand()
                 + [text_size.name, spacing_size.name, radius_size.name]
-                + expand_size(text_size)
-                + expand_size(spacing_size)
-                + expand_size(radius_size)
+                + text_size.expand()
+                + spacing_size.expand()
+                + radius_size.expand()
                 + font
                 + font_is_google
                 + font_mono
