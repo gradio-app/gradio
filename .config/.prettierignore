@@ -11,4 +11,5 @@
 **/.github/**
 **/guides/**
 **/test/**
+**/.mypy_cache/**
 **/*.md

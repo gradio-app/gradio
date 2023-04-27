@@ -14,8 +14,6 @@
 	export let show_label: boolean;
 	export let allow_custom_value: boolean = false;
 
-	let focused = false;
-
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
 		select: SelectData;
@@ -23,63 +21,45 @@
 	}>();
 
 	let inputValue: string,
-		activeOption: string,
-		showOptions = false;
+		activeOption: string | null,
+		showOptions = false,
+		filterInput: HTMLElement;
 
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
-	$: if (
-		(activeOption && !filtered.includes(activeOption)) ||
-		(!activeOption && inputValue)
-	)
-		activeOption = filtered[0];
 
-	$: readonly =
-		((!multiselect && typeof value === "string" && value.length > 0) ||
-			(multiselect && Array.isArray(value) && value.length === max_choices)) &&
-		!allow_custom_value;
-
-	// The initial value of value is [] so that can
-	// cause infinite loops in the non-multiselect case
-	$: if (!multiselect && !Array.isArray(value)) {
-		dispatch("change", value);
+	$: if (!activeOption || !filtered.includes(activeOption)) {
+		activeOption = filtered.length ? filtered[0] : null;
 	}
 
 	function add(option: string) {
-		if (Array.isArray(value)) {
-			if (!max_choices || value.length < max_choices) {
-				value.push(option);
-				dispatch("select", {
-					index: choices.indexOf(option),
-					value: option,
-					selected: true
-				});
-				dispatch("change", value);
-			}
+		value = value as Array<string>;
+		if (!max_choices || value.length < max_choices) {
+			value.push(option);
+			dispatch("select", {
+				index: choices.indexOf(option),
+				value: option,
+				selected: true
+			});
+			dispatch("change", value);
 		}
 		value = value;
 	}
 
 	function remove(option: string) {
-		if (Array.isArray(value)) {
-			value = value.filter((v: string) => v !== option);
-			dispatch("select", {
-				index: choices.indexOf(option),
-				value: option,
-				selected: false
-			});
-			dispatch("change", value);
-		}
+		value = value as Array<string>;
+		value = value.filter((v: string) => v !== option);
+		dispatch("select", {
+			index: choices.indexOf(option),
+			value: option,
+			selected: false
+		});
+		dispatch("change", value);
 	}
 
 	function remove_all(e: any) {
-		if (multiselect) {
-			value = [];
-		} else {
-			value = "";
-		}
-
+		value = [];
 		inputValue = "";
 		e.preventDefault();
 		dispatch("change", value);
@@ -89,13 +69,19 @@
 		const option = e.detail.target.dataset.value;
 		if (allow_custom_value) {
 			inputValue = option;
-		} else {
-			inputValue = "";
 		}
 
 		if (option !== undefined) {
-			if (!multiselect) {
+			if (multiselect) {
+				if (value?.includes(option)) {
+					remove(option);
+				} else {
+					add(option);
+				}
+				inputValue = "";
+			} else {
 				value = option;
+				inputValue = option;
 				showOptions = false;
 				dispatch("select", {
 					index: choices.indexOf(option),
@@ -105,49 +91,69 @@
 				dispatch("change", value);
 				return;
 			}
-			if (value?.includes(option)) {
-				remove(option);
-			} else {
-				add(option);
-			}
 		}
 	}
 
-	function handleKeyup(e: any) {
+	function handleKeydown(e: any) {
 		if (e.key === "Enter" && activeOption != undefined) {
 			if (!multiselect) {
-				value = activeOption;
-				inputValue = "";
+				if (value !== activeOption) {
+					value = activeOption;
+					dispatch("select", {
+						index: choices.indexOf(value),
+						value: value,
+						selected: true
+					});
+					dispatch("change", value);
+				}
+				inputValue = activeOption;
+				showOptions = false;
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
-		} else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-			const increment = e.key === "ArrowUp" ? -1 : 1;
-			const calcIndex = filtered.indexOf(activeOption) + increment;
-			activeOption =
-				calcIndex < 0
-					? filtered[filtered.length - 1]
-					: calcIndex === filtered.length
-					? filtered[0]
-					: filtered[calcIndex];
-		} else if (e.key === "Escape") {
-			showOptions = false;
-		} else if (allow_custom_value) {
-			value = inputValue;
-			dispatch("change", value);
+		} else {
+			showOptions = true;
+			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+				if (activeOption === null) {
+					activeOption = filtered[0];
+				}
+				const increment = e.key === "ArrowUp" ? -1 : 1;
+				const calcIndex = filtered.indexOf(activeOption) + increment;
+				activeOption =
+					calcIndex < 0
+						? filtered[filtered.length - 1]
+						: calcIndex === filtered.length
+						? filtered[0]
+						: filtered[calcIndex];
+				e.preventDefault();
+			} else if (e.key === "Escape") {
+				showOptions = false;
+			} else if (e.key === "Backspace") {
+				if (
+					multiselect &&
+					(!inputValue || inputValue === "") &&
+					Array.isArray(value) &&
+					value.length > 0
+				) {
+					remove(value[value.length - 1]);
+					inputValue = "";
+				}
+			} else {
+				showOptions = true;
+			}
 		}
 	}
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
-			{#if Array.isArray(value)}
+			{#if multiselect && Array.isArray(value)}
 				{#each value as s}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div on:click|preventDefault={() => remove(s)} class="token">
 						<span>{s}</span>
 						<div
@@ -159,34 +165,55 @@
 						</div>
 					</div>
 				{/each}
-			{:else if !allow_custom_value}
-				<span class="single-select">{value}</span>
 			{/if}
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
+					class:subdued={value !== inputValue && !allow_custom_value}
 					{disabled}
-					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:mousedown={() => {
-						showOptions = !showOptions;
-					}}
+					bind:this={filterInput}
 					on:focus={() => {
-						showOptions = true;
-						focused = true;
+						showOptions = !showOptions;
+						if (showOptions) {
+							inputValue = "";
+						} else {
+							filterInput.blur();
+						}
+					}}
+					on:keydown={handleKeydown}
+					on:keyup={() => {
+						if (allow_custom_value) {
+							value = inputValue;
+							dispatch("change", value);
+						}
 					}}
 					on:blur={() => {
-						dispatch("blur");
+						if (multiselect) {
+							inputValue = "";
+						} else if (!allow_custom_value) {
+							let old_value = value;
+							if (value !== inputValue) {
+								if (typeof value === "string" && inputValue == "") {
+									inputValue = value;
+								} else {
+									value = undefined;
+									inputValue = "";
+								}
+							}
+							if (old_value !== value) {
+								dispatch("change", value);
+							}
+						}
 						showOptions = false;
-						focused = false;
 					}}
-					on:keyup={handleKeyup}
 				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div
 					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
-					title="Remove All"
+					title="Clear"
 					on:click={remove_all}
 				>
 					<Remove />
@@ -225,7 +252,7 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--checkbox-label-gap);
-		padding: var(--checkbox-label-gap);
+		padding: var(--checkbox-label-padding);
 	}
 
 	.token {
@@ -298,5 +325,9 @@
 
 	.hide {
 		display: none;
+	}
+
+	.subdued {
+		color: var(--body-text-color-subdued);
 	}
 </style>
