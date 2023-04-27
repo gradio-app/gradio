@@ -3,6 +3,7 @@
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
+	export let subtitle: string | null = null;
 	export let mirror: boolean;
 
 	let time: number = 0;
@@ -15,7 +16,7 @@
 
 	function video_move() {
 		clearTimeout(show_controls_timeout);
-		show_controls_timeout = setTimeout(() => (show_controls = false), 2500);
+		show_controls_timeout = setTimeout(() => (show_controls = false), 500);
 		show_controls = true;
 	}
 
@@ -76,9 +77,6 @@
 		await tick();
 
 		var b = setInterval(async () => {
-			if (video.readyState >= 1) {
-				height = (video.videoHeight / video.videoWidth) * width;
-			}
 			if (video.readyState >= 3) {
 				video.currentTime = 9999;
 				paused = true;
@@ -98,23 +96,15 @@
 		checkforVideo();
 	}
 
-	$: src && _load();
-
-	let height: number;
-	let width: number;
 	let opacity: number = 0;
 	let wrap_opacity: number = 0;
 	let transition: string = "0.5s";
+
+	$: src && _load();
 </script>
 
-<div
-	style:opacity={wrap_opacity}
-	class="wrap"
-	style:height={`${src && height}px` || `auto`}
->
+<div style:opacity={wrap_opacity} class="wrap">
 	<video
-		bind:clientHeight={height}
-		bind:clientWidth={width}
 		{src}
 		preload="auto"
 		on:mousemove={video_move}
@@ -130,7 +120,7 @@
 		style:opacity
 		style:transition
 	>
-		<track kind="captions" />
+		<track kind="captions" src={subtitle} default />
 	</video>
 
 	<div

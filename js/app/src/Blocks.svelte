@@ -211,7 +211,7 @@
 
 	function handle_update(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
-		data.forEach((value: any, i: number) => {
+		data?.forEach((value: any, i: number) => {
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -384,7 +384,16 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+			gtag("config", "UA-156449732-1");
+		</script>
 	{/if}
 </svelte:head>
 
@@ -442,7 +451,7 @@
 				set_api_docs_visible(false);
 			}}
 		/>
-		<div class="api-docs-wrap ">
+		<div class="api-docs-wrap">
 			<ApiDocs
 				on:close={() => {
 					set_api_docs_visible(false);

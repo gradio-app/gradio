@@ -1,6 +1,5 @@
 import gradio as gr
 import time 
-import tqdm
 
 css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
 

@@ -1,8 +1,5 @@
 import os
-from os.path import splitext
 import numpy as np
-import sys
-import matplotlib.pyplot as plt
 import torch
 import torchvision
 import wget 

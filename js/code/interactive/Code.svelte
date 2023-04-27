@@ -20,6 +20,7 @@
 
 	export let basic = true;
 	export let language: string;
+	export let lines: number = 5;
 	export let extensions: Extension[] = [];
 
 	export let useTab = true;
@@ -41,6 +42,7 @@
 
 	$: reconfigure(), lang_extension;
 	$: setDoc(value);
+	$: updateLines(lines);
 
 	function setDoc(newDoc: string) {
 		if (view && newDoc !== view.state.doc.toString()) {
@@ -54,11 +56,46 @@
 		}
 	}
 
+	function updateLines(newLines: number) {
+		if (view) {
+			view.requestMeasure({ read: updateGutters });
+		}
+	}
+
 	function createEditorView(): EditorView {
 		return new EditorView({
 			parent: element,
 			state: createEditorState(value)
 		});
+	}
+
+	function getGutterLineHeight(view: EditorView): string | null {
+		let elements = view.dom.querySelectorAll<HTMLElement>(".cm-gutterElement");
+		if (elements.length === 0) {
+			return null;
+		}
+		for (var i = 0; i < elements.length; i++) {
+			let node = elements[i];
+			let height = getComputedStyle(node)?.height ?? "0px";
+			if (height != "0px") {
+				return height;
+			}
+		}
+		return null;
+	}
+
+	function updateGutters(view: EditorView): any {
+		let gutters = view.dom.querySelectorAll<HTMLElement>(".cm-gutter");
+		let _lines = lines + 1;
+		let lineHeight = getGutterLineHeight(view);
+		if (!lineHeight) {
+			return null;
+		}
+		for (var i = 0; i < gutters.length; i++) {
+			let node = gutters[i];
+			node.style.minHeight = `calc(${lineHeight} * ${_lines})`;
+		}
+		return null;
 	}
 
 	function handleChange(vu: ViewUpdate): void {
@@ -68,6 +105,7 @@
 			value = text;
 			dispatch("change", text);
 		}
+		view.requestMeasure({ read: updateGutters });
 	}
 
 	function getExtensions() {
@@ -97,9 +135,6 @@
 
 			fontFamily: "var(--font-mono)",
 			minHeight: "100%"
-		},
-		".cm-gutter": {
-			minHeight: "231px"
 		},
 		".cm-gutters": {
 			marginRight: "1px",
@@ -169,58 +204,28 @@
 		view = createEditorView();
 		return () => view?.destroy();
 	});
-
-	let padding = "";
-
-	const label_margin_var = "--block-label-margin";
-	const label_padding_var = "--block-label-padding";
-	const label_font_var = "--block-label-text-size";
-	const label_line_height = "--line-sm";
-
-	const RE = /(?:([0-9\.]+[a-zA-Z%]+)\s*)/g;
-	function get_padding_for_label() {
-		const m = getComputedStyle(document.documentElement)
-			.getPropertyValue(label_margin_var)
-			.trim();
-		const p = getComputedStyle(document.documentElement).getPropertyValue(
-			label_padding_var
-		);
-
-		const f = getComputedStyle(document.documentElement)
-			.getPropertyValue(label_font_var)
-			.trim();
-		const l = getComputedStyle(document.documentElement)
-			.getPropertyValue(label_line_height)
-			.trim();
-
-		const x = p.match(RE);
-		if (!x) return;
-
-		let [top, , bottom] = x.map((s) => s.trim());
-		if (!bottom) bottom = top;
-
-		const _margin = !m || m == "0" ? "" : ` ${m} +`;
-		const _height = /[a-zA-Z%]/.test(l) ? l : `(${f} * ${l})`;
-
-		padding = `padding-top: calc(${top} + ${bottom} +${_margin} ${_height});`;
-	}
-
-	get_padding_for_label();
 </script>
 
 <div class="wrap">
-	<div
-		class="codemirror-wrapper {classNames}"
-		style={padding}
-		bind:this={element}
-	/>
+	<div class="codemirror-wrapper {classNames}" bind:this={element} />
 </div>
 
 <style>
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		flex-flow: column;
+		margin: 0;
+		padding: 0;
+		height: 100%;
+	}
 	.codemirror-wrapper {
-		min-height: 250px;
-		max-height: 480px;
+		height: 100%;
 		overflow: auto;
+	}
+
+	:global(.cm-editor) {
+		height: 100%;
 	}
 
 	/* Dunno why this doesn't work through the theme API -- don't remove*/

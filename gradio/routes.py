@@ -8,7 +8,6 @@ import inspect
 import json
 import mimetypes
 import os
-import posixpath
 import secrets
 import tempfile
 import traceback
@@ -33,6 +32,7 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
@@ -43,7 +43,6 @@ import gradio.ranged_response as ranged_response
 from gradio import utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
-from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event
@@ -113,7 +112,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, docs_url=None, redoc_url=None)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -160,14 +159,16 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
         async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get("access-token")
+            token = websocket.cookies.get("access-token") or websocket.cookies.get(
+                "access-token-unsecure"
+            )
             return token  # token is returned to allow request in queue
 
         @app.get("/token")
@@ -219,7 +220,7 @@ class App(FastAPI):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
 
-            if app.auth is None or not (user is None):
+            if app.auth is None or user is not None:
                 config = app.get_blocks().config
             else:
                 config = {
@@ -249,6 +250,12 @@ class App(FastAPI):
                         "the frontend by running /scripts/build_frontend.sh"
                     )
 
+        @app.get("/info/", dependencies=[Depends(login_check)])
+        @app.get("/info", dependencies=[Depends(login_check)])
+        def api_info(serialize: bool = True):
+            config = app.get_blocks().config
+            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
+
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config():
@@ -257,16 +264,12 @@ class App(FastAPI):
         @app.get("/static/{path:path}")
         def static_resource(path: str):
             static_file = safe_join(STATIC_PATH_LIB, path)
-            if static_file is not None:
-                return FileResponse(static_file)
-            raise HTTPException(status_code=404, detail="Static file not found")
+            return FileResponse(static_file)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
             build_file = safe_join(BUILD_PATH_LIB, path)
-            if build_file is not None:
-                return FileResponse(build_file)
-            raise HTTPException(status_code=404, detail="Build file not found")
+            return FileResponse(build_file)
 
         @app.get("/favicon.ico")
         async def favicon():
@@ -301,21 +304,23 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
-            abs_path = str(utils.abspath(path_or_url))
-            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
-            created_by_app = abs_path in set().union(*blocks.temp_file_sets)
+            abs_path = utils.abspath(path_or_url)
+            in_app_dir = utils.abspath(app.cwd) in abs_path.parents
+            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
                 (
-                    utils.abspath(dir) in utils.abspath(path_or_url).parents
+                    utils.abspath(dir) in abs_path.parents
                     for dir in blocks.file_directories
                 )
             )
-            was_uploaded = (
-                utils.abspath(app.uploaded_file_dir)
-                in utils.abspath(path_or_url).parents
-            )
+            was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents
 
             if in_app_dir or created_by_app or in_file_dir or was_uploaded:
+                if not abs_path.exists():
+                    raise HTTPException(404, "File not found")
+                if abs_path.is_dir():
+                    raise HTTPException(403)
+
                 range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
@@ -333,8 +338,9 @@ class App(FastAPI):
                 return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
             else:
-                raise ValueError(
-                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
+                raise HTTPException(
+                    403,
+                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app.",
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -584,26 +590,31 @@ class App(FastAPI):
 ########
 
 
-def safe_join(directory: str, path: str) -> str | None:
+def safe_join(directory: str, path: str) -> str:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
     _os_alt_seps: List[str] = list(
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
     )
 
-    if path != "":
-        filename = posixpath.normpath(path)
-    else:
-        return directory
+    if path == "":
+        raise HTTPException(400)
 
+    filename = os.path.normpath(path)
+    fullpath = os.path.join(directory, filename)
     if (
         any(sep in filename for sep in _os_alt_seps)
         or os.path.isabs(filename)
         or filename == ".."
         or filename.startswith("../")
+        or os.path.isdir(fullpath)
     ):
-        return None
-    return posixpath.join(directory, filename)
+        raise HTTPException(403)
+
+    if not os.path.exists(fullpath):
+        raise HTTPException(404, "File not found")
+
+    return fullpath
 
 
 def get_types(cls_set: List[Type]):

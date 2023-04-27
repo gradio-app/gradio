@@ -17,6 +17,7 @@
 
 	export let value: string = "";
 	export let language: string = "";
+	export let lines: number = 5;
 	export let target: HTMLElement;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -35,7 +36,7 @@
 	<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
 		<StatusTracker {...loading_status} />
 
-		<BlockLabel Icon={CodeIcon} {show_label} {label} />
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
 		{#if !value}
 			<Empty size="large" unpadded_box={true}>
@@ -44,16 +45,16 @@
 		{:else}
 			<Widget {language} {value} />
 
-			<Code bind:value {language} {dark_mode} readonly />
+			<Code bind:value {language} {lines} {dark_mode} readonly />
 		{/if}
 	</Block>
 {:else}
 	<Block variant={"solid"} padding={false} {elem_id} {elem_classes} {visible}>
 		<StatusTracker {...loading_status} />
 
-		<BlockLabel Icon={CodeIcon} {show_label} {label} />
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
-		<Code bind:value {language} {dark_mode} />
+		<Code bind:value {language} {lines} {dark_mode} />
 	</Block>
 {/if}
 

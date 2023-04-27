@@ -120,7 +120,7 @@
 						<Square />
 					</div>
 				{:else}
-					<div class="icon ">
+					<div class="icon">
 						<Circle />
 					</div>
 				{/if}

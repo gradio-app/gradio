@@ -252,4 +252,8 @@
 	.hide {
 		display: none;
 	}
+
+	.message-wrap :global(pre) {
+		padding: var(--spacing-xl) 0px;
+	}
 </style>

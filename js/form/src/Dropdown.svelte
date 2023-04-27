@@ -12,14 +12,16 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
+	export let allow_custom_value: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
 		select: SelectData;
+		blur: undefined;
 	}>();
 
 	let inputValue: string,
-		activeOption: string,
+		activeOption: string | null,
 		showOptions = false,
 		filterInput: HTMLElement;
 
@@ -27,63 +29,37 @@
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
 
-	$: if (
-		(activeOption && !filtered.includes(activeOption)) ||
-		(!activeOption && inputValue)
-	) {
-		activeOption = filtered[0];
+	$: if (!activeOption || !filtered.includes(activeOption)) {
+		activeOption = filtered.length ? filtered[0] : null;
 	}
-
-	// The initial value of value is [] so that can
-	// cause infinite loops in the non-multiselect case
-	$: if (!multiselect && !Array.isArray(value)) {
-		dispatch("change", value);
-	}
-
-	function isFilterReadonly(value: any): boolean {
-		if (multiselect) {
-			return Array.isArray(value) && value.length === max_choices;
-		} else {
-			return typeof value === "string" && value.length > 0;
-		}
-	}
-
-	$: filterReadonly = isFilterReadonly(value) && !showOptions;
 
 	function add(option: string) {
-		if (Array.isArray(value)) {
-			if (!max_choices || value.length < max_choices) {
-				value.push(option);
-				dispatch("select", {
-					index: choices.indexOf(option),
-					value: option,
-					selected: true
-				});
-				dispatch("change", value);
-			}
+		value = value as Array<string>;
+		if (!max_choices || value.length < max_choices) {
+			value.push(option);
+			dispatch("select", {
+				index: choices.indexOf(option),
+				value: option,
+				selected: true
+			});
+			dispatch("change", value);
 		}
 		value = value;
 	}
 
 	function remove(option: string) {
-		if (Array.isArray(value)) {
-			value = value.filter((v: string) => v !== option);
-			dispatch("select", {
-				index: choices.indexOf(option),
-				value: option,
-				selected: false
-			});
-			dispatch("change", value);
-		}
+		value = value as Array<string>;
+		value = value.filter((v: string) => v !== option);
+		dispatch("select", {
+			index: choices.indexOf(option),
+			value: option,
+			selected: false
+		});
+		dispatch("change", value);
 	}
 
 	function remove_all(e: any) {
-		if (multiselect) {
-			value = [];
-		} else {
-			value = "";
-		}
-
+		value = [];
 		inputValue = "";
 		e.preventDefault();
 		dispatch("change", value);
@@ -91,12 +67,21 @@
 
 	function handleOptionMousedown(e: any) {
 		const option = e.detail.target.dataset.value;
-		inputValue = "";
+		if (allow_custom_value) {
+			inputValue = option;
+		}
 
 		if (option !== undefined) {
-			if (!multiselect) {
-				value = option;
+			if (multiselect) {
+				if (value?.includes(option)) {
+					remove(option);
+				} else {
+					add(option);
+				}
 				inputValue = "";
+			} else {
+				value = option;
+				inputValue = option;
 				showOptions = false;
 				dispatch("select", {
 					index: choices.indexOf(option),
@@ -106,132 +91,129 @@
 				dispatch("change", value);
 				return;
 			}
-			if (value?.includes(option)) {
-				remove(option);
-			} else {
-				add(option);
-			}
 		}
 	}
 
 	function handleKeydown(e: any) {
 		if (e.key === "Enter" && activeOption != undefined) {
 			if (!multiselect) {
-				value = activeOption;
-				inputValue = "";
+				if (value !== activeOption) {
+					value = activeOption;
+					dispatch("select", {
+						index: choices.indexOf(value),
+						value: value,
+						selected: true
+					});
+					dispatch("change", value);
+				}
+				inputValue = activeOption;
 				showOptions = false;
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
-		} else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-			const increment = e.key === "ArrowUp" ? -1 : 1;
-			const calcIndex = filtered.indexOf(activeOption) + increment;
-			activeOption =
-				calcIndex < 0
-					? filtered[filtered.length - 1]
-					: calcIndex === filtered.length
-					? filtered[0]
-					: filtered[calcIndex];
-			e.preventDefault();
-		} else if (e.key === "Escape") {
-			showOptions = false;
-			inputValue = "";
-		} else if (e.key === "Backspace") {
-			if (
-				multiselect &&
-				(!inputValue || inputValue === "") &&
-				Array.isArray(value) &&
-				value.length > 0
-			) {
-				remove(value[value.length - 1]);
-				inputValue = "";
+		} else {
+			showOptions = true;
+			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+				if (activeOption === null) {
+					activeOption = filtered[0];
+				}
+				const increment = e.key === "ArrowUp" ? -1 : 1;
+				const calcIndex = filtered.indexOf(activeOption) + increment;
+				activeOption =
+					calcIndex < 0
+						? filtered[filtered.length - 1]
+						: calcIndex === filtered.length
+						? filtered[0]
+						: filtered[calcIndex];
+				e.preventDefault();
+			} else if (e.key === "Escape") {
+				showOptions = false;
+			} else if (e.key === "Backspace") {
+				if (
+					multiselect &&
+					(!inputValue || inputValue === "") &&
+					Array.isArray(value) &&
+					value.length > 0
+				) {
+					remove(value[value.length - 1]);
+					inputValue = "";
+				}
+			} else {
+				showOptions = true;
 			}
 		}
 	}
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
-			{#if multiselect || !showOptions}
-				{#if Array.isArray(value)}
-					{#each value as s}
-						<div on:click|preventDefault={() => remove(s)} class="token">
-							<span>{s}</span>
-							<div
-								class:hidden={disabled}
-								class="token-remove"
-								title="Remove {s}"
-							>
-								<Remove />
-							</div>
+			{#if multiselect && Array.isArray(value)}
+				{#each value as s}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<div on:click|preventDefault={() => remove(s)} class="token">
+						<span>{s}</span>
+						<div
+							class:hidden={disabled}
+							class="token-remove"
+							title="Remove {s}"
+						>
+							<Remove />
 						</div>
-					{/each}
-				{:else if value}
-					<span
-						class="single-select"
-						on:mousedown|preventDefault={(e) => {
-							showOptions = !showOptions;
-							if (showOptions) {
-								filterInput.focus();
-							}
-						}}
-					>
-						{value}
-					</span>
-				{/if}
+					</div>
+				{/each}
 			{/if}
-			<div
-				class="secondary-wrap"
-				tabindex="0"
-				on:focus|preventDefault={() => {
-					showOptions = !showOptions;
-					if (showOptions) {
-						filterInput.focus();
-					} else {
-						filterInput.blur();
-						inputValue = "";
-					}
-				}}
-				on:mousedown|preventDefault={() => {
-					showOptions = !showOptions;
-					if (showOptions) {
-						filterInput.focus();
-					} else {
-						filterInput.blur();
-						inputValue = "";
-					}
-				}}
-				on:focusout={(e) => {
-					if (e.target == filterInput) {
-						showOptions = false;
-						inputValue = "";
-					}
-				}}
-			>
+			<div class="secondary-wrap">
 				<input
-					class="border-none input"
+					class="border-none"
+					class:subdued={value !== inputValue}
 					{disabled}
-					readonly={filterReadonly}
 					autocomplete="off"
 					bind:value={inputValue}
 					bind:this={filterInput}
 					on:focus={() => {
-						if (!showOptions) {
-							filterInput.blur();
+						showOptions = !showOptions;
+						if (showOptions) {
 							inputValue = "";
+						} else {
+							filterInput.blur();
 						}
 					}}
 					on:keydown={handleKeydown}
+					on:keyup={() => {
+						if (allow_custom_value) {
+							value = inputValue;
+							dispatch("change", value);
+						}
+					}}
+					on:blur={() => {
+						if (multiselect) {
+							inputValue = "";
+						} else if (!allow_custom_value) {
+							let old_value = value;
+							if (choices.includes(inputValue)) {
+								value = inputValue;
+							} else if (typeof value === "string" && inputValue == "") {
+								inputValue = value;
+							} else {
+								value = undefined;
+								inputValue = "";
+							}
+							if (old_value !== value) {
+								dispatch("change", value);
+							}
+						}
+						showOptions = false;
+					}}
 				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div
 					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
-					title="Remove All"
+					title="Clear"
 					on:click={remove_all}
 				>
 					<Remove />
@@ -269,7 +251,8 @@
 		position: relative;
 		flex-wrap: wrap;
 		align-items: center;
-		padding: var(--checkbox-label-gap);
+		gap: var(--checkbox-label-gap);
+		padding: var(--checkbox-label-padding);
 	}
 
 	.token {
@@ -344,7 +327,7 @@
 		display: none;
 	}
 
-	.input {
-		color: var(--secondary-400);
+	.subdued {
+		color: var(--body-text-color-subdued);
 	}
 </style>

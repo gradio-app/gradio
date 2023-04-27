@@ -1,7 +1,8 @@
 import os
-import markdown2
-import shutil
 import re
+import shutil
+
+import markdown2
 
 DIR = os.path.dirname(__file__)
 TEMPLATE_FILE = os.path.join(DIR, "template.html")
