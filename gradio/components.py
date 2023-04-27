@@ -707,8 +707,8 @@ class Number(
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        max: float | int = float("-inf"),
-        min: float | int = float("-inf"),
+       max: float | int | None = None,
+       min: float | int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
