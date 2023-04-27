@@ -699,12 +699,16 @@ class Number(
     def get_config(self):
         return {
             "value": self.value,
+            "max": self.max,
+            "min": self.min,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        max: float | int = float("-inf"),
+        min: float | int = float("-inf"),
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
@@ -715,6 +719,8 @@ class Number(
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "max": max,
+            "min": min,
             "interactive": interactive,
             "__type__": "update",
         }

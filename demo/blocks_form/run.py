@@ -4,7 +4,7 @@ with gr.Blocks() as demo:
     error_box = gr.Textbox(label="Error", visible=False)
 
     name_box = gr.Textbox(label="Name")
-    age_box = gr.Number(label="Age")
+    age_box = gr.Number(label="Age", min=0, max=100)
     symptoms_box = gr.CheckboxGroup(["Cough", "Fever", "Runny Nose"])
     submit_btn = gr.Button("Submit")
 

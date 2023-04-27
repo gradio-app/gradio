@@ -3,6 +3,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
+	export let max: number | undefined = undefined;
+	export let min: number | undefined = undefined;
 	export let disabled: boolean = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -42,6 +44,8 @@
 	<input
 		type="number"
 		bind:value
+		max={max}
+		min={min}
 		on:keypress={handle_keypress}
 		on:blur={handle_blur}
 		{disabled}
@@ -71,5 +75,9 @@
 
 	input::placeholder {
 		color: var(--input-placeholder-color);
+	}
+
+	input:out-of-range {
+		border: var(--input-border-width) solid var(--error-border-color);
 	}
 </style>

@@ -13,6 +13,8 @@
 	export let style: Styles = {};
 	export let value: number = 0;
 	export let show_label: boolean;
+	export let max: number | undefined = undefined;
+	export let min: number | undefined = undefined;
 
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
@@ -28,6 +30,8 @@
 
 	<Number
 		bind:value
+		bind:max
+		bind:min
 		{label}
 		{info}
 		{show_label}
