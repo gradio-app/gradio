@@ -169,7 +169,7 @@
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
-					class:subdued={value !== inputValue}
+					class:subdued={value !== inputValue && !allow_custom_value}
 					{disabled}
 					autocomplete="off"
 					bind:value={inputValue}
@@ -194,13 +194,13 @@
 							inputValue = "";
 						} else if (!allow_custom_value) {
 							let old_value = value;
-							if (choices.includes(inputValue)) {
-								value = inputValue;
-							} else if (typeof value === "string" && inputValue == "") {
-								inputValue = value;
-							} else {
-								value = undefined;
-								inputValue = "";
+							if (value !== inputValue) {
+								if (typeof value === "string" && inputValue == "") {
+									inputValue = value;
+								} else {
+									value = undefined;
+									inputValue = "";
+								}
 							}
 							if (old_value !== value) {
 								dispatch("change", value);
