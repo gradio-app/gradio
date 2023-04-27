@@ -210,7 +210,6 @@
 		-webkit-text-fill-color: var(--body-text-color);
 		display: block;
 		position: relative;
-		-webkit-opacity: 1;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color);

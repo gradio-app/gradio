@@ -72,6 +72,7 @@
 		justify-content: space-between;
 	}
 	input[type="number"] {
+		-webkit-text-fill-color: var(--body-text-color);
 		display: block;
 		position: relative;
 		outline: none !important;

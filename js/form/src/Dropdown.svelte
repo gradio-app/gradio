@@ -304,6 +304,7 @@
 	}
 
 	input {
+		-webkit-text-fill-color: var(--body-text-color);
 		margin: var(--spacing-sm);
 		outline: none;
 		border: none;
