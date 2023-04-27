@@ -15,6 +15,7 @@ env:
 
 jobs:
   client-test:
+    needs: [client-lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -56,8 +57,30 @@ jobs:
     - name: Tests
       shell: bash
       run: |
-        bash scripts/ci.sh
+        bash scripts/test.sh
+  client-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/python
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+        cache: pip
+        cache-dependency-path: |
+          requirements.txt
+          test/requirements.txt
+    - name: Install Client
+      run: |
+        pip install -e .
+        pip install -r test/requirements.txt
+    - name: Lint
+      run: bash scripts/lint.sh
   test:
+    needs: [lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -115,14 +138,6 @@ jobs:
       if: ${{ matrix.python-version == '3.7' }}
       run: |
         pip install -r test/requirements-37.txt
-    - name: Lint
-      shell: bash
-      run: |
-        bash scripts/lint_backend.sh
-    - name: Typecheck
-      shell: bash
-      run: |
-        bash scripts/type_check_backend.sh
     - name: Build frontend
       shell: bash
       run: |
@@ -137,4 +152,21 @@ jobs:
       run: |
         coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         coverage xml
-
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            test/requirements.txt
+      - name: Install Test Dependencies
+        run: pip install -e . -r test/requirements.txt
+      - name: Lint
+        run: bash scripts/lint_backend.sh
+      - name: Typecheck
+        run: bash scripts/type_check_backend.sh
