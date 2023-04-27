@@ -1,5 +1,4 @@
 import gradio as gr
-from PIL import Image
 import torch
 
 model2 = torch.hub.load(

@@ -76,11 +76,11 @@ def predict_survival(passenger_class, is_male, age, company, fare, embark_point)
             "Pclass": [passenger_class + 1],
             "Sex": [0 if is_male else 1],
             "Age": [age],
-            "Company": [
-                (1 if "Sibling" in company else 0) + (2 if "Child" in company else 0)
-            ],
             "Fare": [fare],
             "Embarked": [embark_point + 1],
+            "Company": [
+                (1 if "Sibling" in company else 0) + (2 if "Child" in company else 0)
+            ]
         }
     )
     df = encode_age(df)

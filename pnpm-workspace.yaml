@@ -1,0 +1,3 @@
+packages:
+  - 'js/*'
+  - 'client/js'

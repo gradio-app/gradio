@@ -1,8 +1,8 @@
-import shutil
+import argparse
 import os
 import pathlib
+import shutil
 import textwrap
-import argparse
 
 
 def copy_all_demos(source_dir: str, dest_dir: str):

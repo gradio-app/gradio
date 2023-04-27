@@ -1,9 +1,7 @@
-import os
 from urllib.request import urlretrieve
 
 import tensorflow as tf
 
-import gradio
 import gradio as gr
 
 urlretrieve(
@@ -18,12 +16,12 @@ def recognize_digit(image):
     return {str(i): prediction[i] for i in range(10)}
 
 
-im = gradio.Image(shape=(28, 28), image_mode="L", invert_colors=False, source="canvas")
+im = gr.Image(shape=(28, 28), image_mode="L", invert_colors=False, source="canvas")
 
 demo = gr.Interface(
     recognize_digit,
     im,
-    gradio.Label(num_top_classes=3),
+    gr.Label(num_top_classes=3),
     live=True,
     interpretation="default",
     capture_session=True,
