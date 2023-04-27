@@ -77,22 +77,22 @@ print(result)</pre>
 				<CopyButton code={js_code?.innerText} />
 			</div>
 			<div bind:this={js_code}>
-				<pre>import &lbrace; client &rbrace; from "@gradio/client";
+				<pre>import &lbrace; client &rbrace; from "@gradio/client";<!--
+-->{#each blob_examples as { label, type_python, type_description, component, example_input }, i}
 
-{#each blob_examples as { label, type_python, type_description, component, example_input }, i}
 const response_{i} = await fetch("{example_input}");
 const example{component} = await response_{i}.blob();
-{/each}
+{/each}<!--
+-->
 
 async function run() &lbrace;
 	const app = await client(<span class="token string">"{root}"</span>);
 	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
-	-->{#if i != 0}, {/if}<!--
 		-->{#if blob_components.includes(component)}
 		<span
 		class="example-inputs"
-		>example{component}</span><!--
+		>example{component}</span>, <!--
 		--><span class="desc"
 				><!--
 		-->	// blob <!--
@@ -104,7 +104,7 @@ async function run() &lbrace;
 		<span
 		class="example-inputs"
 		>{represent_value(example_input, type_python, "js")}</span
-	><!--
+	>, <!--
 --><span class="desc"
 		><!--
 -->	// {type_python} <!--
