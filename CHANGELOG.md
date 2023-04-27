@@ -29,6 +29,7 @@ No changes to highlight.
 ## Testing and Infrastructure Changes:
 
 - CI: Python backend lint is only run once, by [@akx](https://github.com/akx) in [PR 3960](https://github.com/gradio-app/gradio/pull/3960)
+- Format invocations and concatenations were replaced by f-strings where possible by [@akx](https://github.com/akx) in [PR 3984](https://github.com/gradio-app/gradio/pull/3984)
 
 ## Breaking Changes:
 

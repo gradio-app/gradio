@@ -92,7 +92,7 @@ class ThemeClass:
             + "\n}"
         )
 
-        return css_code + "\n" + dark_css_code
+        return f"{css_code}\n{dark_css_code}"
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
@@ -367,7 +367,7 @@ class Base(ThemeClass):
                 raise ValueError(f"Color shortcut {shortcut} not found.")
             elif mode == "size":
                 for size in sizes.Size.all:
-                    if size.name == prefix + "_" + shortcut:
+                    if size.name == f"{prefix}_{shortcut}":
                         return size
                 raise ValueError(f"Size shortcut {shortcut} not found.")
 

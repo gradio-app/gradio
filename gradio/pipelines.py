@@ -160,7 +160,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
             },
         }
     else:
-        raise ValueError("Unsupported pipeline type: {}".format(type(pipeline)))
+        raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
     # define the function that will be called by the Interface
     def fn(*params):
