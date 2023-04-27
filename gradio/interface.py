@@ -385,7 +385,7 @@ class Interface(Blocks):
                 if len(self.output_components) == 1:
                     component.label = "output"
                 else:
-                    component.label = f"output {str(i)}"
+                    component.label = f"output {i}"
 
         if self.allow_flagging != "never":
             if (
