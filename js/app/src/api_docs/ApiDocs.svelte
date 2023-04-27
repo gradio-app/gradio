@@ -144,10 +144,11 @@
 					Use the <a
 						href="https://gradio.app/docs/#python-client"
 						target="_blank"><code class="library">gradio_client</code></a
-					> Python library or the <a
-					href="https://gradio.app/docs/#javascript-client"
-					target="_blank"><code class="library">@gradio/client</code></a
-				> Javascript package to query the demo via API.
+					>
+					Python library or the
+					<a href="https://gradio.app/docs/#javascript-client" target="_blank"
+						><code class="library">@gradio/client</code></a
+					> Javascript package to query the demo via API.
 				</h2>
 			</div>
 			<div class="endpoint">
