@@ -5,19 +5,38 @@ import tempfile
 import time
 import uuid
 from concurrent.futures import CancelledError, TimeoutError
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
+import gradio as gr
 import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
-from gradio_client.utils import Communicator, Status, StatusUpdate
+from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
 HF_TOKEN = "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"  # Intentionally revealing this key for testing purposes
+
+
+@contextmanager
+def connect(demo: gr.Blocks):
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        yield Client(local_url)
+    finally:
+        # A more verbose version of .close()
+        # because we should set a timeout
+        # the tests that call .cancel() can get stuck
+        # waiting for the thread to join
+        if demo.enable_queue:
+            demo._queue.close()
+        demo.is_running = False
+        demo.server.should_exit = True
+        demo.server.thread.join(timeout=1)
 
 
 class TestPredictionsFromSpaces:
@@ -48,107 +67,102 @@ class TestPredictionsFromSpaces:
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
-    @pytest.mark.flaky
-    def test_state(self):
-        client = Client("gradio-tests/increment")
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 1
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 2
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 3
-        client.reset_session()
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 1
-        output = client.predict(api_name="/increment_with_queue")
-        assert output == 2
-        client.reset_session()
-        output = client.predict(api_name="/increment_with_queue")
-        assert output == 1
-        output = client.predict(api_name="/increment_with_queue")
-        assert output == 2
+    def test_state(self, increment_demo):
+        with connect(increment_demo) as client:
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 1
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 2
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 3
+            client.reset_session()
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 1
+            output = client.predict(api_name="/increment_with_queue")
+            assert output == 2
+            client.reset_session()
+            output = client.predict(api_name="/increment_with_queue")
+            assert output == 1
+            output = client.predict(api_name="/increment_with_queue")
+            assert output == 2
+
+    def test_job_status(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            statuses = []
+            job = client.submit(5, "add", 4)
+            while not job.done():
+                time.sleep(0.1)
+                statuses.append(job.status())
+
+            assert statuses
+            # Messages are sorted by time
+            assert sorted([s.time for s in statuses if s]) == [
+                s.time for s in statuses if s
+            ]
+            assert sorted([s.code for s in statuses if s]) == [
+                s.code for s in statuses if s
+            ]
 
     @pytest.mark.flaky
-    def test_job_status(self):
-        statuses = []
-        client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 4)
-        while not job.done():
-            time.sleep(0.1)
+    def test_job_status_queue_disabled(self, sentiment_classification_demo):
+        with connect(sentiment_classification_demo) as client:
+            statuses = []
+            job = client.submit("I love the gradio python client", api_name="/classify")
+            while not job.done():
+                time.sleep(0.02)
+                statuses.append(job.status())
             statuses.append(job.status())
-
-        assert statuses
-        # Messages are sorted by time
-        assert sorted([s.time for s in statuses if s]) == [
-            s.time for s in statuses if s
-        ]
-        assert sorted([s.code for s in statuses if s]) == [
-            s.code for s in statuses if s
-        ]
+            assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+            assert not any(s.progress_data for s in statuses)
 
     @pytest.mark.flaky
-    def test_job_status_queue_disabled(self):
-        statuses = []
-        client = Client(src="freddyaboulton/sentiment-classification")
-        job = client.submit("I love the gradio python client", api_name="/classify")
-        while not job.done():
-            time.sleep(0.02)
-            statuses.append(job.status())
-        statuses.append(job.status())
-        assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+    def test_intermediate_outputs(self, count_generator_demo):
+        with connect(count_generator_demo) as client:
+            job = client.submit(3, fn_index=0)
+
+            while not job.done():
+                time.sleep(0.1)
+
+            assert job.outputs() == [str(i) for i in range(3)]
+
+            outputs = []
+            for o in client.submit(3, fn_index=0):
+                outputs.append(o)
+            assert outputs == [str(i) for i in range(3)]
+
+    def test_break_in_loop_if_error(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            job = client.submit("foo", "add", 4, fn_index=0)
+            output = [o for o in job]
+            assert output == []
 
     @pytest.mark.flaky
-    def test_intermediate_outputs(
-        self,
-    ):
-        client = Client(src="gradio/count_generator")
-        job = client.submit(3, fn_index=0)
-
-        while not job.done():
-            time.sleep(0.1)
-
-        assert job.outputs() == [str(i) for i in range(3)]
-
-        outputs = []
-        for o in client.submit(3, fn_index=0):
-            outputs.append(o)
-        assert outputs == [str(i) for i in range(3)]
-
-    @pytest.mark.flaky
-    def test_break_in_loop_if_error(self):
-        calculator = Client(src="gradio/calculator")
-        job = calculator.submit("foo", "add", 4, fn_index=0)
-        output = [o for o in job]
-        assert output == []
-
-    @pytest.mark.flaky
-    def test_timeout(self):
+    def test_timeout(self, sentiment_classification_demo):
         with pytest.raises(TimeoutError):
-            client = Client(src="gradio-tests/sleep")
-            job = client.submit("ping", api_name="/predict")
-            job.result(timeout=0.05)
+            with connect(sentiment_classification_demo.queue()) as client:
+                job = client.submit(api_name="/sleep")
+                job.result(timeout=0.05)
 
     @pytest.mark.flaky
-    def test_timeout_no_queue(self):
+    def test_timeout_no_queue(self, sentiment_classification_demo):
         with pytest.raises(TimeoutError):
-            client = Client(src="freddyaboulton/sentiment-classification")
-            job = client.submit(api_name="/sleep")
-            job.result(timeout=0.1)
+            with connect(sentiment_classification_demo) as client:
+                job = client.submit(api_name="/sleep")
+                job.result(timeout=0.1)
+
+    def test_raises_exception(self, calculator_demo):
+        with pytest.raises(Exception):
+            with connect(calculator_demo) as client:
+                job = client.submit("foo", "add", 9, fn_index=0)
+                job.result()
+
+    def test_raises_exception_no_queue(self, sentiment_classification_demo):
+        with pytest.raises(Exception):
+            with connect(sentiment_classification_demo) as client:
+                job = client.submit([5], api_name="/sleep")
+                job.result()
 
     @pytest.mark.flaky
-    def test_raises_exception(self):
-        with pytest.raises(Exception):
-            client = Client(src="freddyaboulton/calculator")
-            job = client.submit("foo", "add", 9, fn_index=0)
-            job.result()
-
-    @pytest.mark.flaky
-    def test_raises_exception_no_queue(self):
-        with pytest.raises(Exception):
-            client = Client(src="freddyaboulton/sentiment-classification")
-            job = client.submit([5], api_name="/sleep")
-            job.result()
-
     def test_job_output_video(self):
         client = Client(src="gradio/video_component")
         job = client.submit(
@@ -157,60 +171,80 @@ class TestPredictionsFromSpaces:
         )
         assert pathlib.Path(job.result()).exists()
 
-    @pytest.mark.flaky
-    def test_cancel_from_client_queued(self):
-        client = Client(src="gradio-tests/test-cancel-from-client")
-        start = time.time()
-        job = client.submit(api_name="/long")
-        while not job.done():
-            if job.status().code == Status.STARTING:
-                job.cancel()
-                break
-        with pytest.raises(CancelledError):
-            job.result()
-        # The whole prediction takes 10 seconds to run
-        # and does not iterate. So this tests that we can cancel
-        # halfway through a prediction
-        assert time.time() - start < 10
-        assert job.status().code == Status.CANCELLED
+    def test_progress_updates(self, progress_demo):
 
-        job = client.submit(api_name="/iterate")
-        iteration_count = 0
-        while not job.done():
-            if job.status().code == Status.ITERATING:
-                iteration_count += 1
-                if iteration_count == 3:
+        with connect(progress_demo) as client:
+            job = client.submit("hello", api_name="/predict")
+            statuses = []
+            while not job.done():
+                statuses.append(job.status())
+                time.sleep(0.02)
+            assert any(s.code == Status.PROGRESS for s in statuses)
+            assert any(s.progress_data is not None for s in statuses)
+            all_progress_data = [
+                p for s in statuses if s.progress_data for p in s.progress_data
+            ]
+            count = 0
+            for i in range(20):
+                unit = ProgressUnit(
+                    index=i, length=20, unit="steps", progress=None, desc=None
+                )
+                count += unit in all_progress_data
+            assert count
+
+    def test_cancel_from_client_queued(self, cancel_from_client_demo):
+        with connect(cancel_from_client_demo) as client:
+            start = time.time()
+            job = client.submit(api_name="/long")
+            while not job.done():
+                if job.status().code == Status.STARTING:
                     job.cancel()
                     break
-                time.sleep(0.5)
-        # Result for iterative jobs is always the first result
-        assert job.result() == 0
-        # The whole prediction takes 10 seconds to run
-        # and does not iterate. So this tests that we can cancel
-        # halfway through a prediction
-        assert time.time() - start < 10
+            with pytest.raises(CancelledError):
+                job.result()
+            # The whole prediction takes 10 seconds to run
+            # and does not iterate. So this tests that we can cancel
+            # halfway through a prediction
+            assert time.time() - start < 10
+            assert job.status().code == Status.CANCELLED
 
-        # Test that we did not iterate all the way to the end
-        assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
-        assert job.status().code == Status.CANCELLED
+            job = client.submit(api_name="/iterate")
+            iteration_count = 0
+            while not job.done():
+                if job.status().code == Status.ITERATING:
+                    iteration_count += 1
+                    if iteration_count == 3:
+                        job.cancel()
+                        break
+                    time.sleep(0.5)
+            # Result for iterative jobs is always the first result
+            assert job.result() == 0
+            # The whole prediction takes 10 seconds to run
+            # and does not iterate. So this tests that we can cancel
+            # halfway through a prediction
+            assert time.time() - start < 10
+
+            # Test that we did not iterate all the way to the end
+            assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
+            assert job.status().code == Status.CANCELLED
+
+    def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
+        with connect(yield_demo) as client:
+            job1 = client.submit("abcdefefadsadfs")
+            time.sleep(3)
+            job1.cancel()
+
+            assert len(job1.outputs()) < len("abcdefefadsadfs")
+            assert job1.status().code == Status.CANCELLED
+
+            job2 = client.submit("abcd")
+            while not job2.done():
+                time.sleep(0.1)
+            # Ran all iterations from scratch
+            assert job2.status().code == Status.FINISHED
+            assert len(job2.outputs()) == 5
 
     @pytest.mark.flaky
-    def test_cancel_subsequent_jobs_state_reset(self):
-        client = Client("abidlabs/test-yield")
-        job1 = client.submit("abcdefefadsadfs")
-        time.sleep(5)
-        job1.cancel()
-
-        assert len(job1.outputs()) < len("abcdefefadsadfs")
-        assert job1.status().code == Status.CANCELLED
-
-        job2 = client.submit("abcd")
-        while not job2.done():
-            time.sleep(0.1)
-        # Ran all iterations from scratch
-        assert job2.status().code == Status.FINISHED
-        assert len(job2.outputs()) == 5
-
     def test_upload_file_private_space(self):
 
         client = Client(
@@ -253,6 +287,7 @@ class TestPredictionsFromSpaces:
             assert open(output[1]).read() == "File2"
             upload.assert_called_once()
 
+    @pytest.mark.flaky
     def test_upload_file_upload_route_does_not_exist(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload-old-version",
@@ -284,6 +319,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.SENDING_DATA,
@@ -292,6 +328,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now + timedelta(seconds=1),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -300,6 +337,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -308,6 +346,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.ITERATING,
@@ -316,6 +355,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -324,6 +364,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -362,6 +403,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -370,6 +412,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -381,6 +424,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -389,6 +433,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
         ]
 
@@ -541,11 +586,14 @@ class TestAPIInfo:
         }
 
     @pytest.mark.flaky
-    def test_serializable_in_mapping(self):
-        client = Client("freddyaboulton/calculator")
-        assert all(
-            [c.__class__ == SimpleSerializable for c in client.endpoints[0].serializers]
-        )
+    def test_serializable_in_mapping(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            assert all(
+                [
+                    isinstance(c, SimpleSerializable)
+                    for c in client.endpoints[0].serializers
+                ]
+            )
 
     @pytest.mark.flaky
     def test_private_space(self):
@@ -618,6 +666,13 @@ class TestAPIInfo:
             },
             "unnamed_endpoints": {},
         }
+
+    def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
+        # This demo has no api_name
+        with connect(count_generator_demo) as client:
+            info = client.view_api(return_format="str")
+            assert "fn_index=0" in info
+            assert "api_name" not in info
 
 
 class TestEndpoints:

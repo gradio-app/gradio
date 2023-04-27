@@ -415,7 +415,6 @@ class Client:
                 info = fetch.json()["api"]
             else:
                 raise ValueError(f"Could not fetch api info for {self.src}")
-
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -430,7 +429,9 @@ class Client:
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
             for fn_index, endpoint_info in info["unnamed_endpoints"].items():
-                human_info += self._render_endpoints_info(fn_index, endpoint_info)
+                # When loading from json, the fn_indices are read as strings
+                # because json keys can only be strings
+                human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
         else:
             if num_unnamed_endpoints > 0:
                 human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
@@ -949,7 +950,11 @@ class Job(Future):
     def status(self) -> StatusUpdate:
         """
         Returns the latest status update from the Job in the form of a StatusUpdate
-        object, which contains the following fields: code, rank, queue_size, success, time, eta.
+        object, which contains the following fields: code, rank, queue_size, success, time, eta, and progress_data.
+
+        progress_data is a list of updates emitted by the gr.Progress() tracker of the event handler. Each element
+        of the list has the following fields: index, length, unit, progress, desc. If the event handler does not have
+        a gr.Progress() tracker, the progress_data field will be None.
 
         Example:
             from gradio_client import Client
@@ -973,6 +978,7 @@ class Job(Future):
                 success=False,
                 time=time,
                 eta=None,
+                progress_data=None,
             )
         if self.done():
             if not self.future._exception:  # type: ignore
@@ -983,6 +989,7 @@ class Job(Future):
                     success=True,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 return StatusUpdate(
@@ -992,6 +999,7 @@ class Job(Future):
                     success=False,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
         else:
             if not self.communicator:
@@ -1002,6 +1010,7 @@ class Job(Future):
                     success=None,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 with self.communicator.lock:
