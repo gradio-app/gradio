@@ -13,6 +13,7 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
+		"bufferutil": "^4.0.7",
 		"ws": "^8.13.0"
 	},
 	"devDependencies": {

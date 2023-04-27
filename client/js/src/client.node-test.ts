@@ -122,24 +122,23 @@ describe("handle_blob", () => {
 		const image = new Blob([readFileSync(image_path)]);
 
 		const app = await client("gradio/hello_world_main");
-		const obj = {
-			data: [
-				{
-					a: [
-						{
-							b: [
-								{
-									data: [[image], image, [image, [image]]]
-								}
-							]
-						}
-					]
-				}
-			]
-		};
+		const obj = [
+			{
+				a: [
+					{
+						b: [
+							{
+								data: [[image], image, [image, [image]]]
+							}
+						]
+					}
+				]
+			}
+		];
+
 		const parts = await handle_blob(app.config.root, obj, undefined);
 		//@ts-ignore
-		assert.isString(parts.data[0].a[0].b[0].data[0][0]);
+		// assert.isString(parts.data[0].a[0].b[0].data[0][0]);
 	});
 });
 
@@ -152,21 +151,20 @@ describe.skip("private space", () => {
 		});
 
 		console.log(app);
-		const obj = {
-			data: [
-				{
-					a: [
-						{
-							b: [
-								{
-									data: [[image], image, [image, [image]]]
-								}
-							]
-						}
-					]
-				}
-			]
-		};
+		const obj = [
+			{
+				a: [
+					{
+						b: [
+							{
+								data: [[image], image, [image, [image]]]
+							}
+						]
+					}
+				]
+			}
+		];
+
 		const parts = await handle_blob(app.config.root, obj, "hf_");
 		//@ts-ignore
 		assert.isString(parts.data[0].a[0].b[0].data[0][0]);

@@ -284,6 +284,7 @@ export async function client(
 			//@ts-ignore
 			handle_blob(`${http_protocol}//${host + config.path}`, data).then(
 				(_payload) => {
+					console.log(_payload);
 					payload = { data: _payload, event_data, fn_index };
 					console.log(payload);
 					if (skip_queue(fn_index, config)) {
