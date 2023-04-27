@@ -904,7 +904,7 @@ def tex2svg(formula, *args):
     DPI = 300
     plt.rc("mathtext", fontset="cm")
     fig = plt.figure(figsize=(0.01, 0.01))
-    fig.text(0, 0, fr"${formula}$", fontsize=FONTSIZE)
+    fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
     output = BytesIO()
     fig.savefig(
         output,
