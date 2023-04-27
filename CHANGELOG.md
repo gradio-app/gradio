@@ -29,6 +29,7 @@ No changes to highlight.
 ## Testing and Infrastructure Changes:
 
 - CI: Python backend lint is only run once, by [@akx](https://github.com/akx) in [PR 3960](https://github.com/gradio-app/gradio/pull/3960)
+- CI: Simplified Python CI workflow by [@akx](https://github.com/akx) in [PR 3982](https://github.com/gradio-app/gradio/pull/3982)
 
 ## Breaking Changes:
 
