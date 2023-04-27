@@ -6,6 +6,36 @@
 No changes to highlight.
 
 ## Bug Fixes:
+
+No changes to highlight.
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# 3.28.0
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
 - Fix the issue of the UI stuck caused by the 'selected' of DataFrame not being reset. by [@tomchang25](https://github.com/tomchang25) in [PR 3916](https://github.com/gradio-app/gradio/pull/3916).
 - Fix issue where `gr.Video()` would not work inside a `gr.Tab()` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3891](https://github.com/gradio-app/gradio/pull/3891)
 - Fixed issue with old_value check in File. by [@tomchang25](https://github.com/tomchang25) in [PR 3859](https://github.com/gradio-app/gradio/pull/3859).
