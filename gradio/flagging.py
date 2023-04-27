@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import filelock
+import huggingface_hub
 import pkg_resources
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-import huggingface_hub
 
 import gradio as gr
 from gradio import utils
@@ -419,7 +419,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         break
                 path_in_repo = str(  # returned filepath is absolute, we want it relative to compute URL
                     Path(deserialized).relative_to(self.dataset_dir)
-                ).replace("\\", "/")
+                ).replace(
+                    "\\", "/"
+                )
                 row.append(
                     huggingface_hub.hf_hub_url(
                         repo_id=self.dataset_id,
