@@ -62,9 +62,7 @@ def get_first_available_port(initial: int, final: int) -> int:
         except OSError:
             pass
     raise OSError(
-        "All ports from {} to {} are in use. Please close a port.".format(
-            initial, final - 1
-        )
+        f"All ports from {initial} to {final - 1} are in use. Please close a port."
     )
 
 
@@ -121,9 +119,7 @@ def start_server(
             s.close()
         except OSError:
             raise OSError(
-                "Port {} is in use. If a gradio.Blocks is running on the port, you can close() it or gradio.close_all().".format(
-                    server_port
-                )
+                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, you can close() it or gradio.close_all()."
             )
         port = server_port
 
@@ -134,9 +130,9 @@ def start_server(
             raise ValueError(
                 "ssl_certfile must be provided if ssl_keyfile is provided."
             )
-        path_to_local_server = "https://{}:{}/".format(url_host_name, port)
+        path_to_local_server = f"https://{url_host_name}:{port}/"
     else:
-        path_to_local_server = "http://{}:{}/".format(url_host_name, port)
+        path_to_local_server = f"http://{url_host_name}:{port}/"
 
     # Strip IPv6 brackets from the address if they exist.
     # This is needed as http://[::1]:port/ is a valid browser address,

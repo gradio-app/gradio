@@ -74,11 +74,8 @@ def version_check():
         ]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
-                "IMPORTANT: You are using gradio version {}, "
-                "however version {} "
-                "is available, please upgrade.".format(
-                    current_pkg_version, latest_pkg_version
-                )
+                f"IMPORTANT: You are using gradio version {current_pkg_version}, "
+                f"however version {latest_pkg_version} is available, please upgrade."
             )
             print("--------")
     except json.decoder.JSONDecodeError:
@@ -110,7 +107,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
     def initiated_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-initiated-analytics/", data=data, timeout=5
+                f"{analytics_url}gradio-initiated-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -124,7 +121,7 @@ def launch_analytics(data: Dict[str, Any]) -> None:
     def launch_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-analytics/", data=data, timeout=5
+                f"{analytics_url}gradio-launched-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -183,7 +180,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     def launched_telemtry_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-telemetry/", data=data, timeout=5
+                f"{analytics_url}gradio-launched-telemetry/", data=data, timeout=5
             )
         except Exception:
             pass
@@ -197,7 +194,7 @@ def integration_analytics(data: Dict[str, Any]) -> None:
     def integration_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-integration-analytics/", data=data, timeout=5
+                f"{analytics_url}gradio-integration-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -216,7 +213,7 @@ def error_analytics(message: str) -> None:
     def error_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-error-analytics/", data=data, timeout=5
+                f"{analytics_url}gradio-error-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -229,7 +226,7 @@ async def log_feature_analytics(feature: str) -> None:
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
-                analytics_url + "gradio-feature-analytics/", data=data
+                f"{analytics_url}gradio-feature-analytics/", data=data
             ):
                 pass
         except (aiohttp.ClientError):
@@ -736,7 +733,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
-        value = "'" + value
+        value = f"'{value}"
     return value
 
 
@@ -763,10 +760,10 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
         return name
     else:
         suffix_counter = 1
-        new_name = name + f"_{suffix_counter}"
+        new_name = f"{name}_{suffix_counter}"
         while new_name in set_of_names:
             suffix_counter += 1
-            new_name = name + f"_{suffix_counter}"
+            new_name = f"{name}_{suffix_counter}"
         return new_name
 
 
@@ -907,7 +904,7 @@ def tex2svg(formula, *args):
     DPI = 300
     plt.rc("mathtext", fontset="cm")
     fig = plt.figure(figsize=(0.01, 0.01))
-    fig.text(0, 0, r"${}$".format(formula), fontsize=FONTSIZE)
+    fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
     output = BytesIO()
     fig.savefig(
         output,

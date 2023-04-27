@@ -77,8 +77,8 @@ class TestRoutes:
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
-            i.change(lambda x: x + "1", i, o, api_name="p")
-            i.change(lambda x: x + "2", i, o, api_name="q")
+            i.change(lambda x: f"{x}1", i, o, api_name="p")
+            i.change(lambda x: f"{x}2", i, o, api_name="q")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -96,8 +96,8 @@ class TestRoutes:
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
-            i.change(lambda x: x + "0", i, o, api_name="p")
-            i.change(lambda x: x + "1", i, o, api_name="p")
+            i.change(lambda x: f"{x}0", i, o, api_name="p")
+            i.change(lambda x: f"{x}1", i, o, api_name="p")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -115,9 +115,9 @@ class TestRoutes:
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
-            i.change(lambda x: x + "0", i, o, api_name="p")
-            i.change(lambda x: x + "1", i, o, api_name="p")
-            i.change(lambda x: x + "2", i, o, api_name="p_1")
+            i.change(lambda x: f"{x}0", i, o, api_name="p")
+            i.change(lambda x: f"{x}1", i, o, api_name="p")
+            i.change(lambda x: f"{x}2", i, o, api_name="p_1")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -146,7 +146,7 @@ class TestRoutes:
         def batch_fn(x):
             results = []
             for word in x:
-                results.append("Hello " + word)
+                results.append(f"Hello {word}")
             return (results,)
 
         with gr.Blocks() as demo:

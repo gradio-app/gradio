@@ -16,7 +16,7 @@ def build(output_dir, jinja_env, latest_gradio_stable):
     template = jinja_env.get_template("index/template.html")
     star_request = requests.get("https://api.github.com/repos/gradio-app/gradio").json()
     star_count = (
-        "{:,}".format(star_request["stargazers_count"])
+        f"{star_request['stargazers_count']:,}"
         if "stargazers_count" in star_request
         else ""
     )
