@@ -119,11 +119,10 @@ jobs:
         pnpm build
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
-    - name: Create coverage dir
-      run: mkdir test-reports
     - name: Run tests
       shell: bash
       run: |
+        mkdir -p test-reports
         coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         coverage xml
   lint:
