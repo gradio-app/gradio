@@ -92,6 +92,7 @@ You can also customize the appearance and behavior of your web component with at
 * `info`: whether to show just the information about where the Space is hosted underneath the embedded app (by default `"true"`)
 * `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
 * `eager`: whether to load the Gradio app as soon as the page loads (by default `"false"`)
+* `theme_mode`: whether to use the `dark`, `light`, or default `system` theme mode (by default `"system"`)
 
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
 
