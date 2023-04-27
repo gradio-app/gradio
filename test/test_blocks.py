@@ -263,6 +263,16 @@ class TestBlocksMethods:
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
 
+    def test_socket_reuse(self):
+
+        try:
+            io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+            io.launch(server_port=9441, prevent_thread_lock=True)
+            io.close()
+            io.launch(server_port=9441, prevent_thread_lock=True)
+        finally:
+            io.close()
+
     def test_function_types_documented_in_config(self):
         def continuous_fn():
             return 42
