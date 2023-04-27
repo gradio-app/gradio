@@ -16,6 +16,7 @@ import filelock
 import pkg_resources
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+import huggingface_hub
 
 import gradio as gr
 from gradio import utils
@@ -240,12 +241,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flagging_dir (str): local directory where the dataset is cloned,
         updated, and pushed from.
         """
-        try:
-            import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
-            raise ImportError(
-                "Package `huggingface_hub` not found is needed for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
-            )
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
         try:
             if StrictVersion(hh_version) < StrictVersion("0.12.0"):
@@ -320,8 +315,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flag_data: List[Any],
         flag_option: str = "",
     ) -> int:
-        import huggingface_hub
-
         # Deserialize components (write images/audio to files)
         features, row = self._deserialize_components(
             components_dir, flag_data, flag_option
@@ -449,14 +442,8 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
         organization: str | None = None,
         private: bool = False,
         info_filename: str = "dataset_info.json",
-        separate_dirs: bool = True,
         verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
-        if not separate_dirs:
-            raise ValueError(
-                "`separate_dirs` must be set to `True` for "
-                "`HuggingFaceDatasetJSONSaver`. Use `HuggingFaceDatasetSaver` instead."
-            )
         warnings.warn(
             "Callback `HuggingFaceDatasetJSONSaver` is deprecated in favor of"
             " `HuggingFaceDatasetSaver` by passing `separate_dirs=True` as parameter."
