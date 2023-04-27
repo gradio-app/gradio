@@ -3,7 +3,7 @@
 
 ## New Features:
 
-No changes to highlight.
+Min and max value for gr.Number [@artegoser](https://github.com/artegoser) in [PR 3871](https://github.com/gradio-app/gradio/pull/3871)
 
 ## Bug Fixes:
 - Fix duplicate play commands in full-screen mode of 'video'. by [@tomchang25](https://github.com/tomchang25) in [PR 3968](https://github.com/gradio-app/gradio/pull/3968).
