@@ -394,8 +394,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
         Images/audio are saved to disk as individual files.
         """
-        import huggingface_hub
-
         # Components that can have a preview on dataset repos
         # NOTE: not at root level to avoid circular imports
         FILE_PREVIEW_TYPES = {gr.Audio: "Audio", gr.Image: "Image"}
