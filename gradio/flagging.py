@@ -288,13 +288,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
     def flag(self, flag_data: List[Any], flag_option: str = "") -> int:
         if self.separate_dirs:
-            # Unique CSV file
+            # JSONL files to support dataset preview on the Hub
             unique_id = str(uuid.uuid4())
             components_dir = self.dataset_dir / str(uuid.uuid4())
             data_file = components_dir / "metadata.jsonl"
             path_in_repo = unique_id  # upload in sub folder (safer for concurrency)
         else:
-            # JSONL files to support dataset preview on the Hub
+            # Unique CSV file
             components_dir = self.dataset_dir
             data_file = components_dir / "data.csv"
             path_in_repo = None  # upload at root level
@@ -409,7 +409,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}
-            row.append(deserialized)
+            row.append(Path(deserialized).name)
 
             # If component is eligible for a preview, add the URL of the file
             if isinstance(component, tuple(FILE_PREVIEW_TYPES)):
@@ -419,7 +419,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         break
                 path_in_repo = str(  # returned filepath is absolute, we want it relative to compute URL
                     Path(deserialized).relative_to(self.dataset_dir)
-                )
+                ).replace("\\", "/")
                 row.append(
                     huggingface_hub.hf_hub_url(
                         repo_id=self.dataset_id,
