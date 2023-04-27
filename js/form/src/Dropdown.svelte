@@ -25,6 +25,10 @@
 		showOptions = false,
 		filterInput: HTMLElement;
 
+	if (typeof value === "string") {
+		inputValue = value;
+	}
+
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
