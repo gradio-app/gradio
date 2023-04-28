@@ -11,6 +11,7 @@ export { default as Copy } from "./Copy.svelte";
 export { default as Download } from "./Download.svelte";
 export { default as DropdownArrow } from "./DropdownArrow.svelte";
 export { default as Edit } from "./Edit.svelte";
+export { default as Erase } from "./Erase.svelte";
 export { default as File } from "./File.svelte";
 export { default as Image } from "./Image.svelte";
 export { default as JSON } from "./JSON.svelte";
