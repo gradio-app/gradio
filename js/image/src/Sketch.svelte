@@ -219,9 +219,7 @@
 		canvas_observer.unobserve(canvas_container);
 	});
 
-	export function undo() {
-		const _lines = lines.slice(0, -1);
-
+	function redraw_image(_lines) {
 		clear_canvas();
 
 		if (value_img) {
@@ -250,6 +248,19 @@
 		if (lines.length == 0) {
 			dispatch("clear");
 		}
+	}
+
+	export function clear_mask() {
+		const _lines = [];
+
+		redraw_image(_lines);
+		trigger_on_change();
+	}
+
+	export function undo() {
+		const _lines = lines.slice(0, -1);
+
+		redraw_image(_lines);
 		trigger_on_change();
 	}
 

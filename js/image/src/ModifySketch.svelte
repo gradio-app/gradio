@@ -1,18 +1,32 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
-	import { Undo, Clear } from "@gradio/icons";
+	import { Undo, Clear, Erase } from "@gradio/icons";
 
 	const dispatch = createEventDispatcher();
+
+	export let show_eraser: boolean = false;
 </script>
 
 <div>
 	<IconButton Icon={Undo} label="Undo" on:click={() => dispatch("undo")} />
+
+	{#if show_eraser}
+		<IconButton
+			Icon={Erase}
+			label="Clear"
+			on:click={(event) => {
+				dispatch("clear_mask");
+				event.stopPropagation();
+			}}
+		/>
+	{/if}
+
 	<IconButton
 		Icon={Clear}
-		label="Clear"
+		label="Remove Image"
 		on:click={(event) => {
-			dispatch("clear");
+			dispatch("remove_image");
 			event.stopPropagation();
 		}}
 	/>
