@@ -72,11 +72,8 @@
 		justify-content: space-between;
 	}
 	input[type="number"] {
-		-webkit-text-fill-color: var(--body-text-color);
 		display: block;
 		position: relative;
-		-webkit-opacity: 1;
-		opacity: 1;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color);
@@ -89,6 +86,12 @@
 		line-height: var(--line-sm);
 		text-align: center;
 	}
+	input:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
+	}
+
 
 	input[type="number"]:focus {
 		box-shadow: var(--input-shadow-focus);

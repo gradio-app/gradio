@@ -207,11 +207,8 @@
 	input[type="password"],
 	input[type="email"],
 	textarea {
-		-webkit-text-fill-color: var(--body-text-color);
 		display: block;
 		position: relative;
-		-webkit-opacity: 1;
-		opacity: 1;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		border: var(--input-border-width) solid var(--input-border-color);
@@ -223,6 +220,11 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+	}
+	input:disabled, textarea:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
 	}
 
 	input:focus,

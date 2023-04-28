@@ -304,9 +304,6 @@
 	}
 
 	input {
-		-webkit-text-fill-color: var(--body-text-color);
-		-webkit-opacity: 1;
-		opacity: 1;
 		margin: var(--spacing-sm);
 		outline: none;
 		border: none;
@@ -318,6 +315,9 @@
 
 	input:disabled {
 		cursor: not-allowed;
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
 	}
 
 	.remove-all {
