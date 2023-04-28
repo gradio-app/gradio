@@ -30,7 +30,10 @@
 	}
 
 	$: filtered = choices.filter((o) =>
-		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
+		{
+			console.log(o);
+			return inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
+		}
 	);
 
 	$: if (!activeOption || !filtered.includes(activeOption)) {
