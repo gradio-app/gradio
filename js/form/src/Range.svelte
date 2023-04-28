@@ -92,7 +92,6 @@
 		opacity: 1;
 	}
 
-
 	input[type="number"]:focus {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
