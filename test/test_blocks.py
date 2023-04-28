@@ -151,7 +151,7 @@ class TestBlocksMethods:
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
-            return formatter("Hello " + name + "!")
+            return formatter(f"Hello {name}!")
 
         greet_upper_case = partial(greet, formatter=capwords)
         with gr.Blocks() as demo:
@@ -262,6 +262,16 @@ class TestBlocksMethods:
                 if msg["msg"] == "process_completed":
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
+
+    def test_socket_reuse(self):
+
+        try:
+            io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+            io.launch(server_port=9441, prevent_thread_lock=True)
+            io.close()
+            io.launch(server_port=9441, prevent_thread_lock=True)
+        finally:
+            io.close()
 
     def test_function_types_documented_in_config(self):
         def continuous_fn():
@@ -616,7 +626,7 @@ class TestCallFunction:
             text = gr.Textbox()
             btn = gr.Button()
             btn.click(
-                lambda x: "Hello, " + x,
+                lambda x: f"Hello, {x}",
                 inputs=text,
                 outputs=text,
             )
@@ -636,12 +646,12 @@ class TestCallFunction:
             text2 = gr.Textbox()
             btn = gr.Button()
             btn.click(
-                lambda x: "Hello, " + x,
+                lambda x: f"Hello, {x}",
                 inputs=text,
                 outputs=text,
             )
             text.change(
-                lambda x: "Hi, " + x,
+                lambda x: f"Hi, {x}",
                 inputs=text,
                 outputs=text2,
             )
@@ -776,7 +786,7 @@ class TestBatchProcessing:
         def batch_fn(x):
             results = []
             for word in x:
-                results.append("Hello " + word)
+                results.append(f"Hello {word}")
             return (results,)
 
         with gr.Blocks() as demo:
@@ -837,7 +847,7 @@ class TestBatchProcessing:
             def batch_fn(x):
                 results = []
                 for word in x:
-                    results.append("Hello " + word)
+                    results.append(f"Hello {word}")
                     yield (results,)
 
             with gr.Blocks() as demo:
@@ -854,7 +864,7 @@ class TestBatchProcessing:
             def batch_fn(x):
                 results = []
                 for word in x:
-                    results.append("Hello " + word)
+                    results.append(f"Hello {word}")
                 return (results,)
 
             with gr.Blocks() as demo:
@@ -873,7 +883,7 @@ class TestBatchProcessing:
             def batch_fn(x, y):
                 results = []
                 for word1, word2 in zip(x, y):
-                    results.append("Hello " + word1 + word2)
+                    results.append(f"Hello {word1}{word2}")
                 return (results,)
 
             with gr.Blocks() as demo:

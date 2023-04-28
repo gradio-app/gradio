@@ -317,7 +317,7 @@ class IOComponent(Component):
         if file_name:
             file_name = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
-            file_name = "file." + guess_extension
+            file_name = f"file.{guess_extension}"
         else:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
@@ -1168,9 +1168,7 @@ class CheckboxGroup(
             return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def postprocess(self, y: List[str] | str | None) -> List[str]:
@@ -1357,9 +1355,7 @@ class Radio(
                 return self.choices.index(x)
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def get_interpretation_neighbors(self, x):
@@ -1567,9 +1563,7 @@ class Dropdown(
                     return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
@@ -1758,7 +1752,7 @@ class Image(
         elif self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
+                suffix=(f".{fmt.lower()}" if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
             return self.make_temp_copy_if_needed(file_obj.name)
@@ -3032,9 +3026,9 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     def __validate_headers(headers: List[str] | None, col_count: int):
         if headers is not None and len(headers) != col_count:
             raise ValueError(
-                "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
-                    cols=col_count, headers=len(headers)
-                )
+                f"The length of the headers list must be equal to the col_count int.\n"
+                f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
+                f"Check the values passed to `col_count` and `headers`."
             )
 
     @classmethod
@@ -3707,7 +3701,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
-            "Instead, got a {}".format(type(y))
+            f"Instead, got a {type(y)}"
         )
 
     @staticmethod
@@ -4581,9 +4575,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            filepath = chat_message[0]
+            file_uri = chat_message[0]
+            if utils.validate_url(file_uri):
+                filepath = file_uri
+            else:
+                filepath = self.make_temp_copy_if_needed(file_uri)
+
             mime_type = client_utils.get_mimetype(filepath)
-            filepath = self.make_temp_copy_if_needed(filepath)
             return {
                 "name": filepath,
                 "mime_type": mime_type,

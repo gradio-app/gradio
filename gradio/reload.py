@@ -55,5 +55,5 @@ def run_in_reload_mode():
             message += ","
         message += f" '{abs_parent}'"
 
-    print(message + "\n")
+    print(f"{message}\n")
     os.system(command)

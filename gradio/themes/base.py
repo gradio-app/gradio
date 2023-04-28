@@ -92,7 +92,7 @@ class ThemeClass:
             + "\n}"
         )
 
-        return css_code + "\n" + dark_css_code
+        return f"{css_code}\n{dark_css_code}"
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
@@ -292,12 +292,6 @@ class ThemeClass:
                 path_in_repo="README.md", path_or_fileobj=readme_file.name
             ),
             CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
-            CommitOperationAdd(
-                path_in_repo="theme_dropdown.py",
-                path_or_fileobj=str(
-                    Path(__file__).parent / "utils" / "theme_dropdown.py"
-                ),
-            ),
         ]
 
         huggingface_hub.create_repo(
@@ -373,7 +367,7 @@ class Base(ThemeClass):
                 raise ValueError(f"Color shortcut {shortcut} not found.")
             elif mode == "size":
                 for size in sizes.Size.all:
-                    if size.name == prefix + "_" + shortcut:
+                    if size.name == f"{prefix}_{shortcut}":
                         return size
                 raise ValueError(f"Size shortcut {shortcut} not found.")
 
