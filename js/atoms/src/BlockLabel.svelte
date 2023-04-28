@@ -30,7 +30,7 @@
 		display: inline-flex;
 		align-items: center;
 		z-index: var(--layer-2);
-		box-shadow: var(--block-shadow);
+		box-shadow: var(--block-label-shadow);
 		border: var(--block-label-border-width) solid var(--border-color-primary);
 		border-top: none;
 		border-left: none;

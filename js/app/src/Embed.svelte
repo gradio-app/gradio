@@ -48,7 +48,6 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		background: var(--body-background-fill);
 		padding: 0;
 		min-height: 1px;
 		overflow: hidden;
