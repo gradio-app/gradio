@@ -87,10 +87,11 @@ class TestBlocksMethods:
         def fake_func():
             return "Hello There"
 
-        xray_model = lambda diseases, img: {
-            disease: random.random() for disease in diseases
-        }
-        ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
+        def xray_model(diseases, img):
+            return {disease: random.random() for disease in diseases}
+
+        def ct_model(diseases, img):
+            return {disease: 0.1 for disease in diseases}
 
         with gr.Blocks() as demo:
             gr.Markdown(
@@ -405,7 +406,7 @@ class TestComponentsInBlocks:
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
         # Queue should be explicitly false for these events
-        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
+        assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
@@ -419,7 +420,7 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
-        assert all([dep["every"] == 1 for dep in dependencies_on_load])
+        assert all(dep["every"] == 1 for dep in dependencies_on_load)
 
     def test_get_load_events(self, io_components):
         components = []
@@ -451,7 +452,7 @@ class TestBlocksPostprocessing:
             0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
-            [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
+            o["value"] == c.postprocess(None) for o, c in zip(output, io_components)
         )
 
     def test_blocks_does_not_replace_keyword_literal(self):
@@ -1213,7 +1214,7 @@ class TestEvery:
                     # If the continuous event got pushed to the queue, the size would be nonzero
                     # asserting false will terminate the test
                     if status.json()["queue_size"] != 0:
-                        assert False
+                        raise AssertionError()
                     else:
                         break
 
@@ -1275,7 +1276,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1331,7 +1332,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 

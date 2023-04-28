@@ -16,11 +16,11 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
 
-class Interpretable(ABC):
+class Interpretable(ABC):  # noqa: B024
     def __init__(self) -> None:
         self.set_interpret_parameters()
 
-    def set_interpret_parameters(self):
+    def set_interpret_parameters(self):  # noqa: B027
         """
         Set any parameters for interpretation. Properties can be set here to be
         used in get_interpretation_neighbors and get_interpretation_scores.
@@ -189,10 +189,10 @@ async def run_interpret(interface: Interface, raw_input: List):
             elif interp == "shap" or interp == "shapley":
                 try:
                     import shap  # type: ignore
-                except (ImportError, ModuleNotFoundError):
+                except (ImportError, ModuleNotFoundError) as err:
                     raise ValueError(
                         "The package `shap` is required for this interpretation method. Try: `pip install shap`"
-                    )
+                    ) from err
                 input_component = interface.input_components[i]
                 if not isinstance(input_component, TokenInterpretable):
                     raise ValueError(

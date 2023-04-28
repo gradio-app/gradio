@@ -82,7 +82,7 @@ def version_check():
         warnings.warn("unable to parse version details from package URL.")
     except KeyError:
         warnings.warn("package URL does not contain version info.")
-    except:
+    except Exception:
         pass
 
 
@@ -263,7 +263,7 @@ def sagemaker_check() -> bool:
         client = boto3.client("sts")
         response = client.get_caller_identity()
         return "sagemaker" in response["Arn"].lower()
-    except:
+    except Exception:
         return False
 
 
@@ -313,7 +313,7 @@ def launch_counter() -> None:
                 print(en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
-    except:
+    except Exception:
         pass
 
 
@@ -488,7 +488,7 @@ def async_iteration(iterator):
         return next(iterator)
     except StopIteration:
         # raise a ValueError here because co-routines can't raise StopIteration themselves
-        raise StopAsyncIteration()
+        raise StopAsyncIteration() from None
 
 
 class AsyncRequest:
@@ -825,7 +825,7 @@ def get_cancel_function(
             ]
 
     async def cancel(session_hash: str) -> None:
-        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+        task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
         await cancel_tasks(task_ids)
 
     return (

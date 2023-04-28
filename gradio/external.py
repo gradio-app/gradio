@@ -434,8 +434,8 @@ def from_spaces(
     )  # some basic regex to extract the config
     try:
         config = json.loads(result.group(1))  # type: ignore
-    except AttributeError:
-        raise ValueError(f"Could not load the Space: {space_name}")
+    except AttributeError as ae:
+        raise ValueError(f"Could not load the Space: {space_name}") from ae
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
             space_name, config, alias, api_key, iframe_url, **kwargs
@@ -477,14 +477,14 @@ def from_spaces_interface(
         data = json.dumps({"data": data})
         response = requests.post(api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
+        if "error" in result and "429" in result["error"]:
+            raise TooManyRequestsError("Too many requests to the Hugging Face API")
         try:
             output = result["data"]
-        except KeyError:
-            if "error" in result and "429" in result["error"]:
-                raise TooManyRequestsError("Too many requests to the Hugging Face API")
+        except KeyError as ke:
             raise KeyError(
                 f"Could not find 'data' key in response from external Space. Response received: {result}"
-            )
+            ) from ke
         if (
             len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it
