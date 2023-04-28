@@ -21,10 +21,10 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
     try:
         import transformers
         from transformers import pipelines
-    except ImportError:
+    except ImportError as ie:
         raise ImportError(
             "transformers not installed. Please try `pip install transformers`"
-        )
+        ) from ie
     if not isinstance(pipeline, pipelines.base.Pipeline):
         raise ValueError("pipeline must be a transformers.Pipeline")
 

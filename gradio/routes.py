@@ -238,17 +238,17 @@ class App(FastAPI):
                     template,
                     {"request": request, "config": config},
                 )
-            except TemplateNotFound:
+            except TemplateNotFound as err:
                 if blocks.share:
                     raise ValueError(
                         "Did you install Gradio from source files? Share mode only "
                         "works when Gradio is installed through the pip package."
-                    )
+                    ) from err
                 else:
                     raise ValueError(
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
-                    )
+                    ) from err
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
@@ -378,7 +378,7 @@ class App(FastAPI):
                 # the job being cancelled will not overwrite the state of the iterator.
                 # In all cases, should_reset will be the empty set the next time
                 # the fn_index is run.
-                app.iterators[body.session_hash]["should_reset"] = set([])
+                app.iterators[body.session_hash]["should_reset"] = set()
             else:
                 session_state = {}
                 iterators = {}
@@ -520,7 +520,7 @@ class App(FastAPI):
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
-                await cancel_tasks(set([f"{event.session_hash}_{event.fn_index}"]))
+                await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
                 await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False
@@ -593,9 +593,9 @@ class App(FastAPI):
 def safe_join(directory: str, path: str) -> str:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = list(
+    _os_alt_seps: List[str] = [
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
-    )
+    ]
 
     if path == "":
         raise HTTPException(400)
@@ -735,8 +735,10 @@ class Request:
         else:
             try:
                 obj = self.kwargs[name]
-            except KeyError:
-                raise AttributeError(f"'Request' object has no attribute '{name}'")
+            except KeyError as ke:
+                raise AttributeError(
+                    f"'Request' object has no attribute '{name}'"
+                ) from ke
             return self.dict_to_obj(obj)
 
 

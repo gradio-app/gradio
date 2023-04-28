@@ -349,9 +349,9 @@ class Interface(Blocks):
             raise ValueError(
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
-        elif all([isinstance(x, str) for x in flagging_options]):
+        elif all(isinstance(x, str) for x in flagging_options):
             self.flagging_options = [(f"Flag as {x}", x) for x in flagging_options]
-        elif all([isinstance(x, tuple) for x in flagging_options]):
+        elif all(isinstance(x, tuple) for x in flagging_options):
             self.flagging_options = flagging_options
         else:
             raise ValueError(
@@ -620,7 +620,7 @@ class Interface(Blocks):
                         for output in self.fn(*args):
                             if len(self.output_components) == 1 and not self.batch:
                                 output = [output]
-                            output = [o for o in output]
+                            output = list(output)
                             yield output + [
                                 Button.update(visible=False),
                                 Button.update(visible=True),
