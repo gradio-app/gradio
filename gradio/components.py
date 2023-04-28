@@ -1407,7 +1407,7 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: str | List[str] | None = None,
+        choices: List[str] | None = None,
         *,
         value: str | List[str] | Callable | None = None,
         type: str = "value",
@@ -1441,7 +1441,7 @@ class Dropdown(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
-        self.choices = choices or []
+        self.choices = [str(choice) for choice in choices] if choices else []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
