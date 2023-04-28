@@ -67,7 +67,7 @@ class Soft(Base):
             block_title_background_fill="*block_label_background_fill",
             block_title_text_weight="600",
             block_title_text_color="*primary_500",
-            block_title_text_color_dark="*white",
+            block_title_text_color_dark="white",
             block_label_margin="*spacing_md",
             # Inputs
             input_background_fill="white",
