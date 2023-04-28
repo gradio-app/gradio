@@ -314,6 +314,9 @@
 	}
 
 	input:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
 		cursor: not-allowed;
 	}
 

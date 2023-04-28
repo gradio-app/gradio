@@ -144,7 +144,7 @@ class Examples:
         elif isinstance(examples, str):
             if not Path(examples).exists():
                 raise FileNotFoundError(
-                    "Could not find examples directory: " + examples
+                    f"Could not find examples directory: {examples}"
                 )
             working_directory = examples
             if not (Path(examples) / LOG_FILE).exists():
@@ -737,7 +737,7 @@ def make_waveform(
         mix_pcts = [x / (n - 1) for x in range(n)]
         rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
         return [
-            "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
+            "#" + "".join(f"{int(round(val * 255)):02x}" for val in item)
             for item in rgb_colors
         ]
 

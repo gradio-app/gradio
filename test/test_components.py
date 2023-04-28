@@ -1927,7 +1927,7 @@ class TestHTML:
         """
 
         def bold_text(text):
-            return "<strong>" + text + "</strong>"
+            return f"<strong>{text}</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
         assert iface("test") == "<strong>test</strong>"

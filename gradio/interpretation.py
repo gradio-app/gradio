@@ -196,9 +196,7 @@ async def run_interpret(interface: Interface, raw_input: List):
                 input_component = interface.input_components[i]
                 if not isinstance(input_component, TokenInterpretable):
                     raise ValueError(
-                        "Input component {} does not support `shap` interpretation".format(
-                            input_component
-                        )
+                        f"Input component {input_component} does not support `shap` interpretation"
                     )
 
                 tokens, _, masks = input_component.tokenize(x)
@@ -247,7 +245,7 @@ async def run_interpret(interface: Interface, raw_input: List):
                 scores.append(None)
                 alternative_outputs.append([])
             else:
-                raise ValueError("Unknown intepretation method: {}".format(interp))
+                raise ValueError(f"Unknown intepretation method: {interp}")
         return scores, alternative_outputs
     elif interface.interpretation:  # custom interpretation function
         processed_input = [
@@ -297,9 +295,7 @@ def quantify_difference_in_label(
 
     else:
         raise ValueError(
-            "This interpretation method doesn't support the Output component: {}".format(
-                output_component
-            )
+            f"This interpretation method doesn't support the Output component: {output_component}"
         )
 
 
@@ -328,7 +324,5 @@ def get_regression_or_classification_value(
 
     else:
         raise ValueError(
-            "This interpretation method doesn't support the Output component: {}".format(
-                output_component
-            )
+            f"This interpretation method doesn't support the Output component: {output_component}"
         )

@@ -252,9 +252,7 @@ class Block:
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
             if not (api_name == api_name_):
-                warnings.warn(
-                    "api_name {} already exists, using {}".format(api_name, api_name_)
-                )
+                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
         if collects_event_data is None:
@@ -561,7 +559,7 @@ def get_api_info(config: Dict, serialize: bool = True):
         if skip_endpoint:
             continue
         if dependency["api_name"]:
-            api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+            api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
         elif mode == "interface" or mode == "tabbed_interface":
             pass  # Skip unnamed endpoints in interface mode
         else:
@@ -735,13 +733,13 @@ class Blocks(BlockContext):
                 if block_config["id"] == id:
                     break
             else:
-                raise ValueError("Cannot find block with id {}".format(id))
+                raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
             if block_config["props"].get("root_url") is None and root_url:
-                block_config["props"]["root_url"] = root_url + "/"
+                block_config["props"]["root_url"] = f"{root_url}/"
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             if style and isinstance(block, components.IOComponent):
@@ -825,18 +823,18 @@ class Blocks(BlockContext):
     def __repr__(self):
         num_backend_fns = len([d for d in self.dependencies if d["backend_fn"]])
         repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
-        repr += "\n" + "-" * len(repr)
+        repr += f"\n{'-' * len(repr)}"
         for d, dependency in enumerate(self.dependencies):
             if dependency["backend_fn"]:
                 repr += f"\nfn_index={d}"
                 repr += "\n inputs:"
                 for input_id in dependency["inputs"]:
                     block = self.blocks[input_id]
-                    repr += "\n |-{}".format(str(block))
+                    repr += f"\n |-{block}"
                 repr += "\n outputs:"
                 for output_id in dependency["outputs"]:
                     block = self.blocks[output_id]
-                    repr += "\n |-{}".format(str(block))
+                    repr += f"\n |-{block}"
         return repr
 
     def render(self):
@@ -862,9 +860,7 @@ class Blocks(BlockContext):
                     )
                     if not (api_name == api_name_):
                         warnings.warn(
-                            "api_name {} already exists, using {}".format(
-                                api_name, api_name_
-                            )
+                            f"api_name {api_name} already exists, using {api_name_}"
                         )
                         dependency["api_name"] = api_name_
                 dependency["cancels"] = [
@@ -1924,10 +1920,10 @@ Received outputs:
             analytics_integration = "CometML"
             comet_ml.log_other("Created from", "Gradio")
             if self.share_url is not None:
-                comet_ml.log_text("gradio: " + self.share_url)
+                comet_ml.log_text(f"gradio: {self.share_url}")
                 comet_ml.end()
             elif self.local_url:
-                comet_ml.log_text("gradio: " + self.local_url)
+                comet_ml.log_text(f"gradio: {self.local_url}")
                 comet_ml.end()
             else:
                 raise ValueError("Please run `launch()` first.")
@@ -1975,7 +1971,7 @@ Received outputs:
             # happen the next time the app is launched
             self.app.startup_events_triggered = False
             if verbose:
-                print("Closing server running on port: {}".format(self.server_port))
+                print(f"Closing server running on port: {self.server_port}")
         except (AttributeError, OSError):  # can't close if not running
             pass
 
