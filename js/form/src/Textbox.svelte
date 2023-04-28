@@ -221,6 +221,12 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 	}
+	input:disabled,
+	textarea:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
+	}
 
 	input:focus,
 	textarea:focus {

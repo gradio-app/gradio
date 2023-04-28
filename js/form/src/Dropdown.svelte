@@ -25,6 +25,10 @@
 		showOptions = false,
 		filterInput: HTMLElement;
 
+	if (typeof value === "string") {
+		inputValue = value;
+	}
+
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
@@ -314,6 +318,9 @@
 	}
 
 	input:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
 		cursor: not-allowed;
 	}
 
