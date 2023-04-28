@@ -25,7 +25,7 @@
 		showOptions = false,
 		filterInput: HTMLElement;
 
-	if (typeof value === "string") {
+	$: if (typeof value === "string") {
 		inputValue = value;
 	}
 
