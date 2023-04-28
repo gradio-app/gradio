@@ -31,22 +31,29 @@ import PIL.ImageOps
 import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
+from gradio_client import media_data
 from gradio_client import utils as client_utils
+from gradio_client.data_classes import FileData
+from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import (
+    BooleanSerializable,
     FileSerializable,
     GallerySerializable,
     ImgSerializable,
     JSONSerializable,
+    ListStringSerializable,
+    NumberSerializable,
     Serializable,
     SimpleSerializable,
+    StringSerializable,
+    VideoSerializable,
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
 
-from gradio import media_data, processing_utils, utils
+from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -300,7 +307,8 @@ class IOComponent(Component):
         self, base64_encoding: str, file_name: str | None = None
     ) -> str:
         """Converts a base64 encoding to a file and returns the path to the file if
-        the file doesn't already exist. Otherwise returns the path to the existing file."""
+        the file doesn't already exist. Otherwise returns the path to the existing file.
+        """
         temp_dir = self.hash_base64(base64_encoding)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
@@ -309,7 +317,7 @@ class IOComponent(Component):
         if file_name:
             file_name = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
-            file_name = "file." + guess_extension
+            file_name = f"file.{guess_extension}"
         else:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
@@ -367,7 +375,7 @@ class Textbox(
     Submittable,
     Blurrable,
     IOComponent,
-    SimpleSerializable,
+    StringSerializable,
     TokenInterpretable,
 ):
     """
@@ -377,7 +385,7 @@ class Textbox(
     Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
     def __init__(
@@ -445,7 +453,6 @@ class Textbox(
         )
         TokenInterpretable.__init__(self)
         self.cleared_value = ""
-        self.test_input = value
         self.type = type
 
     def get_config(self):
@@ -584,7 +591,7 @@ class Number(
     Submittable,
     Blurrable,
     IOComponent,
-    SimpleSerializable,
+    NumberSerializable,
     NeighborInterpretable,
 ):
     """
@@ -639,7 +646,6 @@ class Number(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.test_input = self.value if self.value is not None else 1
 
     @staticmethod
     def _round_to_precision(num: float | int, precision: int | None) -> float | int:
@@ -764,7 +770,7 @@ class Slider(
     Changeable,
     Releaseable,
     IOComponent,
-    SimpleSerializable,
+    NumberSerializable,
     NeighborInterpretable,
 ):
     """
@@ -774,7 +780,7 @@ class Slider(
     Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
-    Guides: create_your_own_friends_with_a_gan
+    Guides: create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -836,7 +842,21 @@ class Slider(
         )
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
-        self.test_input = self.value
+
+    def api_info(self) -> Dict[str, Tuple[str, str]]:
+        description = f"numeric value between {self.minimum} and {self.maximum}"
+        return {
+            "raw_input": ("int | float", description),
+            "raw_output": ("int | float", description),
+            "serialized_input": ("int | float", description),
+            "serialized_output": ("int | float", description),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.minimum,
+            "serialized": self.minimum,
+        }
 
     def get_config(self):
         return {
@@ -877,7 +897,6 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -929,7 +948,7 @@ class Checkbox(
     Changeable,
     Selectable,
     IOComponent,
-    SimpleSerializable,
+    BooleanSerializable,
     NeighborInterpretable,
 ):
     """
@@ -967,7 +986,6 @@ class Checkbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.test_input = True
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects Checkbox.
@@ -1009,7 +1027,6 @@ class Checkbox(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1033,7 +1050,7 @@ class CheckboxGroup(
     Changeable,
     Selectable,
     IOComponent,
-    SimpleSerializable,
+    ListStringSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1082,7 +1099,6 @@ class CheckboxGroup(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = self.choices
         self.select: EventListenerMethod
         """
         Event listener for when the user selects or deselects within CheckboxGroup.
@@ -1111,6 +1127,12 @@ class CheckboxGroup(
             **IOComponent.get_config(self),
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.choices[0] if self.choices else None,
+            "serialized": self.choices[0] if self.choices else None,
+        }
+
     @staticmethod
     def update(
         value: List[str]
@@ -1130,7 +1152,6 @@ class CheckboxGroup(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1147,9 +1168,7 @@ class CheckboxGroup(
             return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def postprocess(self, y: List[str] | str | None) -> List[str]:
@@ -1217,7 +1236,7 @@ class Radio(
     Selectable,
     Changeable,
     IOComponent,
-    SimpleSerializable,
+    StringSerializable,
     NeighborInterpretable,
 ):
     """
@@ -1266,7 +1285,6 @@ class Radio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = self.choices[0] if len(self.choices) else None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects Radio option.
@@ -1296,6 +1314,12 @@ class Radio(
             **IOComponent.get_config(self),
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": self.choices[0] if self.choices else None,
+            "serialized": self.choices[0] if self.choices else None,
+        }
+
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -1312,7 +1336,6 @@ class Radio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1332,9 +1355,7 @@ class Radio(
                 return self.choices.index(x)
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def get_interpretation_neighbors(self, x):
@@ -1373,7 +1394,9 @@ class Radio(
 
 
 @document("style")
-class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComponent):
+class Dropdown(
+    Changeable, Selectable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1398,6 +1421,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
+        allow_custom_value: bool = False,
         **kwargs,
     ):
         """
@@ -1415,6 +1439,7 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
         self.choices = choices or []
         valid_types = ["value", "index"]
@@ -1432,7 +1457,11 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 "The `max_choices` parameter is ignored when `multiselect` is False."
             )
         self.max_choices = max_choices
-        self.test_input = self.choices[0] if len(self.choices) else None
+        self.allow_custom_value = allow_custom_value
+        if multiselect and allow_custom_value:
+            raise ValueError(
+                "Custom values are not supported when `multiselect` is True."
+            )
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
         """
@@ -1456,12 +1485,39 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
 
         self.cleared_value = self.value or ([] if multiselect else "")
 
+    def api_info(self) -> Dict[str, Tuple[str, str]]:
+        if self.multiselect:
+            type = "List[str]"
+            description = f"List of options from: {self.choices}"
+        else:
+            type = "str"
+            description = f"Option from: {self.choices}"
+        return {
+            "raw_input": (type, description),
+            "raw_output": (type, description),
+            "serialized_input": (type, description),
+            "serialized_output": (type, description),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        if self.multiselect:
+            return {
+                "raw": [self.choices[0]] if self.choices else [],
+                "serialized": [self.choices[0]] if self.choices else [],
+            }
+        else:
+            return {
+                "raw": self.choices[0] if self.choices else None,
+                "serialized": self.choices[0] if self.choices else None,
+            }
+
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
+            "allow_custom_value": self.allow_custom_value,
             **IOComponent.get_config(self),
         }
 
@@ -1472,16 +1528,17 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
+        placeholder: str | None = None,
         visible: bool | None = None,
     ):
         return {
             "choices": choices,
             "label": label,
             "show_label": show_label,
-            "interactive": interactive,
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "placeholder": placeholder,
             "__type__": "update",
         }
 
@@ -1503,12 +1560,10 @@ class Dropdown(Changeable, Selectable, IOComponent, SimpleSerializable, FormComp
                 return [self.choices.index(c) for c in x]
             else:
                 if isinstance(x, str):
-                    return self.choices.index(x)
+                    return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
@@ -1548,6 +1603,7 @@ class Image(
     Clearable,
     Changeable,
     Streamable,
+    Selectable,
     Uploadable,
     IOComponent,
     ImgSerializable,
@@ -1559,7 +1615,7 @@ class Image(
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -1625,10 +1681,15 @@ class Image(
         else:
             self.tool = tool
         self.invert_colors = invert_colors
-        self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user clicks on a pixel within the image.
+        Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
+        See EventData documentation on how to use this event data.
+        """
 
         IOComponent.__init__(
             self,
@@ -1654,6 +1715,7 @@ class Image(
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
+            "selectable": self.selectable,
             **IOComponent.get_config(self),
         }
 
@@ -1673,7 +1735,6 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -1691,7 +1752,7 @@ class Image(
         elif self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
+                suffix=(f".{fmt.lower()}" if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
             return self.make_temp_copy_if_needed(file_obj.name)
@@ -1819,7 +1880,7 @@ class Image(
         segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
         tokens, masks, leave_one_out_tokens = [], [], []
         replace_color = np.mean(resized_and_cropped_image, axis=(0, 1))
-        for (i, segment_value) in enumerate(np.unique(segments_slic)):
+        for i, segment_value in enumerate(np.unique(segments_slic)):
             mask = segments_slic == segment_value
             image_screen = np.copy(resized_and_cropped_image)
             image_screen[segments_slic == segment_value] = replace_color
@@ -1877,36 +1938,9 @@ class Image(
         )
         return self
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
@@ -1925,7 +1959,7 @@ class Video(
     Playable,
     Uploadable,
     IOComponent,
-    FileSerializable,
+    VideoSerializable,
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -1934,14 +1968,14 @@ class Video(
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} filepath to a video which is displayed.
-    Examples-format: a {str} filepath to a local file that contains the video.
-    Demos: video_identity
+    Postprocessing: expects a {str} filepath to a video which is displayed, or a {Tuple[str, str]} where the first element is a filepath to a video and the second element is a filepath to a subtitle file.
+    Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
+    Demos: video_identity, video_subtitle
     """
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | Tuple[str, str | None] | Callable | None = None,
         *,
         format: str | None = None,
         source: str = "upload",
@@ -1958,7 +1992,7 @@ class Video(
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
@@ -2006,7 +2040,10 @@ class Video(
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | Tuple[str, str | None]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         source: str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -2020,35 +2057,44 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
-    def preprocess(self, x: Dict[str, str] | None) -> str | None:
+    def preprocess(
+        self, x: Tuple[FileData, FileData | None] | FileData | None
+    ) -> str | None:
         """
         Parameters:
-            x: a dictionary with the following keys: 'name' (containing the file path to a video), 'data' (with either the file URL or base64 representation of the video), and 'is_file` (True if `data` contains the file URL).
+            x: A tuple of (video file data, subtitle file data) or just video file data.
         Returns:
-            a string file path to the preprocessed video
+            A string file path or URL to the preprocessed video. Subtitle file data is ignored.
         """
         if x is None:
-            return x
+            return None
+        elif isinstance(x, dict):
+            video = x
+        else:
+            video = x[0]
 
         file_name, file_data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
+            video.get("name"),
+            video["data"],
+            video.get("is_file", False),
         )
+
         if is_file:
+            assert file_name is not None, "Received file data without a file name."
             file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
+            assert file_data is not None, "Received empty file data."
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
 
         uploaded_format = file_name.suffix.replace(".", "")
-        modify_format = self.format is not None and uploaded_format != self.format
+        needs_formatting = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
-        if modify_format or flip:
-            format = f".{self.format if modify_format else uploaded_format}"
+
+        if needs_formatting or flip:
+            format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
             output_options += ["-an"] if not self.include_audio else []
             flip_suffix = "_flip" if flip else ""
@@ -2074,20 +2120,63 @@ class Video(
         else:
             return str(file_name)
 
-    def postprocess(self, y: str | None) -> Dict[str, Any] | None:
+    def postprocess(
+        self, y: str | Tuple[str, str | None] | None
+    ) -> Tuple[FileData | None, FileData | None] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
-            y: a path or URL to the video file
+            y: video data in either of the following formats: a tuple of (str video filepath, str subtitle filepath), or a string filepath or URL to an video file, or None.
         Returns:
-            a dictionary with the following keys: 'name' (containing the file path
-            to a temporary copy of the video), 'data' (None), and 'is_file` (True).
+            a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
+            - The first dictionary represents the video file and contains the following keys:
+                - 'name': a file path to a temporary copy of the processed video.
+                - 'data': None
+                - 'is_file': True
+            - The second dictionary represents the subtitle file and contains the following keys:
+                - 'name': None
+                - 'data': Base64 encode the processed subtitle data.
+                - 'is_file': False
+            - If subtitle is None, returns (video, None).
+            - If both video and subtitle are None, returns None.
         """
-        if y is None:
+
+        if y is None or y == [None, None] or y == (None, None):
+            return None
+        if isinstance(y, str):
+            processed_files = (self._format_video(y), None)
+        elif isinstance(y, (tuple, list)):
+            assert (
+                len(y) == 2
+            ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+            video = y[0]
+            subtitle = y[1]
+            processed_files = (
+                self._format_video(video),
+                self._format_subtitle(subtitle),
+            )
+        else:
+            raise Exception(f"Cannot process type as video: {type(y)}")
+
+        return processed_files
+
+    def _format_video(self, video: str | None) -> FileData | None:
+        """
+        Processes a video to ensure that it is in the correct format.
+        Parameters:
+            video: video data in either of the following formats: a string filepath or URL to an video file, or None.
+        Returns:
+            a dictionary with the following keys:
+
+            - 'name': a file path to a temporary copy of the processed video.
+            - 'data': None
+            - 'is_file': True
+        """
+        if video is None:
             return None
 
-        returned_format = y.split(".")[-1].lower()
+        returned_format = video.split(".")[-1].lower()
 
         if self.format is None or returned_format == self.format:
             conversion_needed = False
@@ -2095,28 +2184,82 @@ class Video(
             conversion_needed = True
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
-        if utils.validate_url(y) and not (conversion_needed):
-            return {"name": y, "data": None, "is_file": True}
+        if utils.validate_url(video) and not (conversion_needed):
+            return {"name": video, "data": None, "is_file": True}
 
         # For cases where the video needs to be converted to another format
-        if utils.validate_url(y):
-            y = self.download_temp_copy_if_needed(y)
+        if utils.validate_url(video):
+            video = self.download_temp_copy_if_needed(video)
         if (
             processing_utils.ffmpeg_installed()
-            and not processing_utils.video_is_playable(y)
+            and not processing_utils.video_is_playable(video)
         ):
             warnings.warn(
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
-            y = processing_utils.convert_video_to_playable_mp4(y)
+            video = processing_utils.convert_video_to_playable_mp4(video)
         if self.format is not None and returned_format != self.format:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
+            output_file_name = video[0 : video.rindex(".") + 1] + self.format
+            ff = FFmpeg(inputs={video: None}, outputs={output_file_name: None})
             ff.run()
-            y = output_file_name
+            video = output_file_name
 
-        y = self.make_temp_copy_if_needed(y)
-        return {"name": y, "data": None, "is_file": True}
+        video = self.make_temp_copy_if_needed(video)
+
+        return {
+            "name": video,
+            "data": None,
+            "is_file": True,
+            "orig_name": Path(video).name,
+        }
+
+    def _format_subtitle(self, subtitle: str | None) -> FileData | None:
+        """
+        Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
+        Parameters:
+            subtitle: subtitle path in either of the VTT and SRT format.
+        Returns:
+            a dictionary with the following keys:
+            - 'name': None
+            - 'data': base64-encoded subtitle data.
+            - 'is_file': False
+        """
+
+        def srt_to_vtt(srt_file_path, vtt_file_path):
+            """Convert an SRT subtitle file to a VTT subtitle file"""
+            with open(srt_file_path, "r", encoding="utf-8") as srt_file, open(
+                vtt_file_path, "w", encoding="utf-8"
+            ) as vtt_file:
+                vtt_file.write("WEBVTT\n\n")
+                for subtitle_block in srt_file.read().strip().split("\n\n"):
+                    subtitle_lines = subtitle_block.split("\n")
+                    subtitle_timing = subtitle_lines[1].replace(",", ".")
+                    subtitle_text = "\n".join(subtitle_lines[2:])
+                    vtt_file.write(f"{subtitle_timing} --> {subtitle_timing}\n")
+                    vtt_file.write(f"{subtitle_text}\n\n")
+
+        if subtitle is None:
+            return None
+
+        valid_extensions = (".srt", ".vtt")
+
+        if Path(subtitle).suffix not in valid_extensions:
+            raise ValueError(
+                f"Invalid value for parameter `subtitle`: {subtitle}. Please choose a file with one of these extensions: {valid_extensions}"
+            )
+
+        # HTML5 only support vtt format
+        if Path(subtitle).suffix == ".srt":
+            temp_file = tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=".vtt",
+            )
+
+            srt_to_vtt(subtitle, temp_file.name)
+            subtitle = temp_file.name
+
+        subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
+        return {"name": None, "data": subtitle_data, "is_file": False}
 
     def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
@@ -2151,7 +2294,7 @@ class Audio(
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
-    Guides: real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     def __init__(
@@ -2196,7 +2339,6 @@ class Audio(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         self.type = type
-        self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.streaming = streaming
         if streaming and source != "microphone":
             raise ValueError(
@@ -2224,6 +2366,12 @@ class Audio(
             **IOComponent.get_config(self),
         }
 
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_AUDIO},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+        }
+
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
@@ -2240,7 +2388,6 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2393,38 +2540,11 @@ class Audio(
             file_path = self.make_temp_copy_if_needed(y)
         return {"name": file_path, "data": None, "is_file": True}
 
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: str | None = None,
-        api_name: str | None = None,
-        preprocess: bool = True,
-        postprocess: bool = True,
-    ):
-        """
-        This event is triggered when the user streams the component (e.g. a live webcam
-        component)
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        """
-        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+    def check_streamable(self):
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        super().stream(
-            fn,
-            inputs,
-            outputs,
-            _js=_js,
-            api_name=api_name,
-            preprocess=preprocess,
-            postprocess=postprocess,
-        )
 
     def style(
         self,
@@ -2454,7 +2574,7 @@ class File(
 ):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_files
@@ -2514,7 +2634,6 @@ class File(
                 "The `file_types` parameter is ignored when `file_count` is 'directory'."
             )
         self.type = type
-        self.test_input = None
         self.select: EventListenerMethod
         """
         Event listener for when the user selects file from list.
@@ -2557,15 +2676,17 @@ class File(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
-    ) -> bytes | tempfile._TemporaryFileWrapper | List[
-        bytes | tempfile._TemporaryFileWrapper
-    ] | None:
+    ) -> (
+        bytes
+        | tempfile._TemporaryFileWrapper
+        | List[bytes | tempfile._TemporaryFileWrapper]
+        | None
+    ):
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2647,13 +2768,6 @@ class File(
                 "data": None,
                 "is_file": True,
             }
-
-    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir)
-        if serialized is None:
-            return None
-        serialized["size"] = Path(serialized["name"]).stat().st_size
-        return serialized
 
     def style(
         self,
@@ -2764,7 +2878,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.test_input = [
+        self.empty_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
@@ -2822,7 +2936,6 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -2859,7 +2972,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
-            return self.postprocess(self.test_input)
+            return self.postprocess(self.empty_input)
         if isinstance(y, dict):
             return y
         if isinstance(y, str):
@@ -2913,9 +3026,9 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     def __validate_headers(headers: List[str] | None, col_count: int):
         if headers is not None and len(headers) != col_count:
             raise ValueError(
-                "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
-                    cols=col_count, headers=len(headers)
-                )
+                f"The length of the headers list must be equal to the col_count int.\n"
+                f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
+                f"Check the values passed to `col_count` and `headers`."
             )
 
     @classmethod
@@ -3039,7 +3152,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -3106,7 +3218,7 @@ class State(IOComponent, SimpleSerializable):
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
     Demos: blocks_simple_squares
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     allow_string_shortcut = False
@@ -3135,7 +3247,7 @@ class Variable(State):
 
 
 @document("style")
-class Button(Clickable, IOComponent, SimpleSerializable):
+class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -3160,6 +3272,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
+            interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -3297,15 +3410,17 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None
-    ) -> bytes | tempfile._TemporaryFileWrapper | List[
-        bytes | tempfile._TemporaryFileWrapper
-    ] | None:
+    ) -> (
+        bytes
+        | tempfile._TemporaryFileWrapper
+        | List[bytes | tempfile._TemporaryFileWrapper]
+        | None
+    ):
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -3355,13 +3470,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             else:
                 return process_single_file(x)
 
-    def serialize(self, x: str | None, load_dir: str = "") -> Dict | None:
-        serialized = FileSerializable.serialize(self, x, load_dir)
-        if serialized is None:
-            return None
-        serialized["size"] = Path(serialized["name"]).stat().st_size
-        return serialized
-
     def style(
         self,
         *,
@@ -3385,7 +3493,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
+class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -3421,7 +3529,6 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.cleared_value = "#000000"
-        self.test_input = value
         IOComponent.__init__(
             self,
             label=label,
@@ -3435,6 +3542,12 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": "#000000",
+            "serialized": "#000000",
+        }
 
     def get_config(self):
         return {
@@ -3499,7 +3612,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
 
     Demos: main_note, titanic_survival
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary-app
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3588,7 +3701,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
-            "Instead, got a {}".format(type(y))
+            f"Instead, got a {type(y)}"
         )
 
     @staticmethod
@@ -3644,7 +3757,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
-    Guides: named_entity_recognition
+    Guides: named-entity-recognition
     """
 
     def __init__(
@@ -3812,6 +3925,196 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
 
 
 @document("style")
+class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
+    """
+    Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 confidence masks of the same shape as the image. A label is provided for each subsection.
+
+    Demos: image_segmentation
+    """
+
+    def __init__(
+        self,
+        value: Tuple[
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ]
+        | None = None,
+        *,
+        show_legend: bool = True,
+        label: str | None = None,
+        every: float | None = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: str | None = None,
+        elem_classes: List[str] | str | None = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Tuple of base image and list of (subsection, label) pairs.
+            show_legend: If True, will show a legend of the subsections.
+            label: component name in interface.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.show_legend = show_legend
+        self.select: EventListenerMethod
+        """
+        Event listener for when the user selects Image subsection.
+        Uses event data gradio.SelectData to carry `value` referring to selected subsection label, and `index` to refer to subsection index.
+        See EventData documentation on how to use this event data.
+        """
+        IOComponent.__init__(
+            self,
+            label=label,
+            every=every,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            value=value,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "show_legend": self.show_legend,
+            "value": self.value,
+            "selectable": self.selectable,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Tuple[
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ]
+        | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
+        show_legend: bool | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "show_legend": show_legend,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
+
+    def postprocess(
+        self,
+        y: Tuple[
+            np.ndarray | _Image.Image | str,
+            List[Tuple[np.ndarray | Tuple[int, int, int, int], str]],
+        ],
+    ) -> Tuple[dict, List[Tuple[dict, str]]] | None:
+        """
+        Parameters:
+            y: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+        Returns:
+            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
+        """
+        if y is None:
+            return None
+        base_img = y[0]
+        if isinstance(base_img, str):
+            base_img_path = base_img
+            base_img = np.array(_Image.open(base_img))
+        elif isinstance(base_img, np.ndarray):
+            base_file = processing_utils.save_array_to_file(base_img)
+            base_img_path = str(utils.abspath(base_file.name))
+        elif isinstance(base_img, _Image.Image):
+            base_file = processing_utils.save_pil_to_file(base_img)
+            base_img_path = str(utils.abspath(base_file.name))
+            base_img = np.array(base_img)
+        else:
+            raise ValueError(
+                "AnnotatedImage only accepts filepaths, PIL images or numpy arrays for the base image."
+            )
+        self.temp_files.add(base_img_path)
+
+        sections = []
+        color_map = self._style.get("color_map", {})
+
+        def hex_to_rgb(value):
+            value = value.lstrip("#")
+            lv = len(value)
+            return list(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
+        for mask, label in y[1]:
+            mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
+            if isinstance(mask, np.ndarray):
+                mask_array = mask
+            else:
+                x1, y1, x2, y2 = mask
+                BORDER_WIDTH = 3
+                mask_array[y1:y2, x1:x2] = 0.5
+                mask_array[y1:y2, x1 : x1 + BORDER_WIDTH] = 1
+                mask_array[y1:y2, x2 - BORDER_WIDTH : x2] = 1
+                mask_array[y1 : y1 + BORDER_WIDTH, x1:x2] = 1
+                mask_array[y2 - BORDER_WIDTH : y2, x1:x2] = 1
+
+            if label in color_map:
+                rgb_color = hex_to_rgb(color_map[label])
+            else:
+                rgb_color = [255, 0, 0]
+            colored_mask = np.zeros((base_img.shape[0], base_img.shape[1], 4))
+            solid_mask = np.copy(mask_array)
+            solid_mask[solid_mask > 0] = 1
+
+            colored_mask[:, :, 0] = rgb_color[0] * solid_mask
+            colored_mask[:, :, 1] = rgb_color[1] * solid_mask
+            colored_mask[:, :, 2] = rgb_color[2] * solid_mask
+            colored_mask[:, :, 3] = mask_array * 255
+
+            colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
+
+            mask_file = processing_utils.save_pil_to_file(colored_mask_img)
+            mask_file_path = str(utils.abspath(mask_file.name))
+            self.temp_files.add(mask_file_path)
+
+            sections.append(
+                ({"name": mask_file_path, "data": None, "is_file": True}, label)
+            )
+
+        return {"name": base_img_path, "data": None, "is_file": True}, sections
+
+    def style(
+        self,
+        *,
+        height: int | None = None,
+        width: int | None = None,
+        color_map: Dict[str, str] | None = None,
+        **kwargs,
+    ):
+        """
+        This method can be used to change the appearance of the Image component.
+        Parameters:
+            height: Height of the image.
+            width: Width of the image.
+            color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
+        """
+        self._style["height"] = height
+        self._style["width"] = width
+        self._style["color_map"] = color_map
+        Component.style(
+            self,
+            **kwargs,
+        )
+        return self
+
+
+@document("style")
 class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
@@ -3902,14 +4205,14 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class HTML(Changeable, IOComponent, SimpleSerializable):
+class HTML(Changeable, IOComponent, StringSerializable):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid HTML {str}.
 
     Demos: text_analysis
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -4092,25 +4395,39 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         self,
         *,
         grid: int | Tuple | None = None,
+        columns: int | Tuple | None = None,
+        rows: int | Tuple | None = None,
         height: str | None = None,
         container: bool | None = None,
         preview: bool | None = None,
+        object_fit: str | None = None,
         **kwargs,
     ):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            grid: ('grid' has been renamed to 'columns') Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints            columns: Represents the number of columns in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
+            object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
         """
         if grid is not None:
-            self._style["grid"] = grid
+            warnings.warn(
+                "The 'grid' parameter will be deprecated. Please use 'columns' instead.",
+            )
+            self._style["grid_cols"] = grid
+        if columns is not None:
+            self._style["grid_cols"] = columns
+        if rows is not None:
+            self._style["grid_rows"] = rows
         if height is not None:
             self._style["height"] = height
         if preview is not None:
             self._style["preview"] = preview
+        if object_fit is not None:
+            self._style["object_fit"] = object_fit
 
         Component.style(self, container=container, **kwargs)
         return self
@@ -4140,6 +4457,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
+    Guides: creating-a-chatbot
     """
 
     def __init__(
@@ -4257,9 +4575,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            filepath = chat_message[0]
+            file_uri = chat_message[0]
+            if utils.validate_url(file_uri):
+                filepath = file_uri
+            else:
+                filepath = self.make_temp_copy_if_needed(file_uri)
+
             mime_type = client_utils.get_mimetype(filepath)
-            filepath = self.make_temp_copy_if_needed(filepath)
             return {
                 "name": filepath,
                 "mime_type": mime_type,
@@ -4268,7 +4590,12 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(chat_message, str):
-            return self.md.renderInline(chat_message)
+            children = self.md.parseInline(chat_message)[0].children
+            if children and any("code" in child.tag for child in children):
+                return self.md.render(chat_message)
+            else:
+                chat_message = chat_message.replace("\n", "<br>")
+                return self.md.renderInline(chat_message)
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
@@ -4324,7 +4651,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
 
     Demos: model3D
-    Guides: how_to_use_3D_model_component
+    Guides: how-to-use-3D-model-component
     """
 
     def __init__(
@@ -4369,6 +4696,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             "clearColor": self.clear_color,
             "value": self.value,
             **IOComponent.get_config(self),
+        }
+
+    def example_inputs(self) -> Dict[str, Any]:
+        return {
+            "raw": {"is_file": False, "data": media_data.BASE64_MODEL3D},
+            "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/Box.gltf",
         }
 
     @staticmethod
@@ -4446,7 +4779,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
-    Guides: plot_component_for_maps
+    Guides: plot-component-for-maps
     """
 
     def __init__(
@@ -4571,7 +4904,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
-    Guides: creating_a_dashboard_from_bigquery_data
+    Guides: creating-a-dashboard-from-bigquery-data
     """
 
     def __init__(
@@ -5367,7 +5700,7 @@ class BarPlot(Plot):
         width: int | None = None,
         y_lim: List[int] | None = None,
         caption: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
         label: str | None = None,
         show_label: bool = True,
         visible: bool = True,
@@ -5564,14 +5897,14 @@ class BarPlot(Plot):
 
 
 @document()
-class Markdown(IOComponent, Changeable, SimpleSerializable):
+class Markdown(IOComponent, Changeable, StringSerializable):
     """
     Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
     Demos: blocks_hello, blocks_kinematics
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -5639,7 +5972,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
 
 @document("languages")
-class Code(Changeable, IOComponent, SimpleSerializable):
+class Code(Changeable, IOComponent, StringSerializable):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.
@@ -5666,6 +5999,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         value: str | Tuple[str] | None = None,
         language: str | None = None,
         *,
+        lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
         show_label: bool = True,
@@ -5687,6 +6021,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         """
         assert language in Code.languages, f"Language {language} not supported."
         self.language = language
+        self.lines = lines
         IOComponent.__init__(
             self,
             label=label,
@@ -5703,6 +6038,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         return {
             "value": self.value,
             "language": self.language,
+            "lines": self.lines,
             **IOComponent.get_config(self),
         }
 
@@ -5726,7 +6062,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
         show_label: bool | None = None,
         visible: bool | None = None,
         language: str | None = None,
-        interactive: bool | None = True,
+        interactive: bool | None = None,
     ):
         return {
             "label": label,
@@ -5748,7 +6084,7 @@ class Code(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Dataset(Clickable, Selectable, Component, SimpleSerializable):
+class Dataset(Clickable, Selectable, Component, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
@@ -5862,7 +6198,7 @@ class Interpretation(Component, SimpleSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {dict} with keys "original" and "interpretation".
 
-    Guides: custom_interpretations_with_blocks
+    Guides: custom-interpretations-with-blocks
     """
 
     def __init__(
@@ -5948,6 +6284,7 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
 Text = Textbox
 DataFrame = Dataframe
 Highlightedtext = HighlightedText
+Annotatedimage = AnnotatedImage
 Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries

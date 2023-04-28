@@ -20,10 +20,10 @@ import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils, routes, utils
 from gradio.context import Context
-from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -81,7 +81,7 @@ class Examples:
     components. Optionally handles example caching for fast inference.
 
     Demos: blocks_inputs, fake_gan
-    Guides: more_on_examples_and_flagging, using_hugging_face_integrations, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, create_your_own_friends_with_a_gan
+    Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -144,7 +144,7 @@ class Examples:
         elif isinstance(examples, str):
             if not Path(examples).exists():
                 raise FileNotFoundError(
-                    "Could not find examples directory: " + examples
+                    f"Could not find examples directory: {examples}"
                 )
             working_directory = examples
             if not (Path(examples) / LOG_FILE).exists():
@@ -172,7 +172,7 @@ class Examples:
         input_has_examples = [False] * len(inputs)
         for example in examples:
             for idx, example_for_input in enumerate(example):
-                if not (example_for_input is None):
+                if example_for_input is not None:
                     try:
                         input_has_examples[idx] = True
                     except IndexError:
@@ -602,9 +602,10 @@ def special_args(
     Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
     If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
-        block_fn: function to check.
+        fn: function to check.
         inputs: array to load special arguments into.
         request: request to load into inputs.
+        event_data: event-related data to load into inputs.
     Returns:
         updated inputs, progress index, event data index.
     """
@@ -630,6 +631,9 @@ def special_args(
             event_data_index = i
             if inputs is not None and event_data is not None:
                 inputs.insert(i, param.annotation(event_data.target, event_data._data))
+        elif param.default is not param.empty:
+            if inputs is not None and len(inputs) <= i:
+                inputs.insert(i, param.default)
     if inputs is not None:
         while len(inputs) < len(positional_args):
             i = len(inputs)
@@ -733,7 +737,7 @@ def make_waveform(
         mix_pcts = [x / (n - 1) for x in range(n)]
         rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
         return [
-            "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
+            "#" + "".join(f"{int(round(val * 255)):02x}" for val in item)
             for item in rgb_colors
         ]
 

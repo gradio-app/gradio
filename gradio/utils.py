@@ -74,11 +74,8 @@ def version_check():
         ]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
-                "IMPORTANT: You are using gradio version {}, "
-                "however version {} "
-                "is available, please upgrade.".format(
-                    current_pkg_version, latest_pkg_version
-                )
+                f"IMPORTANT: You are using gradio version {current_pkg_version}, "
+                f"however version {latest_pkg_version} is available, please upgrade."
             )
             print("--------")
     except json.decoder.JSONDecodeError:
@@ -110,7 +107,7 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
     def initiated_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
+                f"{analytics_url}gradio-initiated-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -124,7 +121,7 @@ def launch_analytics(data: Dict[str, Any]) -> None:
     def launch_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-analytics/", data=data, timeout=3
+                f"{analytics_url}gradio-launched-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -158,6 +155,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
             str(blocks.blocks[y]) for y in x["outputs"]
         ]
     additional_data = {
+        "version": GRADIO_VERSION,
         "is_kaggle": blocks.is_kaggle,
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
@@ -182,10 +180,10 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     def launched_telemtry_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-launched-telemetry/", data=data, timeout=3
+                f"{analytics_url}gradio-launched-telemetry/", data=data, timeout=5
             )
-        except Exception as e:
-            print("Error while sending telemetry: {}".format(e))
+        except Exception:
+            pass
 
     threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
 
@@ -196,7 +194,7 @@ def integration_analytics(data: Dict[str, Any]) -> None:
     def integration_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-integration-analytics/", data=data, timeout=3
+                f"{analytics_url}gradio-integration-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -207,15 +205,15 @@ def integration_analytics(data: Dict[str, Any]) -> None:
 def error_analytics(message: str) -> None:
     """
     Send error analytics if there is network
-    :param ip_address: IP address where error occurred
-    :param message: Details about error
+    Parameters:
+        message: Details about error
     """
     data = {"ip_address": get_local_ip_address(), "error": message}
 
     def error_analytics_thread(data: Dict[str, Any]) -> None:
         try:
             requests.post(
-                analytics_url + "gradio-error-analytics/", data=data, timeout=3
+                f"{analytics_url}gradio-error-analytics/", data=data, timeout=5
             )
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
@@ -228,7 +226,7 @@ async def log_feature_analytics(feature: str) -> None:
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
-                analytics_url + "gradio-feature-analytics/", data=data
+                f"{analytics_url}gradio-feature-analytics/", data=data
             ):
                 pass
         except (aiohttp.ClientError):
@@ -735,7 +733,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
         sequence in value for sequence in unsafe_sequences
     ):
-        value = "'" + value
+        value = f"'{value}"
     return value
 
 
@@ -762,10 +760,10 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
         return name
     else:
         suffix_counter = 1
-        new_name = name + f"_{suffix_counter}"
+        new_name = f"{name}_{suffix_counter}"
         while new_name in set_of_names:
             suffix_counter += 1
-            new_name = name + f"_{suffix_counter}"
+            new_name = f"{name}_{suffix_counter}"
         return new_name
 
 
@@ -836,6 +834,14 @@ def get_cancel_function(
     )
 
 
+def get_type_hints(fn):
+    if inspect.isfunction(fn) or inspect.ismethod(fn):
+        return typing.get_type_hints(fn)
+    elif callable(fn):
+        return typing.get_type_hints(fn.__call__)
+    return {}
+
+
 def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
@@ -853,7 +859,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         return is_request or is_event_data
 
     signature = inspect.signature(fn)
-    parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
+    parameter_types = get_type_hints(fn)
     min_args = 0
     max_args = 0
     infinity = -1
@@ -898,7 +904,7 @@ def tex2svg(formula, *args):
     DPI = 300
     plt.rc("mathtext", fontset="cm")
     fig = plt.figure(figsize=(0.01, 0.01))
-    fig.text(0, 0, r"${}$".format(formula), fontsize=FONTSIZE)
+    fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
     output = BytesIO()
     fig.savefig(
         output,
@@ -926,10 +932,20 @@ def tex2svg(formula, *args):
 
 def abspath(path: str | Path) -> Path:
     """Returns absolute path of a str or Path path, but does not resolve symlinks."""
-    if Path(path).is_symlink():
+    path = Path(path)
+
+    if path.is_absolute():
+        return path
+
+    # recursively check if there is a symlink within the path
+    is_symlink = path.is_symlink() or any(
+        parent.is_symlink() for parent in path.parents
+    )
+
+    if is_symlink or path == path.resolve():  # in case path couldn't be resolved
         return Path.cwd() / path
     else:
-        return Path(path).resolve()
+        return path.resolve()
 
 
 def get_serializer_name(block: Block) -> str | None:

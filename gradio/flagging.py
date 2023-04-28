@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING, Any, List
 
 import pkg_resources
 from gradio_client import utils as client_utils
+from gradio_client.documentation import document, set_documentation_group
 
 import gradio as gr
 from gradio import utils
-from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:
     from gradio.components import IOComponent
@@ -53,11 +53,11 @@ def _get_dataset_features_info(is_new, components):
                 "_type": "Value",
             }
             if isinstance(component, tuple(file_preview_types)):
-                headers.append(component.label + " file")
+                headers.append(f"{component.label} file")
                 for _component, _type in file_preview_types.items():
                     if isinstance(component, _component):
                         infos["flagged"]["features"][
-                            (component.label or "") + " file"
+                            f"{component.label or ''} file"
                         ] = {"_type": _type}
                         break
 
@@ -171,7 +171,7 @@ class CSVLogger(FlaggingCallback):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             flagging_callback=CSVLogger())
-    Guides: using_flagging
+    Guides: using-flagging
     """
 
     def __init__(self):
@@ -246,7 +246,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             allow_flagging="manual", flagging_callback=hf_writer)
-    Guides: using_flagging
+    Guides: using-flagging
     """
 
     def __init__(
@@ -349,7 +349,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
                     csv_data.append(
-                        "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
+                        f"{self.path_to_dataset_repo}/resolve/main/{filepath}"
                     )
             csv_data.append(flag_option)
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
@@ -360,7 +360,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         with open(self.log_file, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
 
-        self.repo.push_to_hub(commit_message="Flagged sample #{}".format(line_count))
+        self.repo.push_to_hub(commit_message=f"Flagged sample #{line_count}")
 
         return line_count
 
@@ -382,7 +382,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             allow_flagging="manual", flagging_callback=hf_writer)
-    Guides: using_flagging
+    Guides: using-flagging
     """
 
     def __init__(
@@ -497,12 +497,10 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 filepath = None
 
             if isinstance(component, tuple(file_preview_types)):
-                headers.append(component.label or "" + " file")
+                headers.append(f"{component.label or ''} file")
 
                 csv_data.append(
-                    "{}/resolve/main/{}/{}".format(
-                        self.path_to_dataset_repo, unique_name, filepath
-                    )
+                    f"{self.path_to_dataset_repo}/resolve/main/{unique_name}/{filepath}"
                     if filepath is not None
                     else None
                 )
@@ -520,7 +518,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
 
-        self.repo.push_to_hub(commit_message="Flagged sample {}".format(unique_name))
+        self.repo.push_to_hub(commit_message=f"Flagged sample {unique_name}")
         return unique_name
 
     def get_unique_name(self):
@@ -555,7 +553,7 @@ class FlagMethod:
         try:
             self.flagging_callback.flag(list(flag_data), flag_option=self.value)
         except Exception as e:
-            print("Error while flagging: {}".format(e))
+            print(f"Error while flagging: {e}")
             if self.visual_feedback:
                 return "Error!"
         if not self.visual_feedback:

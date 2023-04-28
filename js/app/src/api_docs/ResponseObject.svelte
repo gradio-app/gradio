@@ -14,6 +14,8 @@
 	export let is_running: boolean;
 
 	export let root: string;
+	export let endpoint_returns: any;
+	export let named: boolean;
 
 	const format_url = (desc: string | undefined, data: string | undefined) =>
 		desc
@@ -25,50 +27,26 @@
 	<div class="toggle-icon">
 		<div class="toggle-dot" />
 	</div>
-	Response Object
+	Return Type(s)
 </h4>
 <Block>
 	<div class="response-wrap">
 		<div class:hide={is_running}>
-			&#123;
-			<div class="first-level">"data": [</div>
-			{#each dependency.outputs as component_id, component_index}
-				<div class="second-level">
-					{#if dependency_outputs[dependency_index][component_index] !== undefined}
-						<input
-							disabled
-							type="text"
-							bind:value={dependency_outputs[dependency_index][component_index]}
-						/>
-						:
-					{/if}
-					<span class="type">
-						{instance_map[component_id].documentation?.type?.response_object ||
-							instance_map[component_id].documentation?.type?.payload},
-					</span>
-					<span class="desc">
-						// represents {format_url(
-							instance_map[component_id].documentation?.description
-								?.response_object ||
-								instance_map[component_id].documentation?.description?.payload,
-							dependency_outputs[dependency_index][component_index]
-						)} of
-						{((label) => {
-							return label ? "'" + label + "'" : "the";
-						})(instance_map[component_id].props.label)}
-						<span class="name capitalize">
-							{instance_map[component_id].props.name}
-						</span>
-						component
-					</span>
+			{#if endpoint_returns.length > 1}({/if}
+			{#each endpoint_returns as { label, type_python, type_description, component }}
+				<div class:second-level={endpoint_returns.length > 1}>
+					<span class="desc"
+						><!--
+					--> # {type_python}
+						<!--
+					-->representing {type_description} in '{label}' <!--
+					-->{component}
+						component<!--
+					--></span
+					>{#if endpoint_returns.length > 1},{/if}
 				</div>
 			{/each}
-			<div class="first-level">],</div>
-			<div class="first-level">
-				"duration": (float)
-				<span class="desc">// number of seconds to run function call</span>
-			</div>
-			&#125;
+			{#if endpoint_returns.length > 1}){/if}
 		</div>
 		{#if is_running}
 			<div class="load-wrap">
@@ -115,47 +93,15 @@
 		font-family: var(--font-mono);
 	}
 
-	input[type="text"] {
-		--ring-color: transparent;
-		margin: var(--size-1) 0;
-		outline: none !important;
-		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--radius-lg);
-		background: var(--input-background-fill);
-		padding: var(--size-1-5);
-		color: var(--body-text-color);
-		font-weight: var(--input-text-weight);
-		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
-	}
-
-	input:focus {
-		box-shadow: var(--input-shadow);
-		border-color: var(--input-border-color-focus);
-	}
-
-	.type {
-		color: var(--block-label-text-color);
-	}
-
 	.desc {
 		color: var(--body-text-color-subdued);
-	}
-
-	.name {
-		text-transform: capitalize;
 	}
 
 	.hide {
 		display: none;
 	}
 
-	.first-level {
-		margin-left: 1rem;
-	}
-
 	.second-level {
-		margin-left: 2rem;
+		margin-left: var(--size-4);
 	}
 </style>

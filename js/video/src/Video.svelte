@@ -10,6 +10,7 @@
 	import Player from "./Player.svelte";
 
 	export let value: FileData | null = null;
+	export let subtitle: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean = true;
@@ -64,6 +65,7 @@
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<Player
 			src={value.data}
+			subtitle={subtitle?.data}
 			on:play
 			on:pause
 			on:ended

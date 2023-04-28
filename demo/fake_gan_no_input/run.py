@@ -1,4 +1,3 @@
-import random
 import time
 
 import gradio as gr

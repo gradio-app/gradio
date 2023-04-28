@@ -70,7 +70,7 @@
 				fill="#FF7C00"
 			/>
 		</svg>
-		<h1 class="font-semibold    ">workbench</h1>
+		<h1 class="font-semibold">workbench</h1>
 		<div class="flex self-end ml-auto cursor-pointer">
 			<p
 				on:click={() => (mode = "light")}

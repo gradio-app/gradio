@@ -27,6 +27,24 @@ Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`
 
 Each of these themes set values for hundreds of CSS variables. You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
 
+## Using the Theme Builder
+
+The easiest way to build a theme is using the Theme Builder. To launch the Theme Builder locally, run the following code:
+
+```python
+import gradio as gr
+
+gr.themes.builder()
+```
+
+$demo_theme_builder
+
+You can use the Theme Builder running on Spaces above, though it runs much faster when you launch it locally via `gr.themes.builder()`. 
+
+As you edit the values in the Theme Builder, the app will preview updates in real time. You can download the code to generate the theme you've created so you can use it in any Gradio app.
+
+In the rest of the guide, we will cover building themes programatically.
+
 ## Extending Themes via the Constructor
 
 Although each theme has hundreds of CSS variables, the values for most these variables are drawn from 8 core variables which can be set through the constructor of each prebuilt theme. Modifying these 8 arguments allows you to quickly change the look and feel of your app.
@@ -173,7 +191,7 @@ Your IDE type hinting should help you navigate these variables. Since there are 
 
 ### CSS Variable Naming Conventions
 
-CSS variable names can get quite long, like `button_primary_background_fill_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Seperated by underscores, the variable name is made up of:
+CSS variable names can get quite long, like `button_primary_background_fill_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Separated by underscores, the variable name is made up of:
 
 1. The target element, such as `button`, `slider`, or `block`.
 2. The target element type or sub-element, such as `button_primary`, or `block_label`.

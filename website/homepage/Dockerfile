@@ -6,29 +6,18 @@ RUN apt-get install -y nodejs jq
 RUN npm install -g npm@latest
 RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
+COPY . /gradio/
 WORKDIR /gradio
-RUN mkdir gradio
-COPY ./gradio/version.txt ./gradio/version.txt
 RUN npm i pnpm@6 -g
-WORKDIR /gradio
-COPY ./gradio ./gradio
-COPY ./requirements.txt ./requirements.txt
-COPY ./CHANGELOG.md ./CHANGELOG.md 
-COPY ./pyproject.toml ./pyproject.toml
-COPY ./README.md ./README.md
-COPY ./test ./test
-COPY ./guides ./guides
-COPY ./demo ./demo
-COPY ./website ./website
-COPY ./js ./js
-
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build
 RUN pnpm build:website
 RUN pip install build awscli requests
-WORKDIR /gradio
 RUN pip install .
+WORKDIR /gradio/client/python
+RUN pip install .
+WORKDIR /gradio
 RUN python -m build -w
 ARG AWS_ACCESS_KEY_ID
 ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID

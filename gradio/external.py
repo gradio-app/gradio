@@ -10,11 +10,11 @@ from typing import TYPE_CHECKING, Callable, Dict
 
 import requests
 from gradio_client import Client
+from gradio_client.documentation import document, set_documentation_group
 
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
@@ -93,9 +93,9 @@ def load_blocks_from_repo(
         "models": from_model,
         "spaces": from_spaces,
     }
-    assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
-        factory_methods.keys()
-    )
+    assert (
+        src.lower() in factory_methods
+    ), f"parameter: src must be one of {factory_methods.keys()}"
 
     if api_key is not None:
         if Context.hf_token is not None and Context.hf_token != api_key:
@@ -135,9 +135,9 @@ def chatbot_postprocess(response):
 
 
 def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs):
-    model_url = "https://huggingface.co/{}".format(model_name)
-    api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
-    print("Fetching model from: {}".format(model_url))
+    model_url = f"https://huggingface.co/{model_name}"
+    api_url = f"https://api-inference.huggingface.co/models/{model_name}"
+    print(f"Fetching model from: {model_url}")
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key is not None else {}
 
@@ -344,8 +344,8 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "examples": example_data,
         }
 
-    if p is None or not (p in pipelines):
-        raise ValueError("Unsupported pipeline type: {}".format(p))
+    if p is None or p not in pipelines:
+        raise ValueError(f"Unsupported pipeline type: {p}")
 
     pipeline = pipelines[p]
 
@@ -406,9 +406,9 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
 def from_spaces(
     space_name: str, api_key: str | None, alias: str | None, **kwargs
 ) -> Blocks:
-    space_url = "https://huggingface.co/spaces/{}".format(space_name)
+    space_url = f"https://huggingface.co/spaces/{space_name}"
 
-    print("Fetching Space from: {}".format(space_url))
+    print(f"Fetching Space from: {space_url}")
 
     headers = {}
     if api_key is not None:
@@ -435,7 +435,7 @@ def from_spaces(
     try:
         config = json.loads(result.group(1))  # type: ignore
     except AttributeError:
-        raise ValueError("Could not load the Space: {}".format(space_name))
+        raise ValueError(f"Could not load the Space: {space_name}")
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
             space_name, config, alias, api_key, iframe_url, **kwargs
@@ -452,7 +452,7 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
-    client = Client(space=space, hf_token=api_key)
+    client = Client(space, hf_token=api_key)
     predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
@@ -467,7 +467,7 @@ def from_spaces_interface(
 ) -> Interface:
 
     config = streamline_spaces_interface(config)
-    api_url = "{}/api/predict/".format(iframe_url)
+    api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"

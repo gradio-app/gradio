@@ -52,7 +52,7 @@ class TestInterface:
 
     def test_partial_functions(self):
         def greet(name, formatter):
-            return formatter("Hello " + name + "!")
+            return formatter(f"Hello {name}!")
 
         greet_upper_case = partial(greet, formatter=capwords)
         demo = Interface(fn=greet_upper_case, inputs="text", outputs="text")
