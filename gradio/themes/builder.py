@@ -427,7 +427,7 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
                             "tower",
                         ),
                     ]
-                ).style(height="200px", grid=2)
+                ).style(height="200px", columns=2)
 
             with gr.Row():
                 with gr.Column(scale=2):
