@@ -422,7 +422,7 @@ class Progress(Iterable):
                 return next(current_iterable.iterable)  # type: ignore
             except StopIteration:
                 self.iterables.pop()
-                raise StopIteration
+                raise
         else:
             return self
 
@@ -463,8 +463,6 @@ class Progress(Iterable):
         total: int | None = None,
         unit: str = "steps",
         _tqdm=None,
-        *args,
-        **kwargs,
     ):
         """
         Attaches progress tracker to iterable, like tqdm.
@@ -539,7 +537,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
         )
         if self._progress is not None:
             self._progress.event_id = event_id
-            self._progress.tqdm(iterable, desc, _tqdm=self, *args, **kwargs)
+            self._progress.tqdm(iterable, desc, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")
         self.__init__orig__(iterable, desc, *args, **kwargs)
 
@@ -611,7 +609,7 @@ def special_args(
     """
     signature = inspect.signature(fn)
     positional_args = []
-    for i, param in enumerate(signature.parameters.values()):
+    for param in signature.parameters.values():
         if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
             break
         positional_args.append(param)
