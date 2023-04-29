@@ -2,6 +2,7 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
+	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -13,6 +14,8 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+	export let loading_status: LoadingStatus | undefined = undefined;
+	const parser = new DOMParser();
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -67,7 +70,22 @@
 							dispatch("select", { index: [i, j], value: message })}
 					>
 						{#if typeof message === "string"}
-							{@html message}
+							{#each parser.parseFromString(message, "text/html").body.getElementsByTagName("*") as tag}
+								{#if tag.tagName === "CODE"}
+									{#await import("@gradio/code") then Code}
+										<Code.default
+											value={tag.innerHTML}
+											language={tag.classList.item(0).replace("language-", "")}
+											mode={"static"}
+											target={div}
+											show_label={false}
+											loading_status={loading_status}
+										/>
+									{/await}
+								{:else}
+									{@html tag.innerHTML}
+								{/if}
+							{/each}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -75,16 +93,6 @@
 									{/each}
 								</div>
 							{/if}
-						{:else if message !== null && message["code_block"] !== undefined}
-							{#await import("@gradio/code") then Code}
-								<Code.default
-									value={message.code_block}
-									language={message.language}
-									mode={"static"}
-									target={div}
-									show_label={false}
-								/>
-							{/await}
 						{:else if message !== null && message.mime_type?.includes("audio")}
 							<audio
 								controls
