@@ -20,26 +20,13 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable: boolean = false;
-	const parser = new DOMParser();
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
 
 	function process_message(message: string | FileData | null) {
 		if (typeof message === "string") {
-			const parseHtml = parser.parseFromString(message, "text/xml");
-			const codeElement = parseHtml.getElementsByTagName("code");
-			if (codeElement !== null && codeElement.item(0) !== null) {
-				return {
-					code_block: codeElement.item(0).innerHTML,
-					language: codeElement
-						.item(0)
-						.classList.item(0)
-						.replace("language-", "")
-				};
-			} else {
-				return redirect_src_url(message);
-			}
+			return redirect_src_url(message);
 		} else {
 			return normalise_file(message, root, root_url);
 		}
@@ -68,6 +55,7 @@
 		{selectable}
 		value={_value}
 		pending_message={loading_status?.status === "pending"}
+		loading_status={loading_status}
 		on:change
 		on:select
 	/>
