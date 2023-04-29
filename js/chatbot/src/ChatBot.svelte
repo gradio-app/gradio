@@ -56,6 +56,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div
 						data-testid={j == 0 ? "user" : "bot"}
 						class:latest={i === value.length - 1}
@@ -81,6 +82,7 @@
 									language={message.language}
 									mode={"static"}
 									target={div}
+									show_label={false}
 								/>
 							{/await}
 						{:else if message !== null && message.mime_type?.includes("audio")}
