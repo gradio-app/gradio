@@ -495,32 +495,6 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
         def load_theme(theme_name):
             theme = [theme for theme in themes if theme.__name__ == theme_name][0]
 
-            expand_color = lambda color: list(
-                [
-                    color.c50,
-                    color.c100,
-                    color.c200,
-                    color.c300,
-                    color.c400,
-                    color.c500,
-                    color.c600,
-                    color.c700,
-                    color.c800,
-                    color.c900,
-                    color.c950,
-                ]
-            )
-            expand_size = lambda size: list(
-                [
-                    size.xxs,
-                    size.xs,
-                    size.sm,
-                    size.md,
-                    size.lg,
-                    size.xl,
-                    size.xxl,
-                ]
-            )
             parameters = inspect.signature(theme.__init__).parameters
             primary_hue = parameters["primary_hue"].default
             secondary_hue = parameters["secondary_hue"].default
@@ -537,14 +511,9 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
             font_mono_is_google = [
                 isinstance(f, gr.themes.GoogleFont) for f in font_mono
             ]
-            font = [f.name for f in font]
-            font_mono = [f.name for f in font_mono]
-            pad_to_4 = lambda x: x + [None] * (4 - len(x))
 
-            font, font_is_google = pad_to_4(font), pad_to_4(font_is_google)
-            font_mono, font_mono_is_google = pad_to_4(font_mono), pad_to_4(
-                font_mono_is_google
-            )
+            def pad_to_4(x):
+                return x + [None] * (4 - len(x))
 
             var_output = []
             for variable in flat_variables:
@@ -555,17 +524,17 @@ with gr.Blocks(theme=gr.themes.Base(), css=css, title="Gradio Theme Builder") as
 
             return (
                 [primary_hue.name, secondary_hue.name, neutral_hue.name]
-                + expand_color(primary_hue)
-                + expand_color(secondary_hue)
-                + expand_color(neutral_hue)
+                + primary_hue.expand()
+                + secondary_hue.expand()
+                + neutral_hue.expand()
                 + [text_size.name, spacing_size.name, radius_size.name]
-                + expand_size(text_size)
-                + expand_size(spacing_size)
-                + expand_size(radius_size)
-                + font
-                + font_is_google
-                + font_mono
-                + font_mono_is_google
+                + text_size.expand()
+                + spacing_size.expand()
+                + radius_size.expand()
+                + pad_to_4([f.name for f in font])
+                + pad_to_4(font_is_google)
+                + pad_to_4(font_mono)
+                + pad_to_4(font_mono_is_google)
                 + var_output
             )
 
@@ -831,9 +800,7 @@ with gr.Blocks(theme=theme) as demo:
                 font_mono=final_mono_fonts,
             )
 
-            theme.set(
-                **{attr: val for attr, val in zip(flat_variables, remaining_args)}
-            )
+            theme.set(**dict(zip(flat_variables, remaining_args)))
             new_step = (base_theme, args)
             if len(history) == 0 or str(history[-1]) != str(new_step):
                 history.append(new_step)

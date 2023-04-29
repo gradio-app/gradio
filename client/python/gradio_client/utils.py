@@ -463,11 +463,11 @@ def set_space_timeout(
     )
     try:
         huggingface_hub.utils.hf_raise_for_status(r)
-    except huggingface_hub.utils.HfHubHTTPError:
+    except huggingface_hub.utils.HfHubHTTPError as err:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
             "to set a timeout manually to reduce billing charges."
-        )
+        ) from err
 
 
 ########################

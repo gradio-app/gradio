@@ -276,11 +276,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         """
         try:
             import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ImportError(
                 "Package `huggingface_hub` not found is needed "
                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
-            )
+            ) from err
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
         try:
             if StrictVersion(hh_version) < StrictVersion("0.6.0"):
@@ -416,11 +416,11 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         """
         try:
             import huggingface_hub
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ImportError(
                 "Package `huggingface_hub` not found is needed "
                 "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
-            )
+            ) from err
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
         try:
             if StrictVersion(hh_version) < StrictVersion("0.6.0"):
@@ -510,9 +510,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         csv_data.append(flag_option)
 
         # Creates metadata dict from row data and dumps it
-        metadata_dict = {
-            header: _csv_data for header, _csv_data in zip(headers, csv_data)
-        }
+        metadata_dict = dict(zip(headers, csv_data))
         self.dump_json(metadata_dict, Path(folder_name) / "metadata.jsonl")
 
         if is_new:
