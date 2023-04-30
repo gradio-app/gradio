@@ -58,3 +58,5 @@ export interface LayoutNode {
 	id: number;
 	children: Array<LayoutNode>;
 }
+
+export type ThemeMode = "system" | "light" | "dark";

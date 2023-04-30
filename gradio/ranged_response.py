@@ -93,8 +93,10 @@ class RangedFileResponse(Response):
             try:
                 stat_result = await aio_stat(self.path)
                 self.stat_result = stat_result
-            except FileNotFoundError:
-                raise RuntimeError(f"File at path {self.path} does not exist.")
+            except FileNotFoundError as fnfe:
+                raise RuntimeError(
+                    f"File at path {self.path} does not exist."
+                ) from fnfe
             else:
                 mode = stat_result.st_mode
                 if not stat.S_ISREG(mode):

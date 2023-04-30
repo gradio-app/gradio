@@ -133,7 +133,7 @@ class CheckboxGroup(components.CheckboxGroup):
     def __init__(
         self,
         choices: List[str],
-        default: List[str] = [],
+        default: List[str] | None = None,
         type: str = "value",
         label: Optional[str] = None,
         optional: bool = False,
@@ -146,6 +146,8 @@ class CheckboxGroup(components.CheckboxGroup):
         label (str): component name in interface.
         optional (bool): this parameter is ignored.
         """
+        if default is None:
+            default = []
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
         )

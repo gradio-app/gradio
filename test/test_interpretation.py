@@ -12,10 +12,13 @@ from gradio.processing_utils import decode_base64_to_image
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
+def max_word_len(text: str) -> int:
+    return max([len(word) for word in text.split(" ")])
+
+
 class TestDefault:
     @pytest.mark.asyncio
     async def test_default_text(self):
-        max_word_len = lambda text: max([len(word) for word in text.split(" ")])
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="default"
         )
@@ -29,7 +32,6 @@ class TestDefault:
 class TestShapley:
     @pytest.mark.asyncio
     async def test_shapley_text(self):
-        max_word_len = lambda text: max([len(word) for word in text.split(" ")])
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="shapley"
         )
@@ -42,8 +44,9 @@ class TestShapley:
 class TestCustom:
     @pytest.mark.asyncio
     async def test_custom_text(self):
-        max_word_len = lambda text: max([len(word) for word in text.split(" ")])
-        custom = lambda text: [(char, 1) for char in text]
+        def custom(text):
+            return [(char, 1) for char in text]
+
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation=custom
         )
@@ -54,8 +57,12 @@ class TestCustom:
 
     @pytest.mark.asyncio
     async def test_custom_img(self):
-        max_pixel_value = lambda img: img.max()
-        custom = lambda img: img.tolist()
+        def max_pixel_value(img):
+            return img.max()
+
+        def custom(img):
+            return img.tolist()
+
         img_interface = Interface(
             max_pixel_value, "image", "label", interpretation=custom
         )

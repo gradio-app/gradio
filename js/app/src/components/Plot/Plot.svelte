@@ -8,6 +8,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 	import type { Styles } from "@gradio/utils";
+	import type { ThemeMode } from "js/app/src/components/types";
 
 	export let value: null | string = null;
 	export let elem_id: string = "";
@@ -19,7 +20,7 @@
 	export let show_label: boolean;
 	export let target: HTMLElement;
 	export let style: Styles = {};
-	export let theme: string;
+	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
 </script>
@@ -35,5 +36,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} {target} {theme} {caption} {bokeh_version} on:change />
+	<Plot {value} {target} {theme_mode} {caption} {bokeh_version} on:change />
 </Block>

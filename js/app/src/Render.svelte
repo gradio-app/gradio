@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta } from "./components/types";
+	import type { ThemeMode } from "./components/types";
 
 	export let root: string;
 	export let component: ComponentMeta["component"];
@@ -14,7 +15,7 @@
 	export let has_modes: boolean | undefined;
 	export let parent: string | null = null;
 	export let target: HTMLElement;
-	export let theme: string;
+	export let theme_mode: ThemeMode;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -68,7 +69,7 @@
 	on:prop_change={handle_prop_change}
 	{target}
 	{...props}
-	{theme}
+	{theme_mode}
 	{root}
 >
 	{#if children && children.length}
@@ -83,7 +84,7 @@
 				children={_children}
 				{dynamic_ids}
 				{has_modes}
-				{theme}
+				{theme_mode}
 				on:destroy
 				on:mount
 			/>

@@ -116,7 +116,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching(self):
         io = gr.Interface(
-            lambda x: "Hello " + x,
+            lambda x: f"Hello {x}",
             "text",
             "text",
             examples=[["World"], ["Dunya"], ["Monde"]],
@@ -335,7 +335,7 @@ class TestProcessExamples:
 
     def test_end_to_end_cache_examples(self):
         def concatenate(str1, str2):
-            return str1 + " " + str2
+            return f"{str1} {str2}"
 
         io = gr.Interface(
             concatenate,
