@@ -116,6 +116,11 @@
 		static_image = undefined;
 	}
 
+	async function handle_mask_clear() {
+		sketch.clear_mask();
+		await tick();
+	}
+
 	let img_height = 0;
 	let img_width = 0;
 	let container_height = 0;
@@ -245,8 +250,10 @@
 						{shape}
 					/>
 					<ModifySketch
+						show_eraser={value_img}
 						on:undo={() => sketch.undo()}
-						on:clear={handle_sketch_clear}
+						on:clear_mask={handle_mask_clear}
+						on:remove_image={handle_sketch_clear}
 					/>
 					{#if tool === "color-sketch" || tool === "sketch"}
 						<SketchSettings
@@ -273,7 +280,7 @@
 	{:else if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
-			on:clear={handle_sketch_clear}
+			on:remove_image={handle_sketch_clear}
 		/>
 		{#if tool === "color-sketch"}
 			<SketchSettings
@@ -354,7 +361,7 @@
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
-				on:clear={handle_sketch_clear}
+				on:remove_image={handle_sketch_clear}
 			/>
 			{#if tool === "color-sketch" || tool === "sketch"}
 				<SketchSettings
