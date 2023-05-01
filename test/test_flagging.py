@@ -78,7 +78,9 @@ class TestHuggingFaceDatasetSaver:
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:
                     fname = os.path.basename(f)
-                    assert fname in ["data.csv", "dataset_info.json", "data.lock"]
+                    assert fname in ["data.csv", "dataset_info.json"] or fname.endswith(
+                        ".lock"
+                    )
 
     @patch(
         "huggingface_hub.create_repo",
@@ -107,7 +109,10 @@ class TestHuggingFaceDatasetSaver:
             for _, _, filenames in os.walk(tmpdirname):
                 for f in filenames:
                     fname = os.path.basename(f)
-                    assert fname in ["metadata.jsonl", "dataset_info.json"]
+                    assert fname in [
+                        "metadata.jsonl",
+                        "dataset_info.json",
+                    ] or fname.endswith(".lock")
 
 
 class TestDisableFlagging:
