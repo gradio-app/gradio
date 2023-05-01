@@ -14,7 +14,6 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
@@ -795,7 +794,9 @@ def make_waveform(
                 )
                 bg_width, bg_height = bg_img.size
             composite_height = max(bg_height, waveform_height)
-            composite = PIL.Image.new("RGBA", (waveform_width, composite_height), "#FFFFFF")
+            composite = PIL.Image.new(
+                "RGBA", (waveform_width, composite_height), "#FFFFFF"
+            )
             composite.paste(bg_img, (0, composite_height - bg_height))
             composite.paste(
                 waveform_img, (0, composite_height - waveform_height), waveform_img
