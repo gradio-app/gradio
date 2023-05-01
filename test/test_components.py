@@ -26,7 +26,7 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 import gradio as gr
-from gradio import processing_utils
+from gradio import processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -737,7 +737,8 @@ class TestPlot:
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10], state={})
+        with utils.MatplotlibBackendMananger():
+            output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
