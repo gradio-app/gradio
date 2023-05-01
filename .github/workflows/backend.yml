@@ -100,7 +100,7 @@ jobs:
     - name: Install Gradio
       shell: bash
       run: |
-        bash scripts/install_gradio.sh
+        pip install -e .
         python -m pip install --upgrade pip
     - name: Install 3.9 Test Dependencies
       shell: bash
