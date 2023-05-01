@@ -1035,17 +1035,25 @@ class TestRender:
             io.render()
             io3 = io2.render()
         assert io2 == io3
-        
+
     def test_no_error_if_state_rendered_multiple_times(self):
         state = gr.State("")
-        gr.TabbedInterface([
-            gr.Interface(lambda _, x: (x, f"I don't know"), 
-                         inputs=[state, gr.Textbox()], 
-                         outputs=[state, gr.Textbox()]),
-            gr.Interface(lambda s: (s, f"User question: {s}"), 
-                         inputs=[state], 
-                         outputs=[state, gr.Textbox(interactive=False)])
-        ], ["Ask question", "Show question"])        
+        gr.TabbedInterface(
+            [
+                gr.Interface(
+                    lambda _, x: (x, "I don't know"),
+                    inputs=[state, gr.Textbox()],
+                    outputs=[state, gr.Textbox()],
+                ),
+                gr.Interface(
+                    lambda s: (s, f"User question: {s}"),
+                    inputs=[state],
+                    outputs=[state, gr.Textbox(interactive=False)],
+                ),
+            ],
+            ["Ask question", "Show question"],
+        )
+
 
 class TestCancel:
     @pytest.mark.skipif(
