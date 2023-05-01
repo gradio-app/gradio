@@ -2,7 +2,7 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { LoadingStatus } from "../../app/src/components/StatusTracker/types.js";
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -14,7 +14,7 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
-	export let loading_status: LoadingStatus | undefined = undefined;
+	export let loading_status: LoadingStatus;
 	const parser = new DOMParser();
 
 	let div: HTMLDivElement;
@@ -77,7 +77,7 @@
 									{#await import("@gradio/code") then Code}
 										<Code.default
 											value={tag.innerHTML}
-											language={tag.classList.item(0).replace("language-", "")}
+											language={tag.classList.item(0)?.replace("language-", "")}
 											mode={"static"}
 											target={div}
 											show_label={false}
