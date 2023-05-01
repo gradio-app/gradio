@@ -59,7 +59,10 @@ class TestHuggingFaceDatasetSaver:
     )
     @patch("huggingface_hub.hf_hub_download")
     @patch("huggingface_hub.upload_folder")
-    def test_saver_flag_same_dir(self, mock_upload, mock_download, mock_create):
+    @patch("huggingface_hub.upload_file")
+    def test_saver_flag_same_dir(
+        self, mock_upload_file, mock_upload, mock_download, mock_create
+    ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
                 lambda x: x,
@@ -83,7 +86,10 @@ class TestHuggingFaceDatasetSaver:
     )
     @patch("huggingface_hub.hf_hub_download")
     @patch("huggingface_hub.upload_folder")
-    def test_saver_flag_separate_dirs(self, mock_upload, mock_download, mock_create):
+    @patch("huggingface_hub.upload_file")
+    def test_saver_flag_separate_dirs(
+        self, mock_upload_file, mock_upload, mock_download, mock_create
+    ):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
                 lambda x: x,

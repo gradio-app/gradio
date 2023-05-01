@@ -335,20 +335,26 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                     path_or_fileobj=self.infos_file,
                 )
 
-        # Write data + upload
-        with filelock.FileLock(components_dir / ".lock"):
-            headers = list(features.keys())
+        headers = list(features.keys())
 
-            if data_file.suffix == ".csv":
+        if not self.separate_dirs:
+            with filelock.FileLock(components_dir / ".lock"):
                 sample_nb = self._save_as_csv(data_file, headers=headers, row=row)
                 sample_name = str(sample_nb)
-            else:
-                # JSONL file
-                sample_name = self._save_as_jsonl(data_file, headers=headers, row=row)
-                sample_nb = len(
-                    [path for path in self.dataset_dir.iterdir() if path.is_dir()]
+                huggingface_hub.upload_folder(
+                    repo_id=self.dataset_id,
+                    repo_type="dataset",
+                    commit_message=f"Flagged sample #{sample_name}",
+                    path_in_repo=path_in_repo,
+                    ignore_patterns="*.lock",
+                    folder_path=components_dir,
+                    token=self.hf_token,
                 )
-
+        else:
+            sample_name = self._save_as_jsonl(data_file, headers=headers, row=row)
+            sample_nb = len(
+                [path for path in self.dataset_dir.iterdir() if path.is_dir()]
+            )
             huggingface_hub.upload_folder(
                 repo_id=self.dataset_id,
                 repo_type="dataset",
@@ -382,9 +388,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     @staticmethod
     def _save_as_jsonl(data_file: Path, headers: List[str], row: List[Any]) -> str:
         """Save data as JSONL and return the sample name (uuid)."""
-        data_file.write_text(
-            json.dumps({header: item for header, item in zip(headers, row)}),
-        )
+        Path.mkdir(data_file.parent, parents=True, exist_ok=True)
+        with open(data_file, "w") as f:
+            json.dump(dict(zip(headers, row)), f)
         return data_file.parent.name
 
     def _deserialize_components(
