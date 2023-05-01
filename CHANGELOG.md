@@ -6,7 +6,8 @@
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Fixes bug where rendering the same `gr.State` across different Interfaces/Blocks within
+a larger Blocks would not work by [@abidlabs](https://github.com/abidlabs) in [PR 4030](https://github.com/gradio-app/gradio/pull/4030)
 
 ## Documentation Changes:
 

@@ -843,10 +843,13 @@ class Blocks(BlockContext):
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
                 )
-            if not set(Context.root_block.blocks).isdisjoint(self.blocks):
-                raise DuplicateBlockError(
-                    "At least one block in this Blocks has already been rendered."
-                )
+            overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
+            for id in overlapping_ids:
+                # State componenents are allowed to be reused between Blocks
+                if not isinstance(self.blocks[id], components.State):
+                    raise DuplicateBlockError(
+                        "At least one block in this Blocks has already been rendered."
+                    )
 
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
