@@ -4856,6 +4856,10 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         if y is None:
             return None
         if isinstance(y, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
+            if not matplotlib.get_backend().lower() == "agg":
+                warnings.warn(
+                    "Matplotlib backend is not set to 'agg'. Plot may not display correctly. To fix this, add the following to the top of your script: import matplotlib; matplotlib.use('agg')"
+                )
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif "bokeh" in y.__module__:

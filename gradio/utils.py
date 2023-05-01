@@ -38,7 +38,6 @@ from typing import (
 
 import aiohttp
 import httpx
-import matplotlib.pyplot as plt
 import requests
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
@@ -900,34 +899,45 @@ class TupleNoPrint(tuple):
 
 
 def tex2svg(formula, *args):
-    FONTSIZE = 20
-    DPI = 300
-    plt.rc("mathtext", fontset="cm")
-    fig = plt.figure(figsize=(0.01, 0.01))
-    fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
-    output = BytesIO()
-    fig.savefig(
-        output,
-        dpi=DPI,
-        transparent=True,
-        format="svg",
-        bbox_inches="tight",
-        pad_inches=0.0,
-    )
-    plt.close(fig)
-    output.seek(0)
-    xml_code = output.read().decode("utf-8")
-    svg_start = xml_code.index("<svg ")
-    svg_code = xml_code[svg_start:]
-    svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
-    svg_code = re.sub(r' width="[^"]+"', "", svg_code)
-    height_match = re.search(r'height="([\d.]+)pt"', svg_code)
-    if height_match:
-        height = float(height_match.group(1))
-        new_height = height / FONTSIZE  # conversion from pt to em
-        svg_code = re.sub(r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code)
-    copy_code = f"<span style='font-size: 0px'>{formula}</span>"
-    return f"{copy_code}{svg_code}"
+    import matplotlib  # Import here so that we can set and reset backend.
+
+    default_backend = matplotlib.get_backend()
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    try:
+        FONTSIZE = 20
+        DPI = 300
+        plt.rc("mathtext", fontset="cm")
+        fig = plt.figure(figsize=(0.01, 0.01))
+        fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
+        output = BytesIO()
+        fig.savefig(
+            output,
+            dpi=DPI,
+            transparent=True,
+            format="svg",
+            bbox_inches="tight",
+            pad_inches=0.0,
+        )
+        plt.close(fig)
+        output.seek(0)
+        xml_code = output.read().decode("utf-8")
+        svg_start = xml_code.index("<svg ")
+        svg_code = xml_code[svg_start:]
+        svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+        svg_code = re.sub(r' width="[^"]+"', "", svg_code)
+        height_match = re.search(r'height="([\d.]+)pt"', svg_code)
+        if height_match:
+            height = float(height_match.group(1))
+            new_height = height / FONTSIZE  # conversion from pt to em
+            svg_code = re.sub(
+                r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code
+            )
+        copy_code = f"<span style='font-size: 0px'>{formula}</span>"
+        return f"{copy_code}{svg_code}"
+    finally:
+        matplotlib.use(default_backend)
 
 
 def abspath(path: str | Path) -> Path:
