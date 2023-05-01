@@ -24,6 +24,13 @@ class TestImagePreprocessing:
         )
         assert isinstance(output_image, Image.Image)
 
+        b64_img_without_header = deepcopy(media_data.BASE64_IMAGE).split(",")[1]
+        output_image_without_header = processing_utils.decode_base64_to_image(
+            b64_img_without_header
+        )
+
+        assert output_image == output_image_without_header
+
     def test_encode_plot_to_base64(self):
         plt.plot([1, 2, 3, 4])
         output_base64 = processing_utils.encode_plot_to_base64(plt)

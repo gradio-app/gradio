@@ -451,12 +451,12 @@ class Client:
         name_or_index: str | int,
         endpoints_info: Dict[str, List[Dict[str, str]]],
     ) -> str:
-        parameter_names = list(p["label"] for p in endpoints_info["parameters"])
+        parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
             rendered_parameters = rendered_parameters + ", "
-        return_values = list(p["label"] for p in endpoints_info["returns"])
+        return_values = [p["label"] for p in endpoints_info["returns"]]
         return_values = [utils.sanitize_parameter_names(r) for r in return_values]
         rendered_return_values = ", ".join(return_values)
         if len(return_values) > 1:
