@@ -6,7 +6,7 @@
 
 ## Bug Fixes:
 
-- Fixes issue with `matplotlib` not rendering LaTeX correctly if the backend was not set to `Agg` by [@abidlabs](https://github.com/abidlabs) in [PR 4029](https://github.com/gradio-app/gradio/pull/4029)
+- Fixes issue with `matplotlib` not rendering correctly if the backend was not set to `Agg` by [@abidlabs](https://github.com/abidlabs) in [PR 4029](https://github.com/gradio-app/gradio/pull/4029)
 
 ## Documentation Changes:
 
