@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Add code block support in `gr.Chatbot()`, by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3981](https://github.com/gradio-app/gradio/pull/3981)
 
 ## Bug Fixes:
 
