@@ -37,7 +37,7 @@
 				process_message(bot_msg)
 		  ])
 		: [];
-	export let loading_status: LoadingStatus | undefined = undefined;
+	export let loading_status: LoadingStatus;
 </script>
 
 <Block {elem_id} {elem_classes} {visible} padding={false}>
