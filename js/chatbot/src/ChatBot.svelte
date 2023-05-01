@@ -70,7 +70,9 @@
 							dispatch("select", { index: [i, j], value: message })}
 					>
 						{#if typeof message === "string"}
-							{#each parser.parseFromString(message, "text/html").body.getElementsByTagName("*") as tag}
+							{#each parser
+								.parseFromString(message, "text/html")
+								.body.getElementsByTagName("*") as tag}
 								{#if tag.tagName === "CODE"}
 									{#await import("@gradio/code") then Code}
 										<Code.default
@@ -79,7 +81,7 @@
 											mode={"static"}
 											target={div}
 											show_label={false}
-											loading_status={loading_status}
+											{loading_status}
 										/>
 									{/await}
 								{:else}

@@ -55,7 +55,7 @@
 		{selectable}
 		value={_value}
 		pending_message={loading_status?.status === "pending"}
-		loading_status={loading_status}
+		{loading_status}
 		on:change
 		on:select
 	/>
