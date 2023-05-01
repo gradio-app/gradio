@@ -161,7 +161,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
         }
     elif hasattr(transformers, "DocumentQuestionAnsweringPipeline") and isinstance(
         pipeline,
-        pipelines.document_question_answering.DocumentQuestionAnsweringPipeline,
+        pipelines.document_question_answering.DocumentQuestionAnsweringPipeline,  # type: ignore
     ):
         pipeline_info = {
             "inputs": [
@@ -185,7 +185,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
     elif hasattr(transformers, "ImageToTextPipeline") and isinstance(
-        pipeline, pipelines.image_to_text.ImageToTextPipeline
+        pipeline, pipelines.image_to_text.ImageToTextPipeline   # type: ignore
     ):
         pipeline_info = {
             "inputs": components.Image(type="filepath", label="Input Image"),
