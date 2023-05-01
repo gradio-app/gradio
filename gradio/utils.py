@@ -38,6 +38,7 @@ from typing import (
 
 import aiohttp
 import httpx
+import matplotlib
 import requests
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
@@ -898,14 +899,19 @@ class TupleNoPrint(tuple):
         return ""
 
 
+class MatplotlibBackendMananger:
+    def __enter__(self):
+        self._original_backend = matplotlib.get_backend()
+        matplotlib.use("agg")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        matplotlib.use(self._original_backend)
+
+
 def tex2svg(formula, *args):
-    import matplotlib  # Import here so that we can set and reset backend.
+    with MatplotlibBackendMananger():
+        import matplotlib.pyplot as plt
 
-    default_backend = matplotlib.get_backend()
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    try:
         FONTSIZE = 20
         DPI = 300
         plt.rc("mathtext", fontset="cm")
@@ -935,9 +941,7 @@ def tex2svg(formula, *args):
                 r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code
             )
         copy_code = f"<span style='font-size: 0px'>{formula}</span>"
-        return f"{copy_code}{svg_code}"
-    finally:
-        matplotlib.use(default_backend)
+    return f"{copy_code}{svg_code}"
 
 
 def abspath(path: str | Path) -> Path:
