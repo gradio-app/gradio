@@ -37,6 +37,11 @@ def to_binary(x: str | Dict) -> bytes:
     return base64.b64decode(base64str.split(",")[1])
 
 
+def extract_base64_data(x: str) -> str:
+    """Just extracts the base64 data from a general base64 string."""
+    return x.split("base64,")[1]
+
+
 #########################
 # IMAGE PRE-PROCESSING
 #########################

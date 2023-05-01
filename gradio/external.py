@@ -24,7 +24,7 @@ from gradio.external_utils import (
     rows_to_cols,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import to_binary
+from gradio.processing_utils import extract_base64_data, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -201,12 +201,6 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
         },
-        "image-to-text": {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Textbox(),
-            "preprocess": to_binary,
-            "postprocess": lambda r: r.json()[0]["generated_text"],
-        },
         "question-answering": {
             # Example: deepset/xlm-roberta-base-squad2
             "inputs": [
@@ -318,6 +312,47 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "outputs": components.HighlightedText(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
+        },
+        "document-question-answering": {
+            # example model: impira/layoutlm-document-qa
+            "inputs": [
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": extract_base64_data(img),  # Extract base64 data
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: postprocess_label(
+                {i["answer"]: i["score"] for i in r.json()}
+            ),
+        },
+        "visual-question-answering": {
+            # example model: dandelin/vilt-b32-finetuned-vqa
+            "inputs": [
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": extract_base64_data(img),
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: postprocess_label(
+                {i["answer"]: i["score"] for i in r.json()}
+            ),
+        },
+        "image-to-text": {
+            # example model: Salesforce/blip-image-captioning-base
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Generated Text"),
+            "preprocess": to_binary,
+            "postprocess": lambda r: r.json()[0]["generated_text"],
         },
     }
 

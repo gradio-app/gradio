@@ -220,6 +220,14 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+    def test_visual_question_answering(self):
+        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa")
+        try:
+            output = io("gradio/test_data/lion.jpg", "What is in the image?")
+            assert isinstance(output, str) and output.endswith(".json")
+        except TooManyRequestsError:
+            pass
+
     def test_image_to_text(self):
         io = gr.load("models/nlpconnect/vit-gpt2-image-captioning")
         try:
