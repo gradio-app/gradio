@@ -21,7 +21,7 @@ def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
     lines = [line.strip() for line in code.split("\n")]
     i = None
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines):  # noqa: B007
         if line.startswith("self." + attr + ":") or line.startswith(
             "self." + attr + " ="
         ):

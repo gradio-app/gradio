@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
-      - run: bash scripts/install_gradio.sh
+      - run: pip install -e .
       - run: pip install -r demo/outbreak_forecast/requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
