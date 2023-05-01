@@ -445,8 +445,8 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
         verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
         warnings.warn(
-            "Callback `HuggingFaceDatasetJSONSaver` is deprecated in favor of"
-            " `HuggingFaceDatasetSaver` by passing `separate_dirs=True` as parameter."
+            "Callback `HuggingFaceDatasetJSONSaver` is deprecated in favor of using"
+            " `HuggingFaceDatasetSaver` and passing `separate_dirs=True` as parameter."
         )
         super().__init__(
             hf_token=hf_token,
