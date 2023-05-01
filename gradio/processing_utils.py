@@ -34,12 +34,12 @@ def to_binary(x: str | Dict) -> bytes:
             base64str = client_utils.encode_url_or_file_to_base64(x["name"])
     else:
         base64str = x
-    return base64.b64decode(base64str.split(",")[1])
+    return base64.b64decode(extract_base64_data(base64str))
 
 
 def extract_base64_data(x: str) -> str:
     """Just extracts the base64 data from a general base64 string."""
-    return x.split("base64,")[1]
+    return x.rsplit(",", 1)[-1]
 
 
 #########################
@@ -48,8 +48,7 @@ def extract_base64_data(x: str) -> str:
 
 
 def decode_base64_to_image(encoding: str) -> Image.Image:
-    content = encoding.split(";")[1]
-    image_encoded = content.split(",")[1]
+    image_encoded = extract_base64_data(encoding)
     img = Image.open(BytesIO(base64.b64decode(image_encoded)))
     exif = img.getexif()
     # 274 is the code for image rotation and 1 means "correct orientation"
