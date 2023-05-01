@@ -15,7 +15,6 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -30,7 +29,6 @@ import gradio as gr
 from gradio import processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-matplotlib.use("Agg")
 
 
 class TestComponent:
