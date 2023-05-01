@@ -21,10 +21,10 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
     try:
         import transformers
         from transformers import pipelines
-    except ImportError:
+    except ImportError as ie:
         raise ImportError(
             "transformers not installed. Please try `pip install transformers`"
-        )
+        ) from ie
     if not isinstance(pipeline, pipelines.base.Pipeline):
         raise ValueError("pipeline must be a transformers.Pipeline")
 
@@ -160,7 +160,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
             },
         }
     else:
-        raise ValueError("Unsupported pipeline type: {}".format(type(pipeline)))
+        raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
     # define the function that will be called by the Interface
     def fn(*params):

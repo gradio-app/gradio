@@ -481,7 +481,7 @@ class FlagMethod:
         try:
             self.flagging_callback.flag(list(flag_data), flag_option=self.value)
         except Exception as e:
-            print("Error while flagging: {}".format(e))
+            print(f"Error while flagging: {e}")
             if self.visual_feedback:
                 return "Error!"
         if not self.visual_feedback:

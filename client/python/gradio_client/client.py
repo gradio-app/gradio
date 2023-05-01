@@ -169,10 +169,10 @@ class Client:
         """
         try:
             original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
-        except RepositoryNotFoundError:
+        except RepositoryNotFoundError as rnfe:
             raise ValueError(
                 f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
-            )
+            ) from rnfe
         if to_id:
             if "/" in to_id:
                 to_id = to_id.split("/")[1]
@@ -554,8 +554,10 @@ class Client:
             result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
             try:
                 config = json.loads(result.group(1))  # type: ignore
-            except AttributeError:
-                raise ValueError(f"Could not get Gradio config from: {self.src}")
+            except AttributeError as ae:
+                raise ValueError(
+                    f"Could not get Gradio config from: {self.src}"
+                ) from ae
             if "allow_flagging" in config:
                 raise ValueError(
                     "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
@@ -639,20 +641,22 @@ class Endpoint:
                 result = json.loads(response.content.decode("utf-8"))
             try:
                 output = result["data"]
-            except KeyError:
+            except KeyError as ke:
                 is_public_space = (
                     self.client.space_id
                     and not huggingface_hub.space_info(self.client.space_id).private
                 )
                 if "error" in result and "429" in result["error"] and is_public_space:
                     raise utils.TooManyRequestsError(
-                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate({self.client.space_id}) and pass in your Hugging Face token."
-                    )
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, "
+                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
+                        f"and pass in your Hugging Face token."
+                    ) from None
                 elif "error" in result:
-                    raise ValueError(result["error"])
+                    raise ValueError(result["error"]) from None
                 raise KeyError(
                     f"Could not find 'data' key in response. Response received: {result}"
-                )
+                ) from ke
             return tuple(output)
 
         return _predict
