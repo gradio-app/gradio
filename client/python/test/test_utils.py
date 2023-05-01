@@ -37,10 +37,13 @@ def test_decode_base64_to_binary():
     assert deepcopy(media_data.BINARY_IMAGE) == binary
 
     b64_img_without_header = deepcopy(media_data.BASE64_IMAGE).split(",")[1]
-    binary_without_header, extension = utils.decode_base64_to_binary(b64_img_without_header)
+    binary_without_header, extension = utils.decode_base64_to_binary(
+        b64_img_without_header
+    )
 
     assert binary[0] == binary_without_header
     assert extension is None
+
 
 def test_decode_base64_to_file():
     temp_file = utils.decode_base64_to_file(deepcopy(media_data.BASE64_IMAGE))
