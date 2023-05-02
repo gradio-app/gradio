@@ -123,7 +123,7 @@ Note that this is a very basic example and if this were a production app, you wi
 
 Finally, we create the frontend of our web application. First, we create a folder called `templates` in the same directory as `main.py`. We then create a template, `home.html` inside the `templates` folder. Here is the resulting file structure:
 
-```
+```csv
 ├── main.py
 ├── templates
 │   └── home.html
