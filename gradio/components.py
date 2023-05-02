@@ -23,7 +23,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type
 
 import aiofiles
 import altair as alt
-import matplotlib.figure
 import numpy as np
 import pandas as pd
 import PIL
@@ -4892,6 +4891,8 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         Returns:
             plot type mapped to plot base64 data
         """
+        import matplotlib.figure
+
         if y is None:
             return None
         if isinstance(y, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
