@@ -50,6 +50,7 @@ No changes to highlight.
 ## Testing and Infrastructure Changes:
 
 - CI: Simplified Python CI workflow by [@akx](https://github.com/akx) in [PR 3982](https://github.com/gradio-app/gradio/pull/3982)
+- Upgrade pyright to 1.1.305 by [@akx](https://github.com/akx) in [PR 4042](https://github.com/gradio-app/gradio/pull/4042)
 
 ## Breaking Changes:
 
