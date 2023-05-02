@@ -41,15 +41,17 @@
 	}
 
 	async function play_pause() {
-		const isPlaying =
-			video.currentTime > 0 &&
-			!video.paused &&
-			!video.ended &&
-			video.readyState > video.HAVE_CURRENT_DATA;
+		if (document.fullscreenElement != video) {
+			const isPlaying =
+				video.currentTime > 0 &&
+				!video.paused &&
+				!video.ended &&
+				video.readyState > video.HAVE_CURRENT_DATA;
 
-		if (!isPlaying) {
-			await video.play();
-		} else video.pause();
+			if (!isPlaying) {
+				await video.play();
+			} else video.pause();
+		}
 	}
 
 	function handle_click(e: MouseEvent) {
@@ -77,9 +79,6 @@
 		await tick();
 
 		var b = setInterval(async () => {
-			if (video.readyState >= 1) {
-				height = (video.videoHeight / video.videoWidth) * width;
-			}
 			if (video.readyState >= 3) {
 				video.currentTime = 9999;
 				paused = true;
@@ -99,23 +98,15 @@
 		checkforVideo();
 	}
 
-	$: src && _load();
-
-	let height: number;
-	let width: number;
 	let opacity: number = 0;
 	let wrap_opacity: number = 0;
 	let transition: string = "0.5s";
+
+	$: src && _load();
 </script>
 
-<div
-	style:opacity={wrap_opacity}
-	class="wrap"
-	style:height={`${src && height}px` || `auto`}
->
+<div style:opacity={wrap_opacity} class="wrap">
 	<video
-		bind:clientHeight={height}
-		bind:clientWidth={width}
 		{src}
 		preload="auto"
 		on:mousemove={video_move}

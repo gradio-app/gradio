@@ -67,9 +67,9 @@ class Queue:
         self.access_token = ""
         self.queue_client = None
 
-    async def start(self, progress_tracking=False):
+    async def start(self, progress_tracking=False, ssl_verify=True):
         # So that the client is attached to the running event loop
-        self.queue_client = httpx.AsyncClient()
+        self.queue_client = httpx.AsyncClient(verify=ssl_verify)
 
         run_coro_in_background(self.start_processing)
         if progress_tracking:
@@ -309,7 +309,7 @@ class Queue:
             "headers": dict(websocket.headers),
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
-            "client": dict(host=websocket.client.host, port=websocket.client.port),  # type: ignore
+            "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
         }
 
     async def call_prediction(self, events: List[Event], batch: bool):
@@ -444,7 +444,7 @@ class Queue:
                 event.websocket.send_json(data=data), timeout=timeout
             )
             return True
-        except:
+        except Exception:
             await self.clean_event(event)
             return False
 

@@ -15,6 +15,7 @@ env:
 
 jobs:
   client-test:
+    needs: [client-lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -25,30 +26,16 @@ jobs:
         working-directory: client/python
     steps:
     - uses: actions/checkout@v3
-    - name: Cache python deps
-      id: cache-python
-      uses: actions/cache@v3
-      with:
-        path: ./venv
-        key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - name: Install Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install pip
-      run: python -m pip install build requests virtualenv wheel
-    - name: venv activate Linux
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        python -m virtualenv venv
-        source venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: venv activate Windows
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        python -m virtualenv venv
-        ./venv/Scripts/Activate.ps1
-        echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        cache: pip
+        cache-dependency-path: |
+          client/python/requirements.txt
+          requirements.txt
+          test/requirements-37.txt
+          test/requirements.txt
     - name: Install Client
       run: |
         pip install -e .
@@ -56,8 +43,32 @@ jobs:
     - name: Tests
       shell: bash
       run: |
-        bash scripts/ci.sh
+        bash scripts/test.sh
+  client-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/python
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+        cache: pip
+        cache-dependency-path: |
+          client/python/requirements.txt
+          requirements.txt
+          test/requirements-37.txt
+          test/requirements.txt
+    - name: Install Client
+      run: |
+        pip install -e .
+        pip install -r test/requirements.txt
+    - name: Lint
+      run: bash scripts/lint.sh
   test:
+    needs: [lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -67,16 +78,16 @@ jobs:
     continue-on-error: ${{ matrix.test-type == 'flaky' }}
     steps:
     - uses: actions/checkout@v3
-    - name: Cache python deps
-      id: cache-python
-      uses: actions/cache@v3
-      with:
-        path: ./venv
-        key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - name: Install Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: |
+          client/python/requirements.txt
+          requirements.txt
+          test/requirements-37.txt
+          test/requirements.txt
     - name: Install pnpm
       uses: pnpm/action-setup@v2.2.2
       with:
@@ -86,24 +97,10 @@ jobs:
         node-version: 16
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-    - name: Install pip
-      run: python -m pip install build requests virtualenv wheel
-    - name: venv activate Linux
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        python -m virtualenv venv
-        source venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: venv activate Windows
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        python -m virtualenv venv
-        ./venv/Scripts/Activate.ps1
-        echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     - name: Install Gradio
       shell: bash
       run: |
-        bash scripts/install_gradio.sh
+        pip install -e .
         python -m pip install --upgrade pip
     - name: Install 3.9 Test Dependencies
       shell: bash
@@ -115,14 +112,6 @@ jobs:
       if: ${{ matrix.python-version == '3.7' }}
       run: |
         pip install -r test/requirements-37.txt
-    - name: Lint
-      shell: bash
-      run: |
-        bash scripts/lint_backend.sh
-    - name: Typecheck
-      shell: bash
-      run: |
-        bash scripts/type_check_backend.sh
     - name: Build frontend
       shell: bash
       run: |
@@ -130,11 +119,29 @@ jobs:
         pnpm build
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
-    - name: Create coverage dir
-      run: mkdir test-reports
     - name: Run tests
       shell: bash
       run: |
+        mkdir -p test-reports
         coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         coverage xml
-
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: pip
+          cache-dependency-path: |
+            client/python/requirements.txt
+            requirements.txt
+            test/requirements-37.txt
+            test/requirements.txt
+      - name: Install Test Dependencies
+        run: pip install -e . -r test/requirements.txt
+      - name: Lint
+        run: bash scripts/lint_backend.sh
+      - name: Typecheck
+        run: bash scripts/type_check_backend.sh

@@ -252,9 +252,7 @@ class Block:
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
             if not (api_name == api_name_):
-                warnings.warn(
-                    "api_name {} already exists, using {}".format(api_name, api_name_)
-                )
+                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
         if collects_event_data is None:
@@ -561,7 +559,7 @@ def get_api_info(config: Dict, serialize: bool = True):
         if skip_endpoint:
             continue
         if dependency["api_name"]:
-            api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+            api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
         elif mode == "interface" or mode == "tabbed_interface":
             pass  # Skip unnamed endpoints in interface mode
         else:
@@ -603,7 +601,7 @@ class Blocks(BlockContext):
 
         demo.launch()
     Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german, sound_alert
-    Guides: blocks_and_event_listeners, controlling_layout, state_in_blocks, custom_CSS_and_JS, custom_interpretations_with_blocks, using_blocks_like_functions
+    Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, custom-interpretations-with-blocks, using-blocks-like-functions
     """
 
     def __init__(
@@ -692,6 +690,7 @@ class Blocks(BlockContext):
         self.__name__ = None
         self.api_mode = None
         self.progress_tracking = None
+        self.ssl_verify = True
 
         self.file_directories = []
 
@@ -734,13 +733,13 @@ class Blocks(BlockContext):
                 if block_config["id"] == id:
                     break
             else:
-                raise ValueError("Cannot find block with id {}".format(id))
+                raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
             if block_config["props"].get("root_url") is None and root_url:
-                block_config["props"]["root_url"] = root_url + "/"
+                block_config["props"]["root_url"] = f"{root_url}/"
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             if style and isinstance(block, components.IOComponent):
@@ -824,18 +823,18 @@ class Blocks(BlockContext):
     def __repr__(self):
         num_backend_fns = len([d for d in self.dependencies if d["backend_fn"]])
         repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
-        repr += "\n" + "-" * len(repr)
+        repr += f"\n{'-' * len(repr)}"
         for d, dependency in enumerate(self.dependencies):
             if dependency["backend_fn"]:
                 repr += f"\nfn_index={d}"
                 repr += "\n inputs:"
                 for input_id in dependency["inputs"]:
                     block = self.blocks[input_id]
-                    repr += "\n |-{}".format(str(block))
+                    repr += f"\n |-{block}"
                 repr += "\n outputs:"
                 for output_id in dependency["outputs"]:
                     block = self.blocks[output_id]
-                    repr += "\n |-{}".format(str(block))
+                    repr += f"\n |-{block}"
         return repr
 
     def render(self):
@@ -844,10 +843,13 @@ class Blocks(BlockContext):
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
                 )
-            if not set(Context.root_block.blocks).isdisjoint(self.blocks):
-                raise DuplicateBlockError(
-                    "At least one block in this Blocks has already been rendered."
-                )
+            overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
+            for id in overlapping_ids:
+                # State componenents are allowed to be reused between Blocks
+                if not isinstance(self.blocks[id], components.State):
+                    raise DuplicateBlockError(
+                        "At least one block in this Blocks has already been rendered."
+                    )
 
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
@@ -861,9 +863,7 @@ class Blocks(BlockContext):
                     )
                     if not (api_name == api_name_):
                         warnings.warn(
-                            "api_name {} already exists, using {}".format(
-                                api_name, api_name_
-                            )
+                            f"api_name {api_name} already exists, using {api_name_}"
                         )
                         dependency["api_name"] = api_name_
                 dependency["cancels"] = [
@@ -990,12 +990,7 @@ class Blocks(BlockContext):
         is_generating = False
 
         if block_fn.inputs_as_dict:
-            processed_input = [
-                {
-                    input_component: data
-                    for input_component, data in zip(block_fn.inputs, processed_input)
-                }
-            ]
+            processed_input = [dict(zip(block_fn.inputs, processed_input))]
 
         if isinstance(requests, list):
             request = requests[0]
@@ -1214,10 +1209,11 @@ Received outputs:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
                     output.append(None)
                     continue
-            except (IndexError, KeyError):
+            except (IndexError, KeyError) as err:
                 raise ValueError(
-                    f"Number of output components does not match number of values returned from from function {block_fn.name}"
-                )
+                    "Number of output components does not match number "
+                    f"of values returned from from function {block_fn.name}"
+                ) from err
             block = self.blocks[output_id]
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
@@ -1588,6 +1584,7 @@ Received outputs:
         ssl_keyfile: str | None = None,
         ssl_certfile: str | None = None,
         ssl_keyfile_password: str | None = None,
+        ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
         file_directories: List[str] | None = None,
@@ -1618,6 +1615,7 @@ Received outputs:
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+            ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
             file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
@@ -1659,6 +1657,7 @@ Received outputs:
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.ssl_verify = ssl_verify
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
@@ -1729,7 +1728,7 @@ Received outputs:
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            requests.get(f"{self.local_url}startup-events")
+            requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
 
         utils.launch_counter()
 
@@ -1920,10 +1919,10 @@ Received outputs:
             analytics_integration = "CometML"
             comet_ml.log_other("Created from", "Gradio")
             if self.share_url is not None:
-                comet_ml.log_text("gradio: " + self.share_url)
+                comet_ml.log_text(f"gradio: {self.share_url}")
                 comet_ml.end()
             elif self.local_url:
-                comet_ml.log_text("gradio: " + self.local_url)
+                comet_ml.log_text(f"gradio: {self.local_url}")
                 comet_ml.end()
             else:
                 raise ValueError("Please run `launch()` first.")
@@ -1971,7 +1970,7 @@ Received outputs:
             # happen the next time the app is launched
             self.app.startup_events_triggered = False
             if verbose:
-                print("Closing server running on port: {}".format(self.server_port))
+                print(f"Closing server running on port: {self.server_port}")
         except (AttributeError, OSError):  # can't close if not running
             pass
 
@@ -2017,7 +2016,9 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            utils.run_coro_in_background(
+                self._queue.start, self.progress_tracking, self.ssl_verify
+            )
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)

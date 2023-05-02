@@ -4,16 +4,25 @@
 	export let value: string | Array<string> | undefined = undefined;
 	export let filtered: Array<string>;
 	export let showOptions: boolean = false;
-	export let activeOption: string;
+	export let activeOption: string | null;
 	export let disabled: boolean = false;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
 	let input_height: number;
 	let refElement: HTMLDivElement;
+	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
 	$: {
 		if (showOptions && refElement) {
+			if (listElement && typeof value === "string") {
+				let el = document.querySelector(
+					`li[data-value="${value}"]`
+				) as HTMLLIElement;
+				if (el) {
+					listElement.scrollTo(0, el.offsetTop);
+				}
+			}
 			distance_from_top = refElement.getBoundingClientRect().top;
 			distance_from_bottom =
 				window.innerHeight - refElement.getBoundingClientRect().bottom;
@@ -32,11 +41,7 @@
 	}
 
 	const dispatch = createEventDispatcher();
-
-	function isSelected(choice: string) {
-		let arr = Array.isArray(value) ? value : [value];
-		return arr.includes(choice);
-	}
+	$: _value = Array.isArray(value) ? value : [value];
 </script>
 
 <div class="reference" bind:this={refElement} />
@@ -49,19 +54,20 @@
 		style:top
 		style:bottom
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
+		bind:this={listElement}
 	>
 		{#each filtered as choice}
 			<li
 				class="item"
 				role="button"
-				class:selected={isSelected(choice)}
+				class:selected={_value.includes(choice)}
 				class:active={activeOption === choice}
 				class:bg-gray-100={activeOption === choice}
 				class:dark:bg-gray-600={activeOption === choice}
 				data-value={choice}
 				aria-label={choice}
 			>
-				<span class:hide={!isSelected(choice)} class="inner-item pr-1">
+				<span class:hide={!_value.includes(choice)} class="inner-item">
 					✓
 				</span>
 				{choice}
@@ -80,6 +86,8 @@
 		border-radius: var(--container-radius);
 		background: var(--background-fill-primary);
 		width: var(--size-full);
+		min-width: fit-content;
+		max-width: inherit;
 		overflow: auto;
 		color: var(--body-text-color);
 		list-style: none;

@@ -35,7 +35,7 @@ from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
 set_documentation_group("py-client")
 
 
-@document("predict", "submit", "view_api")
+@document("predict", "submit", "view_api", "duplicate")
 class Client:
     """
     The main Client class for the Python client. This class is used to connect to a remote Gradio app and call its API endpoints.
@@ -51,7 +51,6 @@ class Client:
         job = client.submit("hello", api_name="/predict")  # runs the prediction in a background thread
         job.result()
         >> 49 # returns the result of the remote API call (blocking call)
-
     """
 
     def __init__(
@@ -160,13 +159,20 @@ class Client:
             sleep_timeout: The number of minutes after which the duplicate Space will be puased if no requests are made to it (to minimize billing charges). Defaults to 5 minutes.
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
+        Example:
+            import os
+            from gradio_client import Client
+            HF_TOKEN = os.environ.get("HF_TOKEN")
+            client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
+            client.predict("audio_sample.wav")
+            >> "This is a test of the whisper speech recognition model."
         """
         try:
             original_info = huggingface_hub.get_space_runtime(from_id, token=hf_token)
-        except RepositoryNotFoundError:
+        except RepositoryNotFoundError as rnfe:
             raise ValueError(
                 f"Could not find Space: {from_id}. If it is a private Space, please provide an `hf_token`."
-            )
+            ) from rnfe
         if to_id:
             if "/" in to_id:
                 to_id = to_id.split("/")[1]
@@ -409,7 +415,6 @@ class Client:
                 info = fetch.json()["api"]
             else:
                 raise ValueError(f"Could not fetch api info for {self.src}")
-
         num_named_endpoints = len(info["named_endpoints"])
         num_unnamed_endpoints = len(info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -424,7 +429,9 @@ class Client:
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
             for fn_index, endpoint_info in info["unnamed_endpoints"].items():
-                human_info += self._render_endpoints_info(fn_index, endpoint_info)
+                # When loading from json, the fn_indices are read as strings
+                # because json keys can only be strings
+                human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
         else:
             if num_unnamed_endpoints > 0:
                 human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
@@ -444,12 +451,12 @@ class Client:
         name_or_index: str | int,
         endpoints_info: Dict[str, List[Dict[str, str]]],
     ) -> str:
-        parameter_names = list(p["label"] for p in endpoints_info["parameters"])
+        parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
             rendered_parameters = rendered_parameters + ", "
-        return_values = list(p["label"] for p in endpoints_info["returns"])
+        return_values = [p["label"] for p in endpoints_info["returns"]]
         return_values = [utils.sanitize_parameter_names(r) for r in return_values]
         rendered_return_values = ", ".join(return_values)
         if len(return_values) > 1:
@@ -547,8 +554,10 @@ class Client:
             result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
             try:
                 config = json.loads(result.group(1))  # type: ignore
-            except AttributeError:
-                raise ValueError(f"Could not get Gradio config from: {self.src}")
+            except AttributeError as ae:
+                raise ValueError(
+                    f"Could not get Gradio config from: {self.src}"
+                ) from ae
             if "allow_flagging" in config:
                 raise ValueError(
                     "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
@@ -632,20 +641,22 @@ class Endpoint:
                 result = json.loads(response.content.decode("utf-8"))
             try:
                 output = result["data"]
-            except KeyError:
+            except KeyError as ke:
                 is_public_space = (
                     self.client.space_id
                     and not huggingface_hub.space_info(self.client.space_id).private
                 )
                 if "error" in result and "429" in result["error"] and is_public_space:
                     raise utils.TooManyRequestsError(
-                        f"Too many requests to the API, please try again later. To avoid being rate-limited, please duplicate the Space using Client.duplicate({self.client.space_id}) and pass in your Hugging Face token."
-                    )
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, "
+                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
+                        f"and pass in your Hugging Face token."
+                    ) from None
                 elif "error" in result:
-                    raise ValueError(result["error"])
+                    raise ValueError(result["error"]) from None
                 raise KeyError(
                     f"Could not find 'data' key in response. Response received: {result}"
-                )
+                ) from ke
             return tuple(output)
 
         return _predict
@@ -943,7 +954,11 @@ class Job(Future):
     def status(self) -> StatusUpdate:
         """
         Returns the latest status update from the Job in the form of a StatusUpdate
-        object, which contains the following fields: code, rank, queue_size, success, time, eta.
+        object, which contains the following fields: code, rank, queue_size, success, time, eta, and progress_data.
+
+        progress_data is a list of updates emitted by the gr.Progress() tracker of the event handler. Each element
+        of the list has the following fields: index, length, unit, progress, desc. If the event handler does not have
+        a gr.Progress() tracker, the progress_data field will be None.
 
         Example:
             from gradio_client import Client
@@ -967,6 +982,7 @@ class Job(Future):
                 success=False,
                 time=time,
                 eta=None,
+                progress_data=None,
             )
         if self.done():
             if not self.future._exception:  # type: ignore
@@ -977,6 +993,7 @@ class Job(Future):
                     success=True,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 return StatusUpdate(
@@ -986,6 +1003,7 @@ class Job(Future):
                     success=False,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
         else:
             if not self.communicator:
@@ -996,6 +1014,7 @@ class Job(Future):
                     success=None,
                     time=time,
                     eta=None,
+                    progress_data=None,
                 )
             else:
                 with self.communicator.lock:

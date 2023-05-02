@@ -317,7 +317,7 @@ class IOComponent(Component):
         if file_name:
             file_name = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
-            file_name = "file." + guess_extension
+            file_name = f"file.{guess_extension}"
         else:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
@@ -385,7 +385,7 @@ class Textbox(
     Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
     def __init__(
@@ -780,7 +780,7 @@ class Slider(
     Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
-    Guides: create_your_own_friends_with_a_gan
+    Guides: create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -1168,9 +1168,7 @@ class CheckboxGroup(
             return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def postprocess(self, y: List[str] | str | None) -> List[str]:
@@ -1357,9 +1355,7 @@ class Radio(
                 return self.choices.index(x)
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def get_interpretation_neighbors(self, x):
@@ -1411,7 +1407,7 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: str | List[str] | None = None,
+        choices: List[str] | None = None,
         *,
         value: str | List[str] | Callable | None = None,
         type: str = "value",
@@ -1445,7 +1441,7 @@ class Dropdown(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
-        self.choices = choices or []
+        self.choices = [str(choice) for choice in choices] if choices else []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -1567,9 +1563,7 @@ class Dropdown(
                     return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
@@ -1621,7 +1615,7 @@ class Image(
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
     """
 
     def __init__(
@@ -1758,7 +1752,7 @@ class Image(
         elif self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
+                suffix=(f".{fmt.lower()}" if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
             return self.make_temp_copy_if_needed(file_obj.name)
@@ -1852,10 +1846,10 @@ class Image(
         resized_and_cropped_image = np.array(x)
         try:
             from skimage.segmentation import slic
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ValueError(
                 "Error: running this interpretation for images requires scikit-image, please install it first."
-            )
+            ) from err
         try:
             segments_slic = slic(
                 resized_and_cropped_image,
@@ -1886,7 +1880,7 @@ class Image(
         segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
         tokens, masks, leave_one_out_tokens = [], [], []
         replace_color = np.mean(resized_and_cropped_image, axis=(0, 1))
-        for i, segment_value in enumerate(np.unique(segments_slic)):
+        for segment_value in np.unique(segments_slic):
             mask = segments_slic == segment_value
             image_screen = np.copy(resized_and_cropped_image)
             image_screen[segments_slic == segment_value] = replace_color
@@ -2300,7 +2294,7 @@ class Audio(
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
-    Guides: real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     def __init__(
@@ -3032,9 +3026,9 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     def __validate_headers(headers: List[str] | None, col_count: int):
         if headers is not None and len(headers) != col_count:
             raise ValueError(
-                "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
-                    cols=col_count, headers=len(headers)
-                )
+                f"The length of the headers list must be equal to the col_count int.\n"
+                f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
+                f"Check the values passed to `col_count` and `headers`."
             )
 
     @classmethod
@@ -3224,7 +3218,7 @@ class State(IOComponent, SimpleSerializable):
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
     Demos: blocks_simple_squares
-    Guides: creating_a_chatbot, real_time_speech_recognition
+    Guides: real-time-speech-recognition
     """
 
     allow_string_shortcut = False
@@ -3618,7 +3612,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
 
     Demos: main_note, titanic_survival
-    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary-app
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3707,7 +3701,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
-            "Instead, got a {}".format(type(y))
+            f"Instead, got a {type(y)}"
         )
 
     @staticmethod
@@ -3763,7 +3757,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
-    Guides: named_entity_recognition
+    Guides: named-entity-recognition
     """
 
     def __init__(
@@ -3869,10 +3863,11 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             try:
                 text = y["text"]
                 entities = y["entities"]
-            except KeyError:
+            except KeyError as ke:
                 raise ValueError(
-                    "Expected a dictionary with keys 'text' and 'entities' for the value of the HighlightedText component."
-                )
+                    "Expected a dictionary with keys 'text' and 'entities' "
+                    "for the value of the HighlightedText component."
+                ) from ke
             if len(entities) == 0:
                 y = [(text, None)]
             else:
@@ -4055,7 +4050,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         def hex_to_rgb(value):
             value = value.lstrip("#")
             lv = len(value)
-            return list(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+            return [int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3)]
 
         for mask, label in y[1]:
             mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
@@ -4218,7 +4213,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
     Postprocessing: expects a valid HTML {str}.
 
     Demos: text_analysis
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -4463,6 +4458,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
+    Guides: creating-a-chatbot
     """
 
     def __init__(
@@ -4580,9 +4576,13 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            filepath = chat_message[0]
+            file_uri = chat_message[0]
+            if utils.validate_url(file_uri):
+                filepath = file_uri
+            else:
+                filepath = self.make_temp_copy_if_needed(file_uri)
+
             mime_type = client_utils.get_mimetype(filepath)
-            filepath = self.make_temp_copy_if_needed(filepath)
             return {
                 "name": filepath,
                 "mime_type": mime_type,
@@ -4652,7 +4652,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
 
     Demos: model3D
-    Guides: how_to_use_3D_model_component
+    Guides: how-to-use-3D-model-component
     """
 
     def __init__(
@@ -4780,7 +4780,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
-    Guides: plot_component_for_maps
+    Guides: plot-component-for-maps
     """
 
     def __init__(
@@ -4905,7 +4905,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
-    Guides: creating_a_dashboard_from_bigquery_data
+    Guides: creating-a-dashboard-from-bigquery-data
     """
 
     def __init__(
@@ -5143,18 +5143,18 @@ class ScatterPlot(Plot):
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
-        encodings = dict(
-            x=alt.X(
+        encodings = {
+            "x": alt.X(
                 x,  # type: ignore
                 title=x_title or x,  # type: ignore
                 scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),  # ignore: type
-            y=alt.Y(
+            "y": alt.Y(
                 y,  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
-        )
+        }
         properties = {}
         if title:
             properties["title"] = title
@@ -5474,18 +5474,18 @@ class LinePlot(Plot):
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
-        encodings = dict(
-            x=alt.X(
+        encodings = {
+            "x": alt.X(
                 x,  # type: ignore
                 title=x_title or x,  # type: ignore
                 scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),
-            y=alt.Y(
+            "y": alt.Y(
                 y,  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
-        )
+        }
         properties = {}
         if title:
             properties["title"] = title
@@ -5797,10 +5797,10 @@ class BarPlot(Plot):
         y_lim: List[int] | None = None,
         interactive: bool | None = True,
     ):
-        """Helper for creating the scatter plot."""
+        """Helper for creating the bar plot."""
         interactive = True if interactive is None else interactive
         orientation = (
-            dict(field=group, title=group_title if group_title is not None else group)
+            {"field": group, "title": group_title if group_title is not None else group}
             if group
             else {}
         )
@@ -5905,7 +5905,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
     Demos: blocks_hello, blocks_kinematics
-    Guides: key_features
+    Guides: key-features
     """
 
     def __init__(
@@ -6125,7 +6125,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
 
         # Narrow type to IOComponent
         assert all(
-            [isinstance(c, IOComponent) for c in self.components]
+            isinstance(c, IOComponent) for c in self.components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
         self.components = [c for c in self.components if isinstance(c, IOComponent)]
         for component in self.components:
@@ -6139,7 +6139,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.label = label
         if headers is not None:
             self.headers = headers
-        elif all([c.label is None for c in self.components]):
+        elif all(c.label is None for c in self.components):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
@@ -6199,7 +6199,7 @@ class Interpretation(Component, SimpleSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {dict} with keys "original" and "interpretation".
 
-    Guides: custom_interpretations_with_blocks
+    Guides: custom-interpretations-with-blocks
     """
 
     def __init__(
