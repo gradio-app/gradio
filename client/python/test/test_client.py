@@ -667,6 +667,13 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
+    def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
+        # This demo has no api_name
+        with connect(count_generator_demo) as client:
+            info = client.view_api(return_format="str")
+            assert "fn_index=0" in info
+            assert "api_name" not in info
+
 
 class TestEndpoints:
     def test_upload(self):

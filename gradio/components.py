@@ -317,7 +317,7 @@ class IOComponent(Component):
         if file_name:
             file_name = client_utils.strip_invalid_filename_characters(file_name)
         elif guess_extension:
-            file_name = "file." + guess_extension
+            file_name = f"file.{guess_extension}"
         else:
             file_name = "file"
         f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
@@ -1168,9 +1168,7 @@ class CheckboxGroup(
             return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def postprocess(self, y: List[str] | str | None) -> List[str]:
@@ -1357,9 +1355,7 @@ class Radio(
                 return self.choices.index(x)
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def get_interpretation_neighbors(self, x):
@@ -1411,7 +1407,7 @@ class Dropdown(
 
     def __init__(
         self,
-        choices: str | List[str] | None = None,
+        choices: List[str] | None = None,
         *,
         value: str | List[str] | Callable | None = None,
         type: str = "value",
@@ -1445,7 +1441,7 @@ class Dropdown(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
         """
-        self.choices = choices or []
+        self.choices = [str(choice) for choice in choices] if choices else []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -1567,9 +1563,7 @@ class Dropdown(
                     return self.choices.index(x) if x in self.choices else None
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
@@ -1758,7 +1752,7 @@ class Image(
         elif self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
+                suffix=(f".{fmt.lower()}" if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
             return self.make_temp_copy_if_needed(file_obj.name)
@@ -1852,10 +1846,10 @@ class Image(
         resized_and_cropped_image = np.array(x)
         try:
             from skimage.segmentation import slic
-        except (ImportError, ModuleNotFoundError):
+        except (ImportError, ModuleNotFoundError) as err:
             raise ValueError(
                 "Error: running this interpretation for images requires scikit-image, please install it first."
-            )
+            ) from err
         try:
             segments_slic = slic(
                 resized_and_cropped_image,
@@ -1886,7 +1880,7 @@ class Image(
         segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
         tokens, masks, leave_one_out_tokens = [], [], []
         replace_color = np.mean(resized_and_cropped_image, axis=(0, 1))
-        for i, segment_value in enumerate(np.unique(segments_slic)):
+        for segment_value in np.unique(segments_slic):
             mask = segments_slic == segment_value
             image_screen = np.copy(resized_and_cropped_image)
             image_screen[segments_slic == segment_value] = replace_color
@@ -3032,9 +3026,9 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     def __validate_headers(headers: List[str] | None, col_count: int):
         if headers is not None and len(headers) != col_count:
             raise ValueError(
-                "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
-                    cols=col_count, headers=len(headers)
-                )
+                f"The length of the headers list must be equal to the col_count int.\n"
+                f"The column count is set to {col_count} but `headers` has {len(headers)} items. "
+                f"Check the values passed to `col_count` and `headers`."
             )
 
     @classmethod
@@ -3707,7 +3701,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
-            "Instead, got a {}".format(type(y))
+            f"Instead, got a {type(y)}"
         )
 
     @staticmethod
@@ -3869,10 +3863,11 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             try:
                 text = y["text"]
                 entities = y["entities"]
-            except KeyError:
+            except KeyError as ke:
                 raise ValueError(
-                    "Expected a dictionary with keys 'text' and 'entities' for the value of the HighlightedText component."
-                )
+                    "Expected a dictionary with keys 'text' and 'entities' "
+                    "for the value of the HighlightedText component."
+                ) from ke
             if len(entities) == 0:
                 y = [(text, None)]
             else:
@@ -4055,7 +4050,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         def hex_to_rgb(value):
             value = value.lstrip("#")
             lv = len(value)
-            return list(int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3))
+            return [int(value[i : i + lv // 3], 16) for i in range(0, lv, lv // 3)]
 
         for mask, label in y[1]:
             mask_array = np.zeros((base_img.shape[0], base_img.shape[1]))
@@ -5148,18 +5143,18 @@ class ScatterPlot(Plot):
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
-        encodings = dict(
-            x=alt.X(
+        encodings = {
+            "x": alt.X(
                 x,  # type: ignore
                 title=x_title or x,  # type: ignore
                 scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),  # ignore: type
-            y=alt.Y(
+            "y": alt.Y(
                 y,  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
-        )
+        }
         properties = {}
         if title:
             properties["title"] = title
@@ -5479,18 +5474,18 @@ class LinePlot(Plot):
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
-        encodings = dict(
-            x=alt.X(
+        encodings = {
+            "x": alt.X(
                 x,  # type: ignore
                 title=x_title or x,  # type: ignore
                 scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),
-            y=alt.Y(
+            "y": alt.Y(
                 y,  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
-        )
+        }
         properties = {}
         if title:
             properties["title"] = title
@@ -5802,10 +5797,10 @@ class BarPlot(Plot):
         y_lim: List[int] | None = None,
         interactive: bool | None = True,
     ):
-        """Helper for creating the scatter plot."""
+        """Helper for creating the bar plot."""
         interactive = True if interactive is None else interactive
         orientation = (
-            dict(field=group, title=group_title if group_title is not None else group)
+            {"field": group, "title": group_title if group_title is not None else group}
             if group
             else {}
         )
@@ -6130,7 +6125,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
 
         # Narrow type to IOComponent
         assert all(
-            [isinstance(c, IOComponent) for c in self.components]
+            isinstance(c, IOComponent) for c in self.components
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
         self.components = [c for c in self.components if isinstance(c, IOComponent)]
         for component in self.components:
@@ -6144,7 +6139,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         self.label = label
         if headers is not None:
             self.headers = headers
-        elif all([c.label is None for c in self.components]):
+        elif all(c.label is None for c in self.components):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
