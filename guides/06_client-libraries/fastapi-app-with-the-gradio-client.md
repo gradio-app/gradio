@@ -4,6 +4,9 @@ Tags: CLIENT, API, WEB APP
 
 In this blog post, we will demonstrate how to use the `gradio_client` Python library, which enables developers to make requests to a Gradio app programmatically, within a FastAPI web app. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music.
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/acapellify.png)
+
+
 **Prequisites**
 
 Before we begin, make sure you are running Python 3.9 or later, and have the following libraries installed:
@@ -66,12 +69,13 @@ Here's the complete code in Python, which you can add to your `main.py` file:
 import subprocess
 
 def process_video(video_path):
-    subprocess.run(['ffmpeg', '-i', video_path, '-vn', '-c:a', 'copy', 'audio.m4a', '-y'])
+    old_audio = os.path.basename(video_path).split(".")[0] + ".m4a"
+    subprocess.run(['ffmpeg', '-y', '-i', video_path, '-vn', '-acodec', 'copy', old_audio])
     
-    new_audio = acapellify('audio.m4a')
+    new_audio = acapellify(old_audio)
     
     new_video = f"acap_{video_path}"
-    subprocess.call(['ffmpeg', '-y', '-i', video_path, '-i', new_audio, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', new_video])
+    subprocess.call(['ffmpeg', '-y', '-i', video_path, '-i', new_audio, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', f"static/{new_video}"])
     return new_video
 ```
 
