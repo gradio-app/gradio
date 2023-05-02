@@ -12,7 +12,7 @@ a larger Blocks would not work by [@abidlabs](https://github.com/abidlabs) in [P
 
 ## Documentation Changes:
 
-No changes to highlight.
+- Adds a Guide on how to use the Python Client within a FastAPI app, by [@abidlabs](https://github.com/abidlabs) in [PR 3892](https://github.com/gradio-app/gradio/pull/3892)
 
 ## Testing and Infrastructure Changes:
 
