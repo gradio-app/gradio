@@ -265,7 +265,7 @@ def diff(original: Any, perturbed: Any) -> int | float:
     try:  # try computing numerical difference
         score = float(original) - float(perturbed)
     except ValueError:  # otherwise, look at strict difference in label
-        score = int(not (original == perturbed))
+        score = int(original != perturbed)
     return score
 
 

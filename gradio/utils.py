@@ -875,9 +875,8 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
             max_args = infinity
-        elif param.kind == param.KEYWORD_ONLY:
-            if not has_default:
-                return f"Keyword-only args must have default values for function {fn}"
+        elif param.kind == param.KEYWORD_ONLY and not has_default:
+            return f"Keyword-only args must have default values for function {fn}"
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:
         warnings.warn(

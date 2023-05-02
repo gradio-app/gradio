@@ -216,7 +216,7 @@ class Client:
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
         )
         hardware = hardware or original_info.hardware
-        if not current_hardware == hardware:
+        if current_hardware != hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
@@ -758,7 +758,7 @@ class Endpoint:
                 for s, d, oct in zip(
                     self.deserializers, data, self.output_component_types
                 )
-                if not oct == utils.STATE_COMPONENT
+                if oct != utils.STATE_COMPONENT
             ]
         )
         if (
@@ -766,7 +766,7 @@ class Endpoint:
                 [
                     oct
                     for oct in self.output_component_types
-                    if not oct == utils.STATE_COMPONENT
+                    if oct != utils.STATE_COMPONENT
                 ]
             )
             == 1

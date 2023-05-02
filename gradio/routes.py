@@ -464,14 +464,15 @@ class App(FastAPI):
                     )
             else:
                 fn_index_inferred = body.fn_index
-            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                fn_index_inferred
+            if (
+                not app.get_blocks().api_open
+                and app.get_blocks().queue_enabled_for_fn(fn_index_inferred)
+                and f"Bearer {app.queue_token}" != request.headers.get("Authorization")
             ):
-                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Not authorized to skip the queue",
-                    )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authorized to skip the queue",
+                )
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash

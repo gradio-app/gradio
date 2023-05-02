@@ -705,52 +705,57 @@ class Interface(Blocks):
             )
 
     def attach_flagging_events(self, flag_btns: List[Button] | None, clear_btn: Button):
-        if flag_btns:
-            if self.interface_type in [
+        if not (
+            flag_btns
+            and self.interface_type
+            in (
                 InterfaceTypes.STANDARD,
                 InterfaceTypes.OUTPUT_ONLY,
                 InterfaceTypes.UNIFIED,
-            ]:
-                if self.allow_flagging == "auto":
-                    flag_method = FlagMethod(
-                        self.flagging_callback, "", "", visual_feedback=False
-                    )
-                    flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
-                        flag_method,
-                        inputs=self.input_components,
-                        outputs=None,
-                        preprocess=False,
-                        queue=False,
-                    )
-                    return
+            )
+        ):
+            return
 
-                if self.interface_type == InterfaceTypes.UNIFIED:
-                    flag_components = self.input_components
-                else:
-                    flag_components = self.input_components + self.output_components
+        if self.allow_flagging == "auto":
+            flag_method = FlagMethod(
+                self.flagging_callback, "", "", visual_feedback=False
+            )
+            flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
+                flag_method,
+                inputs=self.input_components,
+                outputs=None,
+                preprocess=False,
+                queue=False,
+            )
+            return
 
-                for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-                    assert isinstance(value, str)
-                    flag_method = FlagMethod(self.flagging_callback, label, value)
-                    flag_btn.click(
-                        lambda: Button.update(value="Saving...", interactive=False),
-                        None,
-                        flag_btn,
-                        queue=False,
-                    )
-                    flag_btn.click(
-                        flag_method,
-                        inputs=flag_components,
-                        outputs=flag_btn,
-                        preprocess=False,
-                        queue=False,
-                    )
-                    clear_btn.click(
-                        flag_method.reset,
-                        None,
-                        flag_btn,
-                        queue=False,
-                    )
+        if self.interface_type == InterfaceTypes.UNIFIED:
+            flag_components = self.input_components
+        else:
+            flag_components = self.input_components + self.output_components
+
+        for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+            assert isinstance(value, str)
+            flag_method = FlagMethod(self.flagging_callback, label, value)
+            flag_btn.click(
+                lambda: Button.update(value="Saving...", interactive=False),
+                None,
+                flag_btn,
+                queue=False,
+            )
+            flag_btn.click(
+                flag_method,
+                inputs=flag_components,
+                outputs=flag_btn,
+                preprocess=False,
+                queue=False,
+            )
+            clear_btn.click(
+                flag_method.reset,
+                None,
+                flag_btn,
+                queue=False,
+            )
 
     def render_examples(self):
         if self.examples:

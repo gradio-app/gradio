@@ -1205,10 +1205,7 @@ class CheckboxGroup(
         """
         final_scores = []
         for choice, score in zip(self.choices, scores):
-            if choice in x:
-                score_set = [score, None]
-            else:
-                score_set = [None, score]
+            score_set = [score, None] if choice in x else [None, score]
             final_scores.append(score_set)
         return final_scores
 
@@ -1451,9 +1448,8 @@ class Dropdown(
             )
         self.type = type
         self.multiselect = multiselect
-        if multiselect:
-            if isinstance(value, str):
-                value = [value]
+        if multiselect and isinstance(value, str):
+            value = [value]
         if not multiselect and max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
@@ -4367,7 +4363,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         output = []
         for img in y:
             caption = None
-            if isinstance(img, tuple) or isinstance(img, list):
+            if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
                 file = processing_utils.save_array_to_file(img)
@@ -4868,10 +4864,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             out_y = json.dumps(json_item(y))
         else:
             is_altair = "altair" in y.__module__
-            if is_altair:
-                dtype = "altair"
-            else:
-                dtype = "plotly"
+            dtype = "altair" if is_altair else "plotly"
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 

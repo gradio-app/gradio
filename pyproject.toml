@@ -68,6 +68,7 @@ extend-select = [
   "C",
   "I",
   "N",
+  "SIM",
   "UP030", # Formatting-related UP rules
   "UP031", # Formatting-related UP rules
   "UP032", # Formatting-related UP rules
@@ -79,6 +80,8 @@ ignore = [
   "B017", # pytest.raises considered evil
   "B028", # explicit stacklevel for warnings
   "E501", # from scripts/lint_backend.sh
+  "SIM105", # contextlib.suppress (has a performance cost)
+  "SIM117", # multiple nested with blocks (doesn't look good with gr.Row etc)
 ]
 
 [tool.ruff.per-file-ignores]

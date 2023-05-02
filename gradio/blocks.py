@@ -251,7 +251,7 @@ class Block:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
-            if not (api_name == api_name_):
+            if api_name != api_name_:
                 warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
@@ -441,7 +441,7 @@ def convert_component_dict_to_list(
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
     """
-    keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
+    keys_are_blocks = [isinstance(key, Block) for key in predictions]
     if all(keys_are_blocks):
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
@@ -674,7 +674,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.is_space = os.getenv("SYSTEM") == "spaces"
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
@@ -862,7 +862,7 @@ class Blocks(BlockContext):
                         api_name,
                         [dep["api_name"] for dep in Context.root_block.dependencies],
                     )
-                    if not (api_name == api_name_):
+                    if api_name != api_name_:
                         warnings.warn(
                             f"api_name {api_name} already exists, using {api_name_}"
                         )
@@ -995,10 +995,7 @@ class Blocks(BlockContext):
         if block_fn.inputs_as_dict:
             processed_input = [dict(zip(block_fn.inputs, processed_input))]
 
-        if isinstance(requests, list):
-            request = requests[0]
-        else:
-            request = requests
+        request = requests[0] if isinstance(requests, list) else requests
         processed_input, progress_index, _ = special_args(
             block_fn.fn, processed_input, request, event_data
         )
@@ -1108,10 +1105,7 @@ class Blocks(BlockContext):
                 block = self.blocks[input_id]
                 wanted_args.append(str(block))
             for inp in inputs:
-                if isinstance(inp, str):
-                    v = f'"{inp}"'
-                else:
-                    v = str(inp)
+                v = f'"{inp}"' if isinstance(inp, str) else str(inp)
                 received_args.append(v)
 
             wanted = ", ".join(wanted_args)
@@ -1170,10 +1164,7 @@ Received inputs:
                 block = self.blocks[output_id]
                 wanted_args.append(str(block))
             for pred in predictions:
-                if isinstance(pred, str):
-                    v = f'"{pred}"'
-                else:
-                    v = str(pred)
+                v = f'"{pred}"' if isinstance(pred, str) else str(pred)
                 received_args.append(v)
 
             wanted = ", ".join(wanted_args)

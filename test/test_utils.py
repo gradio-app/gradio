@@ -509,9 +509,8 @@ async def test_validate_with_function(respx_mock):
 @pytest.mark.asyncio
 async def test_validate_and_fail_with_function(respx_mock):
     def has_name(response):
-        if response["name"] is not None:
-            if response["name"] == "Alex":
-                return response
+        if response["name"] is not None and response["name"] == "Alex":
+            return response
         raise Exception
 
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response({"name": "morpheus"}))

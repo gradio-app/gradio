@@ -486,7 +486,7 @@ class GallerySerializable(Serializable):
         gallery_path.mkdir(exist_ok=True, parents=True)
         captions = {}
         for img_data in x:
-            if isinstance(img_data, list) or isinstance(img_data, tuple):
+            if isinstance(img_data, (list, tuple)):
                 img_data, caption = img_data
             else:
                 caption = None

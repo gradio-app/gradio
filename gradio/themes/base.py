@@ -247,10 +247,7 @@ class ThemeClass:
 
         # If no version, set the version to next patch release
         if not version:
-            if space_exists:
-                version = self._get_next_version(space_info)
-            else:
-                version = "0.0.1"
+            version = self._get_next_version(space_info) if space_exists else "0.0.1"
         else:
             _ = semver.Version(version)
 
