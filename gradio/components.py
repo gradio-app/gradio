@@ -6051,8 +6051,7 @@ class Code(Changeable, IOComponent, StringSerializable):
             with open(y[0]) as file_data:
                 return file_data.read()
         else:
-            unindented_y = inspect.cleandoc(y)
-            return unindented_y
+            return y
 
     @staticmethod
     def update(
