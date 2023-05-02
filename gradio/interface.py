@@ -8,7 +8,6 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import re
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
@@ -287,17 +286,11 @@ class Interface(Blocks):
         self.live = live
         self.title = title
 
-        CLEANER = re.compile("<.*?>")
-
-        def clean_html(raw_html):
-            cleantext = re.sub(CLEANER, "", raw_html)
-            return cleantext
-
         md = utils.get_markdown_parser()
-        simple_description = None
+        simple_description: str | None = None
         if description is not None:
             description = md.render(description)
-            simple_description = clean_html(description)
+            simple_description = utils.remove_html_tags(description)
         self.simple_description = simple_description
         self.description = description
         if article is not None:

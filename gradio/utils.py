@@ -1044,3 +1044,10 @@ def get_markdown_parser() -> MarkdownIt:
     md.add_render_rule("link_open", render_blank_link)
 
     return md
+
+
+HTML_TAG_RE = re.compile("<.*?>")
+
+
+def remove_html_tags(raw_html: str | None) -> str:
+    return re.sub(HTML_TAG_RE, "", raw_html or "")
