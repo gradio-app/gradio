@@ -6051,7 +6051,7 @@ class Code(Changeable, IOComponent, StringSerializable):
             with open(y[0]) as file_data:
                 return file_data.read()
         else:
-            return y
+            return y.strip()
 
     @staticmethod
     def update(
