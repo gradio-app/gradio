@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from abc import ABC
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -13,7 +12,7 @@ from gradio_client.data_classes import FileData
 serializer_types = json.load(open(Path(__file__).parent / "types.json"))
 
 
-class Serializable(ABC):
+class Serializable:
     def api_info(self) -> Dict[str, List[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].

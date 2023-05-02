@@ -6,13 +6,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 import ffmpy
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from gradio_client import media_data
 from PIL import Image
 
-from gradio import processing_utils
+from gradio import processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -24,9 +23,19 @@ class TestImagePreprocessing:
         )
         assert isinstance(output_image, Image.Image)
 
+        b64_img_without_header = deepcopy(media_data.BASE64_IMAGE).split(",")[1]
+        output_image_without_header = processing_utils.decode_base64_to_image(
+            b64_img_without_header
+        )
+
+        assert output_image == output_image_without_header
+
     def test_encode_plot_to_base64(self):
-        plt.plot([1, 2, 3, 4])
-        output_base64 = processing_utils.encode_plot_to_base64(plt)
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            plt.plot([1, 2, 3, 4])
+            output_base64 = processing_utils.encode_plot_to_base64(plt)
         assert output_base64.startswith(
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo"
         )

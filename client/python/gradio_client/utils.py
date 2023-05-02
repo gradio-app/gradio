@@ -362,10 +362,7 @@ def encode_url_or_file_to_base64(path: str | Path):
 
 def decode_base64_to_binary(encoding: str) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
-    try:
-        data = encoding.split(",")[1]
-    except IndexError:
-        data = ""
+    data = encoding.rsplit(",", 1)[-1]
     return base64.b64decode(data), extension
 
 

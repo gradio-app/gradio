@@ -300,8 +300,7 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-                output = client.submit(1, "foo", f.name, fn_index=0).result()
-                assert open(output).read() == "Hello from private space!"
+                client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
 
 
