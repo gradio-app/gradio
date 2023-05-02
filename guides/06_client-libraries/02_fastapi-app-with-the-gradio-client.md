@@ -13,17 +13,15 @@ Before we begin, make sure you are running Python 3.9 or later, and have the fol
 * `youtube-dl`
 * `ffmpeg`
 
-If you are running on Linux, MacOS, or on Windows Subsystem Linux, you can install these in a virtual environment like this:
+You can install these libraries from `pip`: 
 
 ``` bash
-$ mkdir acapellify
-$ cd acapellify
-$ python3 -m venv venv
-$ source venv/bin/activate
-(venv) $ pip install fastapi uvicorn gradio_client youtube-dl ffmpeg
+$ pip install gradio_client fastapi youtube-dl ffmpeg
 ```
 
-## Step 1: Write the Video Processing Function
+## Step 1: Write the Acappelify Video Function
+
+Let's start with what seems like the most complex bi -- using machine learning to remove the music from a video. 
 
 
 
