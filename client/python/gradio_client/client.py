@@ -683,7 +683,7 @@ class Endpoint:
             if not isinstance(fs, list):
                 fs = [fs]
             for f in fs:
-                files.append(("files", (Path(f).name, open(f, "rb"))))
+                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
         r = requests.post(
             self.client.upload_url, headers=self.client.headers, files=files

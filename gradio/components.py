@@ -141,18 +141,14 @@ class Component(Block, Serializable):
             warnings.warn(
                 "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
             )
-            if isinstance(kwargs["rounded"], list) or isinstance(
-                kwargs["rounded"], tuple
-            ):
+            if isinstance(kwargs["rounded"], (list, tuple)):
                 put_deprecated_params_in_box = True
             kwargs.pop("rounded")
         if "margin" in kwargs:
             warnings.warn(
                 "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
             )
-            if isinstance(kwargs["margin"], list) or isinstance(
-                kwargs["margin"], tuple
-            ):
+            if isinstance(kwargs["margin"], (list, tuple)):
                 put_deprecated_params_in_box = True
             kwargs.pop("margin")
         if "border" in kwargs:
@@ -165,9 +161,12 @@ class Component(Block, Serializable):
         if len(kwargs):
             for key in kwargs:
                 warnings.warn(f"Unknown style parameter: {key}")
-        if put_deprecated_params_in_box and isinstance(self.parent, (Row, Column)):
-            if self.parent.variant == "default":
-                self.parent.variant = "compact"
+        if (
+            put_deprecated_params_in_box
+            and isinstance(self.parent, (Row, Column))
+            and self.parent.variant == "default"
+        ):
+            self.parent.variant = "compact"
         return self
 
 
@@ -298,9 +297,10 @@ class IOComponent(Component):
         full_temp_file_path = str(utils.abspath(temp_dir / f.name))
 
         if not Path(full_temp_file_path).exists():
-            with requests.get(url, stream=True) as r:
-                with open(full_temp_file_path, "wb") as f:
-                    shutil.copyfileobj(r.raw, f)
+            with requests.get(url, stream=True) as r, open(
+                full_temp_file_path, "wb"
+            ) as f:
+                shutil.copyfileobj(r.raw, f)
 
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path

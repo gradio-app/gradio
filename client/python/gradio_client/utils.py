@@ -285,9 +285,10 @@ def download_tmp_copy_of_file(
         suffix=suffix,
         dir=dir,
     )
-    with requests.get(url_path, headers=headers, stream=True) as r:
-        with open(file_obj.name, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+    with requests.get(url_path, headers=headers, stream=True) as r, open(
+        file_obj.name, "wb"
+    ) as f:
+        shutil.copyfileobj(r.raw, f)
     return file_obj
 
 
