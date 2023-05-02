@@ -6,7 +6,7 @@ def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] == "--upload":
-        gradio.upload.upload_to_spaces(*args)
+    if args[0] == "--upload-to-spaces":
+        gradio.upload.upload_to_spaces()
     else:
         gradio.reload.run_in_reload_mode(*args)
