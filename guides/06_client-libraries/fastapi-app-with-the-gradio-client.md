@@ -13,12 +13,13 @@ Before we begin, make sure you are running Python 3.9 or later, and have the fol
 
 * `gradio_client`
 * `fastapi`
-* `ffmpeg`
+* `ffmpeg-python`
+* `uvicorn`
 
 You can install these libraries from `pip`: 
 
 ```bash
-$ pip install gradio_client fastapi ffmpeg
+$ pip install gradio_client fastapi ffmpeg-python uvicorn
 ```
 
 ## Step 1: Write the Video Processing Function
