@@ -1,4 +1,8 @@
 {
+    "SimpleSerializable": {
+        "type": {},
+        "description": "any valid json"
+    },
     "StringSerializable": {
         "type": "string"
     },

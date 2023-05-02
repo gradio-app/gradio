@@ -495,26 +495,17 @@ def get_api_info(config: Dict, serialize: bool = True):
             # of the component), so we use that if it exists. Otherwise, we fallback to the
             # Serializer's API info.
             if component.get("api_info"):
-                if serialize:
-                    info = component["api_info"]["serialized_input"]
-                    example = component["example_inputs"]["serialized"]
-                else:
-                    info = component["api_info"]["raw_input"]
-                    example = component["example_inputs"]["raw"]
+                info = component["api_info"]
+                example = component["example_inputs"]["serialized"]
             else:
                 serializer = serializing.COMPONENT_MAPPING[type]()
                 assert isinstance(serializer, serializing.Serializable)
-                if serialize:
-                    info = serializer.api_info()["serialized_input"]
-                    example = serializer.example_inputs()["serialized"]
-                else:
-                    info = serializer.api_info()["raw_input"]
-                    example = serializer.example_inputs()["raw"]
+                info = serializer.api_info()
+                example = serializer.example_inputs()["raw"]
             dependency_info["parameters"].append(
                 {
                     "label": label,
-                    "type_python": info[0],
-                    "type_description": info[1],
+                    "type": info,
                     "component": type.capitalize(),
                     "example_input": example,
                 }
@@ -540,15 +531,11 @@ def get_api_info(config: Dict, serialize: bool = True):
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             assert isinstance(serializer, serializing.Serializable)
-            if serialize:
-                info = serializer.api_info()["serialized_output"]
-            else:
-                info = serializer.api_info()["raw_output"]
+            info = serializer.api_info()
             dependency_info["returns"].append(
                 {
                     "label": label,
-                    "type_python": info[0],
-                    "type_description": info[1],
+                    "type": info,
                     "component": type.capitalize(),
                 }
             )

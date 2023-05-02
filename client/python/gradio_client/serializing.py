@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Tuple
 from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
 
+serializer_types = json.load(open(Path(__file__).parent / "types.json"))
+
 
 class Serializable(ABC):
     def api_info(self) -> Dict[str, List[str]]:
@@ -59,12 +61,7 @@ class SimpleSerializable(Serializable):
     """General class that does not perform any serialization or deserialization."""
 
     def api_info(self) -> Dict[str, str | List[str]]:
-        return {
-            "raw_input": ["Any", ""],
-            "raw_output": ["Any", ""],
-            "serialized_input": ["Any", ""],
-            "serialized_output": ["Any", ""],
-        }
+        return serializer_types["SimpleSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -77,12 +74,7 @@ class StringSerializable(Serializable):
     """Expects a string as input/output but performs no serialization."""
 
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["str", "string value"],
-            "raw_output": ["str", "string value"],
-            "serialized_input": ["str", "string value"],
-            "serialized_output": ["str", "string value"],
-        }
+        return serializer_types["StringSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -95,12 +87,7 @@ class ListStringSerializable(Serializable):
     """Expects a list of strings as input/output but performs no serialization."""
 
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["List[str]", "list of string values"],
-            "raw_output": ["List[str]", "list of string values"],
-            "serialized_input": ["List[str]", "list of string values"],
-            "serialized_output": ["List[str]", "list of string values"],
-        }
+        return serializer_types["ListStringSerializer"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -113,12 +100,7 @@ class BooleanSerializable(Serializable):
     """Expects a boolean as input/output but performs no serialization."""
 
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["bool", "boolean value"],
-            "raw_output": ["bool", "boolean value"],
-            "serialized_input": ["bool", "boolean value"],
-            "serialized_output": ["bool", "boolean value"],
-        }
+        return serializer_types["BooleanSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -131,12 +113,7 @@ class NumberSerializable(Serializable):
     """Expects a number (int/float) as input/output but performs no serialization."""
 
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["int | float", "numeric value"],
-            "raw_output": ["int | float", "numeric value"],
-            "serialized_input": ["int | float", "numeric value"],
-            "serialized_output": ["int | float", "numeric value"],
-        }
+        return serializer_types["NumberSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -149,12 +126,7 @@ class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is serialized to a filepath."""
 
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["str", "base64 representation of image"],
-            "raw_output": ["str", "base64 representation of image"],
-            "serialized_input": ["str", "filepath or URL to image"],
-            "serialized_output": ["str", "filepath or URL to image"],
-        }
+        return serializer_types["ImgSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -206,18 +178,7 @@ class FileSerializable(Serializable):
     """Expects a dict with base64 representation of object as input/output which is serialized to a filepath."""
 
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": [
-                "str | Dict",
-                "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)",
-            ],
-            "raw_output": [
-                "Dict",
-                "dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False)",
-            ],
-            "serialized_input": ["str", "filepath or URL to file"],
-            "serialized_output": ["str", "filepath or URL to file"],
-        }
+        return serializer_types["FileSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -333,18 +294,7 @@ class FileSerializable(Serializable):
 
 class VideoSerializable(FileSerializable):
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": [
-                "str | Dict",
-                "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)",
-            ],
-            "raw_output": [
-                "Tuple[Dict, Dict]",
-                "a tuple of 2 dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False). First dictionary is for the video, second dictionary is for the subtitles.",
-            ],
-            "serialized_input": ["str", "filepath or URL to file"],
-            "serialized_output": ["str", "filepath or URL to file"],
-        }
+        return serializer_types["FileSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -380,12 +330,7 @@ class VideoSerializable(FileSerializable):
 
 class JSONSerializable(Serializable):
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["str | Dict | List", "JSON-serializable object or a string"],
-            "raw_output": ["Dict | List", "dictionary- or list-like object"],
-            "serialized_input": ["str", "filepath to JSON file"],
-            "serialized_output": ["str", "filepath to JSON file"],
-        }
+        return serializer_types["JSONSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -432,24 +377,7 @@ class JSONSerializable(Serializable):
 
 class GallerySerializable(Serializable):
     def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": [
-                "List[List[str | None]]",
-                "List of lists. The inner lists should contain two elements: a base64 file representation and an optional caption, the outer list should contain one such list for each image in the gallery.",
-            ],
-            "raw_output": [
-                "List[List[str | None]]",
-                "List of lists. The inner lists should contain two elements: a base64 file representation and an optional caption, the outer list should contain one such list for each image in the gallery.",
-            ],
-            "serialized_input": [
-                "str",
-                "path to directory with images and a file associating images with captions called captions.json",
-            ],
-            "serialized_output": [
-                "str",
-                "path to directory with images and a file associating images with captions called captions.json",
-            ],
-        }
+        return serializer_types["JSONSerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
