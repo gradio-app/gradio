@@ -402,7 +402,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         """
         # Components that can have a preview on dataset repos
         # NOTE: not at root level to avoid circular imports
-        FILE_PREVIEW_TYPES = {gr.Audio: "Audio", gr.Image: "Image"}
+        file_preview_types = {gr.Audio: "Audio", gr.Image: "Image"}
 
         # Generate the row corresponding to the flagged sample
         features = {}
@@ -418,8 +418,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             row.append(Path(deserialized).name)
 
             # If component is eligible for a preview, add the URL of the file
-            if isinstance(component, tuple(FILE_PREVIEW_TYPES)):  # type: ignore
-                for _component, _type in FILE_PREVIEW_TYPES.items():
+            if isinstance(component, tuple(file_preview_types)):  # type: ignore
+                for _component, _type in file_preview_types.items():
                     if isinstance(component, _component):
                         features[label + " file"] = {"_type": _type}
                         break

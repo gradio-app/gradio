@@ -11,7 +11,7 @@ from gradio_client import media_data
 
 import gradio as gr
 from gradio.context import Context
-from gradio.exceptions import InvalidApiName
+from gradio.exceptions import InvalidApiNameError
 from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
 
 """
@@ -472,7 +472,7 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
 
 
 def test_raise_value_error_when_api_name_invalid():
-    with pytest.raises(InvalidApiName):
+    with pytest.raises(InvalidApiNameError):
         demo = gr.Blocks.load(name="spaces/gradio/hello_world")
         demo("freddy", api_name="route does not exist")
 

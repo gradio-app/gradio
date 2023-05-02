@@ -4060,12 +4060,12 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
                 mask_array = mask
             else:
                 x1, y1, x2, y2 = mask
-                BORDER_WIDTH = 3
+                border_width = 3
                 mask_array[y1:y2, x1:x2] = 0.5
-                mask_array[y1:y2, x1 : x1 + BORDER_WIDTH] = 1
-                mask_array[y1:y2, x2 - BORDER_WIDTH : x2] = 1
-                mask_array[y1 : y1 + BORDER_WIDTH, x1:x2] = 1
-                mask_array[y2 - BORDER_WIDTH : y2, x1:x2] = 1
+                mask_array[y1:y2, x1 : x1 + border_width] = 1
+                mask_array[y1:y2, x2 - border_width : x2] = 1
+                mask_array[y1 : y1 + border_width, x1:x2] = 1
+                mask_array[y2 - border_width : y2, x1:x2] = 1
 
             if label in color_map:
                 rgb_color = hex_to_rgb(color_map[label])

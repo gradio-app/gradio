@@ -915,15 +915,15 @@ def tex2svg(formula, *args):
     with MatplotlibBackendMananger():
         import matplotlib.pyplot as plt
 
-        FONTSIZE = 20
-        DPI = 300
+        fontsize = 20
+        dpi = 300
         plt.rc("mathtext", fontset="cm")
         fig = plt.figure(figsize=(0.01, 0.01))
-        fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
+        fig.text(0, 0, rf"${formula}$", fontsize=fontsize)
         output = BytesIO()
         fig.savefig(
             output,
-            dpi=DPI,
+            dpi=dpi,
             transparent=True,
             format="svg",
             bbox_inches="tight",
@@ -939,7 +939,7 @@ def tex2svg(formula, *args):
         height_match = re.search(r'height="([\d.]+)pt"', svg_code)
         if height_match:
             height = float(height_match.group(1))
-            new_height = height / FONTSIZE  # conversion from pt to em
+            new_height = height / fontsize  # conversion from pt to em
             svg_code = re.sub(
                 r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code
             )

@@ -728,13 +728,13 @@ def make_waveform(
     duration = round(len(audio[1]) / audio[0], 4)
 
     # Helper methods to create waveform
-    def hex_to_RGB(hex_str):
+    def hex_to_rgb(hex_str):
         return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
 
     def get_color_gradient(c1, c2, n):
         assert n > 1
-        c1_rgb = np.array(hex_to_RGB(c1)) / 255
-        c2_rgb = np.array(hex_to_RGB(c2)) / 255
+        c1_rgb = np.array(hex_to_rgb(c1)) / 255
+        c2_rgb = np.array(hex_to_rgb(c2)) / 255
         mix_pcts = [x / (n - 1) for x in range(n)]
         rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
         return [

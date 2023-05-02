@@ -34,7 +34,7 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -399,7 +399,7 @@ class BlockFunction:
         return str(self)
 
 
-class class_or_instancemethod(classmethod):
+class class_or_instancemethod(classmethod):  # noqa: N801
     def __get__(self, instance, type_):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
@@ -937,7 +937,9 @@ class Blocks(BlockContext):
                 None,
             )
             if inferred_fn_index is None:
-                raise InvalidApiName(f"Cannot find a function with api_name {api_name}")
+                raise InvalidApiNameError(
+                    f"Cannot find a function with api_name {api_name}"
+                )
             fn_index = inferred_fn_index
         if not (self.is_callable(fn_index)):
             raise ValueError(
@@ -1342,15 +1344,15 @@ Received outputs:
             "theme": self.theme.name,
         }
 
-        def getLayout(block):
+        def get_layout(block):
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
             children_layout = []
             for child in block.children:
-                children_layout.append(getLayout(child))
+                children_layout.append(get_layout(child))
             return {"id": block._id, "children": children_layout}
 
-        config["layout"] = getLayout(self)
+        config["layout"] = get_layout(self)
 
         for _id, block in self.blocks.items():
             props = block.get_config() if hasattr(block, "get_config") else {}
@@ -1393,7 +1395,7 @@ Received outputs:
 
     @class_or_instancemethod
     def load(
-        self_or_cls,
+        self_or_cls,  # noqa: N805
         fn: Callable | None = None,
         inputs: List[Component] | None = None,
         outputs: List[Component] | None = None,

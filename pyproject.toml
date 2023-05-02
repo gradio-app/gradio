@@ -67,10 +67,10 @@ extend-select = [
   "B",
   "C",
   "I",
-  # Formatting-related UP rules
-  "UP030",
-  "UP031",
-  "UP032",
+  "N",
+  "UP030", # Formatting-related UP rules
+  "UP031", # Formatting-related UP rules
+  "UP032", # Formatting-related UP rules
 ]
 ignore = [
   "C901", # function is too complex (TODO: un-ignore this)
