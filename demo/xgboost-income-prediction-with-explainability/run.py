@@ -1,6 +1,5 @@
 import gradio as gr
 import random
-import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import shap
@@ -8,7 +7,6 @@ import xgboost as xgb
 from datasets import load_dataset
 
 
-matplotlib.use("Agg")
 dataset = load_dataset("scikit-learn/adult-census-income")
 X_train = dataset["train"].to_pandas()
 _ = X_train.pop("fnlwgt")

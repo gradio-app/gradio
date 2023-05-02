@@ -396,15 +396,16 @@ class App(FastAPI):
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
-                output = await app.get_blocks().process_api(
-                    fn_index=fn_index_inferred,
-                    inputs=raw_input,
-                    request=request,
-                    state=session_state,
-                    iterators=iterators,
-                    event_id=event_id,
-                    event_data=event_data,
-                )
+                with utils.MatplotlibBackendMananger():
+                    output = await app.get_blocks().process_api(
+                        fn_index=fn_index_inferred,
+                        inputs=raw_input,
+                        request=request,
+                        state=session_state,
+                        iterators=iterators,
+                        event_id=event_id,
+                        event_data=event_data,
+                    )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
                     if fn_index in app.iterators[body.session_hash]["should_reset"]:

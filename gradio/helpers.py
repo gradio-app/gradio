@@ -14,7 +14,6 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
@@ -309,9 +308,13 @@ class Examples:
                 processed_input = self.processed_examples[example_id]
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
-                prediction = await Context.root_block.process_api(
-                    fn_index=fn_index, inputs=processed_input, request=None, state={}
-                )
+                with utils.MatplotlibBackendMananger():
+                    prediction = await Context.root_block.process_api(
+                        fn_index=fn_index,
+                        inputs=processed_input,
+                        request=None,
+                        state={},
+                    )
                 output = prediction["data"]
                 if self.batch:
                     output = [value[0] for value in output]
@@ -749,58 +752,60 @@ def make_waveform(
     samples = np.abs(samples)
     samples = np.max(samples, 1)
 
-    matplotlib.use("Agg")
-    plt.clf()
-    # Plot waveform
-    color = (
-        bars_color
-        if isinstance(bars_color, str)
-        else get_color_gradient(bars_color[0], bars_color[1], bar_count)
-    )
-    plt.bar(
-        np.arange(0, bar_count),
-        samples * 2,
-        bottom=(-1 * samples),
-        width=bar_width,
-        color=color,
-    )
-    plt.axis("off")
-    plt.margins(x=0)
-    tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    savefig_kwargs: Dict[str, Any] = {"bbox_inches": "tight"}
-    if bg_image is not None:
-        savefig_kwargs["transparent"] = True
-    else:
-        savefig_kwargs["facecolor"] = bg_color
-    plt.savefig(tmp_img.name, **savefig_kwargs)
-    waveform_img = PIL.Image.open(tmp_img.name)
-    waveform_img = waveform_img.resize((1000, 200))
-
-    # Composite waveform with background image
-    if bg_image is not None:
-        waveform_array = np.array(waveform_img)
-        waveform_array[:, :, 3] = waveform_array[:, :, 3] * fg_alpha
-        waveform_img = PIL.Image.fromarray(waveform_array)
-
-        bg_img = PIL.Image.open(bg_image)
-        waveform_width, waveform_height = waveform_img.size
-        bg_width, bg_height = bg_img.size
-        if waveform_width != bg_width:
-            bg_img = bg_img.resize(
-                (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
-            )
-            bg_width, bg_height = bg_img.size
-        composite_height = max(bg_height, waveform_height)
-        composite = PIL.Image.new("RGBA", (waveform_width, composite_height), "#FFFFFF")
-        composite.paste(bg_img, (0, composite_height - bg_height))
-        composite.paste(
-            waveform_img, (0, composite_height - waveform_height), waveform_img
+    with utils.MatplotlibBackendMananger():
+        plt.clf()
+        # Plot waveform
+        color = (
+            bars_color
+            if isinstance(bars_color, str)
+            else get_color_gradient(bars_color[0], bars_color[1], bar_count)
         )
-        composite.save(tmp_img.name)
-        img_width, img_height = composite.size
-    else:
-        img_width, img_height = waveform_img.size
-        waveform_img.save(tmp_img.name)
+        plt.bar(
+            np.arange(0, bar_count),
+            samples * 2,
+            bottom=(-1 * samples),
+            width=bar_width,
+            color=color,
+        )
+        plt.axis("off")
+        plt.margins(x=0)
+        tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        savefig_kwargs: Dict[str, Any] = {"bbox_inches": "tight"}
+        if bg_image is not None:
+            savefig_kwargs["transparent"] = True
+        else:
+            savefig_kwargs["facecolor"] = bg_color
+        plt.savefig(tmp_img.name, **savefig_kwargs)
+        waveform_img = PIL.Image.open(tmp_img.name)
+        waveform_img = waveform_img.resize((1000, 200))
+
+        # Composite waveform with background image
+        if bg_image is not None:
+            waveform_array = np.array(waveform_img)
+            waveform_array[:, :, 3] = waveform_array[:, :, 3] * fg_alpha
+            waveform_img = PIL.Image.fromarray(waveform_array)
+
+            bg_img = PIL.Image.open(bg_image)
+            waveform_width, waveform_height = waveform_img.size
+            bg_width, bg_height = bg_img.size
+            if waveform_width != bg_width:
+                bg_img = bg_img.resize(
+                    (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
+                )
+                bg_width, bg_height = bg_img.size
+            composite_height = max(bg_height, waveform_height)
+            composite = PIL.Image.new(
+                "RGBA", (waveform_width, composite_height), "#FFFFFF"
+            )
+            composite.paste(bg_img, (0, composite_height - bg_height))
+            composite.paste(
+                waveform_img, (0, composite_height - waveform_height), waveform_img
+            )
+            composite.save(tmp_img.name)
+            img_width, img_height = composite.size
+        else:
+            img_width, img_height = waveform_img.size
+            waveform_img.save(tmp_img.name)
 
     # Convert waveform to video with ffmpeg
     output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)

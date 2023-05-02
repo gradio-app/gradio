@@ -15,8 +15,6 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
@@ -27,10 +25,9 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 import gradio as gr
-from gradio import processing_utils
+from gradio import processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-matplotlib.use("Agg")
 
 
 class TestComponent:
@@ -734,12 +731,15 @@ class TestPlot:
         """
 
         def plot(num):
+            import matplotlib.pyplot as plt
+
             fig = plt.figure()
             plt.plot(range(num), range(num))
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10], state={})
+        with utils.MatplotlibBackendMananger():
+            output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
@@ -747,8 +747,11 @@ class TestPlot:
         """
         postprocess
         """
-        fig = plt.figure()
-        plt.plot([1, 2, 3], [1, 2, 3])
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(fig)
         assert component.get_config().get("value") is not None
