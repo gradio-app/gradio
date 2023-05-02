@@ -17,7 +17,7 @@ Before we begin, make sure you are running Python 3.9 or later, and have the fol
 
 You can install these libraries from `pip`: 
 
-``` bash
+```bash
 $ pip install gradio_client fastapi ffmpeg
 ```
 
