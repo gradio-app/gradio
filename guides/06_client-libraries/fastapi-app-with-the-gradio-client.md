@@ -25,7 +25,7 @@ $ pip install gradio_client fastapi ffmpeg
 
 Let's start with what seems like the most complex bit -- using machine learning to remove the music from a video. 
 
-Luckily for us, there's an existing Space we can use to make this process easier: https://huggingface.co/spaces/abidlabs/music-separation. This Space takes an audio file and produces two separate audio files: one with the instrumental music and one all other sounds in the original clip. Perfect! 
+Luckily for us, there's an existing Space we can use to make this process easier: [https://huggingface.co/spaces/abidlabs/music-separation](https://huggingface.co/spaces/abidlabs/music-separation). This Space takes an audio file and produces two separate audio files: one with the instrumental music and one with all other sounds in the original clip. Perfect! 
 
 Open a new Python file, say `main.py`, and start by importing the `Client` class from `gradio_client` and connecting it to this Space:
 
