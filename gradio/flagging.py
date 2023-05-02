@@ -10,7 +10,7 @@ import warnings
 from abc import ABC, abstractmethod
 from distutils.version import StrictVersion
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any
 
 import filelock
 import huggingface_hub
@@ -33,7 +33,7 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, components: List[IOComponent], flagging_dir: str):
+    def setup(self, components: list[IOComponent], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -46,7 +46,7 @@ class FlaggingCallback(ABC):
     @abstractmethod
     def flag(
         self,
-        flag_data: List[Any],
+        flag_data: list[Any],
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
@@ -81,14 +81,14 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: List[IOComponent], flagging_dir: str | Path):
+    def setup(self, components: list[IOComponent], flagging_dir: str | Path):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
 
     def flag(
         self,
-        flag_data: List[Any],
+        flag_data: list[Any],
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
@@ -112,7 +112,7 @@ class SimpleCSVLogger(FlaggingCallback):
             writer = csv.writer(csvfile)
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
-        with open(log_filepath, "r") as csvfile:
+        with open(log_filepath) as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
@@ -136,7 +136,7 @@ class CSVLogger(FlaggingCallback):
 
     def setup(
         self,
-        components: List[IOComponent],
+        components: list[IOComponent],
         flagging_dir: str | Path,
     ):
         self.components = components
@@ -145,7 +145,7 @@ class CSVLogger(FlaggingCallback):
 
     def flag(
         self,
-        flag_data: List[Any],
+        flag_data: list[Any],
         flag_option: str = "",
         username: str | None = None,
     ) -> int:
@@ -186,7 +186,7 @@ class CSVLogger(FlaggingCallback):
                 writer.writerow(utils.sanitize_list_for_csv(headers))
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
-        with open(log_filepath, "r", encoding="utf-8") as csvfile:
+        with open(log_filepath, encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
@@ -235,7 +235,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.info_filename = info_filename
         self.separate_dirs = separate_dirs
 
-    def setup(self, components: List[IOComponent], flagging_dir: str):
+    def setup(self, components: list[IOComponent], flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned,
@@ -286,7 +286,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             except huggingface_hub.utils.EntryNotFoundError:
                 pass
 
-    def flag(self, flag_data: List[Any], flag_option: str = "") -> int:
+    def flag(self, flag_data: list[Any], flag_option: str = "") -> int:
         if self.separate_dirs:
             # JSONL files to support dataset preview on the Hub
             unique_id = str(uuid.uuid4())
@@ -312,7 +312,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         data_file: Path,
         components_dir: Path,
         path_in_repo: str | None,
-        flag_data: List[Any],
+        flag_data: list[Any],
         flag_option: str = "",
     ) -> int:
         # Deserialize components (write images/audio to files)
@@ -368,7 +368,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return sample_nb
 
     @staticmethod
-    def _save_as_csv(data_file: Path, headers: List[str], row: List[Any]) -> int:
+    def _save_as_csv(data_file: Path, headers: list[str], row: list[Any]) -> int:
         """Save data as CSV and return the sample name (row number)."""
         is_new = not data_file.exists()
 
@@ -386,7 +386,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             return sum(1 for _ in csv.reader(csvfile)) - 1
 
     @staticmethod
-    def _save_as_jsonl(data_file: Path, headers: List[str], row: List[Any]) -> str:
+    def _save_as_jsonl(data_file: Path, headers: list[str], row: list[Any]) -> str:
         """Save data as JSONL and return the sample name (uuid)."""
         Path.mkdir(data_file.parent, parents=True, exist_ok=True)
         with open(data_file, "w") as f:
@@ -394,8 +394,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return data_file.parent.name
 
     def _deserialize_components(
-        self, data_dir: Path, flag_data: List[Any], flag_option: str = ""
-    ) -> Tuple[Dict[Any, Any], List[Any]]:
+        self, data_dir: Path, flag_data: list[Any], flag_option: str = ""
+    ) -> tuple[dict[Any, Any], list[Any]]:
         """Deserialize components and return the corresponding row for the flagged sample.
 
         Images/audio are saved to disk as individual files.

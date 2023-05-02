@@ -8,7 +8,6 @@ import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
@@ -25,7 +24,7 @@ with warnings.catch_warnings():
 #########################
 
 
-def to_binary(x: str | Dict) -> bytes:
+def to_binary(x: str | dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
     if isinstance(x, dict):
         if x.get("data"):

@@ -12,7 +12,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,9 +36,9 @@ set_documentation_group("helpers")
 
 
 def create_examples(
-    examples: List[Any] | List[List[Any]] | str,
-    inputs: IOComponent | List[IOComponent],
-    outputs: IOComponent | List[IOComponent] | None = None,
+    examples: list[Any] | list[list[Any]] | str,
+    inputs: IOComponent | list[IOComponent],
+    outputs: IOComponent | list[IOComponent] | None = None,
     fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -85,9 +85,9 @@ class Examples:
 
     def __init__(
         self,
-        examples: List[Any] | List[List[Any]] | str,
-        inputs: IOComponent | List[IOComponent],
-        outputs: IOComponent | List[IOComponent] | None = None,
+        examples: list[Any] | list[list[Any]] | str,
+        inputs: IOComponent | list[IOComponent],
+        outputs: IOComponent | list[IOComponent] | None = None,
         fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -323,7 +323,7 @@ class Examples:
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
 
-    async def load_from_cache(self, example_id: int) -> List[Any]:
+    async def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
@@ -396,7 +396,7 @@ class Progress(Iterable):
         self.track_tqdm = track_tqdm
         self._callback = _callback
         self._event_id = _event_id
-        self.iterables: List[TrackedIterable] = []
+        self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
         return self.iterables[-1].length
@@ -431,7 +431,7 @@ class Progress(Iterable):
 
     def __call__(
         self,
-        progress: float | Tuple[int, int | None] | None,
+        progress: float | tuple[int, int | None] | None,
         desc: str | None = None,
         total: int | None = None,
         unit: str = "steps",
@@ -595,7 +595,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
 
 def special_args(
     fn: Callable,
-    inputs: List[Any] | None = None,
+    inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
 ):
@@ -697,12 +697,12 @@ def skip() -> dict:
 
 @document()
 def make_waveform(
-    audio: str | Tuple[int, np.ndarray],
+    audio: str | tuple[int, np.ndarray],
     *,
     bg_color: str = "#f3f4f6",
     bg_image: str | None = None,
     fg_alpha: float = 0.75,
-    bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
+    bars_color: str | tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
     bar_width: float = 0.6,
 ):
@@ -771,7 +771,7 @@ def make_waveform(
         plt.axis("off")
         plt.margins(x=0)
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        savefig_kwargs: Dict[str, Any] = {"bbox_inches": "tight"}
+        savefig_kwargs: dict[str, Any] = {"bbox_inches": "tight"}
         if bg_image is not None:
             savefig_kwargs["transparent"] = True
         else:

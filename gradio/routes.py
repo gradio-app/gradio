@@ -309,10 +309,8 @@ class App(FastAPI):
                 )
             abs_path = utils.abspath(path_or_url)
             in_blocklist = any(
-                (
-                    utils.is_in_or_equal(abs_path, blocked_path)
-                    for blocked_path in blocks.blocked_paths
-                )
+                utils.is_in_or_equal(abs_path, blocked_path)
+                for blocked_path in blocks.blocked_paths
             )
             if in_blocklist:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
@@ -320,10 +318,8 @@ class App(FastAPI):
             in_app_dir = utils.abspath(app.cwd) in abs_path.parents
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
-                (
-                    utils.is_in_or_equal(abs_path, allowed_path)
-                    for allowed_path in blocks.allowed_paths
-                )
+                utils.is_in_or_equal(abs_path, allowed_path)
+                for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents
 

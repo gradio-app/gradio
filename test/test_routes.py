@@ -397,8 +397,7 @@ class TestRoutes:
 class TestGeneratorRoutes:
     def test_generator(self):
         def generator(string):
-            for char in string:
-                yield char
+            yield from string
 
         io = Interface(generator, "text", "text")
         app, _, _ = io.queue().launch(prevent_thread_lock=True)

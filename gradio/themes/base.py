@@ -5,7 +5,7 @@ import re
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Dict, Iterable
+from typing import Iterable
 
 import huggingface_hub
 import requests
@@ -108,7 +108,7 @@ class ThemeClass:
         return schema
 
     @classmethod
-    def load(cls, path: str) -> "ThemeClass":
+    def load(cls, path: str) -> ThemeClass:
         """Load a theme from a json file.
 
         Parameters:
@@ -118,7 +118,7 @@ class ThemeClass:
             return cls.from_dict(json.load(fp, object_hook=fonts.as_font))
 
     @classmethod
-    def from_dict(cls, theme: Dict[str, Dict[str, str]]) -> "ThemeClass":
+    def from_dict(cls, theme: dict[str, dict[str, str]]) -> ThemeClass:
         """Create a theme instance from a dictionary representation.
 
         Parameters:

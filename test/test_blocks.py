@@ -279,8 +279,7 @@ class TestBlocksMethods:
             return 42
 
         def generator_function():
-            for index in range(10):
-                yield index
+            yield from range(10)
 
         with gr.Blocks() as demo:
 
@@ -670,8 +669,7 @@ class TestCallFunction:
     @pytest.mark.asyncio
     async def test_call_generator(self):
         def generator(x):
-            for i in range(x):
-                yield i
+            yield from range(x)
 
         with gr.Blocks() as demo:
             inp = gr.Number()

@@ -27,11 +27,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Generator,
-    List,
-    Tuple,
-    Type,
     TypeVar,
     Union,
 )
@@ -104,10 +100,10 @@ def get_local_ip_address() -> str:
     return ip_address
 
 
-def initiated_analytics(data: Dict[str, Any]) -> None:
+def initiated_analytics(data: dict[str, Any]) -> None:
     data.update({"ip_address": get_local_ip_address()})
 
-    def initiated_analytics_thread(data: Dict[str, Any]) -> None:
+    def initiated_analytics_thread(data: dict[str, Any]) -> None:
         try:
             requests.post(
                 f"{analytics_url}gradio-initiated-analytics/", data=data, timeout=5
@@ -118,10 +114,10 @@ def initiated_analytics(data: Dict[str, Any]) -> None:
     threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
 
 
-def launch_analytics(data: Dict[str, Any]) -> None:
+def launch_analytics(data: dict[str, Any]) -> None:
     data.update({"ip_address": get_local_ip_address()})
 
-    def launch_analytics_thread(data: Dict[str, Any]) -> None:
+    def launch_analytics_thread(data: dict[str, Any]) -> None:
         try:
             requests.post(
                 f"{analytics_url}gradio-launched-analytics/", data=data, timeout=5
@@ -132,7 +128,7 @@ def launch_analytics(data: Dict[str, Any]) -> None:
     threading.Thread(target=launch_analytics_thread, args=(data,)).start()
 
 
-def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
+def launched_telemetry(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
         [],
         [],
@@ -180,7 +176,7 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     data.update(additional_data)
     data.update({"ip_address": get_local_ip_address()})
 
-    def launched_telemtry_thread(data: Dict[str, Any]) -> None:
+    def launched_telemtry_thread(data: dict[str, Any]) -> None:
         try:
             requests.post(
                 f"{analytics_url}gradio-launched-telemetry/", data=data, timeout=5
@@ -191,10 +187,10 @@ def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
     threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
 
 
-def integration_analytics(data: Dict[str, Any]) -> None:
+def integration_analytics(data: dict[str, Any]) -> None:
     data.update({"ip_address": get_local_ip_address()})
 
-    def integration_analytics_thread(data: Dict[str, Any]) -> None:
+    def integration_analytics_thread(data: dict[str, Any]) -> None:
         try:
             requests.post(
                 f"{analytics_url}gradio-integration-analytics/", data=data, timeout=5
@@ -213,7 +209,7 @@ def error_analytics(message: str) -> None:
     """
     data = {"ip_address": get_local_ip_address(), "error": message}
 
-    def error_analytics_thread(data: Dict[str, Any]) -> None:
+    def error_analytics_thread(data: dict[str, Any]) -> None:
         try:
             requests.post(
                 f"{analytics_url}gradio-error-analytics/", data=data, timeout=5
@@ -320,7 +316,7 @@ def launch_counter() -> None:
         pass
 
 
-def get_default_args(func: Callable) -> List[Any]:
+def get_default_args(func: Callable) -> list[Any]:
     signature = inspect.signature(func)
     return [
         v.default if v.default is not inspect.Parameter.empty else None
@@ -329,7 +325,7 @@ def get_default_args(func: Callable) -> List[Any]:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: Dict, config2: Dict, root_keys: Tuple = ("mode",)
+    config1: dict, config2: dict, root_keys: tuple = ("mode",)
 ):
     """Allows you to test if two different Blocks configs produce the same demo.
 
@@ -382,7 +378,7 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
+def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
 
@@ -400,7 +396,7 @@ def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
     return output
 
 
-def delete_none(_dict: Dict, skip_value: bool = False) -> Dict:
+def delete_none(_dict: dict, skip_value: bool = False) -> dict:
     """
     Delete keys whose values are None from a dictionary
     """
@@ -412,14 +408,14 @@ def delete_none(_dict: Dict, skip_value: bool = False) -> Dict:
     return _dict
 
 
-def resolve_singleton(_list: List[Any] | Any) -> Any:
+def resolve_singleton(_list: list[Any] | Any) -> Any:
     if len(_list) == 1:
         return _list[0]
     else:
         return _list
 
 
-def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockContext]:
+def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockContext]:
     """
     Returns the component, template, or layout class with the given class name, or
     raises a ValueError if not found.
@@ -536,9 +532,9 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Type[BaseModel] | None = None,
+        validation_model: type[BaseModel] | None = None,
         validation_function: Union[Callable, None] = None,
-        exception_type: Type[Exception] = Exception,
+        exception_type: type[Exception] = Exception,
         raise_for_status: bool = False,
         client: httpx.AsyncClient | None = None,
         **kwargs,
@@ -565,7 +561,7 @@ class AsyncRequest:
         self._request = self._create_request(method, url, **kwargs)
         self.client_ = client or self.client
 
-    def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
+    def __await__(self) -> Generator[None, Any, AsyncRequest]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """
@@ -740,7 +736,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     return value
 
 
-def sanitize_list_for_csv(values: List[Any]) -> List[Any]:
+def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     """
     Sanitizes a list of values (or a list of list of values) that is being written to a
     CSV file to prevent CSV injection attacks.
@@ -756,7 +752,7 @@ def sanitize_list_for_csv(values: List[Any]) -> List[Any]:
     return sanitized_values
 
 
-def append_unique_suffix(name: str, list_of_names: List[str]):
+def append_unique_suffix(name: str, list_of_names: list[str]):
     """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
     set_of_names: set[str] = set(list_of_names)  # for O(1) lookup
     if name not in set_of_names:
@@ -815,8 +811,8 @@ def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
 
 
 def get_cancel_function(
-    dependencies: List[Dict[str, Any]]
-) -> Tuple[Callable, List[int]]:
+    dependencies: list[dict[str, Any]]
+) -> tuple[Callable, list[int]]:
     fn_to_comp = {}
     for dep in dependencies:
         if Context.root_block:
@@ -845,7 +841,7 @@ def get_type_hints(fn):
     return {}
 
 
-def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
+def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch

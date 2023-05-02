@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Iterator
 
 import anyio
 import requests
@@ -56,7 +56,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
     from gradio.components import Component
 
-BUILT_IN_THEMES: Dict[str, Theme] = {
+BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
     for t in [
         themes.Base(),
@@ -74,7 +74,7 @@ class Block:
         *,
         render: bool = True,
         elem_id: str | None = None,
-        elem_classes: List[str] | str | None = None,
+        elem_classes: list[str] | str | None = None,
         visible: bool = True,
         root_url: str | None = None,  # URL that is prepended to all file paths
         _skip_init_processing: bool = False,  # Used for loading from Spaces
@@ -145,15 +145,15 @@ class Block:
             else self.__class__.__name__.lower()
         )
 
-    def get_expected_parent(self) -> Type[BlockContext] | None:
+    def get_expected_parent(self) -> type[BlockContext] | None:
         return None
 
     def set_event_trigger(
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | Set[Component] | None,
-        outputs: Component | List[Component] | None,
+        inputs: Component | list[Component] | set[Component] | None,
+        outputs: Component | list[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -164,12 +164,12 @@ class Block:
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        cancels: List[int] | None = None,
+        cancels: list[int] | None = None,
         every: float | None = None,
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
-    ) -> Tuple[Dict[str, Any], int]:
+    ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -295,11 +295,11 @@ class Block:
 
     @staticmethod
     @abstractmethod
-    def update(**kwargs) -> Dict:
+    def update(**kwargs) -> dict:
         return {}
 
     @classmethod
-    def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+    def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
         generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
@@ -318,7 +318,7 @@ class BlockContext(Block):
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
         """
-        self.children: List[Block] = []
+        self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
@@ -368,8 +368,8 @@ class BlockFunction:
     def __init__(
         self,
         fn: Callable | None,
-        inputs: List[Component],
-        outputs: List[Component],
+        inputs: list[Component],
+        outputs: list[Component],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
@@ -405,7 +405,7 @@ class class_or_instancemethod(classmethod):  # noqa: N801
         return descr_get(instance, type_)
 
 
-def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
+def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -433,8 +433,8 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
 
 
 def convert_component_dict_to_list(
-    outputs_ids: List[int], predictions: Dict
-) -> List | Dict:
+    outputs_ids: list[int], predictions: dict
+) -> list | dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
     the outputs_ids and including every output component. Leaves other types of dictionaries unchanged.
@@ -459,7 +459,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-def get_api_info(config: Dict, serialize: bool = True):
+def get_api_info(config: dict, serialize: bool = True):
     """
     Gets the information needed to generate the API docs from a Blocks config.
     Parameters:
@@ -662,8 +662,8 @@ class Blocks(BlockContext):
         if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
-        self.blocks: Dict[int, Block] = {}
-        self.fns: List[BlockFunction] = []
+        self.blocks: dict[int, Block] = {}
+        self.fns: list[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
 
@@ -713,7 +713,7 @@ class Blocks(BlockContext):
     def from_config(
         cls,
         config: dict,
-        fns: List[Callable],
+        fns: list[Callable],
         root_url: str | None = None,
     ) -> Blocks:
         """
@@ -727,7 +727,7 @@ class Blocks(BlockContext):
         config = copy.deepcopy(config)
         components_config = config["components"]
         theme = config.get("theme", "default")
-        original_mapping: Dict[int, Block] = {}
+        original_mapping: dict[int, Block] = {}
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -972,9 +972,9 @@ class Blocks(BlockContext):
     async def call_function(
         self,
         fn_index: int,
-        processed_input: List[Any],
+        processed_input: list[Any],
         iterator: Iterator[Any] | None = None,
-        requests: routes.Request | List[routes.Request] | None = None,
+        requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
     ):
@@ -1053,7 +1053,7 @@ class Blocks(BlockContext):
             "iterator": iterator,
         }
 
-    def serialize_data(self, fn_index: int, inputs: List[Any]) -> List[Any]:
+    def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         processed_input = []
 
@@ -1067,7 +1067,7 @@ class Blocks(BlockContext):
 
         return processed_input
 
-    def deserialize_data(self, fn_index: int, outputs: List[Any]) -> List[Any]:
+    def deserialize_data(self, fn_index: int, outputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         predictions = []
 
@@ -1083,7 +1083,7 @@ class Blocks(BlockContext):
 
         return predictions
 
-    def validate_inputs(self, fn_index: int, inputs: List[Any]):
+    def validate_inputs(self, fn_index: int, inputs: list[Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1121,7 +1121,7 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
+    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1142,7 +1142,7 @@ Received inputs:
             processed_input = inputs
         return processed_input
 
-    def validate_outputs(self, fn_index: int, predictions: Any | List[Any]):
+    def validate_outputs(self, fn_index: int, predictions: Any | list[Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1179,7 +1179,7 @@ Received outputs:
             )
 
     def postprocess_data(
-        self, fn_index: int, predictions: List | Dict, state: Dict[int, Any]
+        self, fn_index: int, predictions: list | dict, state: dict[int, Any]
     ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
@@ -1234,13 +1234,13 @@ Received outputs:
     async def process_api(
         self,
         fn_index: int,
-        inputs: List[Any],
-        state: Dict[int, Any],
-        request: routes.Request | List[routes.Request] | None = None,
-        iterators: Dict[int, Any] | None = None,
+        inputs: list[Any],
+        state: dict[int, Any],
+        request: routes.Request | list[routes.Request] | None = None,
+        iterators: dict[int, Any] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
@@ -1388,8 +1388,8 @@ Received outputs:
     def load(
         self_or_cls,  # noqa: N805
         fn: Callable | None = None,
-        inputs: List[Component] | None = None,
-        outputs: List[Component] | None = None,
+        inputs: list[Component] | None = None,
+        outputs: list[Component] | None = None,
         api_name: str | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
@@ -1406,7 +1406,7 @@ Received outputs:
         api_key: str | None = None,
         alias: str | None = None,
         **kwargs,
-    ) -> Blocks | Dict[str, Any] | None:
+    ) -> Blocks | dict[str, Any] | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
@@ -1564,7 +1564,7 @@ Received outputs:
         debug: bool = False,
         enable_queue: bool | None = None,
         max_threads: int = 40,
-        auth: Callable | Tuple[str, str] | List[Tuple[str, str]] | None = None,
+        auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
         show_error: bool = False,
@@ -1581,11 +1581,11 @@ Received outputs:
         ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
-        file_directories: List[str] | None = None,
-        allowed_paths: List[str] | None = None,
-        blocked_paths: List[str] | None = None,
+        file_directories: list[str] | None = None,
+        allowed_paths: list[str] | None = None,
+        blocked_paths: list[str] | None = None,
         _frontend: bool = True,
-    ) -> Tuple[FastAPI, str, str]:
+    ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
