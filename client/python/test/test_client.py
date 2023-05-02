@@ -133,7 +133,7 @@ class TestPredictionsFromSpaces:
     def test_break_in_loop_if_error(self, calculator_demo):
         with connect(calculator_demo) as client:
             job = client.submit("foo", "add", 4, fn_index=0)
-            output = [o for o in job]
+            output = list(job)
             assert output == []
 
     @pytest.mark.flaky

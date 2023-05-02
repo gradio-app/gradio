@@ -15,7 +15,6 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
@@ -732,6 +731,8 @@ class TestPlot:
         """
 
         def plot(num):
+            import matplotlib.pyplot as plt
+
             fig = plt.figure()
             plt.plot(range(num), range(num))
             return fig
@@ -746,8 +747,11 @@ class TestPlot:
         """
         postprocess
         """
-        fig = plt.figure()
-        plt.plot([1, 2, 3], [1, 2, 3])
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(fig)
         assert component.get_config().get("value") is not None
