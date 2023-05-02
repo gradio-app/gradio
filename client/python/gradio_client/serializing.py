@@ -13,6 +13,13 @@ serializer_types = json.load(open(Path(__file__).parent / "types.json"))
 
 
 class Serializable:
+    def serialized_info(self):
+        """
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        """
+        return self.api_info()
+
     def api_info(self) -> Dict[str, List[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
@@ -124,6 +131,9 @@ class NumberSerializable(Serializable):
 class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is serialized to a filepath."""
 
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath or URL to image"}
+
     def api_info(self) -> Dict[str, List[str]]:
         return serializer_types["ImgSerializable"]
 
@@ -175,6 +185,9 @@ class ImgSerializable(Serializable):
 
 class FileSerializable(Serializable):
     """Expects a dict with base64 representation of object as input/output which is serialized to a filepath."""
+
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath or URL to file"}
 
     def api_info(self) -> Dict[str, List[str]]:
         return serializer_types["FileSerializable"]
@@ -292,6 +305,9 @@ class FileSerializable(Serializable):
 
 
 class VideoSerializable(FileSerializable):
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath or URL to video file"}
+
     def api_info(self) -> Dict[str, List[str]]:
         return serializer_types["FileSerializable"]
 
@@ -328,6 +344,9 @@ class VideoSerializable(FileSerializable):
 
 
 class JSONSerializable(Serializable):
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath to JSON file"}
+
     def api_info(self) -> Dict[str, List[str]]:
         return serializer_types["JSONSerializable"]
 
@@ -375,8 +394,14 @@ class JSONSerializable(Serializable):
 
 
 class GallerySerializable(Serializable):
+    def serialized_info(self):
+        return {
+            "type": "str",
+            "description": "path to directory with images and a file associating images with captions called captions.json",
+        }
+
     def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["JSONSerializable"]
+        return serializer_types["GallerySerializable"]
 
     def example_inputs(self) -> Dict[str, Any]:
         return {

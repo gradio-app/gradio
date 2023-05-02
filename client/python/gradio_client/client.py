@@ -30,7 +30,13 @@ from typing_extensions import Literal
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import Serializable
-from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
+from gradio_client.utils import (
+    Communicator,
+    JobStatus,
+    Status,
+    StatusUpdate,
+    json_schema_to_python_type,
+)
 
 set_documentation_group("py-client")
 
@@ -393,10 +399,7 @@ class Client:
             }
 
         """
-        if self.serialize:
-            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
-        else:
-            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+        api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         r = requests.get(api_info_url, headers=self.headers)
 
         # Versions of Gradio older than 3.26 returned format of the API info
@@ -409,7 +412,7 @@ class Client:
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
-                json={"serialize": self.serialize, "config": json.dumps(self.config)},
+                json={"config": json.dumps(self.config)},
             )
             if fetch.ok:
                 info = fetch.json()["api"]
@@ -424,11 +427,34 @@ class Client:
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
         for api_name, endpoint_info in info["named_endpoints"].items():
+            if self.serialize:
+                inferred_fn_index = self._infer_fn_index(api_name, None)
+                for v, s in zip(
+                    endpoint_info["parameters"],
+                    self.endpoints[inferred_fn_index].serializers,
+                ):
+                    v["type"] = s.serialized_info()
+                for v, s in zip(
+                    endpoint_info["returns"],
+                    self.endpoints[inferred_fn_index].deserializers,
+                ):
+                    v["type"] = s.serialized_info()
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
             for fn_index, endpoint_info in info["unnamed_endpoints"].items():
+                if self.serialize:
+                    for v, s in zip(
+                        endpoint_info["parameters"],
+                        self.endpoints[int(fn_index)].serializers,
+                    ):
+                        v["type"] = s.serialized_info()
+                    for v, s in zip(
+                        endpoint_info["returns"],
+                        self.endpoints[int(fn_index)].deserializers,
+                    ):
+                        v["type"] = s.serialized_info()
                 # When loading from json, the fn_indices are read as strings
                 # because json keys can only be strings
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
@@ -473,13 +499,25 @@ class Client:
         human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
             for info in endpoints_info["parameters"]:
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
+                desc = (
+                    f" ({info['type']['description']})"
+                    if "description" in info["type"]
+                    else ""
+                )
+                type_ = json_schema_to_python_type(info["type"])
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
         if endpoints_info["returns"]:
             for info in endpoints_info["returns"]:
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
+                desc = (
+                    f" ({info['type']['description']})"
+                    if "description" in info["type"]
+                    else ""
+                )
+                type_ = json_schema_to_python_type(info["type"])
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
         else:
             human_info += "     - None\n"
 

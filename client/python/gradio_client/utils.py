@@ -486,3 +486,61 @@ def synchronize_async(func: Callable, *args, **kwargs) -> Any:
         **kwargs:
     """
     return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)  # type: ignore
+
+
+class APIInfoParseError(ValueError):
+    pass
+
+
+def get_type(schema: Dict):
+    if "type" in schema:
+        return schema["type"]
+    elif schema.get("oneOf"):
+        return "oneOf"
+    elif schema.get("anyOf"):
+        return "anyOf"
+    else:
+        raise APIInfoParseError(f"Cannot parse type for {schema}")
+
+
+def json_schema_to_python_type(schema: Any) -> str:
+    """Convert the json schema into a python type hint"""
+    type_ = get_type(schema)
+    if type_ == {}:
+        if "json" in schema["description"]:
+            return "Dict[Any, Any]"
+        else:
+            return "Any"
+    elif type_ == "null":
+        return "None"
+    elif type_ == "integer":
+        return "int"
+    elif type_ == "string":
+        return "str"
+    elif type_ == "boolean":
+        return "bool"
+    elif type_ == "number":
+        return "Union[int, float]"
+    elif type_ == "array":
+        items = schema.get("items")
+        if "prefixItems" in items:
+            elements = ", ".join(
+                [json_schema_to_python_type(i) for i in items["prefixItems"]]
+            )
+            return f"Tuple[{elements}]"
+        else:
+            elements = json_schema_to_python_type(items)
+            return f"List[{elements}]"
+    elif type_ == "object":
+        des = ", ".join(
+            [
+                f"{n}: {json_schema_to_python_type(v)} ({v.get('description')})"
+                for n, v in schema["properties"].items()
+            ]
+        )
+        return f"Dict({des})"
+    elif type_ in ["oneOf", "anyOf"]:
+        desc = ", ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        return f"Union[{desc}]"
+    else:
+        raise APIInfoParseError(f"Cannot parse schema {schema}")
