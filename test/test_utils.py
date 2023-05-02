@@ -40,6 +40,7 @@ from gradio.utils import (
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
+    tex2svg,
     validate_url,
     version_check,
 )
@@ -653,3 +654,16 @@ class TestCheckFunctionInputsMatch:
 
             for x in test_objs:
                 check_function_inputs_match(x, [None], False)
+
+
+def test_tex2svg_preserves_matplotlib_backend():
+    import matplotlib
+
+    matplotlib.use("svg")
+    tex2svg("1+1=2")
+    assert matplotlib.get_backend() == "svg"
+    with pytest.raises(
+        Exception  # specifically a pyparsing.ParseException but not important here
+    ):
+        tex2svg("$$$1+1=2$$$")
+    assert matplotlib.get_backend() == "svg"
