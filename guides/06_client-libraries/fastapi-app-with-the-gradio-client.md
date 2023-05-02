@@ -2,9 +2,7 @@
 
 Tags: CLIENT, API, WEB APP
 
-In this blog post, we will demonstrate how to use the `gradio_client` Python library, which enables developers to make requests to a Gradio app programmatically, within a FastAPI web app. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music.
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/acapellify.png)
+In this blog post, we will demonstrate how to use the `gradio_client` [Python library](getting-started-with-the-python-client/), which enables developers to make requests to a Gradio app programmatically, by creating an example FastAPI web app. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music. It will also display a gallery of generated videos.
 
 
 **Prequisites**
@@ -13,20 +11,27 @@ Before we begin, make sure you are running Python 3.9 or later, and have the fol
 
 * `gradio_client`
 * `fastapi`
-* `ffmpeg-python`
 * `uvicorn`
 
 You can install these libraries from `pip`: 
 
 ```bash
-$ pip install gradio_client fastapi ffmpeg-python uvicorn
+$ pip install gradio_client fastapi uvicorn
 ```
+
+You will also need to have ffmpeg installed. You can check to see if you already have ffmpeg by running in your terminal:
+
+```bash
+$ ffmpeg version
+```
+
+Otherwise, install ffmpeg [by following these instructions](https://www.hostinger.com/tutorials/how-to-install-ffmpeg).
 
 ## Step 1: Write the Video Processing Function
 
 Let's start with what seems like the most complex bit -- using machine learning to remove the music from a video. 
 
-Luckily for us, there's an existing Space we can use to make this process easier: [https://huggingface.co/spaces/abidlabs/music-separation](https://huggingface.co/spaces/abidlabs/music-separation). This Space takes an audio file and produces two separate audio files: one with the instrumental music and one with all other sounds in the original clip. Perfect! 
+Luckily for us, there's an existing Space we can use to make this process easier: [https://huggingface.co/spaces/abidlabs/music-separation](https://huggingface.co/spaces/abidlabs/music-separation). This Space takes an audio file and produces two separate audio files: one with the instrumental music and one with all other sounds in the original clip. Perfect to use with our client! 
 
 Open a new Python file, say `main.py`, and start by importing the `Client` class from `gradio_client` and connecting it to this Space:
 
@@ -40,7 +45,7 @@ def acapellify(audio_path):
     return result[0]
 ```
 
-That's all the code that's needed -- notice that we return the first of the two outputs from the API endpoint (which is the audio file without the instrumental music). 
+That's all the code that's needed -- notice that the API endpoints returns two audio files (one without the music, and one with just the music) in a list, and so we just return the first element of the list. 
 
 ---
 
@@ -133,11 +138,11 @@ Finally, we create the frontend of our web application. First, we create a folde
 Write the following as the contents of `home.html`:
 
 ```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Video Gallery</title>
-    <style>
+&lt;!DOCTYPE html>
+&lt;html>
+  &lt;head>
+    &lt;title>Video Gallery&lt;/title>
+    &lt;style>
       body {
         font-family: sans-serif;
         margin: 0;
@@ -195,32 +200,32 @@ Write the following as the contents of `home.html`:
       .file-name {
         margin-left: 10px;
       }
-    </style>
-  </head>
-  <body>
-    <h1>Video Gallery</h1>
+    &lt;/style>
+  &lt;/head>
+  &lt;body>
+    &lt;h1>Video Gallery&lt;/h1>
     {% if videos %}
-      <div class="gallery">
+      &lt;div class="gallery">
         {% for video in videos %}
-          <div class="video">
-            <video controls>
-              <source src="{{ url_for('static', path=video) }}" type="video/mp4">
+          &lt;div class="video">
+            &lt;video controls>
+              &lt;source src="{{ url_for('static', path=video) }}" type="video/mp4">
               Your browser does not support the video tag.
-            </video>
-            <p>{{ video }}</p>
-          </div>
+            &lt;/video>
+            &lt;p>{{ video }}&lt;/p>
+          &lt;/div>
         {% endfor %}
-      </div>
+      &lt;/div>
     {% else %}
-      <p>No videos uploaded yet.</p>
+      &lt;p>No videos uploaded yet.&lt;/p>
     {% endif %}
-    <form action="/uploadvideo/" method="post" enctype="multipart/form-data">
-      <label for="video-upload" class="upload-btn">Choose video file</label>
-      <input type="file" name="video" id="video-upload">
-      <span class="file-name"></span>
-      <button type="submit" class="upload-btn">Upload</button>
-    </form>
-    <script>
+    &lt;form action="/uploadvideo/" method="post" enctype="multipart/form-data">
+      &lt;label for="video-upload" class="upload-btn">Choose video file&lt;/label>
+      &lt;input type="file" name="video" id="video-upload">
+      &lt;span class="file-name">&lt;/span>
+      &lt;button type="submit" class="upload-btn">Upload&lt;/button>
+    &lt;/form>
+    &lt;script>
       // Display selected file name in the form
       const fileUpload = document.getElementById("video-upload");
       const fileName = document.querySelector(".file-name");
@@ -228,10 +233,9 @@ Write the following as the contents of `home.html`:
       fileUpload.addEventListener("change", (e) => {
         fileName.textContent = e.target.files[0].name;
       });
-    </script>
-  </body>
-</html>
-
+    &lt;/script>
+  &lt;/body>
+&lt;/html>
 ```
 
 ## Step 4: Run your FastAPI app
