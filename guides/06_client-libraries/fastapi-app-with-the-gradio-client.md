@@ -245,7 +245,7 @@ $ uvicorn main:app
 
 You should see an output that looks like this:
 
-```
+```csv
 Loaded as API: https://abidlabs-music-separation.hf.space ✔
 INFO:     Started server process [1360]
 INFO:     Waiting for application startup.
