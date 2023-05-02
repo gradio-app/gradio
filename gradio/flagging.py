@@ -418,7 +418,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             row.append(Path(deserialized).name)
 
             # If component is eligible for a preview, add the URL of the file
-            if isinstance(component, tuple(FILE_PREVIEW_TYPES)):
+            if isinstance(component, tuple(FILE_PREVIEW_TYPES)):  # type: ignore
                 for _component, _type in FILE_PREVIEW_TYPES.items():
                     if isinstance(component, _component):
                         features[label + " file"] = {"_type": _type}
