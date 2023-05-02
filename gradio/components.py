@@ -843,12 +843,9 @@ class Slider(
         self.cleared_value = self.value
 
     def api_info(self) -> Dict[str, Tuple[str, str]]:
-        description = f"numeric value between {self.minimum} and {self.maximum}"
         return {
-            "raw_input": ("int | float", description),
-            "raw_output": ("int | float", description),
-            "serialized_input": ("int | float", description),
-            "serialized_output": ("int | float", description),
+            "type": "number",
+            "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
     def example_inputs(self) -> Dict[str, Any]:
@@ -1486,17 +1483,14 @@ class Dropdown(
 
     def api_info(self) -> Dict[str, Tuple[str, str]]:
         if self.multiselect:
-            type = "List[str]"
-            description = f"List of options from: {self.choices}"
+            type = {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": f"List of options from: {self.choices}",
+            }
         else:
-            type = "str"
-            description = f"Option from: {self.choices}"
-        return {
-            "raw_input": (type, description),
-            "raw_output": (type, description),
-            "serialized_input": (type, description),
-            "serialized_output": (type, description),
-        }
+            type = {"type": "string", "description": f"Option from: {self.choices}"}
+        return type
 
     def example_inputs(self) -> Dict[str, Any]:
         if self.multiselect:
