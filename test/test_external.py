@@ -190,16 +190,16 @@ class TestLoadInterface:
     def test_sentiment_model(self):
         io = gr.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
-            output = io("I am happy, I love you")
-            assert json.load(open(output))["label"] == "POSITIVE"
+            with open(io("I am happy, I love you")) as f:
+                assert json.load(f)["label"] == "POSITIVE"
         except TooManyRequestsError:
             pass
 
     def test_image_classification_model(self):
         io = gr.Blocks.load(name="models/google/vit-base-patch16-224")
         try:
-            output = io("gradio/test_data/lion.jpg")
-            assert json.load(open(output))["label"] == "lion"
+            with open(io("gradio/test_data/lion.jpg")) as f:
+                assert json.load(f)["label"] == "lion"
         except TooManyRequestsError:
             pass
 
@@ -214,9 +214,9 @@ class TestLoadInterface:
     def test_numerical_to_label_space(self):
         io = gr.load("spaces/abidlabs/titanic-survival")
         try:
-            output = io("male", 77, 10)
-            assert json.load(open(output))["label"] == "Perishes"
             assert io.theme.name == "soft"
+            with open(io("male", 77, 10)) as f:
+                assert json.load(f)["label"] == "Perishes"
         except TooManyRequestsError:
             pass
 

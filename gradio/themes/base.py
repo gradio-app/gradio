@@ -114,8 +114,8 @@ class ThemeClass:
         Parameters:
             path: The filepath to read.
         """
-        theme = json.load(open(path), object_hook=fonts.as_font)
-        return cls.from_dict(theme)
+        with open(path) as fp:
+            return cls.from_dict(json.load(fp, object_hook=fonts.as_font))
 
     @classmethod
     def from_dict(cls, theme: Dict[str, Dict[str, str]]) -> "ThemeClass":
@@ -142,8 +142,7 @@ class ThemeClass:
         Parameters:
             filename: The path to write the theme too
         """
-        as_dict = self.to_dict()
-        json.dump(as_dict, open(Path(filename), "w"), cls=fonts.FontEncoder)
+        Path(filename).write_text(json.dumps(self.to_dict(), cls=fonts.FontEncoder))
 
     @classmethod
     def from_hub(cls, repo_name: str, hf_token: str | None = None):
@@ -279,7 +278,7 @@ class ThemeClass:
             )
             readme_file.write(textwrap.dedent(readme_content))
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
-            contents = open(str(Path(__file__).parent / "app.py")).read()
+            contents = (Path(__file__).parent / "app.py").read_text()
             contents = re.sub(
                 r"theme=gr.themes.Default\(\)",
                 f"theme='{space_id}'",

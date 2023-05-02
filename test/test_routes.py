@@ -56,9 +56,8 @@ class TestRoutes:
         assert response.status_code == 200
 
     def test_upload_path(self, test_client):
-        response = test_client.post(
-            "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
-        )
+        with open("test/test_files/alphabet.txt") as f:
+            response = test_client.post("/upload", files={"files": f})
         assert response.status_code == 200
         file = response.json()[0]
         assert "alphabet" in file
@@ -72,9 +71,8 @@ class TestRoutes:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         try:
-            response = test_client.post(
-                "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
-            )
+            with open("test/test_files/alphabet.txt") as f:
+                response = test_client.post("/upload", files={"files": f})
             assert response.status_code == 200
             file = response.json()[0]
             assert "alphabet" in file

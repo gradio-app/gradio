@@ -48,8 +48,8 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        output = client.predict("male", 77, 10, api_name="/predict")
-        assert json.load(open(output))["label"] == "Perishes"
+        with open(client.predict("male", 77, 10, api_name="/predict")) as f:
+            assert json.load(f)["label"] == "Perishes"
         with pytest.raises(
             ValueError,
             match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
@@ -258,7 +258,8 @@ class TestPredictionsFromSpaces:
                 f.write("Hello from private space!")
 
             output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
-            assert open(output).read() == "Hello from private space!"
+            with open(output) as f:
+                assert f.read() == "Hello from private space!"
             upload.assert_called_once()
 
         with patch.object(
@@ -267,24 +268,28 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-            output = client.submit(f.name, api_name="/upload_btn").result()
-            assert open(output).read() == "Hello from private space!"
+            with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
+                assert f.read() == "Hello from private space!"
             upload.assert_called_once()
 
         with patch.object(
             client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
+            # `delete=False` is required for Windows compat
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
-
                     f1.write("File1")
                     f2.write("File2")
-
-            output = client.submit(
-                3, [f1.name, f2.name], "hello", api_name="/upload_multiple"
+            r1, r2 = client.submit(
+                3,
+                [f1.name, f2.name],
+                "hello",
+                api_name="/upload_multiple",
             ).result()
-            assert open(output[0]).read() == "File1"
-            assert open(output[1]).read() == "File2"
+            with open(r1) as f:
+                assert f.read() == "File1"
+            with open(r2) as f:
+                assert f.read() == "File2"
             upload.assert_called_once()
 
     @pytest.mark.flaky
