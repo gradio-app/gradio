@@ -998,9 +998,6 @@ def get_serializer_name(block: Block) -> str | None:
 
 
 def highlight_code(code, name, attrs):
-    if attrs:
-        pass
-
     try:
         lexer = get_lexer_by_name(name)
     except:

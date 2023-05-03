@@ -224,7 +224,7 @@
 		margin-bottom: var(--spacing-xs);
 		border-radius: var(--radius-md);
 		background: var(--background-fill-primary);
-		padding: var(--size-1);
+		padding-left: var(--spacing-xxl);
 	}
 
 	/* Small screen */
