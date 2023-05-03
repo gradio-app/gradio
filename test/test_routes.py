@@ -217,7 +217,9 @@ class TestRoutes:
 
     def test_get_blocked_files(self):
         # Test that blocking a default Gradio file path works
-        with tempfile.NamedTemporaryFile(dir='.', suffix=".jpg", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            dir=".", suffix=".jpg", delete=False
+        ) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
                 prevent_thread_lock=True,
             )
@@ -225,8 +227,10 @@ class TestRoutes:
             file_response = client.get(f"/file={tmp_file.name}")
             assert file_response.status_code == 200
         os.remove(tmp_file.name)
-        
-        with tempfile.NamedTemporaryFile(dir='.', suffix=".jpg", delete=False) as tmp_file:
+
+        with tempfile.NamedTemporaryFile(
+            dir=".", suffix=".jpg", delete=False
+        ) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
                 prevent_thread_lock=True, blocked_files=[os.path.abspath(tmp_file.name)]
             )
@@ -237,7 +241,9 @@ class TestRoutes:
         os.remove(tmp_file.name)
 
         # Test that blocking a default Gradio directory works
-        with tempfile.NamedTemporaryFile(dir='.', suffix=".jpg", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            dir=".", suffix=".jpg", delete=False
+        ) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
                 prevent_thread_lock=True, blocked_files=[os.path.abspath(tmp_file.name)]
             )
@@ -246,7 +252,7 @@ class TestRoutes:
             file_response = client.get(f"/file={tmp_file.name}")
             assert file_response.status_code == 403
         os.remove(tmp_file.name)
-            
+
         # Test that blocking a directory works even if it's also allowed
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(

@@ -1623,7 +1623,7 @@ Received outputs:
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
             file_directories: This parameter has been renamed to `allowed_files`. It will be removed in a future version.
             allowed_files: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
-            blocked_files: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_files` and all other directories exposed by Gradio by default. 
+            blocked_files: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_files` and all other directories exposed by Gradio by default.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1685,12 +1685,15 @@ Received outputs:
         self.show_api = self.api_open if self.enable_queue else show_api
 
         if file_directories is not None:
-            warnings.warn("The `file_directories` parameter has been renamed to `allowed_files`. Please use that instead.", DeprecationWarning)
+            warnings.warn(
+                "The `file_directories` parameter has been renamed to `allowed_files`. Please use that instead.",
+                DeprecationWarning,
+            )
             if allowed_files is None:
                 allowed_files = file_directories
         self.allowed_files = allowed_files or []
         self.blocked_files = blocked_files or []
-        
+
         if not isinstance(self.allowed_files, list):
             raise ValueError("`allowed_files` must be a list of directories.")
         if not isinstance(self.blocked_files, list):
