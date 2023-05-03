@@ -224,7 +224,7 @@ class TestRoutes:
         file_response = client.get(f"/file={allowed_file.name}")
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
-        
+
         os.remove(allowed_file.name)
 
     def test_get_blocked_paths(self):
