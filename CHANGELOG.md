@@ -26,6 +26,7 @@ No changes to highlight.
 ## Breaking Changes:
 
 - `gr.HuggingFaceDatasetSaver` behavior changed internally. The `flagging/` folder is not a `.git/` folder anymore when using it. `organization` parameter is now ignored in favor of passing a full dataset id as `dataset_name` (e.g. `"username/my-dataset"`).
+- New lines (`\n`) are not automatically converted to `<br>` in `gr.Markdown()` or  `gr.Chatbot()`. For multiple new lines, a developer must add multiple `<br>` tags.
 
 ## Full Changelog:
 
