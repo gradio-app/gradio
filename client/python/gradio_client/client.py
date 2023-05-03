@@ -412,7 +412,8 @@ class Client:
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
-                json={"config": json.dumps(self.config)},
+                # Serialize has no effect
+                json={"config": json.dumps(self.config), "serialize": self.serialize},
             )
             if fetch.ok:
                 info = fetch.json()["api"]

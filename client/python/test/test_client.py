@@ -14,7 +14,7 @@ import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
-from gradio_client.serializing import SimpleSerializable
+from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
@@ -485,22 +485,22 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "Sex",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
                         },
                         {
                             "label": "Age",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
                         },
                         {
                             "label": "Fare (british pounds)",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
                         },
@@ -508,8 +508,11 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "filepath to JSON file",
+                            "type": {
+                                "type": "string",
+                                "description": "filepath to JSON file",
+                            },
+                            "has_serialized_info": True,
                             "component": "Label",
                         }
                     ],
@@ -518,22 +521,22 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "Sex",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
                         },
                         {
                             "label": "Age",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
                         },
                         {
                             "label": "Fare (british pounds)",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
                         },
@@ -541,8 +544,11 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "filepath to JSON file",
+                            "type": {
+                                "type": "string",
+                                "description": "filepath to JSON file",
+                            },
+                            "has_serialized_info": True,
                             "component": "Label",
                         }
                     ],
@@ -551,22 +557,22 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "Sex",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
                         },
                         {
                             "label": "Age",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
                         },
                         {
                             "label": "Fare (british pounds)",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
                         },
@@ -574,8 +580,11 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "filepath to JSON file",
+                            "type": {
+                                "type": "string",
+                                "description": "filepath to JSON file",
+                            },
+                            "has_serialized_info": True,
                             "component": "Label",
                         }
                     ],
@@ -588,8 +597,7 @@ class TestAPIInfo:
     def test_serializable_in_mapping(self, calculator_demo):
         with connect(calculator_demo) as client:
             assert all(
-                isinstance(c, SimpleSerializable)
-                for c in client.endpoints[0].serializers
+                isinstance(c, Serializable) for c in client.endpoints[0].serializers
             )
 
     @pytest.mark.flaky
@@ -604,8 +612,8 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "x",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "has_serialized_info": False,
                             "component": "Textbox",
                             "example_input": "Howdy!",
                         }
@@ -613,8 +621,8 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "has_serialized_info": False,
                             "component": "Textbox",
                         }
                     ],
@@ -631,22 +639,22 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "num1",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Number",
                             "example_input": 5,
                         },
                         {
                             "label": "operation",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
                         },
                         {
                             "label": "num2",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Number",
                             "example_input": 5,
                         },
@@ -654,8 +662,8 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "has_serialized_info": False,
                             "component": "Number",
                         }
                     ],
