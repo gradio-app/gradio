@@ -100,7 +100,7 @@ class ListStringSerializable(Serializable):
 
     def api_info(self) -> Dict[str, Dict | bool]:
         return {
-            "info": serializer_types["ListStringSerializer"],
+            "info": serializer_types["ListStringSerializable"],
             "serialized_info": False,
         }
 
