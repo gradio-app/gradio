@@ -1208,8 +1208,9 @@ class Base(ThemeClass):
         self.chatbot_code_background_color = chatbot_code_background_color or getattr(
             self, "chatbot_code_background_color", "*neutral_100"
         )
-        self.chatbot_code_background_color_dark = chatbot_code_background_color_dark or getattr(
-            self, "chatbot_code_background_color_dark", "*neutral_800"
+        self.chatbot_code_background_color_dark = (
+            chatbot_code_background_color_dark
+            or getattr(self, "chatbot_code_background_color_dark", "*neutral_800")
         )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
