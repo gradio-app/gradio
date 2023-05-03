@@ -34,6 +34,7 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client import utils as client_utils
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
@@ -112,9 +113,7 @@ class App(FastAPI):
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
-        self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
-        )
+        self.uploaded_file_dir = client_utils.get_temp_dir()
         super().__init__(**kwargs, docs_url=None, redoc_url=None)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:

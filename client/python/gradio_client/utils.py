@@ -271,11 +271,15 @@ async def get_pred_from_ws(
 ########################
 
 
+def get_temp_dir():
+    return os.environ.get("GRADIO_TEMP_DIR") or str(Path(tempfile.gettempdir()) / "gradio")
+
+
 def download_tmp_copy_of_file(
     url_path: str, hf_token: str | None = None, dir: str | None = None
 ) -> tempfile._TemporaryFileWrapper:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
+    dir = dir or get_temp_dir()
+    os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
     prefix = Path(url_path).stem
     suffix = Path(url_path).suffix
@@ -294,8 +298,8 @@ def download_tmp_copy_of_file(
 def create_tmp_copy_of_file(
     file_path: str, dir: str | None = None
 ) -> tempfile._TemporaryFileWrapper:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
+    dir = dir or get_temp_dir()
+    os.makedirs(dir, exist_ok=True)
     prefix = Path(file_path).stem
     suffix = Path(file_path).suffix
     file_obj = tempfile.NamedTemporaryFile(
@@ -394,8 +398,8 @@ def decode_base64_to_file(
     dir: str | Path | None = None,
     prefix: str | None = None,
 ):
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
+    dir = dir or get_temp_dir()
+    os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
     if file_path is not None and prefix is None:
         filename = Path(file_path).name
@@ -422,8 +426,8 @@ def decode_base64_to_file(
 
 
 def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = None):
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
+    dir = dir or get_temp_dir()
+    os.makedirs(dir, exist_ok=True)
 
     file_obj = tempfile.NamedTemporaryFile(
         delete=False, suffix=".json", dir=dir, mode="w+"
