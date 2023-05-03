@@ -502,7 +502,6 @@ def get_api_info(config: Dict, serialize: bool = True):
                 assert isinstance(serializer, serializing.Serializable)
                 info = serializer.api_info()
                 example = serializer.example_inputs()["raw"]
-            breakpoint()
             dependency_info["parameters"].append(
                 {
                     "label": label,
