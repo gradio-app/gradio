@@ -223,7 +223,7 @@
 		margin-top: var(--spacing-xs);
 		margin-bottom: var(--spacing-xs);
 		border-radius: var(--radius-md);
-		background: var(--background-fill-primary);
+		background: var(--chatbot-code-background-color);
 		padding-left: var(--spacing-xxl);
 	}
 

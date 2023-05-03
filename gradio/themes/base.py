@@ -568,6 +568,8 @@ class Base(ThemeClass):
         section_header_text_size=None,
         section_header_text_weight=None,
         # Component Atoms: These set the style for elements within components.
+        chatbot_code_background_color=None,
+        chatbot_code_background_color_dark=None,
         checkbox_background_color=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
@@ -800,6 +802,8 @@ class Base(ThemeClass):
             panel_border_width_dark: The border width of a panel in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
+            chatbot_code_background_color: The background color of code blocks in the chatbot.
+            chatbot_code_background_color_dark: The background color of code blocks in the chatbot in dark mode.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -1201,6 +1205,12 @@ class Base(ThemeClass):
             self, "section_header_text_weight", "400"
         )
         # Component Atoms
+        self.chatbot_code_background_color = chatbot_code_background_color or getattr(
+            self, "chatbot_code_background_color", "*neutral_100"
+        )
+        self.chatbot_code_background_color_dark = chatbot_code_background_color_dark or getattr(
+            self, "chatbot_code_background_color_dark", "*neutral_800"
+        )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
         )
