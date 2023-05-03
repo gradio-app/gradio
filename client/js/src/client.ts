@@ -154,6 +154,7 @@ export async function duplicate(
 			return client(`${user}/${space_name}`, options);
 		} else {
 			const duplicated_space = await response.json();
+			console.log(duplicated_space);
 			return client(duplicated_space.url, options);
 		}
 	} catch (e: any) {
