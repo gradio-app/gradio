@@ -2,7 +2,7 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
-	import './friendly.css';
+	import './manni.css';
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -218,6 +218,13 @@
 	}
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
+	}
+	.message-wrap > div :global(.highlight)  { 
+		background: var(--background-fill-primary);
+		border-radius: var(--radius-md);
+		padding: var(--size-1);
+		margin-bottom: var(--spacing-xs);
+		margin-top: var(--spacing-xs);
 	}
 
 	/* Small screen */

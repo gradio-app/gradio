@@ -998,9 +998,12 @@ def get_serializer_name(block: Block) -> str | None:
 
 def highlight_code(code, name, attrs):
     if attrs:
-        print(f"Ignoring {attrs=}")
+        pass
 
-    lexer = get_lexer_by_name(name)
+    try:
+        lexer = get_lexer_by_name(name)
+    except:
+        lexer = get_lexer_by_name("text")
     formatter = HtmlFormatter()
 
     return highlight(code, lexer, formatter)
