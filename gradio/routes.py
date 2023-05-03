@@ -309,7 +309,7 @@ class App(FastAPI):
                 (
                     utils.is_in(abs_path, blocked_path)
                     or abs_path == utils.abspath(blocked_path)
-                    for blocked_path in blocks.blocked_files
+                    for blocked_path in blocks.blocked_paths
                 )
             )
             if in_blocklist:
@@ -321,7 +321,7 @@ class App(FastAPI):
                 (
                     utils.is_in(abs_path, allowed_path)
                     or abs_path == utils.abspath(allowed_path)
-                    for allowed_path in blocks.allowed_files
+                    for allowed_path in blocks.allowed_paths
                 )
             )
             was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents

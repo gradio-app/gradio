@@ -192,7 +192,7 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
-    def test_get_allowed_files(self):
+    def test_get_allowed_paths(self):
         allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
@@ -207,7 +207,7 @@ class TestRoutes:
 
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True,
-            allowed_files=[os.path.dirname(allowed_file.name)],
+            allowed_paths=[os.path.dirname(allowed_file.name)],
         )
         client = TestClient(app)
 
@@ -215,7 +215,7 @@ class TestRoutes:
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
 
-    def test_get_blocked_files(self):
+    def test_get_blocked_paths(self):
         # Test that blocking a default Gradio file path works
         with tempfile.NamedTemporaryFile(
             dir=".", suffix=".jpg", delete=False
@@ -232,7 +232,7 @@ class TestRoutes:
             dir=".", suffix=".jpg", delete=False
         ) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
-                prevent_thread_lock=True, blocked_files=[os.path.abspath(tmp_file.name)]
+                prevent_thread_lock=True, blocked_paths=[os.path.abspath(tmp_file.name)]
             )
             client = TestClient(app)
 
@@ -245,7 +245,7 @@ class TestRoutes:
             dir=".", suffix=".jpg", delete=False
         ) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
-                prevent_thread_lock=True, blocked_files=[os.path.abspath(tmp_file.name)]
+                prevent_thread_lock=True, blocked_paths=[os.path.abspath(tmp_file.name)]
             )
             client = TestClient(app)
 
@@ -257,8 +257,8 @@ class TestRoutes:
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
             app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
                 prevent_thread_lock=True,
-                allowed_files=[os.path.dirname(tmp_file.name)],
-                blocked_files=[os.path.dirname(tmp_file.name)],
+                allowed_paths=[os.path.dirname(tmp_file.name)],
+                blocked_paths=[os.path.dirname(tmp_file.name)],
             )
             client = TestClient(app)
             file_response = client.get(f"/file={tmp_file.name}")
