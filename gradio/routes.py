@@ -14,6 +14,7 @@ import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
@@ -111,7 +112,9 @@ class App(FastAPI):
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
-        self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
+        self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
+            Path(tempfile.gettempdir()) / "gradio"
+        )
         super().__init__(**kwargs, docs_url=None, redoc_url=None)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
