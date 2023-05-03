@@ -200,6 +200,6 @@ In particular, Gradio apps grant users access to three kinds of files:
 
 * Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. 
 
-* Files that you explicitly allow via the `file_directories` parameter in `launch()`. In some cases, you may want to reference other files in your file system. The `file_directories` parameter allows you to pass in a list of additional directories you'd like to provide access to. (By default, there are no additional file directories).
+* Files that you explicitly allow via the `allowed_paths` parameter in `launch()`. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
-Users should NOT be able to access other arbitrary paths on the host.  
+Users should NOT be able to access other arbitrary paths on the host. Furthermore, as a security measure, 
