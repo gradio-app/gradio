@@ -842,7 +842,7 @@ class Slider(
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
 
-    def api_info(self) -> Dict[str, Tuple[str, str]]:
+    def api_info(self) -> Dict[str, Dict | bool]:
         return {
             "info": {
                 "type": "number",
@@ -1484,7 +1484,7 @@ class Dropdown(
 
         self.cleared_value = self.value or ([] if multiselect else "")
 
-    def api_info(self) -> Dict[str, Tuple[str, str]]:
+    def api_info(self) -> Dict[str, Dict | bool]:
         if self.multiselect:
             type = {
                 "type": "array",
