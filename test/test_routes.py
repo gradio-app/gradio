@@ -218,75 +218,81 @@ class TestRoutes:
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
 
-        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
-            prevent_thread_lock=True,
-        )
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
-
         file_response = client.get(f"/file={allowed_file.name}")
         assert file_response.status_code == 403
+        io.close()
 
-        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(
             prevent_thread_lock=True,
             allowed_paths=[os.path.dirname(allowed_file.name)],
         )
         client = TestClient(app)
-
         file_response = client.get(f"/file={allowed_file.name}")
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
+        io.close()
 
-        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(
             prevent_thread_lock=True,
             allowed_paths=[os.path.abspath(allowed_file.name)],
         )
         client = TestClient(app)
-
         file_response = client.get(f"/file={allowed_file.name}")
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
+        io.close()
 
     def test_get_blocked_paths(self):
         # Test that blocking a default Gradio file path works
         with tempfile.NamedTemporaryFile(
             dir=".", suffix=".jpg", delete=False
         ) as tmp_file:
-            app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
                 prevent_thread_lock=True,
             )
             client = TestClient(app)
             file_response = client.get(f"/file={tmp_file.name}")
             assert file_response.status_code == 200
+        io.close()
         os.remove(tmp_file.name)
 
         with tempfile.NamedTemporaryFile(
             dir=".", suffix=".jpg", delete=False
         ) as tmp_file:
-            app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
                 prevent_thread_lock=True, blocked_paths=[os.path.abspath(tmp_file.name)]
             )
             client = TestClient(app)
-
             file_response = client.get(f"/file={tmp_file.name}")
             assert file_response.status_code == 403
+        io.close()
         os.remove(tmp_file.name)
 
         # Test that blocking a default Gradio directory works
         with tempfile.NamedTemporaryFile(
             dir=".", suffix=".jpg", delete=False
         ) as tmp_file:
-            app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
                 prevent_thread_lock=True, blocked_paths=[os.path.abspath(tmp_file.name)]
             )
             client = TestClient(app)
-
             file_response = client.get(f"/file={tmp_file.name}")
             assert file_response.status_code == 403
+        io.close()
         os.remove(tmp_file.name)
 
         # Test that blocking a directory works even if it's also allowed
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
-            app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
                 prevent_thread_lock=True,
                 allowed_paths=[os.path.dirname(tmp_file.name)],
                 blocked_paths=[os.path.dirname(tmp_file.name)],
@@ -294,6 +300,7 @@ class TestRoutes:
             client = TestClient(app)
             file_response = client.get(f"/file={tmp_file.name}")
             assert file_response.status_code == 403
+        io.close()
         os.remove(tmp_file.name)
 
     def test_get_file_created_by_app(self):

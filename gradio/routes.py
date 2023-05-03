@@ -310,8 +310,7 @@ class App(FastAPI):
             abs_path = utils.abspath(path_or_url)
             in_blocklist = any(
                 (
-                    utils.is_in(abs_path, blocked_path)
-                    or abs_path == utils.abspath(blocked_path)
+                    utils.is_in_or_equal(abs_path, blocked_path)
                     for blocked_path in blocks.blocked_paths
                 )
             )
@@ -322,8 +321,7 @@ class App(FastAPI):
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
                 (
-                    utils.is_in(abs_path, allowed_path)
-                    or abs_path == utils.abspath(allowed_path)
+                    utils.is_in_or_equal(abs_path, allowed_path)
                     for allowed_path in blocks.allowed_paths
                 )
             )
