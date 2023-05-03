@@ -66,8 +66,11 @@ class Serializable:
 class SimpleSerializable(Serializable):
     """General class that does not perform any serialization or deserialization."""
 
-    def api_info(self) -> Dict[str, str | List[str]]:
-        return serializer_types["SimpleSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {
+            "info": serializer_types["SimpleSerializable"],
+            "serialized_info": False,
+        }
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -79,8 +82,11 @@ class SimpleSerializable(Serializable):
 class StringSerializable(Serializable):
     """Expects a string as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["StringSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {
+            "info": serializer_types["StringSerializable"],
+            "serialized_info": False,
+        }
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -92,8 +98,11 @@ class StringSerializable(Serializable):
 class ListStringSerializable(Serializable):
     """Expects a list of strings as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["ListStringSerializer"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {
+            "info": serializer_types["ListStringSerializer"],
+            "serialized_info": False,
+        }
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -105,10 +114,13 @@ class ListStringSerializable(Serializable):
 class BooleanSerializable(Serializable):
     """Expects a boolean as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["BooleanSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {
+            "info": serializer_types["BooleanSerializable"],
+            "serialized_info": False,
+        }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> Dict[str, Dict | bool]:
         return {
             "raw": True,
             "serialized": True,
@@ -118,8 +130,11 @@ class BooleanSerializable(Serializable):
 class NumberSerializable(Serializable):
     """Expects a number (int/float) as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["NumberSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {
+            "info": serializer_types["NumberSerializable"],
+            "serialized_info": False,
+        }
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -134,8 +149,8 @@ class ImgSerializable(Serializable):
     def serialized_info(self):
         return {"type": "string", "description": "filepath or URL to image"}
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["ImgSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {"info": serializer_types["ImgSerializable"], "serialized_info": True}
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -189,8 +204,8 @@ class FileSerializable(Serializable):
     def serialized_info(self):
         return {"type": "string", "description": "filepath or URL to file"}
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["FileSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {"info": serializer_types["FileSerializable"], "serialized_info": True}
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -308,8 +323,8 @@ class VideoSerializable(FileSerializable):
     def serialized_info(self):
         return {"type": "string", "description": "filepath or URL to video file"}
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["FileSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {"info": serializer_types["FileSerializable"], "serialized_info": True}
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -347,8 +362,8 @@ class JSONSerializable(Serializable):
     def serialized_info(self):
         return {"type": "string", "description": "filepath to JSON file"}
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["JSONSerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {"info": serializer_types["JSONSerializable"], "serialized_info": True}
 
     def example_inputs(self) -> Dict[str, Any]:
         return {
@@ -400,8 +415,11 @@ class GallerySerializable(Serializable):
             "description": "path to directory with images and a file associating images with captions called captions.json",
         }
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return serializer_types["GallerySerializable"]
+    def api_info(self) -> Dict[str, Dict | bool]:
+        return {
+            "info": serializer_types["GallerySerializable"],
+            "serialized_info": True,
+        }
 
     def example_inputs(self) -> Dict[str, Any]:
         return {

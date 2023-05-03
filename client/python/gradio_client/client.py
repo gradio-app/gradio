@@ -426,6 +426,9 @@ class Client:
         human_info = "Client.predict() Usage Info\n---------------------------\n"
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
+        # if serialize=True, use the serialized info from the serializer
+        # unless the component tells us it does not have different serialized
+        # data format, e.g. has_serialized_info=False in config
         for api_name, endpoint_info in info["named_endpoints"].items():
             if self.serialize:
                 inferred_fn_index = self._infer_fn_index(api_name, None)
@@ -433,12 +436,14 @@ class Client:
                     endpoint_info["parameters"],
                     self.endpoints[inferred_fn_index].serializers,
                 ):
-                    v["type"] = s.serialized_info()
+                    if v["has_serialized_info"]:
+                        v["type"] = s.serialized_info()
                 for v, s in zip(
                     endpoint_info["returns"],
                     self.endpoints[inferred_fn_index].deserializers,
                 ):
-                    v["type"] = s.serialized_info()
+                    if v["has_serialized_info"]:
+                        v["type"] = s.serialized_info()
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
@@ -449,12 +454,14 @@ class Client:
                         endpoint_info["parameters"],
                         self.endpoints[int(fn_index)].serializers,
                     ):
-                        v["type"] = s.serialized_info()
+                        if v["has_serialized_info"]:
+                            v["type"] = s.serialized_info()
                     for v, s in zip(
                         endpoint_info["returns"],
                         self.endpoints[int(fn_index)].deserializers,
                     ):
-                        v["type"] = s.serialized_info()
+                        if v["has_serialized_info"]:
+                            v["type"] = s.serialized_info()
                 # When loading from json, the fn_indices are read as strings
                 # because json keys can only be strings
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
@@ -475,7 +482,7 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: Dict[str, List[Dict[str, str]]],
+        endpoints_info: Dict[str, List[Dict[str, Any]]],
     ) -> str:
         parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]

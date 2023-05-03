@@ -502,10 +502,12 @@ def get_api_info(config: Dict, serialize: bool = True):
                 assert isinstance(serializer, serializing.Serializable)
                 info = serializer.api_info()
                 example = serializer.example_inputs()["raw"]
+            breakpoint()
             dependency_info["parameters"].append(
                 {
                     "label": label,
-                    "type": info,
+                    "type": info["info"],
+                    "has_serialized_info": info["serialized_info"],
                     "component": type.capitalize(),
                     "example_input": example,
                 }
@@ -535,7 +537,8 @@ def get_api_info(config: Dict, serialize: bool = True):
             dependency_info["returns"].append(
                 {
                     "label": label,
-                    "type": info,
+                    "type": info["info"],
+                    "has_serialized_info": info["serialized_info"],
                     "component": type.capitalize(),
                 }
             )
