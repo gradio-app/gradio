@@ -192,9 +192,7 @@ class IOComponent(Component):
         **kwargs,
     ):
         self.temp_files: Set[str] = set()
-        self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
-        )
+        self.DEFAULT_TEMP_DIR = client_utils.get_temp_dir()
 
         Component.__init__(
             self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
@@ -1755,6 +1753,7 @@ class Image(
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=(f".{fmt.lower()}" if fmt is not None else ".png"),
+                dir=client_utils.get_temp_dir(),
             )
             im.save(file_obj.name)
             return self.make_temp_copy_if_needed(file_obj.name)
@@ -2255,6 +2254,7 @@ class Video(
             temp_file = tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=".vtt",
+                dir=client_utils.get_temp_dir(),
             )
 
             srt_to_vtt(subtitle, temp_file.name)
@@ -2471,7 +2471,7 @@ class Audio(
             # Handle the leave one outs
             leave_one_out_data = np.copy(data)
             leave_one_out_data[start:stop] = 0
-            file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+            file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav", dir=client_utils.get_temp_dir(),)
             processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
             out_data = client_utils.encode_file_to_base64(file.name)
             leave_one_out_sets.append(out_data)
@@ -2482,7 +2482,7 @@ class Audio(
             token = np.copy(data)
             token[0:start] = 0
             token[stop:] = 0
-            file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+            file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav", dir=client_utils.get_temp_dir(),)
             processing_utils.audio_to_file(sample_rate, token, file.name)
             token_data = client_utils.encode_file_to_base64(file.name)
             file.close()
@@ -2513,7 +2513,7 @@ class Audio(
             masked_input = np.copy(zero_input)
             for t, b in zip(token_data, binary_mask_vector):
                 masked_input = masked_input + t * int(b)
-            file = tempfile.NamedTemporaryFile(delete=False)
+            file = tempfile.NamedTemporaryFile(delete=False, dir=client_utils.get_temp_dir(),)
             processing_utils.audio_to_file(sample_rate, masked_input, file.name)
             masked_data = client_utils.encode_file_to_base64(file.name)
             file.close()
@@ -2534,7 +2534,7 @@ class Audio(
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=client_utils.get_temp_dir())
             processing_utils.audio_to_file(sample_rate, data, file.name)
             file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)

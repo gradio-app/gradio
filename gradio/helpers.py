@@ -722,7 +722,7 @@ def make_waveform(
         audio_file = audio
         audio = processing_utils.audio_from_file(audio)
     else:
-        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=client_utils.get_temp_dir(),)
         processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
         audio_file = tmp_wav.name
     duration = round(len(audio[1]) / audio[0], 4)
@@ -769,7 +769,7 @@ def make_waveform(
         )
         plt.axis("off")
         plt.margins(x=0)
-        tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=client_utils.get_temp_dir(),)
         savefig_kwargs: Dict[str, Any] = {"bbox_inches": "tight"}
         if bg_image is not None:
             savefig_kwargs["transparent"] = True
@@ -808,7 +808,7 @@ def make_waveform(
             waveform_img.save(tmp_img.name)
 
     # Convert waveform to video with ffmpeg
-    output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+    output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False, dir=client_utils.get_temp_dir(),)
 
     ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1" -t {duration} -y {output_mp4.name}"""
 

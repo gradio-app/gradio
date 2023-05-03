@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import warnings
 from io import BytesIO
+import os
 from pathlib import Path
 from typing import Dict
 
@@ -66,6 +67,8 @@ def encode_plot_to_base64(plt):
 
 
 def save_array_to_file(image_array, dir=None):
+    dir = dir or client_utils.get_temp_dir()
+    os.makedirs(dir, exist_ok=True)    
     pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
     pil_image.save(file_obj)
@@ -83,6 +86,8 @@ def get_pil_metadata(pil_image):
 
 
 def save_pil_to_file(pil_image, dir=None):
+    dir = dir or client_utils.get_temp_dir()
+    os.makedirs(dir, exist_ok=True)    
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
     pil_image.save(file_obj, pnginfo=get_pil_metadata(pil_image))
     return file_obj

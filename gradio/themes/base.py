@@ -11,6 +11,7 @@ import huggingface_hub
 import requests
 import semantic_version as semver
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client import utils as client_utils 
 from huggingface_hub import CommitOperationAdd
 
 from gradio.themes.utils import (
@@ -265,12 +266,12 @@ class ThemeClass:
         theme_name = theme_name or repo_name
 
         with tempfile.NamedTemporaryFile(
-            mode="w", delete=False, suffix=".json"
+            mode="w", delete=False, suffix=".json", dir=client_utils.get_temp_dir()
         ) as css_file:
             contents = self.to_dict()
             contents["version"] = version
             json.dump(contents, css_file, cls=fonts.FontEncoder)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=client_utils.get_temp_dir()) as readme_file:
             readme_content = README_CONTENT.format(
                 theme_name=theme_name,
                 description=description or "Add a description of this theme here!",
@@ -278,7 +279,7 @@ class ThemeClass:
                 gradio_version=__version__,
             )
             readme_file.write(textwrap.dedent(readme_content))
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, dir=client_utils.get_temp_dir()) as app_file:
             contents = open(str(Path(__file__).parent / "app.py")).read()
             contents = re.sub(
                 r"theme=gr.themes.Default\(\)",
