@@ -198,7 +198,7 @@ In particular, Gradio apps grant users access to three kinds of files:
 
 * Files in the same folder (or a subdirectory) of where the Gradio script is launched from. For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is needed so that you can easily reference these files in your Gradio app.
 
-* Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. 
+* Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable GRADIO_TEMP_DIR to an absolute path, such as `/home/usr/scripts/project/temp/`.
 
 * Files that you explicitly allow via the `allowed_paths` parameter in `launch()`. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 

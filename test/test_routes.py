@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -54,7 +55,7 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
-    def test_upload_route(self, test_client):
+    def test_upload_path(self, test_client):
         response = test_client.post(
             "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
         )
@@ -64,6 +65,26 @@ class TestRoutes:
         assert file.endswith(".txt")
         with open(file) as saved_file:
             assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+
+    def test_custom_upload_path(self):
+        os.environ["GRADIO_TEMP_DIR"] = str(Path(tempfile.gettempdir()) / "gradio-test")
+        io = Interface(lambda x: x + x, "text", "text")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+        try:
+            response = test_client.post(
+                "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
+            )
+            assert response.status_code == 200
+            file = response.json()[0]
+            assert "alphabet" in file
+            print(file)
+            assert file.startswith(str(Path(tempfile.gettempdir()) / "gradio-test"))
+            assert file.endswith(".txt")
+            with open(file) as saved_file:
+                assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+        finally:
+            os.environ["GRADIO_TEMP_DIR"] = ""
 
     def test_predict_route(self, test_client):
         response = test_client.post(
