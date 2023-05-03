@@ -962,6 +962,16 @@ def abspath(path: str | Path) -> Path:
         return path.resolve()
 
 
+def is_in(path_1: str | Path, path_2: str | Path):
+    """
+    True if path_1 is a descendant (i.e. located within) path_2, False otherwise.
+    Parameters:
+        path_1: str or Path (can be a file or directory)
+        path_2: str or Path (should be a directory)
+    """
+    return abspath(path_2) in abspath(path_1).parents    
+
+
 def get_serializer_name(block: Block) -> str | None:
     if not hasattr(block, "serialize"):
         return None

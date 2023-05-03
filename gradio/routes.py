@@ -307,8 +307,8 @@ class App(FastAPI):
             abs_path = utils.abspath(path_or_url)
             in_blocklist = any(
                 (
-                    utils.abspath(path) in abs_path.parents or abs_path == utils.abspath(path)
-                    for path in blocks.path_blocklist
+                    utils.is_in(abs_path, blocked_path) or abs_path == utils.abspath(blocked_path)
+                    for blocked_path in blocks.blocked_files
                 )
             )
             if in_blocklist:
@@ -318,8 +318,8 @@ class App(FastAPI):
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
                 (
-                    utils.abspath(path) in abs_path.parents or abs_path == utils.abspath(path)
-                    for path in blocks.path_allowlist
+                    utils.is_in(abs_path, allowed_path) or abs_path == utils.abspath(allowed_path)
+                    for allowed_path in blocks.allowed_files
                 )
             )
             was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents

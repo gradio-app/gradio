@@ -692,8 +692,8 @@ class Blocks(BlockContext):
         self.progress_tracking = None
         self.ssl_verify = True
 
-        self.path_allowlist = []
-        self.path_blocklist = []
+        self.allowed_files = []
+        self.blocked_files = []
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -1589,8 +1589,8 @@ Received outputs:
         quiet: bool = False,
         show_api: bool = True,
         file_directories: List[str] | None = None,
-        path_allowlist: List[str] | None = None,
-        path_blocklist: List[str] | None = None,
+        allowed_files: List[str] | None = None,
+        blocked_files: List[str] | None = None,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -1621,9 +1621,9 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
-            file_directories: This parameter has been renamed to `path_allowlist`. It will be removed in a future version.
-            path_allowlist: List of filepaths or directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
-            path_blocklist: List of filepaths or directories that gradio is not allowed to serve files from. Must be absolute paths. Warning: takes precedence over `path_allowlist` and all other directories exposed by Gradio by default. 
+            file_directories: This parameter has been renamed to `allowed_files`. It will be removed in a future version.
+            allowed_files: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
+            blocked_files: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_files` and all other directories exposed by Gradio by default. 
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1685,16 +1685,16 @@ Received outputs:
         self.show_api = self.api_open if self.enable_queue else show_api
 
         if file_directories is not None:
-            warnings.warn("The `file_directories` parameter has been renamed to `path_allowlist`. Please use that instead.", DeprecationWarning)
-            if path_allowlist is None:
-                path_allowlist = file_directories
-        self.path_allowlist = path_allowlist or []
-        self.path_blocklist = path_blocklist or []
+            warnings.warn("The `file_directories` parameter has been renamed to `allowed_files`. Please use that instead.", DeprecationWarning)
+            if allowed_files is None:
+                allowed_files = file_directories
+        self.allowed_files = allowed_files or []
+        self.blocked_files = blocked_files or []
         
-        if not isinstance(self.path_allowlist, list):
-            raise ValueError("`path_allowlist` must be a list of directories.")
-        if not isinstance(self.path_blocklist, list):
-            raise ValueError("`path_blocklist` must be a list of directories.")
+        if not isinstance(self.allowed_files, list):
+            raise ValueError("`allowed_files` must be a list of directories.")
+        if not isinstance(self.blocked_files, list):
+            raise ValueError("`blocked_files` must be a list of directories.")
 
         self.validate_queue_settings()
 
