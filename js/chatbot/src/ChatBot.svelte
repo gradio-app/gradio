@@ -2,6 +2,7 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
+	import './friendly.css';
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -56,6 +57,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div
 						data-testid={j == 0 ? "user" : "bot"}
 						class:latest={i === value.length - 1}

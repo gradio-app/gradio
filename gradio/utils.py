@@ -41,6 +41,9 @@ import httpx
 import matplotlib
 import requests
 from markdown_it import MarkdownIt
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
 from pydantic import BaseModel, parse_obj_as
@@ -993,6 +996,14 @@ def get_serializer_name(block: Block) -> str | None:
     if cls:
         return cls.__name__
 
+def highlight_code(code, name, attrs):
+    if attrs:
+        print(f"Ignoring {attrs=}")
+
+    lexer = get_lexer_by_name(name)
+    formatter = HtmlFormatter()
+
+    return highlight(code, lexer, formatter)
 
 def get_markdown_parser() -> MarkdownIt:
     md = (
@@ -1003,6 +1014,7 @@ def get_markdown_parser() -> MarkdownIt:
                 "typographer": True,
                 "html": True,
                 "breaks": True,
+                "highlight": highlight_code,
             },
         )
         .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)

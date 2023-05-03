@@ -4590,12 +4590,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(chat_message, str):
-            children = self.md.parseInline(chat_message)[0].children
-            if children and any("code" in child.tag for child in children):
-                return self.md.render(chat_message)
-            else:
-                chat_message = chat_message.replace("\n", "<br>")
-                return self.md.renderInline(chat_message)
+            chat_message = inspect.cleandoc(chat_message)
+            return self.md.render(chat_message)
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
