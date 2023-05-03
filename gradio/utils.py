@@ -996,6 +996,7 @@ def get_serializer_name(block: Block) -> str | None:
     if cls:
         return cls.__name__
 
+
 def highlight_code(code, name, attrs):
     if attrs:
         pass
@@ -1007,6 +1008,7 @@ def highlight_code(code, name, attrs):
     formatter = HtmlFormatter()
 
     return highlight(code, lexer, formatter)
+
 
 def get_markdown_parser() -> MarkdownIt:
     md = (
