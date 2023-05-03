@@ -202,4 +202,4 @@ In particular, Gradio apps grant users access to three kinds of files:
 
 * Files that you explicitly allow via the `allowed_paths` parameter in `launch()`. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
-Users should NOT be able to access other arbitrary paths on the host. Furthermore, as a security measure, 
+Users should NOT be able to access other arbitrary paths on the host. Furthermore, as a security measure, you can also **block** specific files or directories from being able to be accessed by users. To do this, pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
