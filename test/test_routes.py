@@ -66,7 +66,7 @@ class TestRoutes:
         with open(file) as saved_file:
             assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
 
-    def test_custom_upload_route(self):
+    def test_custom_upload_path(self):
         os.environ["GRADIO_TEMP_DIR"] = str(Path(tempfile.gettempdir()) / "gradio-test")
         io = Interface(lambda x: x + x, "text", "text")
         app, _, _ = io.launch(prevent_thread_lock=True)
