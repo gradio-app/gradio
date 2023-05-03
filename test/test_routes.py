@@ -78,7 +78,6 @@ class TestRoutes:
             assert response.status_code == 200
             file = response.json()[0]
             assert "alphabet" in file
-            print(file)
             assert file.startswith(str(Path(tempfile.gettempdir()) / "gradio-test"))
             assert file.endswith(".txt")
             with open(file) as saved_file:
