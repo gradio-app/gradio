@@ -1016,7 +1016,6 @@ def get_markdown_parser() -> MarkdownIt:
                 "linkify": True,
                 "typographer": True,
                 "html": True,
-                "breaks": True,
                 "highlight": highlight_code,
             },
         )
