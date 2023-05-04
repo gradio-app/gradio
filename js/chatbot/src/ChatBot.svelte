@@ -92,7 +92,7 @@
 						on:click={() =>
 							dispatch("select", {
 								index: [i, j],
-								value: message,
+								value: message
 							})}
 					>
 						{#if typeof message === "string"}
