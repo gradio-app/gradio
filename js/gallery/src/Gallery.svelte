@@ -48,7 +48,7 @@
 		// When value is falsy (clear button or first load),
 		// style.preview determines the selected image
 		if (was_reset) {
-			selected_image = style.preview ? 0 : null;
+			selected_image = style.preview && value?.length ? 0 : null;
 			was_reset = false;
 			// Otherwise we keep the selected_image the same if the
 			// gallery has at least as many elements as it did before
