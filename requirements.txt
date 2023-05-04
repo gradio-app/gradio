@@ -8,6 +8,7 @@ httpx
 huggingface_hub>=0.13.0
 Jinja2
 markdown-it-py[linkify]>=2.0.0
+pygments>=2.12.0
 mdit-py-plugins<=0.3.3
 markupsafe
 matplotlib
