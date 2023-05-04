@@ -411,7 +411,7 @@ class JSONSerializable(Serializable):
 class GallerySerializable(Serializable):
     def serialized_info(self):
         return {
-            "type": "str",
+            "type": "string",
             "description": "path to directory with images and a file associating images with captions called captions.json",
         }
 

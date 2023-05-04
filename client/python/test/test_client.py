@@ -486,6 +486,7 @@ class TestAPIInfo:
                         {
                             "label": "Sex",
                             "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
@@ -493,6 +494,10 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
@@ -500,6 +505,10 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
@@ -508,8 +517,9 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type": {
-                                "type": "string",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "str",
                                 "description": "filepath to JSON file",
                             },
                             "has_serialized_info": True,
@@ -522,6 +532,7 @@ class TestAPIInfo:
                         {
                             "label": "Sex",
                             "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
@@ -529,6 +540,10 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
@@ -536,6 +551,10 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
@@ -544,8 +563,9 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type": {
-                                "type": "string",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "str",
                                 "description": "filepath to JSON file",
                             },
                             "has_serialized_info": True,
@@ -558,6 +578,7 @@ class TestAPIInfo:
                         {
                             "label": "Sex",
                             "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
@@ -565,6 +586,10 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
@@ -572,6 +597,10 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Slider",
                             "example_input": 5,
@@ -580,8 +609,9 @@ class TestAPIInfo:
                     "returns": [
                         {
                             "label": "output",
-                            "type": {
-                                "type": "string",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "str",
                                 "description": "filepath to JSON file",
                             },
                             "has_serialized_info": True,
@@ -613,6 +643,7 @@ class TestAPIInfo:
                         {
                             "label": "x",
                             "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "has_serialized_info": False,
                             "component": "Textbox",
                             "example_input": "Howdy!",
@@ -622,6 +653,7 @@ class TestAPIInfo:
                         {
                             "label": "output",
                             "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "has_serialized_info": False,
                             "component": "Textbox",
                         }
@@ -640,6 +672,10 @@ class TestAPIInfo:
                         {
                             "label": "num1",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Number",
                             "example_input": 5,
@@ -647,6 +683,7 @@ class TestAPIInfo:
                         {
                             "label": "operation",
                             "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "has_serialized_info": False,
                             "component": "Radio",
                             "example_input": "Howdy!",
@@ -654,6 +691,10 @@ class TestAPIInfo:
                         {
                             "label": "num2",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Number",
                             "example_input": 5,
@@ -663,6 +704,10 @@ class TestAPIInfo:
                         {
                             "label": "output",
                             "type": {"type": "number"},
+                            "python_type": {
+                                "type": "Union[int, float]",
+                                "description": "",
+                            },
                             "has_serialized_info": False,
                             "component": "Number",
                         }
