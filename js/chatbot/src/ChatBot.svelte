@@ -36,32 +36,31 @@
 					div.scrollTo(0, div.scrollHeight);
 				});
 			});
-			div.querySelectorAll("pre > code").forEach((n) => {
-				let node = n.parentElement as HTMLElement;
-				node.style.position = "relative";
-				const button = document.createElement("button");
-				button.className = "copy-button";
-				button.innerHTML = "Copy";
-				button.style.position = "absolute";
-				button.style.right = "0";
-				button.style.top = "0";
-				button.style.zIndex = "1";
-				button.style.padding = "var(--spacing-md)";
-				button.style.marginTop = "12px";
-				button.style.fontSize = "var(--text-sm)";
-				button.style.borderBottomLeftRadius = "var(--radius-sm)";
-				button.style.backgroundColor =
-					"var(--block-label-background-fill)";
-				button.addEventListener("click", () => {
-					navigator.clipboard.writeText(node.innerText);
-					button.innerHTML = "Copied!";
-					setTimeout(() => {
-						button.innerHTML = "Copy";
-					}, 1000);
-				});
-				node.appendChild(button);
-			});
 		}
+		div.querySelectorAll("pre > code").forEach((n) => {
+			let node = n.parentElement as HTMLElement;
+			node.style.position = "relative";
+			const button = document.createElement("button");
+			button.className = "copy-button";
+			button.innerHTML = "Copy";
+			button.style.position = "absolute";
+			button.style.right = "0";
+			button.style.top = "0";
+			button.style.zIndex = "1";
+			button.style.padding = "var(--spacing-md)";
+			button.style.marginTop = "12px";
+			button.style.fontSize = "var(--text-sm)";
+			button.style.borderBottomLeftRadius = "var(--radius-sm)";
+			button.style.backgroundColor = "var(--block-label-background-fill)";
+			button.addEventListener("click", () => {
+				navigator.clipboard.writeText(node.innerText);
+				button.innerHTML = "Copied!";
+				setTimeout(() => {
+					button.innerHTML = "Copy";
+				}, 1000);
+			});
+			node.appendChild(button);
+		});
 	});
 
 	$: {
