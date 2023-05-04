@@ -36,6 +36,7 @@
 	let submit_pending_stream_on_pending_end: boolean = false;
 	let player;
 	let inited = false;
+	const ios_device: boolean = /iPad|iPhone|iPod/.test(navigator.userAgent); // ios devices cannot filter for audio input
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
@@ -50,7 +51,7 @@
 	function get_modules() {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -87,7 +88,7 @@
 		let audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(audio_blob),
-			name: "audio.wav"
+			name: "audio.wav",
 		};
 		dispatch(event, value);
 	};
@@ -112,9 +113,8 @@
 		if (stream == null) return;
 
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-				module_promises
-			);
+			const [{ MediaRecorder, register }, { connect }] =
+				await Promise.all(module_promises);
 
 			await register(await connect());
 
@@ -214,12 +214,13 @@
 		node.addEventListener("timeupdate", clamp_playback);
 
 		return {
-			destroy: () => node.removeEventListener("timeupdate", clamp_playback)
+			destroy: () =>
+				node.removeEventListener("timeupdate", clamp_playback),
 		};
 	}
 
 	function handle_change({
-		detail: { values }
+		detail: { values },
 	}: {
 		detail: { values: [number, number] };
 	}) {
@@ -229,16 +230,21 @@
 			data: value.data,
 			name,
 			crop_min: values[0],
-			crop_max: values[1]
+			crop_max: values[1],
 		});
 
 		dispatch("edit");
 	}
 
 	function handle_load({
-		detail
+		detail,
 	}: {
-		detail: { data: string; name: string; size: number; is_example: boolean };
+		detail: {
+			data: string;
+			name: string;
+			size: number;
+			is_example: boolean;
+		};
 	}) {
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
@@ -276,7 +282,11 @@
 			{/if}
 		</div>
 	{:else if source === "upload"}
-		<Upload filetype="audio/*,audio/wav,audio/x-wav" on:load={handle_load} bind:dragging>
+		<Upload
+			filetype={ios_device ? null : "audio/*"}
+			on:load={handle_load}
+			bind:dragging
+		>
 			<slot />
 		</Upload>
 	{/if}
