@@ -7,7 +7,6 @@ export interface Styles {
 	full_width?: boolean;
 	equal_height?: boolean;
 	visible?: boolean;
-	item_container?: boolean;
 	color_map?: Record<string, string>;
 	label_container?: boolean;
 	gap?: boolean;
@@ -104,9 +103,6 @@ const style_handlers: StyleHandlers = {
 	},
 	visible(visible) {
 		return visible ? "" : "display:hidden;";
-	},
-	item_container(visible) {
-		return visible ? "" : "border-width:0;";
 	},
 	object_fit(object_fit) {
 		return `--object-fit: ${object_fit};`;

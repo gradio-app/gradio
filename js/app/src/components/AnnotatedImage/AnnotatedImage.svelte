@@ -6,7 +6,6 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { FileData, normalise_file } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
-	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -17,7 +16,9 @@
 	export let label: string = "Annotated Image";
 	export let show_label: boolean = true;
 	export let show_legend: boolean = true;
-	export let style: Styles = {};
+	export let height: number | undefined;
+	export let width: number | undefined;
+	export let color_map: Record<string, string>;
 	export let root: string;
 	export let root_url: string;
 	let active: string | null = null;
@@ -39,8 +40,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					label
-				])
+					label,
+				]),
 			];
 		} else {
 			_value = null;
@@ -60,8 +61,8 @@
 	{elem_classes}
 	padding={false}
 	style={{
-		height: style.height,
-		width: style.width
+		height: height,
+		width: width,
 	}}
 	allow_overflow={false}
 >
@@ -76,7 +77,7 @@
 				<!-- svelte-ignore a11y-missing-attribute -->
 				<img
 					class="base-image"
-					class:fit-height={style.height}
+					class:fit-height={height}
 					src={_value ? _value[0].data : null}
 				/>
 				{#each _value ? _value[1] : [] as [file, label], i}
@@ -86,7 +87,7 @@
 						class:active={active == label}
 						class:inactive={active != label && active != null}
 						src={file.data}
-						style={style.color_map && label in style.color_map
+						style={color_map && label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
 									(i * 360) / _value[1].length
@@ -100,9 +101,9 @@
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<div
 							class="legend-item"
-							style="background-color: {style.color_map &&
-							label in style.color_map
-								? style.color_map[label] + '88'
+							style="background-color: {color_map &&
+							label in color_map
+								? color_map[label] + '88'
 								: `hsla(${Math.round(
 										(i * 360) / _value[1].length
 								  )}, 100%, 50%, 0.3)`}"
@@ -110,7 +111,8 @@
 							on:focus={() => handle_mouseover(label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() => dispatch("select", { index: i, value: label })}
+							on:click={() =>
+								dispatch("select", { index: i, value: label })}
 						>
 							{label}
 						</div>

@@ -7,7 +7,6 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
-	import type { Styles } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 
 	export let value: null | string = null;
@@ -19,7 +18,7 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let target: HTMLElement;
-	export let style: Styles = {};
+	export let container: boolean = false;
 	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
@@ -30,7 +29,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	disable={typeof style.container === "boolean" && !style.container}
+	disable={container === false}
 >
 	<BlockLabel {show_label} label={label || "Plot"} Icon={PlotIcon} />
 

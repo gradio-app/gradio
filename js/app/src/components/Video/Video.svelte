@@ -8,7 +8,6 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
@@ -23,7 +22,8 @@
 	export let root_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
-	export let style: Styles = {};
+	export let height: number | undefined;
+	export let width: number | undefined;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 
@@ -75,7 +75,7 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	style={{ height: style.height, width: style.width }}
+	style={{ height: height, width: width }}
 	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />

@@ -5,8 +5,6 @@
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
-	import type { Styles } from "@gradio/utils";
-	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
@@ -16,6 +14,12 @@
 	export let root: string = "";
 	export let root_url: null | string = null;
 	export let value: Array<string> | Array<FileData> | null = null;
+	export let grid_cols: number | Array<number>;
+	export let grid_rows: number | Array<number>;
+	export let height: number | "auto";
+	export let preview: bool;
+
+		
 	export let style: Styles = {
 		grid_cols: [2],
 		object_fit: "cover",

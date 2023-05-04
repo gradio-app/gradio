@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { get_styles } from "@gradio/utils";
-	import type { Styles, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let value: string | null;
-	export let style: Styles = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
@@ -19,8 +17,6 @@
 	}>();
 
 	$: dispatch("change", value);
-
-	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>
 
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
@@ -30,7 +26,6 @@
 		<label
 			class:disabled
 			class:selected={value === choice}
-			style={item_container}
 		>
 			<input
 				{disabled}

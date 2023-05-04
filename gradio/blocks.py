@@ -90,7 +90,6 @@ class Block:
         self.root_url = root_url
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
-        self._style = {}
         self.parent: BlockContext | None = None
         self.root = ""
 
@@ -289,7 +288,6 @@ class Block:
             "visible": self.visible,
             "elem_id": self.elem_id,
             "elem_classes": self.elem_classes,
-            "style": self._style,
             "root_url": self.root_url,
         }
 
@@ -725,6 +723,11 @@ class Blocks(BlockContext):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
+        for component_config in components_config:
+            # for backwards compatibility, extract style into props
+            if "style" in component_config["props"]:
+                component_config["props"].update(component_config["props"]["style"])
+                del component_config["props"]["style"]
         theme = config.get("theme", "default")
         original_mapping: Dict[int, Block] = {}
 
@@ -737,13 +740,10 @@ class Blocks(BlockContext):
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
-            style = block_config["props"].pop("style", None)
             if block_config["props"].get("root_url") is None and root_url:
                 block_config["props"]["root_url"] = f"{root_url}/"
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
-            if style and isinstance(block, components.IOComponent):
-                block.style(**style)
             return block
 
         def iterate_over_children(children_list):

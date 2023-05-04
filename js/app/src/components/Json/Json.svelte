@@ -6,7 +6,6 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
@@ -17,7 +16,7 @@
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
-	export let style: Styles = {};
+	export let container: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -34,7 +33,7 @@
 	test_id="json"
 	{elem_id}
 	{elem_classes}
-	disable={typeof style.container === "boolean" && !style.container}
+	disable={container === false}
 	padding={false}
 >
 	{#if label}
@@ -43,7 +42,7 @@
 			{show_label}
 			{label}
 			float={false}
-			disable={typeof style.container === "boolean" && !style.container}
+			disable={container === false}
 		/>
 	{/if}
 

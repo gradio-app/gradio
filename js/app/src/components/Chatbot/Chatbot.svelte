@@ -2,7 +2,6 @@
 	import { ChatBot } from "@gradio/chatbot";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
@@ -14,7 +13,7 @@
 		[string | FileData | null, string | FileData | null]
 	> = [];
 	let _value: Array<[string | FileData | null, string | FileData | null]>;
-	export let style: Styles = {};
+	export let container: boolean = false;
 	export let label: string;
 	export let show_label: boolean = true;
 	export let root: string;
@@ -44,7 +43,7 @@
 			Icon={Chat}
 			float={false}
 			label={label || "Chatbot"}
-			disable={typeof style.container === "boolean" && !style.container}
+			disable={container === false}
 		/>
 	{/if}
 	<ChatBot

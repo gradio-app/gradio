@@ -5,7 +5,6 @@
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "Textbox";
 	export let info: string | undefined = undefined;
@@ -19,7 +18,7 @@
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
 
-	export let style: Styles = {};
+	export let container: boolean = false;
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 
@@ -30,7 +29,7 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	disable={typeof style.container === "boolean" && !style.container}
+	disable={container === false}
 >
 	{#if loading_status}
 		<StatusTracker {...loading_status} />

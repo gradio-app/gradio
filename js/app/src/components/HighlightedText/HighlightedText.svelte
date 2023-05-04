@@ -5,7 +5,6 @@
 	import { TextHighlight } from "@gradio/icons";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -15,7 +14,7 @@
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label: string = "Highlighted Text";
-	export let style: Styles = {};
+	export let container: boolean = false;
 	export let selectable: boolean = false;
 
 	$: if (!style.color_map && Object.keys(color_map).length) {
@@ -40,7 +39,7 @@
 	{elem_id}
 	{elem_classes}
 	padding={false}
-	disable={typeof style.container === "boolean" && !style.container}
+	disable={container === false}
 >
 	<StatusTracker {...loading_status} />
 	{#if label}
@@ -48,7 +47,7 @@
 			Icon={TextHighlight}
 			{label}
 			float={false}
-			disable={typeof style.container === "boolean" && !style.container}
+			disable={container === false}
 		/>
 	{/if}
 

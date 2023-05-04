@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import type { Styles } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { UploadButton } from "@gradio/upload-button";
 	import { upload_files } from "@gradio/client";
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
-	export let style: Styles = {};
+	export let container: boolean = false;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;

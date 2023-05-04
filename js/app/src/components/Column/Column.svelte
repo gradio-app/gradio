@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { create_classes } from "@gradio/utils";
-	import type { Styles } from "@gradio/utils";
 
 	export let scale: number = 1;
 	export let min_width: number = 0;
@@ -8,7 +7,6 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let variant: "default" | "panel" | "compact" = "default";
-	export let style: Styles = {};
 </script>
 
 <div

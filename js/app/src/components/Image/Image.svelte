@@ -5,7 +5,6 @@
 	import { _ } from "svelte-i18n";
 	import { Component as StatusTracker } from "../StatusTracker/";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 	import UploadText from "../UploadText.svelte";
 
 	export let elem_id: string = "";
@@ -18,7 +17,8 @@
 	export let show_label: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
-	export let style: Styles = {};
+	export let height: number | null;
+	export let width: number | null;
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
 	export let brush_radius: number;
@@ -50,9 +50,11 @@
 	{elem_classes}
 	style={{
 		height:
-			style.height ||
-			(source === "webcam" || mode === "static" ? undefined : FIXED_HEIGHT),
-		width: style.width
+			height ||
+			(source === "webcam" || mode === "static"
+				? undefined
+				: FIXED_HEIGHT),
+		width: width,
 	}}
 	allow_overflow={false}
 >

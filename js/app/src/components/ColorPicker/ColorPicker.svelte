@@ -5,7 +5,6 @@
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "ColorPicker";
 	export let info: string | undefined = undefined;
@@ -15,7 +14,7 @@
 	export let value: string;
 	export let show_label: boolean;
 
-	export let style: Styles = {};
+	export let container: boolean = false;
 
 	export let loading_status: LoadingStatus;
 
@@ -26,7 +25,7 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	disable={typeof style.container === "boolean" && !style.container}
+	disable={container === false}
 >
 	<StatusTracker {...loading_status} />
 
