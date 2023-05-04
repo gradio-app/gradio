@@ -56,7 +56,7 @@ class Interface(Blocks):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
-    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features, setting_up_a_gradio_demo_for_maximum_performance
+    Guides: quickstart, key-features, sharing-your-app, interface-state, reactive-interfaces, advanced-interface-features, setting-up-a-gradio-demo-for-maximum-performance
     """
 
     # stores references to all currently existing Interface instances
@@ -91,7 +91,7 @@ class Interface(Blocks):
         Returns:
             a Gradio Interface object for the given model
         """
-        warnings.warn("gr.Intrerface.load() will be deprecated. Use gr.load() instead.")
+        warnings.warn("gr.Interface.load() will be deprecated. Use gr.load() instead.")
         return external.load(
             name=name, src=src, hf_token=api_key, alias=alias, **kwargs
         )
@@ -349,9 +349,9 @@ class Interface(Blocks):
             raise ValueError(
                 "flagging_options must be a list of strings or list of (string, string) tuples."
             )
-        elif all([isinstance(x, str) for x in flagging_options]):
+        elif all(isinstance(x, str) for x in flagging_options):
             self.flagging_options = [(f"Flag as {x}", x) for x in flagging_options]
-        elif all([isinstance(x, tuple) for x in flagging_options]):
+        elif all(isinstance(x, tuple) for x in flagging_options):
             self.flagging_options = flagging_options
         else:
             raise ValueError(
@@ -385,7 +385,7 @@ class Interface(Blocks):
                 if len(self.output_components) == 1:
                     component.label = "output"
                 else:
-                    component.label = "output " + str(i)
+                    component.label = f"output {i}"
 
         if self.allow_flagging != "never":
             if (
@@ -461,9 +461,7 @@ class Interface(Blocks):
     def render_title_description(self) -> None:
         if self.title:
             Markdown(
-                "<h1 style='text-align: center; margin-bottom: 1rem'>"
-                + self.title
-                + "</h1>"
+                f"<h1 style='text-align: center; margin-bottom: 1rem'>{self.title}</h1>"
             )
         if self.description:
             Markdown(self.description)
@@ -637,7 +635,7 @@ class Interface(Blocks):
                         async for output in iterator:
                             if len(self.output_components) == 1 and not self.batch:
                                 output = [output]
-                            output = [o for o in output]
+                            output = list(output)
                             yield output + [
                                 Button.update(visible=False),
                                 Button.update(visible=True),
@@ -800,13 +798,13 @@ class Interface(Blocks):
 
     def __repr__(self):
         repr = f"Gradio Interface for: {self.__name__}"
-        repr += "\n" + "-" * len(repr)
+        repr += f"\n{'-' * len(repr)}"
         repr += "\ninputs:"
         for component in self.input_components:
-            repr += "\n|-{}".format(str(component))
+            repr += f"\n|-{component}"
         repr += "\noutputs:"
         for component in self.output_components:
-            repr += "\n|-{}".format(str(component))
+            repr += f"\n|-{component}"
         return repr
 
     async def interpret_func(self, *args):
@@ -865,13 +863,11 @@ class TabbedInterface(Blocks):
             css=css,
         )
         if tab_names is None:
-            tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
+            tab_names = [f"Tab {i}" for i in range(len(interface_list))]
         with self:
             if title:
                 Markdown(
-                    "<h1 style='text-align: center; margin-bottom: 1rem'>"
-                    + title
-                    + "</h1>"
+                    f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):

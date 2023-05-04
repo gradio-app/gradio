@@ -92,7 +92,7 @@ class ThemeClass:
             + "\n}"
         )
 
-        return css_code + "\n" + dark_css_code
+        return f"{css_code}\n{dark_css_code}"
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
@@ -124,10 +124,17 @@ class ThemeClass:
         Parameters:
             theme: The dictionary representation of the theme.
         """
-        base = cls()
+        new_theme = cls()
         for prop, value in theme["theme"].items():
-            setattr(base, prop, value)
-        return base
+            setattr(new_theme, prop, value)
+
+        # For backwards compatibility, load attributes in base theme not in the loaded theme from the base theme.
+        base = Base()
+        for attr in base.__dict__:
+            if not attr.startswith("_") and not hasattr(new_theme, attr):
+                setattr(new_theme, attr, getattr(base, attr))
+
+        return new_theme
 
     def dump(self, filename: str):
         """Write the theme to a json file.
@@ -292,12 +299,6 @@ class ThemeClass:
                 path_in_repo="README.md", path_or_fileobj=readme_file.name
             ),
             CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
-            CommitOperationAdd(
-                path_in_repo="theme_dropdown.py",
-                path_or_fileobj=str(
-                    Path(__file__).parent / "utils" / "theme_dropdown.py"
-                ),
-            ),
         ]
 
         huggingface_hub.create_repo(
@@ -373,7 +374,7 @@ class Base(ThemeClass):
                 raise ValueError(f"Color shortcut {shortcut} not found.")
             elif mode == "size":
                 for size in sizes.Size.all:
-                    if size.name == prefix + "_" + shortcut:
+                    if size.name == f"{prefix}_{shortcut}":
                         return size
                 raise ValueError(f"Size shortcut {shortcut} not found.")
 
@@ -530,6 +531,7 @@ class Base(ThemeClass):
         block_label_border_color_dark=None,
         block_label_border_width=None,
         block_label_border_width_dark=None,
+        block_label_shadow=None,
         block_label_text_color=None,
         block_label_text_color_dark=None,
         block_label_margin=None,
@@ -566,6 +568,8 @@ class Base(ThemeClass):
         section_header_text_size=None,
         section_header_text_weight=None,
         # Component Atoms: These set the style for elements within components.
+        chatbot_code_background_color=None,
+        chatbot_code_background_color_dark=None,
         checkbox_background_color=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
@@ -762,6 +766,7 @@ class Base(ThemeClass):
             block_label_border_color_dark: The border color of the title label of a media element (e.g. image) in dark mode.
             block_label_border_width: The border width of the title label of a media element (e.g. image).
             block_label_border_width_dark: The border width of the title label of a media element (e.g. image) in dark mode.
+            block_label_shadow: The shadow of the title label of a media element (e.g. image).
             block_label_text_color: The text color of the title label of a media element (e.g. image).
             block_label_text_color_dark: The text color of the title label of a media element (e.g. image) in dark mode.
             block_label_margin: The margin of the title label of a media element (e.g. image) from its surrounding container.
@@ -797,6 +802,8 @@ class Base(ThemeClass):
             panel_border_width_dark: The border width of a panel in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
+            chatbot_code_background_color: The background color of code blocks in the chatbot.
+            chatbot_code_background_color_dark: The background color of code blocks in the chatbot in dark mode.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -1092,6 +1099,9 @@ class Base(ThemeClass):
         self.block_label_border_width_dark = block_label_border_width_dark or getattr(
             self, "block_label_border_width_dark", None
         )
+        self.block_label_shadow = block_label_shadow or getattr(
+            self, "block_label_shadow", "*block_shadow"
+        )
         self.block_label_text_color = block_label_text_color or getattr(
             self, "block_label_text_color", "*neutral_500"
         )
@@ -1195,6 +1205,13 @@ class Base(ThemeClass):
             self, "section_header_text_weight", "400"
         )
         # Component Atoms
+        self.chatbot_code_background_color = chatbot_code_background_color or getattr(
+            self, "chatbot_code_background_color", "*neutral_100"
+        )
+        self.chatbot_code_background_color_dark = (
+            chatbot_code_background_color_dark
+            or getattr(self, "chatbot_code_background_color_dark", "*neutral_800")
+        )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
         )

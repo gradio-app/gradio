@@ -19,6 +19,7 @@
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
 	import { ApiDocs } from "./api_docs/";
+	import type { ThemeMode } from "./components/types";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
@@ -38,7 +39,7 @@
 	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
-	export let theme: string;
+	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
 
 	let loading_status = create_loading_status_store();
@@ -211,7 +212,7 @@
 
 	function handle_update(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
-		data.forEach((value: any, i: number) => {
+		data?.forEach((value: any, i: number) => {
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -386,6 +387,14 @@
 			defer
 			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
 		></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+			gtag("config", "UA-156449732-1");
+		</script>
 	{/if}
 </svelte:head>
 
@@ -402,7 +411,7 @@
 				{instance_map}
 				{root}
 				{target}
-				{theme}
+				{theme_mode}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

@@ -2,6 +2,7 @@
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
+	import "./manni.css";
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -36,6 +37,31 @@
 				});
 			});
 		}
+		div.querySelectorAll("pre > code").forEach((n) => {
+			let code_node = n as HTMLElement;
+			let node = n.parentElement as HTMLElement;
+			node.style.position = "relative";
+			const button = document.createElement("button");
+			button.className = "copy-button";
+			button.innerHTML = "Copy";
+			button.style.position = "absolute";
+			button.style.right = "0";
+			button.style.top = "0";
+			button.style.zIndex = "1";
+			button.style.padding = "var(--spacing-md)";
+			button.style.marginTop = "12px";
+			button.style.fontSize = "var(--text-sm)";
+			button.style.borderBottomLeftRadius = "var(--radius-sm)";
+			button.style.backgroundColor = "var(--block-label-background-fill)";
+			button.addEventListener("click", () => {
+				navigator.clipboard.writeText(code_node.innerText.trimEnd());
+				button.innerHTML = "Copied!";
+				setTimeout(() => {
+					button.innerHTML = "Copy";
+				}, 1000);
+			});
+			node.appendChild(button);
+		});
 	});
 
 	$: {
@@ -56,6 +82,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div
 						data-testid={j == 0 ? "user" : "bot"}
 						class:latest={i === value.length - 1}
@@ -63,7 +90,10 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() =>
-							dispatch("select", { index: [i, j], value: message })}
+							dispatch("select", {
+								index: [i, j],
+								value: message
+							})}
 					>
 						{#if typeof message === "string"}
 							{@html message}
@@ -217,6 +247,13 @@
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
 	}
+	.message-wrap > div :global(.highlight) {
+		margin-top: var(--spacing-xs);
+		margin-bottom: var(--spacing-xs);
+		border-radius: var(--radius-md);
+		background: var(--chatbot-code-background-color);
+		padding-left: var(--spacing-xxl);
+	}
 
 	/* Small screen */
 	@media (max-width: 480px) {
@@ -251,5 +288,9 @@
 
 	.hide {
 		display: none;
+	}
+
+	.message-wrap :global(pre) {
+		padding: var(--spacing-xl) 0px;
 	}
 </style>

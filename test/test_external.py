@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from gradio_client import media_data
 
 import gradio as gr
-from gradio import media_data
 from gradio.context import Context
 from gradio.exceptions import InvalidApiName
 from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
@@ -220,6 +220,14 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+    def test_visual_question_answering(self):
+        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa")
+        try:
+            output = io("gradio/test_data/lion.jpg", "What is in the image?")
+            assert isinstance(output, str) and output.endswith(".json")
+        except TooManyRequestsError:
+            pass
+
     def test_image_to_text(self):
         io = gr.load("models/nlpconnect/vit-gpt2-image-captioning")
         try:
@@ -265,7 +273,7 @@ class TestLoadInterface:
                 ):
                     pass
                 else:
-                    assert False
+                    raise AssertionError()
             else:
                 assert resp.json()["data"] is not None
         finally:
@@ -345,11 +353,8 @@ class TestLoadInterfaceWithExamples:
     def test_root_url(self):
         demo = gr.load("spaces/gradio/test-loading-examples")
         assert all(
-            [
-                c["props"]["root_url"]
-                == "https://gradio-test-loading-examples.hf.space/"
-                for c in demo.get_config_file()["components"]
-            ]
+            c["props"]["root_url"] == "https://gradio-test-loading-examples.hf.space/"
+            for c in demo.get_config_file()["components"]
         )
 
     def test_root_url_deserialization(self):
@@ -427,7 +432,7 @@ def check_dataframe(config):
 def check_dataset(config, readme_examples):
     # No Examples
     if not any(readme_examples.values()):
-        assert not any([c for c in config["components"] if c["type"] == "dataset"])
+        assert not any(c for c in config["components"] if c["type"] == "dataset")
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
         assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]

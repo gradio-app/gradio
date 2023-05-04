@@ -7,7 +7,6 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import UploadText from "../UploadText.svelte";
-	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -50,7 +49,9 @@
 	{elem_id}
 	{elem_classes}
 	style={{
-		height: style.height || (source === "webcam" ? undefined : FIXED_HEIGHT),
+		height:
+			style.height ||
+			(source === "webcam" || mode === "static" ? undefined : FIXED_HEIGHT),
 		width: style.width
 	}}
 	allow_overflow={false}

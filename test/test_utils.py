@@ -14,6 +14,7 @@ from httpx import AsyncClient, Response
 from pydantic import BaseModel
 from typing_extensions import Literal
 
+from gradio import EventData
 from gradio.context import Context
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
@@ -25,11 +26,13 @@ from gradio.utils import (
     abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
+    check_function_inputs_match,
     colab_check,
     delete_none,
     error_analytics,
     format_ner_list,
     get_local_ip_address,
+    get_type_hints,
     ipython_check,
     kaggle_check,
     launch_analytics,
@@ -37,6 +40,7 @@ from gradio.utils import (
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
+    tex2svg,
     validate_url,
     version_check,
 )
@@ -581,9 +585,85 @@ class TestAbspath:
         resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
         assert ".." not in resolved_path
 
-    @mock.patch(
-        "pathlib.Path.is_symlink", return_value=True
-    )  # Have to patch since Windows doesn't allow creation of sym links without administrative privileges
-    def test_abspath_symlink(self, mock_islink):
-        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
-        assert ".." in resolved_path
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"),
+        reason="Windows doesn't allow creation of sym links without administrative privileges",
+    )
+    def test_abspath_symlink_path(self):
+        os.symlink("gradio/test_data", "gradio/test_link", True)
+        resolved_path = str(abspath("../gradio/gradio/test_link/lion.jpg"))
+        os.unlink("gradio/test_link")
+        assert "test_link" in resolved_path
+
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"),
+        reason="Windows doesn't allow creation of sym links without administrative privileges",
+    )
+    def test_abspath_symlink_dir(self):
+        os.symlink("gradio/test_data", "gradio/test_link", True)
+        full_path = os.path.join(os.getcwd(), "gradio/test_link/lion.jpg")
+        resolved_path = str(abspath(full_path))
+        os.unlink("gradio/test_link")
+        assert "test_link" in resolved_path
+        assert full_path == resolved_path
+
+
+class TestGetTypeHints:
+    def test_get_type_hints(self):
+        class F:
+            def __call__(self, s: str):
+                return s
+
+        class C:
+            def f(self, s: str):
+                return s
+
+        def f(s: str):
+            return s
+
+        class GenericObject:
+            pass
+
+        test_objs = [F(), C().f, f]
+
+        for x in test_objs:
+            hints = get_type_hints(x)
+            assert len(hints) == 1
+            assert hints["s"] == str
+
+        assert len(get_type_hints(GenericObject())) == 0
+
+
+class TestCheckFunctionInputsMatch:
+    def test_check_function_inputs_match(self):
+        class F:
+            def __call__(self, s: str, evt: EventData):
+                return s
+
+        class C:
+            def f(self, s: str, evt: EventData):
+                return s
+
+        def f(s: str, evt: EventData):
+            return s
+
+        test_objs = [F(), C().f, f]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")  # Ensure there're no warnings raised here.
+
+            for x in test_objs:
+                check_function_inputs_match(x, [None], False)
+
+
+def test_tex2svg_preserves_matplotlib_backend():
+    import matplotlib
+
+    matplotlib.use("svg")
+    tex2svg("1+1=2")
+    assert matplotlib.get_backend() == "svg"
+    with pytest.raises(
+        Exception  # specifically a pyparsing.ParseException but not important here
+    ):
+        tex2svg("$$$1+1=2$$$")
+    assert matplotlib.get_backend() == "svg"

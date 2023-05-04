@@ -3,22 +3,48 @@ import os
 import pathlib
 import tempfile
 import time
+import uuid
 from concurrent.futures import CancelledError, TimeoutError
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
+import gradio as gr
 import pytest
+from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.serializing import SimpleSerializable
-from gradio_client.utils import Communicator, Status, StatusUpdate
+from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
 HF_TOKEN = "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"  # Intentionally revealing this key for testing purposes
 
 
+@contextmanager
+def connect(demo: gr.Blocks):
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        yield Client(local_url)
+    finally:
+        # A more verbose version of .close()
+        # because we should set a timeout
+        # the tests that call .cancel() can get stuck
+        # waiting for the thread to join
+        if demo.enable_queue:
+            demo._queue.close()
+        demo.is_running = False
+        demo.server.should_exit = True
+        demo.server.thread.join(timeout=1)
+
+
 class TestPredictionsFromSpaces:
+    @pytest.mark.flaky
+    def test_raise_error_invalid_state(self):
+        with pytest.raises(ValueError, match="invalid state"):
+            Client("gradio-tests/paused-space")
+
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
@@ -41,107 +67,102 @@ class TestPredictionsFromSpaces:
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
-    @pytest.mark.flaky
-    def test_state(self):
-        client = Client("gradio-tests/increment")
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 1
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 2
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 3
-        client.reset_session()
-        output = client.predict(api_name="/increment_without_queue")
-        assert output == 1
-        output = client.predict(api_name="/increment_with_queue")
-        assert output == 2
-        client.reset_session()
-        output = client.predict(api_name="/increment_with_queue")
-        assert output == 1
-        output = client.predict(api_name="/increment_with_queue")
-        assert output == 2
+    def test_state(self, increment_demo):
+        with connect(increment_demo) as client:
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 1
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 2
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 3
+            client.reset_session()
+            output = client.predict(api_name="/increment_without_queue")
+            assert output == 1
+            output = client.predict(api_name="/increment_with_queue")
+            assert output == 2
+            client.reset_session()
+            output = client.predict(api_name="/increment_with_queue")
+            assert output == 1
+            output = client.predict(api_name="/increment_with_queue")
+            assert output == 2
+
+    def test_job_status(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            statuses = []
+            job = client.submit(5, "add", 4)
+            while not job.done():
+                time.sleep(0.1)
+                statuses.append(job.status())
+
+            assert statuses
+            # Messages are sorted by time
+            assert sorted([s.time for s in statuses if s]) == [
+                s.time for s in statuses if s
+            ]
+            assert sorted([s.code for s in statuses if s]) == [
+                s.code for s in statuses if s
+            ]
 
     @pytest.mark.flaky
-    def test_job_status(self):
-        statuses = []
-        client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 4)
-        while not job.done():
-            time.sleep(0.1)
+    def test_job_status_queue_disabled(self, sentiment_classification_demo):
+        with connect(sentiment_classification_demo) as client:
+            statuses = []
+            job = client.submit("I love the gradio python client", api_name="/classify")
+            while not job.done():
+                time.sleep(0.02)
+                statuses.append(job.status())
             statuses.append(job.status())
-
-        assert statuses
-        # Messages are sorted by time
-        assert sorted([s.time for s in statuses if s]) == [
-            s.time for s in statuses if s
-        ]
-        assert sorted([s.code for s in statuses if s]) == [
-            s.code for s in statuses if s
-        ]
+            assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+            assert not any(s.progress_data for s in statuses)
 
     @pytest.mark.flaky
-    def test_job_status_queue_disabled(self):
-        statuses = []
-        client = Client(src="freddyaboulton/sentiment-classification")
-        job = client.submit("I love the gradio python client", api_name="/classify")
-        while not job.done():
-            time.sleep(0.02)
-            statuses.append(job.status())
-        statuses.append(job.status())
-        assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
+    def test_intermediate_outputs(self, count_generator_demo):
+        with connect(count_generator_demo) as client:
+            job = client.submit(3, fn_index=0)
+
+            while not job.done():
+                time.sleep(0.1)
+
+            assert job.outputs() == [str(i) for i in range(3)]
+
+            outputs = []
+            for o in client.submit(3, fn_index=0):
+                outputs.append(o)
+            assert outputs == [str(i) for i in range(3)]
+
+    def test_break_in_loop_if_error(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            job = client.submit("foo", "add", 4, fn_index=0)
+            output = list(job)
+            assert output == []
 
     @pytest.mark.flaky
-    def test_intermediate_outputs(
-        self,
-    ):
-        client = Client(src="gradio/count_generator")
-        job = client.submit(3, api_name="/count")
-
-        while not job.done():
-            time.sleep(0.1)
-
-        assert job.outputs() == [str(i) for i in range(3)]
-
-        outputs = []
-        for o in client.submit(3, api_name="/count"):
-            outputs.append(o)
-        assert outputs == [str(i) for i in range(3)]
-
-    @pytest.mark.flaky
-    def test_break_in_loop_if_error(self):
-        calculator = Client(src="gradio/calculator")
-        job = calculator.submit("foo", "add", 4, fn_index=0)
-        output = [o for o in job]
-        assert output == []
-
-    @pytest.mark.flaky
-    def test_timeout(self):
+    def test_timeout(self, sentiment_classification_demo):
         with pytest.raises(TimeoutError):
-            client = Client(src="gradio/count_generator")
-            job = client.submit(api_name="/sleep")
-            job.result(timeout=0.05)
+            with connect(sentiment_classification_demo.queue()) as client:
+                job = client.submit(api_name="/sleep")
+                job.result(timeout=0.05)
 
     @pytest.mark.flaky
-    def test_timeout_no_queue(self):
+    def test_timeout_no_queue(self, sentiment_classification_demo):
         with pytest.raises(TimeoutError):
-            client = Client(src="freddyaboulton/sentiment-classification")
-            job = client.submit(api_name="/sleep")
-            job.result(timeout=0.1)
+            with connect(sentiment_classification_demo) as client:
+                job = client.submit(api_name="/sleep")
+                job.result(timeout=0.1)
+
+    def test_raises_exception(self, calculator_demo):
+        with pytest.raises(Exception):
+            with connect(calculator_demo) as client:
+                job = client.submit("foo", "add", 9, fn_index=0)
+                job.result()
+
+    def test_raises_exception_no_queue(self, sentiment_classification_demo):
+        with pytest.raises(Exception):
+            with connect(sentiment_classification_demo) as client:
+                job = client.submit([5], api_name="/sleep")
+                job.result()
 
     @pytest.mark.flaky
-    def test_raises_exception(self):
-        with pytest.raises(Exception):
-            client = Client(src="freddyaboulton/calculator")
-            job = client.submit("foo", "add", 9, fn_index=0)
-            job.result()
-
-    @pytest.mark.flaky
-    def test_raises_exception_no_queue(self):
-        with pytest.raises(Exception):
-            client = Client(src="freddyaboulton/sentiment-classification")
-            job = client.submit([5], api_name="/sleep")
-            job.result()
-
     def test_job_output_video(self):
         client = Client(src="gradio/video_component")
         job = client.submit(
@@ -150,60 +171,80 @@ class TestPredictionsFromSpaces:
         )
         assert pathlib.Path(job.result()).exists()
 
-    @pytest.mark.flaky
-    def test_cancel_from_client_queued(self):
-        client = Client(src="gradio-tests/test-cancel-from-client")
-        start = time.time()
-        job = client.submit(api_name="/long")
-        while not job.done():
-            if job.status().code == Status.STARTING:
-                job.cancel()
-                break
-        with pytest.raises(CancelledError):
-            job.result()
-        # The whole prediction takes 10 seconds to run
-        # and does not iterate. So this tests that we can cancel
-        # halfway through a prediction
-        assert time.time() - start < 10
-        assert job.status().code == Status.CANCELLED
+    def test_progress_updates(self, progress_demo):
 
-        job = client.submit(api_name="/iterate")
-        iteration_count = 0
-        while not job.done():
-            if job.status().code == Status.ITERATING:
-                iteration_count += 1
-                if iteration_count == 3:
+        with connect(progress_demo) as client:
+            job = client.submit("hello", api_name="/predict")
+            statuses = []
+            while not job.done():
+                statuses.append(job.status())
+                time.sleep(0.02)
+            assert any(s.code == Status.PROGRESS for s in statuses)
+            assert any(s.progress_data is not None for s in statuses)
+            all_progress_data = [
+                p for s in statuses if s.progress_data for p in s.progress_data
+            ]
+            count = 0
+            for i in range(20):
+                unit = ProgressUnit(
+                    index=i, length=20, unit="steps", progress=None, desc=None
+                )
+                count += unit in all_progress_data
+            assert count
+
+    def test_cancel_from_client_queued(self, cancel_from_client_demo):
+        with connect(cancel_from_client_demo) as client:
+            start = time.time()
+            job = client.submit(api_name="/long")
+            while not job.done():
+                if job.status().code == Status.STARTING:
                     job.cancel()
                     break
-                time.sleep(0.5)
-        # Result for iterative jobs is always the first result
-        assert job.result() == 0
-        # The whole prediction takes 10 seconds to run
-        # and does not iterate. So this tests that we can cancel
-        # halfway through a prediction
-        assert time.time() - start < 10
+            with pytest.raises(CancelledError):
+                job.result()
+            # The whole prediction takes 10 seconds to run
+            # and does not iterate. So this tests that we can cancel
+            # halfway through a prediction
+            assert time.time() - start < 10
+            assert job.status().code == Status.CANCELLED
 
-        # Test that we did not iterate all the way to the end
-        assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
-        assert job.status().code == Status.CANCELLED
+            job = client.submit(api_name="/iterate")
+            iteration_count = 0
+            while not job.done():
+                if job.status().code == Status.ITERATING:
+                    iteration_count += 1
+                    if iteration_count == 3:
+                        job.cancel()
+                        break
+                    time.sleep(0.5)
+            # Result for iterative jobs is always the first result
+            assert job.result() == 0
+            # The whole prediction takes 10 seconds to run
+            # and does not iterate. So this tests that we can cancel
+            # halfway through a prediction
+            assert time.time() - start < 10
+
+            # Test that we did not iterate all the way to the end
+            assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
+            assert job.status().code == Status.CANCELLED
+
+    def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
+        with connect(yield_demo) as client:
+            job1 = client.submit("abcdefefadsadfs")
+            time.sleep(3)
+            job1.cancel()
+
+            assert len(job1.outputs()) < len("abcdefefadsadfs")
+            assert job1.status().code == Status.CANCELLED
+
+            job2 = client.submit("abcd")
+            while not job2.done():
+                time.sleep(0.1)
+            # Ran all iterations from scratch
+            assert job2.status().code == Status.FINISHED
+            assert len(job2.outputs()) == 5
 
     @pytest.mark.flaky
-    def test_cancel_subsequent_jobs_state_reset(self):
-        client = Client("abidlabs/test-yield")
-        job1 = client.submit("abcdefefadsadfs")
-        time.sleep(5)
-        job1.cancel()
-
-        assert len(job1.outputs()) < len("abcdefefadsadfs")
-        assert job1.status().code == Status.CANCELLED
-
-        job2 = client.submit("abcd")
-        while not job2.done():
-            time.sleep(0.1)
-        # Ran all iterations from scratch
-        assert job2.status().code == Status.FINISHED
-        assert len(job2.outputs()) == 5
-
     def test_upload_file_private_space(self):
 
         client = Client(
@@ -227,7 +268,7 @@ class TestPredictionsFromSpaces:
                 f.write("Hello from private space!")
 
             output = client.submit(f.name, api_name="/upload_btn").result()
-            open(output).read() == "Hello from private space!"
+            assert open(output).read() == "Hello from private space!"
             upload.assert_called_once()
 
         with patch.object(
@@ -246,6 +287,7 @@ class TestPredictionsFromSpaces:
             assert open(output[1]).read() == "File2"
             upload.assert_called_once()
 
+    @pytest.mark.flaky
     def test_upload_file_upload_route_does_not_exist(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload-old-version",
@@ -258,8 +300,7 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-                output = client.submit(1, "foo", f.name, fn_index=0).result()
-                open(output).read() == "Hello from private space!"
+                client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
 
 
@@ -277,6 +318,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.SENDING_DATA,
@@ -285,6 +327,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now + timedelta(seconds=1),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -293,6 +336,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -301,6 +345,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.ITERATING,
@@ -309,6 +354,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -317,6 +363,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -355,6 +402,7 @@ class TestStatusUpdates:
                 success=None,
                 queue_size=None,
                 time=now,
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.FINISHED,
@@ -363,6 +411,7 @@ class TestStatusUpdates:
                 queue_size=None,
                 success=True,
                 time=now + timedelta(seconds=4),
+                progress_data=None,
             ),
         ]
 
@@ -374,6 +423,7 @@ class TestStatusUpdates:
                 queue_size=2,
                 success=None,
                 time=now + timedelta(seconds=2),
+                progress_data=None,
             ),
             StatusUpdate(
                 code=Status.IN_QUEUE,
@@ -382,6 +432,7 @@ class TestStatusUpdates:
                 queue_size=1,
                 success=None,
                 time=now + timedelta(seconds=3),
+                progress_data=None,
             ),
         ]
 
@@ -428,50 +479,118 @@ class TestAPIInfo:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        assert client.endpoints[0].get_info() == {
-            "parameters": {
-                "sex": ["Any", "", "Radio"],
-                "age": ["Any", "", "Slider"],
-                "fare_(british_pounds)": ["Any", "", "Slider"],
-            },
-            "returns": {"output": ["str", "filepath to json file", "Label"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
                 "/predict_1": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
                 "/predict_2": {
-                    "parameters": {
-                        "sex": ["Any", "", "Radio"],
-                        "age": ["Any", "", "Slider"],
-                        "fare_(british_pounds)": ["Any", "", "Slider"],
-                    },
-                    "returns": {"output": ["str", "filepath to json file", "Label"]},
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "Age",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Slider",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "filepath to JSON file",
+                            "component": "Label",
+                        }
+                    ],
                 },
             },
             "unnamed_endpoints": {},
         }
 
     @pytest.mark.flaky
-    def test_serializable_in_mapping(self):
-        client = Client("freddyaboulton/calculator")
-        assert all(
-            [c.__class__ == SimpleSerializable for c in client.endpoints[0].serializers]
-        )
+    def test_serializable_in_mapping(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            assert all(
+                isinstance(c, SimpleSerializable)
+                for c in client.endpoints[0].serializers
+            )
 
     @pytest.mark.flaky
     def test_private_space(self):
@@ -479,37 +598,85 @@ class TestAPIInfo:
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints if e.is_valid]) == 2
         assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
-        assert client.endpoints[0].get_info() == {
-            "parameters": {"x": ["Any", "", "Textbox"]},
-            "returns": {"output": ["Any", "", "Textbox"]},
-        }
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
-                    "parameters": {"x": ["Any", "", "Textbox"]},
-                    "returns": {"output": ["Any", "", "Textbox"]},
+                    "parameters": [
+                        {
+                            "label": "x",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Textbox",
+                            "example_input": "Howdy!",
+                        }
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Textbox",
+                        }
+                    ],
                 }
             },
-            "unnamed_endpoints": {
-                2: {
-                    "parameters": {"parameter_0": ["Any", "", "Dataset"]},
-                    "returns": {
-                        "x": ["Any", "", "Textbox"],
-                        "output": ["Any", "", "Textbox"],
-                    },
-                }
-            },
+            "unnamed_endpoints": {},
         }
+
+    @pytest.mark.flaky
+    def test_fetch_old_version_space(self):
+        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+            "named_endpoints": {
+                "/predict": {
+                    "parameters": [
+                        {
+                            "label": "num1",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                            "example_input": 5,
+                        },
+                        {
+                            "label": "operation",
+                            "type_python": "str",
+                            "type_description": "string value",
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                        },
+                        {
+                            "label": "num2",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                            "example_input": 5,
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type_python": "int | float",
+                            "type_description": "numeric value",
+                            "component": "Number",
+                        }
+                    ],
+                }
+            },
+            "unnamed_endpoints": {},
+        }
+
+    def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
+        # This demo has no api_name
+        with connect(count_generator_demo) as client:
+            info = client.view_api(return_format="str")
+            assert "fn_index=0" in info
+            assert "api_name" not in info
 
 
 class TestEndpoints:
-    @patch("builtins.open")
-    @patch("requests.post")
-    def test_upload(self, mock_post, mock_open):
+    def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )
-
         response = MagicMock(status_code=200)
         response.json.return_value = [
             "file1",
@@ -520,12 +687,13 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        mock_post.return_value = response
-        with patch.object(pathlib.Path, "name") as mock_name:
-            mock_name.side_effect = lambda x: x
-            results = client.endpoints[0]._upload(
-                ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
-            )
+        with patch("requests.post", MagicMock(return_value=response)):
+            with patch("builtins.open", MagicMock()):
+                with patch.object(pathlib.Path, "name") as mock_name:
+                    mock_name.side_effect = lambda x: x
+                    results = client.endpoints[0]._upload(
+                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    )
 
         res = []
         for re in results:
@@ -540,3 +708,60 @@ class TestEndpoints:
             ["file5", "file6"],
             "file7",
         ]
+
+
+class TestDuplication:
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_new_space_id(self, mock_init, mock_runtime):
+        Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+        Client.duplicate("gradio/calculator", "gradio-tests/test", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_default_space_id(self, mock_init, mock_runtime):
+        Client.duplicate("gradio/calculator", hf_token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
+        mock_runtime.assert_any_call("gradio-tests/calculator", token=HF_TOKEN)
+        mock_init.assert_called_with(
+            "gradio-tests/calculator", hf_token=HF_TOKEN, max_workers=40, verbose=True
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.add_space_secret")
+    @patch("huggingface_hub.duplicate_space")
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    @patch("gradio_client.utils.set_space_timeout")
+    def test_add_secrets(self, mock_time, mock_init, mock_duplicate, mock_add_secret):
+        with pytest.raises(RepositoryNotFoundError):
+            name = str(uuid.uuid4())
+            Client.duplicate(
+                "gradio/calculator",
+                name,
+                hf_token=HF_TOKEN,
+                secrets={"test_key": "test_value", "test_key2": "test_value2"},
+            )
+            mock_add_secret.assert_called_with(
+                f"gradio-tests/{name}",
+                "test_key",
+                "test_value",
+                token=HF_TOKEN,
+            )
+            mock_add_secret.assert_any_call(
+                f"gradio-tests/{name}",
+                "test_key2",
+                "test_value2",
+                token=HF_TOKEN,
+            )

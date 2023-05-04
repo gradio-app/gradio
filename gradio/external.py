@@ -24,7 +24,7 @@ from gradio.external_utils import (
     rows_to_cols,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import to_binary
+from gradio.processing_utils import extract_base64_data, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -93,9 +93,9 @@ def load_blocks_from_repo(
         "models": from_model,
         "spaces": from_spaces,
     }
-    assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
-        factory_methods.keys()
-    )
+    assert (
+        src.lower() in factory_methods
+    ), f"parameter: src must be one of {factory_methods.keys()}"
 
     if api_key is not None:
         if Context.hf_token is not None and Context.hf_token != api_key:
@@ -135,9 +135,9 @@ def chatbot_postprocess(response):
 
 
 def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs):
-    model_url = "https://huggingface.co/{}".format(model_name)
-    api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
-    print("Fetching model from: {}".format(model_url))
+    model_url = f"https://huggingface.co/{model_name}"
+    api_url = f"https://api-inference.huggingface.co/models/{model_name}"
+    print(f"Fetching model from: {model_url}")
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key is not None else {}
 
@@ -200,12 +200,6 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
-        },
-        "image-to-text": {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Textbox(),
-            "preprocess": to_binary,
-            "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "question-answering": {
             # Example: deepset/xlm-roberta-base-squad2
@@ -319,6 +313,47 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
         },
+        "document-question-answering": {
+            # example model: impira/layoutlm-document-qa
+            "inputs": [
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": extract_base64_data(img),  # Extract base64 data
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: postprocess_label(
+                {i["answer"]: i["score"] for i in r.json()}
+            ),
+        },
+        "visual-question-answering": {
+            # example model: dandelin/vilt-b32-finetuned-vqa
+            "inputs": [
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": extract_base64_data(img),
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: postprocess_label(
+                {i["answer"]: i["score"] for i in r.json()}
+            ),
+        },
+        "image-to-text": {
+            # example model: Salesforce/blip-image-captioning-base
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Generated Text"),
+            "preprocess": to_binary,
+            "postprocess": lambda r: r.json()[0]["generated_text"],
+        },
     }
 
     if p in ["tabular-classification", "tabular-regression"]:
@@ -345,7 +380,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
         }
 
     if p is None or p not in pipelines:
-        raise ValueError("Unsupported pipeline type: {}".format(p))
+        raise ValueError(f"Unsupported pipeline type: {p}")
 
     pipeline = pipelines[p]
 
@@ -406,9 +441,9 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
 def from_spaces(
     space_name: str, api_key: str | None, alias: str | None, **kwargs
 ) -> Blocks:
-    space_url = "https://huggingface.co/spaces/{}".format(space_name)
+    space_url = f"https://huggingface.co/spaces/{space_name}"
 
-    print("Fetching Space from: {}".format(space_url))
+    print(f"Fetching Space from: {space_url}")
 
     headers = {}
     if api_key is not None:
@@ -434,8 +469,8 @@ def from_spaces(
     )  # some basic regex to extract the config
     try:
         config = json.loads(result.group(1))  # type: ignore
-    except AttributeError:
-        raise ValueError("Could not load the Space: {}".format(space_name))
+    except AttributeError as ae:
+        raise ValueError(f"Could not load the Space: {space_name}") from ae
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
             space_name, config, alias, api_key, iframe_url, **kwargs
@@ -467,7 +502,7 @@ def from_spaces_interface(
 ) -> Interface:
 
     config = streamline_spaces_interface(config)
-    api_url = "{}/api/predict/".format(iframe_url)
+    api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -477,14 +512,14 @@ def from_spaces_interface(
         data = json.dumps({"data": data})
         response = requests.post(api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
+        if "error" in result and "429" in result["error"]:
+            raise TooManyRequestsError("Too many requests to the Hugging Face API")
         try:
             output = result["data"]
-        except KeyError:
-            if "error" in result and "429" in result["error"]:
-                raise TooManyRequestsError("Too many requests to the Hugging Face API")
+        except KeyError as ke:
             raise KeyError(
                 f"Could not find 'data' key in response from external Space. Response received: {result}"
-            )
+            ) from ke
         if (
             len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it

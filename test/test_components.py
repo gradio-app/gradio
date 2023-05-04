@@ -15,21 +15,19 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
 import pytest
 import vega_datasets
+from gradio_client import media_data
 from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 import gradio as gr
-from gradio import media_data, processing_utils
+from gradio import processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-matplotlib.use("Agg")
 
 
 class TestComponent:
@@ -733,12 +731,15 @@ class TestPlot:
         """
 
         def plot(num):
+            import matplotlib.pyplot as plt
+
             fig = plt.figure()
             plt.plot(range(num), range(num))
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10], state={})
+        with utils.MatplotlibBackendMananger():
+            output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
@@ -746,8 +747,11 @@ class TestPlot:
         """
         postprocess
         """
-        fig = plt.figure()
-        plt.plot([1, 2, 3], [1, 2, 3])
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(fig)
         assert component.get_config().get("value") is not None
@@ -1284,24 +1288,32 @@ class TestVideo:
         assert "flip" not in output_video
 
         assert filecmp.cmp(
-            video_input.serialize(x_video["name"])["name"], x_video["name"]
+            video_input.serialize(x_video["name"])[0]["name"], x_video["name"]
         )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
+        subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path)["name"]
+        output1 = video_output.postprocess(y_vid_path)[0]["name"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path)["name"]
+        output2 = video_output.postprocess(y_vid_path)[0]["name"]
         assert output1 == output2
-        assert video_output.postprocess(y_vid_path)["orig_name"] == "video_sample.mp4"
+        assert (
+            video_output.postprocess(y_vid_path)[0]["orig_name"] == "video_sample.mp4"
+        )
+        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
+        assert output_with_subtitles[1]["data"].startswith("data")
 
         assert video_output.deserialize(
-            {
-                "name": None,
-                "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                "is_file": False,
-            }
+            (
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                    "is_file": False,
+                },
+                None,
+            )
         ).endswith(".mp4")
 
     def test_in_interface(self):
@@ -1464,7 +1476,7 @@ class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
     def test_no_duplicate_uncased_names(self):
         subclasses = gr.components.Component.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
+        unique_subclasses_uncased = {s.__name__.lower() for s in subclasses}
         assert len(subclasses) == len(unique_subclasses_uncased)
 
 
@@ -1695,6 +1707,67 @@ class TestHighlightedText:
             ]
 
 
+class TestAnnotatedImage:
+    def test_postprocess(self):
+        """
+        postprocess
+        """
+        component = gr.AnnotatedImage()
+        img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
+        mask1 = [40, 40, 50, 50]
+        mask2 = np.zeros((100, 100), dtype=np.uint8)
+        mask2[10:20, 10:20] = 1
+
+        input = (img, [(mask1, "mask1"), (mask2, "mask2")])
+        result = component.postprocess(input)
+
+        base_img_out, (mask1_out, mask2_out) = result
+        base_img_out = PIL.Image.open(base_img_out["name"])
+
+        assert mask1_out[1] == "mask1"
+
+        mask1_img_out = PIL.Image.open(mask1_out[0]["name"])
+        assert mask1_img_out.size == base_img_out.size
+        mask1_array_out = np.array(mask1_img_out)
+        assert np.max(mask1_array_out[40:50, 40:50]) == 255
+        assert np.max(mask1_array_out[50:60, 50:60]) == 0
+
+    def test_component_functions(self):
+        ht_output = gr.AnnotatedImage(label="sections", show_legend=False)
+        assert ht_output.get_config() == {
+            "name": "annotatedimage",
+            "show_label": True,
+            "label": "sections",
+            "show_legend": False,
+            "style": {},
+            "elem_id": None,
+            "elem_classes": None,
+            "visible": True,
+            "value": None,
+            "root_url": None,
+            "selectable": False,
+            "interactive": None,
+        }
+
+    def test_in_interface(self):
+        def mask(img):
+            top_left_corner = [0, 0, 20, 20]
+            random_mask = np.random.randint(0, 2, img.shape[:2])
+            return (img, [(top_left_corner, "left corner"), (random_mask, "random")])
+
+        iface = gr.Interface(mask, "image", gr.AnnotatedImage())
+        output_json = iface("test/test_files/bus.png")
+        with open(output_json) as fp:
+            output = json.load(fp)
+            output_img, (mask1, mask1) = output
+        input_img = PIL.Image.open("test/test_files/bus.png")
+        output_img = PIL.Image.open(output_img["name"])
+        mask1_img = PIL.Image.open(mask1[0]["name"])
+
+        assert output_img.size == input_img.size
+        assert mask1_img.size == input_img.size
+
+
 class TestChatbot:
     def test_component_functions(self):
         """
@@ -1702,7 +1775,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are <strong>cool</strong><br>and fun", "so are <em>you</em>"]
+            ["You are <strong>cool</strong>\nand fun", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
@@ -1857,7 +1930,7 @@ class TestHTML:
         """
 
         def bold_text(text):
-            return "<strong>" + text + "</strong>"
+            return f"<strong>{text}</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
         assert iface("test") == "<strong>test</strong>"
@@ -2082,7 +2155,7 @@ def test_dataset_calls_as_example(*mocks):
             ]
         ],
     )
-    assert all([m.called for m in mocks])
+    assert all(m.called for m in mocks)
 
 
 cars = vega_datasets.data.cars()
@@ -2124,7 +2197,7 @@ class TestScatterPlot:
             x_title="Horse",
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "Horsepower"
         assert config["encoding"]["x"]["title"] == "Horse"
@@ -2145,7 +2218,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", tooltip="Name", interactive=False
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert "selection" not in config
 
@@ -2154,7 +2227,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", height=100, width=200
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2309,7 +2382,7 @@ class TestLinePlot:
             x_title="Trading Day",
         )
         output = plot.postprocess(stocks)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         for layer in config["layer"]:
             assert layer["mark"]["type"] in ["line", "point"]
@@ -2324,7 +2397,7 @@ class TestLinePlot:
     def test_height_width(self):
         plot = gr.LinePlot(x="date", y="price", height=100, width=200)
         output = plot.postprocess(stocks)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2473,7 +2546,7 @@ class TestBarPlot:
             x_title="Variable A",
         )
         output = plot.postprocess(simple)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "a"
@@ -2488,7 +2561,7 @@ class TestBarPlot:
     def test_height_width(self):
         plot = gr.BarPlot(x="a", y="b", height=100, width=200)
         output = plot.postprocess(simple)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2609,7 +2682,8 @@ class TestCode:
                 return a
             """
             )
-            == "def fn(a):\n    return a"
+            == """def fn(a):
+                return a"""
         )
 
         test_file_dir = Path(Path(__file__).parent, "test_files")

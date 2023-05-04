@@ -4,7 +4,7 @@
 	import Clear from "./img/clear.svelte";
 
 	export let root: string;
-	export let active_api_count: number;
+	export let api_count: number;
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -13,14 +13,12 @@
 	<img src={api_logo} alt="" />
 	API documentation for&nbsp;
 	<span class="url">
-		{root}
+		{root}&nbsp;&nbsp;&nbsp;
+	</span>
+	<span class="counts">
+		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
 	</span>
 </h2>
-{#if active_api_count > 1}
-	<div>
-		{active_api_count} API endpoints:
-	</div>
-{/if}
 
 <button on:click={() => dispatch("close")}>
 	<Clear />
@@ -62,5 +60,14 @@
 		h2 img {
 			width: var(--size-5);
 		}
+	}
+
+	.counts {
+		margin-top: auto;
+		margin-right: var(--size-8);
+		margin-bottom: auto;
+		margin-left: auto;
+		color: var(--body-text-color);
+		font-weight: var(--weight-light);
 	}
 </style>
