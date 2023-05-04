@@ -9,6 +9,7 @@ import inspect
 import json
 import math
 import operator
+import os
 import random
 import secrets
 import shutil
@@ -191,7 +192,9 @@ class IOComponent(Component):
         **kwargs,
     ):
         self.temp_files: Set[str] = set()
-        self.DEFAULT_TEMP_DIR = tempfile.gettempdir()
+        self.DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+            Path(tempfile.gettempdir()) / "gradio"
+        )
 
         Component.__init__(
             self, elem_id=elem_id, elem_classes=elem_classes, visible=visible, **kwargs
