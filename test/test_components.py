@@ -1775,7 +1775,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are <strong>cool</strong><br>and fun", "so are <em>you</em>"]
+            ["You are <strong>cool</strong>\nand fun", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
