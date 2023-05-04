@@ -276,7 +276,7 @@
 			{/if}
 		</div>
 	{:else if source === "upload"}
-		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
+		<Upload filetype="audio/*,audio/wav,audio/x-wav" on:load={handle_load} bind:dragging>
 			<slot />
 		</Upload>
 	{/if}
