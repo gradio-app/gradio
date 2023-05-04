@@ -641,9 +641,9 @@ class TestGetTypeHints:
 
         hints = get_type_hints(func)
         assert not is_special_typed_parameter("a", hints)
-        assert not is_special_typed_parameter("a", hints)
-        assert not is_special_typed_parameter("a", hints)
-        assert not is_special_typed_parameter("a", hints)
+        assert not is_special_typed_parameter("b", hints)
+        assert not is_special_typed_parameter("c", hints)
+        assert is_special_typed_parameter("d", hints)
 
 
 class TestCheckFunctionInputsMatch:
