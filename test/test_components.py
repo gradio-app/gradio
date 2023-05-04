@@ -2682,7 +2682,8 @@ class TestCode:
                 return a
             """
             )
-            == "def fn(a):\n    return a"
+            == """def fn(a):
+                return a"""
         )
 
         test_file_dir = Path(Path(__file__).parent, "test_files")
