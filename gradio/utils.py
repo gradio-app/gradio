@@ -850,9 +850,10 @@ def is_special_typed_parameter(name, parameter_types):
     from gradio.routes import Request
 
     """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
-    is_request = parameter_types.get(name, "") == Request
-    # use int in the fall-back as that will always be false
-    hint = parameter_types.get(name, int)
+    hint = parameter_types.get(name)
+    if not hint:
+        return False
+    is_request = hint == Request
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data
 
