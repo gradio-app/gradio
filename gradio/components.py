@@ -20,7 +20,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type, cast
 
 import aiofiles
 import altair as alt
@@ -4632,12 +4632,11 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(chat_message, str):
-            children = self.md.parseInline(chat_message)[0].children
-            if children and any("code" in child.tag for child in children):
-                return self.md.render(chat_message)
-            else:
-                chat_message = chat_message.replace("\n", "<br>")
-                return self.md.renderInline(chat_message)
+            chat_message = inspect.cleandoc(chat_message)
+            chat_message = cast(str, self.md.render(chat_message))
+            if chat_message.startswith("<p>") and chat_message.endswith("</p>\n"):
+                chat_message = chat_message[3:-5]
+            return chat_message
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
