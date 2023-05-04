@@ -54,7 +54,7 @@
 			button.style.borderBottomLeftRadius = "var(--radius-sm)";
 			button.style.backgroundColor = "var(--block-label-background-fill)";
 			button.addEventListener("click", () => {
-				navigator.clipboard.writeText(code_node.innerText);
+				navigator.clipboard.writeText(code_node.innerText.trimEnd());
 				button.innerHTML = "Copied!";
 				setTimeout(() => {
 					button.innerHTML = "Copy";
