@@ -621,9 +621,6 @@ class Interface(Blocks):
                     # The main idea here is to call the original function
                     # and append some updates to keep the "Submit" button
                     # hidden and the "Stop" button visible
-                    # The 'finally' block hides the "Stop" button and
-                    # shows the "submit" button. Having a 'finally' block
-                    # will make sure the UI is "reset" even if there is an exception
 
                     if inspect.isasyncgenfunction(self.fn):
                         iterator = self.fn(*args)
@@ -631,20 +628,14 @@ class Interface(Blocks):
                         iterator = utils.SyncToAsyncIterator(
                             self.fn(*args), limiter=self.limiter
                         )
-                    try:
-                        async for output in iterator:
-                            if len(self.output_components) == 1 and not self.batch:
-                                output = [output]
-                            output = list(output)
-                            yield output + [
-                                Button.update(visible=False),
-                                Button.update(visible=True),
-                            ]
-                    finally:
-                        yield [
-                            {"__type__": "generic_update"}
-                            for _ in self.output_components
-                        ] + [Button.update(visible=True), Button.update(visible=False)]
+                    async for output in iterator:
+                        if len(self.output_components) == 1 and not self.batch:
+                            output = [output]
+                        output = list(output)
+                        yield output + [
+                            Button.update(visible=False),
+                            Button.update(visible=True),
+                        ]
 
                 extra_output = [submit_btn, stop_btn]
             pred = submit_btn.click(
@@ -658,6 +649,19 @@ class Interface(Blocks):
                 batch=self.batch,
                 max_batch_size=self.max_batch_size,
             )
+            if extra_output:
+
+                def cleanup():
+                    return [
+                        {"__type__": "generic_update"} for _ in self.output_components
+                    ] + [Button.update(visible=True), Button.update(visible=False)]
+
+                pred.then(
+                    cleanup,
+                    inputs=None,
+                    outputs=self.output_components + extra_output,
+                    queue=False,
+                )
             if stop_btn:
                 submit_btn.click(
                     lambda: (

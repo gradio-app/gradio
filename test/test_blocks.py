@@ -319,6 +319,45 @@ class TestBlocksMethods:
             await asyncio.gather(_get_ws_pred(3, 0)(), _get_ws_pred(4, 1)())
         finally:
             demo.close()
+    
+    @pytest.mark.asyncio
+    async def test_sync_generators(self):
+
+        def generator(string):
+            for char in string:
+                yield char
+
+        demo = gr.Interface(generator, "text", "text")
+        demo.queue().launch(prevent_thread_lock=True)
+
+        async def _get_ws_pred(data, fn_index):
+            outputs = []
+            async with websockets.connect(
+                f"{demo.local_url.replace('http', 'ws')}queue/join"
+            ) as ws:
+                completed = False
+                while not completed:
+                    msg = json.loads(await ws.recv())
+                    if msg["msg"] == "send_data":
+                        await ws.send(
+                            json.dumps({"data": [data], "fn_index": fn_index})
+                        )
+                    if msg["msg"] == "send_hash":
+                        await ws.send(
+                            json.dumps(
+                                {"fn_index": fn_index, "session_hash": "shdce"}
+                            )
+                        )
+                    if msg['msg'] in ["process_generating"]:
+                        outputs.append(msg['output']['data'])
+                    if msg["msg"] == "process_completed":
+                        completed = True
+            return outputs
+        try:
+            output = await _get_ws_pred(fn_index=0, data="abc")
+            assert [o[0] for o in output] == ['a', 'b', 'c']
+        finally:
+            demo.close()
 
     def test_socket_reuse(self):
 
@@ -1233,9 +1272,9 @@ class TestCancel:
                     ]
                 if msg["msg"] == "process_completed":
                     assert msg["output"]["data"] == [
-                        {"__type__": "update"},
-                        {"visible": True, "__type__": "update"},
+                        '3',
                         {"visible": False, "__type__": "update"},
+                        {"visible": True, "__type__": "update"},
                     ]
                     completed = True
             assert checked_iteration
