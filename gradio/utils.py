@@ -41,12 +41,12 @@ import httpx
 import matplotlib
 import requests
 from markdown_it import MarkdownIt
-from pygments import highlight
-from pygments.formatters import HtmlFormatter
-from pygments.lexers import get_lexer_by_name
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
 from pydantic import BaseModel, parse_obj_as
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
 
 import gradio
 from gradio.context import Context
@@ -845,21 +845,23 @@ def get_type_hints(fn):
     return {}
 
 
+def is_special_typed_parameter(name, parameter_types):
+    from gradio.helpers import EventData
+    from gradio.routes import Request
+
+    """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
+    is_request = parameter_types.get(name, "") == Request
+    # use int in the fall-back as that will always be false
+    hint = parameter_types.get(name, int)
+    is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
+    return is_request or is_event_data
+
+
 def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
     """
-
-    def is_special_typed_parameter(name):
-        from gradio.helpers import EventData
-        from gradio.routes import Request
-
-        """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
-        is_request = parameter_types.get(name, "") == Request
-        # use int in the fall-back as that will always be false
-        is_event_data = issubclass(parameter_types.get(name, int), EventData)
-        return is_request or is_event_data
 
     signature = inspect.signature(fn)
     parameter_types = get_type_hints(fn)
@@ -869,7 +871,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
-            if not is_special_typed_parameter(name):
+            if not is_special_typed_parameter(name, parameter_types):
                 if not has_default:
                     min_args += 1
                 max_args += 1
