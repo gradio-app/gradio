@@ -1008,7 +1008,7 @@ def get_serializer_name(block: Block) -> str | None:
 def highlight_code(code, name, attrs):
     try:
         lexer = get_lexer_by_name(name)
-    except:
+    except Exception:
         lexer = get_lexer_by_name("text")
     formatter = HtmlFormatter()
 
