@@ -20,7 +20,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Type, cast
 
 import aiofiles
 import altair as alt
@@ -4594,7 +4594,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             }
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
-            chat_message = self.md.render(chat_message)
+            chat_message = cast(str, self.md.render(chat_message))
             if chat_message.startswith("<p>") and chat_message.endswith("</p>\n"):
                 chat_message = chat_message[3:-5]
             chat_message = chat_message.replace("\n", "<br>")
