@@ -6,7 +6,8 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-- Soft theme label color fix by [@aliabid94](https://github.com/aliabid94) in [PR 4070](https://github.com/gradio-app/gradio/pull/4070) 
+- Soft theme label color fix by [@aliabid94](https://github.com/aliabid94) in [PR 4073](https://github.com/gradio-app/gradio/pull/4073) 
+- Keep Accordion content in DOM by [@aliabid94](https://github.com/aliabid94) in [PR 4070](https://github.com/gradio-app/gradio/pull/4070) 
 
 ## Documentation Changes:
 
