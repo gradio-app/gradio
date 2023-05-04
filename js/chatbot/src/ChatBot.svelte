@@ -38,6 +38,7 @@
 			});
 		}
 		div.querySelectorAll("pre > code").forEach((n) => {
+			let code_node = n as HTMLElement;
 			let node = n.parentElement as HTMLElement;
 			node.style.position = "relative";
 			const button = document.createElement("button");
@@ -53,7 +54,7 @@
 			button.style.borderBottomLeftRadius = "var(--radius-sm)";
 			button.style.backgroundColor = "var(--block-label-background-fill)";
 			button.addEventListener("click", () => {
-				navigator.clipboard.writeText(node.innerText);
+				navigator.clipboard.writeText(code_node.innerText);
 				button.innerHTML = "Copied!";
 				setTimeout(() => {
 					button.innerHTML = "Copy";
