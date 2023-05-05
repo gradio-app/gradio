@@ -610,7 +610,7 @@ with gr.Blocks(  # noqa: SIM117
                 final_attr_values = {}
                 diff = False
                 for attr in dir(source_obj):
-                    if attr in ["all", "name"] or attr.startswith("_"):
+                    if attr in ["all", "name", "expand"] or attr.startswith("_"):
                         continue
                     final_theme_attr = (
                         value_name.split("_")[0]
