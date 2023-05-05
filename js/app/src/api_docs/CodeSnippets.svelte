@@ -26,10 +26,14 @@
 	let blob_examples: any[] = endpoint_parameters.filter(
 		(param: {
 			label: string;
-			type_python: string;
-			type_description: string;
+			type: string;
+			python_type: {
+				type: string;
+				description: string;
+			}
 			component: string;
 			example_input: string;
+			serializer: string;
 		}) => blob_components.includes(param.component)
 	);
 </script>
@@ -51,11 +55,11 @@
 
 client = Client(<span class="token string">"{root}"</span>)
 result = client.predict(<!--
--->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
+-->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
         -->
 				<span
 								class="example-inputs"
-								>{represent_value(example_input, type_python, "py")}</span
+								>{represent_value(example_input, python_type.type, "py")}</span
 							>,<!--
 			-->{#if dependency_failures[dependency_index][i]}<!--
 			--><span
@@ -64,8 +68,8 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {type_python} <!--
-			-->representing {type_description} in '{label}' <!--
+			-->	# {python_type.type} <!--
+			-->representing {python_type.description} in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--
@@ -87,7 +91,7 @@ print(result)</pre>
 					<pre>import &lbrace; client &rbrace; from "@gradio/client";
 <!--
 -->
-{#each blob_examples as { label, type_python, type_description, component, example_input }, i}<!--
+{#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
 const response_{i} = await fetch("{example_input}");
 const example{component} = await response_{i}.blob();
@@ -97,7 +101,7 @@ const example{component} = await response_{i}.blob();
 async function run() &lbrace;
 	const app = await client(<span class="token string">"{root}"</span>);
 	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
--->{#each endpoint_parameters as { label, type_python, type_description, component, example_input }, i}<!--
+-->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}
 								<span class="example-inputs">example{component}</span
 								>, <!--
@@ -110,12 +114,12 @@ async function run() &lbrace;
 								><!--
 		-->{:else}
 								<span class="example-inputs"
-									>{represent_value(example_input, type_python, "js")}</span
+									>{represent_value(example_input, python_type.type, "js")}</span
 								>, <!--
 --><span class="desc"
 									><!--
--->	// {type_python} <!--
--->representing {type_description} in '{label}' <!--
+-->	// {python_type.type} <!--
+-->representing {python_type.description} in '{label}' <!--
 -->{component} component<!--
 --></span
 								><!--
