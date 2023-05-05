@@ -1,4 +1,4 @@
-import type { Config } from "./types";
+import type { Config } from "./types.js";
 
 export function determine_protocol(endpoint: string): {
 	ws_protocol: "ws" | "wss";
