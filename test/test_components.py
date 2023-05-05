@@ -1489,7 +1489,8 @@ class TestLabel:
         label_output = gr.Label()
         label = label_output.postprocess(y)
         assert label == {"label": "happy"}
-        assert json.load(open(label_output.deserialize(label))) == label
+        with open(label_output.deserialize(label)) as f:
+            assert json.load(f) == label
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)

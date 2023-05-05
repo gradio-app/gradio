@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Dict, List, Tuple
+from typing import Callable
 
 classes_to_document = {}
 classes_inherit_documentation = {}
@@ -61,7 +61,7 @@ def document(*fns, inherit=False):
     return inner_doc
 
 
-def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
+def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
     """
     Generates documentation for any function.
     Parameters:

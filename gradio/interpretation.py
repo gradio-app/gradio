@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import math
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from gradio_client import utils as client_utils
@@ -28,8 +28,8 @@ class Interpretable(ABC):  # noqa: B024
         pass
 
     def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any] | None, scores: List[float], **kwargs
-    ) -> List:
+        self, x: Any, neighbors: list[Any] | None, scores: list[float], **kwargs
+    ) -> list:
         """
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
         Parameters:
@@ -44,7 +44,7 @@ class Interpretable(ABC):  # noqa: B024
 
 class TokenInterpretable(Interpretable, ABC):
     @abstractmethod
-    def tokenize(self, x: Any) -> Tuple[List, List, None]:
+    def tokenize(self, x: Any) -> tuple[list, list, None]:
         """
         Interprets an input data point x by splitting it into a list of tokens (e.g
         a string into words or an image into super-pixels).
@@ -52,13 +52,13 @@ class TokenInterpretable(Interpretable, ABC):
         return [], [], None
 
     @abstractmethod
-    def get_masked_inputs(self, tokens: List, binary_mask_matrix: List[List]) -> List:
+    def get_masked_inputs(self, tokens: list, binary_mask_matrix: list[list]) -> list:
         return []
 
 
 class NeighborInterpretable(Interpretable, ABC):
     @abstractmethod
-    def get_interpretation_neighbors(self, x: Any) -> Tuple[List, Dict]:
+    def get_interpretation_neighbors(self, x: Any) -> tuple[list, dict]:
         """
         Generates values similar to input to be used to interpret the significance of the input in the final output.
         Parameters:
@@ -70,7 +70,7 @@ class NeighborInterpretable(Interpretable, ABC):
         return [], {}
 
 
-async def run_interpret(interface: Interface, raw_input: List):
+async def run_interpret(interface: Interface, raw_input: list):
     """
     Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
     interpretation for a certain set of UI component types, as well as the custom interpretation case.
@@ -265,12 +265,12 @@ def diff(original: Any, perturbed: Any) -> int | float:
     try:  # try computing numerical difference
         score = float(original) - float(perturbed)
     except ValueError:  # otherwise, look at strict difference in label
-        score = int(not (original == perturbed))
+        score = int(original != perturbed)
     return score
 
 
 def quantify_difference_in_label(
-    interface: Interface, original_output: List, perturbed_output: List
+    interface: Interface, original_output: list, perturbed_output: list
 ) -> int | float:
     output_component = interface.output_components[0]
     post_original_output = output_component.postprocess(original_output[0])
@@ -300,7 +300,7 @@ def quantify_difference_in_label(
 
 
 def get_regression_or_classification_value(
-    interface: Interface, original_output: List, perturbed_output: List
+    interface: Interface, original_output: list, perturbed_output: list
 ) -> int | float:
     """Used to combine regression/classification for Shap interpretation method."""
     output_component = interface.output_components[0]
