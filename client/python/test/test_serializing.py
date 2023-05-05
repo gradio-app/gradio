@@ -34,8 +34,10 @@ def test_file_serializing():
         assert serializing.serialize(output) == output
 
         files = serializing.deserialize(output)
-        assert open(files[0]).read() == "Hello World!"
-        assert open(files[1]).read() == "Greetings!"
+        with open(files[0]) as f:
+            assert f.read() == "Hello World!"
+        with open(files[1]) as f:
+            assert f.read() == "Greetings!"
     finally:
         os.remove(f1.name)
         os.remove(f2.name)
