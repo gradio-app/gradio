@@ -632,8 +632,7 @@ class TestAPIInfo:
     def test_serializable_in_mapping(self, calculator_demo):
         with connect(calculator_demo) as client:
             assert all(
-                isinstance(c, Serializable)
-                for c in client.endpoints[0].serializers
+                isinstance(c, Serializable) for c in client.endpoints[0].serializers
             )
 
     @pytest.mark.flaky

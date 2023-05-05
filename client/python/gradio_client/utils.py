@@ -29,7 +29,7 @@ UPLOAD_URL = "/upload"
 CONFIG_URL = "/config"
 API_INFO_URL = "/info"
 RAW_API_INFO_URL = "/info?serialize=False"
-SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-dev.hf.space/api"
+SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "/reset"
 SPACE_URL = "https://hf.space/{}"
 
@@ -493,7 +493,7 @@ class APIInfoParseError(ValueError):
     pass
 
 
-def get_type(schema: Dict):
+def get_type(schema: dict):
     if "type" in schema:
         return schema["type"]
     elif schema.get("oneOf"):

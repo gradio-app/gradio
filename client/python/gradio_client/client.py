@@ -404,17 +404,16 @@ class Client:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         r = requests.get(api_info_url, headers=self.headers)
 
-        # Versions of Gradio older than 3.26 returned format of the API info
+        # Versions of Gradio older than 3.28 returned format of the API info
         # from the /info endpoint
         if (
-            version.parse(self.config.get("version", "2.0")) > version.Version("3.28.1")
+            version.parse(self.config.get("version", "2.0")) > version.Version("3.28.3")
             and r.ok
         ):
             info = r.json()
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
-                # Serialize has no effect
                 json={"config": json.dumps(self.config), "serialize": self.serialize},
             )
             if fetch.ok:
@@ -455,7 +454,7 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: dict[str, list[dict[str, str]]],
+        endpoints_info: dict[str, list[dict[str, Any]]],
     ) -> str:
         parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]

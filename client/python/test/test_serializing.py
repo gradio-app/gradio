@@ -12,11 +12,9 @@ from gradio_client.utils import encode_url_or_file_to_base64
 def test_duplicate(serializer_class):
     if "gradio_client" not in serializer_class.__module__:
         pytest.skip(f"{serializer_class} not defined in gradio_client")
-    serialzier = serializer_class()
-    info = serialzier.api_info()
-    assert "info" in info and "serialized_info" in info
-    if "serialized_info" in info:
-        assert serialzier.serialized_info()
+    serializer = serializer_class()
+    assert serializer.api_info()
+    assert serializer.serialized_info()
 
 
 def test_check_component_fallback_serializers():

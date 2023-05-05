@@ -470,7 +470,7 @@ def get_api_info(config: dict, serialize: bool = True):
     api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
     mode = config.get("mode", None)
     after_new_format = version.parse(config.get("version", "2.0")) > version.Version(
-        "3.28.1"
+        "3.28.3"
     )
 
     for d, dependency in enumerate(config["dependencies"]):
@@ -518,7 +518,6 @@ def get_api_info(config: dict, serialize: bool = True):
                         "type": python_type,
                         "description": python_info.get("description", ""),
                     },
-                    "has_serialized_info": info["serialized_info"],
                     "component": type.capitalize(),
                     "example_input": example,
                 }
@@ -557,7 +556,6 @@ def get_api_info(config: dict, serialize: bool = True):
                         "type": python_type,
                         "description": python_info.get("description", ""),
                     },
-                    "has_serialized_info": info["serialized_info"],
                     "component": type.capitalize(),
                 }
             )
