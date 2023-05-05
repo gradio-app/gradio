@@ -14,7 +14,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Optional
 
 import fsspec.asyn
 import httpx
@@ -84,7 +84,7 @@ class Status(Enum):
     CANCELLED = "CANCELLED"
 
     @staticmethod
-    def ordering(status: "Status") -> int:
+    def ordering(status: Status) -> int:
         """Order of messages. Helpful for testing."""
         order = [
             Status.STARTING,
@@ -100,11 +100,11 @@ class Status(Enum):
         ]
         return order.index(status)
 
-    def __lt__(self, other: "Status"):
+    def __lt__(self, other: Status):
         return self.ordering(self) < self.ordering(other)
 
     @staticmethod
-    def msg_to_status(msg: str) -> "Status":
+    def msg_to_status(msg: str) -> Status:
         """Map the raw message from the backend to the status code presented to users."""
         return {
             "send_hash": Status.JOINING_QUEUE,
@@ -127,7 +127,7 @@ class ProgressUnit:
     desc: Optional[str]
 
     @classmethod
-    def from_ws_msg(cls, data: List[Dict]) -> List["ProgressUnit"]:
+    def from_ws_msg(cls, data: list[dict]) -> list[ProgressUnit]:
         return [
             cls(
                 index=d.get("index"),
@@ -150,7 +150,7 @@ class StatusUpdate:
     eta: float | None
     success: bool | None
     time: datetime | None
-    progress_data: List[ProgressUnit] | None
+    progress_data: list[ProgressUnit] | None
 
 
 def create_initial_status_update():
@@ -173,7 +173,7 @@ class JobStatus:
     """
 
     latest_status: StatusUpdate = field(default_factory=create_initial_status_update)
-    outputs: List[Any] = field(default_factory=list)
+    outputs: list[Any] = field(default_factory=list)
 
 
 @dataclass
@@ -182,7 +182,7 @@ class Communicator:
 
     lock: Lock
     job: JobStatus
-    deserialize: Callable[..., Tuple]
+    deserialize: Callable[..., tuple]
     reset_url: str
     should_cancel: bool = False
 
@@ -208,7 +208,7 @@ async def get_pred_from_ws(
     data: str,
     hash_data: str,
     helper: Communicator | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
@@ -285,9 +285,10 @@ def download_tmp_copy_of_file(
         suffix=suffix,
         dir=dir,
     )
-    with requests.get(url_path, headers=headers, stream=True) as r:
-        with open(file_obj.name, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+    with requests.get(url_path, headers=headers, stream=True) as r, open(
+        file_obj.name, "wb"
+    ) as f:
+        shutil.copyfileobj(r.raw, f)
     return file_obj
 
 
@@ -360,7 +361,7 @@ def encode_url_or_file_to_base64(path: str | Path):
         return encode_file_to_base64(path)
 
 
-def decode_base64_to_binary(encoding: str) -> Tuple[bytes, str | None]:
+def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
     extension = get_extension(encoding)
     data = encoding.rsplit(",", 1)[-1]
     return base64.b64decode(data), extension
@@ -421,7 +422,7 @@ def decode_base64_to_file(
     return file_obj
 
 
-def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = None):
+def dict_or_str_to_json_file(jsn: str | dict | list, dir: str | Path | None = None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
 
@@ -435,7 +436,7 @@ def dict_or_str_to_json_file(jsn: str | Dict | List, dir: str | Path | None = No
     return file_obj
 
 
-def file_to_json(file_path: str | Path) -> Dict | List:
+def file_to_json(file_path: str | Path) -> dict | list:
     with open(file_path) as f:
         return json.load(f)
 
