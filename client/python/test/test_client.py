@@ -494,6 +494,7 @@ class TestAPIInfo:
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "Age",
@@ -504,6 +505,7 @@ class TestAPIInfo:
                             },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "Fare (british pounds)",
@@ -514,6 +516,7 @@ class TestAPIInfo:
                             },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
@@ -525,6 +528,7 @@ class TestAPIInfo:
                                 "description": "filepath to JSON file",
                             },
                             "component": "Label",
+                            "serializer": "JSONSerializable",
                         }
                     ],
                 },
@@ -536,6 +540,7 @@ class TestAPIInfo:
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "Age",
@@ -546,6 +551,7 @@ class TestAPIInfo:
                             },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "Fare (british pounds)",
@@ -556,6 +562,7 @@ class TestAPIInfo:
                             },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
@@ -567,6 +574,7 @@ class TestAPIInfo:
                                 "description": "filepath to JSON file",
                             },
                             "component": "Label",
+                            "serializer": "JSONSerializable",
                         }
                     ],
                 },
@@ -578,6 +586,7 @@ class TestAPIInfo:
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "Age",
@@ -588,6 +597,7 @@ class TestAPIInfo:
                             },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "Fare (british pounds)",
@@ -598,6 +608,7 @@ class TestAPIInfo:
                             },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
@@ -609,6 +620,7 @@ class TestAPIInfo:
                                 "description": "filepath to JSON file",
                             },
                             "component": "Label",
+                            "serializer": "JSONSerializable",
                         }
                     ],
                 },
@@ -639,6 +651,7 @@ class TestAPIInfo:
                             "python_type": {"type": "str", "description": ""},
                             "component": "Textbox",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         }
                     ],
                     "returns": [
@@ -647,6 +660,7 @@ class TestAPIInfo:
                             "type": {"type": "string"},
                             "python_type": {"type": "str", "description": ""},
                             "component": "Textbox",
+                            "serializer": "StringSerializable",
                         }
                     ],
                 }
@@ -669,6 +683,7 @@ class TestAPIInfo:
                             },
                             "component": "Number",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "operation",
@@ -676,6 +691,7 @@ class TestAPIInfo:
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "num2",
@@ -686,6 +702,7 @@ class TestAPIInfo:
                             },
                             "component": "Number",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
@@ -697,6 +714,7 @@ class TestAPIInfo:
                                 "description": "",
                             },
                             "component": "Number",
+                            "serializer": "NumberSerializable",
                         }
                     ],
                 }

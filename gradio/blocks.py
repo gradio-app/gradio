@@ -516,6 +516,7 @@ def get_api_info(config: dict, serialize: bool = True):
                     python_info = serializer._multiple_file_serialized_info()
 
             python_type = client_utils.json_schema_to_python_type(python_info)
+            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
             dependency_info["parameters"].append(
                 {
                     "label": label,
@@ -526,6 +527,7 @@ def get_api_info(config: dict, serialize: bool = True):
                     },
                     "component": type.capitalize(),
                     "example_input": example,
+                    "serializer": serializer_name,
                 }
             )
 
@@ -559,6 +561,7 @@ def get_api_info(config: dict, serialize: bool = True):
                 ):
                     python_info = serializer._multiple_file_serialized_info()
             python_type = client_utils.json_schema_to_python_type(python_info)
+            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
             dependency_info["returns"].append(
                 {
                     "label": label,
@@ -568,6 +571,7 @@ def get_api_info(config: dict, serialize: bool = True):
                         "description": python_info.get("description", ""),
                     },
                     "component": type.capitalize(),
+                    "serializer": serializer_name,
                 }
             )
 
