@@ -187,15 +187,16 @@ class TestVideoProcessing:
     def test_video_has_playable_codecs_catches_exceptions(
         self, exception_to_raise, test_file_dir
     ):
-        with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
-            with tempfile.NamedTemporaryFile(
-                suffix="out.avi", delete=False
-            ) as tmp_not_playable_vid:
-                shutil.copy(
-                    str(test_file_dir / "bad_video_sample.mp4"),
-                    tmp_not_playable_vid.name,
-                )
-                assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
+        with patch(
+            "ffmpy.FFprobe.run", side_effect=exception_to_raise
+        ), tempfile.NamedTemporaryFile(
+            suffix="out.avi", delete=False
+        ) as tmp_not_playable_vid:
+            shutil.copy(
+                str(test_file_dir / "bad_video_sample.mp4"),
+                tmp_not_playable_vid.name,
+            )
+            assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
 
     def test_convert_video_to_playable_mp4(self, test_file_dir):
         with tempfile.NamedTemporaryFile(

@@ -26,7 +26,7 @@ class TestDefault:
             "interpretation"
         ]
         assert interpretation[0][1] > 0  # Checks to see if the first word has >0 score.
-        assert 0 == interpretation[-1][1]  # Checks to see if the last word has 0 score.
+        assert interpretation[-1][1] == 0  # Checks to see if the last word has 0 score.
 
 
 class TestShapley:
@@ -92,9 +92,9 @@ class TestHelperMethods:
     def test_quantify_difference_with_label(self):
         iface = Interface(lambda text: len(text), ["textbox"], ["label"])
         diff = gradio.interpretation.quantify_difference_in_label(iface, ["3"], ["10"])
-        assert -7 == diff
+        assert diff == -7
         diff = gradio.interpretation.quantify_difference_in_label(iface, ["0"], ["100"])
-        assert -100 == diff
+        assert diff == -100
 
     def test_quantify_difference_with_confidences(self):
         iface = Interface(lambda text: len(text), ["textbox"], ["label"])
@@ -104,11 +104,11 @@ class TestHelperMethods:
         diff = gradio.interpretation.quantify_difference_in_label(
             iface, [output_1], [output_2]
         )
-        assert 0.3 == pytest.approx(diff)
+        assert pytest.approx(diff) == 0.3
         diff = gradio.interpretation.quantify_difference_in_label(
             iface, [output_1], [output_3]
         )
-        assert 0.8 == pytest.approx(diff)
+        assert pytest.approx(diff) == 0.8
 
     def test_get_regression_value(self):
         iface = Interface(lambda text: text, ["textbox"], ["label"])
@@ -118,19 +118,19 @@ class TestHelperMethods:
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, [output_1], [output_2]
         )
-        assert 0 == diff
+        assert diff == 0
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, [output_1], [output_3]
         )
-        assert 0.1 == pytest.approx(diff)
+        assert pytest.approx(diff) == 0.1
 
     def test_get_classification_value(self):
         iface = Interface(lambda text: text, ["textbox"], ["label"])
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, ["cat"], ["test"]
         )
-        assert 1 == diff
+        assert diff == 1
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, ["test"], ["test"]
         )
-        assert 0 == diff
+        assert diff == 0

@@ -1489,7 +1489,8 @@ class TestLabel:
         label_output = gr.Label()
         label = label_output.postprocess(y)
         assert label == {"label": "happy"}
-        assert json.load(open(label_output.deserialize(label))) == label
+        with open(label_output.deserialize(label)) as f:
+            assert json.load(f) == label
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
@@ -1775,7 +1776,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are <strong>cool</strong><br>and fun", "so are <em>you</em>"]
+            ["You are <strong>cool</strong>\nand fun", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
@@ -2682,7 +2683,8 @@ class TestCode:
                 return a
             """
             )
-            == "def fn(a):\n    return a"
+            == """def fn(a):
+                return a"""
         )
 
         test_file_dir = Path(Path(__file__).parent, "test_files")

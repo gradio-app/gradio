@@ -13,7 +13,7 @@ from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable
 
 import huggingface_hub
 import requests
@@ -137,7 +137,7 @@ class Client:
         hf_token: str | None = None,
         private: bool = True,
         hardware: str | None = None,
-        secrets: Dict[str, str] | None = None,
+        secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
         max_workers: int = 40,
         verbose: bool = True,
@@ -221,7 +221,7 @@ class Client:
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
         )
         hardware = hardware or original_info.hardware
-        if not current_hardware == hardware:
+        if current_hardware != hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
@@ -267,7 +267,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
-        result_callbacks: Callable | List[Callable] | None = None,
+        result_callbacks: Callable | list[Callable] | None = None,
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
@@ -328,7 +328,7 @@ class Client:
         all_endpoints: bool | None = None,
         print_info: bool = True,
         return_format: Literal["dict", "str"] | None = None,
-    ) -> Dict | str | None:
+    ) -> dict | str | None:
         """
         Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
 
@@ -455,7 +455,7 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: Dict[str, List[Dict[str, Any]]],
+        endpoints_info: dict[str, list[dict[str, str]]],
     ) -> str:
         parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
@@ -560,7 +560,7 @@ class Client:
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
-    def _get_config(self) -> Dict:
+    def _get_config(self) -> dict:
         r = requests.get(
             urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
         )
@@ -586,7 +586,7 @@ class Client:
 class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: Dict):
+    def __init__(self, client: Client, fn_index: int, dependency: dict):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
@@ -633,7 +633,7 @@ class Endpoint:
         return _inner
 
     def make_predict(self, helper: Communicator | None = None):
-        def _predict(*data) -> Tuple:
+        def _predict(*data) -> tuple:
             data = json.dumps(
                 {
                     "data": data,
@@ -687,8 +687,8 @@ class Endpoint:
         return outputs
 
     def _upload(
-        self, file_paths: List[str | List[str]]
-    ) -> List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]]:
+        self, file_paths: list[str | list[str]]
+    ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
         if not file_paths:
             return []
         # Put all the filepaths in one file
@@ -701,7 +701,7 @@ class Endpoint:
             if not isinstance(fs, list):
                 fs = [fs]
             for f in fs:
-                files.append(("files", (Path(f).name, open(f, "rb"))))
+                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
         r = requests.post(
             self.client.upload_url, headers=self.client.headers, files=files
@@ -736,8 +736,8 @@ class Endpoint:
 
     def _add_uploaded_files_to_data(
         self,
-        files: List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]],
-        data: List[Any],
+        files: list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]],
+        data: list[Any],
     ) -> None:
         """Helper function to modify the input data with the uploaded files."""
         file_counter = 0
@@ -746,7 +746,7 @@ class Endpoint:
                 data[i] = files[file_counter]
                 file_counter += 1
 
-    def serialize(self, *data) -> Tuple:
+    def serialize(self, *data) -> tuple:
         data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
@@ -766,7 +766,7 @@ class Endpoint:
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
         return o
 
-    def deserialize(self, *data) -> Tuple | Any:
+    def deserialize(self, *data) -> tuple | Any:
         assert len(data) == len(
             self.deserializers
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
@@ -776,7 +776,7 @@ class Endpoint:
                 for s, d, oct in zip(
                     self.deserializers, data, self.output_component_types
                 )
-                if not oct == utils.STATE_COMPONENT
+                if oct != utils.STATE_COMPONENT
             ]
         )
         if (
@@ -784,7 +784,7 @@ class Endpoint:
                 [
                     oct
                     for oct in self.output_component_types
-                    if not oct == utils.STATE_COMPONENT
+                    if oct != utils.STATE_COMPONENT
                 ]
             )
             == 1
@@ -794,7 +794,7 @@ class Endpoint:
             output = outputs
         return output
 
-    def _setup_serializers(self) -> Tuple[List[Serializable], List[Serializable]]:
+    def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
         inputs = self.dependency["inputs"]
         serializers = []
 
@@ -838,7 +838,7 @@ class Endpoint:
 
         return serializers, deserializers
 
-    def _use_websocket(self, dependency: Dict) -> bool:
+    def _use_websocket(self, dependency: dict) -> bool:
         queue_enabled = self.client.config.get("enable_queue", False)
         queue_uses_websocket = version.parse(
             self.client.config.get("version", "2.0")
@@ -891,7 +891,7 @@ class Job(Future):
     def __iter__(self) -> Job:
         return self
 
-    def __next__(self) -> Tuple | Any:
+    def __next__(self) -> tuple | Any:
         if not self.communicator:
             raise StopIteration()
 
@@ -943,7 +943,7 @@ class Job(Future):
         else:
             return super().result(timeout=timeout)
 
-    def outputs(self) -> List[Tuple | Any]:
+    def outputs(self) -> list[tuple | Any]:
         """
         Returns a list containing the latest outputs from the Job.
 
