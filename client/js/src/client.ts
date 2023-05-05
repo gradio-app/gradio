@@ -559,7 +559,7 @@ interface ApiInfo<T extends ApiData | JsApiData> {
 	};
 }
 
-function get_type(type: { type: any; description: string }, component: string) {
+function get_type(type: { [key: string]: any }, component: string) {
 	switch (type.type) {
 		case "string":
 			return "string";
@@ -573,8 +573,8 @@ function get_type(type: { type: any; description: string }, component: string) {
 		type.description === "any valid value" ||
 		type.description === "any valid json"
 	) {
-		return "{}";
-	} else if (type.type === "array" && type.type?.items?.type === "string") {
+		return "any";
+	} else if (type.type === "array" && type?.items?.type === "string") {
 		return "string[]";
 	} else if (component === "Image") {
 		return "string";
@@ -614,20 +614,18 @@ function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
 			new_data[key][endpoint].parameters = {};
 			new_data[key][endpoint].returns = {};
 			new_data[key][endpoint].parameters = info.parameters.map(
-				({ label, component, type, example_input }) => ({
+				({ label, component, type }) => ({
 					label,
 					component,
-					example_input,
 					type: get_type(type, component),
 					description: get_description(type, component)
 				})
 			);
 
 			new_data[key][endpoint].returns = info.parameters.map(
-				({ label, component, type, example_input }) => ({
+				({ label, component, type }) => ({
 					label,
 					component,
-					example_input,
 					type: get_type(type, component),
 					description: get_description(type, component)
 				})
