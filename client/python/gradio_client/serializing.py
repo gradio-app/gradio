@@ -13,6 +13,13 @@ serializer_types = json.load(open(Path(__file__).parent / "types.json"))
 
 
 class Serializable:
+    def serialized_info(self):
+        """
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        """
+        return self.api_info()
+
     def api_info(self) -> dict[str, list[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
@@ -59,7 +66,7 @@ class Serializable:
 class SimpleSerializable(Serializable):
     """General class that does not perform any serialization or deserialization."""
 
-    def api_info(self) -> dict[str, str | list[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
             "info": serializer_types["SimpleSerializable"],
             "serialized_info": False,
@@ -75,7 +82,7 @@ class SimpleSerializable(Serializable):
 class StringSerializable(Serializable):
     """Expects a string as input/output but performs no serialization."""
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
             "info": serializer_types["StringSerializable"],
             "serialized_info": False,
@@ -91,7 +98,7 @@ class StringSerializable(Serializable):
 class ListStringSerializable(Serializable):
     """Expects a list of strings as input/output but performs no serialization."""
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
             "info": serializer_types["ListStringSerializable"],
             "serialized_info": False,
@@ -107,7 +114,7 @@ class ListStringSerializable(Serializable):
 class BooleanSerializable(Serializable):
     """Expects a boolean as input/output but performs no serialization."""
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
             "info": serializer_types["BooleanSerializable"],
             "serialized_info": False,
@@ -123,7 +130,7 @@ class BooleanSerializable(Serializable):
 class NumberSerializable(Serializable):
     """Expects a number (int/float) as input/output but performs no serialization."""
 
-    def api_info(self) -> dict[str, list[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
             "info": serializer_types["NumberSerializable"],
             "serialized_info": False,
@@ -142,7 +149,7 @@ class ImgSerializable(Serializable):
     def serialized_info(self):
         return {"type": "string", "description": "filepath or URL to image"}
 
-    def api_info(self) -> dict[str, dict | bool]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {"info": serializer_types["ImgSerializable"], "serialized_info": True}
 
     def example_inputs(self) -> dict[str, Any]:

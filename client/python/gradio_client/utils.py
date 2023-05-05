@@ -521,7 +521,7 @@ def json_schema_to_python_type(schema: Any) -> str:
     elif type_ == "boolean":
         return "bool"
     elif type_ == "number":
-        return "Union[int, float]"
+        return "int | float"
     elif type_ == "array":
         items = schema.get("items")
         if "prefixItems" in items:
@@ -541,7 +541,7 @@ def json_schema_to_python_type(schema: Any) -> str:
         )
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
-        desc = ", ".join([json_schema_to_python_type(i) for i in schema[type_]])
-        return f"Union[{desc}]"
+        desc = " | ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
