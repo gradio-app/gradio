@@ -6,6 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
+- Fix dropdown default value not appearing by [@aliabid94](https://github.com/aliabid94) in [PR 4072](https://github.com/gradio-app/gradio/pull/4072).
 - Soft theme label color fix by [@aliabid94](https://github.com/aliabid94) in [PR 4070](https://github.com/gradio-app/gradio/pull/4070) 
 
 ## Documentation Changes:
