@@ -1,4 +1,4 @@
-# JavaScript Gradio client
+## JavaScript Client Library
 
 A javascript (and typescript) client to call Gradio APIs.
 
