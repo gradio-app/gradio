@@ -76,7 +76,6 @@ export async function post_data(
 }
 
 export let NodeBlob;
-let fileTypeFromBuffer;
 
 export async function upload_files(
 	root: string,
@@ -180,12 +179,9 @@ export async function client(
 
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
-			[NodeBlob, fileTypeFromBuffer] = await Promise.all([
-				(await import("node:buffer")).Blob,
-				(await import("file-type")).fileTypeFromBuffer
-			]);
-			//@ts-ignore
-			global.WebSocket = ws.WebSocket;
+			(NodeBlob = (await import("node:buffer")).Blob),
+				//@ts-ignore
+				(global.WebSocket = ws.WebSocket);
 		}
 
 		const { ws_protocol, http_protocol, host, space_id } =
