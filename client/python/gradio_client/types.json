@@ -88,7 +88,7 @@
 		]
 	},
 	"SingleFileSerializable": {
-        "oneOf": [
+		"oneOf": [
 			{
 				"type": "string",
 				"description": "filepath or URL to file"
@@ -116,7 +116,7 @@
 				},
 				"required": ["name", "data"]
 			}
-        ]
+		]
 	},
 	"MultipleFileSerializable": {
 		"type": "array",
