@@ -87,6 +87,71 @@
 			}
 		]
 	},
+	"SingleFileSerializable": {
+        "oneOf": [
+			{
+				"type": "string",
+				"description": "filepath or URL to file"
+			},
+			{
+				"type": "object",
+				"properties": {
+					"name": { "type": "string", "description": "name of file" },
+					"data": {
+						"type": "string",
+						"description": "base64 representation of file"
+					},
+					"size": {
+						"type": "integer",
+						"description": "size of image in bytes"
+					},
+					"is_file": {
+						"type": "boolean",
+						"description": "true if the file has been uploaded to the server"
+					},
+					"orig_name": {
+						"type": "string",
+						"description": "original name of the file"
+					}
+				},
+				"required": ["name", "data"]
+			}
+        ]
+	},
+	"MultipleFileSerializable": {
+		"type": "array",
+		"items": {
+			"anyOf": [
+				{
+					"type": "string",
+					"description": "filepath or URL to file"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"name": { "type": "string", "description": "name of file" },
+						"data": {
+							"type": "string",
+							"description": "base64 representation of file"
+						},
+						"size": {
+							"type": "integer",
+							"description": "size of image in bytes"
+						},
+						"is_file": {
+							"type": "boolean",
+							"description": "true if the file has been uploaded to the server"
+						},
+						"orig_name": {
+							"type": "string",
+							"description": "original name of the file"
+						}
+					},
+					"required": ["name", "data"]
+				}
+			]
+		}
+	},
 	"JSONSerializable": {
 		"type": {},
 		"description": "any valid json"

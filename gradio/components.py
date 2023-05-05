@@ -2785,6 +2785,18 @@ class File(
         else:
             return Path(input_data).name
 
+    def api_info(self) -> dict[str, dict | bool]:
+        if self.file_count == "single":
+            return self._single_file_api_info()
+        else:
+            return self._multiple_file_api_info()
+
+    def serialized_info(self):
+        if self.file_count == "single":
+            return self._single_file_serialized_info()
+        else:
+            return self._multiple_file_serialized_info()
+
 
 @document("style")
 class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):

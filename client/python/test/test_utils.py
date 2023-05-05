@@ -11,6 +11,11 @@ from requests.exceptions import HTTPError
 from gradio_client import media_data, utils
 
 types = json.loads(importlib.resources.read_text("gradio_client", "types.json"))
+types["MultipleFile"] = {
+    "type": "array",
+    "items": {"type": "string", "description": "filepath or URL to file"},
+}
+types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 
 
 def test_encode_url_or_file_to_base64():
@@ -145,6 +150,14 @@ def test_json_schema_to_python_type(schema):
         answer = "Dict[Any, Any]"
     elif schema == "GallerySerializable":
         answer = "Tuple[Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)), str | None]"
+    elif schema == "SingleFileSerializable":
+        answer = "str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))"
+    elif schema == "MultipleFileSerializable":
+        answer = "List[str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
+    elif schema == "SingleFile":
+        answer = "str"
+    elif schema == "MultipleFile":
+        answer = "List[str]"
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer

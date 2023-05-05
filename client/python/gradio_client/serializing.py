@@ -202,10 +202,32 @@ class FileSerializable(Serializable):
     """Expects a dict with base64 representation of object as input/output which is serialized to a filepath."""
 
     def serialized_info(self):
+        return self._single_file_serialized_info()
+
+    def _single_file_api_info(self):
+        return {
+            "info": serializer_types["SingleFileSerializable"],
+            "serialized_info": True,
+        }
+
+    def _single_file_serialized_info(self):
         return {"type": "string", "description": "filepath or URL to file"}
 
+    def _multiple_file_serialized_info(self):
+        return {
+            "type": "array",
+            "description": "List of filepath(s) or URL(s) to files",
+            "items": {"type": "string", "description": "filepath or URL to file"},
+        }
+
+    def _multiple_file_api_info(self):
+        return {
+            "info": serializer_types["MultipleFileSerializable"],
+            "serialized_info": True,
+        }
+
     def api_info(self) -> dict[str, dict | bool]:
-        return {"info": serializer_types["FileSerializable"], "serialized_info": True}
+        return self._single_file_api_info()
 
     def example_inputs(self) -> dict[str, Any]:
         return {

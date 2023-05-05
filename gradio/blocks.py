@@ -509,6 +509,12 @@ def get_api_info(config: dict, serialize: bool = True):
             python_info = info["info"]
             if serialize and info["serialized_info"]:
                 python_info = serializer.serialized_info()
+                if (
+                    isinstance(serializer, serializing.FileSerializable)
+                    and component["props"].get("file_count", "single") != "single"
+                ):
+                    python_info = serializer._multiple_file_serialized_info()
+
             python_type = client_utils.json_schema_to_python_type(python_info)
             dependency_info["parameters"].append(
                 {
@@ -547,6 +553,11 @@ def get_api_info(config: dict, serialize: bool = True):
             python_info = info["info"]
             if serialize and info["serialized_info"]:
                 python_info = serializer.serialized_info()
+                if (
+                    isinstance(serializer, serializing.FileSerializable)
+                    and component["props"].get("file_count", "single") != "single"
+                ):
+                    python_info = serializer._multiple_file_serialized_info()
             python_type = client_utils.json_schema_to_python_type(python_info)
             dependency_info["returns"].append(
                 {

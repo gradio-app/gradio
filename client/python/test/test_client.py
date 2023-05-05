@@ -711,6 +711,28 @@ class TestAPIInfo:
             assert "fn_index=0" in info
             assert "api_name" not in info
 
+    def test_file_io(self, file_io_demo):
+        with connect(file_io_demo) as client:
+            info = client.view_api(return_format="dict")
+            inputs = info["named_endpoints"]["/predict"]["parameters"]
+            outputs = info["named_endpoints"]["/predict"]["returns"]
+            assert inputs[0]["python_type"] == {
+                "type": "List[str]",
+                "description": "List of filepath(s) or URL(s) to files",
+            }
+            assert inputs[1]["python_type"] == {
+                "type": "str",
+                "description": "filepath or URL to file",
+            }
+            assert outputs[0]["python_type"] == {
+                "type": "List[str]",
+                "description": "List of filepath(s) or URL(s) to files",
+            }
+            assert outputs[1]["python_type"] == {
+                "type": "str",
+                "description": "filepath or URL to file",
+            }
+
 
 class TestEndpoints:
     def test_upload(self):
