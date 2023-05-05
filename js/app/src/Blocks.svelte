@@ -302,7 +302,6 @@
 					}
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					console.log(status);
 					loading_status.update({ ...status, fn_index });
 				});
 

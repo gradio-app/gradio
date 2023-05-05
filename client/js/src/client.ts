@@ -232,7 +232,6 @@ export async function client(
 		try {
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
 			api = await view_api();
-
 			res(config_success(config));
 		} catch (e) {
 			if (space_id) {
@@ -496,7 +495,9 @@ export async function client(
 			};
 		}
 
-		async function view_api() {
+		async function view_api(): Promise<
+			ApiInfo<JsApiData> | [{ error: string }, 500]
+		> {
 			if (api) return api;
 
 			const headers: {
@@ -511,15 +512,130 @@ export async function client(
 					headers
 				});
 
-				const api_info = await response.json();
-				api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+				const api_info = (await response.json()) as ApiInfo<ApiData>;
+				if (
+					api_info.named_endpoints["/predict"] &&
+					!api_info.unnamed_endpoints["0"]
+				) {
+					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+				}
 
-				return api_info;
+				const x = transform_api_info(api_info);
+				return x;
 			} catch (e) {
 				return [{ error: BROKEN_CONNECTION_MSG }, 500];
 			}
 		}
 	});
+}
+
+interface ApiData {
+	label: string;
+	type: {
+		type: any;
+		description: string;
+	};
+	component: string;
+	example_input?: any;
+}
+
+interface JsApiData {
+	label: string;
+	type: string;
+	component: string;
+	example_input: any;
+}
+
+interface EndpointInfo<T extends ApiData | JsApiData> {
+	parameters: T[];
+	returns: T[];
+}
+interface ApiInfo<T extends ApiData | JsApiData> {
+	named_endpoints: {
+		[key: string]: EndpointInfo<T>;
+	};
+	unnamed_endpoints: {
+		[key: string]: EndpointInfo<T>;
+	};
+}
+
+function get_type(type: { type: any; description: string }, component: string) {
+	switch (type.type) {
+		case "string":
+			return "string";
+		case "boolean":
+			return "boolean";
+		case "number":
+			return "number";
+	}
+
+	if (
+		type.description === "any valid value" ||
+		type.description === "any valid json"
+	) {
+		return "{}";
+	} else if (type.type === "array" && type.type?.items?.type === "string") {
+		return "string[]";
+	} else if (component === "Image") {
+		return "string";
+		// }else if ()
+	} else if (type.type?.oneOf) {
+		return `Record<{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}> | { name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}`;
+	} else if (type?.type?.items?.prefixItems) {
+		return "";
+	}
+}
+
+function get_description(
+	type: { type: any; description: string },
+	component: string
+) {
+	if (component === "Gallery") {
+	} else if (component === "Gallery") {
+		return "Array of files";
+	} else if (type?.type?.oneOf) {
+		return "Array of files or single file";
+	} else {
+		return type.description;
+	}
+}
+
+function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
+	const new_data = {
+		named_endpoints: {},
+		unnamed_endpoints: {}
+	};
+	for (const key in api_info) {
+		const cat = api_info[key];
+
+		for (const endpoint in cat) {
+			const info = cat[endpoint];
+			new_data[key][endpoint] = {};
+			new_data[key][endpoint].parameters = {};
+			new_data[key][endpoint].returns = {};
+			new_data[key][endpoint].parameters = info.parameters.map(
+				({ label, component, type, example_input }) => ({
+					label,
+					component,
+					example_input,
+					type: get_type(type, component),
+					description: get_description(type, component)
+				})
+			);
+
+			new_data[key][endpoint].returns = info.parameters.map(
+				({ label, component, type, example_input }) => ({
+					label,
+					component,
+					example_input,
+					type: get_type(type, component),
+					description: get_description(type, component)
+				})
+			);
+		}
+	}
+
+	return new_data;
 }
 
 async function get_jwt(
@@ -558,29 +674,30 @@ export async function handle_blob(
 
 	return new Promise((res) => {
 		Promise.all(
-			blob_refs.map(async ({ path, blob, data }) => {
+			blob_refs.map(async ({ path, blob, data, type }) => {
 				if (blob) {
 					const file_url = (await upload_files(endpoint, [blob], token))
 						.files[0];
-					return { path, file_url };
+					return { path, file_url, type };
 				} else {
-					return { path, base64: data };
+					return { path, base64: data, type };
 				}
 			})
 		)
 			.then((r) => {
-				r.forEach(({ path, file_url, base64 }) => {
-					if (file_url) {
-						let data;
+				r.forEach(({ path, file_url, base64, type }) => {
+					if (base64) {
+						update_object(data, base64, path);
+					} else if (type === "Gallery") {
+						update_object(data, file_url, path);
+					} else if (file_url) {
 						const o = {
 							is_file: true,
 							name: `${file_url}`,
-							data: null,
-							orig_name: "file.csv"
+							data: null
+							// orig_name: "file.csv"
 						};
 						update_object(data, o, path);
-					} else if (base64) {
-						update_object(data, base64, path);
 					}
 				});
 
@@ -613,25 +730,27 @@ export async function walk_and_store_blobs(
 				let new_path = path.slice();
 				new_path.push(i);
 
-				blob_refs = blob_refs.concat(
-					await walk_and_store_blobs(
-						param[i],
-						root ? api_info?.parameters[i]?.component || undefined : undefined,
-						new_path,
-						false,
-						api_info
-					)
+				const array_refs = await walk_and_store_blobs(
+					param[i],
+					root ? api_info?.parameters[i]?.component || undefined : type,
+					new_path,
+					false,
+					api_info
 				);
+
+				blob_refs = blob_refs.concat(array_refs);
 			})
 		);
 
 		return blob_refs;
 	} else if (globalThis.Buffer && param instanceof globalThis.Buffer) {
+		const is_image = type === "Image";
 		return [
 			{
 				path: path,
-				blob: type === "Image" ? false : new NodeBlob([param]),
-				data: type === "Image" ? `${param.toString("base64")}` : false
+				blob: is_image ? false : new NodeBlob([param]),
+				data: is_image ? `${param.toString("base64")}` : false,
+				type
 			}
 		];
 	} else if (param instanceof Blob) {
@@ -646,9 +765,9 @@ export async function walk_and_store_blobs(
 				data = Buffer.from(buffer).toString("base64");
 			}
 
-			return [{ path, data }];
+			return [{ path, data, type }];
 		} else {
-			return [{ path: path, blob: param }];
+			return [{ path: path, blob: param, type }];
 		}
 	} else if (typeof param === "object") {
 		let blob_refs = [];
