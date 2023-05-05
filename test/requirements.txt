@@ -185,7 +185,7 @@ requests==2.28.1
     #   transformers
 respx==0.19.2
     # via -r requirements.in
-ruff==0.0.263
+ruff==0.0.264
     # via -r requirements.in
 rfc3986[idna2008]==1.5.0
     # via httpx

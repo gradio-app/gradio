@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple
+from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -19,7 +19,7 @@ set_documentation_group("events")
 
 
 def set_cancel_events(
-    block: Block, event_name: str, cancels: None | Dict[str, Any] | List[Dict[str, Any]]
+    block: Block, event_name: str, cancels: None | dict[str, Any] | list[dict[str, Any]]
 ):
     if cancels:
         if not isinstance(cancels, list):
@@ -91,8 +91,8 @@ class EventListenerMethod:
     def __call__(
         self,
         fn: Callable | None,
-        inputs: Component | List[Component] | Set[Component] | None = None,
-        outputs: Component | List[Component] | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
+        outputs: Component | list[Component] | None = None,
         api_name: str | None = None,
         status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
@@ -102,7 +102,7 @@ class EventListenerMethod:
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
+        cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
         every: float | None = None,
         _js: str | None = None,
     ) -> Dependency:
@@ -290,7 +290,7 @@ class Selectable(EventListener):
 class SelectData(EventData):
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
-        self.index: int | Tuple[int, int] = data["index"]
+        self.index: int | tuple[int, int] = data["index"]
         """
         The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
         """

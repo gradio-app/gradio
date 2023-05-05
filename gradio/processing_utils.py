@@ -8,7 +8,6 @@ import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
@@ -25,7 +24,7 @@ with warnings.catch_warnings():
 #########################
 
 
-def to_binary(x: str | Dict) -> bytes:
+def to_binary(x: str | dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
     if isinstance(x, dict):
         if x.get("data"):
@@ -362,10 +361,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
     image = np.asarray(image)
     dtypeobj_in = image.dtype
-    if dtype is np.floating:
-        dtypeobj_out = np.dtype("float64")
-    else:
-        dtypeobj_out = np.dtype(dtype)
+    dtypeobj_out = np.dtype("float64") if dtype is np.floating else np.dtype(dtype)
     dtype_in = dtypeobj_in.type
     dtype_out = dtypeobj_out.type
     kind_in = dtypeobj_in.kind

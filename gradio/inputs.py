@@ -8,7 +8,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 from __future__ import annotations
 
 import warnings
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
 from gradio import components
 
@@ -132,8 +132,8 @@ class CheckboxGroup(components.CheckboxGroup):
 
     def __init__(
         self,
-        choices: List[str],
-        default: List[str] | None = None,
+        choices: list[str],
+        default: list[str] | None = None,
         type: str = "value",
         label: Optional[str] = None,
         optional: bool = False,
@@ -168,7 +168,7 @@ class Radio(components.Radio):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: list[str],
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
@@ -202,7 +202,7 @@ class Dropdown(components.Dropdown):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: list[str],
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
@@ -236,7 +236,7 @@ class Image(components.Image):
 
     def __init__(
         self,
-        shape: Tuple[int, int] = None,
+        shape: tuple[int, int] = None,
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "upload",
@@ -366,12 +366,12 @@ class Dataframe(components.Dataframe):
 
     def __init__(
         self,
-        headers: Optional[List[str]] = None,
+        headers: Optional[list[str]] = None,
         row_count: int = 3,
         col_count: Optional[int] = 3,
-        datatype: str | List[str] = "str",
-        col_width: int | List[int] = None,
-        default: Optional[List[List[Any]]] = None,
+        datatype: str | list[str] = "str",
+        col_width: int | list[int] = None,
+        default: Optional[list[list[Any]]] = None,
         type: str = "pandas",
         label: Optional[str] = None,
         optional: bool = False,
@@ -413,7 +413,7 @@ class Timeseries(components.Timeseries):
     def __init__(
         self,
         x: Optional[str] = None,
-        y: str | List[str] = None,
+        y: str | list[str] = None,
         label: Optional[str] = None,
         optional: bool = False,
     ):

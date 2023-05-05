@@ -309,10 +309,8 @@ class App(FastAPI):
                 )
             abs_path = utils.abspath(path_or_url)
             in_blocklist = any(
-                (
-                    utils.is_in_or_equal(abs_path, blocked_path)
-                    for blocked_path in blocks.blocked_paths
-                )
+                utils.is_in_or_equal(abs_path, blocked_path)
+                for blocked_path in blocks.blocked_paths
             )
             if in_blocklist:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
@@ -320,10 +318,8 @@ class App(FastAPI):
             in_app_dir = utils.abspath(app.cwd) in abs_path.parents
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
-                (
-                    utils.is_in_or_equal(abs_path, allowed_path)
-                    for allowed_path in blocks.allowed_paths
-                )
+                utils.is_in_or_equal(abs_path, allowed_path)
+                for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents
 
@@ -464,14 +460,15 @@ class App(FastAPI):
                     )
             else:
                 fn_index_inferred = body.fn_index
-            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                fn_index_inferred
+            if (
+                not app.get_blocks().api_open
+                and app.get_blocks().queue_enabled_for_fn(fn_index_inferred)
+                and f"Bearer {app.queue_token}" != request.headers.get("Authorization")
             ):
-                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Not authorized to skip the queue",
-                    )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authorized to skip the queue",
+                )
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash

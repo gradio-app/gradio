@@ -350,7 +350,7 @@ class TestRequest:
             name: str
             job: str
             id: str
-            createdAt: str
+            createdAt: str  # noqa: N815
 
         client_response: AsyncRequest = await AsyncRequest(
             method=AsyncRequest.Method.POST,
@@ -434,7 +434,7 @@ async def test_validate_with_model(respx_mock):
         name: str
         job: str
         id: str
-        createdAt: str
+        createdAt: str  # noqa: N815
 
     client_response: AsyncRequest = await AsyncRequest(
         method=AsyncRequest.Method.POST,
@@ -469,7 +469,7 @@ async def test_validate_and_fail_with_model(respx_mock):
 @mock.patch("gradio.utils.AsyncRequest._validate_response_data")
 @pytest.mark.asyncio
 async def test_exception_type(validate_response_data, respx_mock):
-    class ResponseValidationException(Exception):
+    class ResponseValidationError(Exception):
         message = "Response object is not valid."
 
     validate_response_data.side_effect = Exception()
@@ -479,9 +479,9 @@ async def test_exception_type(validate_response_data, respx_mock):
     client_response: AsyncRequest = await AsyncRequest(
         method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
-        exception_type=ResponseValidationException,
+        exception_type=ResponseValidationError,
     )
-    assert isinstance(client_response.exception, ResponseValidationException)
+    assert isinstance(client_response.exception, ResponseValidationError)
 
 
 @pytest.mark.asyncio
@@ -511,9 +511,8 @@ async def test_validate_with_function(respx_mock):
 @pytest.mark.asyncio
 async def test_validate_and_fail_with_function(respx_mock):
     def has_name(response):
-        if response["name"] is not None:
-            if response["name"] == "Alex":
-                return response
+        if response["name"] is not None and response["name"] == "Alex":
+            return response
         raise Exception
 
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response({"name": "morpheus"}))

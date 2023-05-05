@@ -11,7 +11,7 @@ from gradio_client import media_data
 
 import gradio as gr
 from gradio.context import Context
-from gradio.exceptions import InvalidApiName
+from gradio.exceptions import InvalidApiNameError
 from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
 
 """
@@ -190,16 +190,16 @@ class TestLoadInterface:
     def test_sentiment_model(self):
         io = gr.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
-            output = io("I am happy, I love you")
-            assert json.load(open(output))["label"] == "POSITIVE"
+            with open(io("I am happy, I love you")) as f:
+                assert json.load(f)["label"] == "POSITIVE"
         except TooManyRequestsError:
             pass
 
     def test_image_classification_model(self):
         io = gr.Blocks.load(name="models/google/vit-base-patch16-224")
         try:
-            output = io("gradio/test_data/lion.jpg")
-            assert json.load(open(output))["label"] == "lion"
+            with open(io("gradio/test_data/lion.jpg")) as f:
+                assert json.load(f)["label"] == "lion"
         except TooManyRequestsError:
             pass
 
@@ -214,9 +214,9 @@ class TestLoadInterface:
     def test_numerical_to_label_space(self):
         io = gr.load("spaces/abidlabs/titanic-survival")
         try:
-            output = io("male", 77, 10)
-            assert json.load(open(output))["label"] == "Perishes"
             assert io.theme.name == "soft"
+            with open(io("male", 77, 10)) as f:
+                assert json.load(f)["label"] == "Perishes"
         except TooManyRequestsError:
             pass
 
@@ -472,7 +472,7 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
 
 
 def test_raise_value_error_when_api_name_invalid():
-    with pytest.raises(InvalidApiName):
+    with pytest.raises(InvalidApiNameError):
         demo = gr.Blocks.load(name="spaces/gradio/hello_world")
         demo("freddy", api_name="route does not exist")
 
