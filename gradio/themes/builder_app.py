@@ -537,7 +537,7 @@ with gr.Blocks(  # noqa: SIM117
                 + radius_size.expand()
                 + pad_to_4([f.name for f in font])
                 + pad_to_4(font_is_google)
-                + pad_to_4(font_mono)
+                + pad_to_4([f.name for f in font_mono])
                 + pad_to_4(font_mono_is_google)
                 + var_output
             )
@@ -610,7 +610,7 @@ with gr.Blocks(  # noqa: SIM117
                 final_attr_values = {}
                 diff = False
                 for attr in dir(source_obj):
-                    if attr in ["all", "name"] or attr.startswith("_"):
+                    if attr in ["all", "name", "expand"] or attr.startswith("_"):
                         continue
                     final_theme_attr = (
                         value_name.split("_")[0]
