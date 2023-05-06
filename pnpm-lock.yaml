@@ -92,9 +92,11 @@ importers:
       '@types/ws': ^8.5.4
       bufferutil: ^4.0.7
       esbuild: ^0.17.14
+      semiver: ^1.1.0
       ws: ^8.13.0
     dependencies:
       bufferutil: 4.0.7
+      semiver: 1.1.0
       ws: 8.13.0_bufferutil@4.0.7
     devDependencies:
       '@types/ws': 8.5.4
