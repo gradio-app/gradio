@@ -113,10 +113,10 @@ To embed with IFrames instead (if you cannot add javascript to your website, for
 
 Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
 
-You'll also need to add a fixed `height` manually as well as other regular iframe attributes. For example: 
+You'll also need to add a fixed `height` manually as well as set the `frameborder`. In addition, if your app requires permissions such as access to the webcam or the microphone, you'll need to provide that as well using the `allow` attribute. Here's an example of how it might look: 
 
 ```html
-&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space" frameBorder="0" height="900">&lt;/iframe>
+&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space" frameBorder="0" height="900" allow="camera; document-domain; legacy-image-formats; microphone; picture-in-picture;">&lt;/iframe>
 ```
 
 ## API Page
