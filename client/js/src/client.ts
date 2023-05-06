@@ -565,7 +565,12 @@ interface ApiInfo<T extends ApiData | JsApiData> {
 	};
 }
 
-function get_type(type: { [key: string]: any }, component: string) {
+function get_type(
+	type: { [key: string]: any },
+	component: string,
+	serializer: string,
+	signature_type: "return" | "parameter"
+) {
 	switch (type.type) {
 		case "string":
 			return "string";
@@ -576,31 +581,35 @@ function get_type(type: { [key: string]: any }, component: string) {
 	}
 
 	if (
-		type.description === "any valid value" ||
-		type.description === "any valid json"
+		serializer === "JSONSerializable" ||
+		serializer === "StringSerializable"
 	) {
 		return "any";
-	} else if (type.type === "array" && type?.items?.type === "string") {
+	} else if (serializer === "ListStringSerializable") {
 		return "string[]";
 	} else if (component === "Image") {
-		return "string";
-		// }else if ()
-	} else if (type.type?.oneOf) {
-		return `Record<{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}> | { name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}`;
-	} else if (type?.type?.items?.prefixItems) {
-		return "";
+		return signature_type === "parameter" ? "Blob | File | Buffer" : "string";
+	} else if (serializer === "FileSerializable") {
+		return signature_type === "parameter"
+			? "(Blob | File | Buffer)[] | (Blob | File | Buffer)"
+			: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string} | { name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}[]`;
+	} else if (serializer === "GallerySerializable") {
+		return signature_type === "parameter"
+			? "[(Blob | File | Buffer), (string | null)][]"
+			: `[{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}, (string | null))][]`;
 	}
 }
 
 function get_description(
 	type: { type: any; description: string },
-	component: string
+	serializer: string
 ) {
-	if (component === "Gallery") {
-	} else if (component === "Gallery") {
-		return "Array of files";
-	} else if (type?.type?.oneOf) {
-		return "Array of files or single file";
+	if (serializer === "GallerySerializable") {
+		return "array of [file, label] tuples";
+	} else if (serializer === "ListStringSerializable") {
+		return "array of strings";
+	} else if (serializer === "FileSerializable") {
+		return "array of files or single file";
 	} else {
 		return type.description;
 	}
@@ -620,20 +629,20 @@ function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
 			new_data[key][endpoint].parameters = {};
 			new_data[key][endpoint].returns = {};
 			new_data[key][endpoint].parameters = info.parameters.map(
-				({ label, component, type }) => ({
+				({ label, component, type, serializer }) => ({
 					label,
 					component,
-					type: get_type(type, component),
-					description: get_description(type, component)
+					type: get_type(type, component, serializer, "parameter"),
+					description: get_description(type, serializer)
 				})
 			);
 
-			new_data[key][endpoint].returns = info.parameters.map(
-				({ label, component, type }) => ({
+			new_data[key][endpoint].returns = info.returns.map(
+				({ label, component, type, serializer }) => ({
 					label,
 					component,
-					type: get_type(type, component),
-					description: get_description(type, component)
+					type: get_type(type, component, serializer, "return"),
+					description: get_description(type, serializer)
 				})
 			);
 		}
@@ -757,7 +766,7 @@ export async function walk_and_store_blobs(
 				type
 			}
 		];
-	} else if (param instanceof Blob) {
+	} else if (param instanceof Blob || param instanceof File) {
 		if (type === "Image") {
 			let data;
 
