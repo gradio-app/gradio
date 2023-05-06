@@ -8,7 +8,6 @@ import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
@@ -25,7 +24,7 @@ with warnings.catch_warnings():
 #########################
 
 
-def to_binary(x: str | Dict) -> bytes:
+def to_binary(x: str | dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
     if isinstance(x, dict):
         if x.get("data"):
@@ -34,7 +33,12 @@ def to_binary(x: str | Dict) -> bytes:
             base64str = client_utils.encode_url_or_file_to_base64(x["name"])
     else:
         base64str = x
-    return base64.b64decode(base64str.split(",")[1])
+    return base64.b64decode(extract_base64_data(base64str))
+
+
+def extract_base64_data(x: str) -> str:
+    """Just extracts the base64 data from a general base64 string."""
+    return x.rsplit(",", 1)[-1]
 
 
 #########################
@@ -43,8 +47,7 @@ def to_binary(x: str | Dict) -> bytes:
 
 
 def decode_base64_to_image(encoding: str) -> Image.Image:
-    content = encoding.split(";")[1]
-    image_encoded = content.split(",")[1]
+    image_encoded = extract_base64_data(encoding)
     img = Image.open(BytesIO(base64.b64decode(image_encoded)))
     exif = img.getexif()
     # 274 is the code for image rotation and 1 means "correct orientation"
@@ -358,10 +361,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
     image = np.asarray(image)
     dtypeobj_in = image.dtype
-    if dtype is np.floating:
-        dtypeobj_out = np.dtype("float64")
-    else:
-        dtypeobj_out = np.dtype(dtype)
+    dtypeobj_out = np.dtype("float64") if dtype is np.floating else np.dtype(dtype)
     dtype_in = dtypeobj_in.type
     dtype_out = dtypeobj_out.type
     kind_in = dtypeobj_in.kind

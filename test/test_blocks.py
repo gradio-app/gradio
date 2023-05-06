@@ -87,10 +87,11 @@ class TestBlocksMethods:
         def fake_func():
             return "Hello There"
 
-        xray_model = lambda diseases, img: {
-            disease: random.random() for disease in diseases
-        }
-        ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
+        def xray_model(diseases, img):
+            return {disease: random.random() for disease in diseases}
+
+        def ct_model(diseases, img):
+            return {disease: 0.1 for disease in diseases}
 
         with gr.Blocks() as demo:
             gr.Markdown(
@@ -151,7 +152,7 @@ class TestBlocksMethods:
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
-            return formatter("Hello " + name + "!")
+            return formatter(f"Hello {name}!")
 
         greet_upper_case = partial(greet, formatter=capwords)
         with gr.Blocks() as demo:
@@ -278,8 +279,7 @@ class TestBlocksMethods:
             return 42
 
         def generator_function():
-            for index in range(10):
-                yield index
+            yield from range(10)
 
         with gr.Blocks() as demo:
 
@@ -405,7 +405,7 @@ class TestComponentsInBlocks:
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
         # Queue should be explicitly false for these events
-        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
+        assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
@@ -419,7 +419,7 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
-        assert all([dep["every"] == 1 for dep in dependencies_on_load])
+        assert all(dep["every"] == 1 for dep in dependencies_on_load)
 
     def test_get_load_events(self, io_components):
         components = []
@@ -451,7 +451,7 @@ class TestBlocksPostprocessing:
             0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
-            [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
+            o["value"] == c.postprocess(None) for o, c in zip(output, io_components)
         )
 
     def test_blocks_does_not_replace_keyword_literal(self):
@@ -626,7 +626,7 @@ class TestCallFunction:
             text = gr.Textbox()
             btn = gr.Button()
             btn.click(
-                lambda x: "Hello, " + x,
+                lambda x: f"Hello, {x}",
                 inputs=text,
                 outputs=text,
             )
@@ -646,12 +646,12 @@ class TestCallFunction:
             text2 = gr.Textbox()
             btn = gr.Button()
             btn.click(
-                lambda x: "Hello, " + x,
+                lambda x: f"Hello, {x}",
                 inputs=text,
                 outputs=text,
             )
             text.change(
-                lambda x: "Hi, " + x,
+                lambda x: f"Hi, {x}",
                 inputs=text,
                 outputs=text2,
             )
@@ -669,8 +669,7 @@ class TestCallFunction:
     @pytest.mark.asyncio
     async def test_call_generator(self):
         def generator(x):
-            for i in range(x):
-                yield i
+            yield from range(x)
 
         with gr.Blocks() as demo:
             inp = gr.Number()
@@ -786,7 +785,7 @@ class TestBatchProcessing:
         def batch_fn(x):
             results = []
             for word in x:
-                results.append("Hello " + word)
+                results.append(f"Hello {word}")
             return (results,)
 
         with gr.Blocks() as demo:
@@ -847,7 +846,7 @@ class TestBatchProcessing:
             def batch_fn(x):
                 results = []
                 for word in x:
-                    results.append("Hello " + word)
+                    results.append(f"Hello {word}")
                     yield (results,)
 
             with gr.Blocks() as demo:
@@ -864,7 +863,7 @@ class TestBatchProcessing:
             def batch_fn(x):
                 results = []
                 for word in x:
-                    results.append("Hello " + word)
+                    results.append(f"Hello {word}")
                 return (results,)
 
             with gr.Blocks() as demo:
@@ -883,7 +882,7 @@ class TestBatchProcessing:
             def batch_fn(x, y):
                 results = []
                 for word1, word2 in zip(x, y):
-                    results.append("Hello " + word1 + word2)
+                    results.append(f"Hello {word1}{word2}")
                 return (results,)
 
             with gr.Blocks() as demo:
@@ -1034,6 +1033,24 @@ class TestRender:
             io.render()
             io3 = io2.render()
         assert io2 == io3
+
+    def test_no_error_if_state_rendered_multiple_times(self):
+        state = gr.State("")
+        gr.TabbedInterface(
+            [
+                gr.Interface(
+                    lambda _, x: (x, "I don't know"),
+                    inputs=[state, gr.Textbox()],
+                    outputs=[state, gr.Textbox()],
+                ),
+                gr.Interface(
+                    lambda s: (s, f"User question: {s}"),
+                    inputs=[state],
+                    outputs=[state, gr.Textbox(interactive=False)],
+                ),
+            ],
+            ["Ask question", "Show question"],
+        )
 
 
 class TestCancel:
@@ -1213,7 +1230,7 @@ class TestEvery:
                     # If the continuous event got pushed to the queue, the size would be nonzero
                     # asserting false will terminate the test
                     if status.json()["queue_size"] != 0:
-                        assert False
+                        raise AssertionError()
                     else:
                         break
 
@@ -1275,7 +1292,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1331,7 +1348,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1349,11 +1366,10 @@ class TestProgressBar:
                     await ws.send(json.dumps({"data": [0], "fn_index": 0}))
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "progress":
-                    if msg[
-                        "progress_data"
-                    ]:  # Ignore empty lists which sometimes appear on Windows
-                        progress_updates.append(msg["progress_data"])
+                if (
+                    msg["msg"] == "progress" and msg["progress_data"]
+                ):  # Ignore empty lists which sometimes appear on Windows
+                    progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break

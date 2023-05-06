@@ -64,14 +64,23 @@ include = [
 [tool.ruff]
 target-version = "py37"
 extend-select = [
+  "B",
+  "C",
   "I",
+  "N",
+  "SIM",
+  "UP",
 ]
 ignore = [
+  "C901", # function is too complex (TODO: un-ignore this)
+  "B023", # function definition in loop (TODO: un-ignore this)
+  "B008", # function call in argument defaults
+  "B017", # pytest.raises considered evil
+  "B028", # explicit stacklevel for warnings
   "E501", # from scripts/lint_backend.sh
-  "E722", # from scripts/lint_backend.sh
-  "E731", # from scripts/lint_backend.sh
-  "F403", # from scripts/lint_backend.sh
-  "F541", # from scripts/lint_backend.sh
+  "SIM105", # contextlib.suppress (has a performance cost)
+  "SIM117", # multiple nested with blocks (doesn't look good with gr.Row etc)
+  "UP007", # use X | Y for type annotations (TODO: can be enabled once Pydantic plays nice with them)
 ]
 
 [tool.ruff.per-file-ignores]
@@ -83,4 +92,7 @@ ignore = [
 ]
 "gradio/__init__.py" = [
   "F401", # "Imported but unused" (TODO: it would be better to be explicit and use __all__)
+]
+"gradio/routes.py" = [
+  "UP006", # Pydantic on Python 3.7 requires old-style type annotations (TODO: drop when Python 3.7 is dropped)
 ]

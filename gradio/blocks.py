@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Iterator
 
 import anyio
 import requests
@@ -20,6 +20,7 @@ from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from packaging import version
 from typing_extensions import Literal
 
 from gradio import (
@@ -34,7 +35,7 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -56,7 +57,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
     from gradio.components import Component
 
-BUILT_IN_THEMES: Dict[str, Theme] = {
+BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
     for t in [
         themes.Base(),
@@ -74,7 +75,7 @@ class Block:
         *,
         render: bool = True,
         elem_id: str | None = None,
-        elem_classes: List[str] | str | None = None,
+        elem_classes: list[str] | str | None = None,
         visible: bool = True,
         root_url: str | None = None,  # URL that is prepended to all file paths
         _skip_init_processing: bool = False,  # Used for loading from Spaces
@@ -145,15 +146,15 @@ class Block:
             else self.__class__.__name__.lower()
         )
 
-    def get_expected_parent(self) -> Type[BlockContext] | None:
+    def get_expected_parent(self) -> type[BlockContext] | None:
         return None
 
     def set_event_trigger(
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | Set[Component] | None,
-        outputs: Component | List[Component] | None,
+        inputs: Component | list[Component] | set[Component] | None,
+        outputs: Component | list[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -164,12 +165,12 @@ class Block:
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        cancels: List[int] | None = None,
+        cancels: list[int] | None = None,
         every: float | None = None,
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
-    ) -> Tuple[Dict[str, Any], int]:
+    ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -251,10 +252,8 @@ class Block:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
-            if not (api_name == api_name_):
-                warnings.warn(
-                    "api_name {} already exists, using {}".format(api_name, api_name_)
-                )
+            if api_name != api_name_:
+                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
         if collects_event_data is None:
@@ -297,11 +296,11 @@ class Block:
 
     @staticmethod
     @abstractmethod
-    def update(**kwargs) -> Dict:
+    def update(**kwargs) -> dict:
         return {}
 
     @classmethod
-    def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
+    def get_specific_update(cls, generic_update: dict[str, Any]) -> dict:
         generic_update = generic_update.copy()
         del generic_update["__type__"]
         specific_update = cls.update(**generic_update)
@@ -320,7 +319,7 @@ class BlockContext(Block):
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
         """
-        self.children: List[Block] = []
+        self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
@@ -370,8 +369,8 @@ class BlockFunction:
     def __init__(
         self,
         fn: Callable | None,
-        inputs: List[Component],
-        outputs: List[Component],
+        inputs: list[Component],
+        outputs: list[Component],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
@@ -401,13 +400,13 @@ class BlockFunction:
         return str(self)
 
 
-class class_or_instancemethod(classmethod):
+class class_or_instancemethod(classmethod):  # noqa: N801
     def __get__(self, instance, type_):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
 
 
-def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
+def postprocess_update_dict(block: Block, update_dict: dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -435,15 +434,15 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
 
 
 def convert_component_dict_to_list(
-    outputs_ids: List[int], predictions: Dict
-) -> List | Dict:
+    outputs_ids: list[int], predictions: dict
+) -> list | dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
     the outputs_ids and including every output component. Leaves other types of dictionaries unchanged.
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
     """
-    keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
+    keys_are_blocks = [isinstance(key, Block) for key in predictions]
     if all(keys_are_blocks):
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
@@ -461,7 +460,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-def get_api_info(config: Dict, serialize: bool = True):
+def get_api_info(config: dict, serialize: bool = True):
     """
     Gets the information needed to generate the API docs from a Blocks config.
     Parameters:
@@ -470,6 +469,9 @@ def get_api_info(config: Dict, serialize: bool = True):
     """
     api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
     mode = config.get("mode", None)
+    after_new_format = version.parse(config.get("version", "2.0")) > version.Version(
+        "3.28.3"
+    )
 
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
@@ -496,29 +498,36 @@ def get_api_info(config: Dict, serialize: bool = True):
             # The config has the most specific API info (taking into account the parameters
             # of the component), so we use that if it exists. Otherwise, we fallback to the
             # Serializer's API info.
-            if component.get("api_info"):
-                if serialize:
-                    info = component["api_info"]["serialized_input"]
-                    example = component["example_inputs"]["serialized"]
-                else:
-                    info = component["api_info"]["raw_input"]
-                    example = component["example_inputs"]["raw"]
+            serializer = serializing.COMPONENT_MAPPING[type]()
+            if component.get("api_info") and after_new_format:
+                info = component["api_info"]
+                example = component["example_inputs"]["serialized"]
             else:
-                serializer = serializing.COMPONENT_MAPPING[type]()
                 assert isinstance(serializer, serializing.Serializable)
-                if serialize:
-                    info = serializer.api_info()["serialized_input"]
-                    example = serializer.example_inputs()["serialized"]
-                else:
-                    info = serializer.api_info()["raw_input"]
-                    example = serializer.example_inputs()["raw"]
+                info = serializer.api_info()
+                example = serializer.example_inputs()["raw"]
+            python_info = info["info"]
+            if serialize and info["serialized_info"]:
+                python_info = serializer.serialized_info()
+                if (
+                    isinstance(serializer, serializing.FileSerializable)
+                    and component["props"].get("file_count", "single") != "single"
+                ):
+                    python_info = serializer._multiple_file_serialized_info()
+
+            python_type = client_utils.json_schema_to_python_type(python_info)
+            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
             dependency_info["parameters"].append(
                 {
                     "label": label,
-                    "type_python": info[0],
-                    "type_description": info[1],
+                    "type": info["info"],
+                    "python_type": {
+                        "type": python_type,
+                        "description": python_info.get("description", ""),
+                    },
                     "component": type.capitalize(),
                     "example_input": example,
+                    "serializer": serializer_name,
                 }
             )
 
@@ -542,16 +551,27 @@ def get_api_info(config: Dict, serialize: bool = True):
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             assert isinstance(serializer, serializing.Serializable)
-            if serialize:
-                info = serializer.api_info()["serialized_output"]
-            else:
-                info = serializer.api_info()["raw_output"]
+            info = serializer.api_info()
+            python_info = info["info"]
+            if serialize and info["serialized_info"]:
+                python_info = serializer.serialized_info()
+                if (
+                    isinstance(serializer, serializing.FileSerializable)
+                    and component["props"].get("file_count", "single") != "single"
+                ):
+                    python_info = serializer._multiple_file_serialized_info()
+            python_type = client_utils.json_schema_to_python_type(python_info)
+            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
             dependency_info["returns"].append(
                 {
                     "label": label,
-                    "type_python": info[0],
-                    "type_description": info[1],
+                    "type": info["info"],
+                    "python_type": {
+                        "type": python_type,
+                        "description": python_info.get("description", ""),
+                    },
                     "component": type.capitalize(),
+                    "serializer": serializer_name,
                 }
             )
 
@@ -561,7 +581,7 @@ def get_api_info(config: Dict, serialize: bool = True):
         if skip_endpoint:
             continue
         if dependency["api_name"]:
-            api_info["named_endpoints"]["/" + dependency["api_name"]] = dependency_info
+            api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
         elif mode == "interface" or mode == "tabbed_interface":
             pass  # Skip unnamed endpoints in interface mode
         else:
@@ -664,8 +684,8 @@ class Blocks(BlockContext):
         if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
-        self.blocks: Dict[int, Block] = {}
-        self.fns: List[BlockFunction] = []
+        self.blocks: dict[int, Block] = {}
+        self.fns: list[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
 
@@ -676,7 +696,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.is_space = os.getenv("SYSTEM") == "spaces"
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
@@ -694,7 +714,8 @@ class Blocks(BlockContext):
         self.progress_tracking = None
         self.ssl_verify = True
 
-        self.file_directories = []
+        self.allowed_paths = []
+        self.blocked_paths = []
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -714,7 +735,7 @@ class Blocks(BlockContext):
     def from_config(
         cls,
         config: dict,
-        fns: List[Callable],
+        fns: list[Callable],
         root_url: str | None = None,
     ) -> Blocks:
         """
@@ -728,20 +749,20 @@ class Blocks(BlockContext):
         config = copy.deepcopy(config)
         components_config = config["components"]
         theme = config.get("theme", "default")
-        original_mapping: Dict[int, Block] = {}
+        original_mapping: dict[int, Block] = {}
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
                 if block_config["id"] == id:
                     break
             else:
-                raise ValueError("Cannot find block with id {}".format(id))
+                raise ValueError(f"Cannot find block with id {id}")
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
             if block_config["props"].get("root_url") is None and root_url:
-                block_config["props"]["root_url"] = root_url + "/"
+                block_config["props"]["root_url"] = f"{root_url}/"
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             if style and isinstance(block, components.IOComponent):
@@ -825,18 +846,18 @@ class Blocks(BlockContext):
     def __repr__(self):
         num_backend_fns = len([d for d in self.dependencies if d["backend_fn"]])
         repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
-        repr += "\n" + "-" * len(repr)
+        repr += f"\n{'-' * len(repr)}"
         for d, dependency in enumerate(self.dependencies):
             if dependency["backend_fn"]:
                 repr += f"\nfn_index={d}"
                 repr += "\n inputs:"
                 for input_id in dependency["inputs"]:
                     block = self.blocks[input_id]
-                    repr += "\n |-{}".format(str(block))
+                    repr += f"\n |-{block}"
                 repr += "\n outputs:"
                 for output_id in dependency["outputs"]:
                     block = self.blocks[output_id]
-                    repr += "\n |-{}".format(str(block))
+                    repr += f"\n |-{block}"
         return repr
 
     def render(self):
@@ -845,10 +866,13 @@ class Blocks(BlockContext):
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
                 )
-            if not set(Context.root_block.blocks).isdisjoint(self.blocks):
-                raise DuplicateBlockError(
-                    "At least one block in this Blocks has already been rendered."
-                )
+            overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
+            for id in overlapping_ids:
+                # State componenents are allowed to be reused between Blocks
+                if not isinstance(self.blocks[id], components.State):
+                    raise DuplicateBlockError(
+                        "At least one block in this Blocks has already been rendered."
+                    )
 
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
@@ -860,11 +884,9 @@ class Blocks(BlockContext):
                         api_name,
                         [dep["api_name"] for dep in Context.root_block.dependencies],
                     )
-                    if not (api_name == api_name_):
+                    if api_name != api_name_:
                         warnings.warn(
-                            "api_name {} already exists, using {}".format(
-                                api_name, api_name_
-                            )
+                            f"api_name {api_name} already exists, using {api_name_}"
                         )
                         dependency["api_name"] = api_name_
                 dependency["cancels"] = [
@@ -937,7 +959,9 @@ class Blocks(BlockContext):
                 None,
             )
             if inferred_fn_index is None:
-                raise InvalidApiName(f"Cannot find a function with api_name {api_name}")
+                raise InvalidApiNameError(
+                    f"Cannot find a function with api_name {api_name}"
+                )
             fn_index = inferred_fn_index
         if not (self.is_callable(fn_index)):
             raise ValueError(
@@ -970,9 +994,9 @@ class Blocks(BlockContext):
     async def call_function(
         self,
         fn_index: int,
-        processed_input: List[Any],
+        processed_input: list[Any],
         iterator: Iterator[Any] | None = None,
-        requests: routes.Request | List[routes.Request] | None = None,
+        requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
     ):
@@ -991,17 +1015,9 @@ class Blocks(BlockContext):
         is_generating = False
 
         if block_fn.inputs_as_dict:
-            processed_input = [
-                {
-                    input_component: data
-                    for input_component, data in zip(block_fn.inputs, processed_input)
-                }
-            ]
+            processed_input = [dict(zip(block_fn.inputs, processed_input))]
 
-        if isinstance(requests, list):
-            request = requests[0]
-        else:
-            request = requests
+        request = requests[0] if isinstance(requests, list) else requests
         processed_input, progress_index, _ = special_args(
             block_fn.fn, processed_input, request, event_data
         )
@@ -1059,7 +1075,7 @@ class Blocks(BlockContext):
             "iterator": iterator,
         }
 
-    def serialize_data(self, fn_index: int, inputs: List[Any]) -> List[Any]:
+    def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         processed_input = []
 
@@ -1073,7 +1089,7 @@ class Blocks(BlockContext):
 
         return processed_input
 
-    def deserialize_data(self, fn_index: int, outputs: List[Any]) -> List[Any]:
+    def deserialize_data(self, fn_index: int, outputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
         predictions = []
 
@@ -1089,7 +1105,7 @@ class Blocks(BlockContext):
 
         return predictions
 
-    def validate_inputs(self, fn_index: int, inputs: List[Any]):
+    def validate_inputs(self, fn_index: int, inputs: list[Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1111,10 +1127,7 @@ class Blocks(BlockContext):
                 block = self.blocks[input_id]
                 wanted_args.append(str(block))
             for inp in inputs:
-                if isinstance(inp, str):
-                    v = f'"{inp}"'
-                else:
-                    v = str(inp)
+                v = f'"{inp}"' if isinstance(inp, str) else str(inp)
                 received_args.append(v)
 
             wanted = ", ".join(wanted_args)
@@ -1130,7 +1143,7 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
+    def preprocess_data(self, fn_index: int, inputs: list[Any], state: dict[int, Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1151,7 +1164,7 @@ Received inputs:
             processed_input = inputs
         return processed_input
 
-    def validate_outputs(self, fn_index: int, predictions: Any | List[Any]):
+    def validate_outputs(self, fn_index: int, predictions: Any | list[Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -1173,10 +1186,7 @@ Received inputs:
                 block = self.blocks[output_id]
                 wanted_args.append(str(block))
             for pred in predictions:
-                if isinstance(pred, str):
-                    v = f'"{pred}"'
-                else:
-                    v = str(pred)
+                v = f'"{pred}"' if isinstance(pred, str) else str(pred)
                 received_args.append(v)
 
             wanted = ", ".join(wanted_args)
@@ -1191,7 +1201,7 @@ Received outputs:
             )
 
     def postprocess_data(
-        self, fn_index: int, predictions: List | Dict, state: Dict[int, Any]
+        self, fn_index: int, predictions: list | dict, state: dict[int, Any]
     ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
@@ -1215,10 +1225,11 @@ Received outputs:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
                     output.append(None)
                     continue
-            except (IndexError, KeyError):
+            except (IndexError, KeyError) as err:
                 raise ValueError(
-                    f"Number of output components does not match number of values returned from from function {block_fn.name}"
-                )
+                    "Number of output components does not match number "
+                    f"of values returned from from function {block_fn.name}"
+                ) from err
             block = self.blocks[output_id]
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
@@ -1245,13 +1256,13 @@ Received outputs:
     async def process_api(
         self,
         fn_index: int,
-        inputs: List[Any],
-        state: Dict[int, Any],
-        request: routes.Request | List[routes.Request] | None = None,
-        iterators: Dict[int, Any] | None = None,
+        inputs: list[Any],
+        state: dict[int, Any],
+        request: routes.Request | list[routes.Request] | None = None,
+        iterators: dict[int, Any] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
@@ -1346,15 +1357,15 @@ Received outputs:
             "theme": self.theme.name,
         }
 
-        def getLayout(block):
+        def get_layout(block):
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
             children_layout = []
             for child in block.children:
-                children_layout.append(getLayout(child))
+                children_layout.append(get_layout(child))
             return {"id": block._id, "children": children_layout}
 
-        config["layout"] = getLayout(self)
+        config["layout"] = get_layout(self)
 
         for _id, block in self.blocks.items():
             props = block.get_config() if hasattr(block, "get_config") else {}
@@ -1397,10 +1408,10 @@ Received outputs:
 
     @class_or_instancemethod
     def load(
-        self_or_cls,
+        self_or_cls,  # noqa: N805
         fn: Callable | None = None,
-        inputs: List[Component] | None = None,
-        outputs: List[Component] | None = None,
+        inputs: list[Component] | None = None,
+        outputs: list[Component] | None = None,
         api_name: str | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
@@ -1417,7 +1428,7 @@ Received outputs:
         api_key: str | None = None,
         alias: str | None = None,
         **kwargs,
-    ) -> Blocks | Dict[str, Any] | None:
+    ) -> Blocks | dict[str, Any] | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
@@ -1575,7 +1586,7 @@ Received outputs:
         debug: bool = False,
         enable_queue: bool | None = None,
         max_threads: int = 40,
-        auth: Callable | Tuple[str, str] | List[Tuple[str, str]] | None = None,
+        auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
         show_error: bool = False,
@@ -1592,9 +1603,11 @@ Received outputs:
         ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
-        file_directories: List[str] | None = None,
+        file_directories: list[str] | None = None,
+        allowed_paths: list[str] | None = None,
+        blocked_paths: list[str] | None = None,
         _frontend: bool = True,
-    ) -> Tuple[FastAPI, str, str]:
+    ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
@@ -1623,7 +1636,9 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
-            file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
+            file_directories: This parameter has been renamed to `allowed_paths`. It will be removed in a future version.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
+            blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1684,9 +1699,20 @@ Received outputs:
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
 
-        self.file_directories = file_directories if file_directories is not None else []
-        if not isinstance(self.file_directories, list):
-            raise ValueError("file_directories must be a list of directories.")
+        if file_directories is not None:
+            warnings.warn(
+                "The `file_directories` parameter has been renamed to `allowed_paths`. Please use that instead.",
+                DeprecationWarning,
+            )
+            if allowed_paths is None:
+                allowed_paths = file_directories
+        self.allowed_paths = allowed_paths or []
+        self.blocked_paths = blocked_paths or []
+
+        if not isinstance(self.allowed_paths, list):
+            raise ValueError("`allowed_paths` must be a list of directories.")
+        if not isinstance(self.blocked_paths, list):
+            raise ValueError("`blocked_paths` must be a list of directories.")
 
         self.validate_queue_settings()
 
@@ -1924,10 +1950,10 @@ Received outputs:
             analytics_integration = "CometML"
             comet_ml.log_other("Created from", "Gradio")
             if self.share_url is not None:
-                comet_ml.log_text("gradio: " + self.share_url)
+                comet_ml.log_text(f"gradio: {self.share_url}")
                 comet_ml.end()
             elif self.local_url:
-                comet_ml.log_text("gradio: " + self.local_url)
+                comet_ml.log_text(f"gradio: {self.local_url}")
                 comet_ml.end()
             else:
                 raise ValueError("Please run `launch()` first.")
@@ -1975,7 +2001,7 @@ Received outputs:
             # happen the next time the app is launched
             self.app.startup_events_triggered = False
             if verbose:
-                print("Closing server running on port: {}".format(self.server_port))
+                print(f"Closing server running on port: {self.server_port}")
         except (AttributeError, OSError):  # can't close if not running
             pass
 

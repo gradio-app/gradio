@@ -1,10 +1,22 @@
 import os
 import tempfile
 
+import pytest
 from gradio import components
 
-from gradio_client.serializing import COMPONENT_MAPPING, FileSerializable
+from gradio_client.serializing import COMPONENT_MAPPING, FileSerializable, Serializable
 from gradio_client.utils import encode_url_or_file_to_base64
+
+
+@pytest.mark.parametrize("serializer_class", Serializable.__subclasses__())
+def test_duplicate(serializer_class):
+    if "gradio_client" not in serializer_class.__module__:
+        pytest.skip(f"{serializer_class} not defined in gradio_client")
+    serializer = serializer_class()
+    info = serializer.api_info()
+    assert "info" in info and "serialized_info" in info
+    if "serialized_info" in info:
+        assert serializer.serialized_info()
 
 
 def test_check_component_fallback_serializers():
@@ -34,8 +46,10 @@ def test_file_serializing():
         assert serializing.serialize(output) == output
 
         files = serializing.deserialize(output)
-        assert open(files[0]).read() == "Hello World!"
-        assert open(files[1]).read() == "Greetings!"
+        with open(files[0]) as f:
+            assert f.read() == "Hello World!"
+        with open(files[1]) as f:
+            assert f.read() == "Greetings!"
     finally:
         os.remove(f1.name)
         os.remove(f2.name)
