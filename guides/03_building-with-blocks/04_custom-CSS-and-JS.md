@@ -45,7 +45,6 @@ css = """
 with gr.Blocks(css=css) as demo:
     box1 = gr.Textbox(value="Good Job", elem_classes="feedback")
     box2 = gr.Textbox(value="Failure", elem_id="warning", elem_classes="feedback")
-demo.launch()
 ```
 
 The CSS `#warning` ruleset will only target the second Textbox, while the `.feedback` ruleset will target both. Note that when targeting classes, you might need to put the `!important` selector to override the default Gradio styles.
