@@ -26,7 +26,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+- Allow users to submit with enter in Interfaces with textbox / number inputs [@aliabid94](https://github.com/aliabid94) in [PR 4090](https://github.com/gradio-app/gradio/pull/4090).
 
 ## Contributors Shoutout:
 
