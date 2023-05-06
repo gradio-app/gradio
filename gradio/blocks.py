@@ -20,6 +20,7 @@ from anyio import CapacityLimiter
 from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from packaging import version
 from typing_extensions import Literal
 
 from gradio import (
@@ -468,6 +469,9 @@ def get_api_info(config: dict, serialize: bool = True):
     """
     api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
     mode = config.get("mode", None)
+    after_new_format = version.parse(config.get("version", "2.0")) > version.Version(
+        "3.28.3"
+    )
 
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
@@ -494,29 +498,36 @@ def get_api_info(config: dict, serialize: bool = True):
             # The config has the most specific API info (taking into account the parameters
             # of the component), so we use that if it exists. Otherwise, we fallback to the
             # Serializer's API info.
-            if component.get("api_info"):
-                if serialize:
-                    info = component["api_info"]["serialized_input"]
-                    example = component["example_inputs"]["serialized"]
-                else:
-                    info = component["api_info"]["raw_input"]
-                    example = component["example_inputs"]["raw"]
+            serializer = serializing.COMPONENT_MAPPING[type]()
+            if component.get("api_info") and after_new_format:
+                info = component["api_info"]
+                example = component["example_inputs"]["serialized"]
             else:
-                serializer = serializing.COMPONENT_MAPPING[type]()
                 assert isinstance(serializer, serializing.Serializable)
-                if serialize:
-                    info = serializer.api_info()["serialized_input"]
-                    example = serializer.example_inputs()["serialized"]
-                else:
-                    info = serializer.api_info()["raw_input"]
-                    example = serializer.example_inputs()["raw"]
+                info = serializer.api_info()
+                example = serializer.example_inputs()["raw"]
+            python_info = info["info"]
+            if serialize and info["serialized_info"]:
+                python_info = serializer.serialized_info()
+                if (
+                    isinstance(serializer, serializing.FileSerializable)
+                    and component["props"].get("file_count", "single") != "single"
+                ):
+                    python_info = serializer._multiple_file_serialized_info()
+
+            python_type = client_utils.json_schema_to_python_type(python_info)
+            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
             dependency_info["parameters"].append(
                 {
                     "label": label,
-                    "type_python": info[0],
-                    "type_description": info[1],
+                    "type": info["info"],
+                    "python_type": {
+                        "type": python_type,
+                        "description": python_info.get("description", ""),
+                    },
                     "component": type.capitalize(),
                     "example_input": example,
+                    "serializer": serializer_name,
                 }
             )
 
@@ -540,16 +551,27 @@ def get_api_info(config: dict, serialize: bool = True):
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             assert isinstance(serializer, serializing.Serializable)
-            if serialize:
-                info = serializer.api_info()["serialized_output"]
-            else:
-                info = serializer.api_info()["raw_output"]
+            info = serializer.api_info()
+            python_info = info["info"]
+            if serialize and info["serialized_info"]:
+                python_info = serializer.serialized_info()
+                if (
+                    isinstance(serializer, serializing.FileSerializable)
+                    and component["props"].get("file_count", "single") != "single"
+                ):
+                    python_info = serializer._multiple_file_serialized_info()
+            python_type = client_utils.json_schema_to_python_type(python_info)
+            serializer_name = serializing.COMPONENT_MAPPING[type].__name__
             dependency_info["returns"].append(
                 {
                     "label": label,
-                    "type_python": info[0],
-                    "type_description": info[1],
+                    "type": info["info"],
+                    "python_type": {
+                        "type": python_type,
+                        "description": python_info.get("description", ""),
+                    },
                     "component": type.capitalize(),
+                    "serializer": serializer_name,
                 }
             )
 
