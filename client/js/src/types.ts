@@ -36,18 +36,21 @@ export interface UploadResponse {
 
 export interface Status {
 	queue: boolean;
-	status: "pending" | "error" | "complete" | "generating";
+	code?: string;
+	success?: boolean;
+	stage: "pending" | "error" | "complete" | "generating";
 	size?: number;
 	position?: number;
 	eta?: number;
 	message?: string;
-	progress?: Array<{
+	progress_data?: Array<{
 		progress: number | null;
 		index: number | null;
 		length: number | null;
 		unit: string | null;
 		desc: string | null;
 	}>;
+	time?: Date;
 }
 
 export interface SpaceStatusNormal {

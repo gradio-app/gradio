@@ -1,3 +1,5 @@
+import semiver from "semiver";
+
 import {
 	process_endpoint,
 	RE_SPACE_NAME,
@@ -38,7 +40,7 @@ type client_return = {
 		data: unknown[],
 		event_data: unknown
 	) => SubmitReturn;
-	view_api: () => Promise<Record<string, any>>;
+	view_api: (c: Config) => Promise<Record<string, any>>;
 };
 
 type SubmitReturn = {
@@ -187,7 +189,7 @@ export async function client(
 		const { ws_protocol, http_protocol, host, space_id } =
 			await process_endpoint(app_reference, hf_token);
 		const session_hash = Math.random().toString(36).substring(2);
-		const last_status: Record<string, Status["status"]> = {};
+		const last_status: Record<string, Status["stage"]> = {};
 		let config: Config;
 		let api_map: Record<string, number> = {};
 
@@ -215,7 +217,7 @@ export async function client(
 				try {
 					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
 					try {
-						api = await view_api();
+						api = await view_api(config);
 					} catch (e) {
 						console.error(`Could not get api details: ${e.message}`);
 					}
@@ -235,7 +237,7 @@ export async function client(
 		try {
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
 			try {
-				api = await view_api();
+				api = await view_api(config);
 			} catch (e) {
 				console.error(`Could not get api details: ${e.message}`);
 			}
@@ -270,7 +272,7 @@ export async function client(
 				submit(endpoint, data, event_data)
 					.on("data", res)
 					.on("status", (status) => {
-						if (status.status === "error") rej(status);
+						if (status.stage === "error") rej(status);
 					});
 			});
 		}
@@ -306,9 +308,10 @@ export async function client(
 					fire_event({
 						type: "status",
 						endpoint: _endpoint,
-						status: "pending",
+						stage: "pending",
 						queue: false,
-						fn_index
+						fn_index,
+						time: new Date()
 					});
 
 					post_data(
@@ -327,45 +330,50 @@ export async function client(
 									type: "status",
 									endpoint: _endpoint,
 									fn_index,
-									status: "complete",
+									stage: "complete",
 									eta: output.average_duration,
-									queue: false
+									queue: false,
+									time: new Date()
 								});
 
 								fire_event({
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: output.data
+									data: output.data,
+									time: new Date()
 								});
 							} else {
 								fire_event({
 									type: "status",
-									status: "error",
+									stage: "error",
 									endpoint: _endpoint,
 									fn_index,
 									message: output.error,
-									queue: false
+									queue: false,
+									time: new Date()
 								});
 							}
 						})
 						.catch((e) => {
 							fire_event({
 								type: "status",
-								status: "error",
+								stage: "error",
 								message: e.message,
 								endpoint: _endpoint,
 								fn_index,
-								queue: false
+								queue: false,
+								time: new Date()
 							});
 						});
 				} else {
 					fire_event({
 						type: "status",
-						status: "pending",
+						stage: "pending",
 						queue: true,
 						endpoint: _endpoint,
-						fn_index
+						fn_index,
+						time: new Date()
 					});
 
 					let url = new URL(`${ws_protocol}://${host}${config.path}
@@ -381,11 +389,12 @@ export async function client(
 						if (!evt.wasClean) {
 							fire_event({
 								type: "status",
-								status: "error",
+								stage: "error",
 								message: BROKEN_CONNECTION_MSG,
 								queue: true,
 								endpoint: _endpoint,
-								fn_index
+								fn_index,
+								time: new Date()
 							});
 						}
 					};
@@ -403,9 +412,10 @@ export async function client(
 								type: "status",
 								endpoint: _endpoint,
 								fn_index,
+								time: new Date(),
 								...status
 							});
-							if (status.status === "error") {
+							if (status.stage === "error") {
 								websocket.close();
 							}
 						} else if (type === "hash") {
@@ -416,8 +426,9 @@ export async function client(
 						} else if (type === "complete") {
 							fire_event({
 								type: "status",
+								time: new Date(),
 								...status,
-								status: status?.status!,
+								stage: status?.stage!,
 								queue: true,
 								endpoint: _endpoint,
 								fn_index
@@ -426,8 +437,9 @@ export async function client(
 						} else if (type === "generating") {
 							fire_event({
 								type: "status",
+								time: new Date(),
 								...status,
-								status: status?.status!,
+								stage: status?.stage!,
 								queue: true,
 								endpoint: _endpoint,
 								fn_index
@@ -436,6 +448,7 @@ export async function client(
 						if (data) {
 							fire_event({
 								type: "data",
+								time: new Date(),
 								data: data.data,
 								endpoint: _endpoint,
 								fn_index
@@ -480,8 +493,9 @@ export async function client(
 					type: "status",
 					endpoint: _endpoint,
 					fn_index: fn_index,
-					status: "complete",
-					queue: false
+					stage: "complete",
+					queue: false,
+					time: new Date()
 				});
 
 				try {
@@ -501,9 +515,9 @@ export async function client(
 			};
 		}
 
-		async function view_api(): Promise<
-			ApiInfo<JsApiData> | [{ error: string }, 500]
-		> {
+		async function view_api(
+			config: Config
+		): Promise<ApiInfo<JsApiData> | [{ error: string }, 500]> {
 			if (api) return api;
 
 			const headers: {
@@ -514,9 +528,23 @@ export async function client(
 				headers.Authorization = `Bearer ${hf_token}`;
 			}
 			try {
-				const response = await fetch(`${http_protocol}//${host}/info`, {
-					headers
-				});
+				let response: Response;
+				if (semiver.default(config.version || "2.0.0", "3.28.3") < 0) {
+					response = await fetch(
+						"https://gradio-space-api-fetcher.hf.space/api",
+						{
+							method: "POST",
+							body: JSON.stringify({
+								serialize: false,
+								config: JSON.stringify(config)
+							})
+						}
+					);
+				} else {
+					response = await fetch(`${http_protocol}//${host}/info`, {
+						headers
+					});
+				}
 
 				const api_info = (await response.json()) as ApiInfo<ApiData>;
 				if (
@@ -940,7 +968,7 @@ async function check_space_status(
 
 function handle_message(
 	data: any,
-	last_status: Status["status"]
+	last_status: Status["stage"]
 ): {
 	type: "hash" | "data" | "update" | "complete" | "generating" | "none";
 	data?: any;
@@ -958,7 +986,9 @@ function handle_message(
 				status: {
 					queue,
 					message: QUEUE_FULL_MSG,
-					status: "error"
+					stage: "error",
+					code: data.code,
+					success: data.success
 				}
 			};
 		case "estimation":
@@ -966,10 +996,12 @@ function handle_message(
 				type: "update",
 				status: {
 					queue,
-					status: last_status || "pending",
+					stage: last_status || "pending",
+					code: data.code,
 					size: data.queue_size,
 					position: data.rank,
-					eta: data.rank_eta
+					eta: data.rank_eta,
+					success: data.success
 				}
 			};
 		case "progress":
@@ -977,8 +1009,10 @@ function handle_message(
 				type: "update",
 				status: {
 					queue,
-					status: "pending",
-					progress: data.progress_data
+					stage: "pending",
+					code: data.code,
+					progress_data: data.progress_data,
+					success: data.success
 				}
 			};
 		case "process_generating":
@@ -987,8 +1021,9 @@ function handle_message(
 				status: {
 					queue,
 					message: !data.success ? data.output.error : null,
-					status: data.success ? "generating" : "error",
-					progress: data.progress_data,
+					stage: data.success ? "generating" : "error",
+					code: data.code,
+					progress_data: data.progress_data,
 					eta: data.average_duration
 				},
 				data: data.success ? data.output : null
@@ -999,8 +1034,9 @@ function handle_message(
 				status: {
 					queue,
 					message: !data.success ? data.output.error : undefined,
-					status: data.success ? "complete" : "error",
-					progress: data.progress_data,
+					stage: data.success ? "complete" : "error",
+					code: data.code,
+					progress_data: data.progress_data,
 					eta: data.output.average_duration
 				},
 				data: data.success ? data.output : null
@@ -1010,12 +1046,14 @@ function handle_message(
 				type: "update",
 				status: {
 					queue,
-					status: "pending",
+					stage: "pending",
+					code: data.code,
 					size: data.rank,
-					position: 0
+					position: 0,
+					success: data.success
 				}
 			};
 	}
 
-	return { type: "none", status: { status: "error", queue } };
+	return { type: "none", status: { stage: "error", queue } };
 }
