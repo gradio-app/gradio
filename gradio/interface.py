@@ -25,7 +25,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.events import Changeable, Streamable
+from gradio.events import Changeable, Streamable, Submittable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -625,17 +625,27 @@ class Interface(Blocks):
                         ] + [Button.update(visible=True), Button.update(visible=False)]
 
                 extra_output = [submit_btn, stop_btn]
-            pred = submit_btn.click(
-                fn,
-                self.input_components,
-                self.output_components + extra_output,
-                api_name="predict",
-                scroll_to_output=True,
-                preprocess=not (self.api_mode),
-                postprocess=not (self.api_mode),
-                batch=self.batch,
-                max_batch_size=self.max_batch_size,
-            )
+            triggers = [submit_btn.click] + [
+                component.submit
+                for component in self.input_components
+                if isinstance(component, Submittable)
+            ]
+            predict_events = []
+            for trigger in triggers:
+                predict_events.append(
+                    trigger(
+                        fn,
+                        self.input_components,
+                        self.output_components + extra_output,
+                        api_name="predict",
+                        scroll_to_output=True,
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
+                        batch=self.batch,
+                        max_batch_size=self.max_batch_size,
+                    )
+                )
+
             if stop_btn:
                 submit_btn.click(
                     lambda: (
@@ -653,7 +663,7 @@ class Interface(Blocks):
                     ),
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
-                    cancels=[pred],
+                    cancels=predict_events,
                     queue=False,
                 )
 
