@@ -3,23 +3,31 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
 
+serializer_types = json.load(open(Path(__file__).parent / "types.json"))
 
-class Serializable(ABC):
-    def api_info(self) -> Dict[str, List[str]]:
+
+class Serializable:
+    def serialized_info(self):
+        """
+        The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
+        Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
+        """
+        return self.api_info()
+
+    def api_info(self) -> dict[str, list[str]]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
         raise NotImplementedError()
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> dict[str, Any]:
         """
         The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
         Keys of the dictionary are: raw, serialized
@@ -27,12 +35,12 @@ class Serializable(ABC):
         raise NotImplementedError()
 
     # For backwards compatibility
-    def input_api_info(self) -> Tuple[str, str]:
+    def input_api_info(self) -> tuple[str, str]:
         api_info = self.api_info()
         return (api_info["serialized_input"][0], api_info["serialized_input"][1])
 
     # For backwards compatibility
-    def output_api_info(self) -> Tuple[str, str]:
+    def output_api_info(self) -> tuple[str, str]:
         api_info = self.api_info()
         return (api_info["serialized_output"][0], api_info["serialized_output"][1])
 
@@ -58,15 +66,13 @@ class Serializable(ABC):
 class SimpleSerializable(Serializable):
     """General class that does not perform any serialization or deserialization."""
 
-    def api_info(self) -> Dict[str, str | List[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
-            "raw_input": ["Any", ""],
-            "raw_output": ["Any", ""],
-            "serialized_input": ["Any", ""],
-            "serialized_output": ["Any", ""],
+            "info": serializer_types["SimpleSerializable"],
+            "serialized_info": False,
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": None,
             "serialized": None,
@@ -76,15 +82,13 @@ class SimpleSerializable(Serializable):
 class StringSerializable(Serializable):
     """Expects a string as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
-            "raw_input": ["str", "string value"],
-            "raw_output": ["str", "string value"],
-            "serialized_input": ["str", "string value"],
-            "serialized_output": ["str", "string value"],
+            "info": serializer_types["StringSerializable"],
+            "serialized_info": False,
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": "Howdy!",
             "serialized": "Howdy!",
@@ -94,15 +98,13 @@ class StringSerializable(Serializable):
 class ListStringSerializable(Serializable):
     """Expects a list of strings as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
-            "raw_input": ["List[str]", "list of string values"],
-            "raw_output": ["List[str]", "list of string values"],
-            "serialized_input": ["List[str]", "list of string values"],
-            "serialized_output": ["List[str]", "list of string values"],
+            "info": serializer_types["ListStringSerializable"],
+            "serialized_info": False,
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": ["Howdy!", "Merhaba"],
             "serialized": ["Howdy!", "Merhaba"],
@@ -112,15 +114,13 @@ class ListStringSerializable(Serializable):
 class BooleanSerializable(Serializable):
     """Expects a boolean as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
-            "raw_input": ["bool", "boolean value"],
-            "raw_output": ["bool", "boolean value"],
-            "serialized_input": ["bool", "boolean value"],
-            "serialized_output": ["bool", "boolean value"],
+            "info": serializer_types["BooleanSerializable"],
+            "serialized_info": False,
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": True,
             "serialized": True,
@@ -130,15 +130,13 @@ class BooleanSerializable(Serializable):
 class NumberSerializable(Serializable):
     """Expects a number (int/float) as input/output but performs no serialization."""
 
-    def api_info(self) -> Dict[str, List[str]]:
+    def api_info(self) -> dict[str, bool | dict]:
         return {
-            "raw_input": ["int | float", "numeric value"],
-            "raw_output": ["int | float", "numeric value"],
-            "serialized_input": ["int | float", "numeric value"],
-            "serialized_output": ["int | float", "numeric value"],
+            "info": serializer_types["NumberSerializable"],
+            "serialized_info": False,
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": 5,
             "serialized": 5,
@@ -148,15 +146,13 @@ class NumberSerializable(Serializable):
 class ImgSerializable(Serializable):
     """Expects a base64 string as input/output which is serialized to a filepath."""
 
-    def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["str", "base64 representation of image"],
-            "raw_output": ["str", "base64 representation of image"],
-            "serialized_input": ["str", "filepath or URL to image"],
-            "serialized_output": ["str", "filepath or URL to image"],
-        }
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath or URL to image"}
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def api_info(self) -> dict[str, bool | dict]:
+        return {"info": serializer_types["ImgSerializable"], "serialized_info": True}
+
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": media_data.BASE64_IMAGE,
             "serialized": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
@@ -205,21 +201,35 @@ class ImgSerializable(Serializable):
 class FileSerializable(Serializable):
     """Expects a dict with base64 representation of object as input/output which is serialized to a filepath."""
 
-    def api_info(self) -> Dict[str, List[str]]:
+    def serialized_info(self):
+        return self._single_file_serialized_info()
+
+    def _single_file_api_info(self):
         return {
-            "raw_input": [
-                "str | Dict",
-                "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)",
-            ],
-            "raw_output": [
-                "Dict",
-                "dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False)",
-            ],
-            "serialized_input": ["str", "filepath or URL to file"],
-            "serialized_output": ["str", "filepath or URL to file"],
+            "info": serializer_types["SingleFileSerializable"],
+            "serialized_info": True,
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def _single_file_serialized_info(self):
+        return {"type": "string", "description": "filepath or URL to file"}
+
+    def _multiple_file_serialized_info(self):
+        return {
+            "type": "array",
+            "description": "List of filepath(s) or URL(s) to files",
+            "items": {"type": "string", "description": "filepath or URL to file"},
+        }
+
+    def _multiple_file_api_info(self):
+        return {
+            "info": serializer_types["MultipleFileSerializable"],
+            "serialized_info": True,
+        }
+
+    def api_info(self) -> dict[str, dict | bool]:
+        return self._single_file_api_info()
+
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_FILE},
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf",
@@ -281,9 +291,9 @@ class FileSerializable(Serializable):
 
     def serialize(
         self,
-        x: str | FileData | None | List[str | FileData | None],
+        x: str | FileData | None | list[str | FileData | None],
         load_dir: str | Path = "",
-    ) -> FileData | None | List[FileData | None]:
+    ) -> FileData | None | list[FileData | None]:
         """
         Convert from human-friendly version of a file (string filepath) to a
         seralized representation (base64)
@@ -300,11 +310,11 @@ class FileSerializable(Serializable):
 
     def deserialize(
         self,
-        x: str | FileData | None | List[str | FileData | None],
+        x: str | FileData | None | list[str | FileData | None],
         save_dir: Path | str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | None | List[str | None]:
+    ) -> str | None | list[str | None]:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
@@ -332,21 +342,13 @@ class FileSerializable(Serializable):
 
 
 class VideoSerializable(FileSerializable):
-    def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": [
-                "str | Dict",
-                "base64 string representation of file; or a dictionary-like object, the keys should be either: is_file (False), data (base64 representation of file) or is_file (True), name (str filename)",
-            ],
-            "raw_output": [
-                "Tuple[Dict, Dict]",
-                "a tuple of 2 dictionary-like object with keys: name (str filename), data (base64 representation of file), is_file (bool, set to False). First dictionary is for the video, second dictionary is for the subtitles.",
-            ],
-            "serialized_input": ["str", "filepath or URL to file"],
-            "serialized_output": ["str", "filepath or URL to file"],
-        }
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath or URL to video file"}
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def api_info(self) -> dict[str, dict | bool]:
+        return {"info": serializer_types["FileSerializable"], "serialized_info": True}
+
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_VIDEO},
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/video_sample.mp4",
@@ -354,16 +356,16 @@ class VideoSerializable(FileSerializable):
 
     def serialize(
         self, x: str | None, load_dir: str | Path = ""
-    ) -> Tuple[FileData | None, None]:
+    ) -> tuple[FileData | None, None]:
         return (super().serialize(x, load_dir), None)  # type: ignore
 
     def deserialize(
         self,
-        x: Tuple[FileData | None, FileData | None] | None,
+        x: tuple[FileData | None, FileData | None] | None,
         save_dir: Path | str | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
-    ) -> str | Tuple[str | None, str | None] | None:
+    ) -> str | tuple[str | None, str | None] | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
@@ -379,15 +381,13 @@ class VideoSerializable(FileSerializable):
 
 
 class JSONSerializable(Serializable):
-    def api_info(self) -> Dict[str, List[str]]:
-        return {
-            "raw_input": ["str | Dict | List", "JSON-serializable object or a string"],
-            "raw_output": ["Dict | List", "dictionary- or list-like object"],
-            "serialized_input": ["str", "filepath to JSON file"],
-            "serialized_output": ["str", "filepath to JSON file"],
-        }
+    def serialized_info(self):
+        return {"type": "string", "description": "filepath to JSON file"}
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def api_info(self) -> dict[str, dict | bool]:
+        return {"info": serializer_types["JSONSerializable"], "serialized_info": True}
+
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"a": 1, "b": 2},
             "serialized": None,
@@ -397,7 +397,7 @@ class JSONSerializable(Serializable):
         self,
         x: str | None,
         load_dir: str | Path = "",
-    ) -> Dict | List | None:
+    ) -> dict | list | None:
         """
         Convert from a a human-friendly version (string path to json file) to a
         serialized representation (json string)
@@ -411,7 +411,7 @@ class JSONSerializable(Serializable):
 
     def deserialize(
         self,
-        x: str | Dict | List,
+        x: str | dict | list,
         save_dir: str | Path | None = None,
         root_url: str | None = None,
         hf_token: str | None = None,
@@ -431,27 +431,19 @@ class JSONSerializable(Serializable):
 
 
 class GallerySerializable(Serializable):
-    def api_info(self) -> Dict[str, List[str]]:
+    def serialized_info(self):
         return {
-            "raw_input": [
-                "List[List[str | None]]",
-                "List of lists. The inner lists should contain two elements: a base64 file representation and an optional caption, the outer list should contain one such list for each image in the gallery.",
-            ],
-            "raw_output": [
-                "List[List[str | None]]",
-                "List of lists. The inner lists should contain two elements: a base64 file representation and an optional caption, the outer list should contain one such list for each image in the gallery.",
-            ],
-            "serialized_input": [
-                "str",
-                "path to directory with images and a file associating images with captions called captions.json",
-            ],
-            "serialized_output": [
-                "str",
-                "path to directory with images and a file associating images with captions called captions.json",
-            ],
+            "type": "string",
+            "description": "path to directory with images and a file associating images with captions called captions.json",
         }
 
-    def example_inputs(self) -> Dict[str, Any]:
+    def api_info(self) -> dict[str, dict | bool]:
+        return {
+            "info": serializer_types["GallerySerializable"],
+            "serialized_info": True,
+        }
+
+    def example_inputs(self) -> dict[str, Any]:
         return {
             "raw": [media_data.BASE64_IMAGE] * 2,
             "serialized": [
@@ -462,7 +454,7 @@ class GallerySerializable(Serializable):
 
     def serialize(
         self, x: str | None, load_dir: str | Path = ""
-    ) -> List[List[str | None]] | None:
+    ) -> list[list[str | None]] | None:
         if x is None or x == "":
             return None
         files = []
@@ -476,7 +468,7 @@ class GallerySerializable(Serializable):
 
     def deserialize(
         self,
-        x: List[List[str | None]] | None,
+        x: list[list[str | None]] | None,
         save_dir: str = "",
         root_url: str | None = None,
         hf_token: str | None = None,
@@ -487,7 +479,7 @@ class GallerySerializable(Serializable):
         gallery_path.mkdir(exist_ok=True, parents=True)
         captions = {}
         for img_data in x:
-            if isinstance(img_data, list) or isinstance(img_data, tuple):
+            if isinstance(img_data, (list, tuple)):
                 img_data, caption = img_data
             else:
                 caption = None
@@ -511,7 +503,7 @@ SERIALIZER_MAPPING["Serializable"] = SimpleSerializable
 SERIALIZER_MAPPING["File"] = FileSerializable
 SERIALIZER_MAPPING["UploadButton"] = FileSerializable
 
-COMPONENT_MAPPING: Dict[str, type] = {
+COMPONENT_MAPPING: dict[str, type] = {
     "textbox": StringSerializable,
     "number": NumberSerializable,
     "slider": NumberSerializable,

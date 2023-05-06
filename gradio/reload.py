@@ -18,10 +18,7 @@ def run_in_reload_mode():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if len(args) == 1:
-        demo_name = "demo"
-    else:
-        demo_name = args[1]
+    demo_name = "demo" if len(args) == 1 else args[1]
 
     original_path = args[0]
     abs_original_path = utils.abspath(original_path)
@@ -55,5 +52,5 @@ def run_in_reload_mode():
             message += ","
         message += f" '{abs_parent}'"
 
-    print(message + "\n")
+    print(f"{message}\n")
     os.system(command)

@@ -92,6 +92,7 @@ You can also customize the appearance and behavior of your web component with at
 * `info`: whether to show just the information about where the Space is hosted underneath the embedded app (by default `"true"`)
 * `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
 * `eager`: whether to load the Gradio app as soon as the page loads (by default `"false"`)
+* `theme_mode`: whether to use the `dark`, `light`, or default `system` theme mode (by default `"system"`)
 
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
 
@@ -197,8 +198,8 @@ In particular, Gradio apps grant users access to three kinds of files:
 
 * Files in the same folder (or a subdirectory) of where the Gradio script is launched from. For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is needed so that you can easily reference these files in your Gradio app.
 
-* Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. 
+* Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable GRADIO_TEMP_DIR to an absolute path, such as `/home/usr/scripts/project/temp/`.
 
-* Files that you explicitly allow via the `file_directories` parameter in `launch()`. In some cases, you may want to reference other files in your file system. The `file_directories` parameter allows you to pass in a list of additional directories you'd like to provide access to. (By default, there are no additional file directories).
+* Files that you explicitly allow via the `allowed_paths` parameter in `launch()`. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
-Users should NOT be able to access other arbitrary paths on the host.  
+Users should NOT be able to access other arbitrary paths on the host. Furthermore, as a security measure, you can also **block** specific files or directories from being able to be accessed by users. To do this, pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
