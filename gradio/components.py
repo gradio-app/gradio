@@ -884,13 +884,13 @@ class Slider(
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
 
-    def api_info(self) -> dict[str, tuple[str, str]]:
-        description = f"numeric value between {self.minimum} and {self.maximum}"
+    def api_info(self) -> dict[str, dict | bool]:
         return {
-            "raw_input": ("int | float", description),
-            "raw_output": ("int | float", description),
-            "serialized_input": ("int | float", description),
-            "serialized_output": ("int | float", description),
+            "info": {
+                "type": "number",
+                "description": f"numeric value between {self.minimum} and {self.maximum}",
+            },
+            "serialized_info": False,
         }
 
     def example_inputs(self) -> dict[str, Any]:
@@ -1522,19 +1522,16 @@ class Dropdown(
 
         self.cleared_value = self.value or ([] if multiselect else "")
 
-    def api_info(self) -> dict[str, tuple[str, str]]:
+    def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
-            type = "List[str]"
-            description = f"List of options from: {self.choices}"
+            type = {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": f"List of options from: {self.choices}",
+            }
         else:
-            type = "str"
-            description = f"Option from: {self.choices}"
-        return {
-            "raw_input": (type, description),
-            "raw_output": (type, description),
-            "serialized_input": (type, description),
-            "serialized_output": (type, description),
-        }
+            type = {"type": "string", "description": f"Option from: {self.choices}"}
+        return {"info": type, "serialized_info": False}
 
     def example_inputs(self) -> dict[str, Any]:
         if self.multiselect:
@@ -2826,6 +2823,18 @@ class File(
             return ", ".join([Path(file).name for file in input_data])
         else:
             return Path(input_data).name
+
+    def api_info(self) -> dict[str, dict | bool]:
+        if self.file_count == "single":
+            return self._single_file_api_info()
+        else:
+            return self._multiple_file_api_info()
+
+    def serialized_info(self):
+        if self.file_count == "single":
+            return self._single_file_serialized_info()
+        else:
+            return self._multiple_file_serialized_info()
 
 
 @document("style")

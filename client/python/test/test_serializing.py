@@ -1,10 +1,22 @@
 import os
 import tempfile
 
+import pytest
 from gradio import components
 
-from gradio_client.serializing import COMPONENT_MAPPING, FileSerializable
+from gradio_client.serializing import COMPONENT_MAPPING, FileSerializable, Serializable
 from gradio_client.utils import encode_url_or_file_to_base64
+
+
+@pytest.mark.parametrize("serializer_class", Serializable.__subclasses__())
+def test_duplicate(serializer_class):
+    if "gradio_client" not in serializer_class.__module__:
+        pytest.skip(f"{serializer_class} not defined in gradio_client")
+    serializer = serializer_class()
+    info = serializer.api_info()
+    assert "info" in info and "serialized_info" in info
+    if "serialized_info" in info:
+        assert serializer.serialized_info()
 
 
 def test_check_component_fallback_serializers():
