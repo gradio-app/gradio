@@ -30,7 +30,12 @@ from typing_extensions import Literal
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import Serializable
-from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
+from gradio_client.utils import (
+    Communicator,
+    JobStatus,
+    Status,
+    StatusUpdate,
+)
 
 set_documentation_group("py-client")
 
@@ -399,17 +404,17 @@ class Client:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         r = requests.get(api_info_url, headers=self.headers)
 
-        # Versions of Gradio older than 3.26 returned format of the API info
+        # Versions of Gradio older than 3.28.3 returned format of the API info
         # from the /info endpoint
         if (
-            version.parse(self.config.get("version", "2.0")) >= version.Version("3.26")
+            version.parse(self.config.get("version", "2.0")) > version.Version("3.28.3")
             and r.ok
         ):
             info = r.json()
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
-                json={"serialize": self.serialize, "config": json.dumps(self.config)},
+                json={"config": json.dumps(self.config), "serialize": self.serialize},
             )
             if fetch.ok:
                 info = fetch.json()["api"]
@@ -449,7 +454,7 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: dict[str, list[dict[str, str]]],
+        endpoints_info: dict[str, list[dict[str, Any]]],
     ) -> str:
         parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
@@ -473,13 +478,25 @@ class Client:
         human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
             for info in endpoints_info["parameters"]:
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
+                desc = (
+                    f" ({info['python_type']['description']})"
+                    if info["python_type"].get("description")
+                    else ""
+                )
+                type_ = info["python_type"]["type"]
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
         if endpoints_info["returns"]:
             for info in endpoints_info["returns"]:
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
+                desc = (
+                    f" ({info['python_type']['description']})"
+                    if info["python_type"].get("description")
+                    else ""
+                )
+                type_ = info["python_type"]["type"]
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
         else:
             human_info += "     - None\n"
 
