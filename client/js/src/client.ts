@@ -214,8 +214,11 @@ export async function client(
 			if (status.status === "running")
 				try {
 					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-					api = await view_api();
-
+					try {
+						api = await view_api();
+					} catch (e) {
+						console.error(`Could not get api details: ${e.message}`);
+					}
 					res(config_success(config));
 				} catch (e) {
 					if (status_callback) {
@@ -231,7 +234,12 @@ export async function client(
 
 		try {
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-			api = await view_api();
+			try {
+				api = await view_api();
+			} catch (e) {
+				console.error(`Could not get api details: ${e.message}`);
+			}
+
 			res(config_success(config));
 		} catch (e) {
 			if (space_id) {
@@ -276,11 +284,9 @@ export async function client(
 			let api_info;
 			if (typeof endpoint === "number") {
 				fn_index = endpoint;
-				api_info = api.unnamed_endpoints[endpoint];
 			} else {
 				const trimmed_endpoint = endpoint.replace(/^\//, "");
 				fn_index = api_map[trimmed_endpoint];
-				api_info = api.named_endpoints[endpoint];
 			}
 
 			let websocket: WebSocket;
