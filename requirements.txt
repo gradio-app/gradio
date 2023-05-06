@@ -23,5 +23,5 @@ pyyaml
 requests
 semantic_version
 typing_extensions
-uvicorn
+uvicorn>0.13.0
 websockets>=10.0
