@@ -9,9 +9,9 @@
 		▼
 	</span>
 </div>
-{#if open}
+<div style:display={open ? "block" : "none"}>
 	<slot />
-{/if}
+</div>
 
 <style>
 	span {
