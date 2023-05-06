@@ -303,7 +303,14 @@
 					}
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					loading_status.update({ ...status, fn_index });
+					// status.
+					loading_status.update({
+						...status,
+						status: status.stage,
+						progress: status.progress_data,
+
+						fn_index
+					});
 				});
 
 			submit_map.set(dep_index, submission);
