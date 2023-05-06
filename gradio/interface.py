@@ -631,13 +631,13 @@ class Interface(Blocks):
                 if isinstance(component, Submittable)
             ]
             predict_events = []
-            for trigger in triggers:
+            for i, trigger in enumerate(triggers):
                 predict_events.append(
                     trigger(
                         fn,
                         self.input_components,
                         self.output_components + extra_output,
-                        api_name="predict",
+                        api_name="predict" if i == 0 else None,
                         scroll_to_output=True,
                         preprocess=not (self.api_mode),
                         postprocess=not (self.api_mode),
