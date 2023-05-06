@@ -1791,7 +1791,7 @@ Received outputs:
         # a shareable link must be created.
         if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
             raise ValueError(
-                "When localhost is not accessible, a shareable link must be created. Please set share=True Please set share=True or check your proxy settings to allow access to localhost."
+                "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
 
         if self.is_colab:
