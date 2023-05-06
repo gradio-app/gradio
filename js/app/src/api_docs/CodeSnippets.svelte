@@ -69,7 +69,7 @@ result = client.predict(<!--
 			--><span class="desc"
 								><!--
 			-->	# {python_type.type} <!--
-			-->representing {python_type.description} in '{label}' <!--
+			-->representing input in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--
@@ -119,7 +119,7 @@ async function run() &lbrace;
 --><span class="desc"
 									><!--
 -->	// {python_type.type} <!--
--->representing {python_type.description} in '{label}' <!--
+-->representing input in '{label}' <!--
 -->{component} component<!--
 --></span
 								><!--
