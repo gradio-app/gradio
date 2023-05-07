@@ -41,6 +41,8 @@ If you'd like to reference external files in your css, preface the file path (wh
 gr.Interface(..., css="body {background-image: url('file=clouds.jpg')}")
 ```
 
+**Warning**: Custom CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using custom CSS sparingly and instead using [Themes](/theming-guide/) whenever possible. 
+
 ## Loading Hugging Face Models and Spaces
 
 Gradio integrates nicely with the [Hugging Face Hub](https://hf.co), allowing you to load models and Spaces with just one line of code. To use this, simply use the `load()` method in the `Interface` class. So:
