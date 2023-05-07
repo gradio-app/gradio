@@ -20,7 +20,8 @@
 	let inputValue = value;
 
 	function handle_input(e: Event) {
-		let newValue = parseFloat(e.currentTarget.value);
+		const element = e.currentTarget as HTMLInputElement;
+		let newValue = parseFloat(element.value);
 		if (isNaN(newValue)) {
 			newValue = minimum;
 		}
