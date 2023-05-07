@@ -51,7 +51,7 @@ demo.launch()
 The previous code produces the following interface, which you can try right here in your browser: 
 
 
-<gradio-app src="https://gradio-helsinki-translation-en-es.hf.space"></gradio-app>
+<gradio-app space="Helsinki-NLP/opus-mt-en-es"></gradio-app>
 
 
 ## Using Hugging Face Inference API
