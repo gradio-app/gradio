@@ -17,12 +17,26 @@
 
 	const id = `range_id_${_id++}`;
 	const dispatch = createEventDispatcher<{ change: number; release: number }>();
+	let inputValue = value;
+
+	function handle_input(e: Event) {
+		let newValue = parseFloat(e.currentTarget.value);
+		if (isNaN(newValue)) {
+			newValue = minimum;
+		}
+		inputValue = Math.min(Math.max(inputValue, minimum), maximum);
+		value = inputValue;
+		dispatch("release", value);
+	}
 
 	function handle_release(e: MouseEvent) {
 		dispatch("release", value);
 	}
 
-	$: dispatch("change", value);
+	$: {
+		inputValue = value;
+		dispatch("change", value);
+	}
 	const clamp = () => {
 		dispatch("release", value);
 		value = Math.min(Math.max(value, minimum), maximum);
@@ -37,7 +51,8 @@
 		<input
 			data-testid="number-input"
 			type="number"
-			bind:value
+			bind:value={inputValue}
+			on:input={handle_input}
 			min={minimum}
 			max={maximum}
 			on:blur={clamp}
