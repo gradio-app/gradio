@@ -2,7 +2,7 @@
 
 This guide covers how to style Blocks with more flexibility, as well as adding Javascript code to event listeners. 
 
-**Warning**: Custom JS and CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using custom CSS and JS sparingly.
+**Warning**: The use of query selectors in custom JS and CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
 ## Custom CSS
 
