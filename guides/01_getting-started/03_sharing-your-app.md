@@ -105,7 +105,7 @@ _Note: While Gradio's CSS will never impact the embedding page, the embedding pa
 
 ### Embedding with IFrames
 
-To embed with IFrames instead (if you cannot add javascript to your website, for example),  add this element:
+To embed with IFrames instead (if you cannot add javascript to your website, for example), add this element:
 
 ```html
 &lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
@@ -113,11 +113,7 @@ To embed with IFrames instead (if you cannot add javascript to your website, for
 
 Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
 
-If you use IFrames, you'll need to add a fixed `height` attribute. In addition, if your app requires permissions such as access to the webcam or the microphone, you'll need to provide that as well using the `allow` attribute. Here's an example of how it might look: 
-
-```html
-&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space" style="border:0;" height="900" allow="camera; microphone; picture-in-picture;">&lt;/iframe>
-```
+Note: if you use IFrames, you'll probably want to add a fixed `height` attribute and set `style="border:0;"` to remove the boreder. In addition, if your app requires permissions such as access to the webcam or the microphone, you'll need to provide that as well using the `allow` attribute.
 
 ## API Page
 
