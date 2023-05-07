@@ -28,8 +28,8 @@ class TestSeries:
         io2 = gr.load("spaces/abidlabs/image-classifier")
         series = mix.Series(io1, io2)
         try:
-            output = series("gradio/test_data/lion.jpg")
-            assert json.load(open(output))["label"] == "lion"
+            with open(series("gradio/test_data/lion.jpg")) as f:
+                assert json.load(f)["label"] == "lion"
         except TooManyRequestsError:
             pass
 

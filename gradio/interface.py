@@ -8,10 +8,9 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import re
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -63,7 +62,7 @@ class Interface(Blocks):
     instances: weakref.WeakSet = weakref.WeakSet()
 
     @classmethod
-    def get_instances(cls) -> List[Interface]:
+    def get_instances(cls) -> list[Interface]:
         """
         :return: list of all current instances.
         """
@@ -119,9 +118,9 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: str | IOComponent | List[str | IOComponent] | None,
-        outputs: str | IOComponent | List[str | IOComponent] | None,
-        examples: List[Any] | List[List[Any]] | str | None = None,
+        inputs: str | IOComponent | list[str | IOComponent] | None,
+        outputs: str | IOComponent | list[str | IOComponent] | None,
+        examples: list[Any] | list[list[Any]] | str | None = None,
         cache_examples: bool | None = None,
         examples_per_page: int = 10,
         live: bool = False,
@@ -134,7 +133,7 @@ class Interface(Blocks):
         theme: Theme | str | None = None,
         css: str | None = None,
         allow_flagging: str | None = None,
-        flagging_options: List[str] | List[Tuple[str, str]] | None = None,
+        flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: bool | None = None,
@@ -287,17 +286,11 @@ class Interface(Blocks):
         self.live = live
         self.title = title
 
-        CLEANER = re.compile("<.*?>")
-
-        def clean_html(raw_html):
-            cleantext = re.sub(CLEANER, "", raw_html)
-            return cleantext
-
         md = utils.get_markdown_parser()
-        simple_description = None
+        simple_description: str | None = None
         if description is not None:
             description = md.render(description)
-            simple_description = clean_html(description)
+            simple_description = utils.remove_html_tags(description)
         self.simple_description = simple_description
         self.description = description
         if article is not None:
@@ -466,19 +459,19 @@ class Interface(Blocks):
         if self.description:
             Markdown(self.description)
 
-    def render_flag_btns(self) -> List[Button]:
+    def render_flag_btns(self) -> list[Button]:
         return [Button(label) for label, _ in self.flagging_options]
 
     def render_input_column(
         self,
-    ) -> Tuple[
+    ) -> tuple[
         Button | None,
         Button | None,
         Button | None,
-        List[Button] | None,
+        list[Button] | None,
         Column,
         Column | None,
-        List[Interpretation] | None,
+        list[Interpretation] | None,
     ]:
         submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
         interpret_component_column, interpretation_set = None, None
@@ -536,7 +529,7 @@ class Interface(Blocks):
     def render_output_column(
         self,
         submit_btn_in: Button | None,
-    ) -> Tuple[Button | None, Button | None, Button | None, List | None, Button | None]:
+    ) -> tuple[Button | None, Button | None, Button | None, list | None, Button | None]:
         submit_btn = submit_btn_in
         interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
 
@@ -718,7 +711,7 @@ class Interface(Blocks):
     def attach_interpretation_events(
         self,
         interpretation_btn: Button | None,
-        interpretation_set: List[Interpretation] | None,
+        interpretation_set: list[Interpretation] | None,
         input_component_column: Column | None,
         interpret_component_column: Column | None,
     ):
@@ -730,53 +723,58 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def attach_flagging_events(self, flag_btns: List[Button] | None, clear_btn: Button):
-        if flag_btns:
-            if self.interface_type in [
+    def attach_flagging_events(self, flag_btns: list[Button] | None, clear_btn: Button):
+        if not (
+            flag_btns
+            and self.interface_type
+            in (
                 InterfaceTypes.STANDARD,
                 InterfaceTypes.OUTPUT_ONLY,
                 InterfaceTypes.UNIFIED,
-            ]:
-                if self.allow_flagging == "auto":
-                    flag_method = FlagMethod(
-                        self.flagging_callback, "", "", visual_feedback=False
-                    )
-                    flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
-                        flag_method,
-                        inputs=self.input_components,
-                        outputs=None,
-                        preprocess=False,
-                        queue=False,
-                    )
-                    return
+            )
+        ):
+            return
 
-                if self.interface_type == InterfaceTypes.UNIFIED:
-                    flag_components = self.input_components
-                else:
-                    flag_components = self.input_components + self.output_components
+        if self.allow_flagging == "auto":
+            flag_method = FlagMethod(
+                self.flagging_callback, "", "", visual_feedback=False
+            )
+            flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
+                flag_method,
+                inputs=self.input_components,
+                outputs=None,
+                preprocess=False,
+                queue=False,
+            )
+            return
 
-                for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-                    assert isinstance(value, str)
-                    flag_method = FlagMethod(self.flagging_callback, label, value)
-                    flag_btn.click(
-                        lambda: Button.update(value="Saving...", interactive=False),
-                        None,
-                        flag_btn,
-                        queue=False,
-                    )
-                    flag_btn.click(
-                        flag_method,
-                        inputs=flag_components,
-                        outputs=flag_btn,
-                        preprocess=False,
-                        queue=False,
-                    )
-                    clear_btn.click(
-                        flag_method.reset,
-                        None,
-                        flag_btn,
-                        queue=False,
-                    )
+        if self.interface_type == InterfaceTypes.UNIFIED:
+            flag_components = self.input_components
+        else:
+            flag_components = self.input_components + self.output_components
+
+        for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+            assert isinstance(value, str)
+            flag_method = FlagMethod(self.flagging_callback, label, value)
+            flag_btn.click(
+                lambda: Button.update(value="Saving...", interactive=False),
+                None,
+                flag_btn,
+                queue=False,
+            )
+            flag_btn.click(
+                flag_method,
+                inputs=flag_components,
+                outputs=flag_btn,
+                preprocess=False,
+                queue=False,
+            )
+            clear_btn.click(
+                flag_method.reset,
+                None,
+                flag_btn,
+                queue=False,
+            )
 
     def render_examples(self):
         if self.examples:
@@ -817,7 +815,7 @@ class Interface(Blocks):
             Column.update(visible=True),
         ]
 
-    async def interpret(self, raw_input: List[Any]) -> List[Any]:
+    async def interpret(self, raw_input: list[Any]) -> list[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
@@ -842,8 +840,8 @@ class TabbedInterface(Blocks):
 
     def __init__(
         self,
-        interface_list: List[Interface],
-        tab_names: List[str] | None = None,
+        interface_list: list[Interface],
+        tab_names: list[str] | None = None,
         title: str | None = None,
         theme: Theme | None = None,
         analytics_enabled: bool | None = None,
