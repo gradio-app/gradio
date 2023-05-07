@@ -323,8 +323,7 @@ class TestBlocksMethods:
     @pytest.mark.asyncio
     async def test_sync_generators(self):
         def generator(string):
-            for char in string:
-                yield char
+            yield from string
 
         demo = gr.Interface(generator, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
