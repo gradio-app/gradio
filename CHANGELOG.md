@@ -11,6 +11,7 @@
 - Fixed bug where type hints in functions caused the event handler to crash by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4068](https://github.com/gradio-app/gradio/pull/4068)
 - Fix dropdown default value not appearing by [@aliabid94](https://github.com/aliabid94) in [PR 4072](https://github.com/gradio-app/gradio/pull/4072).
 - Soft theme label color fix by [@aliabid94](https://github.com/aliabid94) in [PR 4070](https://github.com/gradio-app/gradio/pull/4070) 
+- Better number input handling for `gr.Slider` by [@space-nuko](https://github.com/space-nuko) in [PR 4095](https://github.com/gradio-app/gradio/pull/4095) 
 
 ## Documentation Changes:
 
