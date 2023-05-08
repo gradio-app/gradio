@@ -9,7 +9,8 @@ from typing import Any
 from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
 
-serializer_types = json.load(open(Path(__file__).parent / "types.json"))
+with open(Path(__file__).parent / "types.json") as f:
+    serializer_types = json.load(f)
 
 
 class Serializable:
