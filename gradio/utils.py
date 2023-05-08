@@ -36,7 +36,7 @@ import aiohttp
 import httpx
 import matplotlib
 import requests
-from gradio_client.serializing import Serializable
+from gradio.py_client.serializing import Serializable
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
@@ -991,8 +991,8 @@ def get_serializer_name(block: Block) -> str | None:
             and getattr(meth.__self__, "__class__", None)
         ):
             for cls in inspect.getmro(meth.__self__.__class__):
-                # Find the first serializer defined in gradio_client that
-                if issubclass(cls, Serializable) and "gradio_client" in cls.__module__:
+                # Find the first serializer defined in gradio.py_client that
+                if issubclass(cls, Serializable) and "gradio.py_client" in cls.__module__:
                     return cls
                 if meth.__name__ in cls.__dict__:
                     return cls

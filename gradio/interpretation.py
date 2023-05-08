@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from gradio_client import utils as client_utils
+from gradio.py_client import utils as client_utils
 
 from gradio import components
 

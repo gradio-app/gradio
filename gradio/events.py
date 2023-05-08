@@ -6,7 +6,7 @@ from __future__ import annotations
 import warnings
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client.documentation import document, set_documentation_group
 
 from gradio.blocks import Block
 from gradio.helpers import EventData

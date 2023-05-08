@@ -1,4 +1,4 @@
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client.documentation import document, set_documentation_group
 
 set_documentation_group("helpers")
 

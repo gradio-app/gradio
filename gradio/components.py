@@ -31,11 +31,11 @@ import PIL.ImageOps
 import requests
 from fastapi import UploadFile
 from ffmpy import FFmpeg
-from gradio_client import media_data
-from gradio_client import utils as client_utils
-from gradio_client.data_classes import FileData
-from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import (
+from gradio.py_client import media_data
+from gradio.py_client import utils as client_utils
+from gradio.py_client.data_classes import FileData
+from gradio.py_client.documentation import document, set_documentation_group
+from gradio.py_client.serializing import (
     BooleanSerializable,
     FileSerializable,
     GallerySerializable,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.events import Changeable, Selectable

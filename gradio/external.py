@@ -9,8 +9,8 @@ import warnings
 from typing import TYPE_CHECKING, Callable
 
 import requests
-from gradio_client import Client
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client import Client
+from gradio.py_client.documentation import document, set_documentation_group
 
 import gradio
 from gradio import components, utils

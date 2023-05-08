@@ -12,7 +12,7 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client.documentation import document, set_documentation_group
 
 from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks

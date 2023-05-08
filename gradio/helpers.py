@@ -18,8 +18,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import PIL.Image
-from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client import utils as client_utils
+from gradio.py_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils, routes, utils
 from gradio.context import Context
