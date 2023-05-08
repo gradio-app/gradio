@@ -1319,7 +1319,6 @@ Received outputs:
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
-
         return {
             "data": data,
             "is_generating": is_generating,

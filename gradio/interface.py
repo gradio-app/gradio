@@ -622,41 +622,10 @@ class Interface(Blocks):
                             self.fn(*args), limiter=self.limiter
                         )
                     async for output in iterator:
-                        if len(self.output_components) == 1 and not self.batch:
-                            output = [output]
-                        output = list(output)
-                        yield output + [
-                            Button.update(visible=False),
-                            Button.update(visible=True),
-                        ]
+                        yield output
 
                 extra_output = [submit_btn, stop_btn]
-            pred = submit_btn.click(
-                fn,
-                self.input_components,
-                self.output_components + extra_output,
-                api_name="predict",
-                scroll_to_output=True,
-                preprocess=not (self.api_mode),
-                postprocess=not (self.api_mode),
-                batch=self.batch,
-                max_batch_size=self.max_batch_size,
-            )
-            if extra_output:
-
-                def cleanup():
-                    return [
-                        {"__type__": "generic_update"} for _ in self.output_components
-                    ] + [Button.update(visible=True), Button.update(visible=False)]
-
-                pred.then(
-                    cleanup,
-                    inputs=None,
-                    outputs=self.output_components + extra_output,
-                    queue=False,
-                )
-            if stop_btn:
-                submit_btn.click(
+                pred = submit_btn.click(
                     lambda: (
                         submit_btn.update(visible=False),
                         stop_btn.update(visible=True),
@@ -664,16 +633,45 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
                     queue=False,
+                ).then(
+                    fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name="predict",
+                    scroll_to_output=True,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
+                )
+
+                def cleanup():
+                    return [Button.update(visible=True), Button.update(visible=False)]
+
+                pred.then(
+                    cleanup,
+                    inputs=None,
+                    outputs=extra_output,
+                    queue=False,
                 )
                 stop_btn.click(
-                    lambda: (
-                        submit_btn.update(visible=True),
-                        stop_btn.update(visible=False),
-                    ),
+                    cleanup,
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
                     cancels=[pred],
                     queue=False,
+                )
+            else:
+                pred = submit_btn.click(
+                    fn,
+                    self.input_components,
+                    self.output_components,
+                    api_name="predict",
+                    scroll_to_output=True,
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
                 )
 
     def attach_clear_events(

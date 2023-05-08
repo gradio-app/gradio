@@ -351,7 +351,7 @@ class TestBlocksMethods:
             return outputs
 
         try:
-            output = await _get_ws_pred(fn_index=0, data="abc")
+            output = await _get_ws_pred(fn_index=1, data="abc")
             assert [o[0] for o in output] == ["a", "b", "c"]
         finally:
             demo.close()
@@ -1250,29 +1250,15 @@ class TestCancel:
             f"{io.local_url.replace('http', 'ws')}queue/join"
         ) as ws:
             completed = False
-            checked_iteration = False
             while not completed:
                 msg = json.loads(await ws.recv())
                 if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 1}))
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "process_generating" and isinstance(
-                    msg["output"]["data"][0], str
-                ):
-                    checked_iteration = True
-                    assert msg["output"]["data"][1:] == [
-                        {"visible": False, "__type__": "update"},
-                        {"visible": True, "__type__": "update"},
-                    ]
                 if msg["msg"] == "process_completed":
-                    assert msg["output"]["data"] == [
-                        "3",
-                        {"visible": False, "__type__": "update"},
-                        {"visible": True, "__type__": "update"},
-                    ]
+                    assert msg["output"]["data"] == ["3"]
                     completed = True
-            assert checked_iteration
 
         io.close()
 
