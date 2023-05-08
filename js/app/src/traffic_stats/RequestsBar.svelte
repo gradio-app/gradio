@@ -1,48 +1,42 @@
 <script lang="ts">
     import { task_status_colors } from "./utils";
-    import type { task_status } from "./utils";
+    import type { TaskStatus } from "./utils";
 
-    export let request_breakdown: Record<task_status, number>;
+    export let request_breakdown: Partial<Record<TaskStatus, number>>;
     export let total_requests: number;
-;
-    let hovered_request: string | null = null;    
-    const TASK_STATUS_DESCRIPTIONS: Record<task_status, string> = {
-        success: "A successfully completed event.",
-        pending: "An event still in progress.",
-        closed: "An event stopped early because the user closed the browser.",
-        lost: "An event that successfully finished processing, but was not able to deliver the result to the user.",
+    const TASK_STATUS_DESCRIPTIONS: Record<TaskStatus, string> = {
+        success: "Successfully completed, with data delivered to the user.",
+        pending: "Has not completed processing.",
+        closed: "Stopped early because user closed the browser.",
+        waiting_connection:
+            "Completed processing, but unable to deliver results due to connection. Will become 'lost' if reconnection fails.",
+        lost: "Completed processing, but failed to deliver the result to the user due to connection.",
         error: "An event that failed because the function raised an exception.",
         stopped: "An event stopped because the user triggered a cancellation.",
     };
-
 </script>
 
-<div class="bar">
-    {#each Object.entries(request_breakdown) as [key, value], i}
-        <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-        <div
-            class="bar-item"
-            style="width: {hovered_request
-                ? hovered_request === key
-                    ? 100
-                    : 0
-                : (value / total_requests) *
-                  100}%; background-color: rgba({task_status_colors[
-                key
-            ]}, 0.2);"
-            on:mouseover={() => (hovered_request = key)}
-            on:mouseout={() => (hovered_request = null)}
-        >
-            <div class="bar-name">
-                {key}
-                <span class="description">
-                    : {TASK_STATUS_DESCRIPTIONS[key]}</span
-                >
+{#if total_requests > 0}
+    <div class="bar">
+        {#each Object.entries(request_breakdown) as [key, value], i}
+            <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+            <div
+                class="bar-item"
+                style:width="{(value / total_requests) * 100}%"
+                style:background-color="rgba({task_status_colors[key]}, 0.2)"
+                style:display={value > 0 ? "block" : "none"}
+            >
+                <div class="bar-name">
+                    {key}
+                    <span class="description">
+                        : {TASK_STATUS_DESCRIPTIONS[key]}</span
+                    >
+                </div>
+                {value}
             </div>
-            {value}
-        </div>
-    {/each}
-</div>
+        {/each}
+    </div>
+{/if}
 
 <style>
     .bar {
@@ -64,5 +58,14 @@
     }
     .bar-item:hover .description {
         display: block;
+    }
+    .bar:hover .bar-item:hover {
+        width: 100%;
+        flex-grow: 1;
+        display: block !important;
+    }
+    .bar:hover .bar-item:not(:hover) {
+        width: 0px !important;
+        flex-grow: 0;
     }
 </style>

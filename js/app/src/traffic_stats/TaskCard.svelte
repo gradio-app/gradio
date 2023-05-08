@@ -1,9 +1,9 @@
 <script lang="ts">
     import { task_status_colors } from "./utils";
-    import type { task_status, Task } from "./utils";
+    import type { TaskStatus, Task } from "./utils";
 
     export let task: Task;
-    export let status: task_status = "pending";
+    export let status: TaskStatus = "pending";
 </script>
 
 <div
@@ -11,8 +11,8 @@
     style:background-color="rgba({task_status_colors[status]}, 0.2)"
     style:border-color="rgba({task_status_colors[status]}, 0.5)"
 >
-    <div>{task.id}</div>
-    <div>{task.fn}</div>
+    <div>{task[0]}</div>
+    <div>{task[1]}</div>
 </div>
 
 <style>
