@@ -645,6 +645,16 @@ class Interface(Blocks):
                         max_batch_size=self.max_batch_size,
                     )
                 )
+                if stop_btn:
+                    trigger(
+                        lambda: (
+                            submit_btn.update(visible=False),
+                            stop_btn.update(visible=True),
+                        ),
+                        inputs=None,
+                        outputs=[submit_btn, stop_btn],
+                        queue=False,
+                    )
 
             if stop_btn:
                 submit_btn.click(
