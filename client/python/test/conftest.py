@@ -40,6 +40,16 @@ def calculator_demo():
 
 
 @pytest.fixture
+def state_demo():
+    demo = gr.Interface(
+        lambda x, y: (x, y),
+        ["textbox", "state"],
+        ["textbox", "state"],
+    )
+    return demo.queue()
+
+
+@pytest.fixture
 def increment_demo():
     with gr.Blocks() as demo:
         btn1 = gr.Button("Increment")

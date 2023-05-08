@@ -628,12 +628,18 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    @pytest.mark.flaky
     def test_serializable_in_mapping(self, calculator_demo):
         with connect(calculator_demo) as client:
             assert all(
                 isinstance(c, Serializable) for c in client.endpoints[0].serializers
             )
+
+    def test_state_does_not_appear(self, state_demo):
+        with connect(state_demo) as client:
+            api_info = client.view_api(return_format="dict")
+            assert isinstance(api_info, dict)
+            for parameter in api_info["named_endpoints"]["/predict"]["parameters"]:
+                assert parameter["component"] != "State"
 
     @pytest.mark.flaky
     def test_private_space(self):
