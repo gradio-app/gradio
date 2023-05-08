@@ -704,6 +704,7 @@ class Blocks(BlockContext):
         self.temp_file_sets = []
         self.title = title
         self.show_api = True
+        self.show_traffic = False
 
         # Only used when an Interface is loaded from a config
         self.predict = None
@@ -1351,6 +1352,7 @@ Received outputs:
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
+            "show_traffic": self.show_traffic,
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "root": self.root,
@@ -1603,6 +1605,7 @@ Received outputs:
         ssl_verify: bool = True,
         quiet: bool = False,
         show_api: bool = True,
+        show_traffic: bool = False,
         file_directories: list[str] | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
@@ -1635,7 +1638,8 @@ Received outputs:
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
-            show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
+            show_api: If True, shows the api docs link in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
+            show_traffic: If True, shows the traffic link in the footer of the app. Default False.
             file_directories: This parameter has been renamed to `allowed_paths`. It will be removed in a future version.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
@@ -1698,6 +1702,7 @@ Received outputs:
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
+        self.show_traffic = show_traffic
 
         if file_directories is not None:
             warnings.warn(

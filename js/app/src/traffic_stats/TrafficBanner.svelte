@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import api_logo from "/static/img/api-logo.svg";
+	import api_logo from "/static/img/activity.svg";
 	import Clear from "../images/clear.svg";
-
-	export let root: string;
-	export let api_count: number;
+	import { createEventDispatcher } from "svelte";
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -12,13 +9,7 @@
 <div class="banner-wrap">
 	<h2>
 		<img src={api_logo} alt="" />
-		API documentation for&nbsp;
-		<span>
-			{root}&nbsp;&nbsp;&nbsp;
-		</span>
-		<span class="counts">
-			<span>{api_count}</span> API endpoint{#if api_count > 1}s{/if}
-		</span>
+		Traffic Stats
 	</h2>
 </div>
 
@@ -74,14 +65,5 @@
 		h2 img {
 			width: var(--size-5);
 		}
-	}
-
-	.counts {
-		margin-top: auto;
-		margin-right: var(--size-8);
-		margin-bottom: auto;
-		margin-left: auto;
-		color: var(--body-text-color);
-		font-weight: var(--weight-light);
 	}
 </style>

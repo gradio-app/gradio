@@ -31,7 +31,7 @@
 	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
-		["python", python]
+		["python", python],
 		// ["javascript", javascript]
 	] as const;
 
@@ -96,7 +96,7 @@
 		let [response, status_code] = await post_data(
 			`${root}run/${dependency.api_name}`,
 			{
-				data: inputs
+				data: inputs,
 			}
 		);
 		is_running = false;
@@ -130,22 +130,19 @@
 
 {#if info}
 	{#if Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length}
-		<div class="banner-wrap">
-			<ApiBanner
-				on:close
-				{root}
-				api_count={Object.keys(info.named_endpoints).length +
-					Object.keys(info.unnamed_endpoints).length}
-			/>
-		</div>
+		<ApiBanner
+			on:close
+			{root}
+			api_count={Object.keys(info.named_endpoints).length +
+				Object.keys(info.unnamed_endpoints).length}
+		/>
 		<div class="docs-wrap">
 			<div class="client-doc">
-				<h2>
-					Use the <a
-						href="https://pypi.org/project/gradio-client/"
-						target="_blank"><code class="library">gradio_client</code></a
-					> Python library to query the demo via API.
-				</h2>
+				Use the <a
+					href="https://pypi.org/project/gradio-client/"
+					target="_blank"
+					><code class="library">gradio_client</code></a
+				> Python library to query the demo via API.
 			</div>
 			<div class="endpoint">
 				<div class="snippets">
@@ -215,8 +212,9 @@
 						<div class="endpoint-container">
 							<CodeSnippets
 								named={false}
-								endpoint_parameters={info.unnamed_endpoints[dependency_index]
-									.parameters}
+								endpoint_parameters={info.unnamed_endpoints[
+									dependency_index
+								].parameters}
 								{instance_map}
 								{dependency}
 								{dependency_index}
@@ -235,8 +233,9 @@
 
 							<ResponseObject
 								named={false}
-								endpoint_returns={info.unnamed_endpoints[dependency_index]
-									.returns}
+								endpoint_returns={info.unnamed_endpoints[
+									dependency_index
+								].returns}
 								{instance_map}
 								{dependency}
 								{dependency_index}
@@ -255,38 +254,21 @@
 {/if}
 
 <style>
-	.banner-wrap {
-		position: relative;
-		border-bottom: 1px solid var(--border-color-primary);
-		padding: var(--size-4) var(--size-6);
-		font-size: var(--text-md);
-	}
-
-	@media (--screen-md) {
-		.banner-wrap {
-			font-size: var(--text-xl);
-		}
-	}
-
 	.docs-wrap {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xxl);
+		padding: var(--size-6);
 	}
 
 	.endpoint {
 		border-radius: var(--radius-md);
 		background: var(--background-fill-primary);
-		padding: var(--size-6);
-		padding-top: var(--size-1);
 		font-size: var(--text-md);
 	}
 
 	.client-doc {
-		padding-top: var(--size-6);
-		padding-right: var(--size-6);
-		padding-left: var(--size-6);
-		font-size: var(--text-xl);
+		font-size: var(--text-lg);
 	}
 
 	.library {
@@ -345,7 +327,7 @@
 	}
 
 	.header {
-		margin-top: var(--size-3);
+		margin-top: var(--size-6);
 		margin-bottom: var(--size-3);
 		font-size: var(--text-xl);
 	}

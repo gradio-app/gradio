@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import Clear from "./img/clear.svelte";
+	import Clear from "../images/clear.svg";
 
 	const dispatch = createEventDispatcher();
 
@@ -34,7 +34,7 @@
 </div>
 
 <button on:click={() => dispatch("close")}>
-	<Clear />
+	<img src={Clear} alt="" />
 </button>
 
 <style>

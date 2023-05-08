@@ -7,22 +7,24 @@
 	import {
 		create_loading_status_store,
 		app_state,
-		LoadingStatusCollection
+		LoadingStatusCollection,
 	} from "./stores";
 
 	import type {
 		ComponentMeta,
 		Dependency,
 		LayoutNode,
-		Documentation
+		Documentation,
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
-	import { ApiDocs } from "./api_docs/";
+	import { ApiDocs } from "./api_docs";
+	import { Traffic } from "./traffic_stats";
 	import type { ThemeMode } from "./components/types";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
+	import activity_icon from "/static/img/activity.svg";
 
 	setupi18n();
 
@@ -36,6 +38,7 @@
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
 	export let show_api: boolean = true;
+	export let show_traffic: boolean = false;
 	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
@@ -52,12 +55,14 @@
 		props: {},
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"]
+		component: {} as ComponentMeta["component"],
 	};
 
 	components.push(rootNode);
 
-	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+	const AsyncFunction = Object.getPrototypeOf(
+		async function () {}
+	).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
 			const wrap = d.backend_fn
@@ -77,17 +82,28 @@
 	});
 
 	let params = new URLSearchParams(window.location.search);
-	let api_docs_visible = params.get("view") === "api";
-	const set_api_docs_visible = (visible: boolean) => {
-		api_docs_visible = visible;
+	let visible_side_panel: null | "api" | "traffic" = params.get("view") as
+		| "api"
+		| "traffic"
+		| null;
+	const set_side_panel = (panel: null | "api" | "traffic") => {
+		visible_side_panel = panel;
 		let params = new URLSearchParams(window.location.search);
-		if (visible) {
+		if (panel === "api") {
 			params.set("view", "api");
+		} else if (panel === "traffic") {
+			params.set("view", "traffic");
 		} else {
 			params.delete("view");
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	};
+	window.addEventListener("keydown", (e) => {
+		if (e.key === "Escape") {
+			set_side_panel(null);
+		}
+	});
+
 
 	function is_dep(
 		id: number,
@@ -158,7 +174,7 @@
 				const c = await component_map[name]();
 				res({
 					name,
-					component: c as LoadedComponent
+					component: c as LoadedComponent,
 				});
 			} catch (e) {
 				console.error("failed to load: " + name);
@@ -218,11 +234,14 @@
 				value !== null &&
 				value.__type__ === "update"
 			) {
-				for (const [update_key, update_value] of Object.entries(value)) {
+				for (const [update_key, update_value] of Object.entries(
+					value
+				)) {
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						instance_map[outputs[i]].props[update_key] = update_value;
+						instance_map[outputs[i]].props[update_key] =
+							update_value;
 					}
 				}
 				rootNode = rootNode;
@@ -276,24 +295,22 @@
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null
+			event_data: dep.collects_event_data ? event_data : null,
 		};
 
 		if (dep.frontend_fn) {
-			dep
-				.frontend_fn(
-					payload.data.concat(
-						dep.outputs.map((id) => instance_map[id].props.value)
-					)
+			dep.frontend_fn(
+				payload.data.concat(
+					dep.outputs.map((id) => instance_map[id].props.value)
 				)
-				.then((v: []) => {
-					if (dep.backend_fn) {
-						payload.data = v;
-						make_prediction();
-					} else {
-						handle_update(v, dep_index);
-					}
-				});
+			).then((v: []) => {
+				if (dep.backend_fn) {
+					payload.data = v;
+					make_prediction();
+				} else {
+					handle_update(v, dep_index);
+				}
+			});
 		} else {
 			if (dep.backend_fn) {
 				make_prediction();
@@ -317,10 +334,9 @@
 
 		dependencies.forEach((dep, i) => {
 			let { targets, trigger, inputs, outputs } = dep;
-			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
+			const target_instances: [number, ComponentMeta][] = targets.map(
+				(t) => [t, instance_map[t]]
+			);
 
 			// page events
 			if (
@@ -338,7 +354,8 @@
 			target_instances
 				.filter((v) => !!v && !!v[1])
 				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					if (handled_dependencies[i]?.includes(id) || !instance)
+						return;
 					instance?.$on(trigger, (event_data) => {
 						trigger_api_call(i, event_data.detail);
 					});
@@ -423,11 +440,22 @@
 			{#if show_api}
 				<button
 					on:click={() => {
-						set_api_docs_visible(!api_docs_visible);
+						set_side_panel("api");
 					}}
-					class="show-api"
+					class="show-link"
 				>
 					Use via API <img src={api_logo} alt="" />
+				</button>
+				<div>·</div>
+			{/if}
+			{#if show_traffic}
+				<button
+					on:click={() => {
+						set_side_panel("traffic");
+					}}
+					class="show-link"
+				>
+					View traffic <img src={activity_icon} alt="" />
 				</button>
 				<div>·</div>
 			{/if}
@@ -444,23 +472,31 @@
 	{/if}
 </div>
 
-{#if api_docs_visible && ready}
-	<div class="api-docs">
+{#if visible_side_panel && ready}
+	<div class="side-panel">
 		<div
 			class="backdrop"
 			on:click={() => {
-				set_api_docs_visible(false);
+				set_side_panel(null);
 			}}
 		/>
-		<div class="api-docs-wrap">
-			<ApiDocs
-				on:close={() => {
-					set_api_docs_visible(false);
-				}}
-				{instance_map}
-				{dependencies}
-				{root}
-			/>
+		<div class="side-panel-wrap">
+			{#if visible_side_panel === "traffic"}
+				<Traffic
+					on:close={() => {
+						set_side_panel(null);
+					}}
+				/>
+			{:else if visible_side_panel === "api"}
+				<ApiDocs
+					on:close={() => {
+						set_side_panel(null);
+					}}
+					{instance_map}
+					{dependencies}
+					{root}
+				/>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -486,15 +522,15 @@
 		margin-left: var(--size-2);
 	}
 
-	.show-api {
+	.show-link {
 		display: flex;
 		align-items: center;
 	}
-	.show-api:hover {
+	.show-link:hover {
 		color: var(--body-text-color);
 	}
 
-	.show-api img {
+	.show-link img {
 		margin-right: var(--size-1);
 		margin-left: var(--size-2);
 		width: var(--size-3);
@@ -515,7 +551,7 @@
 		width: var(--size-3);
 	}
 
-	.api-docs {
+	.side-panel {
 		display: flex;
 		position: fixed;
 		top: 0;
@@ -531,7 +567,7 @@
 		backdrop-filter: blur(4px);
 	}
 
-	.api-docs-wrap {
+	.side-panel-wrap {
 		box-shadow: var(--shadow-drop-lg);
 		background: var(--background-fill-primary);
 		overflow-x: hidden;
@@ -539,7 +575,7 @@
 	}
 
 	@media (--screen-md) {
-		.api-docs-wrap {
+		.side-panel-wrap {
 			border-top-left-radius: var(--radius-lg);
 			border-bottom-left-radius: var(--radius-lg);
 			width: 950px;
@@ -547,7 +583,7 @@
 	}
 
 	@media (--screen-xxl) {
-		.api-docs-wrap {
+		.side-panel-wrap {
 			width: 1150px;
 		}
 	}
