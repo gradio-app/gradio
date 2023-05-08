@@ -2,7 +2,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let style: Styles = {};
-	export let elem_id: string;
+	export let elem_id: string | null = null;
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let variant: "default" | "panel" | "compact" = "default";
