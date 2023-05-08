@@ -651,7 +651,7 @@ class Interface(Blocks):
                 pred.then(
                     cleanup,
                     inputs=None,
-                    outputs=extra_output,
+                    outputs=extra_output,  # type: ignore
                     queue=False,
                 )
                 stop_btn.click(
