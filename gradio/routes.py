@@ -47,6 +47,7 @@ from gradio.data_classes import PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.queueing import Estimation, Event
+from gradio.activity_log import ActivityLog
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
@@ -354,6 +355,11 @@ class App(FastAPI):
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
+        
+        @app.get("/traffic/")
+        @app.get("/traffic")
+        async def get_traffic() -> ActivityLog:
+            return app.get_blocks().activity_log
 
         @app.post("/reset/")
         @app.post("/reset")
@@ -370,6 +376,7 @@ class App(FastAPI):
             request: Request | List[Request],
             fn_index_inferred: int,
         ):
+            app.blocks.activity_log.new_request(fn_index_inferred)
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
@@ -421,15 +428,18 @@ class App(FastAPI):
                     else:
                         app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
+                    app.blocks.activity_log.update_request(fn_index_inferred, "pending", "error")
                     raise output
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
+                app.blocks.activity_log.update_request(fn_index_inferred, "pending", "error")
                 return JSONResponse(
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
 
+            app.blocks.activity_log.update_request(fn_index_inferred, "pending", "success", avg_duration=output["average_duration"])
             if not (body.batched) and batch:
                 output["data"] = output["data"][0]
             return output

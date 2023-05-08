@@ -104,7 +104,6 @@
 		}
 	});
 
-
 	function is_dep(
 		id: number,
 		type: "inputs" | "outputs",
@@ -483,6 +482,7 @@
 		<div class="side-panel-wrap">
 			{#if visible_side_panel === "traffic"}
 				<Traffic
+					{root}
 					on:close={() => {
 						set_side_panel(null);
 					}}
