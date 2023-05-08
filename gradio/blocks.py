@@ -476,6 +476,7 @@ def get_api_info(config: dict, serialize: bool = True):
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
         skip_endpoint = False
+        skip_components = ["state"]
 
         inputs = dependency["inputs"]
         for i in inputs:
@@ -483,17 +484,17 @@ def get_api_info(config: dict, serialize: bool = True):
                 if component["id"] == i:
                     break
             else:
-                skip_endpoint = True  # if component not found, skip this endpoint
+                skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
-                skip_endpoint = (
-                    True  # if component is not serializable, skip this endpoint
-                )
+                skip_endpoint = True  # if component not serializable, skip endpoint
                 break
+            if type in skip_components:
+                continue
             label = component["props"].get("label", f"parameter_{i}")
             # The config has the most specific API info (taking into account the parameters
             # of the component), so we use that if it exists. Otherwise, we fallback to the
@@ -537,17 +538,17 @@ def get_api_info(config: dict, serialize: bool = True):
                 if component["id"] == o:
                     break
             else:
-                skip_endpoint = True  # if component not found, skip this endpoint
+                skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
-                skip_endpoint = (
-                    True  # if component is not serializable, skip this endpoint
-                )
+                skip_endpoint = True  # if component not serializable, skip endpoint
                 break
+            if type in skip_components:
+                continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             assert isinstance(serializer, serializing.Serializable)
