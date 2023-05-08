@@ -2,7 +2,7 @@ import inspect
 import time
 from typing import Iterable
 
-from gradio_client.documentation import document_fn
+from gradio.py_client.documentation import document_fn
 
 import gradio as gr
 

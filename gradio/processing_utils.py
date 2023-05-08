@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
-from gradio_client import utils as client_utils
+from gradio.py_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
 with warnings.catch_warnings():

@@ -10,7 +10,7 @@ from typing import Iterable
 import huggingface_hub
 import requests
 import semantic_version as semver
-from gradio_client.documentation import document, set_documentation_group
+from gradio.py_client.documentation import document, set_documentation_group
 from huggingface_hub import CommitOperationAdd
 
 from gradio.themes.utils import (
