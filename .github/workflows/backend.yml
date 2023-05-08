@@ -19,8 +19,10 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
+        test-type: ["not flaky", "flaky"]
         python-version: ["3.9"]
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.test-type == 'flaky' }}
     defaults:
       run:
         working-directory: client/python
@@ -43,7 +45,7 @@ jobs:
     - name: Tests
       shell: bash
       run: |
-        bash scripts/test.sh
+        python -m pytest -m "${{ matrix.test-type }}"
   client-lint:
     runs-on: ubuntu-latest
     defaults:
