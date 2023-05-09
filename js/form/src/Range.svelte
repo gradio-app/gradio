@@ -43,7 +43,7 @@
 			on:blur={clamp}
 			{step}
 			{disabled}
-			on:mouseup={handle_release}
+			on:pointerup={handle_release}
 		/>
 	</div>
 </div>
@@ -57,7 +57,7 @@
 	max={maximum}
 	{step}
 	{disabled}
-	on:mouseup={handle_release}
+	on:pointerup={handle_release}
 />
 
 <style>

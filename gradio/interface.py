@@ -25,7 +25,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.events import Changeable, Streamable
+from gradio.events import Changeable, Streamable, Submittable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -607,6 +607,14 @@ class Interface(Blocks):
             assert submit_btn is not None, "Submit button not rendered"
             fn = self.fn
             extra_output = []
+
+            triggers = [submit_btn.click] + [
+                component.submit
+                for component in self.input_components
+                if isinstance(component, Submittable)
+            ]
+            predict_events = []
+
             if stop_btn:
 
                 # Wrap the original function to show/hide the "Stop" button
@@ -625,54 +633,62 @@ class Interface(Blocks):
                         yield output
 
                 extra_output = [submit_btn, stop_btn]
-                pred = submit_btn.click(
-                    lambda: (
-                        submit_btn.update(visible=False),
-                        stop_btn.update(visible=True),
-                    ),
-                    inputs=None,
-                    outputs=[submit_btn, stop_btn],
-                    queue=False,
-                ).then(
-                    fn,
-                    self.input_components,
-                    self.output_components,
-                    api_name="predict",
-                    scroll_to_output=True,
-                    preprocess=not (self.api_mode),
-                    postprocess=not (self.api_mode),
-                    batch=self.batch,
-                    max_batch_size=self.max_batch_size,
-                )
 
-                def cleanup():
-                    return [Button.update(visible=True), Button.update(visible=False)]
+                cleanup = lambda: [
+                    Button.update(visible=True),
+                    Button.update(visible=False),
+                ]
+                for i, trigger in enumerate(triggers):
+                    predict_event = trigger(
+                        lambda: (
+                            submit_btn.update(visible=False),
+                            stop_btn.update(visible=True),
+                        ),
+                        inputs=None,
+                        outputs=[submit_btn, stop_btn],
+                        queue=False,
+                    ).then(
+                        fn,
+                        self.input_components,
+                        self.output_components,
+                        api_name="predict" if i == 0 else None,
+                        scroll_to_output=True,
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
+                        batch=self.batch,
+                        max_batch_size=self.max_batch_size,
+                    )
+                    predict_events.append(predict_event)
 
-                pred.then(
-                    cleanup,
-                    inputs=None,
-                    outputs=extra_output,  # type: ignore
-                    queue=False,
-                )
+                    predict_event.then(
+                        cleanup,
+                        inputs=None,
+                        outputs=extra_output,  # type: ignore
+                        queue=False,
+                    )
+
                 stop_btn.click(
                     cleanup,
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
-                    cancels=[pred],
+                    cancels=predict_events,
                     queue=False,
                 )
             else:
-                pred = submit_btn.click(
-                    fn,
-                    self.input_components,
-                    self.output_components,
-                    api_name="predict",
-                    scroll_to_output=True,
-                    preprocess=not (self.api_mode),
-                    postprocess=not (self.api_mode),
-                    batch=self.batch,
-                    max_batch_size=self.max_batch_size,
-                )
+                for i, trigger in enumerate(triggers):
+                    predict_events.append(
+                        trigger(
+                            fn,
+                            self.input_components,
+                            self.output_components,
+                            api_name="predict" if i == 0 else None,
+                            scroll_to_output=True,
+                            preprocess=not (self.api_mode),
+                            postprocess=not (self.api_mode),
+                            batch=self.batch,
+                            max_batch_size=self.max_batch_size,
+                        )
+                    )
 
     def attach_clear_events(
         self,
