@@ -303,12 +303,10 @@
 					}
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					// status.
 					loading_status.update({
 						...status,
 						status: status.stage,
 						progress: status.progress_data,
-
 						fn_index
 					});
 				});

@@ -181,13 +181,14 @@ export async function client(
 
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
-			(NodeBlob = (await import("node:buffer")).Blob),
-				//@ts-ignore
-				(global.WebSocket = ws.WebSocket);
+			NodeBlob = (await import("node:buffer")).Blob;
+			//@ts-ignore
+			global.WebSocket = ws.WebSocket;
 		}
 
 		const { ws_protocol, http_protocol, host, space_id } =
 			await process_endpoint(app_reference, hf_token);
+
 		const session_hash = Math.random().toString(36).substring(2);
 		const last_status: Record<string, Status["stage"]> = {};
 		let config: Config;
@@ -516,7 +517,7 @@ export async function client(
 		}
 
 		async function view_api(
-			config: Config
+			config?: Config
 		): Promise<ApiInfo<JsApiData> | [{ error: string }, 500]> {
 			if (api) return api;
 
@@ -529,15 +530,17 @@ export async function client(
 			}
 			try {
 				let response: Response;
-				if (semiver.default(config.version || "2.0.0", "3.28.3") < 0) {
+				// @ts-ignore
+				if (semiver(config.version || "2.0.0", "3.28.3") < 0) {
 					response = await fetch(
-						"https://gradio-space-api-fetcher.hf.space/api",
+						"https://gradio-space-api-fetcher-v2.hf.space/api",
 						{
 							method: "POST",
 							body: JSON.stringify({
 								serialize: false,
 								config: JSON.stringify(config)
-							})
+							}),
+							headers
 						}
 					);
 				} else {
@@ -546,7 +549,13 @@ export async function client(
 					});
 				}
 
-				const api_info = (await response.json()) as ApiInfo<ApiData>;
+				let api_info = (await response.json()) as
+					| ApiInfo<ApiData>
+					| { api: ApiInfo<ApiData> };
+				if ("api" in api_info) {
+					api_info = api_info.api;
+				}
+
 				if (
 					api_info.named_endpoints["/predict"] &&
 					!api_info.unnamed_endpoints["0"]
@@ -557,6 +566,7 @@ export async function client(
 				const x = transform_api_info(api_info);
 				return x;
 			} catch (e) {
+				console.log(e);
 				return [{ error: BROKEN_CONNECTION_MSG }, 500];
 			}
 		}
@@ -794,7 +804,10 @@ export async function walk_and_store_blobs(
 				type
 			}
 		];
-	} else if (param instanceof Blob || param instanceof File) {
+	} else if (
+		param instanceof Blob ||
+		(typeof window !== "undefined" && param instanceof File)
+	) {
 		if (type === "Image") {
 			let data;
 

@@ -50,18 +50,24 @@ export async function process_endpoint(
 	const _app_reference = app_reference.trim();
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
-		const _host = (
-			await (
-				await fetch(
-					`https://huggingface.co/api/spaces/${_app_reference}/host`,
-					{ headers }
-				)
-			).json()
-		).host;
-		return {
-			space_id: app_reference,
-			...determine_protocol(_host)
-		};
+		try {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${_app_reference}/host`,
+				{ headers }
+			);
+			console.log(res);
+
+			if (res.status !== 200)
+				throw new Error("Space metadata could not be loaded.");
+			const _host = (await res.json()).host;
+
+			return {
+				space_id: app_reference,
+				...determine_protocol(_host)
+			};
+		} catch (e) {
+			throw new Error("Space metadata could not be loaded." + e.message);
+		}
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {

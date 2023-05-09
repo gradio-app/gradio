@@ -7,8 +7,7 @@ A javascript (and typescript) client to call Gradio APIs.
 The Gradio JavaScript client is available on npm as `@gradio/client`. You can install it as below:
 
 ```sh
-pnpm add @gradio/client
-# or npm i @gradio/client
+npm i -D @gradio/client
 ```
 
 ## Usage
@@ -223,15 +222,15 @@ const submission = app
 submission.cancel();
 ```
 
-#### `info`
+#### `view_api`
 
-The `info` method provides details about the API you are connected too. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
+The `view_api` method provides details about the API you are connected too. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
 
 ```ts
 import { client } from "@gradio/client";
 
 const app = await client("user/space-name");
-const api_info = await app.info();
+const api_info = await app.view_api();
 
 console.log(api_info);
 ```

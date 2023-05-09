@@ -92,7 +92,7 @@ const app = client("https://bec81a83-5b5c-471e.gradio.live");
 
 ## Inspecting the API endpoints
 
-Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `info` method. For the Whisper Space, we see the following:
+Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `view_api` method. For the Whisper Space, we see the following:
 
 ```json
 {
@@ -139,48 +139,37 @@ client.predict("Hello")
 >> Bonjour
 ```
 
-If there are multiple parameters, then you should pass them as separate arguments to `.predict()`, like this:
+If there are multiple parameters, then you should pass them as an array to `.predict()`, like this:
 
 
 ```python
 from gradio_client import Client
 
 client = Client("gradio/calculator")
-client.predict(4, "add", 5)
+client.predict("/predict", [4, "add", 5])
 
 >> 9.0
 ```
 
-For certain inputs, such as images, you should pass in the filepath or URL to the file. Likewise, for the corresponding output types, you will get a filepath or URL returned. 
+```js
 
-```python
-from gradio_client import Client
-
-client = Client("abidlabs/whisper")
-client.predict("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3")
-
->> "My thought I have nobody by a beauty and will as you poured. Mr. Rochester is serve in that so don't find simpus, and devoted abode, to at might in a r—"
 ```
 
+For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `File` depending on what is most convenient and what environment the client is running in. 
 
-## Running jobs asyncronously
 
-Oe should note that `.predict()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
+```js
+import { client } from "@gradio/client";
+import { readFileSync } from "fs";
 
-In many cases, you may be better off letting the job run in the background until you need the results of the prediction. You can do this by creating a `Job` instance using the `.submit()` method, and then later calling `.result()` on the job to get the result. For example:
 
-```python
-from gradio_client import Client
+const response = await fetch("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3");
+const audio_file = await response.blob();
 
-client = Client(space="abidlabs/en2fr")
-job = client.submit("Hello", api_name="/predict")  # This is not blocking
-
-# Do something else
-
-job.result()  # This is blocking
-
->> Bonjour
+const app = client("abidlabs/whisper");
+const result = await client.predict("/predict", [ audio_file ]);
 ```
+
 
 ## Adding callbacks
 
