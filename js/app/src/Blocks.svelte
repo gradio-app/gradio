@@ -22,7 +22,7 @@
 	import type { ThemeMode } from "./components/types";
 
 	import logo from "./images/logo.svg";
-	import api_logo from "/static/img/api-logo.svg";
+	import api_logo from "./api_docs/img/api-logo.svg";
 
 	setupi18n();
 
