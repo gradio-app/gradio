@@ -14,10 +14,13 @@ Here's the entire code to do it:
 ```js
 import { client } from "@gradio/client";
 
-const audio_buffer = fs.readFileSync("audio_sample.wav");
+const response = await fetch(
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+);
+const audio_file = await response.blob();
 
 const app = client("abidlabs/whisper");
-const transcription = app.predict("/predict", [audio_buffer]);
+const transcription = app.predict("/predict", [audio_file]);
 
 // "This is a test of the whisper speech recognition model."
 ```
@@ -69,10 +72,13 @@ The `@gradio/client` exports another function, `duplicate`, to make this process
 ```js
 import { client } from "@gradio/client";
 
-const audio_buffer = fs.readFileSync("audio_sample.wav");
+const response = await fetch(
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+);
+const audio_file = await response.blob();
 
 const app = client("abidlabs/whisper", { hf_token="hf_..." });
-const transcription = app.predict("/predict", [audio_buffer]);
+const transcription = app.predict("/predict", [audio_file]);
 ```
 
 If you have previously duplicated a Space, re-running `duplicate` will *not* create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `duplicate` method multiple times with the same space. 
@@ -100,19 +106,16 @@ Once you have connected to a Gradio app, you can view the APIs that are availabl
     "/predict": {
       "parameters": [
         {
-          "label": "Input Audio",
-          "type_python": "str",
-          "type_description": "filepath or URL to file",
-          "component": "Audio",
-          "example_input": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          "label": "text",
+          "component": "Textbox",
+          "type": "string"
         }
       ],
       "returns": [
         {
-          "label": "value_7",
-          "type_python": "str",
-          "type_description": "string value",
-          "component": "Textbox"
+          "label": "output",
+          "component": "Textbox",
+          "type": "string"
         }
       ]
     }
@@ -128,31 +131,22 @@ We should also provide the `api_name='/predict'` argument to the `predict()` met
 
 ## Making a prediction
 
-The simplest way to make a prediction is simply to call the `.predict()` function with the appropriate arguments:
+The simplest way to make a prediction is simply to call the `.predict()` method with the appropriate arguments:
 
-```python
-from gradio_client import Client
+```js
+import { client } from "@gradio/client";
 
-client = Client("abidlabs/en2fr", api_name='/predict')
-client.predict("Hello")
-
->> Bonjour
+const app = await client("abidlabs/en2fr");
+const result = await client.predict("/predict", ["Hello"]);
 ```
 
 If there are multiple parameters, then you should pass them as an array to `.predict()`, like this:
 
-
-```python
-from gradio_client import Client
-
-client = Client("gradio/calculator")
-client.predict("/predict", [4, "add", 5])
-
->> 9.0
-```
-
 ```js
+import { client } from "@gradio/client";
 
+const app = await client("gradio/calculator");
+const result = await client.predict("/predict", [4, "add", 5]);
 ```
 
 For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `File` depending on what is most convenient and what environment the client is running in. 
@@ -160,111 +154,98 @@ For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `Fi
 
 ```js
 import { client } from "@gradio/client";
-import { readFileSync } from "fs";
 
-
-const response = await fetch("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3");
+const response = await fetch(
+  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+);
 const audio_file = await response.blob();
 
-const app = client("abidlabs/whisper");
+const app = await client("abidlabs/whisper");
 const result = await client.predict("/predict", [ audio_file ]);
 ```
 
 
-## Adding callbacks
+## Using events
 
-Alternatively, one can add one or more callbacks to perform actions after the job has completed running, like this:
+If the API you are working with can return results over time, or you wish to access information about the status of a job, you can use the event interface for more flexibility. This is especially useful for iterative endpoints or generator endpoints that will produce a series of values over time as discreet responses.
 
-```python
-from gradio_client import Client
+```js
+import { client } from "@gradio/client";
 
-def print_result(x):
-    print("The translated result is: {x}")
+function log_result(data) {
+  const [translation] = data;
+  console.log(`The translated result is: ${translation}.`)
+}
 
-client = Client(space="abidlabs/en2fr")
+const app = await client("abidlabs/en2fr")
+const job = client.submit("/predict", ["Hello"]);
 
-job = client.submit("Hello", api_name="/predict", result_callbacks=[print_result])
-
-# Do something else
-
->> The translated result is: Bonjour
-
+job.on("data", log_result);
 ```
 
 ## Status
 
-The `Job` object also allows you to get the status of the running job by calling the `.status()` method. This returns a `StatusUpdate` object with the following attributes: `code` (the status code, one of a set of defined strings representing the status. See the `utils.Status` class), `rank` (the current position of this job in the queue), `queue_size` (the total queue size),  `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` (the time that the status was generated). 
+The event interface also allows you to get the status of the running job by listening to the `"status"` event. This returns an object with the following attributes: `status` (a human readbale status of the current job, `"pending" | "generating" | "complete" | "error"`), `code` (the detailed gradio code for the job), `position` (the current position of this job in the queue), `queue_size` (the total queue size),  `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` ( as `Date` object detailing the time that the status was generated). 
 
-```py
-from gradio_client import Client
 
-client = Client(src="gradio/calculator")
-job = client.submit(5, "add", 4, api_name="/predict")
-job.status()
+```js
+import { client } from "@gradio/client";
 
->> <Status.STARTING: 'STARTING'>
+function log_status(status) {
+  console.log(`The current status for this job is: ${JSON.stringify(status, null, 2)}.`)
+}
+
+const app = await client("abidlabs/en2fr")
+const job = client.submit("/predict", ["Hello"]);
+
+job.on("status", log_status);
 ```
-
-*Note*: The `Job` class also has a `.done()` instance method which returns a boolean indicating whether the job has completed.
 
 ## Cancelling Jobs
 
-The `Job` class also has a `.cancel()` instance method that cancels jobs that have been queued but not started. For example, if you run:
+The job instance also has a `.cancel()` method that cancels jobs that have been queued but not started. For example, if you run:
 
-```py
-client = Client("abidlabs/whisper") 
-job1 = client.submit("audio_sample1.wav")  
-job2 = client.submit("audio_sample2.wav")  
-job1.cancel()  # will return False, assuming the job has started
-job2.cancel()  # will return True, indicating that the job has been canceled
+
+
+```js
+import { client } from "@gradio/client";
+
+const app = await client("abidlabs/en2fr")
+const job_one = client.submit("/predict", ["Hello"]);
+const job_two = client.submit("/predict", ["Friends"]);
+
+job_one.cancel();
+job_two.cancel();
 ```
 
-If the first job has started processing, then it will not be canceled. If the second job
-has not yet started, it will be successfully canceled and removed from the queue. 
-
+If the first job has started processing, then it will not be canceled but the client will no longer listen for updates (throwing away the job). If the second job has not yet started, it will be successfully canceled and removed from the queue.
 
 ## Generator Endpoints
 
-Some Gradio API endpoints do not return a single value, rather they return a series of values. You can get the series of values that have been returned at any time from such a generator endpoint by running `job.outputs()`:
+Some Gradio API endpoints do not return a single value, rather they return a series of values. You can listen for these values in real time using the event interface:
 
-```py
-from gradio_client import Client
+```js
+import { client } from "@gradio/client";
 
-client = Client(src="gradio/count_generator")
-job = client.submit(3, api_name="/count")
-while not job.done():
-    time.sleep(0.1)
-job.outputs()
+const app = await client("gradio/count_generator");
+const job = client.submit("/predict");
 
->> ['0', '1', '2']
+job.on("data", data => console.log(data));
 ```
 
-Note that running `job.result()` on a generator endpoint only gives you the *first* value returned by the endpoint. 
+This will log out the values as they are generated by the endpoint.
 
-The `Job` object is also iterable, which means you can use it to display the results of a generator function as they are returned from the endpoint. Here's the equivalent example using the `Job` as a generator:
+You can also cancel jobs that that have iterative outputs, in which case the job will finish immediately.
 
-```py
-from gradio_client import Client
+```js
+import { client } from "@gradio/client";
 
-client = Client(src="gradio/count_generator")
-job = client.submit(3, api_name="/count")
+const app = await client("gradio/count_generator");
+const job = client.submit("/predict");
 
-for o in job:
-    print(o)
+job.on("data", data => console.log(data));
 
->> 0
->> 1
->> 2
-```
+// later
 
-You can also cancel jobs that that have iterative outputs, in which case the job will finish as soon as the current iteration finishes running.
-
-```py
-from gradio_client import Client
-import time
-
-client = Client("abidlabs/test-yield")
-job = client.submit("abcdef")
-time.sleep(3)
-job.cancel()  # job cancels after 2 iterations
+job.cancel();
 ```
