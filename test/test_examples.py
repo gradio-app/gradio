@@ -327,10 +327,10 @@ class TestProcessExamples:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [0]})
         assert response.json()["data"] == ["Hello,"]
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [1]})
         assert response.json()["data"] == ["Michael"]
 
     def test_end_to_end_cache_examples(self):
@@ -348,8 +348,8 @@ class TestProcessExamples:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [0]})
         assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
