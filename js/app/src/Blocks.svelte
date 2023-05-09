@@ -236,6 +236,7 @@
 		handle_update(data, fn_index);
 		let status = loading_status.get_status_for_fn(fn_index);
 		if (status === "complete") {
+			// handle .success and successful .then here, after data has updated
 			dependencies.forEach((dep, i) => {
 				if (dep.trigger_after === fn_index) {
 					trigger_api_call(i, null);
@@ -247,6 +248,7 @@
 	app.on("status", ({ fn_index, ...status }) => {
 		loading_status.update({ ...status, fn_index });
 		if (status.status === "error") {
+			// handle failed .then here, since "data" listener won't trigger
 			dependencies.forEach((dep, i) => {
 				if (dep.trigger_after === fn_index && !dep.trigger_only_on_success) {
 					trigger_api_call(i, null);
