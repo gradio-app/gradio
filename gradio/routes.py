@@ -261,8 +261,11 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config():
-            return app.get_blocks().config
+        def get_config(request: Request):
+            root_path = request.scope.get("root_path")
+            config = app.get_blocks().config
+            config["root"] = root_path
+            return config
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
