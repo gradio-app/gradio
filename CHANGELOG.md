@@ -3,6 +3,7 @@
 ## New Features:
 
 - Returning language agnostic types in the `/info` route by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4039](https://github.com/gradio-app/gradio/pull/4039)
+- The reloader command (`gradio app.py`) can now accept argumnets to be passed to your application by [@micky2be](https://github.com/micky2be) in [PR 4119](https://github.com/gradio-app/gradio/pull/4119)
 
 ## Bug Fixes:
 

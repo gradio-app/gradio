@@ -50,7 +50,9 @@ WARNING:  The --reload flag should not be used in production on Windows.
 
 The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `app.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
 
-⚠️ Now, there is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you can pass that as the 2nd parameter in your code, like this: `gradio app.py my_demo`
+⚠️ Now, there is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you can pass that as the 2nd parameter in your code, like this: `gradio app.py my_demo.app`
+
+⚠️ If your application accepts cli arguments using a function/factory you can now run `gradio app.py create_app --option1 --option2`, assuming `create_app` will return the `app` object of your Gradio app
 
 As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
