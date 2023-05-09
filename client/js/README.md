@@ -121,7 +121,7 @@ const result = await app.predict("/predict");
 
 ##### `payload`
 
-The `payload` argument is generally optional but this depends on the API itself. If the API endpoint depends on values being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space.
+The `payload` argument is generally optional but this depends on the API itself. If the API endpoint depends on values being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space, or accessible via the `view_api()` method of the client.
 
 ```ts
 import { client } from "@gradio/client";
@@ -129,8 +129,6 @@ import { client } from "@gradio/client";
 const app = await client("user/space-name");
 const result = await app.predict("/predict", [1, "Hello", "friends"]);
 ```
-
-<!-- Types for the different API inputs are provided and the example snippets on the "View API" will provide strong typing for the payload. These types need to be explicitly annotated as there currently no mechanism to automatically infer them due to the varied and dynamic nature of API endpoints. -->
 
 #### `submit`
 
@@ -153,8 +151,6 @@ The `on` method allows you to subscribe to events related to the submitted API r
 
 `"data"` updates are issued when the API computes a value, the callback provided as the second argument will be called when such a value is sent to the client. The shape of the data depends on the way the API itself is constructed. This event may fire more than once if that endpoint supports emmitting new values over time.
 
-<!-- The type annotations provided by the "View API" page will ensure that the data payload is strongly typed. -->
-
 `"status` updates are issued when the status of a request changes. This information allows you to offer feedback to users when the queue position of the request changes, or when the request changes from queued to processing.
 
 The status payload look like this:
@@ -162,18 +158,21 @@ The status payload look like this:
 ```ts
 interface Status {
 	queue: boolean;
-	status: "pending" | "error" | "complete" | "generating";
+	code?: string;
+	success?: boolean;
+	stage: "pending" | "error" | "complete" | "generating";
 	size?: number;
 	position?: number;
 	eta?: number;
 	message?: string;
-	progress?: Array<{
+	progress_data?: Array<{
 		progress: number | null;
 		index: number | null;
 		length: number | null;
 		unit: string | null;
 		desc: string | null;
 	}>;
+	time?: Date;
 }
 ```
 
