@@ -1,6 +1,7 @@
 # How to Create a Chatbot
 
 Tags: NLP, TEXT, CHAT
+Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/project-baize/Baize-7B, 
 
 ## Introduction
 
@@ -77,4 +78,7 @@ Putting this together, we can create a *multimodal* chatbot with a textbox for a
 $code_chatbot_multimodal
 $demo_chatbot_multimodal
 
-And you're done! That's all the code you need to build an interface for your chatbot model.
+And you're done! That's all the code you need to build an interface for your chatbot model. Finally, we'll end our Guide with some links to Chatbots that are running on Spaces so that you can get an idea of what else is possible:
+
+* [project-baize/Baize-7B](https://huggingface.co/spaces/project-baize/Baize-7B): A stylized chatbot that allows you to stop generation as well as regenerate responses. 
+* [MAGAer13/mPLUG-Owl](https://huggingface.co/spaces/MAGAer13/mPLUG-Owl): A multimodal chatbot that allows you to upvote and downvote responses. 

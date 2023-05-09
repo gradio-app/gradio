@@ -22,7 +22,7 @@
 	import type { ThemeMode } from "./components/types";
 
 	import logo from "./images/logo.svg";
-	import api_logo from "/static/img/api-logo.svg";
+	import api_logo from "./api_docs/img/api-logo.svg";
 
 	setupi18n();
 
@@ -291,12 +291,10 @@
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
 					let status = loading_status.get_status_for_fn(fn_index);
-					if (status === "complete" || status === "error") {
+
+					if (status === "complete") {
 						dependencies.forEach((dep, i) => {
-							if (
-								dep.trigger_after === fn_index &&
-								(!dep.trigger_only_on_success || status === "complete")
-							) {
+							if (dep.trigger_after === fn_index) {
 								trigger_api_call(i, null);
 							}
 						});
@@ -309,6 +307,18 @@
 						progress: status.progress_data,
 						fn_index
 					});
+
+					if (status.status === "error") {
+						// handle failed .then here, since "data" listener won't trigger
+						dependencies.forEach((dep, i) => {
+							if (
+								dep.trigger_after === fn_index &&
+								!dep.trigger_only_on_success
+							) {
+								trigger_api_call(i, null);
+							}
+						});
+					}
 				});
 
 			submit_map.set(dep_index, submission);
