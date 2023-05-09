@@ -6,10 +6,9 @@ import json
 
 def get_existing_configuration(readme_file):
     with open(readme_file, "r") as f:
-        readme = f.read()
-    if not readme.strip().startswith("---"):
+        readme = f.read().strip()
+    if not readme.startswith("---"):
         return None
-    readme = readme.strip()
     if "---" not in readme[3:]:
         return None
     readme = readme.split("---")[1].strip()
