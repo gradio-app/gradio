@@ -5,6 +5,7 @@ import os
 import sys
 import unittest.mock as mock
 import warnings
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -14,7 +15,7 @@ from httpx import AsyncClient, Response
 from pydantic import BaseModel
 from typing_extensions import Literal
 
-from gradio import EventData
+from gradio import EventData, Request
 from gradio.context import Context
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
@@ -34,6 +35,7 @@ from gradio.utils import (
     get_local_ip_address,
     get_type_hints,
     ipython_check,
+    is_special_typed_parameter,
     kaggle_check,
     launch_analytics,
     readme_to_html,
@@ -348,7 +350,7 @@ class TestRequest:
             name: str
             job: str
             id: str
-            createdAt: str
+            createdAt: str  # noqa: N815
 
         client_response: AsyncRequest = await AsyncRequest(
             method=AsyncRequest.Method.POST,
@@ -432,7 +434,7 @@ async def test_validate_with_model(respx_mock):
         name: str
         job: str
         id: str
-        createdAt: str
+        createdAt: str  # noqa: N815
 
     client_response: AsyncRequest = await AsyncRequest(
         method=AsyncRequest.Method.POST,
@@ -467,7 +469,7 @@ async def test_validate_and_fail_with_model(respx_mock):
 @mock.patch("gradio.utils.AsyncRequest._validate_response_data")
 @pytest.mark.asyncio
 async def test_exception_type(validate_response_data, respx_mock):
-    class ResponseValidationException(Exception):
+    class ResponseValidationError(Exception):
         message = "Response object is not valid."
 
     validate_response_data.side_effect = Exception()
@@ -477,9 +479,9 @@ async def test_exception_type(validate_response_data, respx_mock):
     client_response: AsyncRequest = await AsyncRequest(
         method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
-        exception_type=ResponseValidationException,
+        exception_type=ResponseValidationError,
     )
-    assert isinstance(client_response.exception, ResponseValidationException)
+    assert isinstance(client_response.exception, ResponseValidationError)
 
 
 @pytest.mark.asyncio
@@ -509,9 +511,8 @@ async def test_validate_with_function(respx_mock):
 @pytest.mark.asyncio
 async def test_validate_and_fail_with_function(respx_mock):
     def has_name(response):
-        if response["name"] is not None:
-            if response["name"] == "Alex":
-                return response
+        if response["name"] is not None and response["name"] == "Alex":
+            return response
         raise Exception
 
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response({"name": "morpheus"}))
@@ -632,6 +633,16 @@ class TestGetTypeHints:
             assert hints["s"] == str
 
         assert len(get_type_hints(GenericObject())) == 0
+
+    def test_is_special_typed_parameter(self):
+        def func(a: List[str], b: Literal["a", "b"], c, d: Request):
+            pass
+
+        hints = get_type_hints(func)
+        assert not is_special_typed_parameter("a", hints)
+        assert not is_special_typed_parameter("b", hints)
+        assert not is_special_typed_parameter("c", hints)
+        assert is_special_typed_parameter("d", hints)
 
 
 class TestCheckFunctionInputsMatch:

@@ -3,7 +3,7 @@ please use the `gr.Interface.from_pipeline()` function."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from gradio import components
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from transformers import pipelines
 
 
-def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
+def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     """
     Gets the appropriate Interface kwargs for a given Hugging Face transformers.Pipeline.
     pipeline (transformers.Pipeline): the transformers.Pipeline from which to create an interface

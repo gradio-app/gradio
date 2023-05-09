@@ -955,7 +955,7 @@ class TestFile:
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
 
-        zero_size_file = {"name": "document.txt", "size": 0, "data": "data:"}
+        zero_size_file = {"name": "document.txt", "size": 0, "data": ""}
         temp_file = file_input.preprocess(zero_size_file)
         assert os.stat(temp_file.name).st_size == 0
 
@@ -1489,7 +1489,8 @@ class TestLabel:
         label_output = gr.Label()
         label = label_output.postprocess(y)
         assert label == {"label": "happy"}
-        assert json.load(open(label_output.deserialize(label))) == label
+        with open(label_output.deserialize(label)) as f:
+            assert json.load(f) == label
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)

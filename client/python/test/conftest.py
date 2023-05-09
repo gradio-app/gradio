@@ -40,6 +40,16 @@ def calculator_demo():
 
 
 @pytest.fixture
+def state_demo():
+    demo = gr.Interface(
+        lambda x, y: (x, y),
+        ["textbox", "state"],
+        ["textbox", "state"],
+    )
+    return demo.queue()
+
+
+@pytest.fixture
 def increment_demo():
     with gr.Blocks() as demo:
         btn1 = gr.Button("Increment")
@@ -157,3 +167,14 @@ def count_generator_demo():
         list_btn.click(show, num, out)
 
     return demo.queue()
+
+
+@pytest.fixture
+def file_io_demo():
+    demo = gr.Interface(
+        lambda x: print("foox"),
+        [gr.File(file_count="multiple"), "file"],
+        [gr.File(file_count="multiple"), "file"],
+    )
+
+    return demo
