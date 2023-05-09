@@ -33,7 +33,7 @@
 	<div class="response-wrap">
 		<div class:hide={is_running}>
 			{#if endpoint_returns.length > 1}({/if}
-			{#each endpoint_returns as { label, type, python_type, component, example_input, serializer }}
+			{#each endpoint_returns as { label, type, python_type, component, serializer }}
 				<div class:second-level={endpoint_returns.length > 1}>
 					<span class="desc"
 						><!--
