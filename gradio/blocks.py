@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Iterator
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable
 
 import anyio
 import requests
@@ -476,6 +476,7 @@ def get_api_info(config: dict, serialize: bool = True):
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
         skip_endpoint = False
+        skip_components = ["state"]
 
         inputs = dependency["inputs"]
         for i in inputs:
@@ -483,17 +484,17 @@ def get_api_info(config: dict, serialize: bool = True):
                 if component["id"] == i:
                     break
             else:
-                skip_endpoint = True  # if component not found, skip this endpoint
+                skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
-                skip_endpoint = (
-                    True  # if component is not serializable, skip this endpoint
-                )
+                skip_endpoint = True  # if component not serializable, skip endpoint
                 break
+            if type in skip_components:
+                continue
             label = component["props"].get("label", f"parameter_{i}")
             # The config has the most specific API info (taking into account the parameters
             # of the component), so we use that if it exists. Otherwise, we fallback to the
@@ -537,17 +538,17 @@ def get_api_info(config: dict, serialize: bool = True):
                 if component["id"] == o:
                     break
             else:
-                skip_endpoint = True  # if component not found, skip this endpoint
+                skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
-                skip_endpoint = (
-                    True  # if component is not serializable, skip this endpoint
-                )
+                skip_endpoint = True  # if component not serializable, skip endpoint
                 break
+            if type in skip_components:
+                continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             assert isinstance(serializer, serializing.Serializable)
@@ -995,7 +996,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         processed_input: list[Any],
-        iterator: Iterator[Any] | None = None,
+        iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
@@ -1045,17 +1046,17 @@ class Blocks(BlockContext):
         else:
             prediction = None
 
-        if inspect.isasyncgenfunction(block_fn.fn):
-            raise ValueError("Gradio does not support async generators.")
-        if inspect.isgeneratorfunction(block_fn.fn):
+        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(
+            block_fn.fn
+        ):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
                     iterator = prediction
-                prediction = await anyio.to_thread.run_sync(
-                    utils.async_iteration, iterator, limiter=self.limiter
-                )
+                if inspect.isgenerator(iterator):
+                    iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
+                prediction = await utils.async_iteration(iterator)
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
@@ -1319,7 +1320,6 @@ Received outputs:
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
-
         return {
             "data": data,
             "is_generating": is_generating,
