@@ -13,6 +13,7 @@
 - Fix dropdown default value not appearing by [@aliabid94](https://github.com/aliabid94) in [PR 4072](https://github.com/gradio-app/gradio/pull/4072).
 - Soft theme label color fix by [@aliabid94](https://github.com/aliabid94) in [PR 4070](https://github.com/gradio-app/gradio/pull/4070) 
 - Removes extraneous `State` component info from the `/info` route by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
+- Fixes to view API page by [@abidlabs](https://github.com/abidlabs) and [@aliabd](https://github.com/aliabd) in [PR 4112](https://github.com/gradio-app/gradio/pull/4112)
 
 ## Documentation Changes:
 
