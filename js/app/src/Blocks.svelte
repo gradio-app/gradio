@@ -308,7 +308,7 @@
 						fn_index
 					});
 
-					if (status.status === "error") {
+					if (status.stage === "error") {
 						// handle failed .then here, since "data" listener won't trigger
 						dependencies.forEach((dep, i) => {
 							if (
