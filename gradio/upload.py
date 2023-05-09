@@ -14,10 +14,9 @@ def get_existing_configuration(readme_file):
     readme = readme.split("---")[1].strip()
     config = {}
     for line in readme.split("\n"):
-        if ":" not in line:
-            continue
-        key, value = line.split(":", 1)
-        config[key.strip()] = value.strip()
+        key, sep, value = line.partition(":")
+        if sep:
+            config[key.strip()] = value.strip()
     return config
 
 
