@@ -46,7 +46,6 @@
 				value: option,
 				selected: true
 			});
-			dispatch("change", value);
 		}
 		value = value;
 	}
@@ -59,14 +58,12 @@
 			value: option,
 			selected: false
 		});
-		dispatch("change", value);
 	}
 
 	function remove_all(e: any) {
 		value = [];
 		inputValue = "";
 		e.preventDefault();
-		dispatch("change", value);
 	}
 
 	function handleOptionMousedown(e: any) {
@@ -92,7 +89,6 @@
 					value: option,
 					selected: true
 				});
-				dispatch("change", value);
 				return;
 			}
 		}
@@ -108,7 +104,6 @@
 						value: value,
 						selected: true
 					});
-					dispatch("change", value);
 				}
 				inputValue = activeOption;
 				showOptions = false;
@@ -148,6 +143,8 @@
 			}
 		}
 	}
+
+	$: value, dispatch("change", value);
 </script>
 
 <label>
@@ -190,14 +187,12 @@
 					on:keyup={() => {
 						if (allow_custom_value) {
 							value = inputValue;
-							dispatch("change", value);
 						}
 					}}
 					on:blur={() => {
 						if (multiselect) {
 							inputValue = "";
 						} else if (!allow_custom_value) {
-							let old_value = value;
 							if (value !== inputValue) {
 								if (typeof value === "string" && inputValue == "") {
 									inputValue = value;
@@ -205,9 +200,6 @@
 									value = undefined;
 									inputValue = "";
 								}
-							}
-							if (old_value !== value) {
-								dispatch("change", value);
 							}
 						}
 						showOptions = false;
@@ -292,11 +284,6 @@
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;
-	}
-
-	.single-select {
-		margin: var(--spacing-sm);
-		color: var(--body-text-color);
 	}
 
 	.secondary-wrap {
