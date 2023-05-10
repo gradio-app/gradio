@@ -69,8 +69,8 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} <!--
-			-->representing input in '{label}' <!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!--
+			--> in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--
@@ -109,12 +109,13 @@ async function run() &lbrace;
 		--><span class="desc"
 									><!--
 		-->	// blob <!--
-		-->representing input in '{label}' <!--
+		-->in '{label}' <!--
 		-->{component} component<!--
 		--></span
 								><!--
-		-->{:else}
-								<span class="example-inputs"
+		-->{:else}<!--
+	-->		
+				<span class="example-inputs"
 									>{represent_value(
 										example_input,
 										python_type.type,
@@ -123,12 +124,11 @@ async function run() &lbrace;
 								>, <!--
 --><span class="desc"
 									><!--
--->	// {js_parameters[i]
-										.type} <!--
--->representing input in '{label}' <!--
--->{component} component {#if js_parameters[i].description}({js_parameters[
-											i
-										].description}){/if}<!--
+-->// {js_parameters[i]
+										.type} {#if js_parameters[i].description}({js_parameters[i]
+											.description}){/if}<!--
+--> in '{label}' <!--
+-->{component} component<!--
 --></span
 								><!--
 -->{/if}
