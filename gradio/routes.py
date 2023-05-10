@@ -223,6 +223,7 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            root_path = request.scope.get("root_path")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
@@ -231,7 +232,7 @@ class App(FastAPI):
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
-                    "root": app.get_blocks().root,
+                    "root": root_path,
                 }
 
             try:
@@ -782,7 +783,6 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
-    blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)
