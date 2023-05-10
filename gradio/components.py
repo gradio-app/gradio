@@ -1401,7 +1401,13 @@ class Radio(
 
 @document("style")
 class Dropdown(
-    Changeable, Inputable, Selectable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+    Changeable,
+    Inputable,
+    Selectable,
+    Blurrable,
+    IOComponent,
+    SimpleSerializable,
+    FormComponent,
 ):
     """
     Creates a dropdown of choices from which entries can be selected.
@@ -2806,7 +2812,7 @@ class File(
 
 
 @document("style")
-class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -3507,7 +3513,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
 
 @document("style")
-class ColorPicker(Changeable, Inputable, Submittable, Blurrable, IOComponent, StringSerializable):
+class ColorPicker(
+    Changeable, Inputable, Submittable, Blurrable, IOComponent, StringSerializable
+):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.

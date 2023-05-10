@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
 	import { fade } from "svelte/transition";
-	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: string = "";
+	export let value_is_output: boolean = false;
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
@@ -17,14 +17,12 @@
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
 	export let style: Styles = {};
-	export let value_is_output: boolean = false;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: handle_change(value);
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -34,18 +32,16 @@
 		input: undefined;
 	}>();
 
-	function handle_change(val: string) {
-		dispatch("change", val);
-		console.log(label, "changed while is value_is_output:", value_is_output);
-
-		if (value_is_output) {			
-			value_is_output = false;
-		} else {
-			console.log(`${label} dispatching 'input'..`)
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
 			dispatch("input");
-			value_is_output = false;
 		}
 	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 
 	function handle_blur() {
 		dispatch("blur");

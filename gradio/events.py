@@ -285,6 +285,7 @@ class Inputable(EventListener):
         This method can be used when this component is in a Gradio Blocks.
         """
 
+
 @document("*select", inherit=True)
 class Selectable(EventListener):
     def __init__(self):

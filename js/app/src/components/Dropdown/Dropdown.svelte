@@ -11,6 +11,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string | Array<string>;
+	export let value_is_output: boolean;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -38,6 +39,7 @@
 
 	<Dropdown
 		bind:value
+		bind:value_is_output
 		{choices}
 		{multiselect}
 		{max_choices}
@@ -46,6 +48,7 @@
 		{show_label}
 		{allow_custom_value}
 		on:change
+		on:input
 		on:select
 		on:blur
 		disabled={mode === "static"}

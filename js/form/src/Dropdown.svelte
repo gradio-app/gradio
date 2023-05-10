@@ -1,12 +1,13 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
+	export let value_is_output: boolean = false;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -16,6 +17,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
+		input: undefined;
 		select: SelectData;
 		blur: undefined;
 	}>();
@@ -37,6 +39,17 @@
 		activeOption = filtered.length ? filtered[0] : null;
 	}
 
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
+
 	function add(option: string) {
 		value = value as Array<string>;
 		if (!max_choices || value.length < max_choices) {
@@ -46,7 +59,6 @@
 				value: option,
 				selected: true
 			});
-			dispatch("change", value);
 		}
 		value = value;
 	}
@@ -59,14 +71,12 @@
 			value: option,
 			selected: false
 		});
-		dispatch("change", value);
 	}
 
 	function remove_all(e: any) {
 		value = [];
 		inputValue = "";
 		e.preventDefault();
-		dispatch("change", value);
 	}
 
 	function handleOptionMousedown(e: any) {
@@ -92,7 +102,6 @@
 					value: option,
 					selected: true
 				});
-				dispatch("change", value);
 				return;
 			}
 		}
@@ -108,7 +117,6 @@
 						value: value,
 						selected: true
 					});
-					dispatch("change", value);
 				}
 				inputValue = activeOption;
 				showOptions = false;
@@ -190,14 +198,12 @@
 					on:keyup={() => {
 						if (allow_custom_value) {
 							value = inputValue;
-							dispatch("change", value);
 						}
 					}}
 					on:blur={() => {
 						if (multiselect) {
 							inputValue = "";
 						} else if (!allow_custom_value) {
-							let old_value = value;
 							if (value !== inputValue) {
 								if (typeof value === "string" && inputValue == "") {
 									inputValue = value;
@@ -205,9 +211,6 @@
 									value = undefined;
 									inputValue = "";
 								}
-							}
-							if (old_value !== value) {
-								dispatch("change", value);
 							}
 						}
 						showOptions = false;
