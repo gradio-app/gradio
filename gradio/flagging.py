@@ -412,7 +412,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         Images/audio are saved to disk as individual files.
         """
         # Components that can have a preview on dataset repos
-        # NOTE: not at root level to avoid circular imports
         file_preview_types = {gr.Audio: "Audio", gr.Image: "Image"}
 
         # Generate the row corresponding to the flagged sample
@@ -426,7 +425,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}
-            row.append(Path(deserialized).name)
+            try:
+                assert Path(deserialized).exists()
+                row.append(Path(deserialized).name)
+            except (AssertionError, TypeError, ValueError):
+                row.append(str(deserialized))
 
             # If component is eligible for a preview, add the URL of the file
             if isinstance(component, tuple(file_preview_types)):  # type: ignore
