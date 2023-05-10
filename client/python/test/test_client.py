@@ -242,7 +242,7 @@ class TestPredictionsFromSpaces:
                 time.sleep(0.1)
             # Ran all iterations from scratch
             assert job2.status().code == Status.FINISHED
-            assert len(job2.outputs()) == 5
+            assert len(job2.outputs()) == 4
 
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
