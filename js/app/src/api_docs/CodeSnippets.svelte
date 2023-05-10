@@ -15,6 +15,7 @@
 	export let dependency_inputs: string[][];
 	export let dependency_failures: boolean[][];
 	export let endpoint_parameters: any;
+	export let js_parameters: any;
 	export let named: boolean;
 
 	export let current_language: "python" | "javascript";
@@ -30,7 +31,7 @@
 			python_type: {
 				type: string;
 				description: string;
-			}
+			};
 			component: string;
 			example_input: string;
 			serializer: string;
@@ -114,13 +115,20 @@ async function run() &lbrace;
 								><!--
 		-->{:else}
 								<span class="example-inputs"
-									>{represent_value(example_input, python_type.type, "js")}</span
+									>{represent_value(
+										example_input,
+										python_type.type,
+										"js"
+									)}</span
 								>, <!--
 --><span class="desc"
 									><!--
--->	// {python_type.type} <!--
+-->	// {js_parameters[i]
+										.type} <!--
 -->representing input in '{label}' <!--
--->{component} component<!--
+-->{component} component {#if js_parameters[i].description}({js_parameters[
+											i
+										].description}){/if}<!--
 --></span
 								><!--
 -->{/if}

@@ -15,7 +15,10 @@
 
 	export let root: string;
 	export let endpoint_returns: any;
+	export let js_returns: any;
+
 	export let named: boolean;
+	export let current_language: "python" | "javascript";
 
 	const format_url = (desc: string | undefined, data: string | undefined) =>
 		desc
@@ -33,11 +36,13 @@
 	<div class="response-wrap">
 		<div class:hide={is_running}>
 			{#if endpoint_returns.length > 1}({/if}
-			  {#each endpoint_returns as { label, type, python_type, component, serializer }}
+			{#each endpoint_returns as { label, type, python_type, component, serializer }, i}
 				<div class:second-level={endpoint_returns.length > 1}>
 					<span class="desc"
 						><!--
-					--> # {python_type.type}
+					--> # {#if current_language === "python"}{python_type.type}{:else}{js_returns[
+								i
+							].type}{/if}
 						<!--
 					-->representing output in '{label}' <!--
 					-->{component}
