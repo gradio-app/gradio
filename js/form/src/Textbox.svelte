@@ -18,7 +18,6 @@
 	export let type: "text" | "password" | "email" = "text";
 	export let style: Styles = {};
 	export let value_is_output: boolean = false;
-	let is_output = value_is_output;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
