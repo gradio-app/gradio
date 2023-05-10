@@ -46,11 +46,7 @@ bash scripts/create_test_requirements.sh
 gradio app.py
 ```
 
-- You can also start a local frontend development server (on port 3000 by default) that responds to any changes in the frontend.
-
-```
-bash scripts/run_frontend.sh
-```
+- To develop the frontend app, you should also follow [js/README.md](js/README.md).
 
 - To run all of the tests, do:
 
