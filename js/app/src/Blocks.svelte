@@ -215,8 +215,7 @@
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
-			rootNode = rootNode;
-			console.log(`  set as output: ${output.props.label}`)
+			console.log(`Set ${output.props.label} value_is_output=true.`)
 			if (
 				typeof value === "object" &&
 				value !== null &&

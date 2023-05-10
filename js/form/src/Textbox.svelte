@@ -37,11 +37,12 @@
 
 	function handle_change(val: string) {
 		dispatch("change", val);
+		console.log(label, "changed while is value_is_output:", value_is_output);
+
 		if (value_is_output) {			
 			value_is_output = false;
-			console.log("set", label, "as output:", value_is_output);
 		} else {
-			console.log(`  ${label} input dispatch..`)
+			console.log(`${label} dispatching 'input'..`)
 			dispatch("input");
 			value_is_output = false;
 		}
