@@ -286,7 +286,12 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             except huggingface_hub.utils.EntryNotFoundError:
                 pass
 
-    def flag(self, flag_data: list[Any], flag_option: str = "") -> int:
+    def flag(
+        self,
+        flag_data: list[Any],
+        flag_option: str = "",
+        username: str | None = None,
+    ) -> int:
         if self.separate_dirs:
             # JSONL files to support dataset preview on the Hub
             unique_id = str(uuid.uuid4())
@@ -305,6 +310,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             path_in_repo=path_in_repo,
             flag_data=flag_data,
             flag_option=flag_option,
+            username=username or "",
         )
 
     def _flag_in_dir(
@@ -314,10 +320,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         path_in_repo: str | None,
         flag_data: list[Any],
         flag_option: str = "",
+        username: str = "",
     ) -> int:
         # Deserialize components (write images/audio to files)
         features, row = self._deserialize_components(
-            components_dir, flag_data, flag_option
+            components_dir, flag_data, flag_option, username
         )
 
         # Write generic info to dataset_infos.json + upload
@@ -394,7 +401,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return data_file.parent.name
 
     def _deserialize_components(
-        self, data_dir: Path, flag_data: list[Any], flag_option: str = ""
+        self,
+        data_dir: Path,
+        flag_data: list[Any],
+        flag_option: str = "",
+        username: str = "",
     ) -> tuple[dict[Any, Any], list[Any]]:
         """Deserialize components and return the corresponding row for the flagged sample.
 
@@ -437,6 +448,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 )
         features["flag"] = {"dtype": "string", "_type": "Value"}
         row.append(flag_option)
+        row.append(username)
         return features, row
 
 
