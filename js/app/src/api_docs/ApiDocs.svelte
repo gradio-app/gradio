@@ -75,10 +75,7 @@
 		unnamed_endpoints: any;
 	};
 
-	let js_info: {
-		named_endpoints: any;
-		unnamed_endpoints: any;
-	};
+	let js_info: Record<string, any>;
 
 	get_info()
 		.then((data) => (info = data))
@@ -269,6 +266,7 @@
 								{dependency_index}
 								{is_running}
 								{dependency_outputs}
+								{current_language}
 								{root}
 							/>
 						</div>
