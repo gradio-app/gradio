@@ -550,8 +550,13 @@ def get_api_info(config: dict, serialize: bool = True):
                 continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
-            assert isinstance(serializer, serializing.Serializable)
-            info = serializer.api_info()
+            if component.get("api_info") and after_new_format:
+                info = component["api_info"]
+                example = component["example_inputs"]["serialized"]
+            else:
+                assert isinstance(serializer, serializing.Serializable)
+                info = serializer.api_info()
+                example = serializer.example_inputs()["raw"]
             python_info = info["info"]
             if serialize and info["serialized_info"]:
                 python_info = serializer.serialized_info()

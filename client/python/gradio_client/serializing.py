@@ -231,9 +231,20 @@ class FileSerializable(Serializable):
         return self._single_file_api_info()
 
     def example_inputs(self) -> dict[str, Any]:
+        return self._single_file_example_inputs()
+
+    def _single_file_example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_FILE},
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf",
+        }
+
+    def _multiple_file_example_inputs(self) -> dict[str, Any]:
+        return {
+            "raw": [{"is_file": False, "data": media_data.BASE64_FILE}],
+            "serialized": [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ],
         }
 
     def _serialize_single(
