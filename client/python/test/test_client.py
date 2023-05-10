@@ -242,7 +242,7 @@ class TestPredictionsFromSpaces:
                 time.sleep(0.1)
             # Ran all iterations from scratch
             assert job2.status().code == Status.FINISHED
-            assert len(job2.outputs()) == 5
+            assert len(job2.outputs()) == 4
 
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
@@ -740,18 +740,27 @@ class TestAPIInfo:
             info = client.view_api(return_format="dict")
             inputs = info["named_endpoints"]["/predict"]["parameters"]
             outputs = info["named_endpoints"]["/predict"]["returns"]
+
+            assert inputs[0]["type"]["type"] == "array"
             assert inputs[0]["python_type"] == {
                 "type": "List[str]",
                 "description": "List of filepath(s) or URL(s) to files",
             }
+            # Will change to list when we do the next gradio release
+            assert isinstance(inputs[0]["example_input"], str)
+
             assert inputs[1]["python_type"] == {
                 "type": "str",
                 "description": "filepath or URL to file",
             }
+            assert isinstance(inputs[1]["example_input"], str)
+
             assert outputs[0]["python_type"] == {
                 "type": "List[str]",
                 "description": "List of filepath(s) or URL(s) to files",
             }
+            assert outputs[0]["type"]["type"] == "array"
+
             assert outputs[1]["python_type"] == {
                 "type": "str",
                 "description": "filepath or URL to file",

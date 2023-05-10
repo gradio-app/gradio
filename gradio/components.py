@@ -2810,6 +2810,12 @@ class File(
         else:
             return self._multiple_file_serialized_info()
 
+    def example_inputs(self) -> dict[str, Any]:
+        if self.file_count == "single":
+            return self._single_file_example_inputs()
+        else:
+            return self._multiple_file_example_inputs()
+
 
 @document("style")
 class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
