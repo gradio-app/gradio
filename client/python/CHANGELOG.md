@@ -14,7 +14,8 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-No changes to highlight.
+- Fix bug in test from gradio 3.29.0 refactor by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4138](https://github.com/gradio-app/gradio/pull/4138)
+
 
 ## Breaking Changes:
 
