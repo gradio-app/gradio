@@ -1,10 +1,7 @@
 import gradio as gr
 import torch
-from torch import autocast
 from diffusers import StableDiffusionPipeline
-from datasets import load_dataset
 from PIL import Image  
-import re
 import os
 
 auth_token = os.getenv("auth_token")

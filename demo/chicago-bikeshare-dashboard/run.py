@@ -1,10 +1,6 @@
 import os
 import gradio as gr
-import matplotlib
-import matplotlib.pyplot as plt
 import pandas as pd
-
-matplotlib.use("Agg")
 
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")

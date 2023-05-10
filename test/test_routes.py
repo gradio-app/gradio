@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -12,6 +13,7 @@ import starlette.routing
 import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from gradio_client import media_data
 
 import gradio as gr
 from gradio import (
@@ -21,7 +23,6 @@ from gradio import (
     Number,
     Textbox,
     close_all,
-    media_data,
     routes,
 )
 
@@ -46,24 +47,41 @@ class TestRoutes:
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
         response = test_client.get(r"/static/..%2findex.html")
-        assert response.status_code == 404
+        assert response.status_code == 403
         response = test_client.get(r"/static/..%2f..%2fapi_docs.html")
-        assert response.status_code == 404
+        assert response.status_code == 403
 
     def test_get_config_route(self, test_client):
         response = test_client.get("/config/")
         assert response.status_code == 200
 
-    def test_upload_route(self, test_client):
-        response = test_client.post(
-            "/upload", files={"files": open("test/test_files/alphabet.txt", "r")}
-        )
+    def test_upload_path(self, test_client):
+        with open("test/test_files/alphabet.txt") as f:
+            response = test_client.post("/upload", files={"files": f})
         assert response.status_code == 200
         file = response.json()[0]
         assert "alphabet" in file
         assert file.endswith(".txt")
         with open(file) as saved_file:
             assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+
+    def test_custom_upload_path(self):
+        os.environ["GRADIO_TEMP_DIR"] = str(Path(tempfile.gettempdir()) / "gradio-test")
+        io = Interface(lambda x: x + x, "text", "text")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+        try:
+            with open("test/test_files/alphabet.txt") as f:
+                response = test_client.post("/upload", files={"files": f})
+            assert response.status_code == 200
+            file = response.json()[0]
+            assert "alphabet" in file
+            assert file.startswith(str(Path(tempfile.gettempdir()) / "gradio-test"))
+            assert file.endswith(".txt")
+            with open(file) as saved_file:
+                assert saved_file.read() == "abcdefghijklmnopqrstuvwxyz"
+        finally:
+            os.environ["GRADIO_TEMP_DIR"] = ""
 
     def test_predict_route(self, test_client):
         response = test_client.post(
@@ -77,8 +95,8 @@ class TestRoutes:
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
-            i.change(lambda x: x + "1", i, o, api_name="p")
-            i.change(lambda x: x + "2", i, o, api_name="q")
+            i.change(lambda x: f"{x}1", i, o, api_name="p")
+            i.change(lambda x: f"{x}2", i, o, api_name="q")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -96,8 +114,8 @@ class TestRoutes:
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
-            i.change(lambda x: x + "0", i, o, api_name="p")
-            i.change(lambda x: x + "1", i, o, api_name="p")
+            i.change(lambda x: f"{x}0", i, o, api_name="p")
+            i.change(lambda x: f"{x}1", i, o, api_name="p")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -115,9 +133,9 @@ class TestRoutes:
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
-            i.change(lambda x: x + "0", i, o, api_name="p")
-            i.change(lambda x: x + "1", i, o, api_name="p")
-            i.change(lambda x: x + "2", i, o, api_name="p_1")
+            i.change(lambda x: f"{x}0", i, o, api_name="p")
+            i.change(lambda x: f"{x}1", i, o, api_name="p")
+            i.change(lambda x: f"{x}2", i, o, api_name="p_1")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -146,7 +164,7 @@ class TestRoutes:
         def batch_fn(x):
             results = []
             for word in x:
-                results.append("Hello " + word)
+                results.append(f"Hello {word}")
             return (results,)
 
         with gr.Blocks() as demo:
@@ -192,28 +210,95 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
-    def test_get_file_allowed_by_file_directories(self):
+    def test_get_allowed_paths(self):
         allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
 
-        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        file_response = client.get(f"/file={allowed_file.name}")
+        assert file_response.status_code == 403
+        io.close()
+
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(
             prevent_thread_lock=True,
+            allowed_paths=[os.path.dirname(allowed_file.name)],
         )
         client = TestClient(app)
-
-        with pytest.raises(ValueError):
-            file_response = client.get(f"/file={allowed_file.name}")
-
-        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
-            prevent_thread_lock=True,
-            file_directories=[os.path.dirname(allowed_file.name)],
-        )
-        client = TestClient(app)
-
         file_response = client.get(f"/file={allowed_file.name}")
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
+        io.close()
+
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(
+            prevent_thread_lock=True,
+            allowed_paths=[os.path.abspath(allowed_file.name)],
+        )
+        client = TestClient(app)
+        file_response = client.get(f"/file={allowed_file.name}")
+        assert file_response.status_code == 200
+        assert len(file_response.text) == len(media_data.BASE64_IMAGE)
+        io.close()
+
+    def test_get_blocked_paths(self):
+        # Test that blocking a default Gradio file path works
+        with tempfile.NamedTemporaryFile(
+            dir=".", suffix=".jpg", delete=False
+        ) as tmp_file:
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
+                prevent_thread_lock=True,
+            )
+            client = TestClient(app)
+            file_response = client.get(f"/file={tmp_file.name}")
+            assert file_response.status_code == 200
+        io.close()
+        os.remove(tmp_file.name)
+
+        with tempfile.NamedTemporaryFile(
+            dir=".", suffix=".jpg", delete=False
+        ) as tmp_file:
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
+                prevent_thread_lock=True, blocked_paths=[os.path.abspath(tmp_file.name)]
+            )
+            client = TestClient(app)
+            file_response = client.get(f"/file={tmp_file.name}")
+            assert file_response.status_code == 403
+        io.close()
+        os.remove(tmp_file.name)
+
+        # Test that blocking a default Gradio directory works
+        with tempfile.NamedTemporaryFile(
+            dir=".", suffix=".jpg", delete=False
+        ) as tmp_file:
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
+                prevent_thread_lock=True, blocked_paths=[os.path.abspath(tmp_file.name)]
+            )
+            client = TestClient(app)
+            file_response = client.get(f"/file={tmp_file.name}")
+            assert file_response.status_code == 403
+        io.close()
+        os.remove(tmp_file.name)
+
+        # Test that blocking a directory works even if it's also allowed
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
+                prevent_thread_lock=True,
+                allowed_paths=[os.path.dirname(tmp_file.name)],
+                blocked_paths=[os.path.dirname(tmp_file.name)],
+            )
+            client = TestClient(app)
+            file_response = client.get(f"/file={tmp_file.name}")
+            assert file_response.status_code == 403
+        io.close()
+        os.remove(tmp_file.name)
 
     def test_get_file_created_by_app(self):
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
@@ -271,68 +356,42 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_static_file_missing(self, test_client):
+        response = test_client.get(r"/static/not-here.js")
+        assert response.status_code == 404
 
-class TestGeneratorRoutes:
-    def test_generator(self):
-        def generator(string):
-            for char in string:
-                yield char
+    def test_asset_file_missing(self, test_client):
+        response = test_client.get(r"/assets/not-here.js")
+        assert response.status_code == 404
 
-        io = Interface(generator, "text", "text")
-        app, _, _ = io.queue().launch(prevent_thread_lock=True)
-        client = TestClient(app)
+    def test_dynamic_file_missing(self, test_client):
+        response = test_client.get(r"/file=not-here.js")
+        assert response.status_code == 404
 
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "a"
+    def test_dynamic_file_directory(self, test_client):
+        response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
 
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "b"
+    def test_mount_gradio_app_raises_error_if_event_queued_but_queue_disabled(self):
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    input_ = gr.Textbox()
+                    btn = gr.Button("Greet")
+                with gr.Column():
+                    output = gr.Textbox()
+            btn.click(
+                lambda x: f"Hello, {x}",
+                inputs=input_,
+                outputs=output,
+                queue=True,
+                api_name="greet",
+            )
 
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "c"
+        with pytest.raises(ValueError, match="The queue is enabled for event greet"):
+            demo.launch(prevent_thread_lock=True)
 
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"] == [
-            {"__type__": "update"},
-            {"__type__": "update", "visible": True},
-            {"__type__": "update", "visible": False},
-        ]
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] is None
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "a"
+        demo.close()
 
 
 class TestApp:
@@ -353,12 +412,12 @@ class TestAuthenticatedRoutes:
 
         response = client.post(
             "/login",
-            data=dict(username="test", password="correct_password"),
+            data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
         response = client.post(
             "/login",
-            data=dict(username="test", password="incorrect_password"),
+            data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
@@ -487,7 +546,7 @@ class TestPassingRequest:
 
         client.post(
             "/login",
-            data=dict(username="admin", password="password"),
+            data={"username": "admin", "password": "password"},
         )
         response = client.post("/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200

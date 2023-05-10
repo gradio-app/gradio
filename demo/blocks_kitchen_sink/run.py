@@ -14,7 +14,7 @@ with gr.Blocks(theme=base_theme) as demo:
     gr.Markdown(
         """
     # Blocks Kitchen Sink
-    This is a demo of most Gradio features. Test all themes and toogle dark mode (requires light mode setting)
+    This is a demo of most Gradio features. Test all themes and toggle dark mode
     ## Elements
     - Use of Rows, Columns, Tabs, and Accordion
     - Use of Form elements: Textbox, Dropdown, Checkbox, Radio, Slider
@@ -31,7 +31,6 @@ with gr.Blocks(theme=base_theme) as demo:
         _js="""
         () => { 
             document.body.classList.toggle('dark');
-            document.querySelector('gradio-app').style.backgroundColor = 'var(--background-primary)'
         }
         """,
     )
@@ -123,7 +122,7 @@ with gr.Blocks(theme=base_theme) as demo:
 
                 def go(*args):
                     time.sleep(3)
-                    return "https://gradio.app/assets/img/header-image.jpg"
+                    return "https://i.ibb.co/6BgKdSj/groot.jpg"
 
                 go_btn.click(go, [radio, drop, drop_2, check, name], img, api_name="go")
 

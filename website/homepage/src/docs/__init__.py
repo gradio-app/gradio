@@ -1,6 +1,8 @@
 import os
-from gradio.documentation import generate_documentation, document_cls
+
+from gradio_client.documentation import document_cls, generate_documentation
 from gradio.events import EventListener
+
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -122,12 +124,12 @@ def override_signature(name, signature):
                 cls["override_signature"] = signature
 
 
-override_signature("Blocks", "with gradio.Blocks():")
-override_signature("Row", "with gradio.Row():")
-override_signature("Column", "with gradio.Column():")
-override_signature("Tab", "with gradio.Tab():")
-override_signature("Group", "with gradio.Group():")
-override_signature("Box", "with gradio.Box():")
+override_signature("Blocks", "with gr.Blocks():")
+override_signature("Row", "with gr.Row():")
+override_signature("Column", "with gr.Column():")
+override_signature("Tab", "with gr.Tab():")
+override_signature("Group", "with gr.Group():")
+override_signature("Box", "with gr.Box():")
 override_signature("Dataset", "gr.Dataset(components, samples)")
 
 
@@ -166,7 +168,6 @@ def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
 
 
 def build_pip_template(version, jinja_env):
-    docs_files = os.listdir("src/docs")
     template = jinja_env.get_template("docs/template.html")
     output = template.render(
         docs=docs, find_cls=find_cls, version="pip", gradio_version=version, canonical_suffix="", ordered_events=ordered_events

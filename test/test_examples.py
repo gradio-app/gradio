@@ -3,6 +3,7 @@ import tempfile
 from unittest.mock import patch
 
 import pytest
+from gradio_client import media_data
 from starlette.testclient import TestClient
 
 import gradio as gr
@@ -20,19 +21,19 @@ class TestExamples:
         assert examples.processed_examples == [["hello"]]
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
-        assert examples.processed_examples == [[gr.media_data.BASE64_IMAGE]]
+        assert examples.processed_examples == [[media_data.BASE64_IMAGE]]
 
     def test_handle_multiple_inputs(self):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
-        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+        assert examples.processed_examples == [["hello", media_data.BASE64_IMAGE]]
 
     def test_handle_directory(self):
         examples = gr.Examples("test/test_files/images", gr.Image())
         assert examples.processed_examples == [
-            [gr.media_data.BASE64_IMAGE],
-            [gr.media_data.BASE64_IMAGE],
+            [media_data.BASE64_IMAGE],
+            [media_data.BASE64_IMAGE],
         ]
 
     def test_handle_directory_with_log_file(self):
@@ -40,8 +41,8 @@ class TestExamples:
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
         assert examples.processed_examples == [
-            [gr.media_data.BASE64_IMAGE, "hello"],
-            [gr.media_data.BASE64_IMAGE, "hi"],
+            [media_data.BASE64_IMAGE, "hello"],
+            [media_data.BASE64_IMAGE, "hi"],
         ]
         for sample in examples.dataset.samples:
             assert os.path.isabs(sample[0])
@@ -66,12 +67,12 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction == [gr.media_data.BASE64_IMAGE]
+        assert prediction == [media_data.BASE64_IMAGE]
 
     @pytest.mark.asyncio
     async def test_no_postprocessing(self):
         def im(x):
-            return [gr.media_data.BASE64_IMAGE]
+            return [media_data.BASE64_IMAGE]
 
         with gr.Blocks():
             text = gr.Textbox()
@@ -87,7 +88,7 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0][0][0]["data"] == gr.media_data.BASE64_IMAGE
+        assert prediction[0][0][0]["data"] == media_data.BASE64_IMAGE
 
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
@@ -115,7 +116,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching(self):
         io = gr.Interface(
-            lambda x: "Hello " + x,
+            lambda x: f"Hello {x}",
             "text",
             "text",
             examples=[["World"], ["Dunya"], ["Monde"]],
@@ -258,9 +259,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching_with_batch(self):
         def trim_words(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[:l])
+            trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return [trimmed_words]
 
         io = gr.Interface(
@@ -278,9 +277,7 @@ class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching_with_batch_multiple_outputs(self):
         def trim_words(words, lens):
-            trimmed_words = []
-            for w, l in zip(words, lens):
-                trimmed_words.append(w[:l])
+            trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return trimmed_words, lens
 
         io = gr.Interface(
@@ -330,15 +327,15 @@ class TestProcessExamples:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [0]})
         assert response.json()["data"] == ["Hello,"]
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [1]})
         assert response.json()["data"] == ["Michael"]
 
     def test_end_to_end_cache_examples(self):
         def concatenate(str1, str2):
-            return str1 + " " + str2
+            return f"{str1} {str2}"
 
         io = gr.Interface(
             concatenate,
@@ -351,8 +348,8 @@ class TestProcessExamples:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [0]})
         assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
 
-        response = client.post("/api/predict/", json={"fn_index": 5, "data": [1]})
+        response = client.post("/api/predict/", json={"fn_index": 7, "data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]

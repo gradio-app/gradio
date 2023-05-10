@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import torch
 import gradio as gr
 from torch import nn
@@ -30,10 +31,10 @@ state_dict = torch.load('pytorch_model.bin', map_location='cpu')
 model.load_state_dict(state_dict, strict=False)
 model.eval()
 
-def predict(input):
-    im = input
+def predict(im):
     if im is None:
         return None
+    im = np.asarray(im.resize((28, 28)))
         
     x = torch.tensor(im, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
 
@@ -47,5 +48,9 @@ def predict(input):
     return {LABELS[i]: v.item() for i, v in zip(indices, values)}
 
 
-interface = gr.Interface(predict, inputs=gr.templates.Sketchpad(label="Draw Here"), outputs=gr.Label(label="Guess"), theme="default", css=".footer{display:none !important}", live=True)
-interface.launch(enable_queue=False)
+interface = gr.Interface(predict, 
+                         inputs=gr.Sketchpad(label="Draw Here", brush_radius=5, type="pil", shape=(120, 120)), 
+                         outputs=gr.Label(label="Guess"), 
+                         live=True)
+
+interface.queue().launch()

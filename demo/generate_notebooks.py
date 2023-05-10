@@ -20,7 +20,7 @@ for demo in demos:
     text = f"# Gradio Demo: {demo}"
 
     if os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "DESCRIPTION.md")):
-        with open(os.path.join(GRADIO_DEMO_DIR, demo, "DESCRIPTION.md"), "r") as f:
+        with open(os.path.join(GRADIO_DEMO_DIR, demo, "DESCRIPTION.md"), "r", encoding="utf8") as f:
             description = f.read()
         text += f"""\n### {description}
         """
@@ -45,13 +45,13 @@ for demo in demos:
 
     requirements = ""
     if os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "requirements.txt")):
-        with open(os.path.join(GRADIO_DEMO_DIR, demo, "requirements.txt"), "r") as f:
+        with open(os.path.join(GRADIO_DEMO_DIR, demo, "requirements.txt"), "r", encoding="utf8") as f:
             requirements = f.read().split("\n")
         requirements = " ".join(requirements)
 
     installs = f"!pip install -q gradio {requirements}"
 
-    with open(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"), "r") as f:
+    with open(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"), "r", encoding="utf8") as f:
         code = f.read()
         code = code.replace("os.path.dirname(__file__)", "os.path.abspath('')")
     
@@ -67,10 +67,10 @@ for demo in demos:
     
     output_notebook = os.path.join(GRADIO_DEMO_DIR, demo, "run.ipynb")
 
-    with open(output_notebook, 'w') as f:
+    with open(output_notebook, 'w', encoding="utf8") as f:
         nbf.write(nb, f)
 
-    with open(output_notebook, "r") as f:
+    with open(output_notebook, "r", encoding="utf8") as f:
         content = f.read()
     
     content = json.loads(content)
@@ -78,5 +78,5 @@ for demo in demos:
         random.seed(i)
         cell["id"] = random.getrandbits(128)
 
-    with open(output_notebook, "w") as f:
+    with open(output_notebook, "w", encoding="utf8") as f:
         f.write(json.dumps(content))

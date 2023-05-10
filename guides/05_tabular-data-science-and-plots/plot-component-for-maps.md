@@ -1,14 +1,14 @@
 # How to Use the Plot Component for Maps
 
-Related spaces: 
+Related spaces:
 Tags: PLOTS, MAPS
 
 ## Introduction
 
 This guide explains how you can use Gradio to plot geographical data on a map using the `gradio.Plot` component. The Gradio `Plot` component works with Matplotlib, Bokeh and Plotly. Plotly is what we will be working with in this guide. Plotly allows developers to easily create all sorts of maps with their geographical data. Take a look [here](https://plotly.com/python/maps/) for some examples.
 
-## Overview 
-    
+## Overview
+
 We will be using the New York City Airbnb dataset, which is hosted on kaggle [here](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data). I've uploaded it to the Hugging Face Hub as a dataset [here](https://huggingface.co/datasets/gradio/NYC-Airbnb-Open-Data) for easier use and download. Using this data we will plot Airbnb locations on a map output and allow filtering based on price and location. Below is the demo that we will be building. ⚡️
 
 $demo_map_airbnb
@@ -32,7 +32,7 @@ def filter_map(min_price, max_price, boroughs):
 ```
 
 In the code above, we first load the csv data into a pandas dataframe. Let's begin by defining a function that we will use as the prediction function for the gradio app. This function will accept the minimum price and maximum price range as well as the list of boroughs to filter the resulting map. We can use the passed in values (`min_price`, `max_price`, and list of `boroughs`) to filter the dataframe and create `new_df`. Next we will create `text_list` of the names and prices of each Airbnb to use as labels on the map.
- 
+
 ## Step 2 - Map Figure 🌐
 
 Plotly makes it easy to work with maps. Let's take a look below how we can create a map figure.
@@ -71,9 +71,9 @@ Above, we create a scatter plot on mapbox by passing it our list of latitudes an
 
 More info [here](https://plotly.com/python/scattermapbox/) on scatter plots using Mapbox and Plotly.
 
-
 ## Step 3 - Gradio App ⚡️
-We will use two `gradio.Number` components and a `gradio.CheckboxGroup` to allow users of our app to specify price ranges and borough locations. We will then use the `gr.Plot` component as an output for our Plotly + Mapbox map we created earlier.
+
+We will use two `gr.Number` components and a `gr.CheckboxGroup` to allow users of our app to specify price ranges and borough locations. We will then use the `gr.Plot` component as an output for our Plotly + Mapbox map we created earlier.
 
 ```python
 with gr.Blocks() as demo:
@@ -95,6 +95,7 @@ This is what the full demo code looks like:
 $code_map_airbnb
 
 ## Step 4 - Deployment 🤗
+
 If you run the code above, your app will start running locally.
 You can even get a temporary shareable link by passing the `share=True` parameter to `launch`.
 
@@ -104,6 +105,7 @@ Let's deploy our Gradio app to the free HuggingFace Spaces platform.
 If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
 
 ## Conclusion 🎉
+
 And you're all done! That's all the code you need to build a map demo.
 
 Here's a link to the demo [Map demo](https://huggingface.co/spaces/gradio/map_airbnb) and [complete code](https://huggingface.co/spaces/gradio/map_airbnb/blob/main/run.py) (on Hugging Face Spaces)
