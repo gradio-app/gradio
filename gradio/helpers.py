@@ -611,6 +611,7 @@ def special_args(
         updated inputs, progress index, event data index.
     """
     signature = inspect.signature(fn)
+    type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
         if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
@@ -619,16 +620,15 @@ def special_args(
     progress_index = None
     event_data_index = None
     for i, param in enumerate(positional_args):
+        type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
             progress_index = i
             if inputs is not None:
                 inputs.insert(i, param.default)
-        elif param.annotation == routes.Request:
+        elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif isinstance(param.annotation, type) and issubclass(
-            param.annotation, EventData
-        ):
+        elif type_hint and issubclass(type_hint, EventData):
             event_data_index = i
             if inputs is not None and event_data is not None:
                 inputs.insert(i, param.annotation(event_data.target, event_data._data))

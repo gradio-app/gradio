@@ -113,7 +113,7 @@ class SimpleCSVLogger(FlaggingCallback):
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         with open(log_filepath) as csvfile:
-            line_count = len([None for row in csv.reader(csvfile)]) - 1
+            line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
 
 
@@ -187,7 +187,7 @@ class CSVLogger(FlaggingCallback):
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         with open(log_filepath, encoding="utf-8") as csvfile:
-            line_count = len([None for row in csv.reader(csvfile)]) - 1
+            line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
 
 
@@ -483,9 +483,9 @@ class FlagMethod:
         self.__name__ = "Flag"
         self.visual_feedback = visual_feedback
 
-    def __call__(self, *flag_data):
+    def __call__(self, request: gr.Request, *flag_data):
         try:
-            self.flagging_callback.flag(list(flag_data), flag_option=self.value)
+            self.flagging_callback.flag(list(flag_data), flag_option=self.value, username=request.username)
         except Exception as e:
             print(f"Error while flagging: {e}")
             if self.visual_feedback:
