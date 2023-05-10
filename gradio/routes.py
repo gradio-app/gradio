@@ -133,6 +133,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
+        self.root_path = blocks.root_path
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
