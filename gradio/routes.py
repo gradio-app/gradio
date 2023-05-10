@@ -227,6 +227,7 @@ class App(FastAPI):
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
+                config["root"] = root_path
             else:
                 config = {
                     "auth_required": True,
