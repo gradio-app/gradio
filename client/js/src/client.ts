@@ -40,7 +40,7 @@ type client_return = {
 		data: unknown[],
 		event_data: unknown
 	) => SubmitReturn;
-	view_api: (c: Config) => Promise<Record<string, any>>;
+	view_api: (c?: Config) => Promise<Record<string, any>>;
 };
 
 type SubmitReturn = {
@@ -628,9 +628,15 @@ function get_type(
 	} else if (component === "Image") {
 		return signature_type === "parameter" ? "Blob | File | Buffer" : "string";
 	} else if (serializer === "FileSerializable") {
-		return signature_type === "parameter"
-			? "(Blob | File | Buffer)[] | (Blob | File | Buffer)"
-			: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string} | { name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}[]`;
+		if (type?.type === "array") {
+			return signature_type === "parameter"
+				? "(Blob | File | Buffer)[]"
+				: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}[]`;
+		} else {
+			return signature_type === "parameter"
+				? "Blob | File | Buffer"
+				: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}`;
+		}
 	} else if (serializer === "GallerySerializable") {
 		return signature_type === "parameter"
 			? "[(Blob | File | Buffer), (string | null)][]"

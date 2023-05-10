@@ -1,0 +1,64 @@
+<script>
+	/**
+	 * @type {{data: any[]}}
+	 */
+	export let response_data = { data: [] };
+	/**
+	 * @type {{type: string; label: string; component:string}[]}
+	 */
+	export let app_info;
+</script>
+
+<div>
+	<h3>Response Outputs</h3>
+
+	{#each app_info as { type, label, component }, i}
+		{#if type === 'string'}
+			<label for="">
+				<span>{label} <code>{type}</code></span>
+				<input type="text" disabled value={response_data.data[i] || ''} />
+			</label>
+		{:else if type === 'number'}
+			<label for="">
+				<span>{label} <code>{type}</code></span>
+				<input type="number" disabled value={response_data.data[i] || ''} />
+			</label>
+		{:else if type === 'boolean'}
+			<label for="">
+				<span>{label} <code>{type}</code></span>
+				<input type="checkbox" disabled value={response_data.data[i] || ''} />
+			</label>
+		{:else if type === 'number'}
+			<label for="">
+				<span>{label} <code>{type}</code></span>
+				<input type="number" disabled value={response_data.data[i] || ''} />
+			</label>
+		{:else if type === 'string[]'}
+			<label for="">
+				<span>{label} <code>{type} - comma separated list</code></span>
+				<input type="text" disabled value={response_data.data[i] || ''} />
+			</label>
+		{/if}
+	{/each}
+
+	<h4>JSON</h4>
+	<pre><code>{JSON.stringify(response_data.data.length ? response_data : {}, null, 2)}</code></pre>
+</div>
+
+<style>
+	label {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		gap: var(--size-1);
+	}
+
+	input {
+		border-radius: 2px;
+		outline: none;
+	}
+
+	input:focus-visible {
+		border-color: var(--color-accent);
+	}
+</style>

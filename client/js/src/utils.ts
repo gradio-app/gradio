@@ -55,7 +55,6 @@ export async function process_endpoint(
 				`https://huggingface.co/api/spaces/${_app_reference}/host`,
 				{ headers }
 			);
-			console.log(res);
 
 			if (res.status !== 200)
 				throw new Error("Space metadata could not be loaded.");
