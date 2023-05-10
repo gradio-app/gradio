@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Adds a `root_path` parameter to `launch()` that allows running Gradio applications on subpaths (e.g. www.example.com/app) behind a proxy, by [@abidlabs](https://github.com/abidlabs) in [PR 4133](https://github.com/gradio-app/gradio/pull/4133)
 
 ## Bug Fixes:
 
