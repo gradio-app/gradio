@@ -485,7 +485,9 @@ class FlagMethod:
 
     def __call__(self, request: gr.Request, *flag_data):
         try:
-            self.flagging_callback.flag(list(flag_data), flag_option=self.value, username=request.username)
+            self.flagging_callback.flag(
+                list(flag_data), flag_option=self.value, username=request.username
+            )
         except Exception as e:
             print(f"Error while flagging: {e}")
             if self.visual_feedback:
