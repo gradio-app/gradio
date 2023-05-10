@@ -33,6 +33,7 @@
 		{show_label}
 		disabled={mode === "static"}
 		on:change
+		on:input
 		on:submit
 		on:blur
 	/>

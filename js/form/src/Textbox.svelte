@@ -17,6 +17,8 @@
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
 	export let style: Styles = {};
+	export let value_is_output: boolean = false;
+	let is_output = value_is_output;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -30,10 +32,19 @@
 		submit: undefined;
 		blur: undefined;
 		select: SelectData;
+		input: undefined;
 	}>();
 
 	function handle_change(val: string) {
 		dispatch("change", val);
+		if (value_is_output) {			
+			value_is_output = false;
+			console.log("set", label, "as output:", value_is_output);
+		} else {
+			console.log(`  ${label} input dispatch..`)
+			dispatch("input");
+			value_is_output = false;
+		}
 	}
 
 	function handle_blur() {

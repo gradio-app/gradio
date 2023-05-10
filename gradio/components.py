@@ -3084,7 +3084,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
 
 @document("style")
-class Timeseries(Changeable, Inputable, IOComponent, JSONSerializable):
+class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
