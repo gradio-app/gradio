@@ -8,6 +8,7 @@ import time
 import uuid
 import warnings
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from distutils.version import StrictVersion
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -415,7 +416,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         file_preview_types = {gr.Audio: "Audio", gr.Image: "Image"}
 
         # Generate the row corresponding to the flagged sample
-        features = {}
+        features = OrderedDict()
         row = []
         for component, sample in zip(self.components, flag_data):
             # Get deserialized object (will save sample to disk if applicable -file, audio, image,...-)
@@ -450,6 +451,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                     )
                 )
         features["flag"] = {"dtype": "string", "_type": "Value"}
+        features["username"] = {"dtype": "string", "_type": "Value"}
         row.append(flag_option)
         row.append(username)
         return features, row
