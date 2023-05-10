@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { marked } from 'marked';
+	import {markedHighlight} from "marked-highlight";
+	import hljs from 'highlight.js';
+	import 'highlight.js/styles/github.css';
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
@@ -14,6 +18,26 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+
+	marked.setOptions({
+	renderer: new marked.Renderer(),
+	gfm: true,
+	tables: true,
+	breaks: true,
+	pedantic: false,
+	sanitize: true,
+	smartLists: true,
+	smartypants: false
+	});
+
+
+	marked.use(markedHighlight({
+	langPrefix: 'hljs language-',
+	highlight(code: string, lang: string) {
+		const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+		return hljs.highlight(code, { language }).value;
+	}
+	}));
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -96,7 +120,7 @@
 							})}
 					>
 						{#if typeof message === "string"}
-							{@html message}
+							{@html marked.parse(message)}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}

@@ -4599,9 +4599,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             }
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
-            chat_message = cast(str, self.md.render(chat_message))
-            if chat_message.startswith("<p>") and chat_message.endswith("</p>\n"):
-                chat_message = chat_message[3:-5]
             return chat_message
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
