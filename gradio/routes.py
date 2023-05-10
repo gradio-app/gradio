@@ -223,7 +223,7 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = request.scope.get("root_path")
+            root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
