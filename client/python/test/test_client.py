@@ -746,7 +746,8 @@ class TestAPIInfo:
                 "type": "List[str]",
                 "description": "List of filepath(s) or URL(s) to files",
             }
-            assert isinstance(inputs[0]["example_input"], list)
+            # Will change to list when we do the next gradio release
+            assert isinstance(inputs[0]["example_input"], str)
 
             assert inputs[1]["python_type"] == {
                 "type": "str",
