@@ -740,6 +740,7 @@ class TestAPIInfo:
             info = client.view_api(return_format="dict")
             inputs = info["named_endpoints"]["/predict"]["parameters"]
             outputs = info["named_endpoints"]["/predict"]["returns"]
+            assert inputs[0]["type"]["type"] == "array"
             assert inputs[0]["python_type"] == {
                 "type": "List[str]",
                 "description": "List of filepath(s) or URL(s) to files",
@@ -748,6 +749,7 @@ class TestAPIInfo:
                 "type": "str",
                 "description": "filepath or URL to file",
             }
+            assert inputs[0]["type"]["type"] == "array"
             assert outputs[0]["python_type"] == {
                 "type": "List[str]",
                 "description": "List of filepath(s) or URL(s) to files",
