@@ -40,7 +40,7 @@ type client_return = {
 		data: unknown[],
 		event_data: unknown
 	) => SubmitReturn;
-	view_api: (c: Config) => Promise<Record<string, any>>;
+	view_api: (c?: Config) => Promise<Record<string, any>>;
 };
 
 type SubmitReturn = {
@@ -316,8 +316,7 @@ export async function client(
 					});
 
 					post_data(
-						`${http_protocol}//${host + config.path}/run${
-							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+						`${http_protocol}//${host + config.path}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 						}`,
 						{
 							...payload,
@@ -504,7 +503,7 @@ export async function client(
 						method: "POST",
 						body: JSON.stringify(session_hash)
 					});
-				} catch (e) {}
+				} catch (e) { }
 
 				websocket.close();
 			}
