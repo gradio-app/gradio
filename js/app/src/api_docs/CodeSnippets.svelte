@@ -103,8 +103,10 @@ async function run() &lbrace;
 	const app = await client(<span class="token string">"{root}"</span>);
 	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
-		-->{#if blob_components.includes(component)}
-								<span class="example-inputs">example{component}</span
+		-->{#if blob_components.includes(component)}<!--
+	-->
+				<span
+									class="example-inputs">example{component}</span
 								>, <!--
 		--><span class="desc"
 									><!--
