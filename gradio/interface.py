@@ -25,7 +25,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.events import Changeable, Streamable
+from gradio.events import Changeable, Streamable, Submittable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -500,12 +500,17 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        if inspect.isgeneratorfunction(self.fn):
+                        if inspect.isgeneratorfunction(
+                            self.fn
+                        ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Submit", variant="primary")
-                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                    if (
+                        inspect.isgeneratorfunction(self.fn)
+                        or inspect.isasyncgenfunction(self.fn)
+                    ) and not self.live:
                         stop_btn = Button("Stop", variant="stop")
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
@@ -536,7 +541,10 @@ class Interface(Blocks):
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Generate", variant="primary")
-                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                    if (
+                        inspect.isgeneratorfunction(self.fn)
+                        or inspect.isasyncgenfunction(self.fn)
+                    ) and not self.live:
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
                         # is created. We use whether a generator function is provided
@@ -599,63 +607,88 @@ class Interface(Blocks):
             assert submit_btn is not None, "Submit button not rendered"
             fn = self.fn
             extra_output = []
+
+            triggers = [submit_btn.click] + [
+                component.submit
+                for component in self.input_components
+                if isinstance(component, Submittable)
+            ]
+            predict_events = []
+
             if stop_btn:
 
                 # Wrap the original function to show/hide the "Stop" button
-                def fn(*args):
+                async def fn(*args):
                     # The main idea here is to call the original function
                     # and append some updates to keep the "Submit" button
                     # hidden and the "Stop" button visible
-                    # The 'finally' block hides the "Stop" button and
-                    # shows the "submit" button. Having a 'finally' block
-                    # will make sure the UI is "reset" even if there is an exception
-                    try:
-                        for output in self.fn(*args):
-                            if len(self.output_components) == 1 and not self.batch:
-                                output = [output]
-                            output = list(output)
-                            yield output + [
-                                Button.update(visible=False),
-                                Button.update(visible=True),
-                            ]
-                    finally:
-                        yield [
-                            {"__type__": "generic_update"}
-                            for _ in self.output_components
-                        ] + [Button.update(visible=True), Button.update(visible=False)]
+
+                    if inspect.isasyncgenfunction(self.fn):
+                        iterator = self.fn(*args)
+                    else:
+                        iterator = utils.SyncToAsyncIterator(
+                            self.fn(*args), limiter=self.limiter
+                        )
+                    async for output in iterator:
+                        yield output
 
                 extra_output = [submit_btn, stop_btn]
-            pred = submit_btn.click(
-                fn,
-                self.input_components,
-                self.output_components + extra_output,
-                api_name="predict",
-                scroll_to_output=True,
-                preprocess=not (self.api_mode),
-                postprocess=not (self.api_mode),
-                batch=self.batch,
-                max_batch_size=self.max_batch_size,
-            )
-            if stop_btn:
-                submit_btn.click(
-                    lambda: (
-                        submit_btn.update(visible=False),
-                        stop_btn.update(visible=True),
-                    ),
-                    inputs=None,
-                    outputs=[submit_btn, stop_btn],
-                    queue=False,
-                )
+
+                cleanup = lambda: [
+                    Button.update(visible=True),
+                    Button.update(visible=False),
+                ]
+                for i, trigger in enumerate(triggers):
+                    predict_event = trigger(
+                        lambda: (
+                            submit_btn.update(visible=False),
+                            stop_btn.update(visible=True),
+                        ),
+                        inputs=None,
+                        outputs=[submit_btn, stop_btn],
+                        queue=False,
+                    ).then(
+                        fn,
+                        self.input_components,
+                        self.output_components,
+                        api_name="predict" if i == 0 else None,
+                        scroll_to_output=True,
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
+                        batch=self.batch,
+                        max_batch_size=self.max_batch_size,
+                    )
+                    predict_events.append(predict_event)
+
+                    predict_event.then(
+                        cleanup,
+                        inputs=None,
+                        outputs=extra_output,  # type: ignore
+                        queue=False,
+                    )
+
                 stop_btn.click(
-                    lambda: (
-                        submit_btn.update(visible=True),
-                        stop_btn.update(visible=False),
-                    ),
+                    cleanup,
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
-                    cancels=[pred],
+                    cancels=predict_events,
                     queue=False,
                 )
+            else:
+                for i, trigger in enumerate(triggers):
+                    predict_events.append(
+                        trigger(
+                            fn,
+                            self.input_components,
+                            self.output_components,
+                            api_name="predict" if i == 0 else None,
+                            scroll_to_output=True,
+                            preprocess=not (self.api_mode),
+                            postprocess=not (self.api_mode),
+                            batch=self.batch,
+                            max_batch_size=self.max_batch_size,
+                        )
+                    )
 
     def attach_clear_events(
         self,

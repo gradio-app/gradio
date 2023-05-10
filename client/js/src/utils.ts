@@ -1,4 +1,4 @@
-import type { Config } from "./types";
+import type { Config } from "./types.js";
 
 export function determine_protocol(endpoint: string): {
 	ws_protocol: "ws" | "wss";
@@ -33,24 +33,41 @@ export function determine_protocol(endpoint: string): {
 
 export const RE_SPACE_NAME = /^[^\/]*\/[^\/]*$/;
 export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}$/;
-export async function process_endpoint(app_reference: string): Promise<{
+export async function process_endpoint(
+	app_reference: string,
+	token?: `hf_${string}`
+): Promise<{
 	space_id: string | false;
 	host: string;
 	ws_protocol: "ws" | "wss";
 	http_protocol: "http:" | "https:";
 }> {
+	const headers: { Authorization?: string } = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
 	const _app_reference = app_reference.trim();
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
-		const _host = (
-			await (
-				await fetch(`https://huggingface.co/api/spaces/${_app_reference}/host`)
-			).json()
-		).host;
-		return {
-			space_id: app_reference,
-			...determine_protocol(_host)
-		};
+		try {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${_app_reference}/host`,
+				{ headers }
+			);
+			console.log(res);
+
+			if (res.status !== 200)
+				throw new Error("Space metadata could not be loaded.");
+			const _host = (await res.json()).host;
+
+			return {
+				space_id: app_reference,
+				...determine_protocol(_host)
+			};
+		} catch (e) {
+			throw new Error("Space metadata could not be loaded." + e.message);
+		}
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {
