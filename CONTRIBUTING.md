@@ -1,6 +1,6 @@
 # Contributing to Gradio
 
-Prequisites:
+Prerequisites:
 
 - [Python 3.7+](https://www.python.org/downloads/)
 - [pnpm version 7.x](https://pnpm.io/7.x/installation) (optional for backend-only changes, but needed for any frontend changes)
