@@ -50,6 +50,7 @@ type SubmitReturn = {
 	on: event;
 	off: event;
 	cancel: () => void;
+	destroy: () => void;
 };
 
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
@@ -287,12 +288,13 @@ export async function client(
 		 */
 		function predict(endpoint: string, data: unknown[], event_data: unknown) {
 			return new Promise((res, rej) => {
-				submit(endpoint, data, event_data)
-					.on("data", res)
-					.on("status", (status) => {
-						console.log(status);
-						if (status.stage === "error") rej(status);
-					});
+				const app = submit(endpoint, data, event_data);
+
+				app.on("data", res).on("status", (status) => {
+					console.log(status);
+					if (status.stage === "error") rej(status);
+					app.destroy();
+				});
 			});
 		}
 
@@ -503,7 +505,7 @@ export async function client(
 				narrowed_listener_map[eventType] = listeners;
 				listeners?.push(listener);
 
-				return { on, off, cancel };
+				return { on, off, cancel, destroy };
 			}
 
 			function off<K extends EventType>(
@@ -515,7 +517,7 @@ export async function client(
 				listeners = listeners?.filter((l) => l !== listener);
 				narrowed_listener_map[eventType] = listeners;
 
-				return { on, off, cancel };
+				return { on, off, cancel, destroy };
 			}
 
 			async function cancel() {
@@ -542,10 +544,19 @@ export async function client(
 				}
 			}
 
+			function destroy() {
+				for (const event_type in listener_map) {
+					listener_map[event_type as "data" | "status"].forEach((fn) => {
+						off(event_type as "data" | "status", fn);
+					});
+				}
+			}
+
 			return {
 				on,
 				off,
-				cancel
+				cancel,
+				destroy
 			};
 		}
 
