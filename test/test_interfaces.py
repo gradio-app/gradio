@@ -94,7 +94,9 @@ class TestInterface:
                 interface = Interface(lambda x: x, "textbox", "label")
                 interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
-                assert "Keyboard interruption in main thread... closing server." in output
+                assert (
+                    "Keyboard interruption in main thread... closing server." in output
+                )
 
     @mock.patch("gradio.utils.colab_check")
     def test_launch_colab_share(self, mock_colab_check):
