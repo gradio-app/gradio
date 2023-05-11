@@ -9,6 +9,7 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
+		"start": "tsc -w --incremental",
 		"build": "tsc"
 	}
 }
