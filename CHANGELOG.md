@@ -5,6 +5,23 @@
 - Min and max value for gr.Number by [@artegoser](https://github.com/artegoser) and [@dawoodkhan82] (https://github.com/dawoodkhan82) in [PR 3991](https://github.com/gradio-app/gradio/pull/3991)
 - Support for asynchronous iterators by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3821](https://github.com/gradio-app/gradio/pull/3821)
 - Returning language agnostic types in the `/info` route by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4039](https://github.com/gradio-app/gradio/pull/4039)
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+# 3.30.0
+
+## New Features:
+
 - Adds a `root_path` parameter to `launch()` that allows running Gradio applications on subpaths (e.g. www.example.com/app) behind a proxy, by [@abidlabs](https://github.com/abidlabs) in [PR 4133](https://github.com/gradio-app/gradio/pull/4133)
 
 ## Bug Fixes:
