@@ -22,7 +22,7 @@ client.predict("audio_sample.wav")
 
 The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
 
-**Prequisites**: To use the Gradio client, you do *not* need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
+**Prerequisites**: To use the Gradio client, you do *not* need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
 ## Installation
 
@@ -148,7 +148,7 @@ client.predict("https://audio-samples.github.io/samples/mp3/blizzard_uncondition
 ```
 
 
-## Running jobs asyncronously
+## Running jobs asynchronously
 
 Oe should note that `.predict()` is a *blocking* operation as it waits for the operation to complete before returning the prediction. 
 
