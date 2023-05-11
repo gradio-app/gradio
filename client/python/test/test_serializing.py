@@ -27,6 +27,11 @@ def test_check_component_fallback_serializers():
         assert isinstance(component, class_type)
 
 
+def test_all_components_in_component_mapping(all_components):
+    for component in all_components:
+        assert component.__name__.lower() in COMPONENT_MAPPING
+
+
 def test_file_serializing():
 
     try:
