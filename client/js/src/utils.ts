@@ -88,14 +88,11 @@ export async function process_endpoint(
 }
 
 export function map_names_to_ids(fns: Config["dependencies"]) {
-	console.log(fns);
 	let apis: Record<string, number> = {};
 
 	fns.forEach(({ api_name }, i) => {
 		if (api_name) apis[api_name] = i;
 	});
-
-	console.log(apis);
 
 	return apis;
 }

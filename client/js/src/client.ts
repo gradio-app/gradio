@@ -287,14 +287,28 @@ export async function client(
 		 * @return Returns the data for the prediction or an error message.
 		 */
 		function predict(endpoint: string, data: unknown[], event_data?: unknown) {
+			let data_returned = false;
+			let status_complete = false;
 			return new Promise((res, rej) => {
 				const app = submit(endpoint, data, event_data);
 
-				app.on("data", res).on("status", (status) => {
-					console.log(status);
-					if (status.stage === "error") rej(status);
-					app.destroy();
-				});
+				app
+					.on("data", (d) => {
+						data_returned = true;
+						if (status_complete) {
+							app.destroy();
+						}
+						res(d);
+					})
+					.on("status", (status) => {
+						if (status.stage === "error") rej(status);
+						if (status.stage === "complete" && data_returned) {
+							app.destroy();
+						}
+						if (status.stage === "complete") {
+							status_complete = true;
+						}
+					});
 			});
 		}
 
@@ -312,6 +326,12 @@ export async function client(
 				fn_index = api_map[trimmed_endpoint];
 			}
 
+			if (typeof fn_index !== "number") {
+				throw new Error(
+					"There is no endpoint matching that name of fn_index matching that number."
+				);
+			}
+
 			let websocket: WebSocket;
 
 			const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
@@ -324,7 +344,7 @@ export async function client(
 				api_info,
 				hf_token
 			).then((_payload) => {
-				payload = { data: _payload, event_data, fn_index };
+				payload = { data: _payload || [], event_data, fn_index };
 				if (skip_queue(fn_index, config)) {
 					fire_event({
 						type: "status",
@@ -334,8 +354,6 @@ export async function client(
 						fn_index,
 						time: new Date()
 					});
-
-					console.log("HTTP");
 
 					post_data(
 						`${http_protocol}//${host + config.path}/run${
@@ -428,7 +446,6 @@ export async function client(
 							_data,
 							last_status[fn_index]
 						);
-						console.log();
 
 						if (type === "update" && status) {
 							// call 'status' listeners
@@ -535,9 +552,13 @@ export async function client(
 						method: "POST",
 						body: JSON.stringify(session_hash)
 					});
-				} catch (e) {}
+				} catch (e) {
+					console.warn(
+						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
+					);
+				}
 
-				if (websocket.readyState === 0) {
+				if (websocket && websocket.readyState === 0) {
 					addEventListener("open", () => websocket.close());
 				} else {
 					websocket.close();
@@ -612,7 +633,6 @@ export async function client(
 				const x = transform_api_info(api_info, config, api_map);
 				return x;
 			} catch (e) {
-				console.log(e);
 				return [{ error: BROKEN_CONNECTION_MSG }, 500];
 			}
 		}
@@ -736,7 +756,6 @@ function transform_api_info(
 				})
 			);
 
-			console.log();
 			new_data[key][endpoint].returns = info.returns.map(
 				({ label, component, type, serializer }) => ({
 					label,
