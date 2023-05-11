@@ -92,14 +92,14 @@ print(result)</pre>
 					<pre>import &lbrace; client &rbrace; from "@gradio/client";
 <!--
 -->
-{#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
--->
-const response_{i} = await fetch("{example_input}");
-const example{component} = await response_{i}.blob();
-						{/each}<!--
--->
 
 async function run() &lbrace;
+{#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
+-->
+	const response_{i} = await fetch("{example_input}");
+	const example{component} = await response_{i}.blob();
+						{/each}<!--
+-->
 	const app = await client(<span class="token string">"{root}"</span>);
 	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
