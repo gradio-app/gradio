@@ -2,6 +2,7 @@
 **/pnpm-workspace.yaml
 **/js/app/dist/**
 **/client/js/dist/**
+**/wasm/dist/**
 **/pnpm-lock.yaml
 **/js/plot/src/Plot.svelte
 **/.svelte-kit/**
