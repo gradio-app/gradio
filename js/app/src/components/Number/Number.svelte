@@ -16,7 +16,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
-	export let value_is_output: boolean;
+	export let value_is_output: boolean = false;
 </script>
 
 <Block

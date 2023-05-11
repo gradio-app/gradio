@@ -19,7 +19,7 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
-	export let value_is_output: boolean;
+	export let value_is_output: boolean = false;
 </script>
 
 <Block

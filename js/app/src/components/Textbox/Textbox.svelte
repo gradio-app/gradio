@@ -21,7 +21,7 @@
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let mode: "static" | "dynamic";
-	export let value_is_output: boolean;
+	export let value_is_output: boolean = false;
 </script>
 
 <Block

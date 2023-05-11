@@ -9,7 +9,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: boolean = false;
-	export let value_is_output: boolean;
+	export let value_is_output: boolean = false;
 	export let label: string = "Checkbox";
 	export let info: string | undefined = undefined;
 	export let mode: "static" | "dynamic";

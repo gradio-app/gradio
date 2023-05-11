@@ -11,7 +11,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string | Array<string>;
-	export let value_is_output: boolean;
+	export let value_is_output: boolean = false;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
