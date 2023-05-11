@@ -4,7 +4,10 @@ import {
 	process_endpoint,
 	RE_SPACE_NAME,
 	map_names_to_ids,
-	discussions_enabled
+	discussions_enabled,
+	get_space_hardware,
+	set_space_hardware,
+	set_space_timeout
 } from "./utils.js";
 
 import type {
@@ -114,9 +117,11 @@ export async function duplicate(
 		hf_token: `hf_${string}`;
 		private?: boolean;
 		status_callback: SpaceStatusCallback;
+		hardware?: Record<string, any>;
+		timeout?: number;
 	}
 ) {
-	const { hf_token, private: _private } = options;
+	const { hf_token, private: _private, hardware, timeout } = options;
 
 	const headers = {
 		Authorization: `Bearer ${hf_token}`
@@ -156,6 +161,21 @@ export async function duplicate(
 			return client(`${user}/${space_name}`, options);
 		} else {
 			const duplicated_space = await response.json();
+			const original_hardware = await get_space_hardware(
+				app_reference,
+				hf_token
+			);
+			if (
+				hardware &&
+				JSON.stringify(original_hardware) !== JSON.stringify(hardware)
+			) {
+				await set_space_hardware(`${user}/${space_name}`, hardware, hf_token);
+			}
+			await set_space_timeout(
+				`${user}/${space_name}`,
+				timeout || 300,
+				hf_token
+			);
 			return client(duplicated_space.url, options);
 		}
 	} catch (e: any) {
@@ -202,9 +222,14 @@ export async function client(
 			jwt = await get_jwt(space_id, hf_token);
 		}
 
-		function config_success(_config: Config) {
+		async function config_success(_config: Config) {
 			config = _config;
 			api_map = map_names_to_ids(_config?.dependencies || []);
+			try {
+				api = await view_api(config);
+			} catch (e) {
+				console.error(`Could not get api details: ${e.message}`);
+			}
 
 			return {
 				config,
@@ -217,12 +242,9 @@ export async function client(
 			if (status.status === "running")
 				try {
 					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-					try {
-						api = await view_api(config);
-					} catch (e) {
-						console.error(`Could not get api details: ${e.message}`);
-					}
-					res(config_success(config));
+
+					const _config = await config_success(config);
+					res(_config);
 				} catch (e) {
 					if (status_callback) {
 						status_callback({
@@ -237,13 +259,8 @@ export async function client(
 
 		try {
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-			try {
-				api = await view_api(config);
-			} catch (e) {
-				console.error(`Could not get api details: ${e.message}`);
-			}
-
-			res(config_success(config));
+			const _config = await config_success(config);
+			res(_config);
 		} catch (e) {
 			if (space_id) {
 				check_space_status(
@@ -273,6 +290,7 @@ export async function client(
 				submit(endpoint, data, event_data)
 					.on("data", res)
 					.on("status", (status) => {
+						console.log(status);
 						if (status.stage === "error") rej(status);
 					});
 			});
@@ -314,6 +332,8 @@ export async function client(
 						fn_index,
 						time: new Date()
 					});
+
+					console.log("HTTP");
 
 					post_data(
 						`${http_protocol}//${host + config.path}/run${
@@ -406,6 +426,7 @@ export async function client(
 							_data,
 							last_status[fn_index]
 						);
+						console.log();
 
 						if (type === "update" && status) {
 							// call 'status' listeners
@@ -456,6 +477,14 @@ export async function client(
 							});
 						}
 					};
+
+					// different ws contract for gradio versions older than 3.6.0
+					//@ts-ignore
+					if (semiver(config.version || "2.0.0", "3.6") < 0) {
+						addEventListener("open", () =>
+							websocket.send(JSON.stringify({ hash: session_hash }))
+						);
+					}
 				}
 			});
 
@@ -563,7 +592,7 @@ export async function client(
 					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
 				}
 
-				const x = transform_api_info(api_info);
+				const x = transform_api_info(api_info, config, api_map);
 				return x;
 			} catch (e) {
 				console.log(e);
@@ -659,7 +688,11 @@ function get_description(
 	}
 }
 
-function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
+function transform_api_info(
+	api_info: ApiInfo<ApiData>,
+	config: Config,
+	api_map: Record<string, number>
+): ApiInfo<JsApiData> {
 	const new_data = {
 		named_endpoints: {},
 		unnamed_endpoints: {}
@@ -668,10 +701,15 @@ function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
 		const cat = api_info[key];
 
 		for (const endpoint in cat) {
+			const dep_index = config.dependencies[endpoint]
+				? endpoint
+				: api_map[endpoint.replace("/", "")];
+
 			const info = cat[endpoint];
 			new_data[key][endpoint] = {};
 			new_data[key][endpoint].parameters = {};
 			new_data[key][endpoint].returns = {};
+			new_data[key][endpoint].type = config.dependencies[dep_index].types;
 			new_data[key][endpoint].parameters = info.parameters.map(
 				({ label, component, type, serializer }) => ({
 					label,
@@ -681,6 +719,7 @@ function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
 				})
 			);
 
+			console.log();
 			new_data[key][endpoint].returns = info.returns.map(
 				({ label, component, type, serializer }) => ({
 					label,

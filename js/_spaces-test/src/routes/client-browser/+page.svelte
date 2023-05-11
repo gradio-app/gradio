@@ -3,7 +3,7 @@
 	import EndpointInputs from '../../lib/EndpointInputs.svelte';
 	import ResponsePreview from '../../lib/ResponsePreview.svelte';
 
-	let api = '';
+	let api = 'pngwn/whisper';
 	let hf_token = '';
 
 	/**
@@ -39,6 +39,8 @@
 			hf_token: hf_token
 		});
 
+		console.log(app.config);
+
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
 
 		named = Object.keys(named_endpoints);
@@ -53,6 +55,8 @@
 		const _endpoint_info = (await app.view_api())?.[`${type}_endpoints`]?.[_endpoint];
 		if (!_endpoint_info) return;
 
+		console.log(_endpoint_info);
+
 		app_info = _endpoint_info;
 		active_endpoint = _endpoint;
 	}
@@ -61,6 +65,20 @@
 		const res = await app.predict(active_endpoint, request_data);
 		console.log(res);
 		response_data = res;
+	}
+
+	let endpoint_type_text = '';
+	$: {
+		if (!app_info) {
+			endpoint_type_text = '';
+		} else if (!app_info.type.continuos && app_info.type.generator) {
+			endpoint_type_text = 'This endpoint generates values over time and can be cancelled.';
+		} else if (app_info.type.continuos && app_info.type.generator) {
+			endpoint_type_text =
+				'This endpoint generates values over time and will continue to yield values until cancelled.';
+		} else {
+			endpoint_type_text = 'This endpoint returns data once and cannot be cancelled.';
+		}
 	}
 </script>
 
@@ -118,6 +136,17 @@
 {/if}
 
 {#if app_info}
+	<hr />
+	<p>
+		This endpoint accepts {app_info.parameters.length ? app_info.parameters.length : 'no'} piece{app_info
+			.parameters.length < 1 || app_info.parameters.length > 1
+			? 's'
+			: ''} of data and returns {app_info.returns.length ? app_info.returns.length : 'no'} piece{app_info
+			.returns.length < 1 || app_info.returns.length > 1
+			? 's'
+			: ''} of data. {endpoint_type_text}
+	</p>
+	<hr />
 	<div class="app_info">
 		<div>
 			<EndpointInputs app_info={app_info.parameters} bind:request_data />
@@ -206,5 +235,9 @@
 	}
 	.submit {
 		margin-top: var(--size-5);
+	}
+
+	hr {
+		margin: var(--size-6) 0;
 	}
 </style>
