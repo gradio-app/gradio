@@ -4,7 +4,10 @@ import {
 	process_endpoint,
 	RE_SPACE_NAME,
 	map_names_to_ids,
-	discussions_enabled
+	discussions_enabled,
+	get_space_hardware,
+	set_space_hardware,
+	set_space_timeout
 } from "./utils.js";
 
 import type {
@@ -37,8 +40,8 @@ type client_return = {
 	config: Config;
 	submit: (
 		endpoint: string | number,
-		data: unknown[],
-		event_data: unknown
+		data?: unknown[],
+		event_data?: unknown
 	) => SubmitReturn;
 	view_api: (c?: Config) => Promise<Record<string, any>>;
 };
@@ -47,6 +50,7 @@ type SubmitReturn = {
 	on: event;
 	off: event;
 	cancel: () => void;
+	destroy: () => void;
 };
 
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
@@ -108,16 +112,35 @@ export async function upload_files(
 	return { files: output };
 }
 
+const hardware_types = [
+	"cpu-basic",
+	"cpu-upgrade",
+	"t4-small",
+	"t4-medium",
+	"a10g-small",
+	"a10g-large",
+	"a100-large"
+] as const;
+
 export async function duplicate(
 	app_reference: string,
 	options: {
 		hf_token: `hf_${string}`;
 		private?: boolean;
 		status_callback: SpaceStatusCallback;
+		hardware?: typeof hardware_types[number];
+		timeout?: number;
 	}
 ) {
-	const { hf_token, private: _private } = options;
+	const { hf_token, private: _private, hardware, timeout } = options;
 
+	if (hardware && !hardware_types.includes(hardware)) {
+		throw new Error(
+			`Invalid hardware type provided. Valid types are: ${hardware_types
+				.map((v) => `"${v}"`)
+				.join(",")}.`
+		);
+	}
 	const headers = {
 		Authorization: `Bearer ${hf_token}`
 	};
@@ -156,6 +179,25 @@ export async function duplicate(
 			return client(`${user}/${space_name}`, options);
 		} else {
 			const duplicated_space = await response.json();
+
+			let original_hardware;
+
+			if (!hardware) {
+				original_hardware = await get_space_hardware(app_reference, hf_token);
+			}
+
+			const requested_hardware = hardware || original_hardware || "cpu-basic";
+			await set_space_hardware(
+				`${user}/${space_name}`,
+				requested_hardware,
+				hf_token
+			);
+
+			await set_space_timeout(
+				`${user}/${space_name}`,
+				timeout || 300,
+				hf_token
+			);
 			return client(duplicated_space.url, options);
 		}
 	} catch (e: any) {
@@ -202,9 +244,14 @@ export async function client(
 			jwt = await get_jwt(space_id, hf_token);
 		}
 
-		function config_success(_config: Config) {
+		async function config_success(_config: Config) {
 			config = _config;
 			api_map = map_names_to_ids(_config?.dependencies || []);
+			try {
+				api = await view_api(config);
+			} catch (e) {
+				console.error(`Could not get api details: ${e.message}`);
+			}
 
 			return {
 				config,
@@ -217,12 +264,9 @@ export async function client(
 			if (status.status === "running")
 				try {
 					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-					try {
-						api = await view_api(config);
-					} catch (e) {
-						console.error(`Could not get api details: ${e.message}`);
-					}
-					res(config_success(config));
+
+					const _config = await config_success(config);
+					res(_config);
 				} catch (e) {
 					if (status_callback) {
 						status_callback({
@@ -237,13 +281,8 @@ export async function client(
 
 		try {
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-			try {
-				api = await view_api(config);
-			} catch (e) {
-				console.error(`Could not get api details: ${e.message}`);
-			}
-
-			res(config_success(config));
+			const _config = await config_success(config);
+			res(_config);
 		} catch (e) {
 			if (space_id) {
 				check_space_status(
@@ -268,12 +307,28 @@ export async function client(
 		 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
 		 * @return Returns the data for the prediction or an error message.
 		 */
-		function predict(endpoint: string, data: unknown[], event_data: unknown) {
+		function predict(endpoint: string, data: unknown[], event_data?: unknown) {
+			let data_returned = false;
+			let status_complete = false;
 			return new Promise((res, rej) => {
-				submit(endpoint, data, event_data)
-					.on("data", res)
+				const app = submit(endpoint, data, event_data);
+
+				app
+					.on("data", (d) => {
+						data_returned = true;
+						if (status_complete) {
+							app.destroy();
+						}
+						res(d);
+					})
 					.on("status", (status) => {
 						if (status.stage === "error") rej(status);
+						if (status.stage === "complete" && data_returned) {
+							app.destroy();
+						}
+						if (status.stage === "complete") {
+							status_complete = true;
+						}
 					});
 			});
 		}
@@ -281,7 +336,7 @@ export async function client(
 		function submit(
 			endpoint: string | number,
 			data: unknown[],
-			event_data: unknown
+			event_data?: unknown
 		): SubmitReturn {
 			let fn_index: number;
 			let api_info;
@@ -290,6 +345,12 @@ export async function client(
 			} else {
 				const trimmed_endpoint = endpoint.replace(/^\//, "");
 				fn_index = api_map[trimmed_endpoint];
+			}
+
+			if (typeof fn_index !== "number") {
+				throw new Error(
+					"There is no endpoint matching that name of fn_index matching that number."
+				);
 			}
 
 			let websocket: WebSocket;
@@ -304,7 +365,7 @@ export async function client(
 				api_info,
 				hf_token
 			).then((_payload) => {
-				payload = { data: _payload, event_data, fn_index };
+				payload = { data: _payload || [], event_data, fn_index };
 				if (skip_queue(fn_index, config)) {
 					fire_event({
 						type: "status",
@@ -456,6 +517,14 @@ export async function client(
 							});
 						}
 					};
+
+					// different ws contract for gradio versions older than 3.6.0
+					//@ts-ignore
+					if (semiver(config.version || "2.0.0", "3.6") < 0) {
+						addEventListener("open", () =>
+							websocket.send(JSON.stringify({ hash: session_hash }))
+						);
+					}
 				}
 			});
 
@@ -474,7 +543,7 @@ export async function client(
 				narrowed_listener_map[eventType] = listeners;
 				listeners?.push(listener);
 
-				return { on, off, cancel };
+				return { on, off, cancel, destroy };
 			}
 
 			function off<K extends EventType>(
@@ -486,7 +555,7 @@ export async function client(
 				listeners = listeners?.filter((l) => l !== listener);
 				narrowed_listener_map[eventType] = listeners;
 
-				return { on, off, cancel };
+				return { on, off, cancel, destroy };
 			}
 
 			async function cancel() {
@@ -504,15 +573,34 @@ export async function client(
 						method: "POST",
 						body: JSON.stringify(session_hash)
 					});
-				} catch (e) {}
+				} catch (e) {
+					console.warn(
+						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
+					);
+				}
 
-				websocket.close();
+				if (websocket && websocket.readyState === 0) {
+					addEventListener("open", () => websocket.close());
+				} else {
+					websocket.close();
+				}
+
+				destroy();
+			}
+
+			function destroy() {
+				for (const event_type in listener_map) {
+					listener_map[event_type as "data" | "status"].forEach((fn) => {
+						off(event_type as "data" | "status", fn);
+					});
+				}
 			}
 
 			return {
 				on,
 				off,
-				cancel
+				cancel,
+				destroy
 			};
 		}
 
@@ -563,10 +651,9 @@ export async function client(
 					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
 				}
 
-				const x = transform_api_info(api_info);
+				const x = transform_api_info(api_info, config, api_map);
 				return x;
 			} catch (e) {
-				console.log(e);
 				return [{ error: BROKEN_CONNECTION_MSG }, 500];
 			}
 		}
@@ -628,9 +715,15 @@ function get_type(
 	} else if (component === "Image") {
 		return signature_type === "parameter" ? "Blob | File | Buffer" : "string";
 	} else if (serializer === "FileSerializable") {
-		return signature_type === "parameter"
-			? "(Blob | File | Buffer)[] | (Blob | File | Buffer)"
-			: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string} | { name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}[]`;
+		if (type?.type === "array") {
+			return signature_type === "parameter"
+				? "(Blob | File | Buffer)[]"
+				: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}[]`;
+		} else {
+			return signature_type === "parameter"
+				? "Blob | File | Buffer"
+				: `{ name: string; data: string; size?: number; is_file?: boolean; orig_name?: string}`;
+		}
 	} else if (serializer === "GallerySerializable") {
 		return signature_type === "parameter"
 			? "[(Blob | File | Buffer), (string | null)][]"
@@ -653,7 +746,11 @@ function get_description(
 	}
 }
 
-function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
+function transform_api_info(
+	api_info: ApiInfo<ApiData>,
+	config: Config,
+	api_map: Record<string, number>
+): ApiInfo<JsApiData> {
 	const new_data = {
 		named_endpoints: {},
 		unnamed_endpoints: {}
@@ -662,10 +759,15 @@ function transform_api_info(api_info: ApiInfo<ApiData>): ApiInfo<JsApiData> {
 		const cat = api_info[key];
 
 		for (const endpoint in cat) {
+			const dep_index = config.dependencies[endpoint]
+				? endpoint
+				: api_map[endpoint.replace("/", "")];
+
 			const info = cat[endpoint];
 			new_data[key][endpoint] = {};
 			new_data[key][endpoint].parameters = {};
 			new_data[key][endpoint].returns = {};
+			new_data[key][endpoint].type = config.dependencies[dep_index].types;
 			new_data[key][endpoint].parameters = info.parameters.map(
 				({ label, component, type, serializer }) => ({
 					label,

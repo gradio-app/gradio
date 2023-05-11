@@ -55,7 +55,6 @@ export async function process_endpoint(
 				`https://huggingface.co/api/spaces/${_app_reference}/host`,
 				{ headers }
 			);
-			console.log(res);
 
 			if (res.status !== 200)
 				throw new Error("Space metadata could not be loaded.");
@@ -114,5 +113,89 @@ export async function discussions_enabled(space_id: string) {
 		else return true;
 	} catch (e) {
 		return false;
+	}
+}
+
+export async function get_space_hardware(
+	space_id: string,
+	token: `hf_${string}`
+) {
+	const headers: { Authorization?: string } = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	try {
+		const res = await fetch(
+			`https://huggingface.co/api/spaces/${space_id}/runtime`,
+			{ headers }
+		);
+
+		if (res.status !== 200)
+			throw new Error("Space hardware could not be obtained.");
+
+		const { hardware } = await res.json();
+
+		return hardware;
+	} catch (e) {
+		throw new Error(e.message);
+	}
+}
+
+export async function set_space_hardware(
+	space_id: string,
+	new_hardware: Record<string, any>,
+	token: `hf_${string}`
+) {
+	const headers: { Authorization?: string } = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	try {
+		const res = await fetch(
+			`https://huggingface.co/api/spaces/${space_id}/hardware`,
+			{ headers, body: JSON.stringify(new_hardware) }
+		);
+
+		if (res.status !== 200)
+			throw new Error(
+				"Space hardware could not be set. Please ensure the space hardware provided is valid and that a Hugging Face token is passed in."
+			);
+
+		const { hardware } = await res.json();
+
+		return hardware;
+	} catch (e) {
+		throw new Error(e.message);
+	}
+}
+
+export async function set_space_timeout(
+	space_id: string,
+	timeout: number,
+	token: `hf_${string}`
+) {
+	const headers: { Authorization?: string } = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	try {
+		const res = await fetch(
+			`https://huggingface.co/api/spaces/${space_id}/hardware`,
+			{ headers, body: JSON.stringify({ seconds: timeout }) }
+		);
+
+		if (res.status !== 200)
+			throw new Error(
+				"Space hardware could not be set. Please ensure the space hardware provided is valid and that a Hugging Face token is passed in."
+			);
+
+		const { hardware } = await res.json();
+
+		return hardware;
+	} catch (e) {
+		throw new Error(e.message);
 	}
 }

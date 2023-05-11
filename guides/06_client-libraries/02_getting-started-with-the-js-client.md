@@ -15,14 +15,15 @@ Here's the entire code to do it:
 import { client } from "@gradio/client";
 
 const response = await fetch(
-  "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+  "https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
 );
 const audio_file = await response.blob();
 
-const app = client("abidlabs/whisper");
-const transcription = app.predict("/predict", [audio_file]);
+const app = await client("abidlabs/whisper");
+const transcription = await app.predict("/predict", [audio_file]);
 
-// "This is a test of the whisper speech recognition model."
+console.log(transcription.data)
+// [ "I said the same phrase 30 times." ]
 ```
 
 The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
@@ -31,12 +32,10 @@ The Gradio client works with any hosted Gradio app, whether it be an image gener
 
 ## Installation
 
-If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency. 
-
-Otherwise, the lightweight `@gradio/client` package can be installed from the npm registry with a package manager of your choice and support node version 18 and above:
+The lightweight `@gradio/client` package can be installed from the npm registry with a package manager of your choice and support node version 18 and above:
 
 ```bash
-$ pnpm add @gradio/client
+npm i -D @gradio/client
 ```
 
 
@@ -67,7 +66,7 @@ While you can use any public Space as an API, you may get rate limited by Huggin
 
 The `@gradio/client` exports another function, `duplicate`, to make this process simple (you'll need to pass in your [Hugging Face token](https://huggingface.co/settings/tokens)). 
 
-`duplicate`` is almost identical to `client`, the only difference is under the hood:
+`duplicate` is almost identical to `client`, the only difference is under the hood:
 
 ```js
 import { client } from "@gradio/client";
@@ -77,13 +76,13 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = client("abidlabs/whisper", { hf_token="hf_..." });
+const app = await duplicate("abidlabs/whisper", { hf_token: "hf_..." });
 const transcription = app.predict("/predict", [audio_file]);
 ```
 
 If you have previously duplicated a Space, re-running `duplicate` will *not* create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `duplicate` method multiple times with the same space. 
 
-**Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 1 hour of inactivity. You can also set the hardware using the `hardware` parameter of `duplicate()`.
+**Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 5 minutes of inactivity. You can also set the hardware using the `hardware` property of `duplicate`'s options object.
 
 
 ## Connecting a general Gradio app
@@ -98,7 +97,22 @@ const app = client("https://bec81a83-5b5c-471e.gradio.live");
 
 ## Inspecting the API endpoints
 
-Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `view_api` method. For the Whisper Space, we see the following:
+Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `view_api` method. 
+
+
+For the Whisper Space, we can do this:
+
+```js
+import { client } from "@gradio/client";
+
+const app = await client("abidlabs/whisper");
+
+const app_info = await app.view_info();
+
+console.log(app_info)
+```
+
+And we will see the following:
 
 ```json
 {
@@ -146,10 +160,10 @@ If there are multiple parameters, then you should pass them as an array to `.pre
 import { client } from "@gradio/client";
 
 const app = await client("gradio/calculator");
-const result = await client.predict("/predict", [4, "add", 5]);
+const result = await app.predict("/predict", [4, "add", 5]);
 ```
 
-For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `File` depending on what is most convenient and what environment the client is running in. 
+For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `File` depending on what is most convenient. In node, this would be a `Buffer` or `Blob`; in a browser environment, this would be a `Blob` or `File`.
 
 
 ```js
@@ -172,13 +186,16 @@ If the API you are working with can return results over time, or you wish to acc
 ```js
 import { client } from "@gradio/client";
 
-function log_result(data) {
-  const [translation] = data;
-  console.log(`The translated result is: ${translation}.`)
+function log_result(payload) {
+  const {
+    data: [translation]
+  } = payload;
+
+  console.log(`The translated result is: ${translation}`);
 }
 
-const app = await client("abidlabs/en2fr")
-const job = client.submit("/predict", ["Hello"]);
+const app = await client("abidlabs/en2fr");
+const job = app.submit("/predict", ["Hello"]);
 
 job.on("data", log_result);
 ```
@@ -196,7 +213,7 @@ function log_status(status) {
 }
 
 const app = await client("abidlabs/en2fr")
-const job = client.submit("/predict", ["Hello"]);
+const job = app.submit("/predict", ["Hello"]);
 
 job.on("status", log_status);
 ```
@@ -211,8 +228,8 @@ The job instance also has a `.cancel()` method that cancels jobs that have been 
 import { client } from "@gradio/client";
 
 const app = await client("abidlabs/en2fr")
-const job_one = client.submit("/predict", ["Hello"]);
-const job_two = client.submit("/predict", ["Friends"]);
+const job_one = app.submit("/predict", ["Hello"]);
+const job_two = app.submit("/predict", ["Friends"]);
 
 job_one.cancel();
 job_two.cancel();
@@ -228,7 +245,7 @@ Some Gradio API endpoints do not return a single value, rather they return a ser
 import { client } from "@gradio/client";
 
 const app = await client("gradio/count_generator");
-const job = client.submit("/predict");
+const job = app.submit(0, [9]);
 
 job.on("data", data => console.log(data));
 ```
@@ -241,11 +258,11 @@ You can also cancel jobs that that have iterative outputs, in which case the job
 import { client } from "@gradio/client";
 
 const app = await client("gradio/count_generator");
-const job = client.submit("/predict");
+const job = app.submit(0, [9]);
 
-job.on("data", data => console.log(data));
+job.on("data", (data) => console.log(data));
 
-// later
-
-job.cancel();
+setTimeout(() => {
+  job.cancel();
+}, 3000);
 ```

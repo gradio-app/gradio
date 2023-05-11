@@ -204,6 +204,22 @@ const submission = app.submit("/predict", payload).on("data", handle_data);
 submission.off("/predict", handle_data);
 ```
 
+##### `destroy`
+
+The `destroy` method will remove all subscriptions to a job, regardless of whether or not they are `"data"` or `"status"` events. This is a convenience method for when you do not wnat to unsubscribe use the `off` method.
+
+```js
+import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const handle_data = (data) => console.log(data);
+
+const submission = app.submit("/predict", payload).on("data", handle_data);
+
+// later
+submission.destroy();
+```
+
 ##### `cancel`
 
 Certain types of gradio function can run repeatedly and in some cases indefinitely. the `cancel` method will stop such an endpoints and prevent the API from issuing additional updates.
@@ -220,6 +236,9 @@ const submission = app
 
 submission.cancel();
 ```
+
+
+
 
 #### `view_api`
 
@@ -273,7 +292,7 @@ Accepts all options that `client` accepts, except `hf_token` is required. [See `
 
 ##### `private`
 
-This is an optional parameter specific to `duplicate` and will determine whether the space should be public or private. Spaces duplicated via the `duplicate` method are public by default.
+This is an optional property specific to `duplicate`'s options object and will determine whether the space should be public or private. Spaces duplicated via the `duplicate` method are public by default.
 
 ```ts
 import { duplicate } from "@gradio/client";
@@ -281,5 +300,43 @@ import { duplicate } from "@gradio/client";
 const app = await duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true
+});
+```
+
+##### `timeout`
+
+This is an optional property specific to `duplicate`'s options object and will set the timeout in minutes before the duplicated space will go to sleep.
+
+```ts
+import { duplicate } from "@gradio/client";
+
+const app = await duplicate("user/space-name", {
+	hf_token: "hf_...",
+	private: true,
+	timeout: 5
+});
+```
+
+##### `hardware`
+
+This is an optional property specific to `duplicate`'s options object and will set the hardware for the duplicated space. By default the hardware used will match that of the original space. If this cannot be obtained it will default to `"cpu-basic"`. For hardware upgrades (beyond the basic CPU tier), you may be required to provide [billing information on Hugging Face](https://huggingface.co/settings/billing).
+
+Possible hardware options are: 
+
+- `"cpu-basic"`
+- `"cpu-upgrade"`
+- `"t4-small"`
+- `"t4-medium"`
+- `"a10g-small"`
+- `"a10g-large"`
+- `"a100-large"`
+
+```ts
+import { duplicate } from "@gradio/client";
+
+const app = await duplicate("user/space-name", {
+	hf_token: "hf_...",
+	private: true,
+	hardware: 'a10g-small'
 });
 ```
