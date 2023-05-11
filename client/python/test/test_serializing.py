@@ -21,10 +21,16 @@ def test_duplicate(serializer_class):
 
 def test_check_component_fallback_serializers():
     for component_name, class_type in COMPONENT_MAPPING.items():
-        if component_name == "dataset":  # cannot be instantiated without parameters
+        # skip components that cannot be instantiated without parameters
+        if component_name in ["dataset", "interpretation"]:
             continue
         component = components.get_component_instance(component_name)
         assert isinstance(component, class_type)
+
+
+def test_all_components_in_component_mapping(all_components):
+    for component in all_components:
+        assert component.__name__.lower() in COMPONENT_MAPPING
 
 
 def test_file_serializing():

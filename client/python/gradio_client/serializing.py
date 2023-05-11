@@ -541,7 +541,12 @@ COMPONENT_MAPPING: dict[str, type] = {
     "chatbot": JSONSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
+    "barplot": JSONSerializable,
+    "lineplot": JSONSerializable,
+    "scatterplot": JSONSerializable,
     "markdown": StringSerializable,
     "dataset": StringSerializable,
     "code": StringSerializable,
+    "interpretation": SimpleSerializable,
+    "annotatedimage": JSONSerializable,
 }
