@@ -52,7 +52,7 @@
 	$: {
 		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			old_value = Array.isArray(value) ? value.slice() : value;
-			dispatch("change", value);
+			handle_change();
 		}
 	}
 
