@@ -1,5 +1,36 @@
 # Upcoming Release
 
+# 0.2.4
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+- Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/freddyaboulton) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# 0.2.3
+
 ## New Features:
 
 No changes to highlight.
