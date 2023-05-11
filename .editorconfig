@@ -1,7 +1,7 @@
 
 root = true
 
-[{js/**,client/js/**}]
+[{js/**,client/js/**,wasm/**}]
 end_of_line = lf
 insert_final_newline = true
 indent_style = tab
