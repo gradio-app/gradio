@@ -206,14 +206,13 @@
 	label {
 		display: flex;
 		flex-direction: column;
-		width: 100%;
 		gap: var(--size-1);
+		width: 100%;
 	}
 
 	label:first-child input {
-		border-top-left-radius: 2px;
-
 		margin-right: -1px;
+		border-top-left-radius: 2px;
 	}
 
 	label:last-child input {
@@ -221,14 +220,14 @@
 	}
 
 	input {
-		border-radius: 0px;
 		outline: none;
 		border-bottom: none;
+		border-radius: 0px;
 	}
 
 	input:focus-visible {
-		border-color: var(--color-accent);
 		z-index: 1;
+		border-color: var(--color-accent);
 	}
 
 	.input-wrap {
@@ -241,16 +240,16 @@
 		border-bottom-left-radius: 2px;
 		background: var(--color-accent);
 		padding: var(--size-2) var(--size-2-5);
-		color: var(--background-fill-primary);
-		font-size: var(--scale-0);
 		width: 100%;
+		color: var(--background-fill-primary);
 		font-weight: bold;
+		font-size: var(--scale-0);
 		/* margin-top: var(--size-3); */
 	}
 
 	.endpoints button {
-		width: auto;
 		background: var(--color-orange-200);
+		width: auto;
 		color: var(--body-text-color);
 	}
 	button.selected {
@@ -290,8 +289,8 @@
 		background-color: var(--color-red-600);
 	}
 	.endpoint-button {
-		border-radius: 2px;
 		margin-right: var(--size-1);
+		border-radius: 2px;
 	}
 
 	button[disabled] {

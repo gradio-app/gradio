@@ -65,13 +65,13 @@
 	label {
 		display: flex;
 		flex-direction: column;
-		width: 100%;
 		gap: var(--size-1);
+		width: 100%;
 	}
 
 	input {
-		border-radius: 2px;
 		outline: none;
+		border-radius: 2px;
 	}
 
 	input:focus-visible {

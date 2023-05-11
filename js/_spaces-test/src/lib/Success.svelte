@@ -10,14 +10,14 @@
 
 <style>
 	svg {
-		height: 18px;
-		width: 18px;
 		margin: var(--spacing-xxl) 0 var(--spacing-lg) var(--spacing-lg) !important;
+		width: 18px;
+		height: 18px;
 		color: var(--color-green-500);
 	}
 
 	svg path {
-		color: var(--color-green-500);
 		transform: translateY(2px);
+		color: var(--color-green-500);
 	}
 </style>

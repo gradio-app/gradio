@@ -40,15 +40,15 @@
 
 <style>
 	div {
-		max-width: 800px;
-		width: 100%;
 		margin: auto;
+		width: 100%;
+		max-width: 800px;
 	}
 
 	ul {
-		list-style: none;
 		display: flex;
 		gap: var(--spacing-xxl);
+		list-style: none;
 	}
 
 	a {
