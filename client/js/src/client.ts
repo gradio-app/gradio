@@ -622,7 +622,7 @@ export async function client(
 			try {
 				let response: Response;
 				// @ts-ignore
-				if (semiver(config.version || "2.0.0", "3.28.3") < 0) {
+				if (semiver(config.version || "2.0.0", "3.30") < 0) {
 					response = await fetch(
 						"https://gradio-space-api-fetcher-v2.hf.space/api",
 						{
