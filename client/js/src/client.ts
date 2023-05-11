@@ -535,7 +535,11 @@ export async function client(
 					});
 				} catch (e) {}
 
-				websocket.close();
+				if (websocket.readyState === 0) {
+					addEventListener("open", () => websocket.close());
+				} else {
+					websocket.close();
+				}
 			}
 
 			return {
