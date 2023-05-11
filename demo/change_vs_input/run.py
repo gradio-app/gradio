@@ -14,6 +14,7 @@ with gr.Blocks() as demo:
             dropdown = gr.Dropdown(["a", "b", "c"])
             colorpicker = gr.ColorPicker()
             code = gr.Code()
+            dataframe = gr.Dataframe()
 
         with gr.Column():
             gr.Markdown("# ON:INPUT")
@@ -26,6 +27,8 @@ with gr.Blocks() as demo:
             dropdown_in = gr.Dropdown(["a", "b", "c"])
             colorpicker_in = gr.ColorPicker()
             code_in = gr.Code()
+            dataframe_in = gr.Dataframe()
+
         with gr.Column():
             gr.Markdown("# ON:CHANGE")
             text_ch = gr.Textbox()
@@ -37,11 +40,12 @@ with gr.Blocks() as demo:
             dropdown_ch = gr.Dropdown(["a", "b", "c"])
             colorpicker_ch = gr.ColorPicker()
             code_ch = gr.Code()
+            dataframe_ch = gr.Dataframe()
 
         set_button.click(
-            lambda: ["asdf", 555, 12, True, ["a", "c"], "b", "b", "#FF0000", "import gradio as gr"], 
+            lambda: ["asdf", 555, 12, True, ["a", "c"], "b", "b", "#FF0000", "import gradio as gr", [["a", "b", "c", "d"], ["1", "2", "3", "4"]]], 
             None, 
-            [text, num, slider, checkbox, checkbox_group, radio, dropdown, colorpicker, code])
+            [text, num, slider, checkbox, checkbox_group, radio, dropdown, colorpicker, code, dataframe])
 
         text.input(lambda x:x, text, text_in)
         num.input(lambda x:x, num, num_in)
@@ -52,6 +56,7 @@ with gr.Blocks() as demo:
         dropdown.input(lambda x:x, dropdown, dropdown_in)
         colorpicker.input(lambda x:x, colorpicker, colorpicker_in)
         code.input(lambda x:x, code, code_in)
+        dataframe.input(lambda x:x, dataframe, dataframe_in)
 
         text.change(lambda x:x, text, text_ch)
         num.change(lambda x:x, num, num_ch)
@@ -62,6 +67,7 @@ with gr.Blocks() as demo:
         dropdown.change(lambda x:x, dropdown, dropdown_ch)
         colorpicker.change(lambda x:x, colorpicker, colorpicker_ch)
         code.change(lambda x:x, code, code_ch)
+        dataframe.change(lambda x:x, dataframe, dataframe_ch)
 
 if __name__ == "__main__":
     demo.launch()

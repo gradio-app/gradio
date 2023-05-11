@@ -7,6 +7,7 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
+	let old_value = Array.isArray(value) ? value.slice() : value;
 	export let value_is_output: boolean = false;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
@@ -48,7 +49,12 @@
 	afterUpdate(() => {
 		value_is_output = false;
 	});
-	$: value, handle_change();
+	$: {
+		if (JSON.stringify(value) != JSON.stringify(old_value)) {
+			old_value = Array.isArray(value) ? value.slice() : value;
+			dispatch("change", value);
+		}
+	}
 
 	function add(option: string) {
 		value = value as Array<string>;
@@ -295,11 +301,6 @@
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;
-	}
-
-	.single-select {
-		margin: var(--spacing-sm);
-		color: var(--body-text-color);
 	}
 
 	.secondary-wrap {

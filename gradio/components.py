@@ -2818,7 +2818,7 @@ class File(
 
 
 @document("style")
-class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
