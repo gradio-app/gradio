@@ -21,7 +21,8 @@ def test_duplicate(serializer_class):
 
 def test_check_component_fallback_serializers():
     for component_name, class_type in COMPONENT_MAPPING.items():
-        if component_name == "dataset":  # cannot be instantiated without parameters
+        # skip components that cannot be instantiated without parameters
+        if component_name in ["dataset", "interpretation"]:
             continue
         component = components.get_component_instance(component_name)
         assert isinstance(component, class_type)
