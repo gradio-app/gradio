@@ -40,7 +40,7 @@ You can either drag and drop a folder containing your Gradio model and all relat
 
 ## Embedding Hosted Spaces
 
-Once you have hosted your app on Hugging Face Spaces (or on your own server), you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interative demos even in static websites, such as GitHub pages.
+Once you have hosted your app on Hugging Face Spaces (or on your own server), you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interactive demos even in static websites, such as GitHub pages.
 
 There are two ways to embed your Gradio demos. You can find quick links to both options directly on the Hugging Face Space page, in the "Embed this Space" dropdown option:
 
@@ -87,7 +87,7 @@ You can also customize the appearance and behavior of your web component with at
 * `src`: as we've seen, the `src` attributes links to the URL of the hosted Gradio demo that you would like to embed
 * `space`: an optional shorthand if your Gradio demo is hosted on Hugging Face Space. Accepts a `username/space_name` instead of a full URL. Example: `gradio/Echocardiogram-Segmentation`. If this attribute attribute is provided, then `src` does not need to be provided.
 * `control_page_title`: a boolean designating whether the html title of the page should be set to the title of the Gradio app (by default `"false"`)
-* `initial_height`: the intial height of the web component while it is loading the Gradio app, (by default `"300px"`). Note that the final height is set based on the size of the Gradio app.
+* `initial_height`: the initial height of the web component while it is loading the Gradio app, (by default `"300px"`). Note that the final height is set based on the size of the Gradio app.
 * `container`: whether to show the border frame and information about where the Space is hosted (by default `"true"`)
 * `info`: whether to show just the information about where the Space is hosted underneath the embedded app (by default `"true"`)
 * `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
