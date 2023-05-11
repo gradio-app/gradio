@@ -1,10 +1,10 @@
 <script>
-	import { client } from '@gradio/client';
-	import EndpointInputs from '../../lib/EndpointInputs.svelte';
-	import ResponsePreview from '../../lib/ResponsePreview.svelte';
+	import { client } from "@gradio/client";
+	import EndpointInputs from "../../lib/EndpointInputs.svelte";
+	import ResponsePreview from "../../lib/ResponsePreview.svelte";
 
-	let api = 'gradio/cancel_events';
-	let hf_token = '';
+	let api = "gradio/cancel_events";
+	let hf_token = "";
 
 	/**
 	 * @type Awaited<ReturnType<typeof client>>
@@ -25,11 +25,11 @@
 	/**
 	 * @type string | number
 	 */
-	let active_endpoint = '';
+	let active_endpoint = "";
 	/**
 	 *  @type {{data: any[]; fn_index: number; endpoint: string|number}}
 	 */
-	let response_data = { data: [], fn_index: 0, endpoint: '' };
+	let response_data = { data: [], fn_index: 0, endpoint: "" };
 	/**
 	 * @type any[]
 	 */
@@ -38,9 +38,9 @@
 		named = [];
 		unnamed = [];
 		app_info = undefined;
-		active_endpoint = '';
-		response_data = { data: [], fn_index: 0, endpoint: '' };
-		if (!api || (hf_token && !hf_token.startsWith('_hf'))) return;
+		active_endpoint = "";
+		response_data = { data: [], fn_index: 0, endpoint: "" };
+		if (!api || (hf_token && !hf_token.startsWith("_hf"))) return;
 
 		app = await client(api, {
 			//@ts-ignore
@@ -60,16 +60,16 @@
 	 * @param _endpoint {string}
 	 */
 	async function select_endpoint(type, _endpoint) {
-		response_data = { data: [], fn_index: 0, endpoint: '' };
+		response_data = { data: [], fn_index: 0, endpoint: "" };
 		const _endpoint_info = (await app.view_api())?.[`${type}_endpoints`]?.[
-			type === 'unnamed' ? parseInt(_endpoint) : _endpoint
+			type === "unnamed" ? parseInt(_endpoint) : _endpoint
 		];
 		if (!_endpoint_info) return;
 
 		console.log(_endpoint_info);
 
 		app_info = _endpoint_info;
-		active_endpoint = type === 'unnamed' ? parseInt(_endpoint) : _endpoint;
+		active_endpoint = type === "unnamed" ? parseInt(_endpoint) : _endpoint;
 	}
 
 	/**
@@ -80,17 +80,17 @@
 	/**
 	 * @type {"pending" | "error" | "complete" | "generating" | 'idle'}
 	 */
-	let status = 'idle';
+	let status = "idle";
 
 	async function submit() {
-		response_data = { data: [], fn_index: 0, endpoint: '' };
+		response_data = { data: [], fn_index: 0, endpoint: "" };
 
 		job = app
 			.submit(active_endpoint, request_data)
-			.on('data', (data) => {
+			.on("data", (data) => {
 				response_data = data;
 			})
-			.on('status', (_status) => {
+			.on("status", (_status) => {
 				status = _status.stage;
 			});
 		// console.log(res);
@@ -101,17 +101,18 @@
 		job.cancel();
 	}
 
-	let endpoint_type_text = '';
+	let endpoint_type_text = "";
 	$: {
 		if (!app_info) {
-			endpoint_type_text = '';
+			endpoint_type_text = "";
 		} else if (!app_info.type.continuos && app_info.type.generator) {
-			endpoint_type_text = 'This endpoint generates values over time and can be cancelled.';
+			endpoint_type_text =
+				"This endpoint generates values over time and can be cancelled.";
 		} else if (app_info.type.continuos && app_info.type.generator) {
 			endpoint_type_text =
-				'This endpoint generates values over time and will continue to yield values until cancelled.';
+				"This endpoint generates values over time and will continue to yield values until cancelled.";
 		} else {
-			endpoint_type_text = 'This endpoint runs once and cannot be cancelled.';
+			endpoint_type_text = "This endpoint runs once and cannot be cancelled.";
 		}
 	}
 </script>
@@ -119,9 +120,12 @@
 <h2>Client Browser</h2>
 
 <p>
-	Enter a space <code>user-space/name</code> to test the client in a browser environment with any space.
+	Enter a space <code>user-space/name</code> to test the client in a browser environment
+	with any space.
 </p>
-<p>You may optionally provide a <code>hf_token</code> to test a private space</p>
+<p>
+	You may optionally provide a <code>hf_token</code> to test a private space
+</p>
 
 <div class="input-wrap">
 	<label for="">
@@ -146,7 +150,8 @@
 					<button
 						class="endpoint-button"
 						class:selected={endpoint === active_endpoint}
-						on:click={() => select_endpoint('named', endpoint)}>{endpoint}</button
+						on:click={() => select_endpoint("named", endpoint)}
+						>{endpoint}</button
 					>
 				{/each}
 			{:else}
@@ -162,7 +167,8 @@
 					<button
 						class="endpoint-button"
 						class:selected={parseInt(endpoint) === active_endpoint}
-						on:click={() => select_endpoint('unnamed', endpoint)}>{endpoint}</button
+						on:click={() => select_endpoint("unnamed", endpoint)}
+						>{endpoint}</button
 					>
 				{/each}
 			{:else}
@@ -175,13 +181,16 @@
 {#if app_info}
 	<hr />
 	<p>
-		This endpoint accepts {app_info.parameters.length ? app_info.parameters.length : 'no'} piece{app_info
-			.parameters.length < 1 || app_info.parameters.length > 1
-			? 's'
-			: ''} of data and returns {app_info.returns.length ? app_info.returns.length : 'no'} piece{app_info
-			.returns.length < 1 || app_info.returns.length > 1
-			? 's'
-			: ''} of data. {endpoint_type_text}
+		This endpoint accepts {app_info.parameters.length
+			? app_info.parameters.length
+			: "no"} piece{app_info.parameters.length < 1 ||
+		app_info.parameters.length > 1
+			? "s"
+			: ""} of data and returns {app_info.returns.length
+			? app_info.returns.length
+			: "no"} piece{app_info.returns.length < 1 || app_info.returns.length > 1
+			? "s"
+			: ""} of data. {endpoint_type_text}
 	</p>
 	<hr />
 	<div class="app_info">
@@ -192,7 +201,8 @@
 				<button
 					class="cancel"
 					on:click={cancel}
-					disabled={status !== 'generating' && status !== 'pending'}>Cancel Request</button
+					disabled={status !== "generating" && status !== "pending"}
+					>Cancel Request</button
 				>
 			{/if}
 		</div>

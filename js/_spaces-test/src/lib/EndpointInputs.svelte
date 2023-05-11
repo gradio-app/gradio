@@ -27,39 +27,45 @@
 <h3>Request Inputs</h3>
 
 {#each app_info as { type, label, component }, i}
-	{#if type === 'string'}
+	{#if type === "string"}
 		<label for="">
 			<span>{label} <code>{type}</code></span>
 			<input type="text" bind:value={request_data[i]} />
 		</label>
-	{:else if type === 'number'}
+	{:else if type === "number"}
 		<label for="">
 			<span>{label} <code>{type}</code></span>
 			<input type="number" bind:value={request_data[i]} />
 		</label>
-	{:else if type === 'boolean'}
+	{:else if type === "boolean"}
 		<label for="">
 			<span>{label} <code>{type}</code></span>
 			<input type="checkbox" bind:value={request_data[i]} />
 		</label>
-	{:else if type === 'number'}
+	{:else if type === "number"}
 		<label for="">
 			<span>{label} <code>{type}</code></span>
 			<input type="number" bind:value={request_data[i]} />
 		</label>
-	{:else if type === 'string[]'}
+	{:else if type === "string[]"}
 		<label for="">
 			<span>{label} <code>{type} - comma separated list</code></span>
 			<input
 				type="text"
 				value={request_data[i]}
-				on:input={(e) => (request_data[i] = e.currentTarget.value.split(',').map((v) => v.trim()))}
+				on:input={(e) =>
+					(request_data[i] = e.currentTarget.value
+						.split(",")
+						.map((v) => v.trim()))}
 			/>
 		</label>
-	{:else if ['Image', 'Audio', 'Video'].includes(component)}
+	{:else if ["Image", "Audio", "Video"].includes(component)}
 		<label for="">
 			<span>{label} <code>File</code></span>
-			<input type="file" on:input={(e) => handle_file(e.currentTarget.files, i)} />
+			<input
+				type="file"
+				on:input={(e) => handle_file(e.currentTarget.files, i)}
+			/>
 		</label>
 	{/if}
 {/each}

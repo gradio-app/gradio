@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 32 32"
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	width="100%"
+	height="100%"
+	viewBox="0 0 32 32"
 	><path
 		fill="none"
 		d="M16 26a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 16 26Zm-1.125-5h2.25v-9h-2.25Z"

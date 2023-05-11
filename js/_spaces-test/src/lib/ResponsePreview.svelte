@@ -1,7 +1,7 @@
 <script>
-	import Spinner from './Spinner.svelte';
-	import Warning from './Warning.svelte';
-	import Success from './Success.svelte';
+	import Spinner from "./Spinner.svelte";
+	import Warning from "./Warning.svelte";
+	import Success from "./Success.svelte";
 	/**
 	 * @type {{data: any[]}}
 	 */
@@ -14,51 +14,57 @@
 	/**
 	 * @type {"pending" | "error" | "complete" | "generating" | 'idle'}
 	 */
-	export let status = 'idle';
+	export let status = "idle";
 </script>
 
 <div>
 	<div class="heading-wrap">
 		<h3>Response Outputs</h3>
-		{#if status === 'pending' || status === 'generating'}
+		{#if status === "pending" || status === "generating"}
 			<Spinner />
-		{:else if status === 'error'}
+		{:else if status === "error"}
 			<Warning />
-		{:else if status === 'complete'}
+		{:else if status === "complete"}
 			<Success />
 		{/if}
 	</div>
 	{#each app_info as { type, label, component }, i}
-		{#if type === 'string'}
+		{#if type === "string"}
 			<label for="">
 				<span>{label} <code>{type}</code></span>
-				<input type="text" disabled value={response_data.data[i] || ''} />
+				<input type="text" disabled value={response_data.data[i] || ""} />
 			</label>
-		{:else if type === 'number'}
+		{:else if type === "number"}
 			<label for="">
 				<span>{label} <code>{type}</code></span>
-				<input type="number" disabled value={response_data.data[i] || ''} />
+				<input type="number" disabled value={response_data.data[i] || ""} />
 			</label>
-		{:else if type === 'boolean'}
+		{:else if type === "boolean"}
 			<label for="">
 				<span>{label} <code>{type}</code></span>
-				<input type="checkbox" disabled value={response_data.data[i] || ''} />
+				<input type="checkbox" disabled value={response_data.data[i] || ""} />
 			</label>
-		{:else if type === 'number'}
+		{:else if type === "number"}
 			<label for="">
 				<span>{label} <code>{type}</code></span>
-				<input type="number" disabled value={response_data.data[i] || ''} />
+				<input type="number" disabled value={response_data.data[i] || ""} />
 			</label>
-		{:else if type === 'string[]'}
+		{:else if type === "string[]"}
 			<label for="">
 				<span>{label} <code>{type} - comma separated list</code></span>
-				<input type="text" disabled value={response_data.data[i] || ''} />
+				<input type="text" disabled value={response_data.data[i] || ""} />
 			</label>
 		{/if}
 	{/each}
 
 	<h4>JSON</h4>
-	<pre><code>{JSON.stringify(response_data.data.length ? response_data : {}, null, 2)}</code></pre>
+	<pre><code
+			>{JSON.stringify(
+				response_data.data.length ? response_data : {},
+				null,
+				2
+			)}</code
+		></pre>
 </div>
 
 <style>

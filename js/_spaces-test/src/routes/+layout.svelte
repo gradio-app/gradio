@@ -1,23 +1,27 @@
 <script>
-	import '@gradio/theme';
-	import '../../../app/test/mocks/theme.css';
-	import { page } from '$app/stores';
-	import { afterNavigate } from '$app/navigation';
+	import "@gradio/theme";
+	import "../../../app/test/mocks/theme.css";
+	import { page } from "$app/stores";
+	import { afterNavigate } from "$app/navigation";
 
 	$: console.log($page);
 
 	const links = [
-		['/embeds', 'Embeds'],
-		['/client-browser', 'Client-Browser'],
-		['/client-node', 'Client-Node']
+		["/embeds", "Embeds"],
+		["/client-browser", "Client-Browser"],
+		["/client-node", "Client-Node"]
 	];
 
-	$: afterNavigate(() => (location.hash = $page.url.pathname.replace('/', '')));
+	$: afterNavigate(() => (location.hash = $page.url.pathname.replace("/", "")));
 </script>
 
 <svelte:head>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link
+		rel="preconnect"
+		href="https://fonts.gstatic.com"
+		crossorigin="anonymous"
+	/>
 	<link
 		rel="stylesheet"
 		href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&amp;display=swap"
