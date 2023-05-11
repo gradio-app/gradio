@@ -37,11 +37,8 @@ No changes to highlight.
 
 - Only send request to `/info` route if demo version is above `3.28.3` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4109](https://github.com/gradio-app/gradio/pull/4109)
 
-## Documentation Changes:
 
-No changes to highlight.
-
-## Testing and Infrastructure Changes:
+## Other Changes:
 
 - Fix bug in test from gradio 3.29.0 refactor by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4138](https://github.com/gradio-app/gradio/pull/4138)
 
@@ -50,13 +47,6 @@ No changes to highlight.
 
 No changes to highlight.
 
-## Full Changelog:
-
-No changes to highlight.
-
-## Contributors Shoutout:
-
-No changes to highlight.
 
 # 0.2.1
 
