@@ -1,3 +1,4 @@
 packages:
   - 'js/*'
   - 'client/js'
+  - 'wasm'
