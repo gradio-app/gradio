@@ -191,8 +191,12 @@ def all_components():
         children = subclass.__subclasses__()
 
         if children:
-            classes_to_check.extend(children) 
-        if "value" in inspect.signature(subclass).parameters and subclass != gr.components.IOComponent and not getattr(subclass, "is_template", False):
+            classes_to_check.extend(children)
+        if (
+            "value" in inspect.signature(subclass).parameters
+            and subclass != gr.components.IOComponent
+            and not getattr(subclass, "is_template", False)
+        ):
             subclasses.append(subclass)
 
     return subclasses

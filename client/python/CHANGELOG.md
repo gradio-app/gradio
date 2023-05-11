@@ -7,7 +7,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-- Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
+- Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/freddyaboulton) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
 
 ## Documentation Changes:
 
