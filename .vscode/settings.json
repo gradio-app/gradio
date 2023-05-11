@@ -13,9 +13,7 @@
 	"python.analysis.extraPaths": ["./gradio/themes/utils"],
 	"prettier.configPath": ".config/.prettierrc.json",
 	"prettier.ignorePath": ".config/.prettierignore",
-	"python.testing.pytestArgs": [
-		"."
-	],
+	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true
 }
