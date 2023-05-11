@@ -93,7 +93,6 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
-        self.root = ""
 
         if render:
             self.render()
@@ -551,8 +550,13 @@ def get_api_info(config: dict, serialize: bool = True):
                 continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
-            assert isinstance(serializer, serializing.Serializable)
-            info = serializer.api_info()
+            if component.get("api_info") and after_new_format:
+                info = component["api_info"]
+                example = component["example_inputs"]["serialized"]
+            else:
+                assert isinstance(serializer, serializing.Serializable)
+                info = serializer.api_info()
+                example = serializer.example_inputs()["raw"]
             python_info = info["info"]
             if serialize and info["serialized_info"]:
                 python_info = serializer.serialized_info()
@@ -717,6 +721,7 @@ class Blocks(BlockContext):
 
         self.allowed_paths = []
         self.blocked_paths = []
+        self.root_path = ""
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -869,7 +874,7 @@ class Blocks(BlockContext):
                 )
             overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
             for id in overlapping_ids:
-                # State componenents are allowed to be reused between Blocks
+                # State components are allowed to be reused between Blocks
                 if not isinstance(self.blocks[id], components.State):
                     raise DuplicateBlockError(
                         "At least one block in this Blocks has already been rendered."
@@ -1353,7 +1358,6 @@ Received outputs:
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
-            "root": self.root,
             "theme": self.theme.name,
         }
 
@@ -1606,6 +1610,7 @@ Received outputs:
         file_directories: list[str] | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
+        root_path: str = "",
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1639,6 +1644,7 @@ Received outputs:
             file_directories: This parameter has been renamed to `allowed_paths`. It will be removed in a future version.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
+            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp".
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1678,6 +1684,7 @@ Received outputs:
         self.width = width
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
+        self.root_path = root_path
 
         if enable_queue is not None:
             self.enable_queue = enable_queue

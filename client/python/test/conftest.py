@@ -1,3 +1,4 @@
+import inspect
 import random
 import time
 
@@ -178,3 +179,24 @@ def file_io_demo():
     )
 
     return demo
+
+
+@pytest.fixture
+def all_components():
+    classes_to_check = gr.components.Component.__subclasses__()
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        children = subclass.__subclasses__()
+
+        if children:
+            classes_to_check.extend(children)
+        if (
+            "value" in inspect.signature(subclass).parameters
+            and subclass != gr.components.IOComponent
+            and not getattr(subclass, "is_template", False)
+        ):
+            subclasses.append(subclass)
+
+    return subclasses
