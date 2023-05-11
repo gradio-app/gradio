@@ -112,18 +112,35 @@ export async function upload_files(
 	return { files: output };
 }
 
+const hardware_types = [
+	"cpu-basic",
+	"cpu-upgrade",
+	"t4-small",
+	"t4-medium",
+	"a10g-small",
+	"a10g-large",
+	"a100-large"
+] as const;
+
 export async function duplicate(
 	app_reference: string,
 	options: {
 		hf_token: `hf_${string}`;
 		private?: boolean;
 		status_callback: SpaceStatusCallback;
-		hardware?: Record<string, any>;
+		hardware?: typeof hardware_types[number];
 		timeout?: number;
 	}
 ) {
 	const { hf_token, private: _private, hardware, timeout } = options;
 
+	if (hardware && !hardware_types.includes(hardware)) {
+		throw new Error(
+			`Invalid hardware type provided. Valid types are: ${hardware_types
+				.map((v) => `"${v}"`)
+				.join(",")}.`
+		);
+	}
 	const headers = {
 		Authorization: `Bearer ${hf_token}`
 	};
@@ -162,16 +179,20 @@ export async function duplicate(
 			return client(`${user}/${space_name}`, options);
 		} else {
 			const duplicated_space = await response.json();
-			const original_hardware = await get_space_hardware(
-				app_reference,
+
+			let original_hardware;
+
+			if (!hardware) {
+				original_hardware = await get_space_hardware(app_reference, hf_token);
+			}
+
+			const requested_hardware = hardware || original_hardware || "cpu-basic";
+			await set_space_hardware(
+				`${user}/${space_name}`,
+				requested_hardware,
 				hf_token
 			);
-			if (
-				hardware &&
-				JSON.stringify(original_hardware) !== JSON.stringify(hardware)
-			) {
-				await set_space_hardware(`${user}/${space_name}`, hardware, hf_token);
-			}
+
 			await set_space_timeout(
 				`${user}/${space_name}`,
 				timeout || 300,
