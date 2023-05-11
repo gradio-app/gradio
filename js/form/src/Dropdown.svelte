@@ -8,10 +8,7 @@
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
 	let old_value = Array.isArray(value) ? value.slice() : value;
-<<<<<<< HEAD
 	export let value_is_output: boolean = false;
-=======
->>>>>>> origin
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
