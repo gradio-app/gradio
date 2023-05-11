@@ -40,8 +40,8 @@ type client_return = {
 	config: Config;
 	submit: (
 		endpoint: string | number,
-		data: unknown[],
-		event_data: unknown
+		data?: unknown[],
+		event_data?: unknown
 	) => SubmitReturn;
 	view_api: (c?: Config) => Promise<Record<string, any>>;
 };
@@ -286,7 +286,7 @@ export async function client(
 		 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
 		 * @return Returns the data for the prediction or an error message.
 		 */
-		function predict(endpoint: string, data: unknown[], event_data: unknown) {
+		function predict(endpoint: string, data: unknown[], event_data?: unknown) {
 			return new Promise((res, rej) => {
 				const app = submit(endpoint, data, event_data);
 
@@ -301,7 +301,7 @@ export async function client(
 		function submit(
 			endpoint: string | number,
 			data: unknown[],
-			event_data: unknown
+			event_data?: unknown
 		): SubmitReturn {
 			let fn_index: number;
 			let api_info;
@@ -542,6 +542,8 @@ export async function client(
 				} else {
 					websocket.close();
 				}
+
+				destroy();
 			}
 
 			function destroy() {

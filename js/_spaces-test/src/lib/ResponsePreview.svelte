@@ -1,4 +1,7 @@
 <script>
+	import Spinner from './Spinner.svelte';
+	import Warning from './Warning.svelte';
+	import Success from './Success.svelte';
 	/**
 	 * @type {{data: any[]}}
 	 */
@@ -7,11 +10,24 @@
 	 * @type {{type: string; label: string; component:string}[]}
 	 */
 	export let app_info;
+
+	/**
+	 * @type {"pending" | "error" | "complete" | "generating" | 'idle'}
+	 */
+	export let status = 'idle';
 </script>
 
 <div>
-	<h3>Response Outputs</h3>
-
+	<div class="heading-wrap">
+		<h3>Response Outputs</h3>
+		{#if status === 'pending' || status === 'generating'}
+			<Spinner />
+		{:else if status === 'error'}
+			<Warning />
+		{:else if status === 'complete'}
+			<Success />
+		{/if}
+	</div>
 	{#each app_info as { type, label, component }, i}
 		{#if type === 'string'}
 			<label for="">
@@ -60,5 +76,9 @@
 
 	input:focus-visible {
 		border-color: var(--color-accent);
+	}
+
+	.heading-wrap {
+		display: flex;
 	}
 </style>

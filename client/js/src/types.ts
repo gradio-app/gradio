@@ -23,6 +23,7 @@ export interface Payload {
 	data: Array<unknown>;
 	fn_index?: number;
 	event_data?: unknown;
+	time?: Date;
 }
 
 export interface PostResponse {
@@ -79,7 +80,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export type EventType = "data" | "status";
 
 export interface EventMap {
-	data: Record<string, any>;
+	data: Payload;
 	status: Status;
 }
 

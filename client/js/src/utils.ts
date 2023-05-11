@@ -119,7 +119,10 @@ export async function discussions_enabled(space_id: string) {
 	}
 }
 
-async function get_space_hardware(space_id: string, token: `hf_${string}`) {
+export async function get_space_hardware(
+	space_id: string,
+	token: `hf_${string}`
+) {
 	const headers: { Authorization?: string } = {};
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
@@ -142,7 +145,7 @@ async function get_space_hardware(space_id: string, token: `hf_${string}`) {
 	}
 }
 
-async function set_space_hardware(
+export async function set_space_hardware(
 	space_id: string,
 	new_hardware: Record<string, any>,
 	token: `hf_${string}`
@@ -171,7 +174,7 @@ async function set_space_hardware(
 	}
 }
 
-async function set_space_timeout(
+export async function set_space_timeout(
 	space_id: string,
 	timeout: number,
 	token: `hf_${string}`
@@ -180,11 +183,7 @@ async function set_space_timeout(
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
 	}
-	// 	r = requests.post(
-	// 		f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
-	// 		json={"seconds": timeout_in_seconds},
-	// 		headers=headers,
-	// )
+
 	try {
 		const res = await fetch(
 			`https://huggingface.co/api/spaces/${space_id}/hardware`,

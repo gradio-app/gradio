@@ -3,7 +3,7 @@
 	import EndpointInputs from '../../lib/EndpointInputs.svelte';
 	import ResponsePreview from '../../lib/ResponsePreview.svelte';
 
-	let api = 'pngwn/whisper';
+	let api = 'gradio/cancel_events';
 	let hf_token = '';
 
 	/**
@@ -22,16 +22,24 @@
 	 * @type string[]
 	 */
 	let unnamed = [];
+	/**
+	 * @type string | number
+	 */
 	let active_endpoint = '';
 	/**
-	 *  @type {{data: any[]}}
+	 *  @type {{data: any[]; fn_index: number; endpoint: string|number}}
 	 */
-	let response_data = { data: [] };
+	let response_data = { data: [], fn_index: 0, endpoint: '' };
 	/**
 	 * @type any[]
 	 */
 	let request_data = [];
 	async function connect() {
+		named = [];
+		unnamed = [];
+		app_info = undefined;
+		active_endpoint = '';
+		response_data = { data: [], fn_index: 0, endpoint: '' };
 		if (!api || (hf_token && !hf_token.startsWith('_hf'))) return;
 
 		app = await client(api, {
@@ -52,19 +60,45 @@
 	 * @param _endpoint {string}
 	 */
 	async function select_endpoint(type, _endpoint) {
-		const _endpoint_info = (await app.view_api())?.[`${type}_endpoints`]?.[_endpoint];
+		response_data = { data: [], fn_index: 0, endpoint: '' };
+		const _endpoint_info = (await app.view_api())?.[`${type}_endpoints`]?.[
+			type === 'unnamed' ? parseInt(_endpoint) : _endpoint
+		];
 		if (!_endpoint_info) return;
 
 		console.log(_endpoint_info);
 
 		app_info = _endpoint_info;
-		active_endpoint = _endpoint;
+		active_endpoint = type === 'unnamed' ? parseInt(_endpoint) : _endpoint;
 	}
 
+	/**
+	 * @type ReturnType<Awaited<ReturnType<typeof client>>["submit"]>
+	 */
+	let job;
+
+	/**
+	 * @type {"pending" | "error" | "complete" | "generating" | 'idle'}
+	 */
+	let status = 'idle';
+
 	async function submit() {
-		const res = await app.predict(active_endpoint, request_data);
-		console.log(res);
-		response_data = res;
+		response_data = { data: [], fn_index: 0, endpoint: '' };
+
+		job = app
+			.submit(active_endpoint, request_data)
+			.on('data', (data) => {
+				response_data = data;
+			})
+			.on('status', (_status) => {
+				status = _status.stage;
+			});
+		// console.log(res);
+		// response_data = res;
+	}
+
+	function cancel() {
+		job.cancel();
 	}
 
 	let endpoint_type_text = '';
@@ -77,7 +111,7 @@
 			endpoint_type_text =
 				'This endpoint generates values over time and will continue to yield values until cancelled.';
 		} else {
-			endpoint_type_text = 'This endpoint returns data once and cannot be cancelled.';
+			endpoint_type_text = 'This endpoint runs once and cannot be cancelled.';
 		}
 	}
 </script>
@@ -110,6 +144,7 @@
 			{#if named.length}
 				{#each named as endpoint}
 					<button
+						class="endpoint-button"
 						class:selected={endpoint === active_endpoint}
 						on:click={() => select_endpoint('named', endpoint)}>{endpoint}</button
 					>
@@ -121,10 +156,12 @@
 
 		<div class="endpoint">
 			<h3>Unnamed endpoints</h3>
+
 			{#if unnamed.length}
 				{#each unnamed as endpoint}
 					<button
-						class:selected={endpoint === active_endpoint}
+						class="endpoint-button"
+						class:selected={parseInt(endpoint) === active_endpoint}
 						on:click={() => select_endpoint('unnamed', endpoint)}>{endpoint}</button
 					>
 				{/each}
@@ -151,9 +188,16 @@
 		<div>
 			<EndpointInputs app_info={app_info.parameters} bind:request_data />
 			<button class="submit" on:click={submit}>Submit Request</button>
+			{#if app_info.type.generator || app_info.type.continuous}
+				<button
+					class="cancel"
+					on:click={cancel}
+					disabled={status !== 'generating' && status !== 'pending'}>Cancel Request</button
+				>
+			{/if}
 		</div>
 		<div>
-			<ResponsePreview app_info={app_info.returns} {response_data} />
+			<ResponsePreview {status} app_info={app_info.returns} {response_data} />
 		</div>
 	</div>
 {/if}
@@ -239,5 +283,18 @@
 
 	hr {
 		margin: var(--size-6) 0;
+	}
+
+	.cancel {
+		margin-top: var(--size-2);
+		background-color: var(--color-red-600);
+	}
+	.endpoint-button {
+		border-radius: 2px;
+		margin-right: var(--size-1);
+	}
+
+	button[disabled] {
+		opacity: 0.2;
 	}
 </style>
