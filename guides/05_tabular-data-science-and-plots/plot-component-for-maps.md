@@ -88,7 +88,7 @@ with gr.Blocks() as demo:
     btn.click(filter_map, [min_price, max_price, boroughs], map)
 ```
 
-We layout these components using the `gr.Column` and `gr.Row` and wel also add event triggers for when the demo first loads and when our "Update Filter" button is clicked in order to trigger the map to update with our new filters.
+We layout these components using the `gr.Column` and `gr.Row` and we'll also add event triggers for when the demo first loads and when our "Update Filter" button is clicked in order to trigger the map to update with our new filters.
 
 This is what the full demo code looks like:
 

@@ -165,7 +165,7 @@ class ImgSerializable(Serializable):
         load_dir: str | Path = "",
     ) -> str | None:
         """
-        Convert from human-friendly version of a file (string filepath) to a seralized
+        Convert from human-friendly version of a file (string filepath) to a serialized
         representation (base64).
         Parameters:
             x: String path to file to serialize
@@ -308,7 +308,7 @@ class FileSerializable(Serializable):
     ) -> FileData | None | list[FileData | None]:
         """
         Convert from human-friendly version of a file (string filepath) to a
-        seralized representation (base64)
+        serialized representation (base64)
         Parameters:
             x: String path to file to serialize
             load_dir: Path to directory containing x

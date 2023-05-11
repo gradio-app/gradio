@@ -69,9 +69,9 @@ def running_mean(x, N, total_length=-1):
     return np.pad(cumsum[N:] - cumsum[:-N], (to_pad, 0)) / float(N)
 
 
-def retrieve_pip_installs(library_names, cummulated):
+def retrieve_pip_installs(library_names, cumulated):
 
-    if cummulated:
+    if cumulated:
         returned_values = {}
         for library_name in library_names:
             for i in datasets['pip'][library_name]:

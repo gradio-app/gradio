@@ -169,7 +169,7 @@ def create_initial_status_update():
 class JobStatus:
     """The job status.
 
-    Keeps strack of the latest status update and intermediate outputs (not yet implements).
+    Keeps track of the latest status update and intermediate outputs (not yet implements).
     """
 
     latest_status: StatusUpdate = field(default_factory=create_initial_status_update)

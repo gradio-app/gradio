@@ -107,7 +107,7 @@ experiment.add_tag("image-classifier")
 io.integrate(comet_ml=experiment)
 ```
 
-The last line in this snippet will log the URL of the Gradio Appication to your Comet Experiment. You can find the URL in the Text Tab of your Experiment.
+The last line in this snippet will log the URL of the Gradio Application to your Comet Experiment. You can find the URL in the Text Tab of your Experiment.
 
 <video width="560" height="315" controls>
     <source src="https://user-images.githubusercontent.com/7529846/214328034-09369d4d-8b94-4c4a-aa3c-25e3ed8394c4.mp4"></source>

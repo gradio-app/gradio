@@ -142,7 +142,7 @@ class CheckboxGroup(components.CheckboxGroup):
         Parameters:
         choices (List[str]): list of options to select from.
         default (List[str]): default selected list of options.
-        type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+        type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indices of the choices selected.
         label (str): component name in interface.
         optional (bool): this parameter is ignored.
         """

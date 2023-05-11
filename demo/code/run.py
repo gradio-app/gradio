@@ -30,7 +30,7 @@ with gr.Blocks() as demo:
             label="Input",
             value='def all_odd_elements(sequence):\n    """Returns every odd element of the sequence."""',
         )
-        code_out = gr.Code(label="Ouput")
+        code_out = gr.Code(label="Output")
     btn = gr.Button("Run")
     btn_two = gr.Button("Load File")
 

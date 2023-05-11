@@ -26,7 +26,7 @@ The [ONNX Model Zoo](https://github.com/onnx/models) is a collection of pre-trai
 
 ### Gradio
 
-Gradio lets users demo their machine learning models as a web app all in python code. Gradio wraps a python function into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
+Gradio lets users demo their machine learning models as a web app all in python code. Gradio wraps a python function into a user interface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
 
 Get started [here](https://gradio.app/getting_started)
 
@@ -52,7 +52,7 @@ EfficientNet-Lite 4 is the largest variant and most accurate of the set of Effic
 
 Here we walk through setting up a example demo for EfficientNet-Lite4 using Gradio
 
-First we import our dependencies and download and load the efficientnet-lite4 model from the onnx model zoo. Then load the labels from the labels_map.txt file. We then setup our preprocessing functions, load the model for inference, and setup the inference function. Finally, the inference function is wrapped into a gradio inferface for a user to interact with. See the full code below.
+First we import our dependencies and download and load the efficientnet-lite4 model from the onnx model zoo. Then load the labels from the labels_map.txt file. We then setup our preprocessing functions, load the model for inference, and setup the inference function. Finally, the inference function is wrapped into a gradio interface for a user to interact with. See the full code below.
 
 
 ```python

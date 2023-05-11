@@ -5,7 +5,7 @@ Tags: CLIENT, API, WEB APP
 In this blog post, we will demonstrate how to use the `gradio_client` [Python library](getting-started-with-the-python-client/), which enables developers to make requests to a Gradio app programmatically, by creating an example FastAPI web app. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music. It will also display a gallery of generated videos.
 
 
-**Prequisites**
+**Prerequisites**
 
 Before we begin, make sure you are running Python 3.9 or later, and have the following libraries installed:
 
