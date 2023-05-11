@@ -34,7 +34,7 @@
 
 	const langs = [
 		["python", python],
-		["javascript", javascript]
+		["javascript", javascript],
 	] as const;
 
 	let is_running = false;
@@ -66,7 +66,6 @@
 	}
 	async function get_js_info() {
 		let js_api_info = await app.view_api();
-		console.log(js_api_info);
 		return js_api_info;
 	}
 
@@ -107,7 +106,7 @@
 		let [response, status_code] = await post_data(
 			`${root}run/${dependency.api_name}`,
 			{
-				data: inputs
+				data: inputs,
 			}
 		);
 		is_running = false;
