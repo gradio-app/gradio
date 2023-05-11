@@ -165,7 +165,7 @@ demo.queue()
 demo.launch()
 ```
 
-You can control the number of requests processsed at a single time as such:
+You can control the number of requests processed at a single time as such:
 
 ```python
 demo.queue(concurrency_count=3)
