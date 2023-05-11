@@ -7,6 +7,7 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
+	let old_value = Array.isArray(value) ? value.slice() : value;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -144,7 +145,12 @@
 		}
 	}
 
-	$: value, dispatch("change", value);
+	$: {
+		if (JSON.stringify(value) != JSON.stringify(old_value)) {
+			dispatch("change", value);
+			old_value = Array.isArray(value) ? value.slice() : value;
+		}
+	}
 </script>
 
 <label>
