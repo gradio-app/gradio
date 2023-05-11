@@ -437,7 +437,7 @@ class Textbox(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
-        Uses event data gradio.SelectData to carry `value` referring to selected subtring, and `index` tuple referring to selected range endpoints.
+        Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -1083,7 +1083,7 @@ class CheckboxGroup(
         Parameters:
             choices: list of options to select from.
             value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+            type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indices of the choices selected.
             label: component name in interface.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -2857,7 +2857,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
+            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
 
         self.wrap = wrap
@@ -3243,7 +3243,7 @@ class State(IOComponent, SimpleSerializable):
     ):
         """
         Parameters:
-            value: the initial value (of abitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
+            value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
         """
         self.stateful = True
         IOComponent.__init__(self, value=deepcopy(value), **kwargs)
