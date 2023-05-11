@@ -277,6 +277,9 @@ importers:
       '@gradio/video':
         specifier: workspace:^0.0.1
         version: link:../video
+      '@gradio/wasm':
+        specifier: workspace:^0.0.1
+        version: link:../../wasm
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
@@ -804,6 +807,8 @@ importers:
       typescript:
         specifier: ~4.5.4
         version: 4.5.5
+
+  wasm: {}
 
 packages:
 

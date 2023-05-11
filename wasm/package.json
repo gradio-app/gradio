@@ -1,0 +1,14 @@
+{
+	"name": "@gradio/wasm",
+	"version": "0.0.1",
+	"description": "Gradio Wasm package",
+	"type": "module",
+	"main": "dist/index.js",
+	"private": true,
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"scripts": {
+		"build": "tsc"
+	}
+}
