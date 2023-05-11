@@ -445,6 +445,16 @@
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
     <script>
+    const throt = function(cb, timeout, args) {
+        let locked = false;
+        return function() {
+            if (locked) return;
+            locked = true;
+            cb(args);
+            setTimeout(function() {locked = false;}, timeout);
+        }
+    };
+ 
     const show_demo = (component, demo) => {
       document.querySelectorAll(`#${component} .demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
       document.querySelectorAll(`#${component} .demo-content`).forEach(n => n.classList.add('hidden'));
@@ -467,57 +477,61 @@
           mobileNav.classList.add("hidden");
         }
       });
-    
-    window.addEventListener("scroll", event => {
-      menuBar.classList.remove("hidden");
-      let fromTop = window.scrollY;
 
-      mainNavLinks.forEach(link => {
-        let section = document.querySelector(link.hash);
-        if (
-          section.offsetTop <= fromTop &&
-          section.offsetTop + section.offsetHeight > fromTop
-        ) {
-          link.classList.add("current-nav-link");
-        } else {
-          link.classList.remove("current-nav-link");
-        }
-      });
 
-      mainNavLinksMobile.forEach(link => {  
-        let section = document.querySelector(link.hash);
-        if (
-          section.offsetTop <= fromTop &&
-          section.offsetTop + section.offsetHeight > fromTop
-        ) {
-          link.classList.add("current-nav-link");
-        } else {
-          link.classList.remove("current-nav-link");
-        }
-      });
 
-    });
+    function highlightCurrentNavLink() {
+        menuBar.classList.remove("hidden");
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach(link => {
+            let section = document.querySelector(link.hash);
+            if (
+                section.offsetTop <= fromTop &&
+                section.offsetTop + section.offsetHeight > fromTop
+            ) {
+                link.classList.add("current-nav-link");
+            } else {
+                link.classList.remove("current-nav-link");
+            }
+        });
+
+        mainNavLinksMobile.forEach(link => {  
+            let section = document.querySelector(link.hash);
+            if (
+                section.offsetTop <= fromTop &&
+                section.offsetTop + section.offsetHeight > fromTop
+            ) {
+                link.classList.add("current-nav-link");
+            } else {
+                link.classList.remove("current-nav-link");
+            }
+        });
+    }
+    window.addEventListener("scroll", throt(highlightCurrentNavLink, 300), true);
 
     let mainNavSubLinks = document.querySelectorAll(".navigation .sub-links");
+    
+    function toggleSublinksVisibility() {
+        let fromTop = window.scrollY;
+        mainNavSubLinks.forEach(subLinkDiv => {
+            let hash = subLinkDiv.getAttribute('hash');
+            let section = document.querySelector(hash);
 
-    window.addEventListener("scroll", event => {
-      let fromTop = window.scrollY;
-      mainNavSubLinks.forEach(subLinkDiv => {
-        let hash = subLinkDiv.getAttribute('hash');
-        let section = document.querySelector(hash);
+            if (
+                section.offsetTop <= fromTop &&
+                section.offsetTop + section.offsetHeight > fromTop
+            ) {
+                subLinkDiv.classList.remove("hidden");
+            } else {
+                if (document.querySelector("#search").value.length == 0) {
+                    subLinkDiv.classList.add("hidden");
+                }
+            }
+        });
+    }
+    window.addEventListener("scroll", throt(toggleSublinksVisibility, 300), true);
 
-        if (
-          section.offsetTop <= fromTop &&
-          section.offsetTop + section.offsetHeight > fromTop
-        ) {
-          subLinkDiv.classList.remove("hidden");
-        } else {
-          if (document.querySelector("#search").value.length == 0) {
-            subLinkDiv.classList.add("hidden");
-          }
-        }
-      });
-    });
 
     const search = query => {
       if (query.length > 0) {
