@@ -12,7 +12,7 @@ No changes to highlight.
 ## Bug Fixes:
 No changes to highlight.
 
-## Other Changelog:
+## Other Changes:
 No changes to highlight.
 
 ## Breaking Changes:
