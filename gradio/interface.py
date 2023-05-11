@@ -634,10 +634,9 @@ class Interface(Blocks):
 
                 extra_output = [submit_btn, stop_btn]
 
-                cleanup = lambda: [
-                    Button.update(visible=True),
-                    Button.update(visible=False),
-                ]
+                def cleanup():
+                    return [Button.update(visible=True), Button.update(visible=False)]
+
                 for i, trigger in enumerate(triggers):
                     predict_event = trigger(
                         lambda: (

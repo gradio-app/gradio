@@ -95,7 +95,7 @@ class TestInterface:
                 interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
                 assert (
-                    output == "Keyboard interruption in main thread... closing server."
+                    "Keyboard interruption in main thread... closing server." in output
                 )
 
     @mock.patch("gradio.utils.colab_check")

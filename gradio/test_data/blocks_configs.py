@@ -214,7 +214,6 @@ XRAY_CONFIG = {
         "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
         "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
     ],
-    "root": "",
     "theme": "default",
     "layout": {
         "id": 5,
@@ -524,7 +523,6 @@ XRAY_CONFIG_DIFF_IDS = {
         "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
         "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
     ],
-    "root": "",
     "theme": "default",
     "layout": {
         "id": 5,
