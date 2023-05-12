@@ -22,6 +22,8 @@ export interface Config {
 export interface Payload {
 	data: Array<unknown>;
 	fn_index?: number;
+	event_data?: unknown;
+	time?: Date;
 }
 
 export interface PostResponse {
@@ -35,18 +37,21 @@ export interface UploadResponse {
 
 export interface Status {
 	queue: boolean;
-	status: "pending" | "error" | "complete" | "generating";
+	code?: string;
+	success?: boolean;
+	stage: "pending" | "error" | "complete" | "generating";
 	size?: number;
 	position?: number;
 	eta?: number;
 	message?: string;
-	progress?: Array<{
+	progress_data?: Array<{
 		progress: number | null;
 		index: number | null;
 		length: number | null;
 		unit: string | null;
 		desc: string | null;
 	}>;
+	time?: Date;
 }
 
 export interface SpaceStatusNormal {
@@ -75,7 +80,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export type EventType = "data" | "status";
 
 export interface EventMap {
-	data: Record<string, any>;
+	data: Payload;
 	status: Status;
 }
 

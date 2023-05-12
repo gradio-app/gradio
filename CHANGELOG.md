@@ -3,6 +3,8 @@
 ## New Features:
 
 - Added `format` argument to `Audio` component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4178](https://github.com/gradio-app/gradio/pull/4178)
+- Add JS client code snippets to use via api page by [@aliabd](https://github.com/aliabd) in [PR 3927](https://github.com/gradio-app/gradio/pull/3927).
+No changes to highlight.
 
 ## Bug Fixes:
 
@@ -10,7 +12,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Update the js client by [@pngwn](https://github.com/pngwn) in [PR 3899](https://github.com/gradio-app/gradio/pull/3899)
 
 ## Breaking Changes:
 
