@@ -9,7 +9,7 @@ import socket
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import requests
 import uvicorn
@@ -89,7 +89,7 @@ def start_server(
     ssl_keyfile: str | None = None,
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
-) -> Tuple[str, int, str, App, Server]:
+) -> tuple[str, int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     blocks: The Blocks object to run on the server
@@ -117,10 +117,11 @@ def start_server(
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((LOCALHOST_NAME, server_port))
             s.close()
-        except OSError:
+        except OSError as err:
             raise OSError(
-                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, you can close() it or gradio.close_all()."
-            )
+                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, "
+                f"you can close() it or gradio.close_all()."
+            ) from err
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
@@ -173,9 +174,8 @@ def setup_tunnel(local_host: str, local_port: int, share_token: str) -> str:
             address = tunnel.start_tunnel()
             return address
         except Exception as e:
-            raise RuntimeError(str(e))
-    else:
-        raise RuntimeError("Could not get share link from Gradio API Server.")
+            raise RuntimeError(str(e)) from e
+    raise RuntimeError("Could not get share link from Gradio API Server.")
 
 
 def url_ok(url: str) -> bool:

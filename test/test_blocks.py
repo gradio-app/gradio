@@ -87,10 +87,11 @@ class TestBlocksMethods:
         def fake_func():
             return "Hello There"
 
-        xray_model = lambda diseases, img: {
-            disease: random.random() for disease in diseases
-        }
-        ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
+        def xray_model(diseases, img):
+            return {disease: random.random() for disease in diseases}
+
+        def ct_model(diseases, img):
+            return {disease: 0.1 for disease in diseases}
 
         with gr.Blocks() as demo:
             gr.Markdown(
@@ -263,6 +264,98 @@ class TestBlocksMethods:
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
 
+    @pytest.mark.asyncio
+    async def test_async_generators(self):
+        async def async_iteration(count: int):
+            for i in range(count):
+                yield i
+                await asyncio.sleep(0.2)
+
+        def iteration(count: int):
+            for i in range(count):
+                yield i
+                time.sleep(0.2)
+
+        with gr.Blocks() as demo:
+            with gr.Row():
+                with gr.Column():
+                    num1 = gr.Number(value=4, precision=0)
+                    o1 = gr.Number()
+                    async_iterate = gr.Button(value="Async Iteration")
+                    async_iterate.click(async_iteration, num1, o1)
+                with gr.Column():
+                    num2 = gr.Number(value=4, precision=0)
+                    o2 = gr.Number()
+                    iterate = gr.Button(value="Iterate")
+                    iterate.click(iteration, num2, o2)
+
+        demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+
+        def _get_ws_pred(data, fn_index):
+            async def wrapped():
+                async with websockets.connect(
+                    f"{demo.local_url.replace('http', 'ws')}queue/join"
+                ) as ws:
+                    completed = False
+                    while not completed:
+                        msg = json.loads(await ws.recv())
+                        if msg["msg"] == "send_data":
+                            await ws.send(
+                                json.dumps({"data": [data], "fn_index": fn_index})
+                            )
+                        if msg["msg"] == "send_hash":
+                            await ws.send(
+                                json.dumps(
+                                    {"fn_index": fn_index, "session_hash": "shdce"}
+                                )
+                            )
+                        if msg["msg"] == "process_completed":
+                            completed = True
+                    assert msg["output"]["data"][0] == data - 1
+
+            return wrapped
+
+        try:
+            await asyncio.gather(_get_ws_pred(3, 0)(), _get_ws_pred(4, 1)())
+        finally:
+            demo.close()
+
+    @pytest.mark.asyncio
+    async def test_sync_generators(self):
+        def generator(string):
+            yield from string
+
+        demo = gr.Interface(generator, "text", "text")
+        demo.queue().launch(prevent_thread_lock=True)
+
+        async def _get_ws_pred(data, fn_index):
+            outputs = []
+            async with websockets.connect(
+                f"{demo.local_url.replace('http', 'ws')}queue/join"
+            ) as ws:
+                completed = False
+                while not completed:
+                    msg = json.loads(await ws.recv())
+                    if msg["msg"] == "send_data":
+                        await ws.send(
+                            json.dumps({"data": [data], "fn_index": fn_index})
+                        )
+                    if msg["msg"] == "send_hash":
+                        await ws.send(
+                            json.dumps({"fn_index": fn_index, "session_hash": "shdce"})
+                        )
+                    if msg["msg"] in ["process_generating"]:
+                        outputs.append(msg["output"]["data"])
+                    if msg["msg"] == "process_completed":
+                        completed = True
+            return outputs
+
+        try:
+            output = await _get_ws_pred(fn_index=1, data="abc")
+            assert [o[0] for o in output] == ["a", "b", "c"]
+        finally:
+            demo.close()
+
     def test_socket_reuse(self):
 
         try:
@@ -278,8 +371,7 @@ class TestBlocksMethods:
             return 42
 
         def generator_function():
-            for index in range(10):
-                yield index
+            yield from range(10)
 
         with gr.Blocks() as demo:
 
@@ -405,7 +497,7 @@ class TestComponentsInBlocks:
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
         # Queue should be explicitly false for these events
-        assert all([dep["queue"] is False for dep in demo.config["dependencies"]])
+        assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if comp not in [gr.State]]
@@ -419,7 +511,7 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
-        assert all([dep["every"] == 1 for dep in dependencies_on_load])
+        assert all(dep["every"] == 1 for dep in dependencies_on_load)
 
     def test_get_load_events(self, io_components):
         components = []
@@ -451,7 +543,7 @@ class TestBlocksPostprocessing:
             0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
-            [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
+            o["value"] == c.postprocess(None) for o, c in zip(output, io_components)
         )
 
     def test_blocks_does_not_replace_keyword_literal(self):
@@ -669,8 +761,7 @@ class TestCallFunction:
     @pytest.mark.asyncio
     async def test_call_generator(self):
         def generator(x):
-            for i in range(x):
-                yield i
+            yield from range(x)
 
         with gr.Blocks() as demo:
             inp = gr.Number()
@@ -1035,6 +1126,24 @@ class TestRender:
             io3 = io2.render()
         assert io2 == io3
 
+    def test_no_error_if_state_rendered_multiple_times(self):
+        state = gr.State("")
+        gr.TabbedInterface(
+            [
+                gr.Interface(
+                    lambda _, x: (x, "I don't know"),
+                    inputs=[state, gr.Textbox()],
+                    outputs=[state, gr.Textbox()],
+                ),
+                gr.Interface(
+                    lambda s: (s, f"User question: {s}"),
+                    inputs=[state],
+                    outputs=[state, gr.Textbox(interactive=False)],
+                ),
+            ],
+            ["Ask question", "Show question"],
+        )
+
 
 class TestCancel:
     @pytest.mark.skipif(
@@ -1141,29 +1250,15 @@ class TestCancel:
             f"{io.local_url.replace('http', 'ws')}queue/join"
         ) as ws:
             completed = False
-            checked_iteration = False
             while not completed:
                 msg = json.loads(await ws.recv())
                 if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 1}))
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "process_generating" and isinstance(
-                    msg["output"]["data"][0], str
-                ):
-                    checked_iteration = True
-                    assert msg["output"]["data"][1:] == [
-                        {"visible": False, "__type__": "update"},
-                        {"visible": True, "__type__": "update"},
-                    ]
                 if msg["msg"] == "process_completed":
-                    assert msg["output"]["data"] == [
-                        {"__type__": "update"},
-                        {"visible": True, "__type__": "update"},
-                        {"visible": False, "__type__": "update"},
-                    ]
+                    assert msg["output"]["data"] == ["3"]
                     completed = True
-            assert checked_iteration
 
         io.close()
 
@@ -1213,7 +1308,7 @@ class TestEvery:
                     # If the continuous event got pushed to the queue, the size would be nonzero
                     # asserting false will terminate the test
                     if status.json()["queue_size"] != 0:
-                        assert False
+                        raise AssertionError()
                     else:
                         break
 
@@ -1275,7 +1370,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1331,7 +1426,7 @@ class TestProgressBar:
                 for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1349,11 +1444,10 @@ class TestProgressBar:
                     await ws.send(json.dumps({"data": [0], "fn_index": 0}))
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "progress":
-                    if msg[
-                        "progress_data"
-                    ]:  # Ignore empty lists which sometimes appear on Windows
-                        progress_updates.append(msg["progress_data"])
+                if (
+                    msg["msg"] == "progress" and msg["progress_data"]
+                ):  # Ignore empty lists which sometimes appear on Windows
+                    progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break

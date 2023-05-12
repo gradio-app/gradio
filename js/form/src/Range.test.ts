@@ -6,7 +6,7 @@ import Range from "./Range.svelte";
 describe("Range", () => {
 	afterEach(() => cleanup());
 
-	test("Release event called on blur and mouseUp", () => {
+	test("Release event called on blur and pointerUp", () => {
 		const results = render(Range, {
 			label: "range",
 			show_label: true,
@@ -19,7 +19,7 @@ describe("Range", () => {
 		const mock = vi.fn();
 		results.component.$on("release", mock);
 
-		fireEvent.mouseUp(numberInput);
+		fireEvent.pointerUp(numberInput);
 
 		expect(mock).toHaveBeenCalledOnce();
 

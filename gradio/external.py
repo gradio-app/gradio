@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import re
 import warnings
-from typing import TYPE_CHECKING, Callable, Dict
+from typing import TYPE_CHECKING, Callable
 
 import requests
 from gradio_client import Client
@@ -24,7 +24,7 @@ from gradio.external_utils import (
     rows_to_cols,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import to_binary
+from gradio.processing_utils import extract_base64_data, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -87,7 +87,7 @@ def load_blocks_from_repo(
         src = tokens[0]
         name = "/".join(tokens[1:])
 
-    factory_methods: Dict[str, Callable] = {
+    factory_methods: dict[str, Callable] = {
         # for each repo type, we have a method that returns the Interface given the model name & optionally an api_key
         "huggingface": from_model,
         "models": from_model,
@@ -201,12 +201,6 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
         },
-        "image-to-text": {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Textbox(),
-            "preprocess": to_binary,
-            "postprocess": lambda r: r.json()[0]["generated_text"],
-        },
         "question-answering": {
             # Example: deepset/xlm-roberta-base-squad2
             "inputs": [
@@ -319,6 +313,47 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
         },
+        "document-question-answering": {
+            # example model: impira/layoutlm-document-qa
+            "inputs": [
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": extract_base64_data(img),  # Extract base64 data
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: postprocess_label(
+                {i["answer"]: i["score"] for i in r.json()}
+            ),
+        },
+        "visual-question-answering": {
+            # example model: dandelin/vilt-b32-finetuned-vqa
+            "inputs": [
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Label(label="Label"),
+            "preprocess": lambda img, q: {
+                "inputs": {
+                    "image": extract_base64_data(img),
+                    "question": q,
+                }
+            },
+            "postprocess": lambda r: postprocess_label(
+                {i["answer"]: i["score"] for i in r.json()}
+            ),
+        },
+        "image-to-text": {
+            # example model: Salesforce/blip-image-captioning-base
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Generated Text"),
+            "preprocess": to_binary,
+            "postprocess": lambda r: r.json()[0]["generated_text"],
+        },
     }
 
     if p in ["tabular-classification", "tabular-regression"]:
@@ -358,7 +393,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             data.update({"options": {"wait_for_model": True}})
             data = json.dumps(data)
         response = requests.request("POST", api_url, headers=headers, data=data)
-        if not (response.status_code == 200):
+        if response.status_code != 200:
             errors_json = response.json()
             errors, warns = "", ""
             if errors_json.get("error"):
@@ -434,8 +469,8 @@ def from_spaces(
     )  # some basic regex to extract the config
     try:
         config = json.loads(result.group(1))  # type: ignore
-    except AttributeError:
-        raise ValueError(f"Could not load the Space: {space_name}")
+    except AttributeError as ae:
+        raise ValueError(f"Could not load the Space: {space_name}") from ae
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
             space_name, config, alias, api_key, iframe_url, **kwargs
@@ -459,7 +494,7 @@ def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
 
 def from_spaces_interface(
     model_name: str,
-    config: Dict,
+    config: dict,
     alias: str | None,
     api_key: str | None,
     iframe_url: str,
@@ -477,14 +512,14 @@ def from_spaces_interface(
         data = json.dumps({"data": data})
         response = requests.post(api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
+        if "error" in result and "429" in result["error"]:
+            raise TooManyRequestsError("Too many requests to the Hugging Face API")
         try:
             output = result["data"]
-        except KeyError:
-            if "error" in result and "429" in result["error"]:
-                raise TooManyRequestsError("Too many requests to the Hugging Face API")
+        except KeyError as ke:
             raise KeyError(
                 f"Could not find 'data' key in response from external Space. Response received: {result}"
-            )
+            ) from ke
         if (
             len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it
