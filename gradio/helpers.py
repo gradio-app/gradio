@@ -724,7 +724,7 @@ def make_waveform(
         audio = processing_utils.audio_from_file(audio)
     else:
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
+        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
     duration = round(len(audio[1]) / audio[0], 4)
 

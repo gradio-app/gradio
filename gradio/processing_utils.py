@@ -159,15 +159,16 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     return audio.frame_rate, data
 
 
-def audio_to_file(sample_rate, data, filename):
-    data = convert_to_16_bit_wav(data)
+def audio_to_file(sample_rate, data, filename, format="wav"):
+    if format == "wav":
+        data = convert_to_16_bit_wav(data)
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,
         sample_width=data.dtype.itemsize,
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
-    file = audio.export(filename, format="wav")
+    file = audio.export(filename, format=format)
     file.close()  # type: ignore
 
 
