@@ -1,8 +1,9 @@
+import json
 import os
 import random
-import huggingface_hub
-import json
 import re
+
+import huggingface_hub
 
 
 def add_configuration_to_readme(repo_directory, readme_file):
@@ -23,7 +24,7 @@ def add_configuration_to_readme(repo_directory, readme_file):
         ):
             continue
 
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
             content = f.read()
             if "import gradio" in content:
                 app_file = file
@@ -41,14 +42,14 @@ def add_configuration_to_readme(repo_directory, readme_file):
         app_file = "_" + configuration["notebook_file"].replace(".ipynb", ".py")
     configuration["app_file"] = app_file
 
-    EMOJI_SET = "🤯🤖🧠🐶👑💥🐮🎁🐙🦋"
-    default_emoji = random.choice(EMOJI_SET)
+    emoji_set = "🤯🤖🧠🐶👑💥🐮🎁🐙🦋"
+    default_emoji = random.choice(emoji_set)
     configuration["emoji"] = (
         input(f"Enter Spaces Card emoji [{default_emoji}]: ") or default_emoji
     )
 
-    COLOR_SET = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
-    default_color = random.choice(COLOR_SET)
+    color_set = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
+    default_color = random.choice(color_set)
     color = input(f"Enter Spaces Card color [{default_color}]: ") or default_color
     configuration["colorFrom"] = color
     configuration["colorTo"] = color
@@ -94,7 +95,7 @@ def format_title(title):
 
 def notebook_to_script(notebook_path, script_path):
     print(f"Converting {notebook_path} to {script_path}.")
-    with open(notebook_path, "r", encoding="utf-8") as f:
+    with open(notebook_path, encoding="utf-8") as f:
         notebook = json.load(f)
     import_subprocess = False
     script_content = []
