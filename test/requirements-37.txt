@@ -59,7 +59,7 @@ httpx==0.23.0
     # via
     #   -r requirements.in
     #   respx
-huggingface-hub==0.13.0
+huggingface-hub==0.14.0
     # via
     #   -r requirements.in
     #   transformers
@@ -248,7 +248,7 @@ traitlets==5.3.0
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.29.1
+transformers==4.20.1
     # via -r requirements.in
 typed-ast==1.5.4
     # via black
