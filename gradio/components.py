@@ -30,7 +30,6 @@ import PIL
 import PIL.ImageOps
 import requests
 from fastapi import UploadFile
-from ffmpy import FFmpeg
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
@@ -52,7 +51,7 @@ from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 from typing_extensions import Literal
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, utils, wasm_utils
 from gradio.blocks import Block, BlockContext
 from gradio.events import (
     Blurrable,
@@ -72,6 +71,10 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
+
+if not wasm_utils.is_wasm:
+    # TODO: Support ffmpeg on Wasm
+    from ffmpy import FFmpeg
 
 if TYPE_CHECKING:
     from typing import TypedDict

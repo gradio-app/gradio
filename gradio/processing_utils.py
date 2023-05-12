@@ -11,9 +11,14 @@ from io import BytesIO
 from pathlib import Path
 
 import numpy as np
-from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
+
+from gradio import wasm_utils
+
+if not wasm_utils.is_wasm:
+    # TODO: Support ffmpeg on Wasm
+    from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed

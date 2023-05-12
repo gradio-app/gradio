@@ -33,6 +33,7 @@ from gradio import (
     strings,
     themes,
     utils,
+    wasm_utils,
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
@@ -726,7 +727,7 @@ class Blocks(BlockContext):
         self.blocked_paths = []
         self.root_path = ""
 
-        if self.analytics_enabled:
+        if not wasm_utils.is_wasm and self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
@@ -1745,15 +1746,30 @@ Received outputs:
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            server_name, server_port, local_url, app, server = networking.start_server(
-                self,
-                server_name,
-                server_port,
-                ssl_keyfile,
-                ssl_certfile,
-                ssl_keyfile_password,
-                app_kwargs=app_kwargs,
-            )
+            if wasm_utils.is_wasm:
+                server_name = None
+                server_port = None
+                local_url = ""
+                server = None
+
+                # In the Wasm environment, we only need the app object
+                # which the frontend app will directly communicate with through the Worker API,
+                # and we don't need to start a server.
+                # So we just create the app object and register it here,
+                # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
+                from gradio.routes import App
+
+                app = App.create_app(self, app_kwargs=app_kwargs)
+            else:
+                server_name, server_port, local_url, app, server = networking.start_server(
+                    self,
+                    server_name,
+                    server_port,
+                    ssl_keyfile,
+                    ssl_certfile,
+                    ssl_keyfile_password,
+                    app_kwargs=app_kwargs,
+                )
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
@@ -1775,7 +1791,11 @@ Received outputs:
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+            if not wasm_utils.is_wasm:
+                requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+
+        if wasm_utils.is_wasm:
+            return
 
         utils.launch_counter()
 

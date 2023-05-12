@@ -4,6 +4,8 @@ from typing import Dict
 
 import requests
 
+from gradio import wasm_utils
+
 MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
 en = {
@@ -41,5 +43,5 @@ def get_updated_messaging(en: Dict):
         pass
 
 
-if os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True":
+if os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True" and not wasm_utils.is_wasm:
     threading.Thread(target=get_updated_messaging, args=(en,)).start()
