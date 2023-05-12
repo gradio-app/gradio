@@ -37,8 +37,7 @@ def add_configuration_to_readme(repo_directory, readme_file) -> dict:
         or app_file
     )
     if not app_file or not os.path.exists(app_file):
-        print("Failed to find Gradio app file.")
-        return
+        raise FileNotFoundError("Failed to find Gradio app file.")
     if app_file.endswith(".ipynb"):
         configuration["notebook_file"] = app_file
         app_file = "_" + configuration["notebook_file"].replace(".ipynb", ".py")
