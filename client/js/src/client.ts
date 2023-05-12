@@ -342,9 +342,11 @@ export async function client(
 			let api_info;
 			if (typeof endpoint === "number") {
 				fn_index = endpoint;
+				api_info = api.unnamed_endpoints[fn_index];
 			} else {
 				const trimmed_endpoint = endpoint.replace(/^\//, "");
 				fn_index = api_map[trimmed_endpoint];
+				api_info = api.named_endpoints[endpoint.trim()];
 			}
 
 			if (typeof fn_index !== "number") {
@@ -582,7 +584,7 @@ export async function client(
 				if (websocket && websocket.readyState === 0) {
 					addEventListener("open", () => websocket.close());
 				} else {
-					websocket.close();
+					websocket.	();
 				}
 
 				destroy();
