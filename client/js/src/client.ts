@@ -7,7 +7,8 @@ import {
 	discussions_enabled,
 	get_space_hardware,
 	set_space_hardware,
-	set_space_timeout
+	set_space_timeout,
+	hardware_types
 } from "./utils.js";
 
 import type {
@@ -111,16 +112,6 @@ export async function upload_files(
 	const output: UploadResponse["files"] = await response.json();
 	return { files: output };
 }
-
-const hardware_types = [
-	"cpu-basic",
-	"cpu-upgrade",
-	"t4-small",
-	"t4-medium",
-	"a10g-small",
-	"a10g-large",
-	"a100-large"
-] as const;
 
 export async function duplicate(
 	app_reference: string,
