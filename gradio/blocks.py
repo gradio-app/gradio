@@ -685,7 +685,7 @@ class Blocks(BlockContext):
         self.analytics_enabled = (
             analytics_enabled
             if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+            else analytics.analytics_enabled()
         )
         if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"

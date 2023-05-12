@@ -1,6 +1,8 @@
+""" Functions related to calling home. """
 from __future__ import annotations
 
 import json
+import os
 import pkgutil
 import threading
 import warnings
@@ -18,7 +20,23 @@ ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
 
+def analytics_enabled() -> bool:
+    """
+    Returns: True if analytics are enabled, False otherwise.
+    """
+    return os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+
+
+def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
+    try:
+        requests.post(url, data=data, timeout=5)
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
+
+
 def version_check():
+    if not analytics_enabled():
+        return
     try:
         version_data = pkgutil.get_data(__name__, "version.txt")
         if not version_data:
@@ -57,34 +75,32 @@ def get_local_ip_address() -> str:
 
 
 def initiated_analytics(data: dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def initiated_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{ANALYTICS_URL}gradio-initiated-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
+    if not analytics_enabled():
+        return
+    threading.Thread(
+        target=_do_analytics_request,
+        kwargs={
+            "url": f"{ANALYTICS_URL}gradio-initiated-analytics/",
+            "data": {**data, "ip_address": get_local_ip_address()},
+        },
+    ).start()
 
 
 def launch_analytics(data: dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def launch_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{ANALYTICS_URL}gradio-launched-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=launch_analytics_thread, args=(data,)).start()
+    if not analytics_enabled():
+        return
+    threading.Thread(
+        target=_do_analytics_request,
+        kwargs={
+            "url": f"{ANALYTICS_URL}gradio-launched-analytics/",
+            "data": {**data, "ip_address": get_local_ip_address()},
+        },
+    ).start()
 
 
 def launched_telemetry(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
+    if not analytics_enabled():
+        return
     blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
         [],
         [],
@@ -132,29 +148,26 @@ def launched_telemetry(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     data.update(additional_data)
     data.update({"ip_address": get_local_ip_address()})
 
-    def launched_telemtry_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{ANALYTICS_URL}gradio-launched-telemetry/", data=data, timeout=5
-            )
-        except Exception:
-            pass
-
-    threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
+    threading.Thread(
+        target=_do_analytics_request,
+        kwargs={
+            "url": f"{ANALYTICS_URL}gradio-launched-telemetry/",
+            "data": data,
+        },
+    ).start()
 
 
 def integration_analytics(data: dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
+    if not analytics_enabled():
+        return
 
-    def integration_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{ANALYTICS_URL}gradio-integration-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=integration_analytics_thread, args=(data,)).start()
+    threading.Thread(
+        target=_do_analytics_request,
+        kwargs={
+            "url": f"{ANALYTICS_URL}gradio-integration-analytics/",
+            "data": {**data, "ip_address": get_local_ip_address()},
+        },
+    ).start()
 
 
 def error_analytics(message: str) -> None:
@@ -165,18 +178,18 @@ def error_analytics(message: str) -> None:
     """
     data = {"ip_address": get_local_ip_address(), "error": message}
 
-    def error_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{ANALYTICS_URL}gradio-error-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=error_analytics_thread, args=(data,)).start()
+    threading.Thread(
+        target=_do_analytics_request,
+        kwargs={
+            "url": f"{ANALYTICS_URL}gradio-error-analytics/",
+            "data": data,
+        },
+    ).start()
 
 
 async def log_feature_analytics(feature: str) -> None:
+    if not analytics_enabled():
+        return
     data = {"ip_address": get_local_ip_address(), "feature": feature}
     async with aiohttp.ClientSession() as session:
         try:
@@ -184,5 +197,5 @@ async def log_feature_analytics(feature: str) -> None:
                 f"{ANALYTICS_URL}gradio-feature-analytics/", data=data
             ):
                 pass
-        except (aiohttp.ClientError):
+        except aiohttp.ClientError:
             pass  # do not push analytics if no network

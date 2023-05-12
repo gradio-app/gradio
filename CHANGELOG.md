@@ -7,7 +7,9 @@
 
 ## Bug Fixes:
 
-Fix "TypeError: issubclass() arg 1 must be a class" When use Optional[Types] by [@lingfengchencn](https://github.com/lingfengchencn) in [PR 4200](https://github.com/gradio-app/gradio/pull/4200). 
+- Fix "TypeError: issubclass() arg 1 must be a class" When use Optional[Types] by [@lingfengchencn](https://github.com/lingfengchencn) in [PR 4200](https://github.com/gradio-app/gradio/pull/4200). 
+- Gradio will no longer call home automatically if analytics are disabled with the GRADIO_ANALYTICS_ENABLED environment variable.
+  By [@akx](https://github.com/akx) in [PR 4194](https://github.com/gradio-app/gradio/pull/4194)
 
 ## Other Changes:
 

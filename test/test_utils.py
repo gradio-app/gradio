@@ -340,7 +340,6 @@ async def test_get(respx_mock):
 
 @pytest.mark.asyncio
 async def test_post(respx_mock):
-
     payload = {"name": "morpheus", "job": "leader"}
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response(payload))
 
@@ -357,7 +356,6 @@ async def test_post(respx_mock):
 
 @pytest.mark.asyncio
 async def test_validate_with_model(respx_mock):
-
     response = make_mock_response(
         {
             "name": "morpheus",
@@ -424,7 +422,6 @@ async def test_exception_type(validate_response_data, respx_mock):
 
 @pytest.mark.asyncio
 async def test_validate_with_function(respx_mock):
-
     respx_mock.post(MOCK_REQUEST_URL).mock(
         make_mock_response({"name": "morpheus", "id": 1})
     )
