@@ -99,5 +99,7 @@
 		/* Completeness */
 		// "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */
-	}
+	},
+	"include": ["src/**/*"],
+	"exclude": ["src/webworker.ts"] // webworker.ts is bundled by Vite separately. See its config file.
 }
