@@ -34,7 +34,7 @@ The Gradio client works with any hosted Gradio app, whether it be an image gener
 The lightweight `@gradio/client` package can be installed from the npm registry with a package manager of your choice and support node version 18 and above:
 
 ```bash
-npm i -D @gradio/client
+npm i @gradio/client
 ```
 
 ## Connecting to a running Gradio App
