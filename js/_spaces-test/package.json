@@ -1,5 +1,5 @@
 {
-	"name": "spaces-test",
+	"name": "@gradio/spaces-test",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
