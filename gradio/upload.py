@@ -126,7 +126,7 @@ def notebook_to_script(notebook_path, script_path):
         f.write(script)
 
 
-def upload_to_spaces():
+def deploy():
     if (
         os.getenv("SYSTEM") == "spaces"
     ):  # in case a repo with this function is uploaded to spaces
