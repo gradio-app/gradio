@@ -22,7 +22,8 @@
 		"test:browser": "pnpm --filter @gradio/app test:browser:full",
 		"test:browser:full": "run-s build test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
-		"ci:publish": "pnpm publish --no-git-checks --access public -r"
+		"ci:publish": "pnpm publish --no-git-checks --access public -r",
+		"ci:version": "changesets version && pnpm i --lockfile-only"
 	},
 	"type": "module",
 	"author": "",
