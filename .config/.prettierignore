@@ -11,6 +11,7 @@
 **/.venv/**
 **/.github/**
 **/guides/**
-**/test/**
 **/.mypy_cache/**
 **/*.md
+**/js/_space-test/**
+js/app/test/gradio_cached_examples/**

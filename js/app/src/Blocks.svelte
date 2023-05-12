@@ -232,30 +232,7 @@
 		});
 	}
 
-	app.on("data", ({ data, fn_index }) => {
-		handle_update(data, fn_index);
-		let status = loading_status.get_status_for_fn(fn_index);
-		if (status === "complete") {
-			// handle .success and successful .then here, after data has updated
-			dependencies.forEach((dep, i) => {
-				if (dep.trigger_after === fn_index) {
-					trigger_api_call(i, null);
-				}
-			});
-		}
-	});
-
-	app.on("status", ({ fn_index, ...status }) => {
-		loading_status.update({ ...status, fn_index });
-		if (status.status === "error") {
-			// handle failed .then here, since "data" listener won't trigger
-			dependencies.forEach((dep, i) => {
-				if (dep.trigger_after === fn_index && !dep.trigger_only_on_success) {
-					trigger_api_call(i, null);
-				}
-			});
-		}
-	});
+	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
 
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
 		if (!obj?.props) {
@@ -266,7 +243,7 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	const trigger_api_call = (dep_index: number, event_data: unknown) => {
+	const trigger_api_call = async (dep_index: number, event_data: unknown) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -274,9 +251,11 @@
 		}
 
 		if (dep.cancels) {
-			dep.cancels.forEach((fn_index) => {
-				app.cancel("/predict", fn_index);
-			});
+			await Promise.all(
+				dep.cancels.map((fn_index) => {
+					submit_map.get(fn_index)?.cancel();
+				})
+			);
 		}
 
 		let payload = {
@@ -307,7 +286,42 @@
 		}
 
 		function make_prediction() {
-			app.predict("/predict", payload);
+			const submission = app
+				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
+				.on("data", ({ data, fn_index }) => {
+					handle_update(data, fn_index);
+					let status = loading_status.get_status_for_fn(fn_index);
+
+					if (status === "complete") {
+						dependencies.forEach((dep, i) => {
+							if (dep.trigger_after === fn_index) {
+								trigger_api_call(i, null);
+							}
+						});
+					}
+				})
+				.on("status", ({ fn_index, ...status }) => {
+					loading_status.update({
+						...status,
+						status: status.stage,
+						progress: status.progress_data,
+						fn_index
+					});
+
+					if (status.stage === "error") {
+						// handle failed .then here, since "data" listener won't trigger
+						dependencies.forEach((dep, i) => {
+							if (
+								dep.trigger_after === fn_index &&
+								!dep.trigger_only_on_success
+							) {
+								trigger_api_call(i, null);
+							}
+						});
+					}
+				});
+
+			submit_map.set(dep_index, submission);
 		}
 	};
 
@@ -466,6 +480,7 @@
 				{instance_map}
 				{dependencies}
 				{root}
+				{app}
 			/>
 		</div>
 	</div>

@@ -1,0 +1,79 @@
+{
+	"named_endpoints": {
+		"/predict": {
+			"parameters": [
+				{
+					"label": "Plot Type",
+					"type": {
+						"type": "string",
+						"description": "Option from: ['Matplotlib', 'Plotly', 'Altair']"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "Option from: ['Matplotlib', 'Plotly', 'Altair']"
+					},
+					"component": "Dropdown",
+					"example_input": "Matplotlib",
+					"serializer": "SimpleSerializable"
+				},
+				{
+					"label": "R",
+					"type": {
+						"type": "number",
+						"description": "numeric value between 1 and 4"
+					},
+					"python_type": {
+						"type": "int | float",
+						"description": "numeric value between 1 and 4"
+					},
+					"component": "Slider",
+					"example_input": 1,
+					"serializer": "NumberSerializable"
+				},
+				{
+					"label": "Month",
+					"type": {
+						"type": "string",
+						"description": "Option from: ['January', 'February', 'March', 'April', 'May']"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "Option from: ['January', 'February', 'March', 'April', 'May']"
+					},
+					"component": "Dropdown",
+					"example_input": "January",
+					"serializer": "SimpleSerializable"
+				},
+				{
+					"label": "Countries",
+					"type": { "type": "array", "items": { "type": "string" } },
+					"python_type": { "type": "List[str]", "description": "" },
+					"component": "Checkboxgroup",
+					"example_input": "USA",
+					"serializer": "ListStringSerializable"
+				},
+				{
+					"label": "Social Distancing?",
+					"type": { "type": "boolean" },
+					"python_type": { "type": "bool", "description": "" },
+					"component": "Checkbox",
+					"example_input": true,
+					"serializer": "BooleanSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "output",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Plot",
+					"serializer": "JSONSerializable"
+				}
+			]
+		}
+	},
+	"unnamed_endpoints": {}
+}

@@ -1,5 +1,5 @@
 import { test, expect, Page, Locator } from "@playwright/test";
-import { mock_theme, wait_for_page } from "./utils";
+import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
 
 //taken from: https://github.com/microsoft/playwright/issues/20032
 async function changeSlider(
@@ -33,33 +33,9 @@ async function changeSlider(
 	await page.mouse.up();
 }
 
-function mock_demo(page: Page, demo: string) {
-	return page.route("**/config", (route) => {
-		return route.fulfill({
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-			path: `../../demo/${demo}/config.json`
-		});
-	});
-}
-
-function mock_api(page: Page) {
-	return page.route("**/run/predict", (route) => {
-		return route.fulfill({
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-			body: JSON.stringify({
-				data: [70, null, 1]
-			})
-		});
-	});
-}
-
 test("slider release", async ({ page }) => {
 	await mock_demo(page, "slider_release");
-	await mock_api(page);
+	await mock_api(page, [[70, null, 1]]);
 	await mock_theme(page);
 	await wait_for_page(page);
 	const slider = page.getByLabel("Slider");

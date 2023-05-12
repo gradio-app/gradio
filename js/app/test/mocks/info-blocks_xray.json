@@ -1,0 +1,109 @@
+{
+	"named_endpoints": {
+		"/xray_model": {
+			"parameters": [
+				{
+					"label": "Disease to Scan For",
+					"type": { "type": "array", "items": { "type": "string" } },
+					"python_type": { "type": "List[str]", "description": "" },
+					"component": "Checkboxgroup",
+					"example_input": "Covid",
+					"serializer": "ListStringSerializable"
+				},
+				{
+					"label": "parameter_6",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "value_7",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Json",
+					"serializer": "JSONSerializable"
+				}
+			]
+		},
+		"/ct_model": {
+			"parameters": [
+				{
+					"label": "Disease to Scan For",
+					"type": { "type": "array", "items": { "type": "string" } },
+					"python_type": { "type": "List[str]", "description": "" },
+					"component": "Checkboxgroup",
+					"example_input": "Covid",
+					"serializer": "ListStringSerializable"
+				},
+				{
+					"label": "parameter_11",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "value_12",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Json",
+					"serializer": "JSONSerializable"
+				}
+			]
+		}
+	},
+	"unnamed_endpoints": {
+		"2": {
+			"parameters": [
+				{
+					"label": "parameter_12",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Json",
+					"example_input": null,
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "parameter_7",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Json",
+					"example_input": null,
+					"serializer": "JSONSerializable"
+				}
+			],
+			"returns": []
+		}
+	}
+}

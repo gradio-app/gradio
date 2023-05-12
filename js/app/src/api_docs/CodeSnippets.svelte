@@ -15,12 +15,28 @@
 	export let dependency_inputs: string[][];
 	export let dependency_failures: boolean[][];
 	export let endpoint_parameters: any;
+	export let js_parameters: any;
 	export let named: boolean;
 
 	export let current_language: "python" | "javascript";
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
+
+	let blob_components = ["Audio", "File", "Image", "Video"];
+	let blob_examples: any[] = endpoint_parameters.filter(
+		(param: {
+			label: string;
+			type: string;
+			python_type: {
+				type: string;
+				description: string;
+			};
+			component: string;
+			example_input: string;
+			serializer: string;
+		}) => blob_components.includes(param.component)
+	);
 </script>
 
 <div class="container">
@@ -53,8 +69,8 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} <!--
-			-->representing input in '{label}' <!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!--
+			--> in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--
@@ -67,6 +83,65 @@ result = client.predict(<!--
 						{/if}
 )
 print(result)</pre>
+				</div>
+			{:else if current_language === "javascript"}
+				<div class="copy">
+					<CopyButton code={js_code?.innerText} />
+				</div>
+				<div bind:this={js_code}>
+					<pre>import &lbrace; client &rbrace; from "@gradio/client";
+<!--
+-->
+
+async function run() &lbrace;
+{#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
+-->
+	const response_{i} = await fetch("{example_input}");
+	const example{component} = await response_{i}.blob();
+						{/each}<!--
+-->
+	const app = await client(<span class="token string">"{root}"</span>);
+	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
+-->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
+		-->{#if blob_components.includes(component)}<!--
+	-->
+				<span
+									class="example-inputs">example{component}</span
+								>, <!--
+		--><span class="desc"
+									><!--
+		-->	// blob <!--
+		-->in '{label}' <!--
+		-->{component} component<!--
+		--></span
+								><!--
+		-->{:else}<!--
+	-->		
+				<span class="example-inputs"
+									>{represent_value(
+										example_input,
+										python_type.type,
+										"js"
+									)}</span
+								>, <!--
+--><span class="desc"
+									><!--
+-->// {js_parameters[i]
+										.type} {#if js_parameters[i].description}({js_parameters[i]
+											.description}){/if}<!--
+--> in '{label}' <!--
+-->{component} component<!--
+--></span
+								><!--
+-->{/if}
+						{/each}
+	]);
+
+	console.log(result?.data);
+&rbrace;
+
+run();
+</pre>
 				</div>
 			{/if}
 		</code>

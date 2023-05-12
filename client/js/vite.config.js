@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	build: {
-		minify: true,
+		// minify: true,
 		lib: {
 			entry: "src/index.ts",
 			formats: ["es"]
