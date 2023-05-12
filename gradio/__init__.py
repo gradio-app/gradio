@@ -54,6 +54,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.deploy_space import deploy
 from gradio.events import SelectData
 from gradio.exceptions import Error
 from gradio.external import load
@@ -88,7 +89,6 @@ from gradio.templates import (
     Webcam,
 )
 from gradio.themes import Base as Theme
-from gradio.deploy import deploy
 
 current_pkg_version = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import os
 import random
@@ -6,7 +8,7 @@ import re
 import huggingface_hub
 
 
-def add_configuration_to_readme(repo_directory, readme_file):
+def add_configuration_to_readme(repo_directory, readme_file) -> dict:
     configuration = {}
 
     dir_name = os.path.basename(repo_directory)
@@ -84,9 +86,9 @@ def add_configuration_to_readme(repo_directory, readme_file):
     return configuration
 
 
-def format_title(title):
+def format_title(title: str):
     title = title.replace(" ", "_")
-    title = re.sub("[^a-zA-Z0-9\-._]", "", title)
+    title = re.sub(r"[^a-zA-Z0-9\-._]", "", title)
     title = re.sub("-+", "-", title)
     while title.startswith("."):
         title = title[1:]
@@ -149,7 +151,7 @@ def deploy():
 
     repo_directory = os.getcwd()
     readme_file = os.path.join(repo_directory, "README.md")
-    configuration = None
+    configuration: None | dict = None
     if os.path.exists(readme_file):
         try:
             configuration = huggingface_hub.metadata_load(readme_file)
