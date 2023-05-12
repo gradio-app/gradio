@@ -20,7 +20,7 @@ en = {
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
     "COLAB_WARNING": "Note: opening Chrome Inspector may crash demo inside Colab notebooks.",
-    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades (NEW!), check out Spaces: https://huggingface.co/spaces",
+    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades, run `gradio --deploy` to deploy to Spaces (https://huggingface.co/spaces)",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
     "TIPS": [
         "You can add authentication to your app with the `auth=` kwarg in the `launch()` command; for example: `gr.Interface(...).launch(auth=('username', 'password'))`",
