@@ -26,11 +26,9 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
           node-version: 18
           registry-url: "https://registry.npmjs.org"
+
       - name: Creating .npmrc
-        run: |
-          cat << EOF > "$HOME/.npmrc"
-            //registry.npmjs.org/:_authToken=$NPM_TOKEN
-          EOF
+        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: install dependencies
