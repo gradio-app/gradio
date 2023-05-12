@@ -29,8 +29,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build packages
         run: pnpm --filter @gradio/client build
-      - name: Setup npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
       - name: create and publish versions
         uses: changesets/action@v1
         with:
