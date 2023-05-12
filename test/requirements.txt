@@ -238,7 +238,7 @@ traitlets==5.3.0
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.20.1
+transformers==4.29.1
     # via -r requirements.in
 typing-extensions==4.3.0
     # via
