@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- Added `format` argument to `Audio` component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4178](https://github.com/gradio-app/gradio/pull/4178)
 
 ## Bug Fixes:
 
