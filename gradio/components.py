@@ -2430,8 +2430,12 @@ class Audio(
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            output_file = str(Path(output_file_name).with_suffix(f".{self.audio_format}"))
-            processing_utils.audio_to_file(sample_rate, data, output_file, format=self.audio_format)
+            output_file = str(
+                Path(output_file_name).with_suffix(f".{self.audio_format}")
+            )
+            processing_utils.audio_to_file(
+                sample_rate, data, output_file, format=self.audio_format
+            )
             return output_file
         else:
             raise ValueError(
@@ -2531,8 +2535,12 @@ class Audio(
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(suffix=f".{self.audio_format}", delete=False)
-            processing_utils.audio_to_file(sample_rate, data, file.name, format=self.audio_format)
+            file = tempfile.NamedTemporaryFile(
+                suffix=f".{self.audio_format}", delete=False
+            )
+            processing_utils.audio_to_file(
+                sample_rate, data, file.name, format=self.audio_format
+            )
             file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)
         else:
