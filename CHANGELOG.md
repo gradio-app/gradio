@@ -10,7 +10,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Change `gr.Chatbot()` markdown parsing to frontend using `marked` library and `highlight.js` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4150](https://github.com/gradio-app/gradio/pull/4150)
 
 ## Breaking Changes:
 

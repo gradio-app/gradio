@@ -324,6 +324,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils
+      '@types/marked':
+        specifier: ^4.3.0
+        version: 4.3.0
       highlight.js:
         specifier: ^11.8.0
         version: 11.8.0
@@ -1811,6 +1814,10 @@ packages:
 
   /@types/js-levenshtein@1.1.1:
     resolution: {integrity: sha512-qC4bCqYGy1y/NP7dDVr7KJarn+PbX1nSpwA7JXdu0HxT3QYjO8MJ+cntENtHFVy2dRAyBV23OZ6MxsW1AM1L8g==}
+    dev: false
+
+  /@types/marked@4.3.0:
+    resolution: {integrity: sha512-zK4gSFMjgslsv5Lyvr3O1yCjgmnE4pr8jbG8qVn4QglMwtpvPCf4YT2Wma7Nk95OxUUJI8Z+kzdXohbM7mVpGw==}
     dev: false
 
   /@types/minimist@1.2.2:

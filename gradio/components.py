@@ -4503,7 +4503,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             warnings.warn(
                 "The 'color_map' parameter has been deprecated.",
             )
-        self.md = utils.get_markdown_parser()
         self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.

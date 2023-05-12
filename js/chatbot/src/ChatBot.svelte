@@ -1,12 +1,16 @@
 <script lang="ts">
-	import { marked } from 'marked';
-	import {markedHighlight} from "marked-highlight";
-	import hljs from 'highlight.js';
-	import 'highlight.js/styles/github.css';
+	import { marked } from "marked";
+	import { markedHighlight } from "marked-highlight";
+	import hljs from "highlight.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
+	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import "./manni.css";
+
+	const code_highlight_css = {
+		light: () => import("highlight.js/styles/github.css"),
+		dark: () => import("highlight.js/styles/github-dark.css")
+	};
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -18,26 +22,33 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+	export let theme_mode: ThemeMode;
 
+	$: if (theme_mode == "dark") {
+		code_highlight_css.dark();
+	} else {
+		code_highlight_css.light();
+	}
 	marked.setOptions({
-	renderer: new marked.Renderer(),
-	gfm: true,
-	tables: true,
-	breaks: true,
-	pedantic: false,
-	sanitize: true,
-	smartLists: true,
-	smartypants: false
+		renderer: new marked.Renderer(),
+		gfm: true,
+		tables: true,
+		breaks: true,
+		pedantic: false,
+		sanitize: true,
+		smartLists: true,
+		smartypants: false
 	});
 
-
-	marked.use(markedHighlight({
-	langPrefix: 'hljs language-',
-	highlight(code: string, lang: string) {
-		const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-		return hljs.highlight(code, { language }).value;
-	}
-	}));
+	marked.use(
+		markedHighlight({
+			langPrefix: "hljs language-",
+			highlight(code: string, lang: string) {
+				const language = hljs.getLanguage(lang) ? lang : "plaintext";
+				return hljs.highlight(code, { language }).value;
+			}
+		})
+	);
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -271,7 +282,7 @@
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
 	}
-	.message-wrap > div :global(.highlight) {
+	.message-wrap > div :global(.hljs) {
 		margin-top: var(--spacing-xs);
 		margin-bottom: var(--spacing-xs);
 		border-radius: var(--radius-md);
