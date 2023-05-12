@@ -1,7 +1,7 @@
 import sys
 
 import gradio.reload
-import gradio.upload
+import gradio.deploy
 
 
 def cli():
@@ -9,6 +9,6 @@ def cli():
     if len(args) == 0:
         raise ValueError("No file specified.")
     if args[0] == "--deploy":
-        gradio.upload.deploy()
+        gradio.deploy()
     else:
         gradio.reload.run_in_reload_mode(*args)
