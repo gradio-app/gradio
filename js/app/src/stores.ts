@@ -9,7 +9,7 @@ export interface LoadingStatus {
 	fn_index: number;
 	message?: string | null;
 	scroll_to_output?: boolean;
-	visible?: boolean;
+	show_progress?: "cover" | "corner" | "hidden";
 	progress?: Array<{
 		progress: number | null;
 		index: number | null;

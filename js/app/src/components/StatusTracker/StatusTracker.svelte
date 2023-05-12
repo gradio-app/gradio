@@ -58,7 +58,7 @@
 	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
-	export let visible: boolean = true;
+	export let show_progress: "cover" | "corner" | "hidden" = "cover";
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
@@ -184,7 +184,7 @@
 
 <div
 	class="wrap {variant}"
-	class:hide={!status || status === "complete" || !visible}
+	class:hide={!status || status === "complete" || show_progress === "hidden"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent}
