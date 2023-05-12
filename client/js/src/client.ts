@@ -280,10 +280,13 @@ export async function client(
 		}
 
 		try {
+			console.log(`${http_protocol}//${host}`);
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
+			console.log(config);
 			const _config = await config_success(config);
 			res(_config);
 		} catch (e) {
+			console.log(space_id, e);
 			if (space_id) {
 				check_space_status(
 					space_id,
@@ -582,9 +585,11 @@ export async function client(
 				}
 
 				if (websocket && websocket.readyState === 0) {
-					addEventListener("open", () => websocket.close());
+					websocket.addEventListener("open", () => {
+						websocket.close();
+					});
 				} else {
-					websocket.	();
+					websocket.close();
 				}
 
 				destroy();
@@ -984,8 +989,9 @@ async function resolve_config(
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
+		console.log(`${endpoint}/config`, headers);
 		let response = await fetch(`${endpoint}/config`, { headers });
-
+		console.log(response);
 		if (response.status === 200) {
 			const config = await response.json();
 			config.path = config.path ?? "";

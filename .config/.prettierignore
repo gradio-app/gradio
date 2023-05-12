@@ -11,7 +11,6 @@
 **/.venv/**
 **/.github/**
 **/guides/**
-**/test/**
 **/.mypy_cache/**
 **/*.md
 **/js/_space-test/**
