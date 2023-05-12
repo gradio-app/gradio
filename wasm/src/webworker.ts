@@ -95,6 +95,17 @@ self.onmessage = async (event: MessageEvent<InMessage>) => {
 				messagePort.postMessage(replyMessage);
 				break;
 			}
+			case "run-python": {
+				const result = await pyodide.runPythonAsync(msg.data.code);
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: {
+						result
+					}
+				};
+				messagePort.postMessage(replyMessage);
+				break;
+			}
 		}
 	} catch (error) {
 		const replyMessage: ReplyMessageError = {

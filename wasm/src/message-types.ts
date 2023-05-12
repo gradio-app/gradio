@@ -11,13 +11,19 @@ export interface InMessageInit extends InMessageBase {
 		requirements: string[];
 	};
 }
+export interface InMessageRunPython extends InMessageBase {
+	type: "run-python";
+	data: {
+		code: string;
+	};
+}
 export interface InMessageEcho extends InMessageBase {
 	// For debug
 	type: "echo";
 	data: unknown;
 }
 
-export type InMessage = InMessageInit | InMessageEcho;
+export type InMessage = InMessageInit | InMessageRunPython | InMessageEcho;
 
 export interface ReplyMessageSuccess {
 	type: "reply:success";

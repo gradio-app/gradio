@@ -25,7 +25,19 @@ export class WorkerProxy {
 		}).then(() => {
 			console.debug("WorkerProxy.constructor(): Initialization is done.");
 
-			this.test();
+			// TODO: Remove this debug code
+			this.runPythonAsync(`40 + 2`).then((result) => {
+				console.log("WorkerProxy.constructor(): 40 + 2 =", result);
+			});
+		});
+	}
+
+	public async runPythonAsync(code: string): Promise<unknown> {
+		return this.postMessageAsync({
+			type: "run-python",
+			data: {
+				code
+			}
 		});
 	}
 
@@ -49,24 +61,6 @@ export class WorkerProxy {
 			};
 
 			this.worker.postMessage(msg, [channel.port2]);
-		});
-	}
-
-	test() {
-		// TODO: Remove this function!!!
-		// This is just a temporary sample.
-		console.log("WorkerProxy.test(): Send a test message to the worker.");
-		const msg: InMessage = {
-			type: "echo",
-			data: {
-				foo: "bar"
-			}
-		};
-		this.postMessageAsync(msg).then((reply) => {
-			console.log(
-				"WorkerProxy.test(): Received a reply from the worker.",
-				reply
-			);
 		});
 	}
 }
