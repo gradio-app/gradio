@@ -25,6 +25,6 @@ __all__ = [
 
 
 def builder(*args, **kwargs):
-    from gradio.themes.builder import demo
+    from gradio.themes.builder_app import demo
 
     return demo.launch(*args, **kwargs)

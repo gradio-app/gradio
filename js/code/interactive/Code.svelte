@@ -132,7 +132,7 @@
 		".cm-content": {
 			paddingTop: "5px",
 			paddingBottom: "5px",
-
+			color: "var(--body-text-color)",
 			fontFamily: "var(--font-mono)",
 			minHeight: "100%"
 		},
@@ -144,6 +144,12 @@
 		},
 		".cm-focused": {
 			outline: "none"
+		},
+		".cm-scroller": {
+			height: "auto"
+		},
+		".cm-cursor": {
+			borderLeftColor: "var(--body-text-color)"
 		}
 	});
 

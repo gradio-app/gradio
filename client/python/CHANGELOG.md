@@ -1,12 +1,13 @@
 # Upcoming Release
 
+# 0.2.4
+
 ## New Features:
 
 No changes to highlight.
 
 ## Bug Fixes:
-
-No changes to highlight.
+- Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/freddyaboulton) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
 
 ## Documentation Changes:
 
@@ -15,6 +16,87 @@ No changes to highlight.
 ## Testing and Infrastructure Changes:
 
 No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# 0.2.3
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+- Fix example inputs for `gr.File(file_count='multiple')` output components by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4153](https://github.com/gradio-app/gradio/pull/4153)
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+## Contributors Shoutout:
+
+No changes to highlight.
+
+# 0.2.2
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Only send request to `/info` route if demo version is above `3.28.3` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4109](https://github.com/gradio-app/gradio/pull/4109)
+
+
+## Other Changes:
+
+- Fix bug in test from gradio 3.29.0 refactor by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4138](https://github.com/gradio-app/gradio/pull/4138)
+
+
+## Breaking Changes:
+
+No changes to highlight.
+
+
+# 0.2.1
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+Removes extraneous `State` component info from the `Client.view_api()` method by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
+
+## Documentation Changes:
+
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+
+Separates flaky tests from non-flaky tests by [@abidlabs](https://github.com/freddyaboulton) in [PR 4107](https://github.com/gradio-app/gradio/pull/4107)
+
 
 ## Breaking Changes:
 

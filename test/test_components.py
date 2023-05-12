@@ -15,8 +15,6 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
@@ -27,10 +25,9 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 import gradio as gr
-from gradio import processing_utils
+from gradio import processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-matplotlib.use("Agg")
 
 
 class TestComponent:
@@ -734,12 +731,15 @@ class TestPlot:
         """
 
         def plot(num):
+            import matplotlib.pyplot as plt
+
             fig = plt.figure()
             plt.plot(range(num), range(num))
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10], state={})
+        with utils.MatplotlibBackendMananger():
+            output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
@@ -747,8 +747,11 @@ class TestPlot:
         """
         postprocess
         """
-        fig = plt.figure()
-        plt.plot([1, 2, 3], [1, 2, 3])
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(fig)
         assert component.get_config().get("value") is not None
@@ -952,7 +955,7 @@ class TestFile:
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
 
-        zero_size_file = {"name": "document.txt", "size": 0, "data": "data:"}
+        zero_size_file = {"name": "document.txt", "size": 0, "data": ""}
         temp_file = file_input.preprocess(zero_size_file)
         assert os.stat(temp_file.name).st_size == 0
 
@@ -1471,10 +1474,9 @@ class TestTimeseries:
 
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
-    def test_no_duplicate_uncased_names(self):
-        subclasses = gr.components.Component.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
-        assert len(subclasses) == len(unique_subclasses_uncased)
+    def test_no_duplicate_uncased_names(self, io_components):
+        unique_subclasses_uncased = {s.__name__.lower() for s in io_components}
+        assert len(io_components) == len(unique_subclasses_uncased)
 
 
 class TestLabel:
@@ -1486,7 +1488,8 @@ class TestLabel:
         label_output = gr.Label()
         label = label_output.postprocess(y)
         assert label == {"label": "happy"}
-        assert json.load(open(label_output.deserialize(label))) == label
+        with open(label_output.deserialize(label)) as f:
+            assert json.load(f) == label
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
@@ -1772,7 +1775,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are <strong>cool</strong><br>and fun", "so are <em>you</em>"]
+            ["You are <strong>cool</strong>\nand fun", "so are <em>you</em>"]
         ]
 
         multimodal_msg = [
@@ -2152,7 +2155,7 @@ def test_dataset_calls_as_example(*mocks):
             ]
         ],
     )
-    assert all([m.called for m in mocks])
+    assert all(m.called for m in mocks)
 
 
 cars = vega_datasets.data.cars()
@@ -2194,7 +2197,7 @@ class TestScatterPlot:
             x_title="Horse",
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "Horsepower"
         assert config["encoding"]["x"]["title"] == "Horse"
@@ -2215,7 +2218,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", tooltip="Name", interactive=False
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert "selection" not in config
 
@@ -2224,7 +2227,7 @@ class TestScatterPlot:
             x="Horsepower", y="Miles_per_Gallon", height=100, width=200
         )
         output = plot.postprocess(cars)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2379,7 +2382,7 @@ class TestLinePlot:
             x_title="Trading Day",
         )
         output = plot.postprocess(stocks)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         for layer in config["layer"]:
             assert layer["mark"]["type"] in ["line", "point"]
@@ -2394,7 +2397,7 @@ class TestLinePlot:
     def test_height_width(self):
         plot = gr.LinePlot(x="date", y="price", height=100, width=200)
         output = plot.postprocess(stocks)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2543,7 +2546,7 @@ class TestBarPlot:
             x_title="Variable A",
         )
         output = plot.postprocess(simple)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "a"
@@ -2558,7 +2561,7 @@ class TestBarPlot:
     def test_height_width(self):
         plot = gr.BarPlot(x="a", y="b", height=100, width=200)
         output = plot.postprocess(simple)
-        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
         assert config["width"] == 200
@@ -2679,7 +2682,8 @@ class TestCode:
                 return a
             """
             )
-            == "def fn(a):\n    return a"
+            == """def fn(a):
+                return a"""
         )
 
         test_file_dir = Path(Path(__file__).parent, "test_files")

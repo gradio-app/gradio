@@ -12,6 +12,7 @@ Let's go through some of the most popular features of Gradio! Here are Gradio's 
 8. [Iterative outputs](#iterative-outputs)
 9. [Progress bars](#progress-bars)
 10. [Batch functions](#batch-functions)
+11. [Running on collaborative notebooks](#colab-notebooks)
 
 ## Example Inputs
 
@@ -164,7 +165,7 @@ demo.queue()
 demo.launch()
 ```
 
-You can control the number of requests processsed at a single time as such:
+You can control the number of requests processed at a single time as such:
 
 ```python
 demo.queue(concurrency_count=3)
@@ -276,3 +277,8 @@ work very naturally with Gradio's batch mode: here's [an example demo using diff
 generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/diffusers_with_batching/run.py)
 
 Note: using batch functions with Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
+
+
+## Colab Notebooks
+
+Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](/sharing-your-app/#sharing-demos). 

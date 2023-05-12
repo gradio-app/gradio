@@ -8,7 +8,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 from __future__ import annotations
 
 import warnings
-from typing import Dict, List, Optional
+from typing import Optional
 
 from gradio import components
 
@@ -109,7 +109,7 @@ class Dataframe(components.Dataframe):
 
     def __init__(
         self,
-        headers: Optional[List[str]] = None,
+        headers: Optional[list[str]] = None,
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
@@ -145,7 +145,7 @@ class Timeseries(components.Timeseries):
     """
 
     def __init__(
-        self, x: str = None, y: str | List[str] = None, label: Optional[str] = None
+        self, x: str = None, y: str | list[str] = None, label: Optional[str] = None
     ):
         """
         Parameters:
@@ -227,7 +227,7 @@ class HighlightedText(components.HighlightedText):
 
     def __init__(
         self,
-        color_map: Dict[str, str] = None,
+        color_map: dict[str, str] = None,
         label: Optional[str] = None,
         show_legend: bool = False,
     ):
@@ -281,7 +281,7 @@ class Carousel(components.Carousel):
 
     def __init__(
         self,
-        components: components.Component | List[components.Component],
+        components: components.Component | list[components.Component],
         label: Optional[str] = None,
     ):
         """

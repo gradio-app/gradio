@@ -7,6 +7,7 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
+	let old_value = Array.isArray(value) ? value.slice() : value;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -25,7 +26,7 @@
 		showOptions = false,
 		filterInput: HTMLElement;
 
-	if (typeof value === "string") {
+	$: if (typeof value === "string") {
 		inputValue = value;
 	}
 
@@ -46,7 +47,6 @@
 				value: option,
 				selected: true
 			});
-			dispatch("change", value);
 		}
 		value = value;
 	}
@@ -59,14 +59,12 @@
 			value: option,
 			selected: false
 		});
-		dispatch("change", value);
 	}
 
 	function remove_all(e: any) {
 		value = [];
 		inputValue = "";
 		e.preventDefault();
-		dispatch("change", value);
 	}
 
 	function handleOptionMousedown(e: any) {
@@ -92,7 +90,6 @@
 					value: option,
 					selected: true
 				});
-				dispatch("change", value);
 				return;
 			}
 		}
@@ -108,7 +105,6 @@
 						value: value,
 						selected: true
 					});
-					dispatch("change", value);
 				}
 				inputValue = activeOption;
 				showOptions = false;
@@ -146,6 +142,13 @@
 			} else {
 				showOptions = true;
 			}
+		}
+	}
+
+	$: {
+		if (JSON.stringify(value) != JSON.stringify(old_value)) {
+			dispatch("change", value);
+			old_value = Array.isArray(value) ? value.slice() : value;
 		}
 	}
 </script>
@@ -190,14 +193,12 @@
 					on:keyup={() => {
 						if (allow_custom_value) {
 							value = inputValue;
-							dispatch("change", value);
 						}
 					}}
 					on:blur={() => {
 						if (multiselect) {
 							inputValue = "";
 						} else if (!allow_custom_value) {
-							let old_value = value;
 							if (value !== inputValue) {
 								if (typeof value === "string" && inputValue == "") {
 									inputValue = value;
@@ -205,9 +206,6 @@
 									value = undefined;
 									inputValue = "";
 								}
-							}
-							if (old_value !== value) {
-								dispatch("change", value);
 							}
 						}
 						showOptions = false;
@@ -292,11 +290,6 @@
 		padding: var(--size-0-5);
 		width: 18px;
 		height: 18px;
-	}
-
-	.single-select {
-		margin: var(--spacing-sm);
-		color: var(--body-text-color);
 	}
 
 	.secondary-wrap {

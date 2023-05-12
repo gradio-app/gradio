@@ -82,7 +82,7 @@ class TestInterface:
         )
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
         dataset_check = any(
-            [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
+            c["type"] == "dataset" for c in interface.get_config_file()["components"]
         )
         assert dataset_check
 
@@ -95,7 +95,7 @@ class TestInterface:
                 interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
                 assert (
-                    output == "Keyboard interruption in main thread... closing server."
+                    "Keyboard interruption in main thread... closing server." in output
                 )
 
     @mock.patch("gradio.utils.colab_check")
@@ -117,7 +117,9 @@ class TestInterface:
         interface.close()
 
     def test_interface_representation(self):
-        prediction_fn = lambda x: x
+        def prediction_fn(x):
+            return x
+
         prediction_fn.__name__ = "prediction_fn"
         repr = str(Interface(prediction_fn, "textbox", "label")).split("\n")
         assert prediction_fn.__name__ in repr[0]
