@@ -144,7 +144,7 @@ export async function get_space_hardware(
 
 export async function set_space_hardware(
 	space_id: string,
-	new_hardware: Record<string, any>,
+	new_hardware: typeof hardware_types[number],
 	token: `hf_${string}`
 ) {
 	const headers: { Authorization?: string } = {};
@@ -199,3 +199,13 @@ export async function set_space_timeout(
 		throw new Error(e.message);
 	}
 }
+
+export const hardware_types = [
+	"cpu-basic",
+	"cpu-upgrade",
+	"t4-small",
+	"t4-medium",
+	"a10g-small",
+	"a10g-large",
+	"a100-large"
+] as const;
