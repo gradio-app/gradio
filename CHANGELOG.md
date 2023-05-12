@@ -8,24 +8,14 @@
 
 - Records username when flagging by [@abidlabs](https://github.com/abidlabs) in [PR 4135](https://github.com/gradio-app/gradio/pull/4135)
 - Fix website build issue by [@aliabd](https://github.com/aliabd) in [PR 4142](https://github.com/gradio-app/gradio/pull/4142)
+- Fix lang agnostic type info for `gr.File(file_count='multiple')` output components by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4153](https://github.com/gradio-app/gradio/pull/4153)
 
-## Documentation Changes:
 
-No changes to highlight.
-
-## Testing and Infrastructure Changes:
+## Other Changes:
 
 No changes to highlight.
 
 ## Breaking Changes:
-
-No changes to highlight.
-
-## Full Changelog:
-
-No changes to highlight.
-
-## Contributors Shoutout:
 
 No changes to highlight.
 

@@ -403,9 +403,9 @@ class Client:
         else:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
 
-        # Versions of Gradio older than 3.28.3 returned format of the API info
+        # Versions of Gradio older than 3.29.0 returned format of the API info
         # from the /info endpoint
-        if version.parse(self.config.get("version", "2.0")) > version.Version("3.28.3"):
+        if version.parse(self.config.get("version", "2.0")) > version.Version("3.29.0"):
             r = requests.get(api_info_url, headers=self.headers)
             if r.ok:
                 info = r.json()
