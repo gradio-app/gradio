@@ -60,7 +60,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { client, SpaceStatus } from "@gradio/client";
-	import { wasmClient } from "@gradio/wasm";
+	import { WorkerProxy } from "@gradio/wasm";
 
 	// TODO: Make sure the wheel has been built.
 	// @ts-ignore
@@ -209,7 +209,11 @@
 		});
 		config = app.config;
 
-		wasmClient({ gradioWheelUrl, gradioClientWheelUrl });
+		const workerProxy = new WorkerProxy({
+			gradioWheelUrl,
+			gradioClientWheelUrl,
+			requirements: []
+		});
 
 		status = {
 			message: "",
