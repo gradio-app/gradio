@@ -2,27 +2,18 @@ import os
 import random
 import huggingface_hub
 import json
-
-
-def get_existing_configuration(readme_file):
-    with open(readme_file, "r") as f:
-        readme = f.read().strip()
-    if not readme.startswith("---"):
-        return None
-    if "---" not in readme[3:]:
-        return None
-    readme = readme.split("---")[1].strip()
-    config = {}
-    for line in readme.split("\n"):
-        key, sep, value = line.partition(":")
-        if sep:
-            config[key.strip()] = value.strip()
-    return config
+import re
 
 
 def add_configuration_to_readme(repo_directory, readme_file):
+    configuration = {}
+
     dir_name = os.path.basename(repo_directory)
-    app_name = input(f"Enter Spaces app name [{dir_name}]: ") or dir_name
+    title = input(f"Enter Spaces app title [{dir_name}]: ") or dir_name
+    formatted_title = format_title(title)
+    if formatted_title != title:
+        print(f"Formatted to {formatted_title}. ")
+    configuration["title"] = formatted_title
 
     app_file = None
     for file in os.listdir(repo_directory):
@@ -45,38 +36,64 @@ def add_configuration_to_readme(repo_directory, readme_file):
     if not app_file or not os.path.exists(app_file):
         print("Failed to find Gradio app file.")
         return
-    notebook_file = None
     if app_file.endswith(".ipynb"):
-        notebook_file = app_file
-        app_file = "_" + notebook_file.replace(".ipynb", ".py")
+        configuration["notebook_file"] = app_file
+        app_file = "_" + configuration["notebook_file"].replace(".ipynb", ".py")
+    configuration["app_file"] = app_file
 
     EMOJI_SET = "🤯🤖🧠🐶👑💥🐮🎁🐙🦋"
     default_emoji = random.choice(EMOJI_SET)
-    emoji = input(f"Enter Spaces Card emoji [{default_emoji}]: ") or default_emoji
+    configuration["emoji"] = (
+        input(f"Enter Spaces Card emoji [{default_emoji}]: ") or default_emoji
+    )
 
     COLOR_SET = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
     default_color = random.choice(COLOR_SET)
     color = input(f"Enter Spaces Card color [{default_color}]: ") or default_color
+    configuration["colorFrom"] = color
+    configuration["colorTo"] = color
+    configuration["sdk"] = "gradio"
+    huggingface_hub.metadata_save(readme_file, configuration)
 
-    readme_header = f"""---
-title: {app_name}
-app_file: {app_file}
-emoji: {emoji}
-colorFrom: {color}
-colorTo: {color}
-sdk: gradio
-{f'notebook_file: {notebook_file}' if notebook_file else ''}
----
-"""
-    with open(readme_file, "r") as f:
-        readme = f.read()
-    with open(readme_file, "w") as f:
-        f.write(readme_header + readme)
+    configuration["hardware"] = (
+        input(
+            f"Enter Spaces hardware ({', '.join(hardware.value for hardware in huggingface_hub.SpaceHardware)}) [cpu-basic]: "
+        )
+        or "cpu-basic"
+    )
+    secrets = {}
+    if input("Any Spaces secrets (y/n) [n]: ") == "y":
+        while True:
+            secret_name = input("Enter secret name (leave blank to end): ")
+            if not secret_name:
+                break
+            secret_value = input(f"Enter secret value for {secret_name}: ")
+            secrets[secret_name] = secret_value
+    configuration["secrets"] = secrets
+
+    requirements_file = os.path.join(repo_directory, "requirements.txt")
+    if (
+        not os.path.exists(requirements_file)
+        and input("Create requirements.txt file? (y/n) [n]: ").lower() == "y"
+    ):
+        input(
+            "Created requirements.txt file. Please add any dependencies to this file now. Press enter to continue. "
+        )
+
+    return configuration
+
+
+def format_title(title):
+    title = title.replace(" ", "_")
+    title = re.sub("[^a-zA-Z0-9\-._]", "", title)
+    title = re.sub("-+", "-", title)
+    while title.startswith("."):
+        title = title[1:]
+    return title
 
 
 def notebook_to_script(notebook_path, script_path):
     print(f"Converting {notebook_path} to {script_path}.")
-    dependencies = []
     with open(notebook_path, "r", encoding="utf-8") as f:
         notebook = json.load(f)
     import_subprocess = False
@@ -89,8 +106,6 @@ def notebook_to_script(notebook_path, script_path):
                 if line.startswith(" ") or line.startswith("\t"):
                     spaces = line[: len(line) - len(line.lstrip())]
                     line = line.strip()
-                if line.startswith("!pip install") or line.startswith("%pip install"):
-                    dependencies.extend(line[13:].strip().split(" "))
                 elif line.startswith("%"):
                     continue
                 elif line.startswith("!"):
@@ -109,11 +124,12 @@ def notebook_to_script(notebook_path, script_path):
     script = "".join(script_content)
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(script)
-    return dependencies
 
 
 def upload_to_spaces():
-    if os.getenv("SYSTEM") == "spaces":  # in case a notebook has an upload call
+    if (
+        os.getenv("SYSTEM") == "spaces"
+    ):  # in case a repo with this function is uploaded to spaces
         return
 
     hf_api = huggingface_hub.HfApi()
@@ -123,49 +139,43 @@ def upload_to_spaces():
         whoami = hf_api.whoami()
         if whoami["auth"]["accessToken"]["role"] != "write":
             login = True
-    except:
+    except OSError:
         login = True
     if login:
         print("Need 'write' access token to create a Spaces repo.")
         huggingface_hub.login(add_to_git_credential=False)
         whoami = hf_api.whoami()
+
     repo_directory = os.getcwd()
     readme_file = os.path.join(repo_directory, "README.md")
-    if not os.path.exists(readme_file):
-        with open(readme_file, "w") as f:
-            f.write("")
-    configuration = get_existing_configuration(readme_file)
-    if not configuration:
-        print(f"Creating new Spaces Repo in {repo_directory}")
-        add_configuration_to_readme(repo_directory, readme_file)
-        configuration = get_existing_configuration(readme_file)
-    requirements_file = os.path.join(repo_directory, "requirements.txt")
-    dependencies = []
-    if configuration.get("notebook_file"):
-        dependencies = notebook_to_script(
-            configuration["notebook_file"], configuration["app_file"]
-        )
-    if (
-        not os.path.exists(requirements_file)
-        and input("Create requirements.txt file? [y/n]: ").lower() == "y"
-    ):
-        with open(requirements_file, "w") as f:
-            f.write("\n".join(dependencies))
-        input(
-            "Created requirements.txt file. Please add any dependencies to this file. Press enter to continue. "
-        )
-    name = whoami["name"]
-    space_id = f"{name}/{configuration['title']}"
+    configuration = None
+    if os.path.exists(readme_file):
+        try:
+            configuration = huggingface_hub.metadata_load(readme_file)
+        except ValueError:
+            pass
 
-    huggingface_hub.create_repo(
-        space_id,
+    if configuration is None:
+        print(
+            f"Creating new Spaces Repo in '{repo_directory}'. Collecting metadata, press Enter to accept default value."
+        )
+        configuration = add_configuration_to_readme(repo_directory, readme_file)
+    if configuration.get("notebook_file"):
+        notebook_to_script(configuration["notebook_file"], configuration["app_file"])
+
+    space_id = huggingface_hub.create_repo(
+        configuration["title"],
         space_sdk="gradio",
         repo_type="space",
         exist_ok=True,
-    )
+        space_hardware=configuration.get("hardware"),
+    ).repo_id
     hf_api.upload_folder(
         repo_id=space_id,
         repo_type="space",
         folder_path=repo_directory,
     )
+    if configuration.get("secrets"):
+        for secret_name, secret_value in configuration["secrets"].items():
+            huggingface_hub.add_space_secret(space_id, secret_name, secret_value)
     print(f"Space available at https://huggingface.co/spaces/{space_id}")
