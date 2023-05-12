@@ -913,13 +913,13 @@ class TestAudio:
 
     def test_prepost_process_to_mp3(self):
         x_wav = deepcopy(media_data.BASE64_MICROPHONE)
-        audio_input = gr.Audio(type="filepath", audio_format="mp3")
+        audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
         assert output.endswith("mp3")
         output = audio_input.postprocess(
-            48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16)
+            (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
         )
-        assert output.endswith("mp3")
+        assert output["name"].endswith("mp3")
 
 
 class TestFile:

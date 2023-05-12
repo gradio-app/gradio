@@ -2306,7 +2306,7 @@ class Audio(
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        audio_format: Literal["wav", "mp3"] = "wav",
+        format: Literal["wav", "mp3"] = "wav",
         **kwargs,
     ):
         """
@@ -2353,7 +2353,7 @@ class Audio(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        self.audio_format = audio_format
+        self.format = format
 
     def get_config(self):
         return {
@@ -2405,7 +2405,6 @@ class Audio(
             x.get("is_file", False),
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
-        breakpoint()
         if is_file:
             if utils.validate_url(file_name):
                 temp_file_path = self.download_temp_copy_if_needed(file_name)
@@ -2431,10 +2430,10 @@ class Audio(
             return sample_rate, data
         elif self.type == "filepath":
             output_file = str(
-                Path(output_file_name).with_suffix(f".{self.audio_format}")
+                Path(output_file_name).with_suffix(f".{self.format}")
             )
             processing_utils.audio_to_file(
-                sample_rate, data, output_file, format=self.audio_format
+                sample_rate, data, output_file, format=self.format
             )
             return output_file
         else:
@@ -2536,10 +2535,10 @@ class Audio(
         if isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
-                suffix=f".{self.audio_format}", delete=False
+                suffix=f".{self.format}", delete=False
             )
             processing_utils.audio_to_file(
-                sample_rate, data, file.name, format=self.audio_format
+                sample_rate, data, file.name, format=self.format
             )
             file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)
