@@ -2306,6 +2306,7 @@ class Audio(
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        format: Literal["wav", "mp3"] = "wav",
         **kwargs,
     ):
         """
@@ -2321,6 +2322,7 @@ class Audio(
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
         """
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
@@ -2352,6 +2354,7 @@ class Audio(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
+        self.format = format
 
     def get_config(self):
         return {
@@ -2427,8 +2430,11 @@ class Audio(
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, output_file_name)
-            return output_file_name
+            output_file = str(Path(output_file_name).with_suffix(f".{self.format}"))
+            processing_utils.audio_to_file(
+                sample_rate, data, output_file, format=self.format
+            )
+            return output_file
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2527,8 +2533,10 @@ class Audio(
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-            processing_utils.audio_to_file(sample_rate, data, file.name)
+            file = tempfile.NamedTemporaryFile(suffix=f".{self.format}", delete=False)
+            processing_utils.audio_to_file(
+                sample_rate, data, file.name, format=self.format
+            )
             file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)
         else:

@@ -26,7 +26,6 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
           node-version: 18
           registry-url: "https://registry.npmjs.org"
-
       - name: Creating .npmrc
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:
