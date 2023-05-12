@@ -13,7 +13,7 @@
 		"@gradio/upload": "workspace:^0.0.1",
 		"marked": "^5.0.1",
 		"@types/marked": "^4.3.0",
-		"marked-highlight": "^1.0.1",
-		"highlight.js": "^11.8.0"
+		"prismjs": "1.29.0",
+		"@types/prismjs": "1.26.0"
 	}
 }

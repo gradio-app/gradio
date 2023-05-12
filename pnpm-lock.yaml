@@ -327,15 +327,15 @@ importers:
       '@types/marked':
         specifier: ^4.3.0
         version: 4.3.0
-      highlight.js:
-        specifier: ^11.8.0
-        version: 11.8.0
+      '@types/prismjs':
+        specifier: 1.26.0
+        version: 1.26.0
       marked:
         specifier: ^5.0.1
         version: 5.0.1
-      marked-highlight:
-        specifier: ^1.0.1
-        version: 1.0.1(marked@5.0.1)
+      prismjs:
+        specifier: 1.29.0
+        version: 1.29.0
 
   js/code:
     dependencies:
@@ -1845,6 +1845,10 @@ packages:
 
   /@types/normalize-package-data@2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
+    dev: false
+
+  /@types/prismjs@1.26.0:
+    resolution: {integrity: sha512-ZTaqn/qSqUuAq1YwvOFQfVW1AR/oQJlLSZVustdjwI+GZ8kr0MSHBj0tsXPW1EqHubx50gtBEjbPGsdZwQwCjQ==}
     dev: false
 
   /@types/pug@2.0.6:
@@ -3748,11 +3752,6 @@ packages:
     resolution: {integrity: sha512-tWCK4biJ6hcLqTviLXVR9DTRfYGQMXEIUj3gwJ2rZ5wO/at3XtkI4g8mCvFdUF9l1KMBNCfmNAdnahm1cgavQA==}
     dev: false
 
-  /highlight.js@11.8.0:
-    resolution: {integrity: sha512-MedQhoqVdr0U6SSnWPzfiadUcDHfN/Wzq25AkXiQv9oiOO/sG0S7XkvpFIqWBl9Yq1UYyYOOVORs5UW2XlPyzg==}
-    engines: {node: '>=12.0.0'}
-    dev: false
-
   /hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
     dev: false
@@ -4342,14 +4341,6 @@ packages:
   /map-obj@5.0.2:
     resolution: {integrity: sha512-K6K2NgKnTXimT3779/4KxSvobxOtMmx1LBZ3NwRxT/MDIR3Br/fQ4Q+WCX5QxjyUR8zg5+RV9Tbf2c5pAWTD2A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-    dev: false
-
-  /marked-highlight@1.0.1(marked@5.0.1):
-    resolution: {integrity: sha512-dL9nk6dDRJ0BiSfhEilY0SWGgAgJTea9BY80rVHSEeZCECIqR3ytkvQEhlDYV7eOJ03GUUlqYcCtJKkymVMj8A==}
-    peerDependencies:
-      marked: ^4 || ^5
-    dependencies:
-      marked: 5.0.1
     dev: false
 
   /marked@5.0.1:
@@ -5174,6 +5165,11 @@ packages:
       '@jest/schemas': 29.4.3
       ansi-styles: 5.2.0
       react-is: 18.2.0
+    dev: false
+
+  /prismjs@1.29.0:
+    resolution: {integrity: sha512-Kx/1w86q/epKcmte75LNrEoT+lX8pBpavuAbvJWRXar7Hz8jrtF+e3vY751p0R8H9HdArwaCTNDDzHg/ScJK1Q==}
+    engines: {node: '>=6'}
     dev: false
 
   /process-nextick-args@2.0.1:

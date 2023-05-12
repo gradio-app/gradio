@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { marked } from "marked";
-	import { markedHighlight } from "marked-highlight";
-	import hljs from "highlight.js";
+	import Prism from "prismjs";
+	import "prismjs/components/prism-python";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 
 	const code_highlight_css = {
-		light: () => import("highlight.js/styles/github.css"),
-		dark: () => import("highlight.js/styles/github-dark.css")
+		light: () => import("prismjs/themes/prism.css"),
+		dark: () => import("prismjs/themes/prism-dark.css")
 	};
 
 	export let value: Array<
@@ -40,15 +40,15 @@
 		smartypants: false
 	});
 
-	marked.use(
-		markedHighlight({
-			langPrefix: "hljs language-",
-			highlight(code: string, lang: string) {
-				const language = hljs.getLanguage(lang) ? lang : "plaintext";
-				return hljs.highlight(code, { language }).value;
+	marked.setOptions({
+		highlight: (code: string, lang: string) => {
+			if (Prism.languages[lang]) {
+				return Prism.highlight(code, Prism.languages[lang], lang);
+			} else {
+				return code;
 			}
-		})
-	);
+		}
+	});
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
