@@ -10,5 +10,5 @@
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": ["@gradio/app"]
+	"ignore": ["@gradio/app", "@gradio/spaces-test"]
 }
