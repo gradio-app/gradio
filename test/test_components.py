@@ -1484,10 +1484,9 @@ class TestTimeseries:
 
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
-    def test_no_duplicate_uncased_names(self):
-        subclasses = gr.components.Component.__subclasses__()
-        unique_subclasses_uncased = {s.__name__.lower() for s in subclasses}
-        assert len(subclasses) == len(unique_subclasses_uncased)
+    def test_no_duplicate_uncased_names(self, io_components):
+        unique_subclasses_uncased = {s.__name__.lower() for s in io_components}
+        assert len(io_components) == len(unique_subclasses_uncased)
 
 
 class TestLabel:
