@@ -9,7 +9,14 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-		"start": "tsc -w --incremental",
-		"build": "tsc"
+		"start:client": "tsc -w --incremental",
+		"start:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
+		"start": "run-p start:*",
+		"build:client": "tsc",
+		"build:worker": "vite build --config vite.worker.config.js",
+		"build": "run-s build:worker build:client"
+	},
+	"devDependencies": {
+		"pyodide": "^0.23.2"
 	}
 }
