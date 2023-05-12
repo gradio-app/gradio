@@ -339,6 +339,7 @@ export async function client(
 				api_info = api.unnamed_endpoints[fn_index];
 			} else {
 				const trimmed_endpoint = endpoint.replace(/^\//, "");
+
 				fn_index = api_map[trimmed_endpoint];
 				api_info = api.named_endpoints[endpoint.trim()];
 			}

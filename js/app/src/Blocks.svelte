@@ -480,6 +480,7 @@
 				{instance_map}
 				{dependencies}
 				{root}
+				{app}
 			/>
 		</div>
 	</div>
