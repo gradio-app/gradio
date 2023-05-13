@@ -65,17 +65,11 @@ os.link = lambda src, dst: None
 `);
 	console.debug("os module methods are mocked.");
 
-	// TODO: Remove this debug code
-	await pyodide.runPythonAsync(`
-from fastapi import FastAPI
-
-app = FastAPI()
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-`);
+	console.debug("Import gradio package.");
+	// Importing the gradio package takes a long time, so we do it separately.
+	// This is necessary for accurate performance profiling.
+	await pyodide.runPythonAsync(`import gradio`);
+	console.debug("gradio package is imported.");
 
 	console.debug("Define a ASGI wrapper function.");
 	// TODO: Unlike Streamlit, user's code is executed in the global scope,
@@ -108,6 +102,10 @@ async def _call_asgi_app_from_js(scope, receive, send):
 	async def snd(event):
 			await send(event)
 
+	app = gradio.wasm_utils.get_registered_app()
+	if app is None:
+		raise RuntimeError("Gradio app has not been launched.")
+
 	await app(scope, rcv, snd)
 `);
 	call_asgi_app_from_js = pyodide.globals.get("_call_asgi_app_from_js");
@@ -124,6 +122,15 @@ import anyio.to_thread
 anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 	`);
 	console.debug("Async libraries are mocked.");
+
+	console.debug("Set matplotlib backend.");
+	// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
+	// This backend setting is required to use matplotlib in Wasm environment.
+	await pyodide.runPythonAsync(`
+import matplotlib
+matplotlib.use("agg")
+`);
+	console.debug("matplotlib backend is set.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>) => {

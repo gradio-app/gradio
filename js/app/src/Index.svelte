@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { mount_css } from "./css";
+	import { mount_css as mount_css_from_wasm } from "@gradio/wasm";
 
 	import type {
 		ComponentMeta,
@@ -55,12 +56,14 @@
 	}
 
 	const intersecting = create_intersection_store();
+
+	const IS_WASM = true; // TODO: Configure this from the build system.
 </script>
 
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { client, SpaceStatus } from "@gradio/client";
-	import { WorkerProxy } from "@gradio/wasm";
+	import { WorkerProxy, client as wasmClient } from "@gradio/wasm";
 
 	// TODO: Make sure the wheel has been built.
 	// @ts-ignore
@@ -102,14 +105,22 @@
 
 	async function mount_custom_css(
 		target: HTMLElement,
-		css_string: string | null
+		css_string: string | null,
+		workerProxy?: WorkerProxy | null
 	) {
 		if (css_string) {
 			let style = document.createElement("style");
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
-		await mount_css(config.root + "/theme.css", document.head);
+		if (IS_WASM) {
+			if (workerProxy == null) {
+				throw new Error("Worker proxy is required for wasm mode");
+			}
+			await mount_css_from_wasm(workerProxy, "/theme.css", document.head);
+		} else {
+			await mount_css(config.root + "/theme.css", document.head);
+		}
 		if (!config.stylesheets) return;
 
 		await Promise.all(
@@ -203,17 +214,35 @@
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
-		app = await client(api_url, {
-			status_callback: handle_status,
-			normalise_files: false
-		});
-		config = app.config;
+		let workerProxy: WorkerProxy | null = null;
+		if (IS_WASM) {
+			workerProxy = new WorkerProxy({
+				gradioWheelUrl,
+				gradioClientWheelUrl,
+				requirements: []
+			});
 
-		const workerProxy = new WorkerProxy({
-			gradioWheelUrl,
-			gradioClientWheelUrl,
-			requirements: []
-		});
+			// TODO: Stop hardcoding this app script:
+			await workerProxy.runPythonAsync(`
+import gradio as gr
+
+def greet(name):
+		return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+
+demo.launch()
+`);
+
+			app = await wasmClient(workerProxy, handle_status);
+		} else {
+			app = await client(api_url, {
+				status_callback: handle_status,
+				normalise_files: false
+			});
+		}
+
+		config = app.config;
 
 		status = {
 			message: "",
@@ -222,7 +251,7 @@
 			detail: "RUNNING"
 		};
 
-		await mount_custom_css(wrapper, config.css);
+		await mount_custom_css(wrapper, config.css, workerProxy);
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
