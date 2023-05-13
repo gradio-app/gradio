@@ -9,6 +9,7 @@ export interface Config {
 	layout: any;
 	mode: "blocks" | "interface";
 	root: string;
+	root_url?: string;
 	theme: string;
 	title: string;
 	version: string;
@@ -91,3 +92,13 @@ export type EventListener<K extends EventType> = (event: Event<K>) => void;
 export type ListenerMap<K extends EventType> = {
 	[P in K]?: EventListener<K>[];
 };
+export interface FileData {
+	name: string;
+	orig_name?: string;
+	size?: number;
+	data: string;
+	blob?: File;
+	is_file?: boolean;
+	mime_type?: string;
+	alt_text?: string;
+}
