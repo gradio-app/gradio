@@ -6,12 +6,19 @@ import type {
 	ReplyMessageError,
 	ReplyMessageSuccess
 } from "../message-types";
+import { makeHttpRequest } from "./http";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
 let pyodide: PyodideInterface;
 
 let pyodideReadyPromise: undefined | Promise<void> = undefined;
+
+let call_asgi_app_from_js: (
+	scope: unknown,
+	receive: Function,
+	send: Function
+) => Promise<void>;
 
 interface InitOptions {
 	gradioWheelUrl: string;
@@ -57,6 +64,66 @@ import os
 os.link = lambda src, dst: None
 `);
 	console.debug("os module methods are mocked.");
+
+	// TODO: Remove this debug code
+	await pyodide.runPythonAsync(`
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+`);
+
+	console.debug("Define a ASGI wrapper function.");
+	// TODO: Unlike Streamlit, user's code is executed in the global scope,
+	//       so we should not define this function in the global scope.
+	await pyodide.runPythonAsync(`
+# Based on Shiny's App.call_pyodide().
+# https://github.com/rstudio/py-shiny/blob/v0.3.3/shiny/_app.py#L224-L258
+async def _call_asgi_app_from_js(scope, receive, send):
+	# TODO: Pretty sure there are objects that need to be destroy()'d here?
+	scope = scope.to_py()
+
+	# ASGI requires some values to be byte strings, not character strings. Those are
+	# not that easy to create in JavaScript, so we let the JS side pass us strings
+	# and we convert them to bytes here.
+	if "headers" in scope:
+			# JS doesn't have \`bytes\` so we pass as strings and convert here
+			scope["headers"] = [
+					[value.encode("latin-1") for value in header]
+					for header in scope["headers"]
+			]
+	if "query_string" in scope and scope["query_string"]:
+			scope["query_string"] = scope["query_string"].encode("latin-1")
+	if "raw_path" in scope and scope["raw_path"]:
+			scope["raw_path"] = scope["raw_path"].encode("latin-1")
+
+	async def rcv():
+			event = await receive()
+			return event.to_py()
+
+	async def snd(event):
+			await send(event)
+
+	await app(scope, rcv, snd)
+`);
+	call_asgi_app_from_js = pyodide.globals.get("_call_asgi_app_from_js");
+	console.debug("The ASGI wrapper function is defined.");
+
+	console.debug("Mock async libraries.");
+	// FastAPI uses `anyio.to_thread.run_sync` internally which, however, doesn't work in Wasm environments where the `threading` module is not supported.
+	// So we mock `anyio.to_thread.run_sync` here not to use threads.
+	await pyodide.runPythonAsync(`
+async def mocked_anyio_to_thread_run_sync(func, *args, cancellable=False, limiter=None):
+	return func(*args)
+
+import anyio.to_thread
+anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
+	`);
+	console.debug("Async libraries are mocked.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>) => {
@@ -101,6 +168,18 @@ self.onmessage = async (event: MessageEvent<InMessage>) => {
 					type: "reply:success",
 					data: {
 						result
+					}
+				};
+				messagePort.postMessage(replyMessage);
+				break;
+			}
+			case "http-request": {
+				const request = msg.data.request;
+				const response = await makeHttpRequest(call_asgi_app_from_js, request);
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: {
+						response
 					}
 				};
 				messagePort.postMessage(replyMessage);

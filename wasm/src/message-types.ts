@@ -1,3 +1,17 @@
+export interface HttpRequest {
+	method: "GET" | "POST" | "PUT" | "DELETE";
+	path: string;
+	query_string: string;
+	headers: Record<string, string>;
+	body: Uint8Array;
+}
+
+export interface HttpResponse {
+	status: number;
+	headers: Record<string, string>;
+	body: Uint8Array;
+}
+
 export interface InMessageBase {
 	type: string;
 	data: unknown;
@@ -17,17 +31,28 @@ export interface InMessageRunPython extends InMessageBase {
 		code: string;
 	};
 }
+export interface InMessageHttpRequest extends InMessageBase {
+	type: "http-request";
+	data: {
+		request: HttpRequest;
+	};
+}
+
 export interface InMessageEcho extends InMessageBase {
 	// For debug
 	type: "echo";
 	data: unknown;
 }
 
-export type InMessage = InMessageInit | InMessageRunPython | InMessageEcho;
+export type InMessage =
+	| InMessageInit
+	| InMessageRunPython
+	| InMessageHttpRequest
+	| InMessageEcho;
 
-export interface ReplyMessageSuccess {
+export interface ReplyMessageSuccess<T = unknown> {
 	type: "reply:success";
-	data: unknown;
+	data: T;
 }
 export interface ReplyMessageError {
 	type: "reply:error";
