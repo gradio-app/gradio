@@ -25,10 +25,10 @@ export default defineConfig({
 	build: {
 		outDir: "dist",
 		rollupOptions: {
-			input: path.join(__dirname, "src/webworker.ts"),
+			input: path.join(__dirname, "src/webworker/index.ts"),
 			// Ref: https://github.com/rollup/rollup/issues/2616#issuecomment-1431551704
 			output: {
-				entryFileNames: "[name].js"
+				entryFileNames: "webworker.js"
 			}
 		}
 	}
