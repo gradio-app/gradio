@@ -47,7 +47,19 @@ export default defineConfig(({ mode }) => {
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
-			outDir: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
+			outDir: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
+			rollupOptions: {
+				output: {
+					assetFileNames: (file) => {
+						if (file.name.endsWith(".whl")) {
+							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
+							return `assets/[name].[ext]`;
+						} else {
+							return `assets/[name]-[hash].[ext]`;
+						}
+					}
+				}
+			}
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
