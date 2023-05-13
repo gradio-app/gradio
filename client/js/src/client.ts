@@ -202,16 +202,22 @@ export async function client(
 	options: {
 		hf_token?: `hf_${string}`;
 		status_callback?: SpaceStatusCallback;
-	} = {}
+		normalise_files?: boolean;
+	} = { normalise_files: true }
 ): Promise<client_return> {
 	return new Promise(async (res) => {
-		const { status_callback, hf_token } = options;
+		const { status_callback, hf_token, normalise_files } = options;
 		const return_obj = {
 			predict,
 			submit,
 			view_api
 			// duplicate
 		};
+
+		let transform_files = normalise_files;
+		if (transform_files === undefined) {
+			transform_files = true;
+		}
 
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
@@ -383,12 +389,14 @@ export async function client(
 						hf_token
 					)
 						.then(([output, status_code]) => {
-							const data = transform_output(
-								output.data,
-								api_info,
-								config.root,
-								config.root_url
-							);
+							const data = transform_files
+								? transform_output(
+										output.data,
+										api_info,
+										config.root,
+										config.root_url
+								  )
+								: output.data;
 							if (status_code == 200) {
 								fire_event({
 									type: "status",
@@ -513,12 +521,14 @@ export async function client(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: transform_output(
-									data.data,
-									api_info,
-									config.root,
-									config.root_url
-								),
+								data: transform_files
+									? transform_output(
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+									  )
+									: data.data,
 								endpoint: _endpoint,
 								fn_index
 							});

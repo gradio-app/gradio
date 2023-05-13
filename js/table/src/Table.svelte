@@ -38,8 +38,6 @@
 		}
 	}
 
-	$: console.log(values);
-
 	const dispatch = createEventDispatcher<{
 		change: { data: Array<Array<string | number>>; headers: Array<string> };
 		select: SelectData;
