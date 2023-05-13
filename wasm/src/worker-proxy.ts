@@ -1,4 +1,9 @@
-import type { InMessage, ReplyMessage } from "./message-types";
+import type {
+	HttpRequest,
+	HttpResponse,
+	InMessage,
+	ReplyMessage
+} from "./message-types";
 
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
@@ -26,8 +31,31 @@ export class WorkerProxy {
 			console.debug("WorkerProxy.constructor(): Initialization is done.");
 
 			// TODO: Remove this debug code
-			this.runPythonAsync(`40 + 2`).then((result) => {
-				console.log("WorkerProxy.constructor(): 40 + 2 =", result);
+			this.httpRequest({
+				path: "/",
+				method: "GET",
+				headers: {},
+				body: new Uint8Array([]),
+				query_string: ""
+			}).then((response) => {
+				console.log(
+					"Response from /",
+					response,
+					new TextDecoder().decode(response.body)
+				);
+			});
+			this.httpRequest({
+				path: "/foo",
+				method: "POST",
+				headers: {},
+				body: new Uint8Array([]),
+				query_string: ""
+			}).then((response) => {
+				console.log(
+					"Response from POST /foo",
+					response,
+					new TextDecoder().decode(response.body)
+				);
 			});
 		});
 	}
@@ -62,5 +90,39 @@ export class WorkerProxy {
 
 			this.worker.postMessage(msg, [channel.port2]);
 		});
+	}
+
+	public async httpRequest(request: HttpRequest): Promise<HttpResponse> {
+		console.debug("WorkerProxy.httpRequest()", request);
+		const result = await this.postMessageAsync({
+			type: "http-request",
+			data: {
+				request
+			}
+		});
+		const response = (result as { response: HttpResponse }).response;
+
+		if (Math.floor(response.status / 100) !== 2) {
+			let bodyText: string;
+			let bodyJson: unknown;
+			try {
+				bodyText = new TextDecoder().decode(response.body);
+			} catch (e) {
+				bodyText = "(failed to decode body)";
+			}
+			try {
+				bodyJson = JSON.parse(bodyText);
+			} catch (e) {
+				bodyJson = "(failed to parse body as JSON)";
+			}
+			console.error("Wasm HTTP error", {
+				request,
+				response,
+				bodyText,
+				bodyJson
+			});
+		}
+
+		return response;
 	}
 }
