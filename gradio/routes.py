@@ -42,7 +42,7 @@ from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
-from gradio import utils
+from gradio import utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.exceptions import Error
@@ -165,12 +165,13 @@ class App(FastAPI):
         app = App(**app_kwargs)
         app.configure_app(blocks)
 
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        if not wasm_utils.is_wasm:
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
 
         @app.get("/user")
         @app.get("/user/")

@@ -29,34 +29,6 @@ export class WorkerProxy {
 			}
 		}).then(() => {
 			console.debug("WorkerProxy.constructor(): Initialization is done.");
-
-			// TODO: Remove this debug code
-			this.httpRequest({
-				path: "/",
-				method: "GET",
-				headers: {},
-				body: new Uint8Array([]),
-				query_string: ""
-			}).then((response) => {
-				console.log(
-					"Response from /",
-					response,
-					new TextDecoder().decode(response.body)
-				);
-			});
-			this.httpRequest({
-				path: "/foo",
-				method: "POST",
-				headers: {},
-				body: new Uint8Array([]),
-				query_string: ""
-			}).then((response) => {
-				console.log(
-					"Response from POST /foo",
-					response,
-					new TextDecoder().decode(response.body)
-				);
-			});
 		});
 	}
 
