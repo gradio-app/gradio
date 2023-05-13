@@ -10,7 +10,7 @@
 
 ## Bug Fixes:
 
-No changes to highlight.
+Fix "TypeError: issubclass() arg 1 must be a class" When use Optional[Types] by [@lingfengchencn](https://github.com/lingfengchencn) in [PR 4200](https://github.com/gradio-app/gradio/pull/4200). 
 
 ## Other Changes:
 
