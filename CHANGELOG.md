@@ -8,7 +8,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+Fix "TypeError: issubclass() arg 1 must be a class" When use Optional[Types] 
 
 ## Other Changes:
 
