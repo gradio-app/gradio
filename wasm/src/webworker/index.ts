@@ -5,7 +5,7 @@ import type {
 	InMessage,
 	ReplyMessageError,
 	ReplyMessageSuccess
-} from "./message-types";
+} from "../message-types";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
