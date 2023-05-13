@@ -10,6 +10,8 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { Block } from "@gradio/atoms";
 
+	import { normalise_file } from "@gradio/upload";
+
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		stream: typeof value;
@@ -24,14 +26,16 @@
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let label: string;
+	export let root: string;
 	export let show_label: boolean;
 	export let pending: boolean;
 	export let streaming: boolean;
+	export let root_url: null | string;
 
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
-	$: _value = value;
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging: boolean;
 </script>

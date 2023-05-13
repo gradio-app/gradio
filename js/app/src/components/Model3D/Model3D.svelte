@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 	import { Model3D, Model3DUpload } from "@gradio/model3D";
 	import { BlockLabel, Block, Empty } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
@@ -14,6 +15,8 @@
 	export let visible: boolean = true;
 	export let value: null | FileData = null;
 	export let mode: "static" | "dynamic";
+	export let root: string;
+	export let root_url: null | string;
 	export let clearColor: Array<number>;
 
 	export let loading_status: LoadingStatus;
@@ -21,7 +24,7 @@
 	export let show_label: boolean;
 
 	let _value: null | FileData;
-	$: _value = value;
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
 </script>
