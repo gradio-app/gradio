@@ -29,7 +29,7 @@
 
 	export let loading_status: LoadingStatus;
 
-	$: _value = value;
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
 	let pending_upload = false;
