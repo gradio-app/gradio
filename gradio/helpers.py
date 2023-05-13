@@ -628,7 +628,7 @@ def special_args(
         elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif type_hint and issubclass(type_hint, EventData):
+        elif type_hint and and inspect.isclass(type_hint) issubclass(type_hint, EventData):
             event_data_index = i
             if inputs is not None and event_data is not None:
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
