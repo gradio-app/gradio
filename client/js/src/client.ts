@@ -676,15 +676,18 @@ function transform_output(
 	remote_url?: string
 ): unknown[] {
 	let transformed_data = data.map((d, i) => {
-		if (
-			api_info.returns?.[i]?.component === "File" ||
-			api_info.returns?.[i]?.component === "Gallery"
-		) {
+		if (api_info.returns?.[i]?.component === "File") {
 			return normalise_file(d, root_url, remote_url);
+		} else if (api_info.returns?.[i]?.component === "Gallery") {
+			return d.map((img) => {
+				return Array.isArray(img)
+					? [normalise_file(img[0], root_url, remote_url), img[1]]
+					: [normalise_file(img, root_url, remote_url), null];
+			});
 		} else if (typeof d === "object" && d.is_file) {
 			return normalise_file(d, root_url, remote_url);
 		} else {
-			d;
+			return d;
 		}
 	});
 
@@ -716,7 +719,7 @@ export function normalise_file(
 
 		return normalized_file as Array<FileData>;
 	} else if (file.is_file) {
-		if (root_url == null) {
+		if (!root_url) {
 			file.data = root + "/file=" + file.name;
 		} else {
 			file.data = "/proxy=" + root_url + "/file=" + file.name;

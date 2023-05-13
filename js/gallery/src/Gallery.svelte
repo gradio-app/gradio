@@ -9,12 +9,9 @@
 	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
 
 	export let show_label: boolean = true;
 	export let label: string;
-	export let root: string = "";
-	export let root_url: null | string = null;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = {
 		grid_cols: [2],
@@ -26,19 +23,14 @@
 		select: SelectData;
 	}>();
 
+	$: console.log(_value);
+
 	// tracks whether the value of the gallery was reset
 	let was_reset: boolean = true;
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
-	$: _value =
-		value === null
-			? null
-			: value.map((img) =>
-					Array.isArray(img)
-						? [normalise_file(img[0], root, root_url), img[1]]
-						: [normalise_file(img, root, root_url), null]
-			  );
+	$: _value = value;
 
 	let prevValue: string[] | FileData[] | null = value;
 	let selected_image: number | null = null;
