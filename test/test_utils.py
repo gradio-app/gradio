@@ -1,6 +1,4 @@
 import copy
-import ipaddress
-import json
 import os
 import sys
 import unittest.mock as mock
@@ -16,7 +14,6 @@ from pydantic import BaseModel
 from typing_extensions import Literal
 
 from gradio import EventData, Request
-from gradio.context import Context
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
     XRAY_CONFIG_DIFF_IDS,
@@ -30,65 +27,23 @@ from gradio.utils import (
     check_function_inputs_match,
     colab_check,
     delete_none,
-    error_analytics,
     format_ner_list,
-    get_local_ip_address,
     get_type_hints,
     ipython_check,
     is_special_typed_parameter,
     kaggle_check,
-    launch_analytics,
     readme_to_html,
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     tex2svg,
     validate_url,
-    version_check,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUtils:
-    @mock.patch("requests.get")
-    def test_should_warn_with_unable_to_parse(self, mock_get):
-        mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            version_check()
-            assert (
-                str(w[-1].message)
-                == "unable to parse version details from package URL."
-            )
-
-    @mock.patch("requests.Response.json")
-    def test_should_warn_url_not_having_version(self, mock_json):
-        mock_json.return_value = {"foo": "bar"}
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            version_check()
-            assert str(w[-1].message) == "package URL does not contain version info."
-
-    @mock.patch("requests.post")
-    def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
-        mock_post.side_effect = requests.ConnectionError()
-        error_analytics("placeholder")
-        mock_post.assert_called()
-
-    @mock.patch("requests.post")
-    def test_error_analytics_successful(self, mock_post):
-        error_analytics("placeholder")
-        mock_post.assert_called()
-
-    @mock.patch("requests.post")
-    def test_launch_analytics_doesnt_crash_on_connection_error(self, mock_post):
-        mock_post.side_effect = requests.ConnectionError()
-        launch_analytics(data={})
-        mock_post.assert_called()
-
     @mock.patch("IPython.get_ipython")
     def test_colab_check_no_ipython(self, mock_get_ipython):
         mock_get_ipython.return_value = None
@@ -152,23 +107,6 @@ class TestUtils:
             clear=True,
         ):
             assert not kaggle_check()
-
-
-class TestIPAddress:
-    @pytest.mark.flaky
-    def test_get_ip(self):
-        Context.ip_address = None
-        ip = get_local_ip_address()
-        if ip == "No internet connection":
-            return
-        ipaddress.ip_address(ip)
-
-    @mock.patch("requests.get")
-    def test_get_ip_without_internet(self, mock_get):
-        Context.ip_address = None
-        mock_get.side_effect = requests.ConnectionError()
-        ip = get_local_ip_address()
-        assert ip == "No internet connection"
 
 
 class TestAssertConfigsEquivalent:

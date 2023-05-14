@@ -24,6 +24,7 @@ from packaging import version
 from typing_extensions import Literal
 
 from gradio import (
+    analytics,
     components,
     external,
     networking,
@@ -735,7 +736,7 @@ class Blocks(BlockContext):
                 "is_custom_theme": is_custom_theme,
                 "version": GRADIO_VERSION,
             }
-            utils.initiated_analytics(data)
+            analytics.initiated_analytics(data)
 
     @classmethod
     def from_config(
@@ -1833,7 +1834,7 @@ Received outputs:
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
-                    utils.error_analytics("Not able to set up tunnel")
+                    analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1923,8 +1924,8 @@ Received outputs:
                 "is_spaces": self.is_space,
                 "mode": self.mode,
             }
-            utils.launch_analytics(data)
-            utils.launched_telemetry(self, data)
+            analytics.launch_analytics(data)
+            analytics.launched_telemetry(self, data)
 
         utils.show_tip(self)
 
@@ -1993,7 +1994,7 @@ Received outputs:
                 mlflow.log_param("Gradio Interface Local Link", self.local_url)
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
-            utils.integration_analytics(data)
+            analytics.integration_analytics(data)
 
     def close(self, verbose: bool = True) -> None:
         """
