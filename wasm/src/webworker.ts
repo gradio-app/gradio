@@ -35,6 +35,7 @@ async function loadPyodideAndPackages(options: InitOptions) {
 	console.debug("Loading Gradio wheels.", gradioWheelUrls);
 	await micropip.add_mock_package("ffmpy", "0.3.0");
 	await micropip.add_mock_package("orjson", "3.8.12");
+	await micropip.add_mock_package("aiohttp", "3.8.4");
 	await micropip.add_mock_package("multidict", "4.7.6");
 	await pyodide.loadPackage(["ssl", "distutils", "setuptools"]);
 	await micropip.install.callKwargs(gradioWheelUrls, {
