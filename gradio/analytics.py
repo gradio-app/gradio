@@ -9,7 +9,6 @@ import warnings
 from distutils.version import StrictVersion
 from typing import Any
 
-import aiohttp
 import requests
 
 import gradio
@@ -185,17 +184,3 @@ def error_analytics(message: str) -> None:
             "data": data,
         },
     ).start()
-
-
-async def log_feature_analytics(feature: str) -> None:
-    if not analytics_enabled():
-        return
-    data = {"ip_address": get_local_ip_address(), "feature": feature}
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(
-                f"{ANALYTICS_URL}gradio-feature-analytics/", data=data
-            ):
-                pass
-        except aiohttp.ClientError:
-            pass  # do not push analytics if no network
