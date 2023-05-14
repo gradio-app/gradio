@@ -1772,6 +1772,8 @@ class Image(
 
         mask = ""
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
+            if isinstance(x, str):
+                x = {"image":x, "mask": x[:]}
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
 
