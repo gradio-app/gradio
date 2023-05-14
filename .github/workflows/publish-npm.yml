@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2.2.4
+        uses: pnpm/action-setup@v2
         with:
           version: 7
       - name: setup node.js
@@ -26,15 +26,12 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
           node-version: 18
           registry-url: "https://registry.npmjs.org"
-      - name: Creating .npmrc
-        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build packages
         run: pnpm --filter @gradio/client build
       - name: create and publish versions
+        id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm ci:version
@@ -44,3 +41,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
+      - name: label PR
+        if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
+        run: gh pr edit "$PR_NUMBER" --add-label "no-changelog-update" 
+        env:
+          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} # Not sure if this one is required
