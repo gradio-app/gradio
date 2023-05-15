@@ -1,11 +1,11 @@
-from pathlib import Path
-from unittest.mock import patch
 import asyncio
+from pathlib import Path
+
 import pytest
 
 import gradio
 import gradio as gr
-from gradio.reload import _setup_config, Server
+from gradio.reload import Server, _setup_config
 
 
 def build_demo():
@@ -33,11 +33,11 @@ class TestReload:
         reloader.handle_exit(2, None)
 
     def test_config_default_app(self, config):
-        assert "demo.calculator.run:demo.app" == config.app
+        assert config.app == "demo.calculator.run:demo.app"
 
     @pytest.mark.parametrize("argv", [["demo/calculator/run.py", "test.app"]])
     def test_config_custom_app(self, config):
-        assert "demo.calculator.run:test.app" == config.app
+        assert config.app == "demo.calculator.run:test.app"
 
     def test_config_watch_gradio(self, config):
         gradio_dir = Path(gradio.__file__).parent
@@ -49,13 +49,13 @@ class TestReload:
 
     def test_config_load_default(self, config):
         config.load()
-        assert config.loaded == True
+        assert config.loaded is True
 
     @pytest.mark.parametrize("argv", [["test/test_reload.py", "build_demo"]])
     def test_config_load_factory(self, config):
         config.load()
-        assert config.loaded == True
+        assert config.loaded is True
 
     def test_reload_run_default(self, reloader):
         asyncio.run(reloader.serve())
-        assert reloader.started == True
+        assert reloader.started is True
