@@ -138,7 +138,7 @@ class TestOutputPreprocessing:
     ]
 
     def test_float_conversion_dtype(self):
-        """Test any convertion from a float dtype to an other."""
+        """Test any conversion from a float dtype to an other."""
 
         x = np.array([-1, 1])
         # Test all combinations of dtypes conversions
