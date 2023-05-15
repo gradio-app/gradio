@@ -6,9 +6,9 @@ import custom_media from "postcss-custom-media";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
-import { join } from "path";
+import { resolve } from "path";
 
-const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
+const version_path = resolve(__dirname, "../../gradio/version.txt");
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
 	.replace(/\./g, "-");
@@ -33,27 +33,45 @@ export default defineConfig(({ mode }) => {
 	const production =
 		mode === "production:cdn" ||
 		mode === "production:local" ||
-		mode === "production:website";
+		mode === "production:website" ||
+		mode === "production:lite";
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
+	const is_lite = mode.endsWith(":lite");
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
 
 		server: {
-			port: 9876
+			port: 9876,
+			open: is_lite ? "/lite.html" : "/"
 		},
 
 		build: {
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
-			outDir: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
-			rollupOptions: {
+			outDir: is_lite
+				? resolve(__dirname, "../../lite/dist")
+				: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
+			// To build Gradio-lite as a library, we can't use the library mode
+			// like `lib: is_lite && {}`
+			// because it inevitably enables inlining of all the static file assets,
+			// while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
+			// So we build it as an app and only use the bundled JS and CSS files as library assets, ignoring the HTML file.
+			// See also `lite.ts` about it.
+			rollupOptions: is_lite && {
+				input: "./lite.html",
 				output: {
+					// To use it as a library, we don't add the hash to the file name.
+					entryFileNames: "lite.js",
 					assetFileNames: (file) => {
 						if (file.name.endsWith(".whl")) {
 							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
 							return `assets/[name].[ext]`;
+						}
+						if (file.name === "lite.css") {
+							// To use it as a library, we don't add the hash to the file name.
+							return `[name].[ext]`;
 						} else {
 							return `assets/[name]-[hash].[ext]`;
 						}
@@ -63,6 +81,7 @@ export default defineConfig(({ mode }) => {
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
+			IS_WASM: is_lite,
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
