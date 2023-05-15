@@ -10,6 +10,7 @@
 	} from "./components/types";
 
 	declare let BUILD_MODE: string;
+	declare let IS_WASM: boolean;
 	interface Config {
 		auth_required: boolean | undefined;
 		auth_message: string;
@@ -56,8 +57,6 @@
 	}
 
 	const intersecting = create_intersection_store();
-
-	const IS_WASM = true; // TODO: Configure this from the build system.
 </script>
 
 <script lang="ts">
@@ -87,6 +86,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
+	export let wasm_py_code: string | null = null;
 
 	export let space: string | null;
 	export let host: string | null;
@@ -222,17 +222,7 @@
 				requirements: []
 			});
 
-			// TODO: Stop hardcoding this app script:
-			await workerProxy.runPythonAsync(`
-import gradio as gr
-
-def greet(name):
-		return "Hello " + name + "!"
-
-demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-
-demo.launch()
-`);
+			await workerProxy.runPythonAsync(wasm_py_code ?? "");
 
 			app = await wasmClient(workerProxy, handle_status);
 		} else {
