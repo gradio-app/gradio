@@ -49,7 +49,7 @@ function create_custom_element() {
 				composed: true
 			});
 
-			var observer = new MutationObserver((mutations) => {
+			const observer = new MutationObserver((mutations) => {
 				this.dispatchEvent(event);
 			});
 
