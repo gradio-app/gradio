@@ -79,11 +79,11 @@ function create_custom_element() {
 					info: info === "false" ? false : true,
 					container: container === "false" ? false : true,
 					is_embed: is_embed === "false" ? false : true,
-					initial_height: initial_height,
+					initial_height,
 					eager: eager === "true" ? true : false,
 					// gradio meta info
 					version: GRADIO_VERSION,
-					theme_mode: theme_mode,
+					theme_mode,
 					// misc global behaviour
 					autoscroll: autoscroll === "true" ? true : false,
 					control_page_title: control_page_title === "true" ? true : false,
