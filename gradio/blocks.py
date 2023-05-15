@@ -96,7 +96,9 @@ class Block:
 
         if render:
             self.render()
-        check_deprecated_parameters(self.__class__.__name__, **kwargs)
+        check_deprecated_parameters(
+            self.__class__.__name__, stacklevel=6, kwargs=kwargs
+        )
 
     def render(self):
         """
@@ -874,7 +876,7 @@ class Blocks(BlockContext):
                 )
             overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
             for id in overlapping_ids:
-                # State componenents are allowed to be reused between Blocks
+                # State components are allowed to be reused between Blocks
                 if not isinstance(self.blocks[id], components.State):
                     raise DuplicateBlockError(
                         "At least one block in this Blocks has already been rendered."
