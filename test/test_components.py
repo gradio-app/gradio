@@ -707,8 +707,8 @@ class TestImage:
         Interface, process
         """
 
-        def generate_noise(width, height):
-            return np.random.randint(0, 256, (width, height, 3))
+        def generate_noise(height, width):
+            return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         assert iface(10, 20).endswith(".png")

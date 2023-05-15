@@ -156,7 +156,7 @@ demo.launch()
 
 ![`sepia_filter` demo](../../demo/sepia_filter/screenshot.gif)
 
-当使用`Image`组件作为输入时，您的函数将接收一个形状为 `(width, height, 3)` 的NumPy数组，其中最后一个维度表示RGB值。我们还将以NumPy数组的形式返回一张图像。
+当使用`Image`组件作为输入时，您的函数将接收一个形状为 `(height, width, 3)` 的NumPy数组，其中最后一个维度表示RGB值。我们还将以NumPy数组的形式返回一张图像。
 
 你也可以用 `type=` 关键字参数设置组件使用的数据类型。例如，如果你想让你的函数获取一个图像的文件路径，而不是一个NumPy数组时，输入 `Image` 组件可以写成：
 
