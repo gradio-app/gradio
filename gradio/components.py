@@ -1643,7 +1643,7 @@ class Image(
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
             tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
+            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -2306,6 +2306,7 @@ class Audio(
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        format: Literal["wav", "mp3"] = "wav",
         **kwargs,
     ):
         """
@@ -2321,6 +2322,7 @@ class Audio(
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
         """
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
@@ -2352,6 +2354,7 @@ class Audio(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
+        self.format = format
 
     def get_config(self):
         return {
@@ -2427,8 +2430,11 @@ class Audio(
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, output_file_name)
-            return output_file_name
+            output_file = str(Path(output_file_name).with_suffix(f".{self.format}"))
+            processing_utils.audio_to_file(
+                sample_rate, data, output_file, format=self.format
+            )
+            return output_file
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2527,8 +2533,10 @@ class Audio(
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-            processing_utils.audio_to_file(sample_rate, data, file.name)
+            file = tempfile.NamedTemporaryFile(suffix=f".{self.format}", delete=False)
+            processing_utils.audio_to_file(
+                sample_rate, data, file.name, format=self.format
+            )
             file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)
         else:

@@ -1,0 +1,39 @@
+{
+	"named_endpoints": {
+		"/predict": {
+			"parameters": [
+				{
+					"label": "parameter_1",
+					"type": {
+						"type": "number",
+						"description": "numeric value between 0 and 100"
+					},
+					"python_type": {
+						"type": "int | float",
+						"description": "numeric value between 0 and 100"
+					},
+					"component": "Slider",
+					"example_input": 0,
+					"serializer": "NumberSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "On release",
+					"type": { "type": "number" },
+					"python_type": { "type": "int | float", "description": "" },
+					"component": "Number",
+					"serializer": "NumberSerializable"
+				},
+				{
+					"label": "Number of events fired",
+					"type": { "type": "number" },
+					"python_type": { "type": "int | float", "description": "" },
+					"component": "Number",
+					"serializer": "NumberSerializable"
+				}
+			]
+		}
+	},
+	"unnamed_endpoints": {}
+}

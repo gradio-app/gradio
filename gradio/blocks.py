@@ -96,7 +96,9 @@ class Block:
 
         if render:
             self.render()
-        check_deprecated_parameters(self.__class__.__name__, **kwargs)
+        check_deprecated_parameters(
+            self.__class__.__name__, stacklevel=6, kwargs=kwargs
+        )
 
     def render(self):
         """
