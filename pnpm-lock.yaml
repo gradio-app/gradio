@@ -315,6 +315,9 @@ importers:
 
   js/chatbot:
     dependencies:
+      '@gradio/icons':
+        specifier: workspace:^0.0.1
+        version: link:../icons
       '@gradio/theme':
         specifier: workspace:^0.0.1
         version: link:../theme

@@ -6,6 +6,7 @@
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
+	import Copy from "./Copy.svelte";
 
 	const code_highlight_css = {
 		light: () => import("prismjs/themes/prism.css"),
@@ -74,28 +75,22 @@
 		}
 		div.querySelectorAll("pre > code").forEach((n) => {
 			let code_node = n as HTMLElement;
-			let node = n.parentElement as HTMLElement;
-			node.style.position = "relative";
-			const button = document.createElement("button");
-			button.className = "copy-button";
-			button.innerHTML = "Copy";
-			button.style.position = "absolute";
-			button.style.right = "0";
-			button.style.top = "0";
-			button.style.zIndex = "1";
-			button.style.padding = "var(--spacing-md)";
-			button.style.marginTop = "12px";
-			button.style.fontSize = "var(--text-sm)";
-			button.style.borderBottomLeftRadius = "var(--radius-sm)";
-			button.style.backgroundColor = "var(--block-label-background-fill)";
-			button.addEventListener("click", () => {
-				navigator.clipboard.writeText(code_node.innerText.trimEnd());
-				button.innerHTML = "Copied!";
-				setTimeout(() => {
-					button.innerHTML = "Copy";
-				}, 1000);
+			const copy_div = document.createElement("div");
+			new Copy({
+				target: copy_div,
+				props: {
+					value: code_node.innerText.trimEnd()
+				}
 			});
-			node.appendChild(button);
+			let node = n.parentElement as HTMLElement;
+			copy_div.style.position = "absolute";
+			copy_div.style.right = "0";
+			copy_div.style.top = "0";
+			copy_div.style.zIndex = "1";
+			copy_div.style.padding = "var(--spacing-md)";
+			copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
+			node.style.position = "relative";
+			node.appendChild(copy_div);
 		});
 	});
 
@@ -321,11 +316,21 @@
 		text-decoration: underline;
 	}
 
-	.hide {
-		display: none;
+	.message-wrap :global(pre) {
+		border-radius: var(--radius-md);
+		background-color: var(--chatbot-code-background-color);
+		padding: var(--spacing-xl) 10px;
 	}
 
-	.message-wrap :global(pre) {
-		padding: var(--spacing-xl) 0px;
+	.message-wrap :global(table),
+	.message-wrap :global(tr),
+	.message-wrap :global(td),
+	.message-wrap :global(th) {
+		border: 1px solid var(--border-color-primary);
+		padding: var(--spacing-xl);
+	}
+
+	.hide {
+		display: none;
 	}
 </style>
