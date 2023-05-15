@@ -30,7 +30,7 @@ class TestReload:
         reloader = Server(config)
         reloader.should_exit = True
         yield reloader
-        reloader.handle_exit(2, None)
+        reloader.close()
 
     def test_config_default_app(self, config):
         assert config.app == "demo.calculator.run:demo.app"
@@ -55,3 +55,7 @@ class TestReload:
     def test_config_load_factory(self, config):
         config.load()
         assert config.loaded is True
+
+    def test_reload_run_default(self, reloader):
+        reloader.run_in_thread()
+        assert reloader.started is True
