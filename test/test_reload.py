@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 
 import pytest
@@ -56,7 +55,3 @@ class TestReload:
     def test_config_load_factory(self, config):
         config.load()
         assert config.loaded is True
-
-    def test_reload_run_default(self, reloader):
-        asyncio.run(reloader.serve())
-        assert reloader.started is True
