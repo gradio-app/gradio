@@ -271,13 +271,10 @@ export async function client(
 		}
 
 		try {
-			console.log(`${http_protocol}//${host}`);
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-			console.log(config);
 			const _config = await config_success(config);
 			res(_config);
 		} catch (e) {
-			console.log(space_id, e);
 			if (space_id) {
 				check_space_status(
 					space_id,
@@ -334,6 +331,7 @@ export async function client(
 		): SubmitReturn {
 			let fn_index: number;
 			let api_info;
+
 			if (typeof endpoint === "number") {
 				fn_index = endpoint;
 				api_info = api.unnamed_endpoints[fn_index];
@@ -394,7 +392,6 @@ export async function client(
 									queue: false,
 									time: new Date()
 								});
-
 								fire_event({
 									type: "data",
 									endpoint: _endpoint,
@@ -567,8 +564,9 @@ export async function client(
 
 				try {
 					await fetch(`${http_protocol}//${host + config.path}/reset`, {
+						headers: { "Content-Type": "application/json" },
 						method: "POST",
-						body: JSON.stringify(session_hash)
+						body: JSON.stringify({ fn_index, session_hash })
 					});
 				} catch (e) {
 					console.warn(
@@ -583,8 +581,6 @@ export async function client(
 				} else {
 					websocket.close();
 				}
-
-				destroy();
 			}
 
 			function destroy() {
@@ -981,9 +977,7 @@ async function resolve_config(
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
-		console.log(`${endpoint}/config`, headers);
 		let response = await fetch(`${endpoint}/config`, { headers });
-		console.log(response);
 		if (response.status === 200) {
 			const config = await response.json();
 			config.path = config.path ?? "";
