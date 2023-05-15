@@ -89,8 +89,6 @@ with gr.Blocks() as demo:
 
     inp.change(fn=lambda x: x, inputs=inp, outputs=out)
 
-app = demo.app
-
 if __name__ == "__main__":
     demo.launch()
 ```

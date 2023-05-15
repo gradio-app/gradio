@@ -10,7 +10,7 @@ import os
 import sys
 from pathlib import Path
 
-from uvicorn import Config, Server
+from uvicorn import Config
 from uvicorn.supervisors import ChangeReload
 
 import gradio
@@ -82,7 +82,7 @@ def _setup_config():
 def main():
     # default execution pattern to start the server and watch changes
     config = _setup_config()
-    server = Server(config)
+    server = networking.Server(config)
     sock = config.bind_socket()
     ChangeReload(config, target=server.run, sockets=[sock]).run()
 
