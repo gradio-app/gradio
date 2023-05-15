@@ -79,7 +79,7 @@ function create_custom_element() {
 					info: info === "false" ? false : true,
 					container: container === "false" ? false : true,
 					is_embed: is_embed === "false" ? false : true,
-					initial_height: initial_height ?? undefined,
+					initial_height: initial_height,
 					eager: eager === "true" ? true : false,
 					// gradio meta info
 					version: GRADIO_VERSION,
