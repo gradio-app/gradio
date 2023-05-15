@@ -1,0 +1,628 @@
+{
+	"named_endpoints": {
+		"/predict": {
+			"parameters": [
+				{
+					"label": "Textbox",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Textbox 2",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Number",
+					"type": { "type": "number" },
+					"python_type": { "type": "int | float", "description": "" },
+					"component": "Number",
+					"example_input": 5,
+					"serializer": "NumberSerializable"
+				},
+				{
+					"label": "Slider: 10 - 20",
+					"type": {
+						"type": "number",
+						"description": "numeric value between 10 and 20"
+					},
+					"python_type": {
+						"type": "int | float",
+						"description": "numeric value between 10 and 20"
+					},
+					"component": "Slider",
+					"example_input": 10,
+					"serializer": "NumberSerializable"
+				},
+				{
+					"label": "Slider: step @ 0.04",
+					"type": {
+						"type": "number",
+						"description": "numeric value between 0 and 20"
+					},
+					"python_type": {
+						"type": "int | float",
+						"description": "numeric value between 0 and 20"
+					},
+					"component": "Slider",
+					"example_input": 0,
+					"serializer": "NumberSerializable"
+				},
+				{
+					"label": "Checkbox",
+					"type": { "type": "boolean" },
+					"python_type": { "type": "bool", "description": "" },
+					"component": "Checkbox",
+					"example_input": true,
+					"serializer": "BooleanSerializable"
+				},
+				{
+					"label": "CheckboxGroup",
+					"type": { "type": "array", "items": { "type": "string" } },
+					"python_type": { "type": "List[str]", "description": "" },
+					"component": "Checkboxgroup",
+					"example_input": "foo",
+					"serializer": "ListStringSerializable"
+				},
+				{
+					"label": "Radio",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Radio",
+					"example_input": "foo",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Dropdown",
+					"type": {
+						"type": "string",
+						"description": "Option from: ['foo', 'bar', 'baz']"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "Option from: ['foo', 'bar', 'baz']"
+					},
+					"component": "Dropdown",
+					"example_input": "foo",
+					"serializer": "SimpleSerializable"
+				},
+				{
+					"label": "Multiselect Dropdown (Max choice: 2)",
+					"type": {
+						"type": "array",
+						"items": { "type": "string" },
+						"description": "List of options from: ['foo', 'bar', 'baz']"
+					},
+					"python_type": {
+						"type": "List[str]",
+						"description": "List of options from: ['foo', 'bar', 'baz']"
+					},
+					"component": "Dropdown",
+					"example_input": ["foo"],
+					"serializer": "SimpleSerializable"
+				},
+				{
+					"label": "Image",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				},
+				{
+					"label": "Image w/ Cropper",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				},
+				{
+					"label": "Sketchpad",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				},
+				{
+					"label": "Webcam",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				},
+				{
+					"label": "Video",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							},
+							{
+								"type": "array",
+								"items": {
+									"anyOf": [
+										{
+											"type": "string",
+											"description": "filepath or URL to file"
+										},
+										{
+											"type": "object",
+											"properties": {
+												"name": {
+													"type": "string",
+													"description": "name of file"
+												},
+												"data": {
+													"type": "string",
+													"description": "base64 representation of file"
+												},
+												"size": {
+													"type": "integer",
+													"description": "size of image in bytes"
+												},
+												"is_file": {
+													"type": "boolean",
+													"description": "true if the file has been uploaded to the server"
+												},
+												"orig_name": {
+													"type": "string",
+													"description": "original name of the file"
+												}
+											},
+											"required": ["name", "data"]
+										}
+									]
+								}
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "Video",
+					"example_input": "https://github.com/gradio-app/gradio/raw/main/test/test_files/video_sample.mp4",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "Audio",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "Audio",
+					"example_input": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "Microphone",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "Audio",
+					"example_input": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "File",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "File",
+					"example_input": "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "Dataframe",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Dataframe",
+					"example_input": null,
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "df2",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Timeseries",
+					"example_input": null,
+					"serializer": "JSONSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "Textbox",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Label",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Label",
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "Audio",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "Audio",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "Image",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"serializer": "ImgSerializable"
+				},
+				{
+					"label": "Video",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							},
+							{
+								"type": "array",
+								"items": {
+									"anyOf": [
+										{
+											"type": "string",
+											"description": "filepath or URL to file"
+										},
+										{
+											"type": "object",
+											"properties": {
+												"name": {
+													"type": "string",
+													"description": "name of file"
+												},
+												"data": {
+													"type": "string",
+													"description": "base64 representation of file"
+												},
+												"size": {
+													"type": "integer",
+													"description": "size of image in bytes"
+												},
+												"is_file": {
+													"type": "boolean",
+													"description": "true if the file has been uploaded to the server"
+												},
+												"orig_name": {
+													"type": "string",
+													"description": "original name of the file"
+												}
+											},
+											"required": ["name", "data"]
+										}
+									]
+								}
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "Video",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "HighlightedText",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Highlightedtext",
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "HighlightedText",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Highlightedtext",
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "JSON",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Json",
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "HTML",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Html",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "File",
+					"type": {
+						"oneOf": [
+							{ "type": "string", "description": "filepath or URL to file" },
+							{
+								"type": "object",
+								"properties": {
+									"name": { "type": "string", "description": "name of file" },
+									"data": {
+										"type": "string",
+										"description": "base64 representation of file"
+									},
+									"size": {
+										"type": "integer",
+										"description": "size of image in bytes"
+									},
+									"is_file": {
+										"type": "boolean",
+										"description": "true if the file has been uploaded to the server"
+									},
+									"orig_name": {
+										"type": "string",
+										"description": "original name of the file"
+									}
+								},
+								"required": ["name", "data"]
+							}
+						]
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to file"
+					},
+					"component": "File",
+					"serializer": "FileSerializable"
+				},
+				{
+					"label": "Dataframe",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Dataframe",
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "Numpy",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Dataframe",
+					"serializer": "JSONSerializable"
+				},
+				{
+					"label": "Timeseries",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Timeseries",
+					"serializer": "JSONSerializable"
+				}
+			]
+		}
+	},
+	"unnamed_endpoints": {}
+}

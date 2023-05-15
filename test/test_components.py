@@ -911,6 +911,16 @@ class TestAudio:
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
 
+    def test_prepost_process_to_mp3(self):
+        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+        audio_input = gr.Audio(type="filepath", format="mp3")
+        output = audio_input.preprocess(x_wav)
+        assert output.endswith("mp3")
+        output = audio_input.postprocess(
+            (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
+        )
+        assert output["name"].endswith("mp3")
+
 
 class TestFile:
     def test_component_functions(self):
@@ -1474,10 +1484,9 @@ class TestTimeseries:
 
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
-    def test_no_duplicate_uncased_names(self):
-        subclasses = gr.components.Component.__subclasses__()
-        unique_subclasses_uncased = {s.__name__.lower() for s in subclasses}
-        assert len(subclasses) == len(unique_subclasses_uncased)
+    def test_no_duplicate_uncased_names(self, io_components):
+        unique_subclasses_uncased = {s.__name__.lower() for s in io_components}
+        assert len(io_components) == len(unique_subclasses_uncased)
 
 
 class TestLabel:

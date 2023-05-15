@@ -10,7 +10,7 @@
 html {
 	-webkit-text-size-adjust: 100%;
 	line-height: 1.5;
-	font-family: -var(--font-sans);
+	font-family: var(--font-sans);
 	-moz-tab-size: 4;
 	tab-size: 2;
 }

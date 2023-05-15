@@ -437,7 +437,7 @@ class Textbox(
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
-        Uses event data gradio.SelectData to carry `value` referring to selected subtring, and `index` tuple referring to selected range endpoints.
+        Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
         See EventData documentation on how to use this event data.
         """
         IOComponent.__init__(
@@ -1083,7 +1083,7 @@ class CheckboxGroup(
         Parameters:
             choices: list of options to select from.
             value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+            type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indices of the choices selected.
             label: component name in interface.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -2306,6 +2306,7 @@ class Audio(
         streaming: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        format: Literal["wav", "mp3"] = "wav",
         **kwargs,
     ):
         """
@@ -2321,6 +2322,7 @@ class Audio(
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
         """
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
@@ -2352,6 +2354,7 @@ class Audio(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
+        self.format = format
 
     def get_config(self):
         return {
@@ -2427,8 +2430,11 @@ class Audio(
         if self.type == "numpy":
             return sample_rate, data
         elif self.type == "filepath":
-            processing_utils.audio_to_file(sample_rate, data, output_file_name)
-            return output_file_name
+            output_file = str(Path(output_file_name).with_suffix(f".{self.format}"))
+            processing_utils.audio_to_file(
+                sample_rate, data, output_file, format=self.format
+            )
+            return output_file
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2527,8 +2533,10 @@ class Audio(
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-            processing_utils.audio_to_file(sample_rate, data, file.name)
+            file = tempfile.NamedTemporaryFile(suffix=f".{self.format}", delete=False)
+            processing_utils.audio_to_file(
+                sample_rate, data, file.name, format=self.format
+            )
             file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)
         else:
@@ -2857,7 +2865,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
+            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
         """
 
         self.wrap = wrap
@@ -3243,7 +3251,7 @@ class State(IOComponent, SimpleSerializable):
     ):
         """
         Parameters:
-            value: the initial value (of abitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
+            value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
         """
         self.stateful = True
         IOComponent.__init__(self, value=deepcopy(value), **kwargs)
