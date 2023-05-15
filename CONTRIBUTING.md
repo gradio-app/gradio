@@ -22,9 +22,9 @@ bash scripts/install_gradio.sh
 bash scripts/build_frontend.sh
 ```
 
-### Install testing requirements
+### Install development requirements
 
-In order to be able to run the Python unit tests, do the following:
+In order to be able to run the Python linter, formatter, and unit tests, do the following:
 
 - Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment running **Python 3.9** since the versions are pinned)
 
