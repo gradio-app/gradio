@@ -616,11 +616,14 @@ class Endpoint:
         def _inner(*data):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
+            data = self.insert_state(*data)
             if self.client.serialize:
                 data = self.serialize(*data)
             predictions = _predict(*data)
             if self.client.serialize:
                 predictions = self.deserialize(*predictions)
+            data = self.remove_state(*data)
+            data = self.reduce_singleton_output(*data)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -745,11 +748,37 @@ class Endpoint:
                 data[i] = files[file_counter]
                 file_counter += 1
 
-    def serialize(self, *data) -> tuple:
+    def insert_state(self, *data) -> tuple:
         data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
                 data.insert(i, None)
+        return tuple(data)
+
+    def remove_state(self, *data) -> tuple:
+        data = [
+            d
+            for d, oct in zip(data, self.output_component_types)
+            if oct != utils.STATE_COMPONENT
+        ]
+        return tuple(data)
+
+    def reduce_singleton_output(self, *data) -> Any:
+        if (
+            len(
+                [
+                    oct
+                    for oct in self.output_component_types
+                    if oct != utils.STATE_COMPONENT
+                ]
+            )
+            == 1
+        ):
+            return data[0]
+        else:
+            return data
+
+    def serialize(self, *data) -> tuple:
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
@@ -765,33 +794,17 @@ class Endpoint:
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
         return o
 
-    def deserialize(self, *data) -> tuple | Any:
+    def deserialize(self, *data) -> tuple:
         assert len(data) == len(
             self.deserializers
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         outputs = tuple(
             [
                 s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
-                for s, d, oct in zip(
-                    self.deserializers, data, self.output_component_types
-                )
-                if oct != utils.STATE_COMPONENT
+                for s, d in zip(self.deserializers, data)
             ]
         )
-        if (
-            len(
-                [
-                    oct
-                    for oct in self.output_component_types
-                    if oct != utils.STATE_COMPONENT
-                ]
-            )
-            == 1
-        ):
-            output = outputs[0]
-        else:
-            output = outputs
-        return output
+        return outputs
 
     def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
         inputs = self.dependency["inputs"]
