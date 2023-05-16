@@ -703,9 +703,10 @@ def get_type_hints(fn):
         type_hints = {}
         sig = inspect.signature(fn)
         for name, param in sig.parameters.items():
-            if param.annotation is not inspect.Parameter.empty and "|" not in str(
-                param.annotation
-            ):
+            if param.annotation is inspect.Parameter.empty:
+                continue
+            if "|" in str(param.annotation):
+                continue
                 # To convert the string annotation to a class, we use the
                 # internal typing._eval_type function. This is not ideal, but
                 # it's the only way to do it without eval-ing the string.
