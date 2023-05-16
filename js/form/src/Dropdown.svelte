@@ -1,6 +1,6 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
@@ -8,6 +8,7 @@
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
 	let old_value = Array.isArray(value) ? value.slice() : value;
+	export let value_is_output: boolean = false;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -17,6 +18,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
+		input: undefined;
 		select: SelectData;
 		blur: undefined;
 	}>();
@@ -36,6 +38,22 @@
 
 	$: if (!activeOption || !filtered.includes(activeOption)) {
 		activeOption = filtered.length ? filtered[0] : null;
+	}
+
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: {
+		if (JSON.stringify(value) != JSON.stringify(old_value)) {
+			old_value = Array.isArray(value) ? value.slice() : value;
+			handle_change();
+		}
 	}
 
 	function add(option: string) {
