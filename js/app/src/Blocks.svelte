@@ -243,19 +243,25 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	const trigger_api_call = async (dep_index: number, event_data: unknown) => {
+	const trigger_api_call = async (
+		dep_index: number,
+		event_data: unknown = null
+	) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
-		if (current_status === "pending" || current_status === "generating") {
-			return;
-		}
 
 		if (dep.cancels) {
 			await Promise.all(
-				dep.cancels.map((fn_index) => {
-					submit_map.get(fn_index)?.cancel();
+				dep.cancels.map(async (fn_index) => {
+					const submission = submit_map.get(fn_index);
+					submission?.cancel();
+					return submission;
 				})
 			);
+		}
+
+		if (current_status === "pending" || current_status === "generating") {
+			return;
 		}
 
 		let payload = {
@@ -290,15 +296,6 @@
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
-					let status = loading_status.get_status_for_fn(fn_index);
-
-					if (status === "complete") {
-						dependencies.forEach((dep, i) => {
-							if (dep.trigger_after === fn_index) {
-								trigger_api_call(i, null);
-							}
-						});
-					}
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					loading_status.update({
@@ -308,16 +305,27 @@
 						fn_index
 					});
 
+					if (status.stage === "complete") {
+						dependencies.map(async (dep, i) => {
+							if (dep.trigger_after === fn_index) {
+								trigger_api_call(i);
+							}
+						});
+
+						submission.destroy();
+					}
+
 					if (status.stage === "error") {
-						// handle failed .then here, since "data" listener won't trigger
-						dependencies.forEach((dep, i) => {
+						dependencies.map(async (dep, i) => {
 							if (
 								dep.trigger_after === fn_index &&
 								!dep.trigger_only_on_success
 							) {
-								trigger_api_call(i, null);
+								trigger_api_call(i);
 							}
 						});
+
+						submission.destroy();
 					}
 				});
 
@@ -351,7 +359,7 @@
 				outputs.every((v) => instance_map?.[v].instance) &&
 				inputs.every((v) => instance_map?.[v].instance)
 			) {
-				trigger_api_call(i, null);
+				trigger_api_call(i);
 				handled_dependencies[i] = [-1];
 			}
 

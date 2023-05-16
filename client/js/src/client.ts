@@ -50,7 +50,7 @@ type client_return = {
 type SubmitReturn = {
 	on: event;
 	off: event;
-	cancel: () => void;
+	cancel: () => Promise<void>;
 	destroy: () => void;
 };
 
@@ -227,8 +227,6 @@ export async function client(
 		let config: Config;
 		let api_map: Record<string, number> = {};
 
-		const listener_map: ListenerMap<EventType> = {};
-
 		let jwt: false | string = false;
 
 		if (hf_token && space_id) {
@@ -352,6 +350,8 @@ export async function client(
 
 			const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 			let payload: Payload;
+			let complete: false | Record<string, any> = false;
+			const listener_map: ListenerMap<EventType> = {};
 
 			//@ts-ignore
 			handle_blob(
@@ -384,19 +384,20 @@ export async function client(
 						.then(([output, status_code]) => {
 							if (status_code == 200) {
 								fire_event({
+									type: "data",
+									endpoint: _endpoint,
+									fn_index,
+									data: output.data,
+									time: new Date()
+								});
+
+								fire_event({
 									type: "status",
 									endpoint: _endpoint,
 									fn_index,
 									stage: "complete",
 									eta: output.average_duration,
 									queue: false,
-									time: new Date()
-								});
-								fire_event({
-									type: "data",
-									endpoint: _endpoint,
-									fn_index,
-									data: output.data,
 									time: new Date()
 								});
 							} else {
@@ -462,7 +463,7 @@ export async function client(
 							last_status[fn_index]
 						);
 
-						if (type === "update" && status) {
+						if (type === "update" && status && !complete) {
 							// call 'status' listeners
 							fire_event({
 								type: "status",
@@ -480,16 +481,7 @@ export async function client(
 						} else if (type === "data") {
 							websocket.send(JSON.stringify({ ...payload, session_hash }));
 						} else if (type === "complete") {
-							fire_event({
-								type: "status",
-								time: new Date(),
-								...status,
-								stage: status?.stage!,
-								queue: true,
-								endpoint: _endpoint,
-								fn_index
-							});
-							websocket.close();
+							complete = status;
 						} else if (type === "generating") {
 							fire_event({
 								type: "status",
@@ -509,6 +501,19 @@ export async function client(
 								endpoint: _endpoint,
 								fn_index
 							});
+
+							if (complete) {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...complete,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+								websocket.close();
+							}
 						}
 					};
 
@@ -553,14 +558,26 @@ export async function client(
 			}
 
 			async function cancel() {
-				fire_event({
-					type: "status",
-					endpoint: _endpoint,
-					fn_index: fn_index,
+				const _status: Status = {
 					stage: "complete",
 					queue: false,
 					time: new Date()
+				};
+				complete = _status;
+				fire_event({
+					..._status,
+					type: "status",
+					endpoint: _endpoint,
+					fn_index: fn_index
 				});
+
+				if (websocket && websocket.readyState === 0) {
+					websocket.addEventListener("open", () => {
+						websocket.close();
+					});
+				} else {
+					websocket.close();
+				}
 
 				try {
 					await fetch(`${http_protocol}//${host + config.path}/reset`, {
@@ -572,14 +589,6 @@ export async function client(
 					console.warn(
 						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
 					);
-				}
-
-				if (websocket && websocket.readyState === 0) {
-					websocket.addEventListener("open", () => {
-						websocket.close();
-					});
-				} else {
-					websocket.close();
 				}
 			}
 
