@@ -1,5 +1,6 @@
 import ipaddress
 import json
+import os
 import warnings
 from unittest import mock as mock
 
@@ -8,6 +9,8 @@ import requests
 
 from gradio import analytics
 from gradio.context import Context
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestAnalytics:
@@ -55,13 +58,19 @@ class TestIPAddress:
     def test_get_ip(self):
         Context.ip_address = None
         ip = analytics.get_local_ip_address()
-        if ip == "No internet connection":
+        if ip == "No internet connection" or ip == "Analytics disabled":
             return
         ipaddress.ip_address(ip)
 
     @mock.patch("requests.get")
-    def test_get_ip_without_internet(self, mock_get):
-        Context.ip_address = None
+    def test_get_ip_without_internet(self, mock_get, monkeypatch):
         mock_get.side_effect = requests.ConnectionError()
+        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
+        Context.ip_address = None
         ip = analytics.get_local_ip_address()
         assert ip == "No internet connection"
+
+        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "False")
+        Context.ip_address = None
+        ip = analytics.get_local_ip_address()
+        assert ip == "Analytics disabled"
