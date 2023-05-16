@@ -4,6 +4,8 @@ from typing import Dict
 
 import requests
 
+from gradio.analytics import analytics_enabled
+
 MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
 en = {
@@ -45,4 +47,5 @@ def get_updated_messaging(en: Dict):
         pass
 
 
-threading.Thread(target=get_updated_messaging, args=(en,)).start()
+if analytics_enabled():
+    threading.Thread(target=get_updated_messaging, args=(en,)).start()
