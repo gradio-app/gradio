@@ -47,17 +47,6 @@ class TestReload:
         demo_dir = Path("demo/calculator/run.py").resolve().parent
         assert demo_dir in config.reload_dirs
 
-<<<<<<< HEAD
-@patch("gradio.reload.os.system")
-@patch("gradio.cli.sys")
-def test_run_in_reload_mode(mock_sys, mock_system_call):
-
-    mock_sys.argv = ["gradio", "demo/calculator/run.py"]
-    cli()
-    reload_command = mock_system_call.call_args[0][0]
-    gradio_dir = Path(gradio.__file__).parent
-    demo_dir = Path("demo/calculator/run.py").resolve().parent
-=======
     def test_config_load_default(self, config):
         config.load()
         assert config.loaded is True
@@ -66,7 +55,6 @@ def test_run_in_reload_mode(mock_sys, mock_system_call):
     def test_config_load_factory(self, config):
         config.load()
         assert config.loaded is True
->>>>>>> origin
 
     def test_reload_run_default(self, reloader):
         reloader.run_in_thread()
