@@ -94,7 +94,7 @@ def initiated_analytics(data: dict[str, Any]) -> None:
     ).start()
 
 
-def launched_telemetry(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
+def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
