@@ -860,6 +860,7 @@ def get_cancel_function(
 def get_type_hints(fn):
     # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
     import gradio as gr  # noqa: F401
+    from gradio import Request  # noqa: F401
 
     if inspect.isfunction(fn) or inspect.ismethod(fn):
         pass
