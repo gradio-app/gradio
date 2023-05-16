@@ -622,8 +622,8 @@ class Endpoint:
             predictions = _predict(*data)
             if self.client.serialize:
                 predictions = self.deserialize(*predictions)
-            data = self.remove_state(*data)
-            data = self.reduce_singleton_output(*data)
+            predictions = self.remove_state(*predictions)
+            predictions = self.reduce_singleton_output(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
