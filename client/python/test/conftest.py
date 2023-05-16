@@ -182,6 +182,26 @@ def file_io_demo():
 
 
 @pytest.fixture
+def stateful_chatbot():
+    with gr.Blocks() as demo:
+        chatbot = gr.Chatbot()
+        msg = gr.Textbox()
+        clear = gr.Button("Clear")
+        st = gr.State([1, 2, 3])
+
+        def respond(message, st, chat_history):
+            assert st[0] == 1 and st[1] == 2 and st[2] == 3
+            bot_message = "I love you"
+            chat_history.append((message, bot_message))
+            return "", chat_history
+
+        msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
+        clear.click(lambda: None, None, chatbot, queue=False)
+        demo.queue()
+    return demo
+
+
+@pytest.fixture
 def all_components():
     classes_to_check = gr.components.Component.__subclasses__()
     subclasses = []
