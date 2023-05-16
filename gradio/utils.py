@@ -683,11 +683,41 @@ def get_cancel_function(
 
 
 def get_type_hints(fn):
+    # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
+    import gradio as gr  # noqa: F401
+    from gradio import Request  # noqa: F401
+
     if inspect.isfunction(fn) or inspect.ismethod(fn):
-        return typing.get_type_hints(fn)
+        pass
     elif callable(fn):
-        return typing.get_type_hints(fn.__call__)
-    return {}
+        fn = fn.__call__
+    else:
+        return {}
+
+    try:
+        return typing.get_type_hints(fn)
+    except TypeError:
+        # On Python 3.9 or earlier, get_type_hints throws a TypeError if the function
+        # has a type annotation that include "|". We resort to parsing the signature
+        # manually using inspect.signature.
+        type_hints = {}
+        sig = inspect.signature(fn)
+        for name, param in sig.parameters.items():
+            if param.annotation is inspect.Parameter.empty:
+                continue
+            if "|" in str(param.annotation):
+                continue
+            # To convert the string annotation to a class, we use the
+            # internal typing._eval_type function. This is not ideal, but
+            # it's the only way to do it without eval-ing the string.
+            # Since the API is internal, it may change in the future.
+            try:
+                type_hints[name] = typing._eval_type(  # type: ignore
+                    typing.ForwardRef(param.annotation), globals(), locals()
+                )
+            except (NameError, TypeError):
+                pass
+        return type_hints
 
 
 def is_special_typed_parameter(name, parameter_types):

@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import copy
 import os
 import sys
 import unittest.mock as mock
 import warnings
-from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -570,7 +571,7 @@ class TestGetTypeHints:
         assert len(get_type_hints(GenericObject())) == 0
 
     def test_is_special_typed_parameter(self):
-        def func(a: List[str], b: Literal["a", "b"], c, d: Request):
+        def func(a: list[str], b: Literal["a", "b"], c, d: Request):
             pass
 
         hints = get_type_hints(func)
@@ -578,6 +579,15 @@ class TestGetTypeHints:
         assert not is_special_typed_parameter("b", hints)
         assert not is_special_typed_parameter("c", hints)
         assert is_special_typed_parameter("d", hints)
+
+    def test_is_special_typed_parameter_with_pipe(self):
+        def func(a: Request, b: str | int, c: list[str]):
+            pass
+
+        hints = get_type_hints(func)
+        assert is_special_typed_parameter("a", hints)
+        assert not is_special_typed_parameter("b", hints)
+        assert not is_special_typed_parameter("c", hints)
 
 
 class TestCheckFunctionInputsMatch:
