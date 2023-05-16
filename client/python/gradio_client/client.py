@@ -789,7 +789,7 @@ class Endpoint:
             if t in ["file", "uploadbutton"]
         ]
         uploaded_files = self._upload(files)
-        self._add_uploaded_files_to_data(uploaded_files, data)
+        self._add_uploaded_files_to_data(uploaded_files, list(data))
 
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
         return o

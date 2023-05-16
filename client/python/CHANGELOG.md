@@ -1,13 +1,23 @@
 # Upcoming Release
 
-# 0.2.4
-
 ## New Features:
+
+## Bug Fixes:
+- Fixes parameter names not showing underscores by [@abidlabs](https://github.com/abidlabs) in [PR 4228](https://github.com/gradio-app/gradio/pull/4228)
+- Fixes issue in which state was not handled correctly if `serialize=False` by [@abidlabs](https://github.com/abidlabs) in [PR 4228](https://github.com/gradio-app/gradio/pull/4228)
+
+## Breaking Changes:
 
 No changes to highlight.
 
+## Full Changelog:
+
+No changes to highlight.
+
+# 0.2.4
+
 ## Bug Fixes:
-- Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/freddyaboulton) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
+- Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/abidlabs) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
 
 ## Documentation Changes:
 

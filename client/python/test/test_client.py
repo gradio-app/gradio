@@ -39,7 +39,7 @@ def connect(demo: gr.Blocks):
         demo.server.thread.join(timeout=1)
 
 
-class TestPredictionsFromSpaces:
+class TestClientPredictions:
     @pytest.mark.flaky
     def test_raise_error_invalid_state(self):
         with pytest.raises(ValueError, match="invalid state"):
@@ -307,6 +307,18 @@ class TestPredictionsFromSpaces:
 
                 client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
+
+    def test_state_without_serialize(self, stateful_chatbot):
+        _, local_url, _ = stateful_chatbot.launch(prevent_thread_lock=True)
+        client = Client(local_url, serialize=False)
+        initial_history = [["", None]]
+        message = "Hello"
+        ret = client.predict(message, initial_history, api_name="/submit")
+        assert ret == ("", [["", None], ["Hello", "I love you"]])
+        stateful_chatbot._queue.close()
+        stateful_chatbot.is_running = False
+        stateful_chatbot.server.should_exit = True
+        stateful_chatbot.server.thread.join(timeout=1)
 
 
 class TestStatusUpdates:
