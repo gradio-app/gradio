@@ -214,7 +214,7 @@ export async function client(
 			// duplicate
 		};
 
-let transform_files = normalise_files ?? true;
+		let transform_files = normalise_files ?? true;
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
 			NodeBlob = (await import("node:buffer")).Blob;
