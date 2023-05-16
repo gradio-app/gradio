@@ -873,7 +873,7 @@ def get_type_hints(fn):
     except TypeError:
         # On Python 3.9 or earlier, get_type_hints throws a TypeError if the function
         # has a type annotation that include "|". We resort to parsing the signature
-        # manually and returning the type hints as strings instead of classes.
+        # manually using inspect.signature.
         type_hints = {}
         sig = inspect.signature(fn)
         for name, param in sig.parameters.items():
