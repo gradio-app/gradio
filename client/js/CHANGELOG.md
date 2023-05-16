@@ -1,5 +1,13 @@
 # @gradio/client
 
+## 0.1.1
+
+### Patch Changes
+
+- [#4201](https://github.com/gradio-app/gradio/pull/4201) [`da5b4ee1`](https://github.com/gradio-app/gradio/commit/da5b4ee11721175858ded96e5710225369097f74) Thanks [@pngwn](https://github.com/pngwn)! - Ensure semiver is bundled so CDN links work correctly.
+
+- [#4202](https://github.com/gradio-app/gradio/pull/4202) [`a26e9afd`](https://github.com/gradio-app/gradio/commit/a26e9afde319382993e6ddc77cc4e56337a31248) Thanks [@pngwn](https://github.com/pngwn)! - Ensure all URLs returned by the client are complete URLs with the correct host instead of an absolute path relative to a server.
+
 ## 0.1.0
 
 ### Minor Changes
