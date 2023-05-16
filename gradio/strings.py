@@ -3,7 +3,6 @@ import threading
 from typing import Dict
 
 import requests
-from requests.exceptions import JSONDecodeError
 
 MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
@@ -41,7 +40,7 @@ def get_updated_messaging(en: Dict):
     except (
         requests.ConnectionError,
         requests.exceptions.ReadTimeout,
-        JSONDecodeError,
+        requests.exceptions.JSONDecodeError,
     ):  # Use default messaging
         pass
 
