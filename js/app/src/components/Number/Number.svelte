@@ -16,6 +16,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
+	export let value_is_output: boolean = false;
 </script>
 
 <Block
@@ -28,11 +29,13 @@
 
 	<Number
 		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
 		disabled={mode === "static"}
 		on:change
+		on:input
 		on:submit
 		on:blur
 	/>

@@ -11,6 +11,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string | null = null;
+	export let value_is_output: boolean = false;
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
 	export let show_label: boolean;
@@ -29,6 +30,7 @@
 
 	<Radio
 		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{elem_id}
@@ -37,6 +39,7 @@
 		{style}
 		disabled={mode === "static"}
 		on:change
+		on:input
 		on:select
 	/>
 </Block>
