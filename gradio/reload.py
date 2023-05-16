@@ -7,8 +7,8 @@ $ gradio app.py my_demo.app, to use variable names other than "demo"
 """
 import inspect
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from uvicorn import Config
 from uvicorn.supervisors import ChangeReload

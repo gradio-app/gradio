@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import json
 import os
-import sys
 import random
 import re
-import gradio as gr
+import sys
 
 import huggingface_hub
+
+import gradio as gr
 
 
 def add_configuration_to_readme(repo_directory, readme_file) -> dict:
@@ -126,7 +126,7 @@ def deploy():
             f"Creating new Spaces Repo in '{repo_directory}'. Collecting metadata, press Enter to accept default value."
         )
         configuration = add_configuration_to_readme(repo_directory, readme_file)
-        
+
     space_id = huggingface_hub.create_repo(
         configuration["title"],
         space_sdk="gradio",
