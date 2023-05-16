@@ -1,5 +1,22 @@
 # Upcoming Release
 
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+
+# 3.31.0
+
 ## New Features:
 
 - Min and max value for gr.Number by [@artegoser](https://github.com/artegoser) and [@dawoodkhan82] (https://github.com/dawoodkhan82) in [PR 3991](https://github.com/gradio-app/gradio/pull/3991)
