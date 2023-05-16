@@ -213,6 +213,8 @@
 	function handle_update(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
+			output.props.value_is_output = true;
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -222,12 +224,12 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						instance_map[outputs[i]].props[update_key] = update_value;
+						output.props[update_key] = update_value;
 					}
 				}
 				rootNode = rootNode;
 			} else {
-				instance_map[outputs[i]].props.value = value;
+				output.props.value = value;
 			}
 		});
 	}
