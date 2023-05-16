@@ -707,16 +707,16 @@ def get_type_hints(fn):
                 continue
             if "|" in str(param.annotation):
                 continue
-                # To convert the string annotation to a class, we use the
-                # internal typing._eval_type function. This is not ideal, but
-                # it's the only way to do it without eval-ing the string.
-                # Since the API is internal, it may change in the future.
-                try:
-                    type_hints[name] = typing._eval_type(  # type: ignore
-                        typing.ForwardRef(param.annotation), globals(), locals()
-                    )
-                except (NameError, TypeError):
-                    pass
+            # To convert the string annotation to a class, we use the
+            # internal typing._eval_type function. This is not ideal, but
+            # it's the only way to do it without eval-ing the string.
+            # Since the API is internal, it may change in the future.
+            try:
+                type_hints[name] = typing._eval_type(  # type: ignore
+                    typing.ForwardRef(param.annotation), globals(), locals()
+                )
+            except (NameError, TypeError):
+                pass
         return type_hints
 
 
