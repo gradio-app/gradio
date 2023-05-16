@@ -1,10 +1,9 @@
 import json
+import os
 import threading
 from typing import Dict
 
 import requests
-
-from gradio.analytics import analytics_enabled
 
 MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
@@ -47,5 +46,5 @@ def get_updated_messaging(en: Dict):
         pass
 
 
-if analytics_enabled():
+if os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True":
     threading.Thread(target=get_updated_messaging, args=(en,)).start()
