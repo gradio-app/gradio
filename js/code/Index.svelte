@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { _ } from "svelte-i18n";
 
 	import type { LoadingStatus } from "../app/src/components/StatusTracker/types";
@@ -13,9 +13,11 @@
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
+		input: undefined;
 	}>();
 
 	export let value: string = "";
+	export let value_is_output: boolean = false;
 	export let language: string = "";
 	export let lines: number = 5;
 	export let target: HTMLElement;
@@ -29,7 +31,16 @@
 
 	let dark_mode = target.classList.contains("dark");
 
-	$: dispatch("change", value);
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 </script>
 
 {#if mode === "static"}

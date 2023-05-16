@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
 	export let max: number | undefined = undefined;
 	export let min: number | undefined = undefined;
+	export let value_is_output: boolean = false;
 	export let disabled: boolean = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -14,13 +15,21 @@
 		change: number;
 		submit: undefined;
 		blur: undefined;
+		input: undefined;
 	}>();
 
-	function handle_change(n: number) {
-		if (!isNaN(n) && n !== null) {
-			dispatch("change", n);
+	function handle_change() {
+		if (!isNaN(value) && value !== null) {
+			dispatch("change", value);
+			if (!value_is_output) {
+				dispatch("input");
+			}
 		}
 	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 
 	async function handle_keypress(e: KeyboardEvent) {
 		await tick();
@@ -30,8 +39,6 @@
 			dispatch("submit");
 		}
 	}
-
-	$: handle_change(value);
 
 	function handle_blur(e: FocusEvent) {
 		dispatch("blur");
@@ -44,8 +51,8 @@
 	<input
 		type="number"
 		bind:value
-		max={max}
-		min={min}
+		{max}
+		{min}
 		on:keypress={handle_keypress}
 		on:blur={handle_blur}
 		{disabled}
