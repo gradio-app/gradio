@@ -380,10 +380,10 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
-def sanitize_parameter_names(original_param_name: str) -> str:
-    """Strips invalid characters from a parameter name and replaces spaces with underscores."""
+def sanitize_parameter_names(original_name: str) -> str:
+    """Cleans up a Python parameter name to make the API info more readable."""
     return (
-        "".join([char for char in original_param_name if char.isalnum() or char in " "])
+        "".join([char for char in original_name if char.isalnum() or char in " _"])
         .replace(" ", "_")
         .lower()
     )
