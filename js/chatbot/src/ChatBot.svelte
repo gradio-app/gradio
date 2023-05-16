@@ -33,7 +33,6 @@
 	marked.setOptions({
 		renderer: new marked.Renderer(),
 		gfm: true,
-		tables: true,
 		breaks: true,
 		pedantic: false,
 		sanitize: true,
@@ -214,6 +213,7 @@
 	.user {
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
+		padding-left: calc(2 * var(--spacing-xxl));
 	}
 	.bot {
 		border-bottom-left-radius: 0;
@@ -277,13 +277,6 @@
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
 	}
-	.message-wrap > div :global(.hljs) {
-		margin-top: var(--spacing-xs);
-		margin-bottom: var(--spacing-xs);
-		border-radius: var(--radius-md);
-		background: var(--chatbot-code-background-color);
-		padding-left: var(--spacing-xxl);
-	}
 
 	/* Small screen */
 	@media (max-width: 480px) {
@@ -316,21 +309,43 @@
 		text-decoration: underline;
 	}
 
+	.hide {
+		display: none;
+	}
+
+	/* Code blocks */
+	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		box-shadow: none;
+		border: none;
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
 	}
 
+	/* Tables */
 	.message-wrap :global(table),
 	.message-wrap :global(tr),
 	.message-wrap :global(td),
 	.message-wrap :global(th) {
-		border: 1px solid var(--border-color-primary);
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
 		padding: var(--spacing-xl);
 	}
 
-	.hide {
-		display: none;
+	.message-wrap .bot :global(table),
+	.message-wrap .bot :global(tr),
+	.message-wrap .bot :global(td),
+	.message-wrap .bot :global(th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap .user :global(table),
+	.message-wrap .user :global(tr),
+	.message-wrap .user :global(td),
+	.message-wrap .user :global(th) {
+		border: 1px solid var(--border-color-accent);
 	}
 </style>
