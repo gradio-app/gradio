@@ -24,6 +24,7 @@ from packaging import version
 from typing_extensions import Literal
 
 from gradio import (
+    analytics,
     components,
     external,
     networking,
@@ -96,7 +97,9 @@ class Block:
 
         if render:
             self.render()
-        check_deprecated_parameters(self.__class__.__name__, **kwargs)
+        check_deprecated_parameters(
+            self.__class__.__name__, stacklevel=6, kwargs=kwargs
+        )
 
     def render(self):
         """
@@ -684,7 +687,7 @@ class Blocks(BlockContext):
         self.analytics_enabled = (
             analytics_enabled
             if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+            else analytics.analytics_enabled()
         )
         if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
@@ -735,7 +738,7 @@ class Blocks(BlockContext):
                 "is_custom_theme": is_custom_theme,
                 "version": GRADIO_VERSION,
             }
-            utils.initiated_analytics(data)
+            analytics.initiated_analytics(data)
 
     @classmethod
     def from_config(
@@ -1833,7 +1836,7 @@ Received outputs:
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
-                    utils.error_analytics("Not able to set up tunnel")
+                    analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1923,8 +1926,7 @@ Received outputs:
                 "is_spaces": self.is_space,
                 "mode": self.mode,
             }
-            utils.launch_analytics(data)
-            utils.launched_telemetry(self, data)
+            analytics.launched_analytics(self, data)
 
         utils.show_tip(self)
 
@@ -1993,7 +1995,7 @@ Received outputs:
                 mlflow.log_param("Gradio Interface Local Link", self.local_url)
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
-            utils.integration_analytics(data)
+            analytics.integration_analytics(data)
 
     def close(self, verbose: bool = True) -> None:
         """

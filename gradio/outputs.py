@@ -36,7 +36,7 @@ class Image(components.Image):
     ):
         """
         Parameters:
-        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (height, width, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         """

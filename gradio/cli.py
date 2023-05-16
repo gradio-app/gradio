@@ -11,4 +11,4 @@ def cli():
     if args[0] == "deploy":
         gradio.deploy_space.deploy()
     else:
-        gradio.reload.run_in_reload_mode(*args)
+        gradio.reload.main()
