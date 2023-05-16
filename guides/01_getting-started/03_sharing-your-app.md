@@ -33,7 +33,7 @@ Share links expire after 72 hours.
 If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. [Hugging Face Spaces](http://huggingface.co/spaces/) provides the infrastructure to permanently host your machine learning model for free! 
 
 After you have [created a free Hugging Face account](https://huggingface.co/join), you have three methods to deploy your Gradio app to Hugging Face Spaces:
-1. From terminal: run `gradio --deploy` in your app directory. The CLI will gather some basic metadata and then launch your app. (Use `gr.deploy()` from a python script or notebook instead.) Whenever you update your app, just run this command again.
+1. From terminal: run `gradio deploy` in your app directory. The CLI will gather some basic metadata and then launch your app. (Use `gr.deploy()` from a python script or notebook instead.) Whenever you update your app, just run this command again.
 2. From your browser: Drag and drop a folder containing your Gradio model and all related files [here](https://huggingface.co/new-space).
 3. Connect Spaces with your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
 
