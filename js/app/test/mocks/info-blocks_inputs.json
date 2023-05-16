@@ -1,0 +1,142 @@
+{
+	"named_endpoints": {},
+	"unnamed_endpoints": {
+		"0": {
+			"parameters": [
+				{
+					"label": "Input",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Input 2",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "Output",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"serializer": "StringSerializable"
+				}
+			]
+		},
+		"1": {
+			"parameters": [
+				{
+					"label": "parameter_6",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"example_input": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+					"serializer": "ImgSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "value_7",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"serializer": "ImgSerializable"
+				}
+			]
+		},
+		"2": {
+			"parameters": [
+				{
+					"label": "parameter_10",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Dataset",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "Input",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Input 2",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"serializer": "StringSerializable"
+				},
+				{
+					"label": "Output",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"serializer": "StringSerializable"
+				}
+			]
+		},
+		"3": {
+			"parameters": [
+				{
+					"label": "parameter_12",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Dataset",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "value_6",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"serializer": "ImgSerializable"
+				},
+				{
+					"label": "value_7",
+					"type": {
+						"type": "string",
+						"description": "base64 representation of an image"
+					},
+					"python_type": {
+						"type": "str",
+						"description": "filepath or URL to image"
+					},
+					"component": "Image",
+					"serializer": "ImgSerializable"
+				}
+			]
+		}
+	}
+}

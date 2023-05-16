@@ -628,7 +628,11 @@ def special_args(
         elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif type_hint and issubclass(type_hint, EventData):
+        elif (
+            type_hint
+            and inspect.isclass(type_hint)
+            and issubclass(type_hint, EventData)
+        ):
             event_data_index = i
             if inputs is not None and event_data is not None:
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
@@ -724,7 +728,7 @@ def make_waveform(
         audio = processing_utils.audio_from_file(audio)
     else:
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
+        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
     duration = round(len(audio[1]) / audio[0], 4)
 

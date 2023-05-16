@@ -14,7 +14,7 @@ This short Guide will cover both of these methods, so no matter how you write Py
 
 ## Python IDE Reload 🔥
 
-If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `app.py`) might look something like this: 
+If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `run.py`) might look something like this: 
 
 ```python
 import gradio as gr
@@ -32,11 +32,11 @@ if __name__ == "__main__":
     demo.launch()    
 ```
 
-The problem is that anytime that you want to make a change to your layout, events, or components, you have to close and rerun your app by writing `python app.py`.
+The problem is that anytime that you want to make a change to your layout, events, or components, you have to close and rerun your app by writing `python run.py`.
 
 Instead of doing this, you can run your code in **reload mode** by changing 1 word: `python` to `gradio`:
 
-In the terminal, run `gradio app.py`. That's it! 
+In the terminal, run `gradio run.py`. That's it! 
 
 Now, you'll see that after you'll see something like this:
 
@@ -48,13 +48,54 @@ Watching...
 WARNING:  The --reload flag should not be used in production on Windows.
 ```
 
-The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `app.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
+The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `run.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
 
-⚠️ Now, there is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you can pass that as the 2nd parameter in your code, like this: `gradio app.py my_demo`
+⚠️ Warning: the `gradio` command does not detect the parameters passed to the `launch()` methods because the `launch()` method is never called in reload mode. For example, setting `auth`, or `show_error` in `launch()` will not be reflected in the app.
 
-As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
+There is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you will need to pass in the name of your demo's FastAPI app as the 2nd parameter in your code. For Gradio demos, the FastAPI app can be accessed using the `.app` attribute. So if your `run.py` file looked like this:
 
-⚠️ The `gradio` command will not detect the parameters passed to the `launch()` methods. For example, setting `auth`, or `show_error` in `launch()` will not be reflected in the app.
+```python
+import gradio as gr
+
+with gr.Blocks() as my_demo:
+    gr.Markdown("# Greetings from Gradio!")
+    inp = gr.Textbox(placeholder="What is your name?")
+    out = gr.Textbox()
+
+    inp.change(fn=lambda x: f"Welcome, {x}!", 
+               inputs=inp, 
+               outputs=out)
+
+if __name__ == "__main__":
+    my_demo.launch()    
+```
+
+Then you would launch it in reload mode like this: `gradio run.py my_demo.app`. 
+
+🔥 If your application accepts command line arguments, you can pass them in as well. Here's an example:
+
+```python
+import gradio as gr
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--name", type=str, default="User")
+args, unknown = parser.parse_known_args()
+
+with gr.Blocks() as demo:
+    gr.Markdown(f"# Greetings {args.name}!")
+    inp = gr.Textbox()
+    out = gr.Textbox()
+
+    inp.change(fn=lambda x: x, inputs=inp, outputs=out)
+
+if __name__ == "__main__":
+    demo.launch()
+```
+
+Which you could run like this: `gradio run.py --name Gretel`
+
+As a small aside, this auto-reloading happens if you change your `run.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
 ## Jupyter Notebook Magic 🔮
 

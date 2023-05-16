@@ -707,8 +707,8 @@ class TestImage:
         Interface, process
         """
 
-        def generate_noise(width, height):
-            return np.random.randint(0, 256, (width, height, 3))
+        def generate_noise(height, width):
+            return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         assert iface(10, 20).endswith(".png")
@@ -910,6 +910,16 @@ class TestAudio:
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
+
+    def test_prepost_process_to_mp3(self):
+        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+        audio_input = gr.Audio(type="filepath", format="mp3")
+        output = audio_input.preprocess(x_wav)
+        assert output.endswith("mp3")
+        output = audio_input.postprocess(
+            (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
+        )
+        assert output["name"].endswith("mp3")
 
 
 class TestFile:
