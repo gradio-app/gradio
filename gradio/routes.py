@@ -514,14 +514,14 @@ class App(FastAPI):
             # to create a unique id for each job
             try:
                 await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=1
+                    websocket.send_json({"msg": "send_hash"}), timeout=5
                 )
             except AsyncTimeOutError:
                 return
 
             try:
                 session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=1
+                    websocket.receive_json(), timeout=5
                 )
             except AsyncTimeOutError:
                 return
