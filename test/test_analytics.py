@@ -49,15 +49,6 @@ class TestAnalytics:
         analytics.error_analytics("placeholder")
         mock_post.assert_called()
 
-    @mock.patch("requests.post")
-    def test_launch_analytics_doesnt_crash_on_connection_error(
-        self, mock_post, monkeypatch
-    ):
-        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        mock_post.side_effect = requests.ConnectionError()
-        analytics.launch_analytics(data={})
-        mock_post.assert_called()
-
 
 class TestIPAddress:
     @pytest.mark.flaky

@@ -1,4 +1,4 @@
-""" Functions related to calling home. """
+""" Functions related to analytics and telemetry. """
 from __future__ import annotations
 
 import json
@@ -59,7 +59,15 @@ def version_check():
 
 
 def get_local_ip_address() -> str:
-    """Gets the public IP address or returns the string "No internet connection" if unable to obtain it. Does not make a new request if the IP address has already been obtained."""
+    """
+    Gets the public IP address or returns the string "No internet connection" if unable
+    to obtain it or the string "Analytics disabled" if a user has disabled analytics.
+    Does not make a new request if the IP address has already been obtained in the
+    same Python session.
+    """
+    if not analytics_enabled():
+        return "Analytics disabled"
+
     if Context.ip_address is None:
         try:
             ip_address = requests.get(
@@ -76,6 +84,7 @@ def get_local_ip_address() -> str:
 def initiated_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
+
     threading.Thread(
         target=_do_analytics_request,
         kwargs={
@@ -85,21 +94,10 @@ def initiated_analytics(data: dict[str, Any]) -> None:
     ).start()
 
 
-def launch_analytics(data: dict[str, Any]) -> None:
-    if not analytics_enabled():
-        return
-    threading.Thread(
-        target=_do_analytics_request,
-        kwargs={
-            "url": f"{ANALYTICS_URL}gradio-launched-analytics/",
-            "data": {**data, "ip_address": get_local_ip_address()},
-        },
-    ).start()
-
-
 def launched_telemetry(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
+
     blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
         [],
         [],
@@ -175,6 +173,9 @@ def error_analytics(message: str) -> None:
     Parameters:
         message: Details about error
     """
+    if not analytics_enabled():
+        return
+
     data = {"ip_address": get_local_ip_address(), "error": message}
 
     threading.Thread(

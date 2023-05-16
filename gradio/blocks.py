@@ -1924,7 +1924,6 @@ Received outputs:
                 "is_spaces": self.is_space,
                 "mode": self.mode,
             }
-            analytics.launch_analytics(data)
             analytics.launched_telemetry(self, data)
 
         utils.show_tip(self)
