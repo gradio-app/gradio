@@ -21,7 +21,8 @@ import type {
 	UploadResponse,
 	Status,
 	SpaceStatus,
-	SpaceStatusCallback
+	SpaceStatusCallback,
+	FileData
 } from "./types.js";
 
 import type { Config } from "./types.js";
@@ -201,10 +202,11 @@ export async function client(
 	options: {
 		hf_token?: `hf_${string}`;
 		status_callback?: SpaceStatusCallback;
-	} = {}
+		normalise_files?: boolean;
+	} = { normalise_files: true }
 ): Promise<client_return> {
 	return new Promise(async (res) => {
-		const { status_callback, hf_token } = options;
+		const { status_callback, hf_token, normalise_files } = options;
 		const return_obj = {
 			predict,
 			submit,
@@ -212,6 +214,7 @@ export async function client(
 			// duplicate
 		};
 
+		let transform_files = normalise_files ?? true;
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
 			NodeBlob = (await import("node:buffer")).Blob;
@@ -271,13 +274,11 @@ export async function client(
 		}
 
 		try {
-			console.log(`${http_protocol}//${host}`);
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-			console.log(config);
+
 			const _config = await config_success(config);
 			res(_config);
 		} catch (e) {
-			console.log(space_id, e);
 			if (space_id) {
 				check_space_status(
 					space_id,
@@ -384,6 +385,14 @@ export async function client(
 						hf_token
 					)
 						.then(([output, status_code]) => {
+							const data = transform_files
+								? transform_output(
+										output.data,
+										api_info,
+										config.root,
+										config.root_url
+								  )
+								: output.data;
 							if (status_code == 200) {
 								fire_event({
 									type: "status",
@@ -399,7 +408,7 @@ export async function client(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: output.data,
+									data,
 									time: new Date()
 								});
 							} else {
@@ -508,7 +517,14 @@ export async function client(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: transform_files
+									? transform_output(
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+									  )
+									: data.data,
 								endpoint: _endpoint,
 								fn_index
 							});
@@ -657,6 +673,65 @@ export async function client(
 			}
 		}
 	});
+}
+
+function transform_output(
+	data: any[],
+	api_info: any,
+	root_url: string,
+	remote_url?: string
+): unknown[] {
+	let transformed_data = data.map((d, i) => {
+		if (api_info.returns?.[i]?.component === "File") {
+			return normalise_file(d, root_url, remote_url);
+		} else if (api_info.returns?.[i]?.component === "Gallery") {
+			return d.map((img) => {
+				return Array.isArray(img)
+					? [normalise_file(img[0], root_url, remote_url), img[1]]
+					: [normalise_file(img, root_url, remote_url), null];
+			});
+		} else if (typeof d === "object" && d.is_file) {
+			return normalise_file(d, root_url, remote_url);
+		} else {
+			return d;
+		}
+	});
+
+	return transformed_data;
+}
+
+export function normalise_file(
+	file: Array<FileData> | FileData | string | null,
+	root: string,
+	root_url: string | null
+): Array<FileData> | FileData | null {
+	if (file == null) return null;
+	if (typeof file === "string") {
+		return {
+			name: "file_data",
+			data: file
+		};
+	} else if (Array.isArray(file)) {
+		const normalized_file: Array<FileData | null> = [];
+
+		for (const x of file) {
+			if (x === null) {
+				normalized_file.push(null);
+			} else {
+				//@ts-ignore
+				normalized_file.push(normalise_file(x, root, root_url));
+			}
+		}
+
+		return normalized_file as Array<FileData>;
+	} else if (file.is_file) {
+		if (!root_url) {
+			file.data = root + "/file=" + file.name;
+		} else {
+			file.data = "/proxy=" + root_url + "/file=" + file.name;
+		}
+	}
+	return file;
 }
 
 interface ApiData {
@@ -981,9 +1056,8 @@ async function resolve_config(
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
-		console.log(`${endpoint}/config`, headers);
 		let response = await fetch(`${endpoint}/config`, { headers });
-		console.log(response);
+
 		if (response.status === 200) {
 			const config = await response.json();
 			config.path = config.path ?? "";
