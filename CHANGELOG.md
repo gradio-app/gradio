@@ -1,5 +1,22 @@
 # Upcoming Release
 
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+
+# 3.31.0
+
 ## New Features:
 
 - The reloader command (`gradio app.py`) can now accept command line arguments by [@micky2be](https://github.com/micky2be) in [PR 4119](https://github.com/gradio-app/gradio/pull/4119)
