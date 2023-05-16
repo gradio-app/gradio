@@ -23,10 +23,10 @@ HF_TOKEN = "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"  # Intentionally reveali
 
 
 @contextmanager
-def connect(demo: gr.Blocks):
+def connect(demo: gr.Blocks, serialize: bool = True):
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     try:
-        yield Client(local_url)
+        yield Client(local_url, serialize=serialize)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -172,7 +172,6 @@ class TestClientPredictions:
         assert pathlib.Path(job.result()).exists()
 
     def test_progress_updates(self, progress_demo):
-
         with connect(progress_demo) as client:
             job = client.submit("hello", api_name="/predict")
             statuses = []
@@ -246,7 +245,6 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
-
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )
@@ -309,22 +307,16 @@ class TestClientPredictions:
                 serialize.assert_called_once_with(1, "foo", f.name)
 
     def test_state_without_serialize(self, stateful_chatbot):
-        _, local_url, _ = stateful_chatbot.launch(prevent_thread_lock=True)
-        client = Client(local_url, serialize=False)
-        initial_history = [["", None]]
-        message = "Hello"
-        ret = client.predict(message, initial_history, api_name="/submit")
-        assert ret == ("", [["", None], ["Hello", "I love you"]])
-        stateful_chatbot._queue.close()
-        stateful_chatbot.is_running = False
-        stateful_chatbot.server.should_exit = True
-        stateful_chatbot.server.thread.join(timeout=1)
+        with connect(stateful_chatbot, serialize=False) as client:
+            initial_history = [["", None]]
+            message = "Hello"
+            ret = client.predict(message, initial_history, api_name="/submit")
+            assert ret == ("", [["", None], ["Hello", "I love you"]])
 
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_passed_correctly(self, mock_make_end_to_end_fn):
-
         now = datetime.now()
 
         messages = [
@@ -408,7 +400,6 @@ class TestStatusUpdates:
 
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_correct_two_concurrent(self, mock_make_end_to_end_fn):
-
         now = datetime.now()
 
         messages_1 = [
