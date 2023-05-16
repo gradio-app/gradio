@@ -182,7 +182,7 @@ class Communicator:
 
     lock: Lock
     job: JobStatus
-    deserialize: Callable[..., tuple]
+    prediction_processor: Callable[..., tuple]
     reset_url: str
     should_cancel: bool = False
 
@@ -251,7 +251,7 @@ async def get_pred_from_ws(
                 output = resp.get("output", {}).get("data", [])
                 if output and status_update.code != Status.FINISHED:
                     try:
-                        result = helper.deserialize(*output)
+                        result = helper.prediction_processor(*output)
                     except Exception as e:
                         result = [e]
                     helper.job.outputs.append(result)

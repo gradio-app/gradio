@@ -295,7 +295,7 @@ class Client:
             helper = Communicator(
                 Lock(),
                 JobStatus(),
-                self.endpoints[inferred_fn_index].deserialize,
+                self.endpoints[inferred_fn_index].process_predictions,
                 self.reset_url,
             )
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -620,10 +620,7 @@ class Endpoint:
             if self.client.serialize:
                 data = self.serialize(*data)
             predictions = _predict(*data)
-            if self.client.serialize:
-                predictions = self.deserialize(*predictions)
-            predictions = self.remove_state(*predictions)
-            predictions = self.reduce_singleton_output(*predictions)
+            predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -805,6 +802,13 @@ class Endpoint:
             ]
         )
         return outputs
+
+    def process_predictions(self, *predictions):
+        if self.client.serialize:
+            predictions = self.deserialize(*predictions)
+        predictions = self.remove_state(*predictions)
+        predictions = self.reduce_singleton_output(*predictions)
+        return predictions
 
     def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
         inputs = self.dependency["inputs"]
