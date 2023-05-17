@@ -5,8 +5,8 @@
 	"scripts": {
 		"dev": "vite --port 9876",
 		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
-		"build:website": "vite build  --mode production:website --emptyOutDir",
-		"build:local": "vite build  --mode production:local --emptyOutDir",
+		"build:website": "vite build --mode production:website --emptyOutDir",
+		"build:local": "vite build --mode production:local --emptyOutDir",
 		"preview": "vite preview",
 		"test:snapshot": "pnpm exec playwright test snapshots/ --config=../../.config/playwright.config.js",
 		"test:browser": "pnpm exec playwright test test/ --config=../../.config/playwright.config.js",
