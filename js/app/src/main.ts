@@ -1,4 +1,5 @@
 import "@gradio/theme";
+import { mount_css } from "./css";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
 
@@ -10,25 +11,6 @@ const ENTRY_CSS = "__ENTRY_CSS__";
 let FONTS: string | [];
 
 FONTS = "__FONTS_CSS__";
-
-export function mount_css(url: string, target: HTMLElement): Promise<void> {
-	const existing_link = document.querySelector(`link[href='${url}']`);
-
-	if (existing_link) return Promise.resolve();
-
-	const link = document.createElement("link");
-	link.rel = "stylesheet";
-	link.href = url;
-	// @ts-ignore
-	target.appendChild(link);
-
-	return new Promise((res, rej) => {
-		link.addEventListener("load", () => res());
-		link.addEventListener("error", () =>
-			rej(new Error(`Unable to preload CSS for ${url}`))
-		);
-	});
-}
 
 function create_custom_element() {
 	class GradioApp extends HTMLElement {
