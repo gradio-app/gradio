@@ -1,12 +1,14 @@
 <script lang="ts">
 	import DropdownOptions from "./DropdownOptions.svelte";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | Array<string> | undefined;
+	let old_value = Array.isArray(value) ? value.slice() : value;
+	export let value_is_output: boolean = false;
 	export let multiselect: boolean = false;
 	export let max_choices: number;
 	export let choices: Array<string>;
@@ -14,140 +16,169 @@
 	export let show_label: boolean;
 	export let allow_custom_value: boolean = false;
 
-	let focused = false;
-
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
+		input: undefined;
 		select: SelectData;
 		blur: undefined;
 	}>();
 
 	let inputValue: string,
-		activeOption: string,
-		showOptions = false;
+		activeOption: string | null,
+		showOptions = false,
+		filterInput: HTMLElement;
+
+	$: if (typeof value === "string") {
+		inputValue = value;
+	}
 
 	$: filtered = choices.filter((o) =>
 		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
 	);
-	$: if (
-		(activeOption && !filtered.includes(activeOption)) ||
-		(!activeOption && inputValue)
-	)
-		activeOption = filtered[0];
 
-	$: readonly =
-		((!multiselect && typeof value === "string" && value.length > 0) ||
-			(multiselect && Array.isArray(value) && value.length === max_choices)) &&
-		!allow_custom_value;
+	$: if (!activeOption || !filtered.includes(activeOption)) {
+		activeOption = filtered.length ? filtered[0] : null;
+	}
 
-	// The initial value of value is [] so that can
-	// cause infinite loops in the non-multiselect case
-	$: if (!multiselect && !Array.isArray(value)) {
+	function handle_change() {
 		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: {
+		if (JSON.stringify(value) != JSON.stringify(old_value)) {
+			old_value = Array.isArray(value) ? value.slice() : value;
+			handle_change();
+		}
 	}
 
 	function add(option: string) {
-		if (Array.isArray(value)) {
-			if (!max_choices || value.length < max_choices) {
-				value.push(option);
-				dispatch("select", {
-					index: choices.indexOf(option),
-					value: option,
-					selected: true
-				});
-				dispatch("change", value);
-			}
+		value = value as Array<string>;
+		if (!max_choices || value.length < max_choices) {
+			value.push(option);
+			dispatch("select", {
+				index: choices.indexOf(option),
+				value: option,
+				selected: true
+			});
 		}
 		value = value;
 	}
 
 	function remove(option: string) {
-		if (Array.isArray(value)) {
-			value = value.filter((v: string) => v !== option);
-			dispatch("select", {
-				index: choices.indexOf(option),
-				value: option,
-				selected: false
-			});
-			dispatch("change", value);
-		}
+		value = value as Array<string>;
+		value = value.filter((v: string) => v !== option);
+		dispatch("select", {
+			index: choices.indexOf(option),
+			value: option,
+			selected: false
+		});
 	}
 
 	function remove_all(e: any) {
-		if (multiselect) {
-			value = [];
-		} else {
-			value = "";
-		}
-
+		value = [];
 		inputValue = "";
 		e.preventDefault();
-		dispatch("change", value);
 	}
 
 	function handleOptionMousedown(e: any) {
 		const option = e.detail.target.dataset.value;
 		if (allow_custom_value) {
 			inputValue = option;
-		} else {
-			inputValue = "";
 		}
 
 		if (option !== undefined) {
-			if (!multiselect) {
+			if (multiselect) {
+				if (value?.includes(option)) {
+					remove(option);
+				} else {
+					add(option);
+				}
+				inputValue = "";
+			} else {
 				value = option;
+				inputValue = option;
 				showOptions = false;
 				dispatch("select", {
 					index: choices.indexOf(option),
 					value: option,
 					selected: true
 				});
-				dispatch("change", value);
 				return;
-			}
-			if (value?.includes(option)) {
-				remove(option);
-			} else {
-				add(option);
 			}
 		}
 	}
 
-	function handleKeyup(e: any) {
+	function handleKeydown(e: any) {
 		if (e.key === "Enter" && activeOption != undefined) {
 			if (!multiselect) {
-				value = activeOption;
-				inputValue = "";
+				if (value !== activeOption) {
+					value = activeOption;
+					dispatch("select", {
+						index: choices.indexOf(value),
+						value: value,
+						selected: true
+					});
+				}
+				inputValue = activeOption;
+				showOptions = false;
 			} else if (multiselect && Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
-		} else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-			const increment = e.key === "ArrowUp" ? -1 : 1;
-			const calcIndex = filtered.indexOf(activeOption) + increment;
-			activeOption =
-				calcIndex < 0
-					? filtered[filtered.length - 1]
-					: calcIndex === filtered.length
-					? filtered[0]
-					: filtered[calcIndex];
-		} else if (e.key === "Escape") {
-			showOptions = false;
-		} else if (allow_custom_value) {
-			value = inputValue;
+		} else {
+			showOptions = true;
+			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+				if (activeOption === null) {
+					activeOption = filtered[0];
+				}
+				const increment = e.key === "ArrowUp" ? -1 : 1;
+				const calcIndex = filtered.indexOf(activeOption) + increment;
+				activeOption =
+					calcIndex < 0
+						? filtered[filtered.length - 1]
+						: calcIndex === filtered.length
+						? filtered[0]
+						: filtered[calcIndex];
+				e.preventDefault();
+			} else if (e.key === "Escape") {
+				showOptions = false;
+			} else if (e.key === "Backspace") {
+				if (
+					multiselect &&
+					(!inputValue || inputValue === "") &&
+					Array.isArray(value) &&
+					value.length > 0
+				) {
+					remove(value[value.length - 1]);
+					inputValue = "";
+				}
+			} else {
+				showOptions = true;
+			}
+		}
+	}
+
+	$: {
+		if (JSON.stringify(value) != JSON.stringify(old_value)) {
 			dispatch("change", value);
+			old_value = Array.isArray(value) ? value.slice() : value;
 		}
 	}
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:showOptions>
-			{#if Array.isArray(value)}
+			{#if multiselect && Array.isArray(value)}
 				{#each value as s}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div on:click|preventDefault={() => remove(s)} class="token">
 						<span>{s}</span>
 						<div
@@ -159,34 +190,50 @@
 						</div>
 					</div>
 				{/each}
-			{:else if !allow_custom_value}
-				<span class="single-select">{value}</span>
 			{/if}
 			<div class="secondary-wrap">
 				<input
 					class="border-none"
+					class:subdued={value !== inputValue && !allow_custom_value}
 					{disabled}
-					{readonly}
 					autocomplete="off"
 					bind:value={inputValue}
-					on:mousedown={() => {
-						showOptions = !showOptions;
-					}}
+					bind:this={filterInput}
 					on:focus={() => {
-						showOptions = true;
-						focused = true;
+						showOptions = !showOptions;
+						if (showOptions) {
+							inputValue = "";
+						} else {
+							filterInput.blur();
+						}
+					}}
+					on:keydown={handleKeydown}
+					on:keyup={() => {
+						if (allow_custom_value) {
+							value = inputValue;
+						}
 					}}
 					on:blur={() => {
-						dispatch("blur");
+						if (multiselect) {
+							inputValue = "";
+						} else if (!allow_custom_value) {
+							if (value !== inputValue) {
+								if (typeof value === "string" && inputValue == "") {
+									inputValue = value;
+								} else {
+									value = undefined;
+									inputValue = "";
+								}
+							}
+						}
 						showOptions = false;
-						focused = false;
 					}}
-					on:keyup={handleKeyup}
 				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div
 					class:hide={!multiselect || !value?.length || disabled}
 					class="token-remove remove-all"
-					title="Remove All"
+					title="Clear"
 					on:click={remove_all}
 				>
 					<Remove />
@@ -225,7 +272,7 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--checkbox-label-gap);
-		padding: var(--checkbox-label-gap);
+		padding: var(--checkbox-label-padding);
 	}
 
 	.token {
@@ -263,11 +310,6 @@
 		height: 18px;
 	}
 
-	.single-select {
-		margin: var(--spacing-sm);
-		color: var(--body-text-color);
-	}
-
 	.secondary-wrap {
 		display: flex;
 		flex: 1 1 0%;
@@ -287,6 +329,9 @@
 	}
 
 	input:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
 		cursor: not-allowed;
 	}
 
@@ -298,5 +343,9 @@
 
 	.hide {
 		display: none;
+	}
+
+	.subdued {
+		color: var(--body-text-color-subdued);
 	}
 </style>

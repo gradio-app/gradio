@@ -6,18 +6,22 @@ export function represent_value(
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
-	if (type === "string") {
+	if (type === "string" || type === "str") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
 		return lang === null ? parseFloat(value) : value;
-	} else if (type === "boolean") {
+	} else if (type === "boolean" || type == "bool") {
 		if (lang === "py") {
+			value = String(value);
 			return value === "true" ? "True" : "False";
 		} else if (lang === "js") {
 			return value;
 		} else {
 			return value === "true";
 		}
+	} else if (type === "List[str]") {
+		value = JSON.stringify(value);
+		return value;
 	} else {
 		// assume object type
 		if (lang === null) {

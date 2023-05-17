@@ -15,8 +15,11 @@ class TooManyRequestsError(Exception):
     pass
 
 
-class InvalidApiName(ValueError):
+class InvalidApiNameError(ValueError):
     pass
+
+
+InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 
 @document()

@@ -10,6 +10,8 @@ from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
     JSON,
+    AnnotatedImage,
+    Annotatedimage,
     Audio,
     BarPlot,
     Button,
@@ -63,7 +65,7 @@ from gradio.flagging import (
     SimpleCSVLogger,
 )
 from gradio.helpers import EventData, Progress, make_waveform, skip, update
-from gradio.helpers import create_examples as Examples
+from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs

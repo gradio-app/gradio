@@ -8,14 +8,16 @@
 	import { afterUpdate, beforeUpdate, onDestroy } from "svelte";
 	import { create_config } from "./utils";
 	import { Empty } from "@gradio/atoms";
+	import type { ThemeMode } from "js/app/src/components/types";
 
 	export let value;
 	export let target;
 	let spec = null;
 	export let colors: Array<string> = [];
-	export let theme: string;
+	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string  | null;
+	const divId = `bokehDiv-${Math.random().toString(5).substring(2)}`
 
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
@@ -31,7 +33,7 @@
 		}
 	}
 
-	$: darkmode = theme == "dark";
+	$: darkmode = theme_mode == "dark";
 
 	$: plot = value?.plot;
 	$: type = value?.type;
@@ -43,8 +45,8 @@
 
 	function embed_bokeh(plot, type, bokeh_loaded){
 		if (document){
-			if (document.getElementById("bokehDiv")) {
-				document.getElementById("bokehDiv").innerHTML = "";
+			if (document.getElementById(divId)) {
+				document.getElementById(divId).innerHTML = "";
 			}
 		}
 		if (type == "bokeh" && window.Bokeh) {
@@ -53,7 +55,7 @@
 				bokeh_loaded = true;
 			}
 			let plotObj = JSON.parse(plot);
-			window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+			window.Bokeh.embed.embed_item(plotObj, divId);
 		}
 	}
 
@@ -192,7 +194,7 @@
 {#if value && type == "plotly"}
 	<div bind:this={plotDiv} />
 {:else if type == "bokeh"}
-	<div id="bokehDiv" class="gradio-bokeh"/>
+	<div id={divId} class="gradio-bokeh"/>
 {:else if type == "altair"}
 	<div class="altair layout">
 		<Vega {spec} />

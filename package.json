@@ -13,15 +13,17 @@
 		"preview:cdn-server": "sirv ../gradio/templates/cdn --single --port=4321 --cors",
 		"preview:cdn-app": "pnpm --filter @gradio/cdn-test dev",
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
-		"format:check": "prettier --config .config/.prettierrc.json --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
-		"format:write": "prettier --config .config/.prettierrc.json --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
+		"format:check": "prettier --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
+		"format:write": "prettier --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
+		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
 		"test:browser": "pnpm --filter @gradio/app test:browser:full",
 		"test:browser:full": "run-s build test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
-		"ci:publish": "pnpm publish --no-git-checks --access public -r"
+		"ci:publish": "pnpm publish --no-git-checks --access public -r",
+		"ci:version": "changeset version && pnpm i --lockfile-only"
 	},
 	"type": "module",
 	"author": "",
@@ -70,5 +72,14 @@
 	},
 	"devDependencies": {
 		"@types/three": "^0.138.0"
+	},
+	"prettier": {
+		"useTabs": true,
+		"singleQuote": false,
+		"trailingComma": "none",
+		"printWidth": 80,
+		"pluginSearchDirs": [
+			".."
+		]
 	}
 }

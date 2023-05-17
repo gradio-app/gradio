@@ -6,12 +6,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 import ffmpy
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from gradio_client import media_data
 from PIL import Image
 
-from gradio import media_data, processing_utils
+from gradio import processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -23,9 +23,19 @@ class TestImagePreprocessing:
         )
         assert isinstance(output_image, Image.Image)
 
+        b64_img_without_header = deepcopy(media_data.BASE64_IMAGE).split(",")[1]
+        output_image_without_header = processing_utils.decode_base64_to_image(
+            b64_img_without_header
+        )
+
+        assert output_image == output_image_without_header
+
     def test_encode_plot_to_base64(self):
-        plt.plot([1, 2, 3, 4])
-        output_base64 = processing_utils.encode_plot_to_base64(plt)
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            plt.plot([1, 2, 3, 4])
+            output_base64 = processing_utils.encode_plot_to_base64(plt)
         assert output_base64.startswith(
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo"
         )
@@ -128,7 +138,7 @@ class TestOutputPreprocessing:
     ]
 
     def test_float_conversion_dtype(self):
-        """Test any convertion from a float dtype to an other."""
+        """Test any conversion from a float dtype to an other."""
 
         x = np.array([-1, 1])
         # Test all combinations of dtypes conversions
@@ -177,15 +187,16 @@ class TestVideoProcessing:
     def test_video_has_playable_codecs_catches_exceptions(
         self, exception_to_raise, test_file_dir
     ):
-        with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
-            with tempfile.NamedTemporaryFile(
-                suffix="out.avi", delete=False
-            ) as tmp_not_playable_vid:
-                shutil.copy(
-                    str(test_file_dir / "bad_video_sample.mp4"),
-                    tmp_not_playable_vid.name,
-                )
-                assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
+        with patch(
+            "ffmpy.FFprobe.run", side_effect=exception_to_raise
+        ), tempfile.NamedTemporaryFile(
+            suffix="out.avi", delete=False
+        ) as tmp_not_playable_vid:
+            shutil.copy(
+                str(test_file_dir / "bad_video_sample.mp4"),
+                tmp_not_playable_vid.name,
+            )
+            assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
 
     def test_convert_video_to_playable_mp4(self, test_file_dir):
         with tempfile.NamedTemporaryFile(

@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { afterUpdate, createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
+	export let value_is_output: boolean = false;
 	export let disabled: boolean = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
@@ -12,13 +13,21 @@
 		change: number;
 		submit: undefined;
 		blur: undefined;
+		input: undefined;
 	}>();
 
-	function handle_change(n: number) {
-		if (!isNaN(n) && n !== null) {
-			dispatch("change", n);
+	function handle_change() {
+		if (!isNaN(value) && value !== null) {
+			dispatch("change", value);
+			if (!value_is_output) {
+				dispatch("input");
+			}
 		}
 	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 
 	async function handle_keypress(e: KeyboardEvent) {
 		await tick();
@@ -28,8 +37,6 @@
 			dispatch("submit");
 		}
 	}
-
-	$: handle_change(value);
 
 	function handle_blur(e: FocusEvent) {
 		dispatch("blur");
@@ -62,6 +69,11 @@
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+	}
+	input:disabled {
+		-webkit-text-fill-color: var(--body-text-color);
+		-webkit-opacity: 1;
+		opacity: 1;
 	}
 
 	input:focus {

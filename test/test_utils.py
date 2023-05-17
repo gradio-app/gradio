@@ -1,6 +1,6 @@
+from __future__ import annotations
+
 import copy
-import ipaddress
-import json
 import os
 import sys
 import unittest.mock as mock
@@ -14,7 +14,7 @@ from httpx import AsyncClient, Response
 from pydantic import BaseModel
 from typing_extensions import Literal
 
-from gradio.context import Context
+from gradio import EventData, Request
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
     XRAY_CONFIG_DIFF_IDS,
@@ -25,64 +25,26 @@ from gradio.utils import (
     abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
+    check_function_inputs_match,
     colab_check,
     delete_none,
-    error_analytics,
     format_ner_list,
-    get_local_ip_address,
+    get_type_hints,
     ipython_check,
+    is_special_typed_parameter,
     kaggle_check,
-    launch_analytics,
     readme_to_html,
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
+    tex2svg,
     validate_url,
-    version_check,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUtils:
-    @mock.patch("requests.get")
-    def test_should_warn_with_unable_to_parse(self, mock_get):
-        mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            version_check()
-            assert (
-                str(w[-1].message)
-                == "unable to parse version details from package URL."
-            )
-
-    @mock.patch("requests.Response.json")
-    def test_should_warn_url_not_having_version(self, mock_json):
-        mock_json.return_value = {"foo": "bar"}
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            version_check()
-            assert str(w[-1].message) == "package URL does not contain version info."
-
-    @mock.patch("requests.post")
-    def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
-        mock_post.side_effect = requests.ConnectionError()
-        error_analytics("placeholder")
-        mock_post.assert_called()
-
-    @mock.patch("requests.post")
-    def test_error_analytics_successful(self, mock_post):
-        error_analytics("placeholder")
-        mock_post.assert_called()
-
-    @mock.patch("requests.post")
-    def test_launch_analytics_doesnt_crash_on_connection_error(self, mock_post):
-        mock_post.side_effect = requests.ConnectionError()
-        launch_analytics(data={})
-        mock_post.assert_called()
-
     @mock.patch("IPython.get_ipython")
     def test_colab_check_no_ipython(self, mock_get_ipython):
         mock_get_ipython.return_value = None
@@ -146,23 +108,6 @@ class TestUtils:
             clear=True,
         ):
             assert not kaggle_check()
-
-
-class TestIPAddress:
-    @pytest.mark.flaky
-    def test_get_ip(self):
-        Context.ip_address = None
-        ip = get_local_ip_address()
-        if ip == "No internet connection":
-            return
-        ipaddress.ip_address(ip)
-
-    @mock.patch("requests.get")
-    def test_get_ip_without_internet(self, mock_get):
-        Context.ip_address = None
-        mock_get.side_effect = requests.ConnectionError()
-        ip = get_local_ip_address()
-        assert ip == "No internet connection"
 
 
 class TestAssertConfigsEquivalent:
@@ -344,7 +289,7 @@ class TestRequest:
             name: str
             job: str
             id: str
-            createdAt: str
+            createdAt: str  # noqa: N815
 
         client_response: AsyncRequest = await AsyncRequest(
             method=AsyncRequest.Method.POST,
@@ -396,7 +341,6 @@ async def test_get(respx_mock):
 
 @pytest.mark.asyncio
 async def test_post(respx_mock):
-
     payload = {"name": "morpheus", "job": "leader"}
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response(payload))
 
@@ -413,7 +357,6 @@ async def test_post(respx_mock):
 
 @pytest.mark.asyncio
 async def test_validate_with_model(respx_mock):
-
     response = make_mock_response(
         {
             "name": "morpheus",
@@ -428,7 +371,7 @@ async def test_validate_with_model(respx_mock):
         name: str
         job: str
         id: str
-        createdAt: str
+        createdAt: str  # noqa: N815
 
     client_response: AsyncRequest = await AsyncRequest(
         method=AsyncRequest.Method.POST,
@@ -463,7 +406,7 @@ async def test_validate_and_fail_with_model(respx_mock):
 @mock.patch("gradio.utils.AsyncRequest._validate_response_data")
 @pytest.mark.asyncio
 async def test_exception_type(validate_response_data, respx_mock):
-    class ResponseValidationException(Exception):
+    class ResponseValidationError(Exception):
         message = "Response object is not valid."
 
     validate_response_data.side_effect = Exception()
@@ -473,14 +416,13 @@ async def test_exception_type(validate_response_data, respx_mock):
     client_response: AsyncRequest = await AsyncRequest(
         method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
-        exception_type=ResponseValidationException,
+        exception_type=ResponseValidationError,
     )
-    assert isinstance(client_response.exception, ResponseValidationException)
+    assert isinstance(client_response.exception, ResponseValidationError)
 
 
 @pytest.mark.asyncio
 async def test_validate_with_function(respx_mock):
-
     respx_mock.post(MOCK_REQUEST_URL).mock(
         make_mock_response({"name": "morpheus", "id": 1})
     )
@@ -505,9 +447,8 @@ async def test_validate_with_function(respx_mock):
 @pytest.mark.asyncio
 async def test_validate_and_fail_with_function(respx_mock):
     def has_name(response):
-        if response["name"] is not None:
-            if response["name"] == "Alex":
-                return response
+        if response["name"] is not None and response["name"] == "Alex":
+            return response
         raise Exception
 
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response({"name": "morpheus"}))
@@ -581,9 +522,104 @@ class TestAbspath:
         resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
         assert ".." not in resolved_path
 
-    @mock.patch(
-        "pathlib.Path.is_symlink", return_value=True
-    )  # Have to patch since Windows doesn't allow creation of sym links without administrative privileges
-    def test_abspath_symlink(self, mock_islink):
-        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
-        assert ".." in resolved_path
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"),
+        reason="Windows doesn't allow creation of sym links without administrative privileges",
+    )
+    def test_abspath_symlink_path(self):
+        os.symlink("gradio/test_data", "gradio/test_link", True)
+        resolved_path = str(abspath("../gradio/gradio/test_link/lion.jpg"))
+        os.unlink("gradio/test_link")
+        assert "test_link" in resolved_path
+
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"),
+        reason="Windows doesn't allow creation of sym links without administrative privileges",
+    )
+    def test_abspath_symlink_dir(self):
+        os.symlink("gradio/test_data", "gradio/test_link", True)
+        full_path = os.path.join(os.getcwd(), "gradio/test_link/lion.jpg")
+        resolved_path = str(abspath(full_path))
+        os.unlink("gradio/test_link")
+        assert "test_link" in resolved_path
+        assert full_path == resolved_path
+
+
+class TestGetTypeHints:
+    def test_get_type_hints(self):
+        class F:
+            def __call__(self, s: str):
+                return s
+
+        class C:
+            def f(self, s: str):
+                return s
+
+        def f(s: str):
+            return s
+
+        class GenericObject:
+            pass
+
+        test_objs = [F(), C().f, f]
+
+        for x in test_objs:
+            hints = get_type_hints(x)
+            assert len(hints) == 1
+            assert hints["s"] == str
+
+        assert len(get_type_hints(GenericObject())) == 0
+
+    def test_is_special_typed_parameter(self):
+        def func(a: list[str], b: Literal["a", "b"], c, d: Request):
+            pass
+
+        hints = get_type_hints(func)
+        assert not is_special_typed_parameter("a", hints)
+        assert not is_special_typed_parameter("b", hints)
+        assert not is_special_typed_parameter("c", hints)
+        assert is_special_typed_parameter("d", hints)
+
+    def test_is_special_typed_parameter_with_pipe(self):
+        def func(a: Request, b: str | int, c: list[str]):
+            pass
+
+        hints = get_type_hints(func)
+        assert is_special_typed_parameter("a", hints)
+        assert not is_special_typed_parameter("b", hints)
+        assert not is_special_typed_parameter("c", hints)
+
+
+class TestCheckFunctionInputsMatch:
+    def test_check_function_inputs_match(self):
+        class F:
+            def __call__(self, s: str, evt: EventData):
+                return s
+
+        class C:
+            def f(self, s: str, evt: EventData):
+                return s
+
+        def f(s: str, evt: EventData):
+            return s
+
+        test_objs = [F(), C().f, f]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")  # Ensure there're no warnings raised here.
+
+            for x in test_objs:
+                check_function_inputs_match(x, [None], False)
+
+
+def test_tex2svg_preserves_matplotlib_backend():
+    import matplotlib
+
+    matplotlib.use("svg")
+    tex2svg("1+1=2")
+    assert matplotlib.get_backend() == "svg"
+    with pytest.raises(
+        Exception  # specifically a pyparsing.ParseException but not important here
+    ):
+        tex2svg("$$$1+1=2$$$")
+    assert matplotlib.get_backend() == "svg"

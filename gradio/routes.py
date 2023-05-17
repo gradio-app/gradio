@@ -8,13 +8,13 @@ import inspect
 import json
 import mimetypes
 import os
-import posixpath
 import secrets
 import tempfile
 import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
@@ -112,8 +112,10 @@ class App(FastAPI):
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
-        self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
-        super().__init__(**kwargs)
+        self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
+            Path(tempfile.gettempdir()) / "gradio"
+        )
+        super().__init__(**kwargs, docs_url=None, redoc_url=None)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -131,6 +133,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
+        self.root_path = blocks.root_path
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -220,15 +223,17 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
+                config["root"] = root_path
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
-                    "root": app.get_blocks().root,
+                    "root": root_path,
                 }
 
             try:
@@ -239,36 +244,41 @@ class App(FastAPI):
                     template,
                     {"request": request, "config": config},
                 )
-            except TemplateNotFound:
+            except TemplateNotFound as err:
                 if blocks.share:
                     raise ValueError(
                         "Did you install Gradio from source files? Share mode only "
                         "works when Gradio is installed through the pip package."
-                    )
+                    ) from err
                 else:
                     raise ValueError(
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
-                    )
+                    ) from err
+
+        @app.get("/info/", dependencies=[Depends(login_check)])
+        @app.get("/info", dependencies=[Depends(login_check)])
+        def api_info(serialize: bool = True):
+            config = app.get_blocks().config
+            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config():
-            return app.get_blocks().config
+        def get_config(request: fastapi.Request):
+            root_path = request.scope.get("root_path", "")
+            config = app.get_blocks().config
+            config["root"] = root_path
+            return config
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
             static_file = safe_join(STATIC_PATH_LIB, path)
-            if static_file is not None:
-                return FileResponse(static_file)
-            raise HTTPException(status_code=404, detail="Static file not found")
+            return FileResponse(static_file)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
             build_file = safe_join(BUILD_PATH_LIB, path)
-            if build_file is not None:
-                return FileResponse(build_file)
-            raise HTTPException(status_code=404, detail="Build file not found")
+            return FileResponse(build_file)
 
         @app.get("/favicon.ico")
         async def favicon():
@@ -303,21 +313,28 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
-            abs_path = str(utils.abspath(path_or_url))
-            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
-            created_by_app = abs_path in set().union(*blocks.temp_file_sets)
+            abs_path = utils.abspath(path_or_url)
+            in_blocklist = any(
+                utils.is_in_or_equal(abs_path, blocked_path)
+                for blocked_path in blocks.blocked_paths
+            )
+            if in_blocklist:
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
+            in_app_dir = utils.abspath(app.cwd) in abs_path.parents
+            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
-                (
-                    utils.abspath(dir) in utils.abspath(path_or_url).parents
-                    for dir in blocks.file_directories
-                )
+                utils.is_in_or_equal(abs_path, allowed_path)
+                for allowed_path in blocks.allowed_paths
             )
-            was_uploaded = (
-                utils.abspath(app.uploaded_file_dir)
-                in utils.abspath(path_or_url).parents
-            )
+            was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents
 
             if in_app_dir or created_by_app or in_file_dir or was_uploaded:
+                if not abs_path.exists():
+                    raise HTTPException(404, "File not found")
+                if abs_path.is_dir():
+                    raise HTTPException(403)
+
                 range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
@@ -335,8 +352,9 @@ class App(FastAPI):
                 return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
             else:
-                raise ValueError(
-                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
+                raise HTTPException(
+                    403,
+                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app.",
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -374,7 +392,7 @@ class App(FastAPI):
                 # the job being cancelled will not overwrite the state of the iterator.
                 # In all cases, should_reset will be the empty set the next time
                 # the fn_index is run.
-                app.iterators[body.session_hash]["should_reset"] = set([])
+                app.iterators[body.session_hash]["should_reset"] = set()
             else:
                 session_state = {}
                 iterators = {}
@@ -392,15 +410,16 @@ class App(FastAPI):
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
-                output = await app.get_blocks().process_api(
-                    fn_index=fn_index_inferred,
-                    inputs=raw_input,
-                    request=request,
-                    state=session_state,
-                    iterators=iterators,
-                    event_id=event_id,
-                    event_data=event_data,
-                )
+                with utils.MatplotlibBackendMananger():
+                    output = await app.get_blocks().process_api(
+                        fn_index=fn_index_inferred,
+                        inputs=raw_input,
+                        request=request,
+                        state=session_state,
+                        iterators=iterators,
+                        event_id=event_id,
+                        event_data=event_data,
+                    )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
                     if fn_index in app.iterators[body.session_hash]["should_reset"]:
@@ -447,14 +466,15 @@ class App(FastAPI):
                     )
             else:
                 fn_index_inferred = body.fn_index
-            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                fn_index_inferred
+            if (
+                not app.get_blocks().api_open
+                and app.get_blocks().queue_enabled_for_fn(fn_index_inferred)
+                and f"Bearer {app.queue_token}" != request.headers.get("Authorization")
             ):
-                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Not authorized to skip the queue",
-                    )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authorized to skip the queue",
+                )
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
@@ -494,14 +514,14 @@ class App(FastAPI):
             # to create a unique id for each job
             try:
                 await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=1
+                    websocket.send_json({"msg": "send_hash"}), timeout=5
                 )
             except AsyncTimeOutError:
                 return
 
             try:
                 session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=1
+                    websocket.receive_json(), timeout=5
                 )
             except AsyncTimeOutError:
                 return
@@ -516,7 +536,7 @@ class App(FastAPI):
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
-                await cancel_tasks(set([f"{event.session_hash}_{event.fn_index}"]))
+                await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
                 await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False
@@ -586,26 +606,31 @@ class App(FastAPI):
 ########
 
 
-def safe_join(directory: str, path: str) -> str | None:
+def safe_join(directory: str, path: str) -> str:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = list(
+    _os_alt_seps: List[str] = [
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
-    )
+    ]
 
-    if path != "":
-        filename = posixpath.normpath(path)
-    else:
-        return directory
+    if path == "":
+        raise HTTPException(400)
 
+    filename = os.path.normpath(path)
+    fullpath = os.path.join(directory, filename)
     if (
         any(sep in filename for sep in _os_alt_seps)
         or os.path.isabs(filename)
         or filename == ".."
         or filename.startswith("../")
+        or os.path.isdir(fullpath)
     ):
-        return None
-    return posixpath.join(directory, filename)
+        raise HTTPException(403)
+
+    if not os.path.exists(fullpath):
+        raise HTTPException(404, "File not found")
+
+    return fullpath
 
 
 def get_types(cls_set: List[Type]):
@@ -726,8 +751,10 @@ class Request:
         else:
             try:
                 obj = self.kwargs[name]
-            except KeyError:
-                raise AttributeError(f"'Request' object has no attribute '{name}'")
+            except KeyError as ke:
+                raise AttributeError(
+                    f"'Request' object has no attribute '{name}'"
+                ) from ke
             return self.dict_to_obj(obj)
 
 
@@ -757,7 +784,6 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
-    blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)

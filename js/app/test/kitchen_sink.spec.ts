@@ -1,31 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import { BASE64_IMAGE, BASE64_AUDIO } from "./media_data";
-import { mock_theme, wait_for_page } from "./utils";
-
-function mock_demo(page: Page, demo: string) {
-	return page.route("**/config", (route) => {
-		return route.fulfill({
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-			path: `../../demo/${demo}/config.json`
-		});
-	});
-}
-
-function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/run/predict", (route) => {
-		const id = JSON.parse(route.request().postData()!).fn_index;
-		return route.fulfill({
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-			body: JSON.stringify({
-				data: body[id]
-			})
-		});
-	});
-}
+import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
 
 test("test inputs", async ({ page }) => {
 	await mock_demo(page, "kitchen_sink");
@@ -89,10 +64,16 @@ test("test outputs", async ({ page }) => {
 			},
 			BASE64_AUDIO,
 			BASE64_IMAGE,
-			{
-				name: "worldt30a4ike.mp4",
-				data: ""
-			},
+			[
+				{
+					name: "worldt30a4ike.mp4",
+					data: ""
+				},
+				{
+					name: null,
+					data: null
+				}
+			],
 			[
 				["The", "art"],
 				["quick brown", "adj"],

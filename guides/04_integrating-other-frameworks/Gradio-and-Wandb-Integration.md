@@ -27,7 +27,7 @@ Weights and Biases (W&B) allows data scientists and machine learning scientists 
 
 ### Gradio
 
-Gradio lets users demo their machine learning models as a web app, all in a few lines of Python. Gradio wraps any Python function (such as a machine learning model's inference function) into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
+Gradio lets users demo their machine learning models as a web app, all in a few lines of Python. Gradio wraps any Python function (such as a machine learning model's inference function) into a user interface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
 
 Get started [here](https://gradio.app/getting_started)
 
@@ -63,7 +63,81 @@ pip install gradio wandb
 
     This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces. Here's the code you need for that:
 
-```python
+    ```python
+    
+    alpha =  1.0 
+    alpha = 1-alpha
+
+    preserve_color = True 
+    num_iter = 100 
+    log_interval = 50 
+
+
+    samples = []
+    column_names = ["Reference (y)", "Style Code(w)", "Real Face Image(x)"]
+
+    wandb.init(project="JoJoGAN")
+    config = wandb.config
+    config.num_iter = num_iter
+    config.preserve_color = preserve_color
+    wandb.log(
+    {"Style reference": [wandb.Image(transforms.ToPILImage()(target_im))]},
+    step=0)
+
+    # load discriminator for perceptual loss
+    discriminator = Discriminator(1024, 2).eval().to(device)
+    ckpt = torch.load('models/stylegan2-ffhq-config-f.pt', map_location=lambda storage, loc: storage)
+    discriminator.load_state_dict(ckpt["d"], strict=False)
+
+    # reset generator
+    del generator
+    generator = deepcopy(original_generator)
+
+    g_optim = optim.Adam(generator.parameters(), lr=2e-3, betas=(0, 0.99))
+
+    # Which layers to swap for generating a family of plausible real images -> fake image
+    if preserve_color:
+        id_swap = [9,11,15,16,17]
+    else:
+        id_swap = list(range(7, generator.n_latent))
+
+    for idx in tqdm(range(num_iter)):
+        mean_w = generator.get_latent(torch.randn([latents.size(0), latent_dim]).to(device)).unsqueeze(1).repeat(1, generator.n_latent, 1)
+        in_latent = latents.clone()
+        in_latent[:, id_swap] = alpha*latents[:, id_swap] + (1-alpha)*mean_w[:, id_swap]
+
+        img = generator(in_latent, input_is_latent=True)
+
+        with torch.no_grad():
+            real_feat = discriminator(targets)
+        fake_feat = discriminator(img)
+
+        loss = sum([F.l1_loss(a, b) for a, b in zip(fake_feat, real_feat)])/len(fake_feat)
+        
+
+        wandb.log({"loss": loss}, step=idx)
+        if idx % log_interval == 0:
+            generator.eval()
+            my_sample = generator(my_w, input_is_latent=True)
+            generator.train()
+            my_sample = transforms.ToPILImage()(utils.make_grid(my_sample, normalize=True, range=(-1, 1)))
+            wandb.log(
+            {"Current stylization": [wandb.Image(my_sample)]},
+            step=idx)
+        table_data = [
+                wandb.Image(transforms.ToPILImage()(target_im)),
+                wandb.Image(img),
+                wandb.Image(my_sample),
+            ]
+        samples.append(table_data)
+
+        g_optim.zero_grad()
+        loss.backward()
+        g_optim.step()
+
+    out_table = wandb.Table(data=samples, columns=column_names)
+    wandb.log({"Current Samples": out_table})
+    ```
 
 alpha =  1.0 
 alpha = 1-alpha

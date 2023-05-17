@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import mimetypes
@@ -7,21 +8,39 @@ import os
 import pkgutil
 import shutil
 import tempfile
+from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Optional
 
 import fsspec.asyn
+import httpx
+import huggingface_hub
 import requests
+from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
-API_URL = "{}/api/predict/"
-WS_URL = "{}/queue/join"
-DUPLICATE_URL = "https://huggingface.co/spaces/{}?duplicate=true"
+API_URL = "/api/predict/"
+WS_URL = "/queue/join"
+UPLOAD_URL = "/upload"
+CONFIG_URL = "/config"
+API_INFO_URL = "/info"
+RAW_API_INFO_URL = "/info?serialize=False"
+SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
+RESET_URL = "/reset"
+SPACE_URL = "https://hf.space/{}"
+
 STATE_COMPONENT = "state"
+INVALID_RUNTIME = [
+    SpaceStage.NO_APP_FILE,
+    SpaceStage.CONFIG_ERROR,
+    SpaceStage.BUILD_ERROR,
+    SpaceStage.RUNTIME_ERROR,
+    SpaceStage.PAUSED,
+]
 
 __version__ = (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 
@@ -44,6 +63,12 @@ class InvalidAPIEndpointError(Exception):
     pass
 
 
+class SpaceDuplicationError(Exception):
+    """Raised when something goes wrong with a Space Duplication."""
+
+    pass
+
+
 class Status(Enum):
     """Status codes presented to client users."""
 
@@ -52,12 +77,14 @@ class Status(Enum):
     QUEUE_FULL = "QUEUE_FULL"
     IN_QUEUE = "IN_QUEUE"
     SENDING_DATA = "SENDING_DATA"
-    PROCESSING = "PROCESSSING"
+    PROCESSING = "PROCESSING"
     ITERATING = "ITERATING"
+    PROGRESS = "PROGRESS"
     FINISHED = "FINISHED"
+    CANCELLED = "CANCELLED"
 
     @staticmethod
-    def ordering(status: "Status") -> int:
+    def ordering(status: Status) -> int:
         """Order of messages. Helpful for testing."""
         order = [
             Status.STARTING,
@@ -66,16 +93,18 @@ class Status(Enum):
             Status.IN_QUEUE,
             Status.SENDING_DATA,
             Status.PROCESSING,
+            Status.PROGRESS,
             Status.ITERATING,
             Status.FINISHED,
+            Status.CANCELLED,
         ]
         return order.index(status)
 
-    def __lt__(self, other: "Status"):
+    def __lt__(self, other: Status):
         return self.ordering(self) < self.ordering(other)
 
     @staticmethod
-    def msg_to_status(msg: str) -> "Status":
+    def msg_to_status(msg: str) -> Status:
         """Map the raw message from the backend to the status code presented to users."""
         return {
             "send_hash": Status.JOINING_QUEUE,
@@ -85,7 +114,30 @@ class Status(Enum):
             "process_starts": Status.PROCESSING,
             "process_generating": Status.ITERATING,
             "process_completed": Status.FINISHED,
+            "progress": Status.PROGRESS,
         }[msg]
+
+
+@dataclass
+class ProgressUnit:
+    index: Optional[int]
+    length: Optional[int]
+    unit: Optional[str]
+    progress: Optional[float]
+    desc: Optional[str]
+
+    @classmethod
+    def from_ws_msg(cls, data: list[dict]) -> list[ProgressUnit]:
+        return [
+            cls(
+                index=d.get("index"),
+                length=d.get("length"),
+                unit=d.get("unit"),
+                progress=d.get("progress"),
+                desc=d.get("desc"),
+            )
+            for d in data
+        ]
 
 
 @dataclass
@@ -98,6 +150,7 @@ class StatusUpdate:
     eta: float | None
     success: bool | None
     time: datetime | None
+    progress_data: list[ProgressUnit] | None
 
 
 def create_initial_status_update():
@@ -108,6 +161,7 @@ def create_initial_status_update():
         eta=None,
         success=None,
         time=datetime.now(),
+        progress_data=None,
     )
 
 
@@ -115,11 +169,11 @@ def create_initial_status_update():
 class JobStatus:
     """The job status.
 
-    Keeps strack of the latest status update and intermediate outputs (not yet implements).
+    Keeps track of the latest status update and intermediate outputs (not yet implements).
     """
 
     latest_status: StatusUpdate = field(default_factory=create_initial_status_update)
-    outputs: List[Any] = field(default_factory=list)
+    outputs: list[Any] = field(default_factory=list)
 
 
 @dataclass
@@ -128,7 +182,9 @@ class Communicator:
 
     lock: Lock
     job: JobStatus
-    deserialize: Callable[..., Tuple]
+    prediction_processor: Callable[..., tuple]
+    reset_url: str
+    should_cancel: bool = False
 
 
 ########################
@@ -152,14 +208,35 @@ async def get_pred_from_ws(
     data: str,
     hash_data: str,
     helper: Communicator | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     completed = False
     resp = {}
     while not completed:
-        msg = await websocket.recv()
+        # Receive message in the background so that we can
+        # cancel even while running a long pred
+        task = asyncio.create_task(websocket.recv())
+        while not task.done():
+            if helper:
+                with helper.lock:
+                    if helper.should_cancel:
+                        # Need to reset the iterator state since the client
+                        # will not reset the session
+                        async with httpx.AsyncClient() as http:
+                            reset = http.post(
+                                helper.reset_url, json=json.loads(hash_data)
+                            )
+                            # Retrieve cancel exception from task
+                            # otherwise will get nasty warning in console
+                            task.cancel()
+                            await asyncio.gather(task, reset, return_exceptions=True)
+                        raise CancelledError()
+            # Need to suspend this coroutine so that task actually runs
+            await asyncio.sleep(0.01)
+        msg = task.result()
         resp = json.loads(msg)
         if helper:
             with helper.lock:
+                has_progress = "progress_data" in resp
                 status_update = StatusUpdate(
                     code=Status.msg_to_status(resp["msg"]),
                     queue_size=resp.get("queue_size"),
@@ -167,11 +244,14 @@ async def get_pred_from_ws(
                     success=resp.get("success"),
                     time=datetime.now(),
                     eta=resp.get("rank_eta"),
+                    progress_data=ProgressUnit.from_ws_msg(resp["progress_data"])
+                    if has_progress
+                    else None,
                 )
                 output = resp.get("output", {}).get("data", [])
                 if output and status_update.code != Status.FINISHED:
                     try:
-                        result = helper.deserialize(*output)
+                        result = helper.prediction_processor(*output)
                     except Exception as e:
                         result = [e]
                     helper.job.outputs.append(result)
@@ -205,9 +285,10 @@ def download_tmp_copy_of_file(
         suffix=suffix,
         dir=dir,
     )
-    with requests.get(url_path, headers=headers, stream=True) as r:
-        with open(file_obj.name, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+    with requests.get(url_path, headers=headers, stream=True) as r, open(
+        file_obj.name, "wb"
+    ) as f:
+        shutil.copyfileobj(r.raw, f)
     return file_obj
 
 
@@ -229,6 +310,8 @@ def create_tmp_copy_of_file(
 
 
 def get_mimetype(filename: str) -> str | None:
+    if filename.endswith(".vtt"):
+        return "text/vtt"
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
@@ -248,11 +331,11 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
-def encode_file_to_base64(f):
+def encode_file_to_base64(f: str | Path):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
         base64_str = str(encoded_string, "utf-8")
-        mimetype = get_mimetype(f)
+        mimetype = get_mimetype(str(f))
         return (
             "data:"
             + (mimetype if mimetype is not None else "")
@@ -261,7 +344,7 @@ def encode_file_to_base64(f):
         )
 
 
-def encode_url_to_base64(url):
+def encode_url_to_base64(url: str):
     encoded_string = base64.b64encode(requests.get(url).content)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
@@ -278,12 +361,9 @@ def encode_url_or_file_to_base64(path: str | Path):
         return encode_file_to_base64(path)
 
 
-def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
+def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
     extension = get_extension(encoding)
-    try:
-        data = encoding.split(",")[1]
-    except IndexError:
-        data = ""
+    data = encoding.rsplit(",", 1)[-1]
     return base64.b64decode(data), extension
 
 
@@ -300,7 +380,21 @@ def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> st
     return filename
 
 
-def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
+def sanitize_parameter_names(original_name: str) -> str:
+    """Cleans up a Python parameter name to make the API info more readable."""
+    return (
+        "".join([char for char in original_name if char.isalnum() or char in " _"])
+        .replace(" ", "_")
+        .lower()
+    )
+
+
+def decode_base64_to_file(
+    encoding: str,
+    file_path: str | None = None,
+    dir: str | Path | None = None,
+    prefix: str | None = None,
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
@@ -328,7 +422,7 @@ def decode_base64_to_file(encoding, file_path=None, dir=None, prefix=None):
     return file_obj
 
 
-def dict_or_str_to_json_file(jsn, dir=None):
+def dict_or_str_to_json_file(jsn: str | dict | list, dir: str | Path | None = None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
 
@@ -342,9 +436,36 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path: str | Path) -> Dict:
+def file_to_json(file_path: str | Path) -> dict | list:
     with open(file_path) as f:
         return json.load(f)
+
+
+###########################
+# HuggingFace Hub API Utils
+###########################
+def set_space_timeout(
+    space_id: str,
+    hf_token: str | None = None,
+    timeout_in_seconds: int = 300,
+):
+    headers = huggingface_hub.utils.build_hf_headers(
+        token=hf_token,
+        library_name="gradio_client",
+        library_version=__version__,
+    )
+    r = requests.post(
+        f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
+        json={"seconds": timeout_in_seconds},
+        headers=headers,
+    )
+    try:
+        huggingface_hub.utils.hf_raise_for_status(r)
+    except huggingface_hub.utils.HfHubHTTPError as err:
+        raise SpaceDuplicationError(
+            f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
+            "to set a timeout manually to reduce billing charges."
+        ) from err
 
 
 ########################
@@ -366,3 +487,61 @@ def synchronize_async(func: Callable, *args, **kwargs) -> Any:
         **kwargs:
     """
     return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)  # type: ignore
+
+
+class APIInfoParseError(ValueError):
+    pass
+
+
+def get_type(schema: dict):
+    if "type" in schema:
+        return schema["type"]
+    elif schema.get("oneOf"):
+        return "oneOf"
+    elif schema.get("anyOf"):
+        return "anyOf"
+    else:
+        raise APIInfoParseError(f"Cannot parse type for {schema}")
+
+
+def json_schema_to_python_type(schema: Any) -> str:
+    """Convert the json schema into a python type hint"""
+    type_ = get_type(schema)
+    if type_ == {}:
+        if "json" in schema["description"]:
+            return "Dict[Any, Any]"
+        else:
+            return "Any"
+    elif type_ == "null":
+        return "None"
+    elif type_ == "integer":
+        return "int"
+    elif type_ == "string":
+        return "str"
+    elif type_ == "boolean":
+        return "bool"
+    elif type_ == "number":
+        return "int | float"
+    elif type_ == "array":
+        items = schema.get("items")
+        if "prefixItems" in items:
+            elements = ", ".join(
+                [json_schema_to_python_type(i) for i in items["prefixItems"]]
+            )
+            return f"Tuple[{elements}]"
+        else:
+            elements = json_schema_to_python_type(items)
+            return f"List[{elements}]"
+    elif type_ == "object":
+        des = ", ".join(
+            [
+                f"{n}: {json_schema_to_python_type(v)} ({v.get('description')})"
+                for n, v in schema["properties"].items()
+            ]
+        )
+        return f"Dict({des})"
+    elif type_ in ["oneOf", "anyOf"]:
+        desc = " | ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        return desc
+    else:
+        raise APIInfoParseError(f"Cannot parse schema {schema}")

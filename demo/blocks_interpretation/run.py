@@ -1,9 +1,7 @@
 import gradio as gr
 import shap
 from transformers import pipeline
-import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use('Agg')
 
 
 sentiment_classifier = pipeline("text-classification", return_all_scores=True)

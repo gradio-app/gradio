@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Dict, List, Tuple
+from typing import Callable
 
 classes_to_document = {}
 classes_inherit_documentation = {}
@@ -21,7 +21,7 @@ def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
     lines = [line.strip() for line in code.split("\n")]
     i = None
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines):  # noqa: B007
         if line.startswith("self." + attr + ":") or line.startswith(
             "self." + attr + " ="
         ):
@@ -61,7 +61,7 @@ def document(*fns, inherit=False):
     return inner_doc
 
 
-def document_fn(fn: Callable, cls) -> Tuple[str, List[Dict], Dict, str | None]:
+def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
     """
     Generates documentation for any function.
     Parameters:

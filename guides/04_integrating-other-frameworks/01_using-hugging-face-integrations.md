@@ -1,13 +1,13 @@
 # Using Hugging Face Integrations
 
-Related spaces: https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder, https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
+Related spaces: https://huggingface.co/spaces/gradio/helsinki_translation_en_es
 Tags: HUB, SPACES, EMBED
 
-Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙 and <a href="https://huggingface.co/farukozderim">Ömer Faruk Özdemir</a>
+Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙 
 
 ## Introduction
 
-The Hugging Face Hub is a central platform that has over 90,000 [models](https://huggingface.co/models), 14,000 [datasets](https://huggingface.co/datasets) and 14,000 [demos](https://huggingface.co/spaces), also known as Spaces. From Natural Language Processing to Computer Vision and Speech, the Hub supports multiple domains. Although Hugging Face is famous for its 🤗 transformers and diffusers libraries, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others.
+The Hugging Face Hub is a central platform that has over 190,000 [models](https://huggingface.co/models), 32,000 [datasets](https://huggingface.co/datasets) and 40,000 [demos](https://huggingface.co/spaces), also known as Spaces. Although Hugging Face is famous for its 🤗 transformers and diffusers libraries, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others across a variety of domains, from computer vision to reinforcement learning.
 
 Gradio has multiple features that make it extremely easy to leverage existing models and Spaces on the Hub. This guide walks through these features.
 
@@ -27,21 +27,32 @@ pipe = pipeline("translation", model="Helsinki-NLP/opus-mt-en-es")
 def predict(text):
   return pipe(text)[0]["translation_text"]
   
-iface = gr.Interface(
+demo = gr.Interface(
   fn=predict, 
   inputs='text',
   outputs='text',
-  examples=[["Hello! My name is Omar"]]
 )
 
-iface.launch()
+demo.launch()
+```
+
+But `gradio` actually makes it even easier to convert a `pipeline` to a demo, simply by using the `gradio.Interface.from_pipeline` methods, which skips the need to specify the input and output components:
+
+```python
+from transformers import pipeline
+import gradio as gr
+
+pipe = pipeline("translation", model="Helsinki-NLP/opus-mt-en-es")
+
+demo = gr.Interface.from_pipeline(pipe)
+demo.launch()
 ```
 
 The previous code produces the following interface, which you can try right here in your browser: 
 
-<iframe src="https://osanseviero-helsinki-translation-en-es.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-This demo requires installing four libraries: gradio, torch, transformers, and sentencepiece. Apart from that, this is a Gradio with the structure you're used to! The demo is a usual Gradio `Interface` with a prediction function, a specified input, and a specified output. The prediction function executes the `pipeline` function with the given input, retrieves the first (and only) translation result, and returns the `translation_text` field, which you're interested in.
+<gradio-app space="Helsinki-NLP/opus-mt-en-es"></gradio-app>
+
 
 ## Using Hugging Face Inference API
 
@@ -52,19 +63,12 @@ Let's try the same demo as above but using the Inference API instead of loading 
 ```python
 import gradio as gr
 
-iface = gr.Interface.load("huggingface/Helsinki-NLP/opus-mt-en-es",
-  examples=[["Hello! My name is Omar"]]
-)
+demo = gr.load("Helsinki-NLP/opus-mt-en-es", src="models")
 
-iface.launch()
+demo.launch()
 ```
 
-Let's go over some of the key differences:
-
-* `Interface.load()` is used instead of the usual `Interface()`.
-* `Interface.load()` receives a string with the prefix `huggingface/`, and then the model repository ID.
-* Since the input, output and prediction functions are not needed, you only need to modify the UI parts (such as `title`, `description`, and `examples`).
-* There is no need to install any dependencies (except Gradio) since you are not loading the model on your computer.
+Notice that we just put specify the model name and state that the `src` should be `models` (Hugging Face's Model Hub). There is no need to install any dependencies (except `gradio`) since you are not loading the model on your computer.
 
 You might notice that the first inference takes about 20 seconds. This happens since the Inference API is loading the model in the server. You get some benefits afterward:
 
@@ -74,77 +78,10 @@ You might notice that the first inference takes about 20 seconds. This happens s
 
 ## Hosting your Gradio demos
 
-
-[Hugging Face Spaces](https://hf.co/spaces) allows anyone to host their Gradio demos freely. The community shares oven 2,000 Spaces. Uploading your Gradio demos take a couple of minutes. You can head to [hf.co/new-space](https://huggingface.co/new-space), select the Gradio SDK, create an `app.py` file, and voila! You have a demo you can share with anyone else.
-
-## Building demos based on other demos
-
-You can use the existing Spaces to tweak the UI or combine multiple demos. Let's find how to do this! First, let's take a look at an existing demo that does background removal. 
-
-This is a Gradio demo [already shared](https://huggingface.co/spaces/eugenesiow/remove-bg) by a community member. You can load an existing demo using `Interface` in a syntax similar to how it's done for the Inference API. It just takes two lines of code and with the prefix `spaces`.
-
-```python
-import gradio as gr
-
-gr.Interface.load("spaces/eugenesiow/remove-bg").launch()
-```
-
-The code snippet above will load the same interface as the corresponding Space demo.
-
-<iframe src="https://eugenesiow-remove-bg.hf.space" frameBorder="0" height="900" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+[Hugging Face Spaces](https://hf.co/spaces) allows anyone to host their Gradio demos freely, and uploading your Gradio demos take a couple of minutes. You can head to [hf.co/new-space](https://huggingface.co/new-space), select the Gradio SDK, create an `app.py` file, and voila! You have a demo you can share with anyone else. To learn more, read [this guide how to host on Hugging Face Spaces using the website](https://huggingface.co/blog/gradio-spaces).
 
 
-You can change UI elements, such as the title or theme, but also change the expected type. The previous Space expected users to upload images. What if you would like users to have their webcam and remove the background from there? You can load the Space but change the source of input as follows:
-
-```python
-import gradio as gr
-
-gr.Interface.load(
-  "spaces/eugenesiow/remove-bg", 
-  inputs=[gr.Image(label="Input Image", source="webcam")]
-).launch()
-```
-
-The code above generates the following demo.
-
-<iframe src="https://osanseviero-remove-bg-webcam.hf.space" frameBorder="0" height="600" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
-
-As you can see, the demo looks the same, but it uses a webcam input instead of user-uploaded images.
-
-You can learn more about this feature, and how to use it with the new Blocks API in the [Using Gradio Blocks Like Functions guide](/using_blocks_like_functions)
-
-## Using multiple Spaces
-
-Sometimes a single model inference will not be enough: you might want to call multiple models by piping them (using the output of model A as the input of model B). `Series` can achieve this. Other times, you might want to run two models in parallel to compare them. `Parallel` can do this!
-
-Let's combine the notion of running things in parallel with the Spaces integration. The [GPT-J-6B](https://huggingface.co/spaces/mrm8488/GPT-J-6B) Space demos a model that generates text using a model called GPT-J. The [T0pp](https://huggingface.co/spaces/akhaliq/T0pp) Space demos another generative model called T0pp. Let's see how to combine both into one.
-
-```python
-import gradio as gr
-
-iface1 = gr.Interface.load("spaces/mrm8488/GPT-J-6B")
-iface2 = gr.Interface.load("spaces/akhaliq/T0pp")
-
-iface3 = gr.mix.Parallel(
-  iface1, iface2, 
-  examples = [
-    ['Which country will win the 2002 World Cup?'],
-    ["A is the son's of B's uncle. What is the family relationship between A and B?"],
-    ["In 2030, "],
-  ])
-  
-iface3.launch()
-```
-
-`iface1` and `iface2` are loading existing Spaces. Then, with `Parallel`, you can run the interfaces parallelly. When you click submit, you will get the output for both interfaces. This is how the demo looks like:
-
-<iframe src="https://osanseviero-mix-match-gradio.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
-
-Although both models are generative, you can see that the way both models behave is very different. That's a powerful application of `Parallel`!
-
-## Creating Spaces with python
-
-Making use of the [huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index) library you can create new Spaces or model repositories. You can do this even in a Gradio Space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This Space creates a new Space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
+Alternatively, you can create a Space programmatically, making use of the [huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index) library. Here's an example:
 
 ```python
 from huggingface_hub import (
@@ -164,25 +101,42 @@ file_url = upload_file(
 ```
 Here, `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
 
-<iframe src="https://farukozderim-model-comparator-space-builder.hf.space" frameBorder="0" height="800" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 ## Embedding your Space demo on other websites
 
-Throughout this guide, you've seen there are Gradio demos embedded. You can also do this on own website! The first step is to create a Space with the demo you want to showcase. You can embed it in your HTML code, as shown in the following self-contained example.
+Throughout this guide, you've seen many embedded Gradio demos. You can also do this on own website! The first step is to create a Hugging Face Space with the demo you want to showcase. Then, [follow the steps here to embed the Space on your website](/sharing-your-app/#embedding-hosted-spaces).
 
-```html
-<iframe src="https://osanseviero-mix-match-gradio.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe&gt;
+
+## Loading demos from Spaces
+
+You can also use and remix existing Gradio demos on Hugging Face Spaces. For example, you could take two existing Gradio demos and put them as separate tabs and create a new demo. You can run this new demo locally, or upload it to Spaces, allowing endless possibilities to remix and create new demos!
+
+Here's an example that does exactly that:
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+  with gr.Tab("Translate to Spanish"):
+    gr.load("gradio/helsinki_translation_en_es", src="spaces")
+  with gr.Tab("Translate to French"):
+    gr.load("abidlabs/en2fr", src="spaces")
+
+demo.launch()
 ```
+
+Notice that we use `gr.load()`, the same method we used to load models using the Inference API. However, here we specify that the `src` is `spaces` (Hugging Face Spaces).
 
 ## Recap
 
-That's it! Let's recap what you can do:
+That's it! Let's recap the various ways Gradio and Hugging Face work together:
 
-1. Host your Gradio demos in Spaces.
-2. Use the Inference API to build demos in two lines of code.
-3. Load existing Spaces and modify them.
-4. Combine multiple Spaces by running them sequentially or parallelly.
-5. Embed your Space demo directly on a website.
+1. You can convert a `transformers` pipeline into a Gradio demo using `from_pipeline()`
+2. You can build a demo around the Inference API without having to load the model easily using `gr.load()`
+3. You host your Gradio demo on Hugging Face Spaces, either using the GUI or entirely in Python.
+4. You can embed Gradio demos that are hosted on Hugging Face Spaces onto your own website.
+5. You can load demos from Hugging Face Spaces to remix and create new Gradio demos using `gr.load()`.
+
 
 🤗

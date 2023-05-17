@@ -3,18 +3,22 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
+from gradio_client import media_data
 
 import gradio.interpretation
-from gradio import Interface, media_data
+from gradio import Interface
 from gradio.processing_utils import decode_base64_to_image
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
+def max_word_len(text: str) -> int:
+    return max([len(word) for word in text.split(" ")])
+
+
 class TestDefault:
     @pytest.mark.asyncio
     async def test_default_text(self):
-        max_word_len = lambda text: max([len(word) for word in text.split(" ")])
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="default"
         )
@@ -22,13 +26,12 @@ class TestDefault:
             "interpretation"
         ]
         assert interpretation[0][1] > 0  # Checks to see if the first word has >0 score.
-        assert 0 == interpretation[-1][1]  # Checks to see if the last word has 0 score.
+        assert interpretation[-1][1] == 0  # Checks to see if the last word has 0 score.
 
 
 class TestShapley:
     @pytest.mark.asyncio
     async def test_shapley_text(self):
-        max_word_len = lambda text: max([len(word) for word in text.split(" ")])
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="shapley"
         )
@@ -41,8 +44,9 @@ class TestShapley:
 class TestCustom:
     @pytest.mark.asyncio
     async def test_custom_text(self):
-        max_word_len = lambda text: max([len(word) for word in text.split(" ")])
-        custom = lambda text: [(char, 1) for char in text]
+        def custom(text):
+            return [(char, 1) for char in text]
+
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation=custom
         )
@@ -53,8 +57,12 @@ class TestCustom:
 
     @pytest.mark.asyncio
     async def test_custom_img(self):
-        max_pixel_value = lambda img: img.max()
-        custom = lambda img: img.tolist()
+        def max_pixel_value(img):
+            return img.max()
+
+        def custom(img):
+            return img.tolist()
+
         img_interface = Interface(
             max_pixel_value, "image", "label", interpretation=custom
         )
@@ -84,9 +92,9 @@ class TestHelperMethods:
     def test_quantify_difference_with_label(self):
         iface = Interface(lambda text: len(text), ["textbox"], ["label"])
         diff = gradio.interpretation.quantify_difference_in_label(iface, ["3"], ["10"])
-        assert -7 == diff
+        assert diff == -7
         diff = gradio.interpretation.quantify_difference_in_label(iface, ["0"], ["100"])
-        assert -100 == diff
+        assert diff == -100
 
     def test_quantify_difference_with_confidences(self):
         iface = Interface(lambda text: len(text), ["textbox"], ["label"])
@@ -96,11 +104,11 @@ class TestHelperMethods:
         diff = gradio.interpretation.quantify_difference_in_label(
             iface, [output_1], [output_2]
         )
-        assert 0.3 == pytest.approx(diff)
+        assert pytest.approx(diff) == 0.3
         diff = gradio.interpretation.quantify_difference_in_label(
             iface, [output_1], [output_3]
         )
-        assert 0.8 == pytest.approx(diff)
+        assert pytest.approx(diff) == 0.8
 
     def test_get_regression_value(self):
         iface = Interface(lambda text: text, ["textbox"], ["label"])
@@ -110,19 +118,19 @@ class TestHelperMethods:
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, [output_1], [output_2]
         )
-        assert 0 == diff
+        assert diff == 0
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, [output_1], [output_3]
         )
-        assert 0.1 == pytest.approx(diff)
+        assert pytest.approx(diff) == 0.1
 
     def test_get_classification_value(self):
         iface = Interface(lambda text: text, ["textbox"], ["label"])
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, ["cat"], ["test"]
         )
-        assert 1 == diff
+        assert diff == 1
         diff = gradio.interpretation.get_regression_or_classification_value(
             iface, ["test"], ["test"]
         )
-        assert 0 == diff
+        assert diff == 0

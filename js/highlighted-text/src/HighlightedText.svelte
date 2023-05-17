@@ -91,77 +91,92 @@
 />
 -->
 
-{#if mode === "categories"}
-	{#if show_legend}
-		<div class="category-legend" data-testid="highlighted-text:category-legend">
-			{#each Object.entries(_color_map) as [category, color], i}
-				<div
-					on:mouseover={() => handle_mouseover(category)}
-					on:focus={() => handle_mouseover(category)}
-					on:mouseout={() => handle_mouseout()}
-					on:blur={() => handle_mouseout()}
-					class="category-label"
-					style={"background-color:" + color.secondary}
+<div class="container">
+	{#if mode === "categories"}
+		{#if show_legend}
+			<div
+				class="category-legend"
+				data-testid="highlighted-text:category-legend"
+			>
+				{#each Object.entries(_color_map) as [category, color], i}
+					<div
+						on:mouseover={() => handle_mouseover(category)}
+						on:focus={() => handle_mouseover(category)}
+						on:mouseout={() => handle_mouseout()}
+						on:blur={() => handle_mouseout()}
+						class="category-label"
+						style={"background-color:" + color.secondary}
+					>
+						{category}
+					</div>
+				{/each}
+			</div>
+		{/if}
+		<div class="textfield">
+			{#each value as [text, category], i}
+				<span
+					class="textspan"
+					style:background-color={category === null ||
+					(active && active !== category)
+						? ""
+						: _color_map[category].secondary}
+					class:no-cat={category === null || (active && active !== category)}
+					class:hl={category !== null}
+					class:selectable
+					on:click={() => {
+						dispatch("select", {
+							index: i,
+							value: [text, category]
+						});
+					}}
 				>
-					{category}
-				</div>
+					<span class:no-label={!_color_map[category]} class="text">{text}</span
+					>
+					{#if !show_legend && category !== null}
+						&nbsp;
+						<span
+							class="label"
+							style:background-color={category === null ||
+							(active && active !== category)
+								? ""
+								: _color_map[category].primary}
+						>
+							{category}
+						</span>
+					{/if}
+				</span>
+			{/each}
+		</div>
+	{:else}
+		{#if show_legend}
+			<div class="color-legend" data-testid="highlighted-text:color-legend">
+				<span>-1</span>
+				<span>0</span>
+				<span>+1</span>
+			</div>
+		{/if}
+		<div class="textfield" data-testid="highlighted-text:textfield">
+			{#each value as [text, score]}
+				<span
+					class="textspan score-text"
+					style={"background-color: rgba(" +
+						(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
+						")"}
+				>
+					<span class="text">{text}</span>
+				</span>
 			{/each}
 		</div>
 	{/if}
-	<div class="textfield">
-		{#each value as [text, category], i}
-			<span
-				class="textspan"
-				style:background-color={category === null ||
-				(active && active !== category)
-					? ""
-					: _color_map[category].secondary}
-				class:no-cat={category === null || (active && active !== category)}
-				class:hl={category !== null}
-				class:selectable
-				on:click={() => {
-					dispatch("select", { index: i, value: [text, category] });
-				}}
-			>
-				<span class:no-label={!_color_map[category]} class="text">{text}</span>
-				{#if !show_legend && category !== null}
-					&nbsp;
-					<span
-						class="label"
-						style:background-color={category === null ||
-						(active && active !== category)
-							? ""
-							: _color_map[category].primary}
-					>
-						{category}
-					</span>
-				{/if}
-			</span>
-		{/each}
-	</div>
-{:else}
-	{#if show_legend}
-		<div class="color-legend" data-testid="highlighted-text:color-legend">
-			<span>-1</span>
-			<span>0</span>
-			<span>+1</span>
-		</div>
-	{/if}
-	<div class="textfield" data-testid="highlighted-text:textfield">
-		{#each value as [text, score]}
-			<span
-				class="textspan score-text"
-				style={"background-color: rgba(" +
-					(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
-					")"}
-			>
-				<span class="text">{text}</span>
-			</span>
-		{/each}
-	</div>
-{/if}
+</div>
 
 <style>
+	.container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		padding: var(--block-padding);
+	}
 	.hl + .hl {
 		margin-left: var(--size-1);
 	}
@@ -174,8 +189,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
-		margin-top: var(--size-7);
-		margin-bottom: var(--size-2);
 		color: black;
 	}
 
@@ -190,8 +203,6 @@
 	.color-legend {
 		display: flex;
 		justify-content: space-between;
-		margin-top: var(--size-7);
-		margin-bottom: var(--size-3);
 		border-radius: var(--radius-xs);
 		background: linear-gradient(
 			to right,
@@ -208,7 +219,6 @@
 		border-radius: var(--radius-xs);
 		background: var(--background-fill-primary);
 		background-color: transparent;
-		padding: var(--block-padding);
 		max-width: var(--size-full);
 		line-height: var(--scale-4);
 		word-break: break-all;
