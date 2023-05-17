@@ -294,4 +294,11 @@
 	.message-wrap :global(pre) {
 		padding: var(--spacing-xl) 0px;
 	}
+
+	.message-wrap :global(pre code) {
+		display: block;
+		background: none;
+		padding: 0;
+		margin-bottom: calc( -1em - var(--spacing-xl));
+	}
 </style>
