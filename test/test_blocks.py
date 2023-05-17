@@ -198,7 +198,8 @@ class TestBlocksMethods:
             assert result
 
     @mock.patch("requests.post")
-    def test_initiated_analytics(self, mock_post):
+    def test_initiated_analytics(self, mock_post, monkeypatch):
+        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks(analytics_enabled=True):
             pass
         mock_post.assert_called_once()
