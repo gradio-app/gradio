@@ -37,11 +37,7 @@ def get_updated_messaging(en: Dict):
     try:
         updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
         en.update(updated_messaging)
-    except (
-        requests.ConnectionError,
-        requests.exceptions.ReadTimeout,
-        requests.exceptions.JSONDecodeError,
-    ):  # Use default messaging
+    except Exception:  # Use default messaging
         pass
 
 
