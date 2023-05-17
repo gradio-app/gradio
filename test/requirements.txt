@@ -111,7 +111,7 @@ numpy==1.21.6
     #   shap
     #   tifffile
     #   transformers
-packaging==21.3
+packaging==22.0
     # via
     #   huggingface-hub
     #   pytest
