@@ -237,20 +237,18 @@ class IOComponent(Component):
             sha1.update(data)
         return sha1.hexdigest()
 
-    def _hash(
-        self, base64_encoding: str | bytes, chunk_num_blocks: int = 128, encode=True
-    ):
+    def _hash(self, base64_encoding: str | bytes, chunk_num_blocks: int = 128):
         sha1 = hashlib.sha1()
         for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
             data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
-            sha1.update(data.encode("utf-8") if encode else data)
+            sha1.update(data.encode("utf-8") if isinstance(data, str) else data)
         return sha1.hexdigest()
 
     def hash_bytes(self, bytes: bytes, chunk_num_blocks: int = 128):
-        return self._hash(bytes, chunk_num_blocks, encode=False)
+        return self._hash(bytes, chunk_num_blocks)
 
     def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
-        return self._hash(base64_encoding, chunk_num_blocks, encode=False)
+        return self._hash(base64_encoding, chunk_num_blocks)
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
@@ -341,12 +339,12 @@ class IOComponent(Component):
         return full_temp_file_path
 
     def pil_to_temp_file(self, img: _Image.Image, dir: str) -> str:
-        filename = str(Path(dir) / f"{self.hash_base64(img.tobytes())}.png")
+        filename = str(Path(dir) / f"{self.hash_bytes(img.tobytes())}.png")
         img.save(filename, pnginfo=processing_utils.get_pil_metadata(img))
         return filename
 
     def array_to_temp_file(self, arr: np.ndarray, dir: str) -> str:
-        filename = str(Path(dir) / f"{self.hash_base64(arr.tobytes())}.png")
+        filename = str(Path(dir) / f"{self.hash_bytes(arr.tobytes())}.png")
         pil_image = _Image.fromarray(
             processing_utils._convert(arr, np.uint8, force_copy=False)
         )
