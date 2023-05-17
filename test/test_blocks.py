@@ -5,7 +5,9 @@ import json
 import os
 import pathlib
 import random
+import shutil
 import sys
+import tempfile
 import time
 import unittest.mock as mock
 import uuid
@@ -15,11 +17,13 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
+import gradio_client as grc
 import pytest
 import uvicorn
 import websockets
 from fastapi.testclient import TestClient
 from gradio_client import media_data
+from PIL import Image
 
 import gradio as gr
 from gradio.events import SelectData
@@ -463,6 +467,57 @@ class TestBlocksMethods:
             demo.launch(prevent_thread_lock=True)
 
         demo.close()
+
+
+class TestTempFile:
+    def test_pil_images_hashed(self):
+        def create_images(n_images):
+
+            a = Image.new("RGB", (512, 512), "red")
+            b = Image.new("RGB", (512, 512), "green")
+            c = Image.new("RGB", (512, 512), "blue")
+
+            res = [a, b, c][:n_images]
+            random.shuffle(res)
+            return res
+
+        dir_ = tempfile.mkdtemp()
+
+        try:
+            with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": dir_}):
+                demo = gr.Interface(
+                    create_images,
+                    inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
+                    outputs=[gr.Gallery().style(grid=2, preview=True)],
+                )
+                _, url, _ = demo.launch(prevent_thread_lock=True)
+                client = grc.Client(url)
+                _ = client.predict(3)
+                _ = client.predict(3)
+            # only three files created
+            assert len(list(pathlib.Path(dir_).glob("**/*"))) == 3
+        finally:
+            demo.close()
+            shutil.rmtree(dir_)
+
+    def test_no_empty_files(self):
+        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        video = str(file_dir / "video_sample.mp4")
+        dir_ = tempfile.mkdtemp()
+
+        try:
+            with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": dir_}):
+                demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
+                _, url, _ = demo.launch(prevent_thread_lock=True)
+                client = grc.Client(url)
+                _ = client.predict(video)
+                _ = client.predict(video)
+            # During preprocessing we compute the hash based on base64
+            # In postprocessing we compute it based on the file
+            assert len([f for f in pathlib.Path(dir_).glob("**/*") if f.is_file()]) == 2
+        finally:
+            demo.close()
+            shutil.rmtree(dir_)
 
 
 class TestComponentsInBlocks:
