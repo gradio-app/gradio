@@ -8,7 +8,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Add a scroll bar to the codeblock to avoid the code exceeding the boundary and remove extra blank space after codeblock, by [@Keldos-Li](https://github.com/Keldos-Li) in [PR 4246](https://github.com/gradio-app/gradio/pull/4246).
 
 ## Breaking Changes:
 
