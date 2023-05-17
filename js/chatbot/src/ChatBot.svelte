@@ -253,6 +253,7 @@
 		border-radius: var(--radius-md);
 		background: var(--chatbot-code-background-color);
 		padding-left: var(--spacing-xxl);
+		overflow: auto;
 	}
 
 	/* Small screen */
