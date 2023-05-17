@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "./main";
+	import { mount_css } from "./css";
 
 	import type {
 		ComponentMeta,
