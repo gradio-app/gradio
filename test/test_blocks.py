@@ -358,7 +358,6 @@ class TestBlocksMethods:
             demo.close()
 
     def test_socket_reuse(self):
-
         try:
             io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
             io.launch(server_port=9441, prevent_thread_lock=True)
@@ -375,7 +374,6 @@ class TestBlocksMethods:
             yield from range(10)
 
         with gr.Blocks() as demo:
-
             gr.Number(value=lambda: 2, every=2)
             meaning_of_life = gr.Number()
             counter = gr.Number()
@@ -524,7 +522,6 @@ class TestComponentsInBlocks:
 
 class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
-
         io_components = [
             c()
             for c in io_components
@@ -1284,7 +1281,6 @@ class TestEvery:
 
     @pytest.mark.asyncio
     async def test_every_does_not_block_queue(self):
-
         with gr.Blocks() as demo:
             num = gr.Number(value=0)
             name = gr.Textbox()
