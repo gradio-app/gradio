@@ -8,7 +8,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Refactor web component `initial_height` attribute by [@whitphx](https://github.com/whitphx) in [PR 4223](https://github.com/gradio-app/gradio/pull/4223)
 
 ## Breaking Changes:
 
