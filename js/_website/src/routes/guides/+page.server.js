@@ -9,12 +9,18 @@ const COLOR_SETS = [
     ["from-blue-100", "to-blue-50"],
     ["from-pink-100", "to-pink-50"],
     ["from-purple-100", "to-purple-50"],
+    ["from-green-100", "to-green-50"],
+    ["from-yellow-100", "to-yellow-50"],
+    ["from-red-100", "to-red-50"],
+    ["from-blue-100", "to-blue-50"],
+    ["from-pink-100", "to-pink-50"],
+    ["from-purple-100", "to-purple-50"],
 ]
 
 let total_guides = 0;
 for (const category in guides_by_category) {
     for (const guide in guides_by_category[category].guides) {
-            total_guides += 1;
+        total_guides += 1;
     }
 }
 
