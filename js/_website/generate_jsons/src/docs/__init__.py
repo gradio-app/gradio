@@ -12,8 +12,6 @@ docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
 
 
-
-
 def add_component_shortcuts():
     for component in docs["component"]:
         if not getattr(component["class"], "allow_string_shortcut", True):
@@ -56,7 +54,19 @@ def add_demos():
 
 add_demos()
 
-ordered_events = ["Change()", "Click()", "Submit()", "Edit()", "Clear()", "Play()", "Pause()", "Stream()", "Blur()", "Upload()"]
+ordered_events = [
+    "Change()",
+    "Click()",
+    "Submit()",
+    "Edit()",
+    "Clear()",
+    "Play()",
+    "Pause()",
+    "Stream()",
+    "Blur()",
+    "Upload()",
+]
+
 
 def add_supported_events():
     for component in docs["component"]:
@@ -142,16 +152,17 @@ def find_cls(target_cls):
 
 
 def organize_docs(d):
-    organized = {"building": {}, 
-                 "components": {}, 
-                 "helpers": {}, 
-                 "routes": {}, 
-                 "events": {},
-                 "py-client": {}
-                }
+    organized = {
+        "building": {},
+        "components": {},
+        "helpers": {},
+        "routes": {},
+        "events": {},
+        "py-client": {},
+    }
     pages = []
     for mode in d:
-        for c in d[mode]: 
+        for c in d[mode]:
             c["parent"] = "gradio"
             c["class"] = None
             if "returns" in c:
@@ -181,53 +192,91 @@ def organize_docs(d):
 
     c_keys = list(organized["components"].keys())
     for i, cls in enumerate(organized["components"]):
-        if not i: 
+        if not i:
             organized["components"][cls]["prev_obj"] = "Components"
-            organized["components"][cls]["next_obj"] =  organized["components"][c_keys[1]]["name"]
+            organized["components"][cls]["next_obj"] = organized["components"][
+                c_keys[1]
+            ]["name"]
         elif i == len(c_keys) - 1:
-            organized["components"][cls]["prev_obj"] = organized["components"][c_keys[len(c_keys) - 2]]["name"]
+            organized["components"][cls]["prev_obj"] = organized["components"][
+                c_keys[len(c_keys) - 2]
+            ]["name"]
             organized["components"][cls]["next_obj"] = "Examples"
         else:
-            organized["components"][cls]["prev_obj"] = organized["components"][c_keys[i-1]]["name"]
-            organized["components"][cls]["next_obj"] = organized["components"][c_keys[i+1]]["name"]
+            organized["components"][cls]["prev_obj"] = organized["components"][
+                c_keys[i - 1]
+            ]["name"]
+            organized["components"][cls]["next_obj"] = organized["components"][
+                c_keys[i + 1]
+            ]["name"]
     c_keys = list(organized["helpers"].keys())
     for i, cls in enumerate(organized["helpers"]):
-        if not i: 
+        if not i:
             organized["helpers"][cls]["prev_obj"] = "Video"
-            organized["helpers"][cls]["next_obj"] =  organized["helpers"][c_keys[1]]["name"]
+            organized["helpers"][cls]["next_obj"] = organized["helpers"][c_keys[1]][
+                "name"
+            ]
         elif i == len(c_keys) - 1:
-            organized["helpers"][cls]["prev_obj"] = organized["helpers"][c_keys[len(c_keys) - 2]]["name"]
+            organized["helpers"][cls]["prev_obj"] = organized["helpers"][
+                c_keys[len(c_keys) - 2]
+            ]["name"]
             organized["helpers"][cls]["next_obj"] = "Request"
         else:
-            organized["helpers"][cls]["prev_obj"] = organized["helpers"][c_keys[i-1]]["name"]
-            organized["helpers"][cls]["next_obj"] = organized["helpers"][c_keys[i+1]]["name"]
+            organized["helpers"][cls]["prev_obj"] = organized["helpers"][c_keys[i - 1]][
+                "name"
+            ]
+            organized["helpers"][cls]["next_obj"] = organized["helpers"][c_keys[i + 1]][
+                "name"
+            ]
     c_keys = list(organized["routes"].keys())
     for i, cls in enumerate(organized["routes"]):
-        if not i: 
+        if not i:
             organized["routes"][cls]["prev_obj"] = "make_waveform"
-            organized["routes"][cls]["next_obj"] =  organized["routes"][c_keys[1]]["name"]
+            organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[1]][
+                "name"
+            ]
         elif i == len(c_keys) - 1:
-            organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[len(c_keys) - 2]]["name"]
+            organized["routes"][cls]["prev_obj"] = organized["routes"][
+                c_keys[len(c_keys) - 2]
+            ]["name"]
             organized["routes"][cls]["next_obj"] = "Python-Client"
         else:
-            organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[i-1]]["name"]
-            organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[i+1]]["name"]
+            organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[i - 1]][
+                "name"
+            ]
+            organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[i + 1]][
+                "name"
+            ]
     c_keys = list(organized["py-client"].keys())
-    for i, cls in enumerate(organized["py-client"]): 
-        if not i: 
+    for i, cls in enumerate(organized["py-client"]):
+        if not i:
             organized["py-client"][cls]["prev_obj"] = "Python-Client"
-            organized["py-client"][cls]["next_obj"] =  organized["py-client"][c_keys[1]]["name"]
+            organized["py-client"][cls]["next_obj"] = organized["py-client"][c_keys[1]][
+                "name"
+            ]
         elif i == len(c_keys) - 1:
-            organized["py-client"][cls]["prev_obj"] = organized["py-client"][c_keys[len(c_keys) - 2]]["name"]
+            organized["py-client"][cls]["prev_obj"] = organized["py-client"][
+                c_keys[len(c_keys) - 2]
+            ]["name"]
+            organized["py-client"][cls]["next_obj"] = "JS-Client"
         else:
-            organized["py-client"][cls]["prev_obj"] = organized["py-client"][c_keys[i-1]]["name"]
-            organized["py-client"][cls]["next_obj"] = organized["py-client"][c_keys[i+1]]["name"]
+            organized["py-client"][cls]["prev_obj"] = organized["py-client"][
+                c_keys[i - 1]
+            ]["name"]
+            organized["py-client"][cls]["next_obj"] = organized["py-client"][
+                c_keys[i + 1]
+            ]["name"]
 
     organized["ordered_events"] = ordered_events
-    return {"docs": organized, "pages": pages}
+
+    with open("../../../client/js/README.md", "r") as f:
+        readme_content = f.read()
+    return {"docs": organized, "pages": pages, "js_client": readme_content}
+
 
 docs = organize_docs(docs)
-    
-def generate(json_path):    
+
+
+def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
