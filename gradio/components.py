@@ -237,12 +237,20 @@ class IOComponent(Component):
             sha1.update(data)
         return sha1.hexdigest()
 
-    def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+    def _hash(
+        self, base64_encoding: str | bytes, chunk_num_blocks: int = 128, encode=True
+    ):
         sha1 = hashlib.sha1()
         for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
             data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
-            sha1.update(data.encode("utf-8"))
+            sha1.update(data.encode("utf-8") if encode else data)
         return sha1.hexdigest()
+
+    def hash_bytes(self, bytes: bytes, chunk_num_blocks: int = 128):
+        return self._hash(bytes, chunk_num_blocks, encode=False)
+
+    def hash_base64(self, base64_encoding: str, chunk_num_blocks: int = 128) -> str:
+        return self._hash(base64_encoding, chunk_num_blocks, encode=False)
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
@@ -251,9 +259,8 @@ class IOComponent(Component):
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+        name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
+        full_temp_file_path = str(utils.abspath(temp_dir / name))
 
         if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
@@ -292,10 +299,9 @@ class IOComponent(Component):
         temp_dir = self.hash_url(url)
         temp_dir = Path(self.DEFAULT_TEMP_DIR) / temp_dir
         temp_dir.mkdir(exist_ok=True, parents=True)
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
 
-        f.name = client_utils.strip_invalid_filename_characters(Path(url).name)
-        full_temp_file_path = str(utils.abspath(temp_dir / f.name))
+        name = client_utils.strip_invalid_filename_characters(Path(url).name)
+        full_temp_file_path = str(utils.abspath(temp_dir / name))
 
         if not Path(full_temp_file_path).exists():
             with requests.get(url, stream=True) as r, open(
@@ -323,8 +329,7 @@ class IOComponent(Component):
             file_name = f"file.{guess_extension}"
         else:
             file_name = "file"
-        f = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
-        f.name = file_name  # type: ignore
+
         full_temp_file_path = str(utils.abspath(temp_dir / file_name))  # type: ignore
 
         if not Path(full_temp_file_path).exists():
@@ -334,6 +339,19 @@ class IOComponent(Component):
 
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
+
+    def pil_to_temp_file(self, img: _Image.Image, dir: str) -> str:
+        filename = str(Path(dir) / f"{self.hash_base64(img.tobytes())}.png")
+        img.save(filename, pnginfo=processing_utils.get_pil_metadata(img))
+        return filename
+
+    def array_to_temp_file(self, arr: np.ndarray, dir: str) -> str:
+        filename = str(Path(dir) / f"{self.hash_base64(arr.tobytes())}.png")
+        pil_image = _Image.fromarray(
+            processing_utils._convert(arr, np.uint8, force_copy=False)
+        )
+        pil_image.save(filename)
+        return filename
 
     def get_config(self):
         config = {
@@ -4068,11 +4086,11 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             base_img_path = base_img
             base_img = np.array(_Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
-            base_file = processing_utils.save_array_to_file(base_img)
-            base_img_path = str(utils.abspath(base_file.name))
+            base_file = self.array_to_temp_file(base_img, dir=self.DEFAULT_TEMP_DIR)
+            base_img_path = str(utils.abspath(base_file))
         elif isinstance(base_img, _Image.Image):
-            base_file = processing_utils.save_pil_to_file(base_img)
-            base_img_path = str(utils.abspath(base_file.name))
+            base_file = self.pil_to_temp_file(base_img, dir=self.DEFAULT_TEMP_DIR)
+            base_img_path = str(utils.abspath(base_file))
             base_img = np.array(base_img)
         else:
             raise ValueError(
@@ -4116,8 +4134,10 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
 
             colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
 
-            mask_file = processing_utils.save_pil_to_file(colored_mask_img)
-            mask_file_path = str(utils.abspath(mask_file.name))
+            mask_file = self.pil_to_temp_file(
+                colored_mask_img, dir=self.DEFAULT_TEMP_DIR
+            )
+            mask_file_path = str(utils.abspath(mask_file))
             self.temp_files.add(mask_file_path)
 
             sections.append(
@@ -4404,12 +4424,12 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
-                file = processing_utils.save_array_to_file(img)
-                file_path = str(utils.abspath(file.name))
+                file = self.array_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
+                file_path = str(utils.abspath(file))
                 self.temp_files.add(file_path)
             elif isinstance(img, _Image.Image):
-                file = processing_utils.save_pil_to_file(img)
-                file_path = str(utils.abspath(file.name))
+                file = self.pil_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
+                file_path = str(utils.abspath(file))
                 self.temp_files.add(file_path)
             elif isinstance(img, str):
                 if utils.validate_url(img):
