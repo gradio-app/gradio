@@ -114,20 +114,33 @@
 	}
 
 	function handleKeydown(e: any) {
-		if (e.key === "Enter" && activeOption != undefined) {
-			if (!multiselect) {
-				if (value !== activeOption) {
-					value = activeOption;
-					dispatch("select", {
-						index: choices.indexOf(value),
-						value: value,
-						selected: true
-					});
+		if (e.key === "Enter") {
+			if (activeOption != undefined) {
+				if (!multiselect) {
+					if (value !== activeOption) {
+						value = activeOption;
+						dispatch("select", {
+							index: choices.indexOf(value),
+							value: value,
+							selected: true
+						});
+					}
+					inputValue = activeOption;
+					showOptions = false;
+				} else if (multiselect && Array.isArray(value)) {
+					value.includes(activeOption)
+						? remove(activeOption)
+						: add(activeOption);
+					inputValue = "";
 				}
-				inputValue = activeOption;
-				showOptions = false;
-			} else if (multiselect && Array.isArray(value)) {
-				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
+			} else {
+				const options = e.target.value.split(",");
+				for (const option of options) {
+					let index = choices.indexOf(option);
+					if (index != -1 && !value.includes(option)) {
+						add(option);
+					}
+				}
 				inputValue = "";
 			}
 		} else {
