@@ -33,6 +33,7 @@ No changes to highlight.
 
 ## Other Changes:
 
+- Dropdown component improvement by [@dongweiming](https://github.com/dongweiming) in [PR 4262](https://github.com/gradio-app/gradio/pull/4262)
 - Refactor web component `initial_height` attribute by [@whitphx](https://github.com/whitphx) in [PR 4223](https://github.com/gradio-app/gradio/pull/4223)
 - Relocate `mount_css` fn to remove circular dependency [@whitphx](https://github.com/whitphx) in [PR 4222](https://github.com/gradio-app/gradio/pull/4222)
 - Upgrade Black to 23.3 by [@akx](https://github.com/akx) in [PR 4259](https://github.com/gradio-app/gradio/pull/4259)

@@ -134,6 +134,7 @@
 					inputValue = "";
 				}
 			} else {
+				value = value as Array<string>;
 				const options = e.target.value.split(",");
 				for (const option of options) {
 					let index = choices.indexOf(option);
