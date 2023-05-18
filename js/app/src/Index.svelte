@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "./main";
+	import { mount_css } from "./css";
 
 	import type {
 		ComponentMeta,
@@ -194,7 +194,10 @@
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
-		app = await client(api_url, { status_callback: handle_status });
+		app = await client(api_url, {
+			status_callback: handle_status,
+			normalise_files: false
+		});
 		config = app.config;
 
 		status = {
