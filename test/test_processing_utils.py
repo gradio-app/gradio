@@ -11,7 +11,7 @@ import pytest
 from gradio_client import media_data
 from PIL import Image
 
-from gradio import processing_utils, utils
+from gradio import components, processing_utils, utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -54,12 +54,12 @@ class TestImagePreprocessing:
         output_base64 = processing_utils.encode_pil_to_base64(img)
         assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
 
-    def test_save_pil_to_file_keeps_pnginfo(self):
+    def test_save_pil_to_file_keeps_pnginfo(self, tmp_path):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
         input_img.info = {"key1": "value1", "key2": "value2"}
 
-        file_obj = processing_utils.save_pil_to_file(input_img)
+        file_obj = components.Image().pil_to_temp_file(input_img, dir=tmp_path)
         output_img = Image.open(file_obj)
 
         assert output_img.info == input_img.info

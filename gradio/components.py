@@ -20,7 +20,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict
 
 import aiofiles
 import altair as alt
@@ -1801,9 +1801,11 @@ class Image(
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "filepath":
-            self.pil_to_temp_file(
+            path = self.pil_to_temp_file(
                 im, dir=self.DEFAULT_TEMP_DIR, format=fmt if fmt else ".png"
             )
+            self.temp_files.add(path)
+            return path
         else:
             raise ValueError(
                 "Unknown type: "
