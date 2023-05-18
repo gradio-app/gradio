@@ -1546,7 +1546,6 @@ class TestLabel:
         }
 
     def test_color_argument(self):
-
         label = gr.Label(value=-10, color="red")
         assert label.get_config()["color"] == "red"
         update_1 = gr.Label.update(value="bad", color="brown")
@@ -2182,7 +2181,6 @@ simple = pd.DataFrame(
 class TestScatterPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
-
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
