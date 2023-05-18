@@ -3521,16 +3521,19 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    temp_file_path = self.make_temp_copy_if_needed(file_name)
-                    file = tempfile.NamedTemporaryFile(
-                        delete=False, dir=self.DEFAULT_TEMP_DIR
-                    )
-                    file.name = temp_file_path
-                    file.orig_name = file_name  # type: ignore
+                    path = self.make_temp_copy_if_needed(file_name)
                 else:
-                    file = client_utils.decode_base64_to_file(data, file_path=file_name)
-                    file.orig_name = file_name  # type: ignore
-                    self.temp_files.add(str(utils.abspath(file.name)))
+                    data, _ = client_utils.decode_base64_to_binary(data)
+                    path = self.file_bytes_to_file(
+                        data, dir=self.DEFAULT_TEMP_DIR, file_name=file_name
+                    )
+                    path = str(utils.abspath(path))
+                    self.temp_files.add(path)
+                file = tempfile.NamedTemporaryFile(
+                    delete=False, dir=self.DEFAULT_TEMP_DIR
+                )
+                file.name = path
+                file.orig_name = file_name  # type: ignore
                 return file
             elif self.type == "bytes":
                 if is_file:

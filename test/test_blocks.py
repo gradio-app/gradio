@@ -521,10 +521,10 @@ class TestTempFile:
             assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 5
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
-    def test_file_component_uploads_no_serialize(self, tmp_path, connect):
+    def test_file_component_uploads_no_serialize(self, component, tmp_path, connect):
         code_file = str(pathlib.Path(__file__))
         with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
-            demo = gr.Interface(lambda x: x.name, gr.File(), gr.File())
+            demo = gr.Interface(lambda x: x.name, component(), gr.File())
             with connect(demo, serialize=False) as client:
                 _ = client.predict(gr.File().serialize(code_file))
                 _ = client.predict(gr.File().serialize(code_file))
