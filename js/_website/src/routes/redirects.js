@@ -78,5 +78,5 @@ export const redirects = {
     "/Gradio_and_ONNX_on_Hugging_Face": "/guides/Gradio-and-ONNX-on-Hugging-Face",
     "/image_classification_with_vision_transformers": "/guides/image-classification-with-vision-transformers",
     "/Gradio_and_Wandb_Integration": "/guides/Gradio-and-Wandb-Integration",
-    "/image_classification_in_tensorflow": "/guides/image-classification-in-tensorflow"
+    "/image_classification_in_tensorflow": "/guides/image-classification-in-tensorflow",
 }

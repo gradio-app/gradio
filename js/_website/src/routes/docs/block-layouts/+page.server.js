@@ -4,6 +4,8 @@ import DocsNav from '../../../components/DocsNav.svelte';
 import FunctionDoc from '../../../components/FunctionDoc.svelte';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
+import { make_slug_processor } from "../../../utils";
+
 
 let language = 'python';
 
@@ -25,11 +27,11 @@ const COLOR_SETS = [
 
 
 export async function load() {
-    let objs = [docs.building.row, 
-                docs.building.column, 
-                docs.building.tab,
-                docs.building.box, 
-                docs.building.accordion];
+    let objs = [docs.building.row,
+    docs.building.column,
+    docs.building.tab,
+    docs.building.box,
+    docs.building.accordion];
 
     let headers = [
         ["Row", "row"],
@@ -39,8 +41,19 @@ export async function load() {
         ["Accordion", "accordion"],
     ];
     let method_headers = [];
+    const get_slug = make_slug_processor();
 
     for (let obj of objs) {
+        if (obj.name) {
+            obj.slug = get_slug(obj.name);
+        }
+
+        if (obj.fns && obj.fns.length) {
+            obj.fns.forEach((fn) => {
+                if (fn.name) fn.slug = get_slug(`${obj.name} ${fn.name}`);
+            });
+        }
+
         if ("demos" in obj) {
             obj.demos.forEach(demo => {
                 demo.push(Prism.highlight(demo[1], Prism.languages[language]));
@@ -63,7 +76,7 @@ export async function load() {
     let description = `Customize the layout of your Blocks UI with the layout classes below.`;
 
     return {
-        objs, 
+        objs,
         mode,
         description,
         components,
