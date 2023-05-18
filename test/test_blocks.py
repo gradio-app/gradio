@@ -5,9 +5,7 @@ import json
 import os
 import pathlib
 import random
-import shutil
 import sys
-import tempfile
 import time
 import unittest.mock as mock
 import uuid
@@ -18,6 +16,7 @@ from string import capwords
 from unittest.mock import patch
 
 import gradio_client as grc
+import numpy as np
 import pytest
 import uvicorn
 import websockets
@@ -468,9 +467,8 @@ class TestBlocksMethods:
 
 
 class TestTempFile:
-    def test_pil_images_hashed(self):
+    def test_pil_images_hashed(self, tmp_path, connect):
         def create_images(n_images):
-
             a = Image.new("RGB", (512, 512), "red")
             b = Image.new("RGB", (512, 512), "green")
             c = Image.new("RGB", (512, 512), "blue")
@@ -479,32 +477,69 @@ class TestTempFile:
             random.shuffle(res)
             return res
 
-        dir_ = tempfile.mkdtemp()
-
-        try:
-            with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": dir_}):
-                demo = gr.Interface(
-                    create_images,
-                    inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
-                    outputs=[gr.Gallery().style(grid=2, preview=True)],
-                )
-                _, url, _ = demo.launch(prevent_thread_lock=True)
-                client = grc.Client(url)
+        with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
+            demo = gr.Interface(
+                create_images,
+                inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
+                outputs=[gr.Gallery().style(grid=2, preview=True)],
+            )
+            with connect(demo) as client:
                 _ = client.predict(3)
                 _ = client.predict(3)
             # only three files created
-            assert len(list(pathlib.Path(dir_).glob("**/*"))) == 3
-        finally:
-            demo.close()
-            shutil.rmtree(dir_)
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
 
-    def test_no_empty_files(self):
+    def test_no_empty_image_files(self, tmp_path, connect):
+        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        image = str(file_dir / "bus.png")
+
+        with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
+            demo = gr.Interface(
+                lambda x: x,
+                inputs=gr.Image(type="filepath"),
+                outputs=gr.Image(),
+            )
+            with connect(demo) as client:
+                _ = client.predict(image)
+                _ = client.predict(image)
+                _ = client.predict(image)
+            # only three files created
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 1
+
+    @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
+    def test_file_component_uploads(self, component, tmp_path, connect):
+        code_file = str(pathlib.Path(__file__))
+        with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
+            demo = gr.Interface(lambda x: x.name, component(), gr.File())
+            with connect(demo) as client:
+                _ = client.predict(code_file)
+                _ = client.predict(code_file)
+            # the upload route does not hash the file so 2 files from there
+            # We create two tempfiles (empty) because API says we return
+            # preprocess/postprocess will only create one file since we hash
+            # so 2 + 2 + 1 = 5
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 5
+
+    @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
+    def test_file_component_uploads_no_serialize(self, tmp_path, connect):
+        code_file = str(pathlib.Path(__file__))
+        with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
+            demo = gr.Interface(lambda x: x.name, gr.File(), gr.File())
+            with connect(demo, serialize=False) as client:
+                _ = client.predict(gr.File().serialize(code_file))
+                _ = client.predict(gr.File().serialize(code_file))
+            # We skip the upload route in this case
+            # We create two tempfiles (empty) because API says we return
+            # preprocess/postprocess will only create one file since we hash
+            # so 2 + 1 = 3
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+
+    def test_no_empty_video_files(self, tmp_path):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        dir_ = tempfile.mkdtemp()
 
         try:
-            with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": dir_}):
+            with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
                 demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
                 _, url, _ = demo.launch(prevent_thread_lock=True)
                 client = grc.Client(url)
@@ -512,10 +547,32 @@ class TestTempFile:
                 _ = client.predict(video)
             # During preprocessing we compute the hash based on base64
             # In postprocessing we compute it based on the file
-            assert len([f for f in pathlib.Path(dir_).glob("**/*") if f.is_file()]) == 2
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
         finally:
             demo.close()
-            shutil.rmtree(dir_)
+
+    def test_no_empty_audio_files(self, tmp_path):
+        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        audio = str(file_dir / "audio_sample.wav")
+
+        def reverse_audio(audio):
+            sr, data = audio
+            return (sr, np.flipud(data))
+
+        try:
+            with mock.patch.dict(os.environ, {"GRADIO_TEMP_DIR": str(tmp_path)}):
+                demo = gr.Interface(
+                    fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio()
+                )
+                _, url, _ = demo.launch(prevent_thread_lock=True)
+                client = grc.Client(url)
+                _ = client.predict(audio)
+                client.predict(audio)
+            # During preprocessing we compute the hash based on base64
+            # In postprocessing we compute it based on the file
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+        finally:
+            demo.close()
 
 
 class TestComponentsInBlocks:

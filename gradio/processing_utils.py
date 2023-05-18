@@ -65,13 +65,6 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
-def save_array_to_file(image_array, dir=None):
-    pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj)
-    return file_obj
-
-
 def get_pil_metadata(pil_image):
     # Copy any text-only metadata
     metadata = PngImagePlugin.PngInfo()
@@ -80,12 +73,6 @@ def get_pil_metadata(pil_image):
             metadata.add_text(key, value)
 
     return metadata
-
-
-def save_pil_to_file(pil_image, dir=None):
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj, pnginfo=get_pil_metadata(pil_image))
-    return file_obj
 
 
 def encode_pil_to_base64(pil_image):
@@ -520,8 +507,8 @@ def video_is_playable(video_filepath: str) -> bool:
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
     try:
-        output_path = Path(video_path).with_suffix(".mp4")
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            output_path = Path(video_path).with_suffix(".mp4")
             shutil.copy2(video_path, tmp_file.name)
             # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
             ff = FFmpeg(
@@ -534,6 +521,6 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
         print(f"Error converting video to browser-playable format {str(e)}")
         output_path = video_path
     finally:
-        # Remove temp_file
-        os.remove(tmp_file.name)
+        # Remove temp file
+        os.remove(tmp_file.name)  # type: ignore
     return str(output_path)
