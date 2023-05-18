@@ -206,6 +206,9 @@ importers:
       '@sveltejs/adapter-auto':
         specifier: ^2.0.0
         version: 2.0.1(@sveltejs/kit@1.5.0)
+      '@sveltejs/adapter-static':
+        specifier: ^2.0.2
+        version: 2.0.2(@sveltejs/kit@1.5.0)
       '@sveltejs/kit':
         specifier: ^1.5.0
         version: 1.5.0(svelte@3.57.0)(vite@4.2.1)
@@ -1684,6 +1687,14 @@ packages:
     dependencies:
       '@sveltejs/kit': 1.5.0(svelte@3.57.0)(vite@4.2.1)
       import-meta-resolve: 3.0.0
+    dev: true
+
+  /@sveltejs/adapter-static@2.0.2(@sveltejs/kit@1.5.0):
+    resolution: {integrity: sha512-9wYtf6s6ew7DHUHMrt55YpD1FgV7oWql2IGsW5BXquLxqcY9vjrqCFo0TzzDpo+ZPZkW/v77k0eOP6tsAb8HmQ==}
+    peerDependencies:
+      '@sveltejs/kit': ^1.5.0
+    dependencies:
+      '@sveltejs/kit': 1.5.0(svelte@3.57.0)(vite@4.2.1)
     dev: true
 
   /@sveltejs/kit@1.0.0-next.318(svelte@3.49.0):
