@@ -127,7 +127,7 @@ Gradio themes are the easiest way to customize the look and feel of your app. Yo
 demo = gr.Interface(..., theme=gr.themes.Monochrome())
 ```
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/guides/theming-guide) for more details.
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
@@ -281,4 +281,4 @@ Note: using batch functions with Gradio **requires** you to enable queuing in th
 
 ## Colab Notebooks
 
-Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](/sharing-your-app/#sharing-demos). 
+Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](/guides/sharing-your-app/#sharing-demos). 

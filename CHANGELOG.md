@@ -1530,7 +1530,7 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-- Remove h11 pinning by [@ecederstrand](<[https://github.com/abidlabs](https://github.com/ecederstrand)>) in [PR 2820](<[https://github.com/gradio-app/gradio/pull/2808](https://github.com/gradio-app/gradio/pull/2820)>)
+- Remove h11 pinning by [@ecederstrand](https://github.com/ecederstrand) in [PR 2820](https://github.com/gradio-app/gradio/pull/2820)
 
 ## Breaking Changes:
 

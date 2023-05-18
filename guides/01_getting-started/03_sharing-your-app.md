@@ -9,7 +9,7 @@ How to share your Gradio app:
 5. [Using the API page](#api-page)
 6. [Adding authentication to the page](#authentication)
 7. [Accessing Network Requests](#accessing-the-network-request-directly)
-8. [Mounting within FastAPI](#mounting-within-another-fastapi-app)
+8. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 9. [Security](#security-and-file-access)
 
 ## Sharing Demos
@@ -133,7 +133,7 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 This will document the endpoint `/api/addition/` to the automatically generated API page. 
 
-*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method.
+*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/guides/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method.
 
 ## Authentication
 
