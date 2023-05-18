@@ -10,6 +10,11 @@
 	"dependencies": {
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/utils": "workspace:^0.0.1",
-		"@gradio/upload": "workspace:^0.0.1"
+		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1",
+		"marked": "^5.0.1",
+		"@types/marked": "^4.3.0",
+		"prismjs": "1.29.0",
+		"@types/prismjs": "1.26.0"
 	}
 }
