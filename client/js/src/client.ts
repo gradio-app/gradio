@@ -399,7 +399,7 @@ export async function client(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: output.data,
+									data: data,
 									time: new Date()
 								});
 
@@ -1226,18 +1226,32 @@ function handle_message(
 				data: data.success ? data.output : null
 			};
 		case "process_completed":
-			return {
-				type: "complete",
-				status: {
-					queue,
-					message: !data.success ? data.output.error : undefined,
-					stage: data.success ? "complete" : "error",
-					code: data.code,
-					progress_data: data.progress_data,
-					eta: data.output.average_duration
-				},
-				data: data.success ? data.output : null
-			};
+			if (data.output.error) {
+				return {
+					type: "update",
+					status: {
+						queue,
+						message: data.output.error as string,
+						stage: "error",
+						code: data.code,
+						success: data.success
+					}
+				};
+			} else {
+				return {
+					type: "complete",
+					status: {
+						queue,
+						message: !data.success ? data.output.error : undefined,
+						stage: data.success ? "complete" : "error",
+						code: data.code,
+						progress_data: data.progress_data,
+						eta: data.output.average_duration
+					},
+					data: data.success ? data.output : null
+				};
+			}
+
 		case "process_starts":
 			return {
 				type: "update",
