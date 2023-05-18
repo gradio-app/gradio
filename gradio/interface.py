@@ -616,7 +616,6 @@ class Interface(Blocks):
             predict_events = []
 
             if stop_btn:
-
                 # Wrap the original function to show/hide the "Stop" button
                 async def fn(*args):
                     # The main idea here is to call the original function
@@ -885,7 +884,7 @@ class TabbedInterface(Blocks):
                     f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
             with Tabs():
-                for (interface, tab_name) in zip(interface_list, tab_names):
+                for interface, tab_name in zip(interface_list, tab_names):
                     with Tab(label=tab_name):
                         interface.render()
 
