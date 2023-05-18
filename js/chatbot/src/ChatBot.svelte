@@ -213,7 +213,6 @@
 	.user {
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
-		padding-left: calc(2 * var(--spacing-xxl));
 	}
 	.bot {
 		border-bottom-left-radius: 0;
@@ -347,5 +346,11 @@
 	.message-wrap .user :global(td),
 	.message-wrap .user :global(th) {
 		border: 1px solid var(--border-color-accent);
+	}
+
+	/* Lists */
+	.message-wrap :global(ol),
+	.message-wrap :global(ul) {
+		padding-inline-start: 2em;
 	}
 </style>
