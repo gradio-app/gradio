@@ -205,9 +205,12 @@ class TestVideoProcessing:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
-            playable_vid = processing_utils.convert_video_to_playable_mp4(
-                tmp_not_playable_vid.name
-            )
+            with patch("os.remove", wraps=os.remove) as mock_remove:
+                playable_vid = processing_utils.convert_video_to_playable_mp4(
+                    tmp_not_playable_vid.name
+                )
+            # check tempfile got deleted
+            assert not Path(mock_remove.call_args[0][0]).exists()
             assert processing_utils.video_is_playable(playable_vid)
 
     @patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -532,4 +533,7 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
     except FFRuntimeError as e:
         print(f"Error converting video to browser-playable format {str(e)}")
         output_path = video_path
+    finally:
+        # Remove temp_file
+        os.remove(tmp_file.name)
     return str(output_path)
