@@ -54,7 +54,6 @@ class TestInterfaceErrors:
 
 
 class TestStartServer:
-
     # Test IPv4 and IPv6 hostnames as they would be passed from --server-name.
     @pytest.mark.parametrize("host", ["127.0.0.1", "[::1]"])
     def test_start_server(self, host):

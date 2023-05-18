@@ -34,7 +34,6 @@ def test_all_components_in_component_mapping(all_components):
 
 
 def test_file_serializing():
-
     try:
         serializing = FileSerializable()
         with tempfile.NamedTemporaryFile(delete=False, mode="w") as f1:
