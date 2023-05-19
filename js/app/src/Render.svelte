@@ -51,11 +51,7 @@
 
 	$: {
 		if (instance_map[id].type === "form") {
-			if (children?.every((c) => !c.props.visible)) {
-				props.visible = false;
-			} else {
-				props.visible = true;
-			}
+			props.visible = !children?.every((c) => !c.props.visible);
 		}
 	}
 </script>

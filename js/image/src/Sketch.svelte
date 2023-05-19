@@ -290,8 +290,6 @@
 			}
 
 			points = _points;
-
-			return;
 		});
 		saveLine({ brush_color, brush_radius });
 		if (mode === "mask") {

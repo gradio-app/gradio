@@ -221,9 +221,7 @@
 				value.__type__ === "update"
 			) {
 				for (const [update_key, update_value] of Object.entries(value)) {
-					if (update_key === "__type__") {
-						continue;
-					} else {
+					if (update_key !== "__type__") {
 						output.props[update_key] = update_value;
 					}
 				}

@@ -58,17 +58,17 @@ function create_custom_element() {
 					src: src ? src.trim() : src,
 					host: host ? host.trim() : host,
 					// embed info
-					info: info === "false" ? false : true,
-					container: container === "false" ? false : true,
-					is_embed: is_embed === "false" ? false : true,
+					info: info !== "false",
+					container: container !== "false",
+					is_embed: is_embed !== "false",
 					initial_height,
-					eager: eager === "true" ? true : false,
+					eager: eager === "true",
 					// gradio meta info
 					version: GRADIO_VERSION,
 					theme_mode,
 					// misc global behaviour
-					autoscroll: autoscroll === "true" ? true : false,
-					control_page_title: control_page_title === "true" ? true : false,
+					autoscroll: autoscroll === "true",
+					control_page_title: control_page_title === "true",
 					// for gradio docs
 					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 					app_mode: window.__gradio_mode__ === "app"
