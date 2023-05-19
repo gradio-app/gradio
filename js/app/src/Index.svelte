@@ -212,7 +212,7 @@
 		window.__is_colab__ = config.is_colab;
 
 		if (config.dev_mode) {
-			reload_check(config.root);
+			void reload_check(config.root);
 		}
 	});
 

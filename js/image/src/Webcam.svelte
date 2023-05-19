@@ -23,7 +23,7 @@
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
-			video_source.play();
+			void video_source.play();
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				dispatch("error", "Please allow access to the webcam for recording.");

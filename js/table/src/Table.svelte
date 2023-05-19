@@ -238,7 +238,7 @@
 					if (editing === id) {
 						editing = false;
 					} else {
-						start_edit(id);
+						await start_edit(id);
 					}
 				}
 
@@ -276,7 +276,7 @@
 					(!editing || (editing && editing !== id)) &&
 					event.key.length === 1
 				) {
-					start_edit(id, true);
+					await start_edit(id, true);
 				}
 
 				break;
@@ -415,7 +415,7 @@
 
 		await tick();
 
-		edit_header(_id, true);
+		await edit_header(_id, true);
 	}
 
 	function handle_click_outside(event: Event) {

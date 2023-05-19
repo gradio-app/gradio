@@ -25,13 +25,13 @@
 
 	async function run() {
 		await animate();
-		if (!dismounted) run();
+		if (!dismounted) void run();
 	}
 
 	async function loading() {
 		await Promise.all([top.set([125, 0]), bottom.set([-125, 0])]);
 
-		run();
+		void run();
 	}
 
 	onMount(() => {

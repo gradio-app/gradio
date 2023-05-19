@@ -95,7 +95,7 @@
 	}
 
 	async function _load() {
-		checkforVideo();
+		void checkforVideo();
 	}
 
 	let opacity: number = 0;

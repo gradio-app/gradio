@@ -256,7 +256,7 @@
 			await Promise.all(
 				dep.cancels.map(async (fn_index) => {
 					const submission = submit_map.get(fn_index);
-					submission?.cancel();
+					await submission?.cancel();
 					return submission;
 				})
 			);
@@ -310,7 +310,7 @@
 					if (status.stage === "complete") {
 						dependencies.map(async (dep, i) => {
 							if (dep.trigger_after === fn_index) {
-								trigger_api_call(i);
+								await trigger_api_call(i);
 							}
 						});
 
@@ -323,7 +323,7 @@
 								dep.trigger_after === fn_index &&
 								!dep.trigger_only_on_success
 							) {
-								trigger_api_call(i);
+								await trigger_api_call(i);
 							}
 						});
 

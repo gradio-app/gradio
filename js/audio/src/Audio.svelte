@@ -80,17 +80,17 @@
 		});
 	}
 
-	const dispatch_blob = async (
+	async function dispatch_blob(
 		blobs: Array<Uint8Array> | Blob[],
 		event: "stream" | "change"
-	) => {
+	) {
 		let audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
 			data: await blob_to_data_url(audio_blob),
 			name: "audio.wav"
 		};
 		dispatch(event, value);
-	};
+	}
 
 	async function prepare_audio() {
 		let stream: MediaStream | null;
@@ -131,7 +131,7 @@
 					pending_stream.push(payload);
 				} else {
 					let blobParts = [header].concat(pending_stream, [payload]);
-					dispatch_blob(blobParts, "stream");
+					await dispatch_blob(blobParts, "stream");
 					pending_stream = [];
 				}
 			}
