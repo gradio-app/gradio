@@ -147,25 +147,23 @@
 		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
-	function load_component<T extends ComponentMeta["type"]>(
+	async function load_component<T extends ComponentMeta["type"]>(
 		name: T
 	): Promise<{
 		name: T;
 		component: LoadedComponent;
 	}> {
-		return new Promise(async (res, rej) => {
-			try {
-				const c = await component_map[name]();
-				res({
-					name,
-					component: c as LoadedComponent
-				});
-			} catch (e) {
-				console.error(`failed to load: ${name}`);
-				console.error(e);
-				rej(e);
+		try {
+			const c = await component_map[name]();
+			return {
+				name,
+				component: c as LoadedComponent
 			}
-		});
+		} catch (e) {
+			console.error(`failed to load: ${name}`);
+			console.error(e);
+			throw e;
+		}
 	}
 
 	const component_set = new Set<
