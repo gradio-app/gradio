@@ -5,6 +5,7 @@ No changes to highlight.
 ## Bug Fixes:
 
 - Fixed the behavior of the `run_on_click` parameter in `gr.Examples` by [@abidlabs](https://github.com/abidlabs) in [PR 4258](https://github.com/gradio-app/gradio/pull/4258). 
+- Various JavaScript cleanups, including potential bugfixes by [@akx](https://github.com/akx) in [PR 4277](https://github.com/gradio-app/gradio/pull/4277).
 
 ## Other Changes:
 
