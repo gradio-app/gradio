@@ -145,8 +145,12 @@ class App(FastAPI):
         return self.blocks
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> App:
-        app = App(default_response_class=ORJSONResponse)
+    def create_app(
+        blocks: gradio.Blocks, app_kwargs: Optional[Dict[str, Any]] = None
+    ) -> App:
+        app_kwargs = app_kwargs or {}
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        app = App(**app_kwargs)
         app.configure_app(blocks)
 
         app.add_middleware(
