@@ -4,6 +4,8 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-latex";
 	import katex from "katex";
+	import "katex/dist/katex.min.css";
+	import renderMathInElement from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
@@ -53,40 +55,6 @@
 		}
 	});
 
-	function mathsExpression(expr: string) {
-		console.log("expr", expr);
-		if (expr.match(/^\$\$[\s\S]*\$\$$/)) {
-			expr = expr.substr(2, expr.length - 4);
-			return katex.renderToString(expr, { displayMode: true });
-		} else if (expr.match(/^\$[\s\S]*\$$/)) {
-			expr = expr.substr(1, expr.length - 2);
-			return katex.renderToString(expr, { isplayMode: false });
-		}
-	}
-
-	const rendererCode = marked_renderer.code;
-	marked_renderer.code = function (code, lang, escaped) {
-		if (!lang) {
-			const math = mathsExpression(code);
-			if (math) {
-				return math;
-			}
-		}
-
-		return rendererCode(code, lang, escaped);
-	};
-
-	const rendererCodespan = marked_renderer.codespan;
-	marked_renderer.codespan = function (text) {
-		const math = mathsExpression(text);
-
-		if (math) {
-			return math;
-		}
-
-		return rendererCodespan(text);
-	};
-
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
@@ -128,6 +96,16 @@
 			node.style.position = "relative";
 			node.appendChild(copy_div);
 		});
+
+		renderMathInElement(document.body, {
+			delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "$", right: "$", display: false },
+				{ left: "\\(", right: "\\)", display: false },
+				{ left: "\\[", right: "\\]", display: true }
+			],
+			throwOnError: false
+		});
 	});
 
 	$: {
@@ -162,9 +140,7 @@
 							})}
 					>
 						{#if typeof message === "string"}
-							{@html marked.parse(
-								"And here is an equation: ```$c=sqrt{a^2 + b^2}$```"
-							)}
+							{@html marked.parse(message)}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
