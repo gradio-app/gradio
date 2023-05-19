@@ -15,6 +15,7 @@
 		"marked": "^5.0.1",
 		"@types/marked": "^4.3.0",
 		"prismjs": "1.29.0",
-		"@types/prismjs": "1.26.0"
+		"@types/prismjs": "1.26.0",
+		"katex": "^0.16.7"
 	}
 }
