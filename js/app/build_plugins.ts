@@ -35,7 +35,7 @@ export function patch_dynamic_import({
 			if (mode !== "cdn") return;
 
 			const import_re = /import\(((?:'|")[\.\/a-zA-Z0-9]*(?:'|"))\)/g;
-			const import_meta = `${"import"}.${"meta"}.${"url"}`;
+			const import_meta = "import.meta.url";
 
 			for (const file in bundle) {
 				const chunk = bundle[file];
