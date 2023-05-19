@@ -20,7 +20,7 @@
 </script>
 
 <div class="wrapper">
-    {#each flattened_queue as [task, i, j] (task[0])}
+    {#each flattened_queue as [task, i, j] (task.fn)}
         <div
             class="task-holder"
             style:top="{i * SPACING}px"
@@ -29,10 +29,10 @@
         >
             <TaskCard
                 {task}
-                status={task.length == 3
-                    ? task[2]
+                status={task.status
+                    ? task.status
                     : i == 0
-                    ? "pending"
+                    ? "queued"
                     : i == 1
                     ? "pending"
                     : i == 2

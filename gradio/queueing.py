@@ -7,6 +7,7 @@ import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from typing import Any, Deque
+from typing_extensions import Literal
 
 import fastapi
 import httpx
@@ -14,9 +15,10 @@ import httpx
 from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
-
+from gradio.activity_log import ActivityLog, Task
 
 class Event:
+    idx = 0
     def __init__(
         self,
         websocket: fastapi.WebSocket,
@@ -27,11 +29,13 @@ class Event:
         self.session_hash: str = session_hash
         self.fn_index: int = fn_index
         self._id = f"{self.session_hash}_{self.fn_index}"
+        self.idx = Event.idx
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
+        Event.idx += 1
 
     async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
@@ -47,7 +51,6 @@ class Queue:
         blocks_dependencies: list,
     ):
         self.event_queue: Deque[Event] = deque()
-        self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
@@ -66,6 +69,7 @@ class Queue:
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
         self.queue_client = None
+        self.activity_log: ActivityLog | None = None
 
     async def start(self, progress_tracking=False, ssl_verify=True):
         # So that the client is attached to the running event loop
@@ -131,6 +135,8 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
+                if self.activity_log:
+                    self.activity_log.update_request(events[0].fn_index, old_state="queued")
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
@@ -192,6 +198,8 @@ class Queue:
         if self.max_size is not None and queue_len >= self.max_size:
             return None
         self.event_queue.append(event)
+        if self.activity_log:
+            self.activity_log.update_request(event.fn_index, new_state="queued")
         return queue_len
 
     async def clean_event(self, event: Event) -> None:
@@ -468,3 +476,17 @@ class Queue:
             },
             client=self.queue_client,
         )
+
+    def log(self, action: Literal["push", "pop"], evt: Event) -> None:
+        if self.activity_log is None:
+            return
+        dep = self.blocks_dependencies[evt.fn_index]
+        task = Task(fn=dep["api_name"] or evt.fn_index, idx=evt.idx)
+        if action == "push":
+            self.activity_log.update_queue_preview(0, task)
+        elif action == "pop":
+            self.activity_log.update_queue_preview(0, task)
+
+
+
+

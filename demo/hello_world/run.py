@@ -11,4 +11,4 @@ def greet(name):
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
     
 if __name__ == "__main__":
-    demo.launch(show_traffic=True)
+    demo.queue().launch(show_traffic=True)
