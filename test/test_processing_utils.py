@@ -9,7 +9,7 @@ import ffmpy
 import numpy as np
 import pytest
 from gradio_client import media_data
-from PIL import Image
+from PIL import Image, ImageCms
 
 from gradio import components, processing_utils, utils
 
@@ -63,6 +63,39 @@ class TestImagePreprocessing:
         output_img = Image.open(file_obj)
 
         assert output_img.info == input_img.info
+
+    def test_np_pil_encode_to_the_same(self, tmp_path):
+        arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)
+        pil = Image.fromarray(arr)
+        comp = components.Image()
+        assert comp.pil_to_temp_file(pil, dir=tmp_path) == comp.img_array_to_temp_file(
+            arr, dir=tmp_path
+        )
+
+    def test_encode_pil_to_temp_file_metadata_color_profile(self, tmp_path):
+        # Read image
+        img = Image.open("gradio/test_data/test_image.png")
+        img_metadata = Image.open("gradio/test_data/test_image.png")
+        img_metadata.info = {"key1": "value1", "key2": "value2"}
+
+        # Creating sRGB profile
+        profile = ImageCms.createProfile("sRGB")
+        profile2 = ImageCms.ImageCmsProfile(profile)
+        img.save(tmp_path / "img_color_profile.png", icc_profile=profile2.tobytes())
+        img_cp1 = Image.open(str(tmp_path / "img_color_profile.png"))
+
+        # Creating XYZ profile
+        profile = ImageCms.createProfile("XYZ")
+        profile2 = ImageCms.ImageCmsProfile(profile)
+        img.save(tmp_path / "img_color_profile_2.png", icc_profile=profile2.tobytes())
+        img_cp2 = Image.open(str(tmp_path / "img_color_profile_2.png"))
+
+        comp = components.Image()
+        img_path = comp.pil_to_temp_file(img, dir=tmp_path)
+        img_metadata_path = comp.pil_to_temp_file(img_metadata, dir=tmp_path)
+        img_cp1_path = comp.pil_to_temp_file(img_cp1, dir=tmp_path)
+        img_cp2_path = comp.pil_to_temp_file(img_cp2, dir=tmp_path)
+        assert len({img_path, img_metadata_path, img_cp1_path, img_cp2_path}) == 4
 
     def test_encode_pil_to_base64_keeps_pnginfo(self):
         input_img = Image.open("gradio/test_data/test_image.png")

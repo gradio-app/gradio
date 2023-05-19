@@ -340,22 +340,19 @@ class IOComponent(Component):
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
 
-    def pil_to_temp_file(self, img: _Image.Image, dir: str, format=".png") -> str:
-        temp_dir = Path(dir) / self.hash_bytes(img.tobytes())
+    def pil_to_temp_file(self, img: _Image.Image, dir: str, format="png") -> str:
+        bytes_data = processing_utils.encode_pil_to_bytes(img, format)
+        temp_dir = Path(dir) / self.hash_bytes(bytes_data)
         temp_dir.mkdir(exist_ok=True, parents=True)
         filename = str(temp_dir / f"image.{format}")
         img.save(filename, pnginfo=processing_utils.get_pil_metadata(img))
         return filename
 
     def img_array_to_temp_file(self, arr: np.ndarray, dir: str) -> str:
-        temp_dir = Path(dir) / self.hash_bytes(arr.tobytes())
-        temp_dir.mkdir(exist_ok=True, parents=True)
-        filename = str(temp_dir / "image.png")
         pil_image = _Image.fromarray(
             processing_utils._convert(arr, np.uint8, force_copy=False)
         )
-        pil_image.save(filename)
-        return filename
+        return self.pil_to_temp_file(pil_image, dir, format="png")
 
     def audio_to_temp_file(
         self, data: np.ndarray, sample_rate: int, dir: str, format: str
@@ -370,9 +367,7 @@ class IOComponent(Component):
         path = Path(dir) / self.hash_bytes(data)
         path.mkdir(exist_ok=True, parents=True)
         path = path / Path(file_name).name
-        with open(path, "wb") as f:
-            f.write(data)
-            f.flush()
+        path.write_bytes(data)
         return path
 
     def get_config(self):
@@ -1786,9 +1781,6 @@ class Image(
             "__type__": "update",
         }
 
-    ### GPT 4 WEIGHTS !!!!
-    ###
-
     def _format_image(
         self, im: _Image.Image | None
     ) -> np.ndarray | _Image.Image | str | None:
@@ -1802,7 +1794,7 @@ class Image(
             return np.array(im)
         elif self.type == "filepath":
             path = self.pil_to_temp_file(
-                im, dir=self.DEFAULT_TEMP_DIR, format=fmt if fmt else ".png"
+                im, dir=self.DEFAULT_TEMP_DIR, format=fmt or "png"
             )
             self.temp_files.add(path)
             return path

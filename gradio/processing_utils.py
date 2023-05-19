@@ -75,10 +75,14 @@ def get_pil_metadata(pil_image):
     return metadata
 
 
-def encode_pil_to_base64(pil_image):
+def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
-        pil_image.save(output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image))
-        bytes_data = output_bytes.getvalue()
+        pil_image.save(output_bytes, format, pnginfo=get_pil_metadata(pil_image))
+        return output_bytes.getvalue()
+
+
+def encode_pil_to_base64(pil_image):
+    bytes_data = encode_pil_to_bytes(pil_image)
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
 
