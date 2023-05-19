@@ -158,7 +158,7 @@
 			return {
 				name,
 				component: c as LoadedComponent
-			}
+			};
 		} catch (e) {
 			console.error(`failed to load: ${name}`);
 			console.error(e);
@@ -200,8 +200,8 @@
 	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
-			.then(async () => {
-				ready = true;
+			.then(() => {
+				ready = true; // TODO: this will set ready as soon as the first layout is walked; is this a bug?
 			})
 			.catch((e) => {
 				console.error(e);
@@ -269,20 +269,17 @@
 		};
 
 		if (dep.frontend_fn) {
-			dep
-				.frontend_fn(
-					payload.data.concat(
-						dep.outputs.map((id) => instance_map[id].props.value)
-					)
+			const v = await dep.frontend_fn(
+				payload.data.concat(
+					dep.outputs.map((id) => instance_map[id].props.value)
 				)
-				.then((v: []) => {
-					if (dep.backend_fn) {
-						payload.data = v;
-						make_prediction();
-					} else {
-						handle_update(v, dep_index);
-					}
-				});
+			);
+			if (dep.backend_fn) {
+				payload.data = v;
+				make_prediction();
+			} else {
+				handle_update(v, dep_index);
+			}
 		} else {
 			if (dep.backend_fn) {
 				make_prediction();
