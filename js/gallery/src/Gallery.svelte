@@ -127,8 +127,12 @@
 	$: can_zoom = window_height >= height;
 
 	function add_height_to_styles(style: Styles): string {
-		styles = get_styles(style, ["grid_cols", "grid_rows", "object_fit"]).styles;
-		return styles + ` height: ${style.height}`;
+		let styles = get_styles(style, [
+			"grid_cols",
+			"grid_rows",
+			"object_fit"
+		]).styles;
+		return `${styles} height: ${style.height}`;
 	}
 
 	$: styles = add_height_to_styles(style);

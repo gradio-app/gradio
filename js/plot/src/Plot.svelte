@@ -52,7 +52,7 @@
 		if (type == "bokeh" && window.Bokeh) {
 			if (!bokeh_loaded) {
 				load_bokeh();
-				bokeh_loaded = true;
+				bokeh_loaded = true;  // TODO: I think this doesn't work
 			}
 			let plotObj = JSON.parse(plot);
 			window.Bokeh.embed.embed_item(plotObj, divId);
