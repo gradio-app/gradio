@@ -252,13 +252,19 @@ class TestClientPredictions:
         with patch.object(
             client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
+            with patch.object(
+                client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+            ) as serialize:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                    f.write("Hello from private space!")
 
-            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
+                output = client.submit(
+                    1, "foo", f.name, api_name="/file_upload"
+                ).result()
             with open(output) as f:
                 assert f.read() == "Hello from private space!"
             upload.assert_called_once()
+            assert all(f["is_file"] for f in serialize.return_value())
 
         with patch.object(
             client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
