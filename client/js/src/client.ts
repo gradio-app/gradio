@@ -1226,7 +1226,7 @@ function handle_message(
 				data: data.success ? data.output : null
 			};
 		case "process_completed":
-			if (data.output.error) {
+			if ("error" in data.output) {
 				return {
 					type: "update",
 					status: {
