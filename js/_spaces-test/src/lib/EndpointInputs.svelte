@@ -42,11 +42,6 @@
 			<span>{label} <code>{type}</code></span>
 			<input type="checkbox" bind:value={request_data[i]} />
 		</label>
-	{:else if type === "number"}
-		<label for="">
-			<span>{label} <code>{type}</code></span>
-			<input type="number" bind:value={request_data[i]} />
-		</label>
 	{:else if type === "string[]"}
 		<label for="">
 			<span>{label} <code>{type} - comma separated list</code></span>

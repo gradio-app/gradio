@@ -44,11 +44,6 @@
 				<span>{label} <code>{type}</code></span>
 				<input type="checkbox" disabled value={response_data.data[i] || ""} />
 			</label>
-		{:else if type === "number"}
-			<label for="">
-				<span>{label} <code>{type}</code></span>
-				<input type="number" disabled value={response_data.data[i] || ""} />
-			</label>
 		{:else if type === "string[]"}
 			<label for="">
 				<span>{label} <code>{type} - comma separated list</code></span>
