@@ -26,11 +26,9 @@
 
 		upload_files(root, files).then(async (response) => {
 			if (response.error) {
-				(Array.isArray(detail) ? detail : [detail]).forEach(
-					async (file_data, i) => {
-						file_data.data = await blobToBase64(file_data.blob!);
-					}
-				);
+				for (let file_data of Array.isArray(detail) ? detail : [detail]) {
+					file_data.data = await blobToBase64(file_data.blob!);
+				}
 			} else {
 				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
 					if (response.files) {
