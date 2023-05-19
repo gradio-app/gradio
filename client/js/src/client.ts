@@ -655,7 +655,7 @@ export async function client(
 						}
 					);
 				} else {
-					response = await fetch(`${http_protocol}//${host}/info`, {
+					response = await fetch(`${config.root}/info`, {
 						headers
 					});
 				}
