@@ -11,8 +11,8 @@
     style:background-color="rgba({task_status_colors[status]}, 0.2)"
     style:border-color="rgba({task_status_colors[status]}, 0.5)"
 >
-    <div>{task[0]}</div>
-    <div>{task[1]}</div>
+    <div>{task.fn}</div>
+    <div>{task.idx}</div>
 </div>
 
 <style>

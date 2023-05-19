@@ -1705,6 +1705,7 @@ Received outputs:
         self.show_api = self.api_open if self.enable_queue else show_api
         self.show_traffic = show_traffic
         self.activity_log = ActivityLog(self.dependencies)
+        self._queue.activity_log = self.activity_log
 
         if file_directories is not None:
             warnings.warn(

@@ -376,9 +376,10 @@ class App(FastAPI):
             request: Request | List[Request],
             fn_index_inferred: int,
         ):
-            app.blocks.activity_log.new_request(fn_index_inferred)
+            app.blocks.activity_log.update_request(fn_index_inferred, new_state="pending")
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
+                    app.blocks.activity_log.new_session()
                     app.state_holder[body.session_hash] = {
                         _id: deepcopy(getattr(block, "value", None))
                         for _id, block in app.get_blocks().blocks.items()

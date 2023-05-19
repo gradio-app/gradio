@@ -1,7 +1,7 @@
 <script lang="ts">
     import RequestsBar from "./RequestsBar.svelte";
     import Queue from "./Queue.svelte";
-    import type { ActivityLog, TaskStatus } from "./utils";
+    import type { ActivityLog, TaskStatus, RequestBreakdown } from "./utils";
 
     import { Block, BlockTitle } from "@gradio/atoms";
     import Row from "../components/Row/Row.svelte";
@@ -9,14 +9,11 @@
     import Form from "../components/Form/Form.svelte";
     import Accordion from "../components/Accordion/Accordion.svelte";
 
-    const total_requests_fn = (
-        breakdown: Partial<Record<TaskStatus, number>>
-    ) => {
+    const total_requests_fn = (breakdown: RequestBreakdown) => {
         return Object.values(breakdown).reduce((a, b) => a + b, 0);
     };
     export let sessions: ActivityLog["sessions"];
     export let request_breakdown: ActivityLog["request_breakdown"];
-    export let avg_duration: ActivityLog["avg_duration"];
     export let requests_per_fn: ActivityLog["requests_per_fn"];
     export let event_count_per_stage: ActivityLog["event_count_per_stage"];
     export let queue_preview: ActivityLog["queue_preview"] | undefined =
@@ -36,10 +33,6 @@
                     {total_requests_fn(request_breakdown)}
                 </div>
             </Block>
-            <Block>
-                <BlockTitle>Avg Wait per Success</BlockTitle>
-                <div class="stat">{avg_duration.toFixed(1)}s</div>
-            </Block>
         </Form>
     </Row>
     <Block>
@@ -53,7 +46,7 @@
         </div>
         <Accordion open={false} label="Requests per Function">
             <div class="fn-breakdowns">
-                {#each requests_per_fn as [fn, duration, request_breakdown]}
+                {#each requests_per_fn as { fn, duration, request_breakdown }}
                     {#if total_requests_fn(request_breakdown) > 0}
                         <div class="fn-breakdown">
                             <div class="fn">
