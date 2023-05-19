@@ -7,7 +7,7 @@
 {#if named}
 	<h3>
 		api_name:
-		<span class="post">{"/" + api_name}</span>
+		<span class="post">{`/${api_name}`}</span>
 	</h3>
 {:else}
 	<h3>

@@ -100,7 +100,7 @@
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
-		await mount_css(config.root + "/theme.css", document.head);
+		await mount_css(`${config.root}/theme.css`, document.head);
 		if (!config.stylesheets) return;
 
 		await Promise.all(
@@ -108,7 +108,7 @@
 				let absolute_link =
 					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
 				return mount_css(
-					absolute_link ? stylesheet : config.root + "/" + stylesheet,
+					absolute_link ? stylesheet : `${config.root}/${stylesheet}`,
 					document.head
 				);
 			})
@@ -116,7 +116,7 @@
 	}
 
 	async function reload_check(root: string) {
-		const result = await (await fetch(root + "/app_id")).text();
+		const result = await (await fetch(`${root}/app_id`)).text();
 
 		if (app_id === null) {
 			app_id = result;

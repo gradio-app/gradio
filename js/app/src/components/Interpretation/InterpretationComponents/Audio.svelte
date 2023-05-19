@@ -11,7 +11,7 @@
 		{#each interpretation as interpret_value}
 			<div
 				class="item"
-				style={"background-color: " + getSaliencyColor(interpret_value)}
+				style={`background-color: ${getSaliencyColor(interpret_value)}`}
 			/>
 		{/each}
 	</div>

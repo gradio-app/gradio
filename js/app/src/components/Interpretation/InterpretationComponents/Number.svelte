@@ -12,7 +12,7 @@
 		{#each interpretation as interpret_value}
 			<div
 				class="item"
-				style={"background-color: " + getSaliencyColor(interpret_value[1])}
+				style={`background-color: ${getSaliencyColor(interpret_value[1])}`}
 			>
 				{interpret_value[0]}
 			</div>

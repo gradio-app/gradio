@@ -76,8 +76,7 @@
 		if (dict.headers) _value = dict.headers.join(",");
 		const data = dict.data as Array<Array<number>>;
 		data.forEach((x: Array<unknown>) => {
-			_value = _value + "\n";
-			_value = _value + x.join(",");
+			_value = `${_value}\n${x.join(",")}`;
 		});
 	}
 

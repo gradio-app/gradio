@@ -96,7 +96,7 @@
 			},
 			undefined,
 			undefined,
-			"." + value.name.split(".")[1]
+			`.${value.name.split(".")[1]}`
 		);
 	}
 

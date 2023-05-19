@@ -15,7 +15,7 @@
 	<input type="range" disabled min={minimum} max={maximum} {step} />
 	<div class="range">
 		{#each interpretation as interpret_value}
-			<div style={"background-color: " + getSaliencyColor(interpret_value)} />
+			<div style={`background-color: ${getSaliencyColor(interpret_value)}`} />
 		{/each}
 	</div>
 	<div class="original">

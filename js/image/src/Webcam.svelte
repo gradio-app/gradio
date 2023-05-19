@@ -68,7 +68,7 @@
 				if (e.target) {
 					dispatch("capture", {
 						data: e.target.result,
-						name: "sample." + mimeType.substring(6),
+						name: `sample.${mimeType.substring(6)}`,
 						is_example: false
 					});
 				}

@@ -14,7 +14,7 @@
 		<button class="radio-item" class:selected={original === choice}>
 			<div
 				class="radio-circle"
-				style={"background-color: " + getSaliencyColor(interpretation[i])}
+				style={`background-color: ${getSaliencyColor(interpretation[i])}`}
 			/>
 			{choice}
 		</button>

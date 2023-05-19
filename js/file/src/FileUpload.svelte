@@ -46,7 +46,7 @@
 			if (x.startsWith(".")) {
 				return x;
 			} else {
-				return x + "/*";
+				return `${x}/*`;
 			}
 		});
 		accept_file_types = file_types.join(", ");

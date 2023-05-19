@@ -13,7 +13,7 @@
 	export let dependency_inputs: string[][];
 
 	function format_label(label: unknown) {
-		return label ? "'" + label + "'" : "the";
+		return label ? `'${label}'` : "the";
 	}
 </script>
 

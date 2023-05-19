@@ -1,11 +1,11 @@
 <script lang="ts">
-	import {onMount} from "svelte";
-	import type {ComponentMeta, Dependency} from "../components/types";
-	import type {client} from "@gradio/client";
-	import {post_data} from "@gradio/client";
+	import { onMount } from "svelte";
+	import type { ComponentMeta, Dependency } from "../components/types";
+	import type { client } from "@gradio/client";
+	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 
-	import {represent_value} from "./utils";
+	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
 	import ResponseObject from "./ResponseObject.svelte";
@@ -22,7 +22,7 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 
 	if (root === "") {
-		root = location.protocol + "//" + location.host + location.pathname;
+		root = `${location.protocol}//${location.host}${location.pathname}`;
 	}
 	if (!root.endsWith("/")) {
 		root += "/";
@@ -58,7 +58,7 @@
 	);
 
 	async function get_info() {
-		return (await fetch(root + "info")).json();
+		return (await fetch(`${root}info`)).json();
 	}
 	async function get_js_info() {
 		return app.view_api();
@@ -181,10 +181,10 @@
 							<CodeSnippets
 								named={true}
 								endpoint_parameters={info.named_endpoints[
-									"/" + dependency.api_name
+									`/${dependency.api_name}`
 								].parameters}
 								js_parameters={js_info.named_endpoints[
-									"/" + dependency.api_name
+									`/${dependency.api_name}`
 								].parameters}
 								{instance_map}
 								{dependency}
@@ -205,9 +205,9 @@
 							<ResponseObject
 								named={true}
 								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
+									`/${dependency.api_name}`
 								].returns}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+								js_returns={js_info.named_endpoints[`/${dependency.api_name}`]
 									.returns}
 								{instance_map}
 								{dependency}

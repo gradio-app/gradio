@@ -13,7 +13,7 @@
 		{#each choices as choice, i}
 			<li
 				class="dropdown-item"
-				style={"background-color: " + getSaliencyColor(interpretation[i])}
+				style={`background-color: ${getSaliencyColor(interpretation[i])}`}
 			>
 				{choice}
 			</li>

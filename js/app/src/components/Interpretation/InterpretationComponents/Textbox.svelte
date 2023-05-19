@@ -10,7 +10,7 @@
 	{#each interpretation as [text, saliency]}
 		<span
 			class="text-span"
-			style={"background-color: " + getSaliencyColor(saliency)}
+			style={`background-color: ${getSaliencyColor(saliency)}`}
 		>
 			{text}
 		</span>

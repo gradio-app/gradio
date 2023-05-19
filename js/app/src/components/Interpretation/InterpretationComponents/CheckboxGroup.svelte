@@ -14,11 +14,11 @@
 		<button class="checkbox-item" class:selected={original.includes(choice)}>
 			<div
 				class="checkbox"
-				style={"background-color: " + getSaliencyColor(interpretation[i][0])}
+				style={`background-color: ${getSaliencyColor(interpretation[i][0])}`}
 			/>
 			<div
 				class="checkbox"
-				style={"background-color: " + getSaliencyColor(interpretation[i][1])}
+				style={`background-color: ${getSaliencyColor(interpretation[i][1])}`}
 			>
 				<svg viewBox="-10 -10 20 20">
 					<line

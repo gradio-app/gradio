@@ -1,9 +1,9 @@
 <script lang="ts">
 	const browser = typeof document !== "undefined";
-	import {colors} from "@gradio/theme";
-	import type {SelectData} from "@gradio/utils";
-	import {get_next_color} from "@gradio/utils";
-	import {createEventDispatcher} from "svelte";
+	import { colors } from "@gradio/theme";
+	import type { SelectData } from "@gradio/utils";
+	import { get_next_color } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
@@ -104,7 +104,7 @@
 						on:mouseout={() => handle_mouseout()}
 						on:blur={() => handle_mouseout()}
 						class="category-label"
-						style={"background-color:" + color.secondary}
+						style={`background-color:${color.secondary}`}
 					>
 						{category}
 					</div>
@@ -158,9 +158,9 @@
 			{#each value as [text, score]}
 				<span
 					class="textspan score-text"
-					style={"background-color: rgba(" +
-						(score < 0 ? "128, 90, 213," + -score : "239, 68, 60," + score) +
-						")"}
+					style={`background-color: rgba(${
+						score < 0 ? `128,90,213` : `239,68,60`
+					},${Math.abs(+score)})`}
 				>
 					<span class="text">{text}</span>
 				</span>

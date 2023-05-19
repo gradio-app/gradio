@@ -86,7 +86,7 @@
 		} else {
 			params.delete("view");
 		}
-		history.replaceState(null, "", "?" + params.toString());
+		history.replaceState(null, "", `?${params.toString()}`);
 	};
 
 	function is_dep(
@@ -161,7 +161,7 @@
 					component: c as LoadedComponent
 				});
 			} catch (e) {
-				console.error("failed to load: " + name);
+				console.error(`failed to load: ${name}`);
 				console.error(e);
 				rej(e);
 			}
