@@ -370,6 +370,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
       '@types/marked':
         specifier: ^4.3.0
         version: 4.3.0
@@ -1921,6 +1924,10 @@ packages:
 
   /@types/js-levenshtein@1.1.1:
     resolution: {integrity: sha512-qC4bCqYGy1y/NP7dDVr7KJarn+PbX1nSpwA7JXdu0HxT3QYjO8MJ+cntENtHFVy2dRAyBV23OZ6MxsW1AM1L8g==}
+    dev: false
+
+  /@types/katex@0.16.0:
+    resolution: {integrity: sha512-hz+S3nV6Mym5xPbT9fnO8dDhBFQguMYpY0Ipxv06JMi1ORgnEM4M1ymWDUhUNer3ElLmT583opRo4RzxKmh9jw==}
     dev: false
 
   /@types/marked@4.3.0:

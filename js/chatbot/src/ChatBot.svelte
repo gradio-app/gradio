@@ -3,7 +3,6 @@
 	import Prism from "prismjs";
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-latex";
-	import katex from "katex";
 	import "katex/dist/katex.min.css";
 	import renderMathInElement from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
