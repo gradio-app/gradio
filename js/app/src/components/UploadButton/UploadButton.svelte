@@ -19,29 +19,23 @@
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
-		await tick();
-		let files = (Array.isArray(detail) ? detail : [detail]).map(
-			(file_data) => file_data.blob!
-		);
-
-		upload_files(root, files).then(async (response) => {
-			if (response.error) {
-				for (let file_data of Array.isArray(detail) ? detail : [detail]) {
-					file_data.data = await blobToBase64(file_data.blob!);
-				}
-			} else {
-				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
-					if (response.files) {
-						file_data.orig_name = file_data.name;
-						file_data.name = response.files[i];
-						file_data.is_file = true;
-					}
-				});
+		let detailArr = Array.isArray(detail) ? detail : [detail];
+		let files = detailArr.map((file_data) => file_data.blob!);
+		let response = await upload_files(root, files);
+		if (response.error) {
+			for (let file_data of detailArr) {
+				file_data.data = await blobToBase64(file_data.blob!);
 			}
-
-			dispatch("change", value);
-			dispatch("upload", detail);
-		});
+		} else if (response.files) {
+			for (let i = 0; i < detailArr.length; i++) {
+				let file_data = detailArr[i];
+				file_data.orig_name = file_data.name;
+				file_data.name = response.files[i];
+				file_data.is_file = true;
+			}
+		}
+		dispatch("change", value);
+		dispatch("upload", detail);
 	}
 
 	const dispatch = createEventDispatcher<{
