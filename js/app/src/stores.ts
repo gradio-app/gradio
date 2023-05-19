@@ -91,7 +91,7 @@ export function create_loading_status_store() {
 			};
 		});
 
-		inputs.map((id) => {
+		for (const id of inputs) {
 			const pending_count = pending_inputs.get(id) || 0;
 
 			// from (pending -> error) | complete - decrement pending count
@@ -105,31 +105,29 @@ export function create_loading_status_store() {
 			} else {
 				inputs_to_update.delete(id);
 			}
-		});
+		}
 
 		store.update((outputs: LoadingStatusCollection) => {
-			outputs_to_update.forEach(
-				({
-					id,
-					queue_position,
+			for (const {
+				id,
+				queue_position,
+				queue_size,
+				eta,
+				status,
+				message,
+				progress
+			} of outputs_to_update) {
+				outputs[id] = {
+					queue,
 					queue_size,
+					queue_position,
 					eta,
-					status,
 					message,
-					progress
-				}) => {
-					outputs[id] = {
-						queue: queue,
-						queue_size: queue_size,
-						queue_position: queue_position,
-						eta: eta,
-						message: message,
-						progress,
-						status,
-						fn_index
-					};
-				}
-			);
+					progress,
+					status,
+					fn_index
+				};
+			}
 
 			return outputs;
 		});

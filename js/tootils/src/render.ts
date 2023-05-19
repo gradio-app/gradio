@@ -60,7 +60,9 @@ const cleanupAtContainer = (container: HTMLElement) => {
 };
 
 const cleanup = () => {
-	Array.from(containerCache.keys()).forEach(cleanupAtContainer);
+	for (const container of containerCache.keys()) {
+		cleanupAtContainer(container);
+	}
 };
 
 export * from "@testing-library/dom";

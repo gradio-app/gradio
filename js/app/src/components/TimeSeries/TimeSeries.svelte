@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
+	import { ModifyUpload, Upload } from "@gradio/upload";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Chart } from "@gradio/chart";
 	import UploadText from "../UploadText.svelte";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import { _ } from "svelte-i18n";
 
 	import { Chart as ChartIcon } from "@gradio/icons";
 
@@ -75,9 +74,9 @@
 	function dict_to_string(dict: Data) {
 		if (dict.headers) _value = dict.headers.join(",");
 		const data = dict.data as Array<Array<number>>;
-		data.forEach((x: Array<unknown>) => {
+		for (const x of data) {
 			_value = `${_value}\n${x.join(",")}`;
-		});
+		}
 	}
 
 	$: {
@@ -101,18 +100,11 @@
 	}
 
 	function make_dict(x: XRow, y: Array<YRow>): Data {
-		const headers = [];
+		const headers = [x.name, ...y.map(({ name }) => name)];
 		const data = [];
 
-		headers.push(x.name);
-		y.forEach(({ name }) => headers.push(name));
-
 		for (let i = 0; i < x.values.length; i++) {
-			let _data = [];
-			_data.push(x.values[i]);
-			y.forEach(({ values }) => _data.push(values[i].y));
-
-			data.push(_data);
+			data.push([x.values[i], ...y.map(({ values }) => values[i].y)]);
 		}
 		return { headers, data };
 	}

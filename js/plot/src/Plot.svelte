@@ -81,13 +81,13 @@
 				}
 				break;
 			case "line":
-				spec.layer.forEach((d) => {
+				for (const d of spec.layer) {
 					if (d.encoding.color) {
 						d.encoding.color.scale.range = d.encoding.color.scale.range.map(
 							(e, i) => get_color(i)
 						);
 					}
-				});
+				}
 				break;
 			case "bar":
 				if (spec.encoding.color) {
@@ -185,7 +185,9 @@
 	onDestroy(() => {
 		if (main_script in document.children) {
 			document.removeChild(main_script);
-			plugin_scripts.forEach((child) => document.removeChild(child));
+			for (const child of plugin_scripts) {
+				document.removeChild(child);
+			}
 		}
 	});
 </script>

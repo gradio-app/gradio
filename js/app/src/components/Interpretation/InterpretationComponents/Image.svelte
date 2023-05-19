@@ -19,16 +19,14 @@
 	) => {
 		var cell_width = width / data[0].length;
 		var cell_height = height / data.length;
-		var r = 0;
-		data.forEach(function (row) {
-			var c = 0;
-			row.forEach(function (cell) {
+		for (let r = 0; r < data.length; r++) {
+			const row = data[r];
+			for (let c = 0; c < row.length; c++) {
+				const cell = row[c];
 				ctx.fillStyle = getSaliencyColor(cell);
 				ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
-				c++;
-			});
-			r++;
-		});
+			}
+		}
 	};
 
 	afterUpdate(() => {

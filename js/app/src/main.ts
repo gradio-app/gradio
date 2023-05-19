@@ -20,7 +20,9 @@ function create_custom_element() {
 
 		async connectedCallback() {
 			if (typeof FONTS !== "string") {
-				FONTS.forEach((f) => mount_css(f, document.head));
+				for (const f of FONTS) {
+					void mount_css(f, document.head);
+				}
 			}
 
 			await mount_css(ENTRY_CSS, document.head);

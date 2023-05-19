@@ -41,25 +41,22 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: Array<FileData | File> = [];
-		_files.forEach((f, i) => {
-			all_file_data[i] = include_file_metadata
+		const all_file_data: Array<FileData | File> = _files.map((f) =>
+			include_file_metadata
 				? {
 						name: f.name,
 						size: f.size,
 						data: "",
 						blob: f
 				  }
-				: f;
-			if (
-				all_file_data.filter((x) => x !== undefined).length === files.length
-			) {
-				dispatch(
-					"load",
-					file_count == "single" ? all_file_data[0] : all_file_data
-				);
-			}
-		});
+				: f
+		);
+		if (all_file_data.filter((x) => x !== undefined).length === files.length) {
+			dispatch(
+				"load",
+				file_count == "single" ? all_file_data[0] : all_file_data
+			);
+		}
 	};
 
 	const loadFilesFromUpload = (e: Event) => {

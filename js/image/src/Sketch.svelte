@@ -140,9 +140,9 @@
 	}
 
 	onMount(async () => {
-		Object.keys(canvas).forEach((key) => {
+		for (let key in canvas) {
 			ctx[key] = canvas[key].getContext("2d");
-		});
+		}
 
 		await tick();
 
@@ -273,7 +273,7 @@
 	};
 
 	let draw_lines = ({ lines }) => {
-		lines.forEach((line) => {
+		for (const line of lines) {
 			const { points: _points, brush_color, brush_radius } = line;
 			draw_points({
 				points: _points,
@@ -290,7 +290,7 @@
 			}
 
 			points = _points;
-		});
+		}
 		saveLine({ brush_color, brush_radius });
 		if (mode === "mask") {
 			save_mask_line();
