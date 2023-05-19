@@ -15,7 +15,7 @@ export const display_file_name = (value: FileData): string => {
 	var str: string;
 	str = value.orig_name || value.name;
 	if (str.length > 30) {
-		return `${str.substr(0, 30)}...`;
+		return `${str.substring(0, 30)}...`;
 	} else return str;
 };
 
