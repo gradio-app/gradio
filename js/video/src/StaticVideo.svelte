@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		createEventDispatcher,
-		afterUpdate,
-		tick,
-		beforeUpdate
-	} from "svelte";
+	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
 	import { Video, Download } from "@gradio/icons";

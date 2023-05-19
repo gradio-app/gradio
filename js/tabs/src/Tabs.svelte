@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, createEventDispatcher, tick } from "svelte";
+	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
 

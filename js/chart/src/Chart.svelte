@@ -4,7 +4,7 @@
 	import { scaleLinear } from "d3-scale";
 	import { line as _line, curveLinear } from "d3-shape";
 
-	import { colors as color_palette, ordered_colors } from "@gradio/theme";
+	import { colors as color_palette } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 
 	import { get_domains, transform_values } from "./utils";

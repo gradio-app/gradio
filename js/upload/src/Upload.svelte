@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "./types";
 	import { blobToBase64 } from "./utils";
 
 	export let filetype: string | null = null;

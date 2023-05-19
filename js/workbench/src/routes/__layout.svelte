@@ -1,6 +1,5 @@
 <script>
 	import "../app.css";
-	import * as _ from "@gradio/theme";
 	import Nav from "./_Nav.svelte";
 
 	let mode = "light";
