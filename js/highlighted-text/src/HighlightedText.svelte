@@ -1,9 +1,9 @@
 <script lang="ts">
 	const browser = typeof document !== "undefined";
-	import { colors } from "@gradio/theme";
-	import { get_next_color } from "@gradio/utils";
-	import type { SelectData } from "@gradio/utils";
-	import { createEventDispatcher } from "svelte";
+	import {colors} from "@gradio/theme";
+	import type {SelectData} from "@gradio/utils";
+	import {get_next_color} from "@gradio/utils";
+	import {createEventDispatcher} from "svelte";
 
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
@@ -43,8 +43,7 @@
 					if (typeof label === "string") {
 						mode = "categories";
 						if (!(label in color_map)) {
-							let color = get_next_color(Object.keys(color_map).length);
-							color_map[label] = color;
+							color_map[label] = get_next_color(Object.keys(color_map).length);
 						}
 					} else {
 						mode = "scores";

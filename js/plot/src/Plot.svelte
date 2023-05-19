@@ -1,14 +1,14 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import { Plot as PlotIcon } from "@gradio/icons";
-	import { colors as color_palette, ordered_colors } from "@gradio/theme";
-	import { get_next_color } from "@gradio/utils";
-	import { Vega } from "svelte-vega";
-	import { afterUpdate, beforeUpdate, onDestroy } from "svelte";
-	import { create_config } from "./utils";
-	import { Empty } from "@gradio/atoms";
-	import type { ThemeMode } from "js/app/src/components/types";
+	import {Plot as PlotIcon} from "@gradio/icons";
+	import {colors as color_palette} from "@gradio/theme";
+	import {get_next_color} from "@gradio/utils";
+	import {Vega} from "svelte-vega";
+	import {afterUpdate, onDestroy} from "svelte";
+	import {create_config} from "./utils";
+	import {Empty} from "@gradio/atoms";
+	import type {ThemeMode} from "js/app/src/components/types";
 
 	export let value;
 	export let target;
@@ -64,8 +64,7 @@
 	$: if (type == "altair") {
 		spec = JSON.parse(plot);
 		if (value.chart || "") {
-			const config = create_config(darkmode);
-			spec.config = config;
+			spec.config = create_config(darkmode);
 		}
 		switch (value.chart || "") {
 			case "scatter":

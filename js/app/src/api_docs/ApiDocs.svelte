@@ -1,18 +1,16 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from "svelte";
-	import type { ComponentMeta, Dependency } from "../components/types";
-	import { post_data } from "@gradio/client";
+	import {onMount} from "svelte";
+	import type {ComponentMeta, Dependency} from "../components/types";
+	import type {client} from "@gradio/client";
+	import {post_data} from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
-	import type { client } from "@gradio/client";
 
-	import { represent_value } from "./utils";
+	import {represent_value} from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
 	import ResponseObject from "./ResponseObject.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippets from "./CodeSnippets.svelte";
-
-	import TryButton from "./TryButton.svelte";
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
 
@@ -60,13 +58,10 @@
 	);
 
 	async function get_info() {
-		let response = await fetch(root + "info");
-		let data = await response.json();
-		return data;
+		return (await fetch(root + "info")).json();
 	}
 	async function get_js_info() {
-		let js_api_info = await app.view_api();
-		return js_api_info;
+		return app.view_api();
 	}
 
 	let info: {

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { ViewUpdate } from "@codemirror/view";
-	import { createEventDispatcher, onMount } from "svelte";
 	import {
 		EditorView,
 		keymap,
 		placeholder as placeholderExt
 	} from "@codemirror/view";
-	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
+	import { createEventDispatcher, onMount } from "svelte";
+	import { EditorState, type Extension, StateEffect } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
 
 	import { basicDark } from "cm6-theme-basic-dark";
@@ -36,8 +36,7 @@
 	$: get_lang(language);
 
 	async function get_lang(val: string) {
-		const ext = await getLanguageExtension(val);
-		lang_extension = ext;
+		lang_extension = await getLanguageExtension(val);
 	}
 
 	$: reconfigure(), lang_extension;
@@ -109,7 +108,7 @@
 	}
 
 	function getExtensions() {
-		const stateExtensions = [
+		return [
 			...getBaseExtensions(
 				basic,
 				useTab,
@@ -121,7 +120,6 @@
 			...getTheme(),
 			...extensions
 		];
-		return stateExtensions;
 	}
 
 	const FontTheme = EditorView.theme({
