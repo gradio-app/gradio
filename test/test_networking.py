@@ -5,7 +5,6 @@ import urllib
 import warnings
 
 import pytest
-import requests
 from fastapi.testclient import TestClient
 
 import gradio as gr
@@ -89,17 +88,13 @@ def test_start_server_app_kwargs():
     Test that start_server accepts app_kwargs and they're propagated to FastAPI.
     """
     io = Interface(lambda x: x, "number", "number")
-    port = networking.get_first_available_port(
-        networking.INITIAL_PORT_VALUE,
-        networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
-    )
-    io.enable_queue = False
-    _, _, local_path, _, server = networking.start_server(
-        io,
-        server_port=port,
+    app, _, _ = io.launch(
+        show_error=True,
+        prevent_thread_lock=True,
         app_kwargs={
             "docs_url": "/docs",
         },
     )
-    assert requests.get(f"http://127.0.0.1:{port}/docs").status_code == 200
-    server.close()
+    client = TestClient(app)
+    assert client.get("/docs").status_code == 200
+    io.close()
