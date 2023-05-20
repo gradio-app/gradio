@@ -146,7 +146,7 @@ class App(FastAPI):
 
     @staticmethod
     def create_app(
-        blocks: gradio.Blocks, app_kwargs: Optional[Dict[str, Any]] = None
+        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
