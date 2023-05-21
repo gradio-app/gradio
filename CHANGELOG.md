@@ -1,6 +1,6 @@
 # Upcoming Release
 
-No changes to highlight.
+- Added Traffic Page to sidebar, which features traffic stats and queue status by [@aliabid94](https://github.com/aliabid94) in [PR 4295](https://github.com/gradio-app/gradio/pull/4295).
 
 ## Bug Fixes:
 
