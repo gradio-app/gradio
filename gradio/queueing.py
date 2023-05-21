@@ -7,18 +7,19 @@ import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from typing import Any, Deque
-from typing_extensions import Literal
 
 import fastapi
 import httpx
 
+from gradio.activity_log import ActivityLog
 from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
-from gradio.activity_log import ActivityLog, Task
+
 
 class Event:
     idx = 0
+
     def __init__(
         self,
         websocket: fastapi.WebSocket,
@@ -29,12 +30,12 @@ class Event:
         self.session_hash: str = session_hash
         self.fn_index: int = fn_index
         self._id = f"{self.session_hash}_{self.fn_index}"
-        self.idx = Event.idx
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
+        self.idx = Event.idx
         Event.idx += 1
 
     async def disconnect(self, code: int = 1000):
@@ -136,7 +137,9 @@ class Queue:
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
                 if self.activity_log:
-                    self.activity_log.update_request(events[0].fn_index, old_state="queued")
+                    self.activity_log.update_request(
+                        events[0].fn_index, old_state="queued"
+                    )
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
@@ -350,6 +353,7 @@ class Queue:
 
     async def process_events(self, events: list[Event], batch: bool) -> None:
         awake_events: list[Event] = []
+        success = None
         try:
             for event in events:
                 client_awake = await self.gather_event_data(event)
@@ -429,7 +433,8 @@ class Queue:
                         },
                     )
             end_time = time.time()
-            if response.status == 200:
+            success = response.status == 200
+            if success:
                 self.update_estimation(end_time - begin_time)
         finally:
             for event in awake_events:
@@ -445,6 +450,11 @@ class Queue:
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
                 await self.reset_iterators(event.session_hash, event.fn_index)
+            if self.activity_log:
+                for event in awake_events:
+                    self.activity_log.complete_request(
+                        event.fn_index, event.idx, "success" if success else "error"
+                    )
 
     async def send_message(self, event, data: dict, timeout: float | int = 1) -> bool:
         try:
@@ -476,17 +486,3 @@ class Queue:
             },
             client=self.queue_client,
         )
-
-    def log(self, action: Literal["push", "pop"], evt: Event) -> None:
-        if self.activity_log is None:
-            return
-        dep = self.blocks_dependencies[evt.fn_index]
-        task = Task(fn=dep["api_name"] or evt.fn_index, idx=evt.idx)
-        if action == "push":
-            self.activity_log.update_queue_preview(0, task)
-        elif action == "pop":
-            self.activity_log.update_queue_preview(0, task)
-
-
-
-

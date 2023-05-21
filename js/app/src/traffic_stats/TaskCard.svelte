@@ -1,32 +1,32 @@
 <script lang="ts">
-    import { task_status_colors } from "./utils";
-    import type { TaskStatus, Task } from "./utils";
+	import { task_status_colors } from "./utils";
+	import type { TaskStatus, Task } from "./utils";
 
-    export let task: Task;
-    export let status: TaskStatus = "pending";
+	export let task: Task;
+	export let status: TaskStatus = "pending";
 </script>
 
 <div
-    class="task"
-    style:background-color="rgba({task_status_colors[status]}, 0.2)"
-    style:border-color="rgba({task_status_colors[status]}, 0.5)"
+	class="task"
+	style:background-color="rgba({task_status_colors[status]}, 0.2)"
+	style:border-color="rgba({task_status_colors[status]}, 0.5)"
 >
-    <div>{task.fn}</div>
-    <div>{task.idx}</div>
+	<div>{task.fn}</div>
+	<div>{task.idx}</div>
 </div>
 
 <style>
-    .task {
-        border-width: 2px;
-        height: 60px;
-        width: 60px;
-        overflow: hidden;
-        padding: 2px;
-        border-radius: 2px;
-        font-size: 10px;
-        transition: all 0.5s linear;
-    }
-    .task > * {
-        word-wrap: break-word;
-    }
+	.task {
+		transition: all 0.5s linear;
+		border-width: 2px;
+		border-radius: 2px;
+		padding: 2px;
+		width: 60px;
+		height: 60px;
+		overflow: hidden;
+		font-size: 10px;
+	}
+	.task > * {
+		word-wrap: break-word;
+	}
 </style>
