@@ -2,6 +2,9 @@
 	import { marked } from "marked";
 	import Prism from "prismjs";
 	import "prismjs/components/prism-python";
+	import "prismjs/components/prism-latex";
+	import "katex/dist/katex.min.css";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
@@ -30,8 +33,9 @@
 	} else {
 		code_highlight_css.light();
 	}
+	const marked_renderer = new marked.Renderer();
 	marked.setOptions({
-		renderer: new marked.Renderer(),
+		renderer: marked_renderer,
 		gfm: true,
 		breaks: true,
 		pedantic: false,
@@ -90,6 +94,14 @@
 			copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
 			node.style.position = "relative";
 			node.appendChild(copy_div);
+		});
+
+		render_math_in_element(div, {
+			delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "$", right: "$", display: false }
+			],
+			throwOnError: false
 		});
 	});
 
@@ -352,5 +364,10 @@
 	.message-wrap :global(ol),
 	.message-wrap :global(ul) {
 		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
 	}
 </style>
