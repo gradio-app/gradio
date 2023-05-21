@@ -33,13 +33,11 @@ class FunctionStats(BaseModel):
 
 class Activity(BaseModel):
     sessions: int = 0
-    request_breakdown: Union[dict[StatusType, int], None]
-    avg_duration: float = 0
+    request_breakdown: Union[RequestBreakdown, None]
     requests_per_fn: list[FunctionStats] = []
     event_count_per_stage: list[int] = [0, 0, 0, 0]
     queue_preview: Optional[list[list[Task]]] = None
     active_workers: int = 0
-
 
 class ActivityLog:
     def __init__(self, dependencies: list[dict], queue: Queue | None, **kwargs):
