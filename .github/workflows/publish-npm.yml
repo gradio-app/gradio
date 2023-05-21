@@ -3,11 +3,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'js/**'
-      - 'client/js/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
@@ -19,8 +14,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2.2.4
+        uses: pnpm/action-setup@v2
         with:
           version: 7
       - name: setup node.js
@@ -29,20 +25,28 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           node-version: 18
-          registry-url: "https://registry.npmjs.org"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Build packages
         run: pnpm --filter @gradio/client build
-      - name: Setup npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
       - name: create and publish versions
+        id: changesets
         uses: changesets/action@v1
         with:
-          version: pnpm changeset version
+          version: pnpm ci:version
           commit: "chore: update versions"
           title: "chore: update versions"
           publish: pnpm ci:publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
+      - name: label PR
+        if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
+        run: gh pr edit "$PR_NUMBER" --add-label "no-changelog-update" 
+        env:
+          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} # Not sure if this one is required

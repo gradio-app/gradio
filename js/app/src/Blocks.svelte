@@ -7,14 +7,14 @@
 	import {
 		create_loading_status_store,
 		app_state,
-		LoadingStatusCollection
+		LoadingStatusCollection,
 	} from "./stores";
 
 	import type {
 		ComponentMeta,
 		Dependency,
 		LayoutNode,
-		Documentation
+		Documentation,
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -55,7 +55,7 @@
 		props: {},
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"]
+		component: {} as ComponentMeta["component"],
 	};
 
 	components.push(rootNode);
@@ -171,7 +171,7 @@
 				const c = await component_map[name]();
 				res({
 					name,
-					component: c as LoadedComponent
+					component: c as LoadedComponent,
 				});
 			} catch (e) {
 				console.error("failed to load: " + name);
@@ -226,6 +226,8 @@
 	function handle_update(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
+			output.props.value_is_output = true;
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -235,34 +237,17 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						instance_map[outputs[i]].props[update_key] = update_value;
+						output.props[update_key] = update_value;
 					}
 				}
 				rootNode = rootNode;
 			} else {
-				instance_map[outputs[i]].props.value = value;
+				output.props.value = value;
 			}
 		});
 	}
 
-	app.on("data", ({ data, fn_index }) => {
-		handle_update(data, fn_index);
-		let status = loading_status.get_status_for_fn(fn_index);
-		if (status === "complete" || status === "error") {
-			dependencies.forEach((dep, i) => {
-				if (
-					dep.trigger_after === fn_index &&
-					(!dep.trigger_only_on_success || status === "complete")
-				) {
-					trigger_api_call(i, null);
-				}
-			});
-		}
-	});
-
-	app.on("status", ({ fn_index, ...status }) => {
-		loading_status.update({ ...status, fn_index });
-	});
+	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
 
 	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
 		if (!obj?.props) {
@@ -273,23 +258,31 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	const trigger_api_call = (dep_index: number, event_data: unknown) => {
+	const trigger_api_call = async (
+		dep_index: number,
+		event_data: unknown = null
+	) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
-		if (current_status === "pending" || current_status === "generating") {
-			return;
-		}
 
 		if (dep.cancels) {
-			dep.cancels.forEach((fn_index) => {
-				app.cancel("/predict", fn_index);
-			});
+			await Promise.all(
+				dep.cancels.map(async (fn_index) => {
+					const submission = submit_map.get(fn_index);
+					submission?.cancel();
+					return submission;
+				})
+			);
+		}
+
+		if (current_status === "pending" || current_status === "generating") {
+			return;
 		}
 
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null
+			event_data: dep.collects_event_data ? event_data : null,
 		};
 
 		if (dep.frontend_fn) {
@@ -314,7 +307,44 @@
 		}
 
 		function make_prediction() {
-			app.predict("/predict", payload);
+			const submission = app
+				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
+				.on("data", ({ data, fn_index }) => {
+					handle_update(data, fn_index);
+				})
+				.on("status", ({ fn_index, ...status }) => {
+					loading_status.update({
+						...status,
+						status: status.stage,
+						progress: status.progress_data,
+						fn_index,
+					});
+
+					if (status.stage === "complete") {
+						dependencies.map(async (dep, i) => {
+							if (dep.trigger_after === fn_index) {
+								trigger_api_call(i);
+							}
+						});
+
+						submission.destroy();
+					}
+
+					if (status.stage === "error") {
+						dependencies.map(async (dep, i) => {
+							if (
+								dep.trigger_after === fn_index &&
+								!dep.trigger_only_on_success
+							) {
+								trigger_api_call(i);
+							}
+						});
+
+						submission.destroy();
+					}
+				});
+
+			submit_map.set(dep_index, submission);
 		}
 	};
 
@@ -332,7 +362,7 @@
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
 				t,
-				instance_map[t]
+				instance_map[t],
 			]);
 
 			// page events
@@ -344,7 +374,7 @@
 				outputs.every((v) => instance_map?.[v].instance) &&
 				inputs.every((v) => instance_map?.[v].instance)
 			) {
-				trigger_api_call(i, null);
+				trigger_api_call(i);
 				handled_dependencies[i] = [-1];
 			}
 
@@ -492,6 +522,7 @@
 					{instance_map}
 					{dependencies}
 					{root}
+					{app}
 				/>
 			{/if}
 		</div>

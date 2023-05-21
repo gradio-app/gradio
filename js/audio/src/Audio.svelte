@@ -238,7 +238,12 @@
 	function handle_load({
 		detail
 	}: {
-		detail: { data: string; name: string; size: number; is_example: boolean };
+		detail: {
+			data: string;
+			name: string;
+			size: number;
+			is_example: boolean;
+		};
 	}) {
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
@@ -276,7 +281,12 @@
 			{/if}
 		</div>
 	{:else if source === "upload"}
-		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
+		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
+		<Upload
+			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
+			on:load={handle_load}
+			bind:dragging
+		>
 			<slot />
 		</Upload>
 	{/if}

@@ -236,7 +236,7 @@ title = "Clustering with Scikit-learn"
 description = (
     "This example shows how different clustering algorithms work. Simply pick "
     "the dataset and the number of clusters to see how the clustering algorithms work. "
-    "Colored cirles are (predicted) labels and black x are outliers."
+    "Colored circles are (predicted) labels and black x are outliers."
 )
 
 

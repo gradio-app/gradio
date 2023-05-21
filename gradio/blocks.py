@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Iterator
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable
 
 import anyio
 import requests
@@ -24,6 +24,7 @@ from packaging import version
 from typing_extensions import Literal
 
 from gradio import (
+    analytics,
     components,
     external,
     networking,
@@ -94,11 +95,12 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
-        self.root = ""
 
         if render:
             self.render()
-        check_deprecated_parameters(self.__class__.__name__, **kwargs)
+        check_deprecated_parameters(
+            self.__class__.__name__, stacklevel=6, kwargs=kwargs
+        )
 
     def render(self):
         """
@@ -477,6 +479,7 @@ def get_api_info(config: dict, serialize: bool = True):
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
         skip_endpoint = False
+        skip_components = ["state"]
 
         inputs = dependency["inputs"]
         for i in inputs:
@@ -484,17 +487,17 @@ def get_api_info(config: dict, serialize: bool = True):
                 if component["id"] == i:
                     break
             else:
-                skip_endpoint = True  # if component not found, skip this endpoint
+                skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
-                skip_endpoint = (
-                    True  # if component is not serializable, skip this endpoint
-                )
+                skip_endpoint = True  # if component not serializable, skip endpoint
                 break
+            if type in skip_components:
+                continue
             label = component["props"].get("label", f"parameter_{i}")
             # The config has the most specific API info (taking into account the parameters
             # of the component), so we use that if it exists. Otherwise, we fallback to the
@@ -538,21 +541,26 @@ def get_api_info(config: dict, serialize: bool = True):
                 if component["id"] == o:
                     break
             else:
-                skip_endpoint = True  # if component not found, skip this endpoint
+                skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
-                skip_endpoint = (
-                    True  # if component is not serializable, skip this endpoint
-                )
+                skip_endpoint = True  # if component not serializable, skip endpoint
                 break
+            if type in skip_components:
+                continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
-            assert isinstance(serializer, serializing.Serializable)
-            info = serializer.api_info()
+            if component.get("api_info") and after_new_format:
+                info = component["api_info"]
+                example = component["example_inputs"]["serialized"]
+            else:
+                assert isinstance(serializer, serializing.Serializable)
+                info = serializer.api_info()
+                example = serializer.example_inputs()["raw"]
             python_info = info["info"]
             if serialize and info["serialized_info"]:
                 python_info = serializer.serialized_info()
@@ -680,7 +688,7 @@ class Blocks(BlockContext):
         self.analytics_enabled = (
             analytics_enabled
             if analytics_enabled is not None
-            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+            else analytics.analytics_enabled()
         )
         if not self.analytics_enabled:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
@@ -718,6 +726,7 @@ class Blocks(BlockContext):
 
         self.allowed_paths = []
         self.blocked_paths = []
+        self.root_path = ""
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -731,7 +740,7 @@ class Blocks(BlockContext):
                 "is_custom_theme": is_custom_theme,
                 "version": GRADIO_VERSION,
             }
-            utils.initiated_analytics(data)
+            analytics.initiated_analytics(data)
 
     @classmethod
     def from_config(
@@ -870,7 +879,7 @@ class Blocks(BlockContext):
                 )
             overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
             for id in overlapping_ids:
-                # State componenents are allowed to be reused between Blocks
+                # State components are allowed to be reused between Blocks
                 if not isinstance(self.blocks[id], components.State):
                     raise DuplicateBlockError(
                         "At least one block in this Blocks has already been rendered."
@@ -997,7 +1006,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         processed_input: list[Any],
-        iterator: Iterator[Any] | None = None,
+        iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | list[routes.Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
@@ -1047,17 +1056,17 @@ class Blocks(BlockContext):
         else:
             prediction = None
 
-        if inspect.isasyncgenfunction(block_fn.fn):
-            raise ValueError("Gradio does not support async generators.")
-        if inspect.isgeneratorfunction(block_fn.fn):
+        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(
+            block_fn.fn
+        ):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
                     iterator = prediction
-                prediction = await anyio.to_thread.run_sync(
-                    utils.async_iteration, iterator, limiter=self.limiter
-                )
+                if inspect.isgenerator(iterator):
+                    iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
+                prediction = await utils.async_iteration(iterator)
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
@@ -1321,7 +1330,6 @@ Received outputs:
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
-
         return {
             "data": data,
             "is_generating": is_generating,
@@ -1356,7 +1364,6 @@ Received outputs:
             "show_traffic": self.show_traffic,
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
-            "root": self.root,
             "theme": self.theme.name,
         }
 
@@ -1610,7 +1617,9 @@ Received outputs:
         file_directories: list[str] | None = None,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
+        root_path: str = "",
         _frontend: bool = True,
+        app_kwargs: dict[str, Any] | None = None,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1644,6 +1653,8 @@ Received outputs:
             file_directories: This parameter has been renamed to `allowed_paths`. It will be removed in a future version.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
+            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp".
+            app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1683,6 +1694,7 @@ Received outputs:
         self.width = width
         self.favicon_path = favicon_path
         self.ssl_verify = ssl_verify
+        self.root_path = root_path
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
@@ -1748,6 +1760,7 @@ Received outputs:
                 ssl_keyfile,
                 ssl_certfile,
                 ssl_keyfile_password,
+                app_kwargs=app_kwargs,
             )
             self.server_name = server_name
             self.local_url = local_url
@@ -1802,7 +1815,7 @@ Received outputs:
         # a shareable link must be created.
         if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
             raise ValueError(
-                "When localhost is not accessible, a shareable link must be created. Please set share=True."
+                "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
 
         if self.is_colab:
@@ -1837,7 +1850,7 @@ Received outputs:
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except (RuntimeError, requests.exceptions.ConnectionError):
                 if self.analytics_enabled:
-                    utils.error_analytics("Not able to set up tunnel")
+                    analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1927,8 +1940,7 @@ Received outputs:
                 "is_spaces": self.is_space,
                 "mode": self.mode,
             }
-            utils.launch_analytics(data)
-            utils.launched_telemetry(self, data)
+            analytics.launched_analytics(self, data)
 
         utils.show_tip(self)
 
@@ -1997,7 +2009,7 @@ Received outputs:
                 mlflow.log_param("Gradio Interface Local Link", self.local_url)
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
-            utils.integration_analytics(data)
+            analytics.integration_analytics(data)
 
     def close(self, verbose: bool = True) -> None:
         """

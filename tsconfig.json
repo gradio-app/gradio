@@ -38,7 +38,9 @@
 		"**/test/**/*",
 		"**/website/**/*",
 		"**/node_modules/**/*",
-		"**/venv/**/*"
+		"**/venv/**/*",
+		"client/js/**",
+		"js/_spaces-test/**"
 	],
 	"include": [
 		"**/*.d.ts",

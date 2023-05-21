@@ -1,21 +1,28 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: boolean;
+	export let value_is_output: boolean = false;
 	export let disabled: boolean = false;
 	export let label: string;
 
 	const dispatch = createEventDispatcher<{
 		change: boolean;
 		select: SelectData;
+		input: undefined;
 	}>();
 
-	function handle_change(value: boolean) {
+	function handle_change() {
 		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
 	}
-
-	$: handle_change(value);
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->

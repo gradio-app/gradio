@@ -27,7 +27,7 @@ Weights and Biases (W&B) allows data scientists and machine learning scientists 
 
 ### Gradio
 
-Gradio lets users demo their machine learning models as a web app, all in a few lines of Python. Gradio wraps any Python function (such as a machine learning model's inference function) into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
+Gradio lets users demo their machine learning models as a web app, all in a few lines of Python. Gradio wraps any Python function (such as a machine learning model's inference function) into a user interface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
 
 Get started [here](https://gradio.app/getting_started)
 
@@ -74,7 +74,7 @@ Let's get started!
 
 
     samples = []
-    column_names = ["Referece (y)", "Style Code(w)", "Real Face Image(x)"]
+    column_names = ["Reference (y)", "Style Code(w)", "Real Face Image(x)"]
 
     wandb.init(project="JoJoGAN")
     config = wandb.config

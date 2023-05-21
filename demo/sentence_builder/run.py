@@ -8,7 +8,7 @@ def sentence_builder(quantity, animal, countries, place, activity_list, morning)
 demo = gr.Interface(
     sentence_builder,
     [
-        gr.Slider(2, 20, value=4, label="Count", info="Choose betwen 2 and 20"),
+        gr.Slider(2, 20, value=4, label="Count", info="Choose between 2 and 20"),
         gr.Dropdown(
             ["cat", "dog", "bird"], label="Animal", info="Will add more animals later!"
         ),

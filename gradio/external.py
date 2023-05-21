@@ -500,7 +500,6 @@ def from_spaces_interface(
     iframe_url: str,
     **kwargs,
 ) -> Interface:
-
     config = streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}

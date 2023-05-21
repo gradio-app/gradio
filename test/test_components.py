@@ -707,8 +707,8 @@ class TestImage:
         Interface, process
         """
 
-        def generate_noise(width, height):
-            return np.random.randint(0, 256, (width, height, 3))
+        def generate_noise(height, width):
+            return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         assert iface(10, 20).endswith(".png")
@@ -910,6 +910,16 @@ class TestAudio:
         audio_input = gr.Audio(type="filepath")
         output = audio_input.preprocess(x_wav)
         wavfile.read(output)
+
+    def test_prepost_process_to_mp3(self):
+        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+        audio_input = gr.Audio(type="filepath", format="mp3")
+        output = audio_input.preprocess(x_wav)
+        assert output.endswith("mp3")
+        output = audio_input.postprocess(
+            (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
+        )
+        assert output["name"].endswith("mp3")
 
 
 class TestFile:
@@ -1474,10 +1484,9 @@ class TestTimeseries:
 
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
-    def test_no_duplicate_uncased_names(self):
-        subclasses = gr.components.Component.__subclasses__()
-        unique_subclasses_uncased = {s.__name__.lower() for s in subclasses}
-        assert len(subclasses) == len(unique_subclasses_uncased)
+    def test_no_duplicate_uncased_names(self, io_components):
+        unique_subclasses_uncased = {s.__name__.lower() for s in io_components}
+        assert len(io_components) == len(unique_subclasses_uncased)
 
 
 class TestLabel:
@@ -1537,7 +1546,6 @@ class TestLabel:
         }
 
     def test_color_argument(self):
-
         label = gr.Label(value=-10, color="red")
         assert label.get_config()["color"] == "red"
         update_1 = gr.Label.update(value="bad", color="brown")
@@ -1776,7 +1784,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are <strong>cool</strong>\nand fun", "so are <em>you</em>"]
+            ["You are **cool**\nand fun", "so are *you*"]
         ]
 
         multimodal_msg = [
@@ -2173,7 +2181,6 @@ simple = pd.DataFrame(
 class TestScatterPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
-
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,

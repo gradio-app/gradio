@@ -43,7 +43,7 @@ You can use the Theme Builder running on Spaces above, though it runs much faste
 
 As you edit the values in the Theme Builder, the app will preview updates in real time. You can download the code to generate the theme you've created so you can use it in any Gradio app.
 
-In the rest of the guide, we will cover building themes programatically.
+In the rest of the guide, we will cover building themes programmatically.
 
 ## Extending Themes via the Constructor
 
@@ -349,7 +349,7 @@ upload_theme\
 
 In order to upload a theme, you must have a HuggingFace account and pass your [Access Token](https://huggingface.co/docs/huggingface_hub/quick-start#login)
 as the `hf_token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
-you can ommit the `hf_token` argument.
+you can omit the `hf_token` argument.
 
 The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
 That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying

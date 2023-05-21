@@ -51,7 +51,9 @@
 			const loc = selected.split("-");
 			const row = parseInt(loc[0]);
 			const col = parseInt(loc[1]);
-			dispatch("select", { index: [row, col], value: get_data_at(row, col) });
+			if (!isNaN(row) && !isNaN(col)) {
+				dispatch("select", { index: [row, col], value: get_data_at(row, col) });
+			}
 		}
 	}
 	let els: Record<

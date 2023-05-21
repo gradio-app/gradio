@@ -1,14 +1,14 @@
 FROM python:3.8
 
 RUN apt-get update
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs jq
 RUN npm install -g npm@latest
 RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
 COPY . /gradio/
 WORKDIR /gradio
-RUN npm i pnpm@6 -g
+RUN npm i pnpm@7 -g
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build

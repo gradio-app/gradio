@@ -9,7 +9,8 @@ from typing import Any
 from gradio_client import media_data, utils
 from gradio_client.data_classes import FileData
 
-serializer_types = json.load(open(Path(__file__).parent / "types.json"))
+with open(Path(__file__).parent / "types.json") as f:
+    serializer_types = json.load(f)
 
 
 class Serializable:
@@ -164,7 +165,7 @@ class ImgSerializable(Serializable):
         load_dir: str | Path = "",
     ) -> str | None:
         """
-        Convert from human-friendly version of a file (string filepath) to a seralized
+        Convert from human-friendly version of a file (string filepath) to a serialized
         representation (base64).
         Parameters:
             x: String path to file to serialize
@@ -230,9 +231,20 @@ class FileSerializable(Serializable):
         return self._single_file_api_info()
 
     def example_inputs(self) -> dict[str, Any]:
+        return self._single_file_example_inputs()
+
+    def _single_file_example_inputs(self) -> dict[str, Any]:
         return {
             "raw": {"is_file": False, "data": media_data.BASE64_FILE},
             "serialized": "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf",
+        }
+
+    def _multiple_file_example_inputs(self) -> dict[str, Any]:
+        return {
+            "raw": [{"is_file": False, "data": media_data.BASE64_FILE}],
+            "serialized": [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ],
         }
 
     def _serialize_single(
@@ -296,7 +308,7 @@ class FileSerializable(Serializable):
     ) -> FileData | None | list[FileData | None]:
         """
         Convert from human-friendly version of a file (string filepath) to a
-        seralized representation (base64)
+        serialized representation (base64)
         Parameters:
             x: String path to file to serialize
             load_dir: Path to directory containing x
@@ -529,7 +541,12 @@ COMPONENT_MAPPING: dict[str, type] = {
     "chatbot": JSONSerializable,
     "model3d": FileSerializable,
     "plot": JSONSerializable,
+    "barplot": JSONSerializable,
+    "lineplot": JSONSerializable,
+    "scatterplot": JSONSerializable,
     "markdown": StringSerializable,
     "dataset": StringSerializable,
     "code": StringSerializable,
+    "interpretation": SimpleSerializable,
+    "annotatedimage": JSONSerializable,
 }

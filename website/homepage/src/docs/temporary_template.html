@@ -1,0 +1,320 @@
+<h2 id="javascript-client-library">JavaScript Client Library</h2>
+
+<p>A javascript (and typescript) client to call Gradio APIs.</p>
+
+<h2 id="installation">Installation</h2>
+
+<p>The Gradio JavaScript client is available on npm as <code>@gradio/client</code>. You can install it as below:</p>
+
+<div class='codeblock'><pre><code class='lang-sh'>npm i @gradio/client
+</code></pre></div>
+
+<h2 id="usage">Usage</h2>
+
+<p>The JavaScript Gradio Client exposes two named imports, <code>client</code> and <code>duplicate</code>.</p>
+
+<h3 id="client"><code>client</code></h3>
+
+<p>The client function connects to the API of a hosted Gradio space and returns an object that allows you to make calls to that API.</p>
+
+<p>The simplest example looks like this:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const result = await app.predict("/predict");
+</code></pre></div>
+
+<p>This function accepts two arguments: <code>source</code> and <code>options</code>:</p>
+
+<h4 id="source"><code>source</code></h4>
+
+<p>This is the url or name of the gradio app whose API you wish to connect to. This parameter is required and should always be a string. For example:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>client("user/space-name");
+</code></pre></div>
+
+<h4 id="options"><code>options</code></h4>
+
+<p>The options object can optionally be passed a second parameter. This object has two properties, <code>hf_token</code> and <code>status_callback</code>.</p>
+
+<h5 id="hf_token"><code>hf_token</code></h5>
+
+<p>This should be a Hugging Face personal access token and is required if you wish to make calls to a private gradio api. This option is optional and should be a string starting with <code>"hf_"</code>.</p>
+
+<p>Example:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name", { hf_token: "hf_..." });
+</code></pre></div>
+
+<h5 id="status_callback"><code>status_callback</code></h5>
+
+<p>This should be a function which will notify your of the status of a space if it is not running. If the gradio API you are connecting to is awake and running or is not hosted on Hugging Face space then this function will do nothing.</p>
+
+<p><strong>Additional context</strong></p>
+
+<p>Applications hosted on Hugging Face spaces can be in a number of different states. As spaces are a GitOps tool and will rebuild when new changes are pushed to the repository, they have various building, running and error states. If a space is not 'running' then the function passed as the <code>status_callback</code> will notify you of the current state of the space and the status of the space as it changes. Spaces that are building or sleeping can take longer than usual to respond, so you can use this information to give users feedback about the progress of their action.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client, type SpaceStatus } from "@gradio/client";
+
+const app = await client("user/space-name", {
+  // The space_status parameter does not need to be manually annotated, this is just for illustration.
+  space_status: (space_status: SpaceStatus) => console.log(space_status),
+});
+</code></pre></div>
+
+<div class='codeblock'><pre><code class='lang-ts'>interface SpaceStatusNormal {
+    status: "sleeping" | "running" | "building" | "error" | "stopped";
+    detail:
+        | "SLEEPING"
+        | "RUNNING"
+        | "RUNNING_BUILDING"
+        | "BUILDING"
+        | "NOT_FOUND";
+    load_status: "pending" | "error" | "complete" | "generating";
+    message: string;
+}
+
+interface SpaceStatusError {
+    status: "space_error";
+    detail: "NO_APP_FILE" | "CONFIG_ERROR" | "BUILD_ERROR" | "RUNTIME_ERROR";
+    load_status: "error";
+    message: string;
+    discussions_enabled: boolean;
+
+type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
+</code></pre></div>
+
+<p>The gradio client returns an object with a number of methods and properties:</p>
+
+<h4 id="predict"><code>predict</code></h4>
+
+<p>The <code>predict</code> method allows you to call an api endpoint and get a prediction result:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const result = await app.predict("/predict");
+</code></pre></div>
+
+<p><code>predict</code> accepts two parameters, <code>endpoint</code> and <code>payload</code>. It returns a promise that resolves to the prediction result.</p>
+
+<h5 id="endpoint"><code>endpoint</code></h5>
+
+<p>This is the endpoint for an api request and is required. The default endpoint for a <code>gradio.Interface</code> is <code>"/predict"</code>. Explicitly named endpoints have a custom name. The endpoint names can be found on the "View API" page of a space.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const result = await app.predict("/predict");
+</code></pre></div>
+
+<h5 id="payload"><code>payload</code></h5>
+
+<p>The <code>payload</code> argument is generally optional but this depends on the API itself. If the API endpoint depends on values being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space, or accessible via the <code>view_api()</code> method of the client.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const result = await app.predict("/predict", [1, "Hello", "friends"]);
+</code></pre></div>
+
+<h4 id="submit"><code>submit</code></h4>
+
+<p>The <code>submit</code> method provides a more flexible way to call an API endpoint, providing you with status updates about the current progress of the prediction as well as supporting more complex endpoint types.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const submission = app.submit("/predict", payload);
+</code></pre></div>
+
+<p>The <code>submit</code> method accepts the same <a href="#endpoint"><code>endpoint</code></a> and <a href="#payload"><code>payload</code></a> arguments as <code>predict</code>.</p>
+
+<p>The <code>submit</code> method does not return a promise and should not be awaited, instead it returns an object with a <code>on</code>, <code>off</code>, and <code>cancel</code> methods.</p>
+
+<h5 id="on"><code>on</code></h5>
+
+<p>The <code>on</code> method allows you to subscribe to events related to the submitted API request. There are two types of event that can be subscribed to: <code>"data"</code> updates and <code>"status"</code> updates.</p>
+
+<p><code>"data"</code> updates are issued when the API computes a value, the callback provided as the second argument will be called when such a value is sent to the client. The shape of the data depends on the way the API itself is constructed. This event may fire more than once if that endpoint supports emmitting new values over time.</p>
+
+<p><code>"status</code> updates are issued when the status of a request changes. This information allows you to offer feedback to users when the queue position of the request changes, or when the request changes from queued to processing.</p>
+
+<p>The status payload look like this:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>interface Status {
+  queue: boolean;
+  code?: string;
+  success?: boolean;
+  stage: "pending" | "error" | "complete" | "generating";
+  size?: number;
+  position?: number;
+  eta?: number;
+  message?: string;
+  progress_data?: Array<{
+    progress: number | null;
+    index: number | null;
+    length: number | null;
+    unit: string | null;
+    desc: string | null;
+  }>;
+  time?: Date;
+}
+</code></pre></div>
+
+<p>Usage of these subscribe callback looks like this:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const submission = app
+  .submit("/predict", payload)
+  .on("data", (data) => console.log(data))
+  .on("status", (status: Status) => console.log(status));
+</code></pre></div>
+
+<h5 id="off"><code>off</code></h5>
+
+<p>The <code>off</code> method unsubscribes from a specific event of the submitted job and works similarly to <code>document.removeEventListener</code>; both the event name and the original callback must be passed in to successfully unsubscribe:</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const handle_data = (data) => console.log(data);
+
+const submission = app.submit("/predict", payload).on("data", handle_data);
+
+// later
+submission.off("/predict", handle_data);
+</code></pre></div>
+
+<h5 id="destroy"><code>destroy</code></h5>
+
+<p>The <code>destroy</code> method will remove all subscriptions to a job, regardless of whether or not they are <code>"data"</code> or <code>"status"</code> events. This is a convenience method for when you do not wnat to unsubscribe use the <code>off</code> method.</p>
+
+<div class='codeblock'><pre><code class='lang-js'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const handle_data = (data) => console.log(data);
+
+const submission = app.submit("/predict", payload).on("data", handle_data);
+
+// later
+submission.destroy();
+</code></pre></div>
+
+<h5 id="cancel"><code>cancel</code></h5>
+
+<p>Certain types of gradio function can run repeatedly and in some cases indefinitely. the <code>cancel</code> method will stop such an endpoints and prevent the API from issuing additional updates.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const submission = app
+  .submit("/predict", payload)
+  .on("data", (data) => console.log(data));
+
+// later
+
+submission.cancel();
+</code></pre></div>
+
+<h4 id="view_api"><code>view_api</code></h4>
+
+<p>The <code>view_api</code> method provides details about the API you are connected too. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+const api_info = await app.view_api();
+
+console.log(api_info);
+</code></pre></div>
+
+<h4 id="config"><code>config</code></h4>
+
+<p>The <code>config</code> property contains the configuration for the gradio application you are connected to. This object may contain useful meta information about the application.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
+
+const app = await client("user/space-name");
+console.log(app.config);
+</code></pre></div>
+
+<h3 id="duplicate"><code>duplicate</code></h3>
+
+<p>The duplicate function will attempt to duplicate the space that is referenced and return an instance of <code>client</code> connected to that space. If the space has already been duplicated then it will not create a new duplicate and will instead connect to the existing duplicated space. The huggingface token that is passed in will dictate the user under which the space is created.</p>
+
+<p><code>duplicate</code> accepts the same arguments as <code>client</code> with the addition of a <code>private</code> options property dictating whether the duplicated space should be private or public. A huggingface token is required for duplication to work.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { duplicate } from "@gradio/client";
+
+const app = await duplicate("user/space-name", {
+  hf_token: "hf_...",
+});
+</code></pre></div>
+
+<p>This function accepts two arguments: <code>source</code> and <code>options</code>:</p>
+
+<h4 id="source-2"><code>source</code></h4>
+
+<p>The space to duplicate and connect to. <a href="#source">See <code>client</code>'s <code>source</code> parameter</a>.</p>
+
+<h4 id="options-2"><code>options</code></h4>
+
+<p>Accepts all options that <code>client</code> accepts, except <code>hf_token</code> is required. <a href="#source">See <code>client</code>'s <code>options</code> parameter</a>.</p>
+
+<p><code>duplicate</code> also accepts one additional <code>options</code> property.</p>
+
+<h5 id="private"><code>private</code></h5>
+
+<p>This is an optional property specific to <code>duplicate</code>'s options object and will determine whether the space should be public or private. Spaces duplicated via the <code>duplicate</code> method are public by default.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { duplicate } from "@gradio/client";
+
+const app = await duplicate("user/space-name", {
+  hf_token: "hf_...",
+  private: true,
+});
+</code></pre></div>
+
+<h5 id="timeout"><code>timeout</code></h5>
+
+<p>This is an optional property specific to <code>duplicate</code>'s options object and will set the timeout in minutes before the duplicated space will go to sleep.</p>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { duplicate } from "@gradio/client";
+
+const app = await duplicate("user/space-name", {
+  hf_token: "hf_...",
+  private: true,
+  timeout: 5,
+});
+</code></pre></div>
+
+<h5 id="hardware"><code>hardware</code></h5>
+
+<p>This is an optional property specific to <code>duplicate</code>'s options object and will set the hardware for the duplicated space. By default the hardware used will match that of the original space. If this cannot be obtained it will default to <code>"cpu-basic"</code>. For hardware upgrades (beyond the basic CPU tier), you may be required to provide <a rel="noopener" target="_blank" href="https://huggingface.co/settings/billing">billing information on Hugging Face</a>.</p>
+
+<p>Possible hardware options are:</p>
+
+<ul>
+<li><code>"cpu-basic"</code></li>
+<li><code>"cpu-upgrade"</code></li>
+<li><code>"t4-small"</code></li>
+<li><code>"t4-medium"</code></li>
+<li><code>"a10g-small"</code></li>
+<li><code>"a10g-large"</code></li>
+<li><code>"a100-large"</code></li>
+</ul>
+
+<div class='codeblock'><pre><code class='lang-ts'>import { duplicate } from "@gradio/client";
+
+const app = await duplicate("user/space-name", {
+  hf_token: "hf_...",
+  private: true,
+  hardware: "a10g-small",
+});
+</code></pre></div>

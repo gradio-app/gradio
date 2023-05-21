@@ -256,7 +256,7 @@ class Examples:
                 targets = self.inputs_with_examples + self.outputs
             else:
                 targets = self.inputs_with_examples
-            self.dataset.click(
+            load_input_event = self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
                 outputs=targets,  # type: ignore
@@ -267,7 +267,7 @@ class Examples:
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
-                self.dataset.click(
+                load_input_event.then(
                     self.fn,
                     inputs=self.inputs,  # type: ignore
                     outputs=self.outputs,  # type: ignore
@@ -522,7 +522,6 @@ class Progress(Iterable):
 
 
 def create_tracker(root_blocks, event_id, fn, track_tqdm):
-
     progress = Progress(_callback=root_blocks._queue.set_progress, _event_id=event_id)
     if not track_tqdm:
         return progress, fn
@@ -611,6 +610,7 @@ def special_args(
         updated inputs, progress index, event data index.
     """
     signature = inspect.signature(fn)
+    type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
         if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
@@ -619,19 +619,22 @@ def special_args(
     progress_index = None
     event_data_index = None
     for i, param in enumerate(positional_args):
+        type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
             progress_index = i
             if inputs is not None:
                 inputs.insert(i, param.default)
-        elif param.annotation == routes.Request:
+        elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif isinstance(param.annotation, type) and issubclass(
-            param.annotation, EventData
+        elif (
+            type_hint
+            and inspect.isclass(type_hint)
+            and issubclass(type_hint, EventData)
         ):
             event_data_index = i
             if inputs is not None and event_data is not None:
-                inputs.insert(i, param.annotation(event_data.target, event_data._data))
+                inputs.insert(i, type_hint(event_data.target, event_data._data))
         elif (
             param.default is not param.empty and inputs is not None and len(inputs) <= i
         ):
@@ -724,7 +727,7 @@ def make_waveform(
         audio = processing_utils.audio_from_file(audio)
     else:
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
+        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
     duration = round(len(audio[1]) / audio[0], 4)
 

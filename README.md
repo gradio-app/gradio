@@ -166,7 +166,7 @@ demo.launch()
 
 ![`sepia_filter` demo](demo/sepia_filter/screenshot.gif)
 
-When using the `Image` component as input, your function will receive a NumPy array with the shape `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array.
+When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array.
 
 You can also set the datatype used by the component with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
