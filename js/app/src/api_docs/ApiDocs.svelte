@@ -31,7 +31,7 @@
 	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
-		["python", python],
+		["python", python]
 		// ["javascript", javascript]
 	] as const;
 
@@ -96,7 +96,7 @@
 		let [response, status_code] = await post_data(
 			`${root}run/${dependency.api_name}`,
 			{
-				data: inputs,
+				data: inputs
 			}
 		);
 		is_running = false;
@@ -140,8 +140,7 @@
 			<div class="client-doc">
 				Use the <a
 					href="https://pypi.org/project/gradio-client/"
-					target="_blank"
-					><code class="library">gradio_client</code></a
+					target="_blank"><code class="library">gradio_client</code></a
 				> Python library to query the demo via API.
 			</div>
 			<div class="endpoint">
@@ -212,9 +211,8 @@
 						<div class="endpoint-container">
 							<CodeSnippets
 								named={false}
-								endpoint_parameters={info.unnamed_endpoints[
-									dependency_index
-								].parameters}
+								endpoint_parameters={info.unnamed_endpoints[dependency_index]
+									.parameters}
 								{instance_map}
 								{dependency}
 								{dependency_index}
@@ -233,9 +231,8 @@
 
 							<ResponseObject
 								named={false}
-								endpoint_returns={info.unnamed_endpoints[
-									dependency_index
-								].returns}
+								endpoint_returns={info.unnamed_endpoints[dependency_index]
+									.returns}
 								{instance_map}
 								{dependency}
 								{dependency_index}

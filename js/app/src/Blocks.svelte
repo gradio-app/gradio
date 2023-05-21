@@ -7,14 +7,14 @@
 	import {
 		create_loading_status_store,
 		app_state,
-		LoadingStatusCollection,
+		LoadingStatusCollection
 	} from "./stores";
 
 	import type {
 		ComponentMeta,
 		Dependency,
 		LayoutNode,
-		Documentation,
+		Documentation
 	} from "./components/types";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -55,14 +55,12 @@
 		props: {},
 		has_modes: false,
 		instance: {} as ComponentMeta["instance"],
-		component: {} as ComponentMeta["component"],
+		component: {} as ComponentMeta["component"]
 	};
 
 	components.push(rootNode);
 
-	const AsyncFunction = Object.getPrototypeOf(
-		async function () {}
-	).constructor;
+	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
 			const wrap = d.backend_fn
@@ -173,7 +171,7 @@
 				const c = await component_map[name]();
 				res({
 					name,
-					component: c as LoadedComponent,
+					component: c as LoadedComponent
 				});
 			} catch (e) {
 				console.error("failed to load: " + name);
@@ -233,14 +231,11 @@
 				value !== null &&
 				value.__type__ === "update"
 			) {
-				for (const [update_key, update_value] of Object.entries(
-					value
-				)) {
+				for (const [update_key, update_value] of Object.entries(value)) {
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						instance_map[outputs[i]].props[update_key] =
-							update_value;
+						instance_map[outputs[i]].props[update_key] = update_value;
 					}
 				}
 				rootNode = rootNode;
@@ -294,22 +289,24 @@
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null,
+			event_data: dep.collects_event_data ? event_data : null
 		};
 
 		if (dep.frontend_fn) {
-			dep.frontend_fn(
-				payload.data.concat(
-					dep.outputs.map((id) => instance_map[id].props.value)
+			dep
+				.frontend_fn(
+					payload.data.concat(
+						dep.outputs.map((id) => instance_map[id].props.value)
+					)
 				)
-			).then((v: []) => {
-				if (dep.backend_fn) {
-					payload.data = v;
-					make_prediction();
-				} else {
-					handle_update(v, dep_index);
-				}
-			});
+				.then((v: []) => {
+					if (dep.backend_fn) {
+						payload.data = v;
+						make_prediction();
+					} else {
+						handle_update(v, dep_index);
+					}
+				});
 		} else {
 			if (dep.backend_fn) {
 				make_prediction();
@@ -333,9 +330,10 @@
 
 		dependencies.forEach((dep, i) => {
 			let { targets, trigger, inputs, outputs } = dep;
-			const target_instances: [number, ComponentMeta][] = targets.map(
-				(t) => [t, instance_map[t]]
-			);
+			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
+				t,
+				instance_map[t]
+			]);
 
 			// page events
 			if (
@@ -353,8 +351,7 @@
 			target_instances
 				.filter((v) => !!v && !!v[1])
 				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
-					if (handled_dependencies[i]?.includes(id) || !instance)
-						return;
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
 					instance?.$on(trigger, (event_data) => {
 						trigger_api_call(i, event_data.detail);
 					});

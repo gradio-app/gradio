@@ -33,6 +33,7 @@ from gradio import (
     themes,
     utils,
 )
+from gradio.activity_log import ActivityLog
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
@@ -40,7 +41,6 @@ from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import CURRENT_TUNNELS
-from gradio.activity_log import ActivityLog
 from gradio.utils import (
     GRADIO_VERSION,
     TupleNoPrint,
@@ -1704,8 +1704,11 @@ Received outputs:
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
         self.show_traffic = show_traffic
-        self.activity_log = ActivityLog(self.dependencies)
-        self._queue.activity_log = self.activity_log
+        self.activity_log = ActivityLog(
+            self.dependencies, self._queue if self.enable_queue else None
+        )
+        if self.enable_queue:
+            self._queue.activity_log = self.activity_log
 
         if file_directories is not None:
             warnings.warn(
