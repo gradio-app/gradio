@@ -115,7 +115,11 @@ class App(FastAPI):
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
-        super().__init__(**kwargs, docs_url=None, redoc_url=None)
+        # Allow user to manually set `docs_url` and `redoc_url`
+        # when instantiating an App; when they're not set, disable docs and redoc.
+        kwargs.setdefault("docs_url", None)
+        kwargs.setdefault("redoc_url", None)
+        super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -141,8 +145,12 @@ class App(FastAPI):
         return self.blocks
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> App:
-        app = App(default_response_class=ORJSONResponse)
+    def create_app(
+        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
+    ) -> App:
+        app_kwargs = app_kwargs or {}
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        app = App(**app_kwargs)
         app.configure_app(blocks)
 
         app.add_middleware(
