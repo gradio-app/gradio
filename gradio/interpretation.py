@@ -245,7 +245,7 @@ async def run_interpret(interface: Interface, raw_input: list):
                 scores.append(None)
                 alternative_outputs.append([])
             else:
-                raise ValueError(f"Unknown intepretation method: {interp}")
+                raise ValueError(f"Unknown interpretation method: {interp}")
         return scores, alternative_outputs
     elif interface.interpretation:  # custom interpretation function
         processed_input = [

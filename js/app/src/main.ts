@@ -1,4 +1,5 @@
 import "@gradio/theme";
+import { mount_css } from "./css";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
 
@@ -10,25 +11,6 @@ const ENTRY_CSS = "__ENTRY_CSS__";
 let FONTS: string | [];
 
 FONTS = "__FONTS_CSS__";
-
-export function mount_css(url: string, target: HTMLElement): Promise<void> {
-	const existing_link = document.querySelector(`link[href='${url}']`);
-
-	if (existing_link) return Promise.resolve();
-
-	const link = document.createElement("link");
-	link.rel = "stylesheet";
-	link.href = url;
-	// @ts-ignore
-	target.appendChild(link);
-
-	return new Promise((res, rej) => {
-		link.addEventListener("load", () => res());
-		link.addEventListener("error", () =>
-			rej(new Error(`Unable to preload CSS for ${url}`))
-		);
-	});
-}
 
 function create_custom_element() {
 	class GradioApp extends HTMLElement {
@@ -49,7 +31,7 @@ function create_custom_element() {
 				composed: true
 			});
 
-			var observer = new MutationObserver((mutations) => {
+			const observer = new MutationObserver((mutations) => {
 				this.dispatchEvent(event);
 			});
 
@@ -79,11 +61,11 @@ function create_custom_element() {
 					info: info === "false" ? false : true,
 					container: container === "false" ? false : true,
 					is_embed: is_embed === "false" ? false : true,
-					initial_height: initial_height ?? undefined,
+					initial_height,
 					eager: eager === "true" ? true : false,
 					// gradio meta info
 					version: GRADIO_VERSION,
-					theme_mode: theme_mode,
+					theme_mode,
 					// misc global behaviour
 					autoscroll: autoscroll === "true" ? true : false,
 					control_page_title: control_page_title === "true" ? true : false,

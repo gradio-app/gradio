@@ -1,0 +1,26 @@
+{
+	"named_endpoints": {},
+	"unnamed_endpoints": {
+		"0": {
+			"parameters": [
+				{
+					"label": "Name",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"example_input": "Howdy!",
+					"serializer": "StringSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "Output",
+					"type": { "type": "string" },
+					"python_type": { "type": "str", "description": "" },
+					"component": "Textbox",
+					"serializer": "StringSerializable"
+				}
+			]
+		}
+	}
+}

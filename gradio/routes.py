@@ -116,7 +116,11 @@ class App(FastAPI):
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
             Path(tempfile.gettempdir()) / "gradio"
         )
-        super().__init__(**kwargs, docs_url=None, redoc_url=None)
+        # Allow user to manually set `docs_url` and `redoc_url`
+        # when instantiating an App; when they're not set, disable docs and redoc.
+        kwargs.setdefault("docs_url", None)
+        kwargs.setdefault("redoc_url", None)
+        super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -134,6 +138,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
+        self.root_path = blocks.root_path
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -141,8 +146,12 @@ class App(FastAPI):
         return self.blocks
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> App:
-        app = App(default_response_class=ORJSONResponse)
+    def create_app(
+        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
+    ) -> App:
+        app_kwargs = app_kwargs or {}
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        app = App(**app_kwargs)
         app.configure_app(blocks)
 
         app.add_middleware(
@@ -223,15 +232,17 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
+                config["root"] = root_path
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
-                    "root": app.get_blocks().root,
+                    "root": root_path,
                 }
 
             try:
@@ -262,8 +273,11 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config():
-            return app.get_blocks().config
+        def get_config(request: fastapi.Request):
+            root_path = request.scope.get("root_path", "")
+            config = app.get_blocks().config
+            config["root"] = root_path
+            return config
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
@@ -530,14 +544,14 @@ class App(FastAPI):
             # to create a unique id for each job
             try:
                 await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=1
+                    websocket.send_json({"msg": "send_hash"}), timeout=5
                 )
             except AsyncTimeOutError:
                 return
 
             try:
                 session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=1
+                    websocket.receive_json(), timeout=5
                 )
             except AsyncTimeOutError:
                 return
@@ -800,7 +814,6 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
-    blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)

@@ -1,7 +1,9 @@
 import inspect
 import pathlib
+from contextlib import contextmanager
 
 import pytest
+from gradio_client import Client
 
 import gradio as gr
 
@@ -32,3 +34,24 @@ def io_components():
             subclasses.append(subclass)
 
     return subclasses
+
+
+@pytest.fixture
+def connect():
+    @contextmanager
+    def _connect(demo: gr.Blocks, serialize=True):
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            yield Client(local_url, serialize=serialize)
+        finally:
+            # A more verbose version of .close()
+            # because we should set a timeout
+            # the tests that call .cancel() can get stuck
+            # waiting for the thread to join
+            if demo.enable_queue:
+                demo._queue.close()
+            demo.is_running = False
+            demo.server.should_exit = True
+            demo.server.thread.join(timeout=1)
+
+    return _connect

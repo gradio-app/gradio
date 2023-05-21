@@ -3,6 +3,7 @@
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
+	import type { client } from "@gradio/client";
 
 	import { represent_value } from "./utils";
 
@@ -20,6 +21,7 @@
 	};
 	export let dependencies: Array<Dependency>;
 	export let root: string;
+	export let app: Awaited<ReturnType<typeof client>>;
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -31,8 +33,8 @@
 	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
-		["python", python]
-		// ["javascript", javascript]
+		["python", python],
+		["javascript", javascript],
 	] as const;
 
 	let is_running = false;
@@ -62,15 +64,23 @@
 		let data = await response.json();
 		return data;
 	}
+	async function get_js_info() {
+		let js_api_info = await app.view_api();
+		return js_api_info;
+	}
 
 	let info: {
 		named_endpoints: any;
 		unnamed_endpoints: any;
 	};
 
+	let js_info: Record<string, any>;
+
 	get_info()
 		.then((data) => (info = data))
 		.catch((err) => console.log(err));
+
+	get_js_info().then((js_api_info) => (js_info = js_api_info));
 
 	const run = async (index: number) => {
 		is_running = true;
@@ -96,7 +106,7 @@
 		let [response, status_code] = await post_data(
 			`${root}run/${dependency.api_name}`,
 			{
-				data: inputs
+				data: inputs,
 			}
 		);
 		is_running = false;
@@ -138,10 +148,13 @@
 		/>
 		<div class="docs-wrap">
 			<div class="client-doc">
-				Use the <a
-					href="https://pypi.org/project/gradio-client/"
-					target="_blank"><code class="library">gradio_client</code></a
-				> Python library to query the demo via API.
+				Use the <a href="https://gradio.app/docs/#python-client" target="_blank"
+					><code class="library">gradio_client</code></a
+				>
+				Python library or the
+				<a href="https://gradio.app/docs/#javascript-client" target="_blank"
+					><code class="library">@gradio/client</code></a
+				> Javascript package to query the demo via API.
 			</div>
 			<div class="endpoint">
 				<div class="snippets">
@@ -170,6 +183,9 @@
 								endpoint_parameters={info.named_endpoints[
 									"/" + dependency.api_name
 								].parameters}
+								js_parameters={js_info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
 								{instance_map}
 								{dependency}
 								{dependency_index}
@@ -191,12 +207,15 @@
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
 								].returns}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.returns}
 								{instance_map}
 								{dependency}
 								{dependency_index}
 								{is_running}
 								{dependency_outputs}
 								{root}
+								{current_language}
 							/>
 						</div>
 					{/if}
@@ -212,6 +231,8 @@
 							<CodeSnippets
 								named={false}
 								endpoint_parameters={info.unnamed_endpoints[dependency_index]
+									.parameters}
+								js_parameters={js_info.unnamed_endpoints[dependency_index]
 									.parameters}
 								{instance_map}
 								{dependency}
@@ -233,11 +254,13 @@
 								named={false}
 								endpoint_returns={info.unnamed_endpoints[dependency_index]
 									.returns}
+								js_returns={js_info.unnamed_endpoints[dependency_index].returns}
 								{instance_map}
 								{dependency}
 								{dependency_index}
 								{is_running}
 								{dependency_outputs}
+								{current_language}
 								{root}
 							/>
 						</div>

@@ -394,68 +394,6 @@ class TestRoutes:
         demo.close()
 
 
-class TestGeneratorRoutes:
-    def test_generator(self):
-        def generator(string):
-            yield from string
-
-        io = Interface(generator, "text", "text")
-        app, _, _ = io.queue().launch(prevent_thread_lock=True)
-        client = TestClient(app)
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "a"
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "b"
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "c"
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"] == [
-            {"__type__": "update"},
-            {"__type__": "update", "visible": True},
-            {"__type__": "update", "visible": False},
-        ]
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] is None
-
-        response = client.post(
-            "/api/predict/",
-            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
-            headers={"Authorization": f"Bearer {app.queue_token}"},
-        )
-        output = dict(response.json())
-        assert output["data"][0] == "a"
-
-
 class TestApp:
     def test_create_app(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
