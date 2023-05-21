@@ -4,7 +4,7 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-latex";
 	import "katex/dist/katex.min.css";
-	import renderMathInElement from "katex/dist/contrib/auto-render.js";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
@@ -96,12 +96,10 @@
 			node.appendChild(copy_div);
 		});
 
-		renderMathInElement(document.body, {
+		render_math_in_element(div, {
 			delimiters: [
 				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false },
-				{ left: "\\(", right: "\\)", display: false },
-				{ left: "\\[", right: "\\]", display: true }
+				{ left: "$", right: "$", display: false }
 			],
 			throwOnError: false
 		});
@@ -366,5 +364,10 @@
 	.message-wrap :global(ol),
 	.message-wrap :global(ul) {
 		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
 	}
 </style>
