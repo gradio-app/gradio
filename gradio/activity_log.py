@@ -45,7 +45,7 @@ class ActivityLog:
         self.activity.request_breakdown = collections.Counter()
         self.fn_names = [dep.get("api_name") or i for i, dep in enumerate(dependencies)]
         self.activity.requests_per_fn = [
-            FunctionStats(fn=fn_name, duration=0, request_breakdown={})
+            FunctionStats(fn=fn_name, duration=0, request_breakdown=collections.Counter())
             for fn_name in self.fn_names
         ]
 
