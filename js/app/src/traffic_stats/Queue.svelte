@@ -18,7 +18,6 @@
 			}
 		}
 		flattened_queue = flattened_queue;
-		console.log(flattened_queue);
 	}
 
 	const SPACING = 60;
