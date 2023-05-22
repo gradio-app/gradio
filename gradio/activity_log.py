@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections import Counter, deque
+from collections import deque
 from typing import TYPE_CHECKING, Dict, Literal, Optional, Union
 
 from pydantic import BaseModel
@@ -28,7 +28,7 @@ RequestBreakdown = Dict[StatusType, int]
 class FunctionStats(BaseModel):
     fn: Union[str, int]
     duration: float
-    request_breakdown: Counter
+    request_breakdown: RequestBreakdown
 
 
 class Activity(BaseModel):
@@ -43,22 +43,28 @@ class Activity(BaseModel):
 class ActivityLog:
     def __init__(self, dependencies: list[dict], queue: Queue | None, **kwargs):
         self.activity = Activity(active_workers=queue.max_thread_count if queue else 0)
-        self.activity.request_breakdown = Counter()
+        self.activity.request_breakdown = {}
         self.fn_names = [dep.get("api_name") or i for i, dep in enumerate(dependencies)]
         self.activity.requests_per_fn = [
-            FunctionStats(fn=fn_name, duration=0, request_breakdown=Counter())
+            FunctionStats(fn=fn_name, duration=0, request_breakdown={})
             for fn_name in self.fn_names
         ]
 
-        self.activity.queue_preview = [[], [], [], []]
         self.queue = queue
+        if queue:
+            self.activity.queue_preview = [[], [], [], []]
         self.completed_tasks = deque(maxlen=PREVIEW_SIZE)
         self.lock = threading.Lock()
 
     def _request_update(self, fn_index: int, status: StatusType, diff: int):
         with self.lock:
-            self.activity.request_breakdown[status] += diff
-            self.activity.requests_per_fn[fn_index].request_breakdown[status] += diff
+            self.activity.request_breakdown[status] = (
+                self.activity.request_breakdown.get(status, 0) + diff
+            )
+            self.activity.requests_per_fn[fn_index].request_breakdown[status] = (
+                self.activity.requests_per_fn[fn_index].request_breakdown.get(status, 0)
+                + diff
+            )
 
     def new_session(self):
         with self.lock:

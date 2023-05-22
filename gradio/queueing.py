@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import sys
+import threading
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
@@ -16,11 +17,10 @@ from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
-new_event_lock = asyncio.lock()
-
 
 class Event:
     idx = 0
+    new_event_lock = threading.Lock()
 
     def __init__(
         self,
@@ -37,7 +37,7 @@ class Event:
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
-        with new_event_lock:
+        with Event.new_event_lock:
             self.idx = Event.idx
             Event.idx += 1
 
