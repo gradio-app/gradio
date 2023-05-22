@@ -57,10 +57,7 @@ class ActivityLog:
     def _request_update(self, fn_index: int, status: StatusType, diff: int):
         with self.lock:
             self.activity.request_breakdown[status] += diff
-            self.activity.requests_per_fn[fn_index].request_breakdown[status] = (
-                self.activity.requests_per_fn[fn_index].request_breakdown.get(status, 0)
-                + diff
-            )
+            self.activity.requests_per_fn[fn_index].request_breakdown[status] += diff
 
     def new_session(self):
         with self.lock:
