@@ -28,7 +28,7 @@ RequestBreakdown = Dict[StatusType, int]
 class FunctionStats(BaseModel):
     fn: Union[str, int]
     duration: float
-    request_breakdown: RequestBreakdown
+    request_breakdown: collections.Counter
 
 
 class Activity(BaseModel):
