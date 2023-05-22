@@ -1,7 +1,11 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestEvent:
@@ -68,6 +72,25 @@ class TestEvent:
 
         assert not parent.config["dependencies"][2]["trigger_only_on_success"]
         assert parent.config["dependencies"][3]["trigger_only_on_success"]
+
+    def test_load_chaining(self):
+        calls = 0
+
+        def increment():
+            calls += 1
+            return str(calls)
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox(label="Call counter")
+            demo.load(increment, inputs=None, outputs=out).then(
+                increment, inputs=None, outputs=out
+            )
+
+        assert demo.config["dependencies"][0]["trigger"] == "load"
+        assert demo.config["dependencies"][0]["trigger_after"] is None
+        assert demo.config["dependencies"][1]["trigger"] == "then"
+        assert demo.config["dependencies"][1]["trigger_after"] == 0
+        demo.launch(prevent_thread_lock=True)
 
 
 class TestEventErrors:
