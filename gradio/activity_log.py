@@ -69,7 +69,7 @@ class ActivityLog:
         old_state: str | None = None,
         new_state: str | None = None,
         avg_duration: float | None = None,
-    ):
+    ) -> None:
         if old_state is not None:
             self._request_update(fn_index, old_state, -1)
         if new_state is not None:
