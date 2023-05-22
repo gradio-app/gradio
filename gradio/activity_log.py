@@ -92,7 +92,7 @@ class ActivityLog:
             for evts in self.queue.active_jobs:
                 if len(pending) >= PREVIEW_SIZE:
                     break
-                if evts is None or len(evts) == 0:
+                if not evts:
                     continue
                 task = Task(
                     fn=self.fn_names[evts[0].fn_index],
