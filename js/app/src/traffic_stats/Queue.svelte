@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { QueuePreview, Task } from "./utils";
+	import type { QueuePreview, Task, TaskStatus } from "./utils";
 	import TaskCard from "./TaskCard.svelte";
 	import { flip } from "svelte/animate";
 
@@ -44,10 +44,7 @@
 			style:left="{j * SPACING}px"
 			animate:flip
 		>
-			<TaskCard
-				{task}
-				status={task.status ? task.status : STATUS_PER_STAGE[i]}
-			/>
+			<TaskCard {task} status={task.status ?? STATUS_PER_STAGE[i]} />
 		</div>
 	{/each}
 	<div class="row-label" style:top="0px">

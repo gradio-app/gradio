@@ -103,11 +103,7 @@ class ActivityLog:
                     continue
                 task = Task(
                     fn=self.fn_names[evts[0].fn_index],
-                    idx=(
-                        evts[0].idx
-                        if len(evts) == 1
-                        else "|".join(str(evt.idx) for evt in evts)
-                    ),
+                    idx="|".join(str(evt.idx) for evt in evts),
                 )
                 pending.append(task)
             self.activity.queue_preview[1] = pending

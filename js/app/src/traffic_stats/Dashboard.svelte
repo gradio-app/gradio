@@ -16,8 +16,7 @@
 	export let request_breakdown: ActivityLog["request_breakdown"];
 	export let requests_per_fn: ActivityLog["requests_per_fn"];
 	export let event_count_per_stage: ActivityLog["event_count_per_stage"];
-	export let queue_preview: ActivityLog["queue_preview"] | undefined =
-		undefined;
+	export let queue_preview: ActivityLog["queue_preview"] | undefined;
 	export let active_workers: ActivityLog["active_workers"];
 </script>
 
@@ -51,11 +50,10 @@
 						<div class="fn-breakdown">
 							<div class="fn">
 								<span>{fn}</span>
-								<span class="details"
-									>{total_requests_fn(request_breakdown)} requests &bull; {duration.toFixed(
-										1
-									)}s of processing per success</span
-								>
+								<span class="details">
+									{total_requests_fn(request_breakdown)} requests &bull;
+									{duration.toFixed(1)}s of processing per success
+								</span>
 							</div>
 							<RequestsBar
 								{request_breakdown}
