@@ -42,7 +42,7 @@ class Activity(BaseModel):
 class ActivityLog:
     def __init__(self, dependencies: list[dict], queue: Queue | None, **kwargs):
         self.activity = Activity(active_workers=queue.max_thread_count if queue else 0)
-        self.activity.request_breakdown = {}
+        self.activity.request_breakdown = collections.Counter()
         self.fn_names = [dep.get("api_name") or i for i, dep in enumerate(dependencies)]
         self.activity.requests_per_fn = [
             FunctionStats(fn=fn_name, duration=0, request_breakdown={})
