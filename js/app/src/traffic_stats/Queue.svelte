@@ -46,7 +46,7 @@
         >
             <TaskCard
                 {task}
-                status={task.status ? task.status : STATUS_PER_STAGE[i]}
+                status={task.status ?? STATUS_PER_STAGE[i]}
             />
         </div>
     {/each}
