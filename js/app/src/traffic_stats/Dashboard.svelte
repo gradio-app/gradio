@@ -50,11 +50,11 @@
 						<div class="fn-breakdown">
 							<div class="fn">
 								<span>{fn}</span>
-								<span class="details"
-									>{total_requests_fn(request_breakdown)} requests &bull; {duration.toFixed(
-										1
-									)}s of processing per success</span
-								>
+								<span class="details">
+									{total_requests_fn(request_breakdown)} requests
+									&bull;
+									{duration.toFixed(1)}s of processing per success
+								</span>
 							</div>
 							<RequestsBar
 								{request_breakdown}
