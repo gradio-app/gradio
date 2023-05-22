@@ -363,189 +363,188 @@ export async function client(
 				data,
 				api_info,
 				hf_token
-			)
-				.then((_payload) => {
-					payload = { data: _payload || [], event_data, fn_index };
-					if (skip_queue(fn_index, config)) {
-						fire_event({
-							type: "status",
-							endpoint: _endpoint,
-							stage: "pending",
-							queue: false,
-							fn_index,
-							time: new Date()
-						});
+			).then((_payload) => {
+				payload = { data: _payload || [], event_data, fn_index };
+				if (skip_queue(fn_index, config)) {
+					fire_event({
+						type: "status",
+						endpoint: _endpoint,
+						stage: "pending",
+						queue: false,
+						fn_index,
+						time: new Date()
+					});
 
-						post_data(
-							`${http_protocol}//${host + config.path}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-							}`,
-							{
-								...payload,
-								session_hash
-							},
-							hf_token
-						)
-							.then(([output, status_code]) => {
-								const data = transform_files
-									? transform_output(
+					post_data(
+						`${http_protocol}//${host + config.path}/run${
+							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+						}`,
+						{
+							...payload,
+							session_hash
+						},
+						hf_token
+					)
+						.then(([output, status_code]) => {
+							const data = transform_files
+								? transform_output(
 										output.data,
 										api_info,
 										config.root,
 										config.root_url
-									)
-									: output.data;
-								if (status_code == 200) {
-									fire_event({
-										type: "data",
-										endpoint: _endpoint,
-										fn_index,
-										data: data,
-										time: new Date()
-									});
-
-									fire_event({
-										type: "status",
-										endpoint: _endpoint,
-										fn_index,
-										stage: "complete",
-										eta: output.average_duration,
-										queue: false,
-										time: new Date()
-									});
-								} else {
-									fire_event({
-										type: "status",
-										stage: "error",
-										endpoint: _endpoint,
-										fn_index,
-										message: output.error,
-										queue: false,
-										time: new Date()
-									});
-								}
-							})
-							.catch((e) => {
+								  )
+								: output.data;
+							if (status_code == 200) {
 								fire_event({
-									type: "status",
-									stage: "error",
-									message: e.message,
+									type: "data",
 									endpoint: _endpoint,
 									fn_index,
+									data: data,
+									time: new Date()
+								});
+
+								fire_event({
+									type: "status",
+									endpoint: _endpoint,
+									fn_index,
+									stage: "complete",
+									eta: output.average_duration,
 									queue: false,
 									time: new Date()
 								});
-							});
-					} else {
-						fire_event({
-							type: "status",
-							stage: "pending",
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date()
-						});
-
-						let url = new URL(`${ws_protocol}://${host}${config.path}
-						/queue/join`);
-
-						if (jwt) {
-							url.searchParams.set("__sign", jwt);
-						}
-
-						websocket = new WebSocket(url);
-
-						websocket.onclose = (evt) => {
-							if (!evt.wasClean) {
+							} else {
 								fire_event({
 									type: "status",
 									stage: "error",
-									message: BROKEN_CONNECTION_MSG,
-									queue: true,
 									endpoint: _endpoint,
 									fn_index,
+									message: output.error,
+									queue: false,
 									time: new Date()
 								});
 							}
-						};
+						})
+						.catch((e) => {
+							fire_event({
+								type: "status",
+								stage: "error",
+								message: e.message,
+								endpoint: _endpoint,
+								fn_index,
+								queue: false,
+								time: new Date()
+							});
+						});
+				} else {
+					fire_event({
+						type: "status",
+						stage: "pending",
+						queue: true,
+						endpoint: _endpoint,
+						fn_index,
+						time: new Date()
+					});
 
-						websocket.onmessage = function (event) {
-							const _data = JSON.parse(event.data);
-							const { type, status, data } = handle_message(
-								_data,
-								last_status[fn_index]
-							);
+					let url = new URL(`${ws_protocol}://${host}${config.path}
+						/queue/join`);
 
-							if (type === "update" && status && !complete) {
-								// call 'status' listeners
+					if (jwt) {
+						url.searchParams.set("__sign", jwt);
+					}
+
+					websocket = new WebSocket(url);
+
+					websocket.onclose = (evt) => {
+						if (!evt.wasClean) {
+							fire_event({
+								type: "status",
+								stage: "error",
+								message: BROKEN_CONNECTION_MSG,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date()
+							});
+						}
+					};
+
+					websocket.onmessage = function (event) {
+						const _data = JSON.parse(event.data);
+						const { type, status, data } = handle_message(
+							_data,
+							last_status[fn_index]
+						);
+
+						if (type === "update" && status && !complete) {
+							// call 'status' listeners
+							fire_event({
+								type: "status",
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date(),
+								...status
+							});
+							if (status.stage === "error") {
+								websocket.close();
+							}
+						} else if (type === "hash") {
+							websocket.send(JSON.stringify({ fn_index, session_hash }));
+							return;
+						} else if (type === "data") {
+							websocket.send(JSON.stringify({ ...payload, session_hash }));
+						} else if (type === "complete") {
+							complete = status;
+						} else if (type === "generating") {
+							fire_event({
+								type: "status",
+								time: new Date(),
+								...status,
+								stage: status?.stage!,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index
+							});
+						}
+						if (data) {
+							fire_event({
+								type: "data",
+								time: new Date(),
+								data: transform_files
+									? transform_output(
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+									  )
+									: data.data,
+								endpoint: _endpoint,
+								fn_index
+							});
+
+							if (complete) {
 								fire_event({
 									type: "status",
-									endpoint: _endpoint,
-									fn_index,
 									time: new Date(),
-									...status
-								});
-								if (status.stage === "error") {
-									websocket.close();
-								}
-							} else if (type === "hash") {
-								websocket.send(JSON.stringify({ fn_index, session_hash }));
-								return;
-							} else if (type === "data") {
-								websocket.send(JSON.stringify({ ...payload, session_hash }));
-							} else if (type === "complete") {
-								complete = status;
-							} else if (type === "generating") {
-								fire_event({
-									type: "status",
-									time: new Date(),
-									...status,
+									...complete,
 									stage: status?.stage!,
 									queue: true,
 									endpoint: _endpoint,
 									fn_index
 								});
+								websocket.close();
 							}
-							if (data) {
-								fire_event({
-									type: "data",
-									time: new Date(),
-									data: transform_files
-										? transform_output(
-											data.data,
-											api_info,
-											config.root,
-											config.root_url
-										)
-										: data.data,
-									endpoint: _endpoint,
-									fn_index
-								});
-
-								if (complete) {
-									fire_event({
-										type: "status",
-										time: new Date(),
-										...complete,
-										stage: status?.stage!,
-										queue: true,
-										endpoint: _endpoint,
-										fn_index
-									});
-									websocket.close();
-								}
-							}
-						};
-
-						// different ws contract for gradio versions older than 3.6.0
-						//@ts-ignore
-						if (semiver(config.version || "2.0.0", "3.6") < 0) {
-							addEventListener("open", () =>
-								websocket.send(JSON.stringify({ hash: session_hash }))
-							);
 						}
+					};
+
+					// different ws contract for gradio versions older than 3.6.0
+					//@ts-ignore
+					if (semiver(config.version || "2.0.0", "3.6") < 0) {
+						addEventListener("open", () =>
+							websocket.send(JSON.stringify({ hash: session_hash }))
+						);
 					}
-				})
-				.catch(console.log);
+				}
+			});
 
 			function fire_event<K extends EventType>(event: Event<K>) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
