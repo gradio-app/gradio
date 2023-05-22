@@ -79,12 +79,13 @@
 		}
 	});
 
+	type SidePanel = null | "api" | "traffic";
+
 	let params = new URLSearchParams(window.location.search);
-	let visible_side_panel: null | "api" | "traffic" = params.get("view") as
-		| "api"
-		| "traffic"
-		| null;
-	const set_side_panel = (panel: null | "api" | "traffic") => {
+	let param_view = params.get("view");
+	let visible_side_panel: SidePanel =
+		param_view === "api" || param_view === "traffic" ? param_view : null;
+	const set_side_panel = (panel: SidePanel) => {
 		visible_side_panel = panel;
 		let params = new URLSearchParams(window.location.search);
 		if (panel === "api" || panel === "traffic") {

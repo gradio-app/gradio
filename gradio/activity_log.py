@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections import deque
+from collections import Counter, deque
 from typing import TYPE_CHECKING, Dict, Literal, Optional, Union
 
 from pydantic import BaseModel
@@ -28,7 +28,7 @@ RequestBreakdown = Dict[StatusType, int]
 class FunctionStats(BaseModel):
     fn: Union[str, int]
     duration: float
-    request_breakdown: collections.Counter
+    request_breakdown: Counter
 
 
 class Activity(BaseModel):
@@ -39,13 +39,14 @@ class Activity(BaseModel):
     queue_preview: Optional[list[list[Task]]] = None
     active_workers: int = 0
 
+
 class ActivityLog:
     def __init__(self, dependencies: list[dict], queue: Queue | None, **kwargs):
         self.activity = Activity(active_workers=queue.max_thread_count if queue else 0)
-        self.activity.request_breakdown = collections.Counter()
+        self.activity.request_breakdown = Counter()
         self.fn_names = [dep.get("api_name") or i for i, dep in enumerate(dependencies)]
         self.activity.requests_per_fn = [
-            FunctionStats(fn=fn_name, duration=0, request_breakdown=collections.Counter())
+            FunctionStats(fn=fn_name, duration=0, request_breakdown=Counter())
             for fn_name in self.fn_names
         ]
 
