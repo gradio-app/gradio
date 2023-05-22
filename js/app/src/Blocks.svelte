@@ -87,10 +87,8 @@
 	const set_side_panel = (panel: null | "api" | "traffic") => {
 		visible_side_panel = panel;
 		let params = new URLSearchParams(window.location.search);
-		if (panel === "api") {
-			params.set("view", "api");
-		} else if (panel === "traffic") {
-			params.set("view", "traffic");
+		if (panel === "api" || panel === "traffic") {
+			params.set("view", panel);
 		} else {
 			params.delete("view");
 		}
