@@ -16,6 +16,8 @@ from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
+new_event_lock = asyncio.lock()
+
 
 class Event:
     idx = 0
@@ -35,8 +37,9 @@ class Event:
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
-        self.idx = Event.idx
-        Event.idx += 1
+        with new_event_lock:
+            self.idx = Event.idx
+            Event.idx += 1
 
     async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)

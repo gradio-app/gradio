@@ -26,7 +26,7 @@
 		} finally {
 			pending_request = false;
 		}
-	};
+	}
 	get_traffic();
 	let interval = window.setInterval(get_traffic, 2000);
 	onDestroy(() => {
