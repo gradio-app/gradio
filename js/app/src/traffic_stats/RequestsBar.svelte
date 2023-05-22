@@ -5,8 +5,9 @@
 	export let request_breakdown: Partial<Record<TaskStatus, number>>;
 	export let total_requests: number;
 	const TASK_STATUS_DESCRIPTIONS: Record<TaskStatus, string> = {
+		queued: "Still in queue, has not started processing.",
 		success: "Successfully completed, with data delivered to the user.",
-		pending: "Has not completed processing.",
+		pending: "Has started but not completed processing.",
 		closed: "Stopped early because user closed the browser.",
 		waiting_connection:
 			"Completed processing, but unable to deliver results due to connection. Will become 'lost' if reconnection fails.",
