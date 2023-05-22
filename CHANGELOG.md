@@ -1,6 +1,26 @@
 # Upcoming Release
 
+## New Features:
+
 - Added Traffic Page to sidebar, which features traffic stats and queue status by [@aliabid94](https://github.com/aliabid94) in [PR 4295](https://github.com/gradio-app/gradio/pull/4295).
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+# 3.32.0
+
+## New Features:
+
+- `Interface.launch()` and `Blocks.launch()` now accept an `app_kwargs` argument to allow customizing the configuration of the underlying FastAPI app, by [@akx](https://github.com/akx) in [PR 4282](https://github.com/gradio-app/gradio/pull/4282)
 
 ## Bug Fixes:
 
