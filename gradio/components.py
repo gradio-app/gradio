@@ -2476,6 +2476,7 @@ class Audio(
         )
 
         if self.type == "numpy":
+            print("preshape", data.shape)
             return sample_rate, data
         elif self.type == "filepath":
             output_file = str(Path(output_file_name).with_suffix(f".{self.format}"))
