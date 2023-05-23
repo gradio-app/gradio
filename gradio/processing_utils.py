@@ -131,6 +131,7 @@ def resize_and_crop(img, size, crop_type="center"):
 def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
+        print("len audio", len(audio))
     except FileNotFoundError as e:
         isfile = Path(filename).is_file()
         msg = (
@@ -146,8 +147,10 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
         audio_end = len(audio) * crop_max / 100
         audio = audio[audio_start:audio_end]
     data = np.array(audio.get_array_of_samples())
+    print("data shape", data.shape)
     if audio.channels > 1:
         data = data.reshape(-1, audio.channels)
+    print("data reshape", data.shape)
     return audio.frame_rate, data
 
 
