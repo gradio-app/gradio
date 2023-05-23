@@ -2746,6 +2746,8 @@ class File(
         """
         if x is None:
             return None
+        
+        print("preprocess in", x)
 
         def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
             file_name, data, is_file = (
