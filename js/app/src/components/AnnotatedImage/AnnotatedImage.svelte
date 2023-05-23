@@ -19,10 +19,12 @@
 	export let height: number | undefined;
 	export let width: number | undefined;
 	export let color_map: Record<string, string>;
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let root: string;
 	export let root_url: string;
 	let active: string | null = null;
-
 	export let loading_status: LoadingStatus;
 
 	const dispatch = createEventDispatcher<{
@@ -65,6 +67,9 @@
 		width: width,
 	}}
 	allow_overflow={false}
+	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={Image} label={label || "Image"} />

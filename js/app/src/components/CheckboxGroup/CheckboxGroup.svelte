@@ -10,6 +10,8 @@
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let label: string = "Checkbox Group";
 	export let info: string | undefined = undefined;
@@ -24,6 +26,8 @@
 	{elem_classes}
 	type="fieldset"
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 

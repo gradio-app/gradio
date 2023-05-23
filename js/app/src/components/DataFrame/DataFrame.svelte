@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Block } from "@gradio/atoms";
 	import { Table } from "@gradio/table";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -14,7 +15,7 @@
 	export let visible: boolean = true;
 	export let value: { data: Data; headers: Headers } = {
 		data: [["", "", ""]],
-		headers: ["1", "2", "3"]
+		headers: ["1", "2", "3"],
 	};
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -37,7 +38,16 @@
 	}
 </script>
 
-<div id={elem_id} class={elem_classes.join(" ")} class:hide={!visible}>
+<Block
+	{visible}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	disable={true}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+>
 	<StatusTracker {...loading_status} />
 	<Table
 		{label}
@@ -51,15 +61,4 @@
 		{wrap}
 		{datatype}
 	/>
-</div>
-
-<style>
-	div {
-		position: relative;
-		overflow: hidden;
-	}
-
-	.hide {
-		display: none;
-	}
-</style>
+</Block>

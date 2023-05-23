@@ -17,11 +17,11 @@
 	export let show_label: boolean;
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
-
 	export let container: boolean = false;
-
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
+	export let show_copy_button: boolean = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
-
 	export let mode: "static" | "dynamic";
 </script>
 
@@ -29,6 +29,8 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
+	{scale}
+	{min_width}
 	disable={container === false}
 >
 	{#if loading_status}
@@ -44,7 +46,7 @@
 		{type}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
-		{style}
+		{show_copy_button}
 		on:change
 		on:submit
 		on:blur

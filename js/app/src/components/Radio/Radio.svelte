@@ -14,6 +14,8 @@
 	export let mode: "static" | "dynamic";
 	export let show_label: boolean;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 </script>
 
@@ -23,6 +25,8 @@
 	{elem_id}
 	{elem_classes}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 

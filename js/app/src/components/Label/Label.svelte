@@ -16,7 +16,8 @@
 	};
 	export let label: string = "Label";
 	export let container: boolean = false;
-
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let selectable: boolean = false;
@@ -32,6 +33,8 @@
 	{elem_id}
 	{elem_classes}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}

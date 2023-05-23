@@ -10,6 +10,8 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let value: number = 0;
 	export let show_label: boolean;
 
@@ -22,6 +24,8 @@
 	{elem_id}
 	{elem_classes}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 

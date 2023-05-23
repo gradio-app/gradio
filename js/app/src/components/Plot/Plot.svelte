@@ -13,12 +13,13 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
 	export let target: HTMLElement;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
@@ -30,10 +31,10 @@
 	{elem_classes}
 	{visible}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<BlockLabel {show_label} label={label || "Plot"} Icon={PlotIcon} />
-
 	<StatusTracker {...loading_status} />
-
 	<Plot {value} {target} {theme_mode} {caption} {bokeh_version} on:change />
 </Block>

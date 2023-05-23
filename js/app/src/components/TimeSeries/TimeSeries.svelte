@@ -42,7 +42,9 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let colors: Array<string>;
-
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 
 	let _value: string | null;
@@ -142,6 +144,9 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
+	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />

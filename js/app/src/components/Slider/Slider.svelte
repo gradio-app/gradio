@@ -11,6 +11,8 @@
 	export let label: string = "Slider";
 	export let info: string | undefined = undefined;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
@@ -25,6 +27,8 @@
 	{elem_id}
 	{elem_classes}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 

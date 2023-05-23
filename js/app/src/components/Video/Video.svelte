@@ -26,9 +26,10 @@
 	export let width: number | undefined;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
-
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
-
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
 
@@ -75,7 +76,11 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	style={{ height: height, width: width }}
+	{height}
+	{width}
+	disable={container === false}
+	{scale}
+	{min_width}
 	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />

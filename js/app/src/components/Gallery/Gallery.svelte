@@ -15,6 +15,18 @@
 	export let visible: boolean = true;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
+	export let grid_cols: number | Array<number> | undefined = [2];
+	export let grid_rows: number | Array<number> | undefined = undefined;
+	export let height: number | "auto" = "auto";
+	export let preview: boolean;
+	export let object_fit:
+		| "contain"
+		| "cover"
+		| "fill"
+		| "none"
+		| "scale-down" = "cover";
 </script>
 
 <Block
@@ -24,7 +36,21 @@
 	{elem_id}
 	{elem_classes}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
-	<Gallery on:select {label} {value} {style} {show_label} {root} {root_url} />
+	<Gallery
+		on:select
+		{label}
+		{value}
+		{show_label}
+		{root}
+		{root_url}
+		{grid_cols}
+		{grid_rows}
+		{height}
+		{preview}
+		{object_fit}
+	/>
 </Block>

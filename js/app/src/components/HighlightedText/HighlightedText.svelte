@@ -15,10 +15,12 @@
 	export let color_map: Record<string, string> = {};
 	export let label: string = "Highlighted Text";
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let selectable: boolean = false;
 
-	$: if (!style.color_map && Object.keys(color_map).length) {
-		style.color_map = color_map;
+	$: if (!color_map && Object.keys(color_map).length) {
+		color_map = color_map;
 	}
 
 	export let loading_status: LoadingStatus;
@@ -40,6 +42,8 @@
 	{elem_classes}
 	padding={false}
 	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 	{#if label}
@@ -57,7 +61,7 @@
 			{selectable}
 			{value}
 			{show_legend}
-			color_map={style.color_map}
+			{color_map}
 		/>
 	{:else}
 		<Empty>

@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { Button } from "@gradio/button";
-	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
 
-	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let size: "sm" | "lg" = style.size || "lg";
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
+	export let size: "sm" | "lg" = "lg";	
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -88,7 +88,8 @@
 	{elem_classes}
 	{visible}
 	on:click={openFileUpload}
-	{style}
+	{scale}
+	{min_width}
 >
 	<slot />
 </Button>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { Styles, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 
 	export let value: Array<
@@ -11,7 +11,7 @@
 	> | null = null;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
-	export let style: Styles = {};
+	export let height: number = 480;
 	export let selectable: boolean = false;
 
 	let div: HTMLDivElement;
@@ -48,8 +48,8 @@
 
 <div
 	class="wrap"
-	style:height={`${style.height}px`}
-	style:max-height={`${style.height}px`}
+	style:height={`${height}px`}
+	style:max-height={`${height}px`}
 	bind:this={div}
 >
 	<div class="message-wrap">
@@ -118,8 +118,6 @@
 <style>
 	.wrap {
 		padding: var(--block-padding);
-		height: 100%;
-		max-height: 480px;
 		overflow-y: auto;
 	}
 

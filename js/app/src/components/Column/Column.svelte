@@ -16,7 +16,8 @@
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
 	class:hide={!visible}
-	style={`min-width: min(${min_width}px, 100%); flex-grow: ${scale}`}
+	style:flex-grow={scale}
+	style:min-width="min(${min_width}px, 100%)"
 >
 	<slot />
 </div>

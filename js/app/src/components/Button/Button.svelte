@@ -8,13 +8,18 @@
 	export let value: string;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let mode: "static" | "dynamic" = "dynamic";
+	export let size: "sm" | "lg" = "lg";
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 </script>
 
 <Button
 	{variant}
 	{elem_id}
 	{elem_classes}
-	{style}
+	{size}
+	{scale}
+	{min_width}
 	{visible}
 	disabled={mode === "static"}
 	on:click

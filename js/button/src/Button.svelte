@@ -5,12 +5,16 @@
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
 	export let disabled: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 </script>
 
 <button
 	on:click
 	class:hide={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
+	style:flex-grow={scale}
+	style:min-width="min(${min_width}px, 100%)"
 	id={elem_id}
 	{disabled}
 >

@@ -14,6 +14,8 @@
 	> = [];
 	let _value: Array<[string | FileData | null, string | FileData | null]>;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let label: string;
 	export let show_label: boolean = true;
 	export let root: string;
@@ -30,13 +32,21 @@
 					: normalise_file(user_msg, root, root_url),
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url)
+					: normalise_file(bot_msg, root, root_url),
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
 </script>
 
-<Block {elem_id} {elem_classes} {visible} padding={false}>
+<Block
+	{elem_id}
+	{elem_classes}
+	{visible}
+	padding={false}
+	disable={container === false}
+	{scale}
+	{min_width}
+>
 	{#if show_label}
 		<BlockLabel
 			{show_label}
@@ -47,7 +57,6 @@
 		/>
 	{/if}
 	<ChatBot
-		{style}
 		{selectable}
 		value={_value}
 		pending_message={loading_status?.status === "pending"}

@@ -17,6 +17,8 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -34,6 +36,8 @@
 	{elem_id}
 	{elem_classes}
 	disable={container === false}
+	{scale}
+	{min_width}
 	padding={false}
 >
 	{#if label}

@@ -17,15 +17,16 @@
 	export let show_label: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
-	export let height: number | null;
-	export let width: number | null;
+	export let height: number | undefined;
+	export let width: number | undefined;
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
 	export let brush_radius: number;
 	export let selectable: boolean = false;
-
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-
 	export let mode: "static" | "dynamic";
 
 	const dispatch = createEventDispatcher<{
@@ -48,15 +49,13 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	style={{
-		height:
-			height ||
-			(source === "webcam" || mode === "static"
-				? undefined
-				: FIXED_HEIGHT),
-		width: width,
-	}}
+	height={height ||
+		(source === "webcam" || mode === "static" ? undefined : FIXED_HEIGHT)}
+	{width}
 	allow_overflow={false}
+	disable={container === false}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
