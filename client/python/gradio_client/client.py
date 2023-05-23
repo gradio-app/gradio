@@ -610,7 +610,6 @@ class Endpoint:
         return self.__repr__()
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
-
         _predict = self.make_predict(helper)
 
         def _inner(*data):
@@ -786,8 +785,8 @@ class Endpoint:
             if t in ["file", "uploadbutton"]
         ]
         uploaded_files = self._upload(files)
-        self._add_uploaded_files_to_data(uploaded_files, list(data))
-
+        data = list(data)
+        self._add_uploaded_files_to_data(uploaded_files, data)
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
         return o
 

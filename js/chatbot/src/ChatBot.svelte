@@ -1,8 +1,20 @@
 <script lang="ts">
+	import { marked } from "marked";
+	import Prism from "prismjs";
+	import "prismjs/components/prism-python";
+	import "prismjs/components/prism-latex";
+	import "katex/dist/katex.min.css";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
+	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import "./manni.css";
+	import Copy from "./Copy.svelte";
+
+	const code_highlight_css = {
+		light: () => import("prismjs/themes/prism.css"),
+		dark: () => import("prismjs/themes/prism-dark.css")
+	};
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -14,6 +26,33 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+	export let theme_mode: ThemeMode;
+
+	$: if (theme_mode == "dark") {
+		code_highlight_css.dark();
+	} else {
+		code_highlight_css.light();
+	}
+	const marked_renderer = new marked.Renderer();
+	marked.setOptions({
+		renderer: marked_renderer,
+		gfm: true,
+		breaks: true,
+		pedantic: false,
+		sanitize: true,
+		smartLists: true,
+		smartypants: false
+	});
+
+	marked.setOptions({
+		highlight: (code: string, lang: string) => {
+			if (Prism.languages[lang]) {
+				return Prism.highlight(code, Prism.languages[lang], lang);
+			} else {
+				return code;
+			}
+		}
+	});
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -39,28 +78,30 @@
 		}
 		div.querySelectorAll("pre > code").forEach((n) => {
 			let code_node = n as HTMLElement;
-			let node = n.parentElement as HTMLElement;
-			node.style.position = "relative";
-			const button = document.createElement("button");
-			button.className = "copy-button";
-			button.innerHTML = "Copy";
-			button.style.position = "absolute";
-			button.style.right = "0";
-			button.style.top = "0";
-			button.style.zIndex = "1";
-			button.style.padding = "var(--spacing-md)";
-			button.style.marginTop = "12px";
-			button.style.fontSize = "var(--text-sm)";
-			button.style.borderBottomLeftRadius = "var(--radius-sm)";
-			button.style.backgroundColor = "var(--block-label-background-fill)";
-			button.addEventListener("click", () => {
-				navigator.clipboard.writeText(code_node.innerText.trimEnd());
-				button.innerHTML = "Copied!";
-				setTimeout(() => {
-					button.innerHTML = "Copy";
-				}, 1000);
+			const copy_div = document.createElement("div");
+			new Copy({
+				target: copy_div,
+				props: {
+					value: code_node.innerText.trimEnd()
+				}
 			});
-			node.appendChild(button);
+			let node = n.parentElement as HTMLElement;
+			copy_div.style.position = "absolute";
+			copy_div.style.right = "0";
+			copy_div.style.top = "0";
+			copy_div.style.zIndex = "1";
+			copy_div.style.padding = "var(--spacing-md)";
+			copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
+			node.style.position = "relative";
+			node.appendChild(copy_div);
+		});
+
+		render_math_in_element(div, {
+			delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "$", right: "$", display: false }
+			],
+			throwOnError: false
 		});
 	});
 
@@ -96,7 +137,7 @@
 							})}
 					>
 						{#if typeof message === "string"}
-							{@html message}
+							{@html marked.parse(message)}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -247,13 +288,6 @@
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
 	}
-	.message-wrap > div :global(.highlight) {
-		margin-top: var(--spacing-xs);
-		margin-bottom: var(--spacing-xs);
-		border-radius: var(--radius-md);
-		background: var(--chatbot-code-background-color);
-		padding-left: var(--spacing-xxl);
-	}
 
 	/* Small screen */
 	@media (max-width: 480px) {
@@ -290,7 +324,50 @@
 		display: none;
 	}
 
+	/* Code blocks */
+	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
-		padding: var(--spacing-xl) 0px;
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		box-shadow: none;
+		border: none;
+		border-radius: var(--radius-md);
+		background-color: var(--chatbot-code-background-color);
+		padding: var(--spacing-xl) 10px;
+	}
+
+	/* Tables */
+	.message-wrap :global(table),
+	.message-wrap :global(tr),
+	.message-wrap :global(td),
+	.message-wrap :global(th) {
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		padding: var(--spacing-xl);
+	}
+
+	.message-wrap .bot :global(table),
+	.message-wrap .bot :global(tr),
+	.message-wrap .bot :global(td),
+	.message-wrap .bot :global(th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap .user :global(table),
+	.message-wrap .user :global(tr),
+	.message-wrap .user :global(td),
+	.message-wrap .user :global(th) {
+		border: 1px solid var(--border-color-accent);
+	}
+
+	/* Lists */
+	.message-wrap :global(ol),
+	.message-wrap :global(ul) {
+		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
 	}
 </style>
