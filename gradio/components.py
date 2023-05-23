@@ -2455,12 +2455,14 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
+            print("is file")
             if utils.validate_url(file_name):
                 temp_file_path = self.download_temp_copy_if_needed(file_name)
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
             temp_file_path = self.base64_to_temp_file_if_needed(file_data, file_name)
+            print("temp_file", temp_file_path)
 
         sample_rate, data = processing_utils.audio_from_file(
             temp_file_path, crop_min=crop_min, crop_max=crop_max
