@@ -2444,6 +2444,8 @@ class Audio(
         Returns:
             audio in requested format
         """
+        print("preprocess in", x)
+
         if x is None:
             return x
         file_name, file_data, is_file = (
@@ -2747,10 +2749,6 @@ class File(
         if x is None:
             return None
         
-        print("preprocess in", x)
-        import logging
-        logging.error("preprocess in" + str(x))
-
         def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
             file_name, data, is_file = (
                 f["name"],
