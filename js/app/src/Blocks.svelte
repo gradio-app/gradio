@@ -94,22 +94,11 @@
 		type: "inputs" | "outputs",
 		deps: Array<Dependency>
 	) {
-		let dep_index = 0;
-		for (;;) {
-			const dep = deps[dep_index];
-			if (dep === undefined) break;
-
-			let dep_item_index = 0;
-			for (;;) {
-				const dep_item = dep[type][dep_item_index];
-				if (dep_item === undefined) break;
+		for (const dep of deps) {
+			for (const dep_item of dep[type]) {
 				if (dep_item === id) return true;
-				dep_item_index++;
 			}
-
-			dep_index++;
 		}
-
 		return false;
 	}
 
