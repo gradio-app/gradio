@@ -77,6 +77,7 @@ class TestEvent:
         calls = 0
 
         def increment():
+            nonlocal calls
             calls += 1
             return str(calls)
 
@@ -90,7 +91,28 @@ class TestEvent:
         assert demo.config["dependencies"][0]["trigger_after"] is None
         assert demo.config["dependencies"][1]["trigger"] == "then"
         assert demo.config["dependencies"][1]["trigger_after"] == 0
-        demo.launch(prevent_thread_lock=True)
+
+    def test_load_chaining_reuse(self):
+        calls = 0
+
+        def increment():
+            nonlocal calls
+            calls += 1
+            return str(calls)
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox(label="Call counter")
+            demo.load(increment, inputs=None, outputs=out).then(
+                increment, inputs=None, outputs=out
+            )
+
+        with gr.Blocks() as demo2:
+            demo.render()
+
+        assert demo2.config["dependencies"][0]["trigger"] == "load"
+        assert demo2.config["dependencies"][0]["trigger_after"] is None
+        assert demo2.config["dependencies"][1]["trigger"] == "then"
+        assert demo2.config["dependencies"][1]["trigger_after"] == 0
 
 
 class TestEventErrors:
