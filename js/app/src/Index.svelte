@@ -100,7 +100,7 @@
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
-		await mount_css(config.root + "/theme.css", document.head);
+		await mount_css(config.root + "/theme.css");
 		if (!config.stylesheets) return;
 
 		await Promise.all(
@@ -109,7 +109,6 @@
 					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
 				return mount_css(
 					absolute_link ? stylesheet : config.root + "/" + stylesheet,
-					document.head
 				);
 			})
 		);

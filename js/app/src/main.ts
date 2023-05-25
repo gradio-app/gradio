@@ -20,10 +20,10 @@ function create_custom_element() {
 
 		async connectedCallback() {
 			if (typeof FONTS !== "string") {
-				FONTS.forEach((f) => mount_css(f, document.head));
+				FONTS.forEach(mount_css);
 			}
 
-			await mount_css(ENTRY_CSS, document.head);
+			await mount_css(ENTRY_CSS);
 
 			const event = new CustomEvent("domchange", {
 				bubbles: true,
