@@ -6,7 +6,8 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Gradio will no longer hang forever when waiting for external CSS to load by [@akx](https://github.com/akx) in [PR 4335](https://github.com/gradio-app/gradio/pull/4335)
+
 
 ## Other Changes:
 

@@ -109,6 +109,8 @@
 					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
 				return mount_css(
 					absolute_link ? stylesheet : config.root + "/" + stylesheet,
+					// Wait up to 1.5 seconds for external stylesheets to load before continuing anyway.
+					absolute_link ? 1500 : undefined
 				);
 			})
 		);
