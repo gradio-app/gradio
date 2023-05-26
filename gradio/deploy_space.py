@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
-import random
 import re
-import sys
 
 import huggingface_hub
 
@@ -15,7 +13,8 @@ readme_file = os.path.join(repo_directory, "README.md")
 
 
 def add_configuration_to_readme(
-    title: str | None, app_file: str | None, emoji: str | None, color: str | None
+    title: str | None,
+    app_file: str | None,
 ) -> dict:
     configuration = {}
 
@@ -47,32 +46,7 @@ def add_configuration_to_readme(
         raise FileNotFoundError("Failed to find Gradio app file.")
     configuration["app_file"] = app_file
 
-    if emoji is None:
-        emoji_set = "🤯🤖🧠🐶👑💥🐮🎁🐙🦋"
-        default_emoji = random.choice(emoji_set)
-        emoji = input(f"Enter Spaces Card emoji [{default_emoji}]: ") or default_emoji
-    configuration["emoji"] = emoji
-
-    if color is None:
-        color_set = [
-            "red",
-            "yellow",
-            "green",
-            "blue",
-            "indigo",
-            "purple",
-            "pink",
-            "gray",
-        ]
-        default_color = random.choice(color_set)
-        color = input(f"Enter Spaces Card color [{default_color}]: ") or default_color
-        configuration["colorFrom"] = color
-        configuration["colorTo"] = color
-
     configuration["sdk"] = "gradio"
-    configuration[
-        "python_version"
-    ] = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     configuration["sdk_version"] = gr.__version__
     huggingface_hub.metadata_save(readme_file, configuration)
 
@@ -119,8 +93,6 @@ def deploy():
     parser.add_argument("deploy")
     parser.add_argument("--title", type=str, help="Spaces app title")
     parser.add_argument("--app-file", type=str, help="File containing the Gradio app")
-    parser.add_argument("--emoji", type=str, help="Enoji used for Spaces card")
-    parser.add_argument("--color", type=str, help="Color used for Spaces card")
 
     args = parser.parse_args()
 
@@ -150,7 +122,8 @@ def deploy():
             f"Creating new Spaces Repo in '{repo_directory}'. Collecting metadata, press Enter to accept default value."
         )
         configuration = add_configuration_to_readme(
-            args.title, args.app_file, args.emoji, args.color
+            args.title,
+            args.app_file,
         )
 
     space_id = huggingface_hub.create_repo(
