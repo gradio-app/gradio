@@ -22,6 +22,7 @@
 	import type { ThemeMode } from "./components/types";
 
 	import logo from "./images/logo.svg";
+	import academic from "./images/academic.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 
 	setupi18n();
@@ -450,17 +451,16 @@
 
 	{#if show_footer}
 		<footer>
-			{#if show_api}
-				<button
-					on:click={() => {
-						set_api_docs_visible(!api_docs_visible);
-					}}
-					class="show-api"
-				>
-					Use via API <img src={api_logo} alt="" />
-				</button>
-				<div>·</div>
-			{/if}
+			<a
+				href="https://github.com/binary-husky/gpt_academic"
+				class="built-with"
+				target="_blank"
+				rel="noreferrer"
+			>
+				Github Repository
+				<img src={academic} alt="academic" />
+			</a>
+			<div>·</div>
 			<a
 				href="https://gradio.app"
 				class="built-with"

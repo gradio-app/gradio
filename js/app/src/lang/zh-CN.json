@@ -7,6 +7,7 @@
 		"drop_csv": "拖放CSV至此处",
 		"click_to_upload": "点击上传",
 		"view_api": "查看API",
+		"Github_Repository": "前往Github仓库",
 		"built_with_Gradio": "使用Gradio构建"
 	},
 	"Submit": "提交",

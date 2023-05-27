@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.
 build-backend = "hatchling.build"
 
 [project]
-name = "gradio"
+name = "gradio-version-freeze"
 dynamic = ["version", "dependencies", "readme"]
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
@@ -50,6 +50,7 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<
 [tool.hatch.build]
 artifacts = [
   "/gradio/templates",
+  "/gradio/version.txt",
 ]
 
 
