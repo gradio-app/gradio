@@ -1,20 +1,8 @@
 <script lang="ts">
-	import { marked } from "marked";
-	import Prism from "prismjs";
-	import "prismjs/components/prism-python";
-	import "prismjs/components/prism-latex";
-	import "katex/dist/katex.min.css";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
-	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
-
-	const code_highlight_css = {
-		light: () => import("prismjs/themes/prism.css"),
-		dark: () => import("prismjs/themes/prism-dark.css")
-	};
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -26,33 +14,6 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
-	export let theme_mode: ThemeMode;
-
-	$: if (theme_mode == "dark") {
-		code_highlight_css.dark();
-	} else {
-		code_highlight_css.light();
-	}
-	const marked_renderer = new marked.Renderer();
-	marked.setOptions({
-		renderer: marked_renderer,
-		gfm: true,
-		breaks: true,
-		pedantic: false,
-		sanitize: true,
-		smartLists: true,
-		smartypants: false
-	});
-
-	marked.setOptions({
-		highlight: (code: string, lang: string) => {
-			if (Prism.languages[lang]) {
-				return Prism.highlight(code, Prism.languages[lang], lang);
-			} else {
-				return code;
-			}
-		}
-	});
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -108,14 +69,6 @@
 				node.appendChild(copy_div);
 			}
 		});
-
-		render_math_in_element(div, {
-			delimiters: [
-				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false }
-			],
-			throwOnError: false
-		});
 	});
 
 	$: {
@@ -150,7 +103,7 @@
 							})}
 					>
 						{#if typeof message === "string"}
-							{@html marked.parse(message)}
+							{@html message}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -340,13 +293,13 @@
 	/* Code blocks */
 	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
-		margin-top: var(--spacing-sm);
+		/* margin-top: var(--spacing-sm);
 		margin-bottom: var(--spacing-sm);
 		box-shadow: none;
 		border: none;
 		border-radius: var(--radius-md);
-		background-color: var(--chatbot-code-background-color);
-		padding: var(--spacing-xl) 10px;
+		background-color: var(--chatbot-code-background-color); */
+		padding: 0px;
 	}
 
 	/* Tables */
