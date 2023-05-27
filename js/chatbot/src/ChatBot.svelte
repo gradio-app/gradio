@@ -78,22 +78,35 @@
 		}
 		div.querySelectorAll("pre > code").forEach((n) => {
 			let code_node = n as HTMLElement;
-			const copy_div = document.createElement("div");
-			new Copy({
-				target: copy_div,
-				props: {
-					value: code_node.innerText.trimEnd()
+			// check whether copy button is already in there
+			let copy_div_exist = false;
+			if (code_node.parentElement) {
+				let buttonElement = code_node.parentElement.querySelector("button");
+				if (buttonElement) {
+					// button element is already inside code_node
+					copy_div_exist = true;
 				}
-			});
-			let node = n.parentElement as HTMLElement;
-			copy_div.style.position = "absolute";
-			copy_div.style.right = "0";
-			copy_div.style.top = "0";
-			copy_div.style.zIndex = "1";
-			copy_div.style.padding = "var(--spacing-md)";
-			copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
-			node.style.position = "relative";
-			node.appendChild(copy_div);
+			}
+			if (copy_div_exist) {
+				return;
+			} else {
+				const copy_div = document.createElement("div");
+				new Copy({
+					target: copy_div,
+					props: {
+						value: code_node.innerText.trimEnd()
+					}
+				});
+				let node = n.parentElement as HTMLElement;
+				copy_div.style.position = "absolute";
+				copy_div.style.right = "0";
+				copy_div.style.top = "0";
+				copy_div.style.zIndex = "1";
+				copy_div.style.padding = "var(--spacing-md)";
+				copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
+				node.style.position = "relative";
+				node.appendChild(copy_div);
+			}
 		});
 
 		render_math_in_element(div, {
