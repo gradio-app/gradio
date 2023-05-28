@@ -10,7 +10,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Remove flicker of loading bar by adding opacity transition, by [@aliabid94](https://github.com/aliabid94) in [PR 4349](https://github.com/gradio-app/gradio/pull/4349).
 
 ## Breaking Changes:
 
