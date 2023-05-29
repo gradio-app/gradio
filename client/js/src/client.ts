@@ -708,10 +708,25 @@ function transform_output(
 	return transformed_data;
 }
 
-export function normalise_file(
-	file: Array<FileData> | FileData | string | null,
+function normalise_file(
+	file: Array<FileData>,
 	root: string,
 	root_url: string | null
+): Array<FileData>;
+function normalise_file(
+	file: FileData | string,
+	root: string,
+	root_url: string | null
+): FileData;
+function normalise_file(
+	file: null,
+	root: string,
+	root_url: string | null
+): null;
+function normalise_file(
+	file,
+	root,
+	root_url
 ): Array<FileData> | FileData | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
@@ -726,7 +741,6 @@ export function normalise_file(
 			if (x === null) {
 				normalized_file.push(null);
 			} else {
-				//@ts-ignore
 				normalized_file.push(normalise_file(x, root, root_url));
 			}
 		}
