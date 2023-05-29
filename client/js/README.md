@@ -206,7 +206,7 @@ submission.off("/predict", handle_data);
 
 ##### `destroy`
 
-The `destroy` method will remove all subscriptions to a job, regardless of whether or not they are `"data"` or `"status"` events. This is a convenience method for when you do not wnat to unsubscribe use the `off` method.
+The `destroy` method will remove all subscriptions to a job, regardless of whether or not they are `"data"` or `"status"` events. This is a convenience method for when you do not want to unsubscribe use the `off` method.
 
 ```js
 import { client } from "@gradio/client";
@@ -239,7 +239,7 @@ submission.cancel();
 
 #### `view_api`
 
-The `view_api` method provides details about the API you are connected too. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
+The `view_api` method provides details about the API you are connected to. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
 
 ```ts
 import { client } from "@gradio/client";
