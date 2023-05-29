@@ -4532,7 +4532,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            grid: ('grid' has been renamed to 'columns') Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints            columns: Represents the number of columns in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            grid: ('grid' has been renamed to 'columns') Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            columns: Represents the number of columns in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
