@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+* Make `Blocks.load` behave like other event listeners (allows chaining `then` off of it) [@anentropic](https://github.com/anentropic/) in [PR 4304](https://github.com/gradio-app/gradio/pull/4304)
 
 ## Bug Fixes:
 

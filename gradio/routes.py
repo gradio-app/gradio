@@ -411,7 +411,7 @@ class App(FastAPI):
             dependency = app.get_blocks().dependencies[fn_index_inferred]
             target = dependency["targets"][0] if len(dependency["targets"]) else None
             event_data = EventData(
-                app.get_blocks().blocks[target] if target else None,
+                app.get_blocks().blocks.get(target) if target else None,
                 body.event_data,
             )
             batch = dependency["batch"]
