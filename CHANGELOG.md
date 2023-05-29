@@ -10,7 +10,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-- typo in gallery documentation, making columns arg appear in grid
+No changes to highlight.
 
 ## Breaking Changes:
 
