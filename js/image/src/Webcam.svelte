@@ -23,7 +23,7 @@
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: { facingMode: facing_mode },
-				audio: include_audio,
+				audio: include_audio
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
@@ -78,7 +78,7 @@
 					dispatch("capture", {
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
-						is_example: false,
+						is_example: false
 					});
 				}
 			};
@@ -97,7 +97,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType,
+				mimeType: mimeType
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);
