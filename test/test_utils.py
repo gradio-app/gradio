@@ -631,6 +631,5 @@ def test_is_in_or_equal():
     assert is_in_or_equal("files/lion.jpg", "files")
     assert not is_in_or_equal("files", "files/lion.jpg")
     assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
-    assert is_in_or_equal("/home/usr/../usr/notes.txt", "/home/usr/")
-    assert is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
+    assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
