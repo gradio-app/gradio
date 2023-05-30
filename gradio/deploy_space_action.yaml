@@ -19,10 +19,10 @@ jobs:
         python-version: '3.9'
 
     - name: Install Gradio
-      run: python -m pip install https://gradio-builds.s3.amazonaws.com/c0138fa3cf227b01cdc468c7817298d5f7849c9e/gradio-3.32.0-py3-none-any.whl
+      run: python -m pip install gradio
 
     - name: Log in to Hugging Face
-      run: python -c 'import huggingface_hub; huggingface_hub.login(token={{ secrets.hf_token }})'
+      run: python -c 'import huggingface_hub; huggingface_hub.login(token="${{ secrets.hf_token }}")'
 
     - name: Deploy to Spaces
       run: gradio deploy
