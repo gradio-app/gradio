@@ -250,10 +250,6 @@
 			);
 		}
 
-		if (current_status === "pending" || current_status === "generating") {
-			return;
-		}
-
 		let payload = {
 			fn_index: dep_index,
 			data: dep.inputs.map((id) => instance_map[id].props.value),
