@@ -370,6 +370,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
       '@types/katex':
         specifier: ^0.16.0
         version: 0.16.0
@@ -379,6 +382,9 @@ importers:
       '@types/prismjs':
         specifier: 1.26.0
         version: 1.26.0
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
       katex:
         specifier: ^0.16.7
         version: 0.16.7
@@ -1879,6 +1885,12 @@ packages:
       '@types/ms': 0.7.31
     dev: false
 
+  /@types/dompurify@3.0.2:
+    resolution: {integrity: sha512-YBL4ziFebbbfQfH5mlC+QTJsvh0oJUrWbmxKMyEdL7emlHJqGR2Qb34TEFKj+VCayBvjKy3xczMFNhugThUsfQ==}
+    dependencies:
+      '@types/trusted-types': 2.0.3
+    dev: false
+
   /@types/estree@0.0.50:
     resolution: {integrity: sha512-C6N5s2ZFtuZRj54k2/zyRhNDjJwwcViAM3Nbm8zjBpbqAdZ00mr0CFxvSKeO8Y/e03WVFLpQMdHYVfUd6SB+Hw==}
     dev: false
@@ -2001,6 +2013,10 @@ packages:
   /@types/three@0.138.0:
     resolution: {integrity: sha512-D8AoV7h2kbCfrv/DcebHOFh1WDwyus3HdooBkAwcBikXArdqnsQ38PQ85JCunnvun160oA9jz53GszF3zch3tg==}
     dev: true
+
+  /@types/trusted-types@2.0.3:
+    resolution: {integrity: sha512-NfQ4gyz38SL8sDNrSixxU2Os1a5xcdFxipAFxYEuLUlvU2uDwS4NUpsImcf1//SlWItCVMMLiylsxbmNMToV/g==}
+    dev: false
 
   /@types/ws@8.5.4:
     resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}
@@ -3068,6 +3084,10 @@ packages:
     engines: {node: '>= 4'}
     dependencies:
       domelementtype: 2.3.0
+    dev: false
+
+  /dompurify@3.0.3:
+    resolution: {integrity: sha512-axQ9zieHLnAnHh0sfAamKYiqXMJAVwu+LM/alQ7WDagoWessyWvMSFyW65CqF3owufNu8HBcE4cM2Vflu7YWcQ==}
     dev: false
 
   /domutils@2.8.0:
