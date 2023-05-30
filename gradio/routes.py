@@ -145,6 +145,20 @@ class App(FastAPI):
         return self.blocks
 
     @staticmethod
+    def build_proxy_request(url_path):
+        url = httpx.URL(url_path)
+        is_hf_url = (
+            url.host.endswith(".huggingface.co")
+            or url.host.endswith(".hf.space")
+            or url.host.endswith(".hf.co")
+        )
+        headers = {}
+        if Context.hf_token is not None and is_hf_url:
+            headers["Authorization"] = f"Bearer {Context.hf_token}"
+        rp_req = client.build_request("GET", url, headers=headers)
+        return rp_req
+
+    @staticmethod
     def create_app(
         blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
@@ -300,11 +314,7 @@ class App(FastAPI):
         @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
-            url = httpx.URL(url_path)
-            headers = {}
-            if Context.hf_token is not None:
-                headers["Authorization"] = f"Bearer {Context.hf_token}"
-            rp_req = client.build_request("GET", url, headers=headers)
+            rp_req = build_proxy_request(url_path)
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
                 rp_resp.aiter_raw(),
