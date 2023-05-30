@@ -39,6 +39,7 @@ from gradio.utils import (
     sanitize_value_for_csv,
     tex2svg,
     validate_url,
+    is_in_or_equal,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -623,3 +624,14 @@ def test_tex2svg_preserves_matplotlib_backend():
     ):
         tex2svg("$$$1+1=2$$$")
     assert matplotlib.get_backend() == "svg"
+
+
+def test_is_in_or_equal():
+    assert is_in_or_equal("files/lion.jpg", "files/lion.jpg")
+    assert is_in_or_equal("files/lion.jpg", "files")
+    assert not is_in_or_equal("files", "files/lion.jpg")
+    assert is_in_or_equal(r"C:\files\lion.jpg", r"C:\files")
+    assert not is_in_or_equal(r"C:\files\..\..\C:\lion.jpg", r"C:\files")
+    assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
+    assert is_in_or_equal("/home/usr/../usr/notes.txt", "/home/usr/")
+    assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
