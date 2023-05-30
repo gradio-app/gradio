@@ -292,7 +292,7 @@ class App(FastAPI):
         async def favicon():
             blocks = app.get_blocks()
             if blocks.favicon_path is None:
-                return static_resource("img/logo.svg")
+                return static_resource("favicon.svg")
             else:
                 return FileResponse(blocks.favicon_path)
 

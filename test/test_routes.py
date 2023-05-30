@@ -55,6 +55,10 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_favicon_route(self, test_client):
+        response = test_client.get("/favicon.ico")
+        assert response.status_code == 200
+
     def test_upload_path(self, test_client):
         with open("test/test_files/alphabet.txt") as f:
             response = test_client.post("/upload", files={"files": f})
