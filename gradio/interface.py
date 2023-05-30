@@ -265,6 +265,8 @@ class Interface(Blocks):
             for o in self.output_components:
                 assert isinstance(o, IOComponent)
                 if o.interactive is None:
+                    # Unless explicitly otherwise specified, 
+                    # force output components to be non-interactive
                     o.interactive = False
         if (
             interpretation is None
