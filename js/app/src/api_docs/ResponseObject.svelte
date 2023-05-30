@@ -19,11 +19,6 @@
 
 	export let named: boolean;
 	export let current_language: "python" | "javascript";
-
-	const format_url = (desc: string | undefined, data: string | undefined) =>
-		desc
-			?.replace("{ROOT}", root)
-			?.replace("{name}", data ? JSON.parse(`${data}`)?.name : "{name}");
 </script>
 
 <h4>
