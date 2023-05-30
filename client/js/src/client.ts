@@ -547,7 +547,7 @@ export async function client(
 
 			function fire_event<K extends EventType>(event: Event<K>) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				const listeners = narrowed_listener_map[event.type];
+				const listeners = narrowed_listener_map[event.type] || [];
 				listeners?.forEach((l) => l(event));
 			}
 
@@ -556,7 +556,7 @@ export async function client(
 				listener: EventListener<K>
 			) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				const listeners = narrowed_listener_map[eventType];
+				const listeners = narrowed_listener_map[eventType] || [];
 				narrowed_listener_map[eventType] = listeners;
 				listeners?.push(listener);
 
@@ -568,9 +568,9 @@ export async function client(
 				listener: EventListener<K>
 			) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				const listeners = narrowed_listener_map[eventType] ?? [];
-				const new_listeners = listeners?.filter((l) => l !== listener);
-				narrowed_listener_map[eventType] = new_listeners;
+				let listeners = narrowed_listener_map[eventType] || [];
+				listeners = listeners?.filter((l) => l !== listener);
+				narrowed_listener_map[eventType] = listeners;
 
 				return { on, off, cancel, destroy };
 			}
