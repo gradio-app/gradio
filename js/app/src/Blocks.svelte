@@ -238,6 +238,7 @@
 		event_data: unknown = null
 	) => {
 		let dep = dependencies[dep_index];
+		const current_status = loading_status.get_status_for_fn(dep_index);
 
 		if (dep.cancels) {
 			await Promise.all(
@@ -247,6 +248,10 @@
 					return submission;
 				})
 			);
+		}
+
+		if (current_status === "pending" || current_status === "generating") {
+			return;
 		}
 
 		let payload = {
