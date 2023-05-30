@@ -45,7 +45,7 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
-	view_api: (c?: Config) => Promise<Record<string, any>>;
+	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 
 type SubmitReturn = {
@@ -250,7 +250,7 @@ export async function client(
 				...return_obj
 			};
 		}
-		let api;
+		let api: ApiInfo<JsApiData>;
 		async function handle_space_sucess(status: SpaceStatus) {
 			if (status_callback) status_callback(status);
 			if (status.status === "running")
@@ -627,9 +627,7 @@ export async function client(
 			};
 		}
 
-		async function view_api(
-			config?: Config
-		): Promise<ApiInfo<JsApiData> | [{ error: string }, 500]> {
+		async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
 			if (api) return api;
 
 			const headers: {
@@ -639,46 +637,46 @@ export async function client(
 			if (hf_token) {
 				headers.Authorization = `Bearer ${hf_token}`;
 			}
-			try {
-				let response: Response;
-				// @ts-ignore
-				if (semiver(config.version || "2.0.0", "3.30") < 0) {
-					response = await fetch(
-						"https://gradio-space-api-fetcher-v2.hf.space/api",
-						{
-							method: "POST",
-							body: JSON.stringify({
-								serialize: false,
-								config: JSON.stringify(config)
-							}),
-							headers
-						}
-					);
-				} else {
-					response = await fetch(`${config.root}/info`, {
+			let response: Response;
+			// @ts-ignore
+			if (semiver(config.version || "2.0.0", "3.30") < 0) {
+				response = await fetch(
+					"https://gradio-space-api-fetcher-v2.hf.space/api",
+					{
+						method: "POST",
+						body: JSON.stringify({
+							serialize: false,
+							config: JSON.stringify(config)
+						}),
 						headers
-					});
-				}
-
-				let api_info = (await response.json()) as
-					| ApiInfo<ApiData>
-					| { api: ApiInfo<ApiData> };
-				if ("api" in api_info) {
-					api_info = api_info.api;
-				}
-
-				if (
-					api_info.named_endpoints["/predict"] &&
-					!api_info.unnamed_endpoints["0"]
-				) {
-					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
-				}
-
-				const x = transform_api_info(api_info, config, api_map);
-				return x;
-			} catch (e) {
-				return [{ error: BROKEN_CONNECTION_MSG }, 500];
+					}
+				);
+			} else {
+				response = await fetch(`${config.root}/info`, {
+					headers
+				});
 			}
+
+			if (!response.ok) {
+				throw new Error(BROKEN_CONNECTION_MSG);
+			}
+
+			let api_info = (await response.json()) as
+				| ApiInfo<ApiData>
+				| { api: ApiInfo<ApiData> };
+			if ("api" in api_info) {
+				api_info = api_info.api;
+			}
+
+			if (
+				api_info.named_endpoints["/predict"] &&
+				!api_info.unnamed_endpoints["0"]
+			) {
+				api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+			}
+
+			const x = transform_api_info(api_info, config, api_map);
+			return x;
 		}
 	});
 }
