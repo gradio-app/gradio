@@ -6,7 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-- Fixed Copy Button bugs in the Chatbot component (Copy Button duplication & Copy Button ineffectiveness via non-localhost http access) in by [@binary-husky](https://github.com/binary-husky) in [PR 4350](https://github.com/gradio-app/gradio/pull/4350). 
+- Fixed Copy Button bugs in the Chatbot component (Copy Button duplication & Copy Button ineffectiveness via non-localhost http access) by [@binary-husky](https://github.com/binary-husky) in [PR 4350](https://github.com/gradio-app/gradio/pull/4350). 
 
 ## Other Changes:
 
