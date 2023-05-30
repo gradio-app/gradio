@@ -151,9 +151,6 @@
 	let plugin_scripts = [];
 
 	const resolves = [];
-	const bokehPromises = Array(5)
-		.fill(0)
-		.map((_, i) => createPromise(i));
 
 	const initializeBokeh = (index) => {
 		if (type == "bokeh") {
