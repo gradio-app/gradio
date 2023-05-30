@@ -13,12 +13,10 @@ import pkgutil
 import random
 import re
 import sys
-import threading
 import time
 import typing
 import warnings
 from contextlib import contextmanager
-from distutils.version import StrictVersion
 from enum import Enum
 from io import BytesIO
 from numbers import Number
@@ -27,19 +25,16 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Generator,
-    List,
-    Tuple,
-    Type,
     TypeVar,
     Union,
 )
 
-import aiohttp
+import anyio
 import httpx
-import matplotlib.pyplot as plt
+import matplotlib
 import requests
+from gradio_client.serializing import Serializable
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
@@ -53,184 +48,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import Block, BlockContext
     from gradio.components import Component
 
-analytics_url = "https://api.gradio.app/"
-PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 GRADIO_VERSION = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 )
 
 T = TypeVar("T")
-
-
-def version_check():
-    try:
-        version_data = pkgutil.get_data(__name__, "version.txt")
-        if not version_data:
-            raise FileNotFoundError
-        current_pkg_version = version_data.decode("ascii").strip()
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
-            "version"
-        ]
-        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-            print(
-                f"IMPORTANT: You are using gradio version {current_pkg_version}, "
-                f"however version {latest_pkg_version} is available, please upgrade."
-            )
-            print("--------")
-    except json.decoder.JSONDecodeError:
-        warnings.warn("unable to parse version details from package URL.")
-    except KeyError:
-        warnings.warn("package URL does not contain version info.")
-    except:
-        pass
-
-
-def get_local_ip_address() -> str:
-    """Gets the public IP address or returns the string "No internet connection" if unable to obtain it. Does not make a new request if the IP address has already been obtained."""
-    if Context.ip_address is None:
-        try:
-            ip_address = requests.get(
-                "https://checkip.amazonaws.com/", timeout=3
-            ).text.strip()
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            ip_address = "No internet connection"
-        Context.ip_address = ip_address
-    else:
-        ip_address = Context.ip_address
-    return ip_address
-
-
-def initiated_analytics(data: Dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def initiated_analytics_thread(data: Dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-initiated-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
-
-
-def launch_analytics(data: Dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def launch_analytics_thread(data: Dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-launched-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=launch_analytics_thread, args=(data,)).start()
-
-
-def launched_telemetry(blocks: gradio.Blocks, data: Dict[str, Any]) -> None:
-    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
-        [],
-        [],
-        [],
-        [],
-    )
-
-    from gradio.blocks import BlockContext
-
-    for x in list(blocks.blocks.values()):
-        blocks_telemetry.append(x.get_block_name()) if isinstance(
-            x, BlockContext
-        ) else blocks_telemetry.append(str(x))
-
-    for x in blocks.dependencies:
-        targets_telemetry = targets_telemetry + [
-            str(blocks.blocks[y]) for y in x["targets"]
-        ]
-        inputs_telemetry = inputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["inputs"]
-        ]
-        outputs_telemetry = outputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["outputs"]
-        ]
-    additional_data = {
-        "version": GRADIO_VERSION,
-        "is_kaggle": blocks.is_kaggle,
-        "is_sagemaker": blocks.is_sagemaker,
-        "using_auth": blocks.auth is not None,
-        "dev_mode": blocks.dev_mode,
-        "show_api": blocks.show_api,
-        "show_error": blocks.show_error,
-        "title": blocks.title,
-        "inputs": blocks.input_components
-        if blocks.mode == "interface"
-        else inputs_telemetry,
-        "outputs": blocks.output_components
-        if blocks.mode == "interface"
-        else outputs_telemetry,
-        "targets": targets_telemetry,
-        "blocks": blocks_telemetry,
-        "events": [str(x["trigger"]) for x in blocks.dependencies],
-    }
-
-    data.update(additional_data)
-    data.update({"ip_address": get_local_ip_address()})
-
-    def launched_telemtry_thread(data: Dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-launched-telemetry/", data=data, timeout=5
-            )
-        except Exception:
-            pass
-
-    threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
-
-
-def integration_analytics(data: Dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def integration_analytics_thread(data: Dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-integration-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=integration_analytics_thread, args=(data,)).start()
-
-
-def error_analytics(message: str) -> None:
-    """
-    Send error analytics if there is network
-    Parameters:
-        message: Details about error
-    """
-    data = {"ip_address": get_local_ip_address(), "error": message}
-
-    def error_analytics_thread(data: Dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-error-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=error_analytics_thread, args=(data,)).start()
-
-
-async def log_feature_analytics(feature: str) -> None:
-    data = {"ip_address": get_local_ip_address(), "feature": feature}
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(
-                f"{analytics_url}gradio-feature-analytics/", data=data
-            ):
-                pass
-        except (aiohttp.ClientError):
-            pass  # do not push analytics if no network
 
 
 def colab_check() -> bool:
@@ -263,7 +86,7 @@ def sagemaker_check() -> bool:
         client = boto3.client("sts")
         response = client.get_caller_identity()
         return "sagemaker" in response["Arn"].lower()
-    except:
+    except Exception:
         return False
 
 
@@ -313,11 +136,11 @@ def launch_counter() -> None:
                 print(en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
-    except:
+    except Exception:
         pass
 
 
-def get_default_args(func: Callable) -> List[Any]:
+def get_default_args(func: Callable) -> list[Any]:
     signature = inspect.signature(func)
     return [
         v.default if v.default is not inspect.Parameter.empty else None
@@ -326,7 +149,7 @@ def get_default_args(func: Callable) -> List[Any]:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: Dict, config2: Dict, root_keys: Tuple = ("mode",)
+    config1: dict, config2: dict, root_keys: tuple = ("mode",)
 ):
     """Allows you to test if two different Blocks configs produce the same demo.
 
@@ -379,7 +202,7 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
+def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
 
@@ -397,7 +220,7 @@ def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
     return output
 
 
-def delete_none(_dict: Dict, skip_value: bool = False) -> Dict:
+def delete_none(_dict: dict, skip_value: bool = False) -> dict:
     """
     Delete keys whose values are None from a dictionary
     """
@@ -409,14 +232,14 @@ def delete_none(_dict: Dict, skip_value: bool = False) -> Dict:
     return _dict
 
 
-def resolve_singleton(_list: List[Any] | Any) -> Any:
+def resolve_singleton(_list: list[Any] | Any) -> Any:
     if len(_list) == 1:
         return _list[0]
     else:
         return _list
 
 
-def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockContext]:
+def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockContext]:
     """
     Returns the component, template, or layout class with the given class name, or
     raises a ValueError if not found.
@@ -483,12 +306,34 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     return event_loop.create_task(func(*args, **kwargs))
 
 
-def async_iteration(iterator):
+def run_sync_iterator_async(iterator):
+    """Helper for yielding StopAsyncIteration from sync iterators."""
     try:
         return next(iterator)
     except StopIteration:
         # raise a ValueError here because co-routines can't raise StopIteration themselves
-        raise StopAsyncIteration()
+        raise StopAsyncIteration() from None
+
+
+class SyncToAsyncIterator:
+    """Treat a synchronous iterator as async one."""
+
+    def __init__(self, iterator, limiter) -> None:
+        self.iterator = iterator
+        self.limiter = limiter
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        return await anyio.to_thread.run_sync(
+            run_sync_iterator_async, self.iterator, limiter=self.limiter
+        )
+
+
+async def async_iteration(iterator):
+    # anext not introduced until 3.10 :(
+    return await iterator.__anext__()
 
 
 class AsyncRequest:
@@ -533,9 +378,9 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Type[BaseModel] | None = None,
+        validation_model: type[BaseModel] | None = None,
         validation_function: Union[Callable, None] = None,
-        exception_type: Type[Exception] = Exception,
+        exception_type: type[Exception] = Exception,
         raise_for_status: bool = False,
         client: httpx.AsyncClient | None = None,
         **kwargs,
@@ -562,7 +407,7 @@ class AsyncRequest:
         self._request = self._create_request(method, url, **kwargs)
         self.client_ = client or self.client
 
-    def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
+    def __await__(self) -> Generator[None, Any, AsyncRequest]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """
@@ -737,7 +582,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     return value
 
 
-def sanitize_list_for_csv(values: List[Any]) -> List[Any]:
+def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     """
     Sanitizes a list of values (or a list of list of values) that is being written to a
     CSV file to prevent CSV injection attacks.
@@ -753,7 +598,7 @@ def sanitize_list_for_csv(values: List[Any]) -> List[Any]:
     return sanitized_values
 
 
-def append_unique_suffix(name: str, list_of_names: List[str]):
+def append_unique_suffix(name: str, list_of_names: list[str]):
     """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
     set_of_names: set[str] = set(list_of_names)  # for O(1) lookup
     if name not in set_of_names:
@@ -812,8 +657,8 @@ def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
 
 
 def get_cancel_function(
-    dependencies: List[Dict[str, Any]]
-) -> Tuple[Callable, List[int]]:
+    dependencies: list[dict[str, Any]]
+) -> tuple[Callable, list[int]]:
     fn_to_comp = {}
     for dep in dependencies:
         if Context.root_block:
@@ -825,7 +670,7 @@ def get_cancel_function(
             ]
 
     async def cancel(session_hash: str) -> None:
-        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+        task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
         await cancel_tasks(task_ids)
 
     return (
@@ -835,28 +680,61 @@ def get_cancel_function(
 
 
 def get_type_hints(fn):
+    # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
+    import gradio as gr  # noqa: F401
+    from gradio import Request  # noqa: F401
+
     if inspect.isfunction(fn) or inspect.ismethod(fn):
-        return typing.get_type_hints(fn)
+        pass
     elif callable(fn):
-        return typing.get_type_hints(fn.__call__)
-    return {}
+        fn = fn.__call__
+    else:
+        return {}
+
+    try:
+        return typing.get_type_hints(fn)
+    except TypeError:
+        # On Python 3.9 or earlier, get_type_hints throws a TypeError if the function
+        # has a type annotation that include "|". We resort to parsing the signature
+        # manually using inspect.signature.
+        type_hints = {}
+        sig = inspect.signature(fn)
+        for name, param in sig.parameters.items():
+            if param.annotation is inspect.Parameter.empty:
+                continue
+            if "|" in str(param.annotation):
+                continue
+            # To convert the string annotation to a class, we use the
+            # internal typing._eval_type function. This is not ideal, but
+            # it's the only way to do it without eval-ing the string.
+            # Since the API is internal, it may change in the future.
+            try:
+                type_hints[name] = typing._eval_type(  # type: ignore
+                    typing.ForwardRef(param.annotation), globals(), locals()
+                )
+            except (NameError, TypeError):
+                pass
+        return type_hints
 
 
-def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
+def is_special_typed_parameter(name, parameter_types):
+    from gradio.helpers import EventData
+    from gradio.routes import Request
+
+    """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
+    hint = parameter_types.get(name)
+    if not hint:
+        return False
+    is_request = hint == Request
+    is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
+    return is_request or is_event_data
+
+
+def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
     """
-
-    def is_special_typed_parameter(name):
-        from gradio.helpers import EventData
-        from gradio.routes import Request
-
-        """Checks if parameter has a type hint designating it as a gr.Request or gr.EventData"""
-        is_request = parameter_types.get(name, "") == Request
-        # use int in the fall-back as that will always be false
-        is_event_data = issubclass(parameter_types.get(name, int), EventData)
-        return is_request or is_event_data
 
     signature = inspect.signature(fn)
     parameter_types = get_type_hints(fn)
@@ -866,15 +744,14 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
-            if not is_special_typed_parameter(name):
+            if not is_special_typed_parameter(name, parameter_types):
                 if not has_default:
                     min_args += 1
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
             max_args = infinity
-        elif param.kind == param.KEYWORD_ONLY:
-            if not has_default:
-                return f"Keyword-only args must have default values for function {fn}"
+        elif param.kind == param.KEYWORD_ONLY and not has_default:
+            return f"Keyword-only args must have default values for function {fn}"
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:
         warnings.warn(
@@ -899,34 +776,48 @@ class TupleNoPrint(tuple):
         return ""
 
 
+class MatplotlibBackendMananger:
+    def __enter__(self):
+        self._original_backend = matplotlib.get_backend()
+        matplotlib.use("agg")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        matplotlib.use(self._original_backend)
+
+
 def tex2svg(formula, *args):
-    FONTSIZE = 20
-    DPI = 300
-    plt.rc("mathtext", fontset="cm")
-    fig = plt.figure(figsize=(0.01, 0.01))
-    fig.text(0, 0, rf"${formula}$", fontsize=FONTSIZE)
-    output = BytesIO()
-    fig.savefig(
-        output,
-        dpi=DPI,
-        transparent=True,
-        format="svg",
-        bbox_inches="tight",
-        pad_inches=0.0,
-    )
-    plt.close(fig)
-    output.seek(0)
-    xml_code = output.read().decode("utf-8")
-    svg_start = xml_code.index("<svg ")
-    svg_code = xml_code[svg_start:]
-    svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
-    svg_code = re.sub(r' width="[^"]+"', "", svg_code)
-    height_match = re.search(r'height="([\d.]+)pt"', svg_code)
-    if height_match:
-        height = float(height_match.group(1))
-        new_height = height / FONTSIZE  # conversion from pt to em
-        svg_code = re.sub(r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code)
-    copy_code = f"<span style='font-size: 0px'>{formula}</span>"
+    with MatplotlibBackendMananger():
+        import matplotlib.pyplot as plt
+
+        fontsize = 20
+        dpi = 300
+        plt.rc("mathtext", fontset="cm")
+        fig = plt.figure(figsize=(0.01, 0.01))
+        fig.text(0, 0, rf"${formula}$", fontsize=fontsize)
+        output = BytesIO()
+        fig.savefig(
+            output,
+            dpi=dpi,
+            transparent=True,
+            format="svg",
+            bbox_inches="tight",
+            pad_inches=0.0,
+        )
+        plt.close(fig)
+        output.seek(0)
+        xml_code = output.read().decode("utf-8")
+        svg_start = xml_code.index("<svg ")
+        svg_code = xml_code[svg_start:]
+        svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+        svg_code = re.sub(r' width="[^"]+"', "", svg_code)
+        height_match = re.search(r'height="([\d.]+)pt"', svg_code)
+        if height_match:
+            height = float(height_match.group(1))
+            new_height = height / fontsize  # conversion from pt to em
+            svg_code = re.sub(
+                r'height="[\d.]+pt"', f'height="{new_height}em"', svg_code
+            )
+        copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
 
@@ -948,6 +839,19 @@ def abspath(path: str | Path) -> Path:
         return path.resolve()
 
 
+def is_in_or_equal(path_1: str | Path, path_2: str | Path):
+    """
+    True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
+    same, returns False otherwise.
+    Parameters:
+        path_1: str or Path (can be a file or directory)
+        path_2: str or Path (can be a file or directory)
+    """
+    return (abspath(path_2) in abspath(path_1).parents) or abspath(path_1) == abspath(
+        path_2
+    )
+
+
 def get_serializer_name(block: Block) -> str | None:
     if not hasattr(block, "serialize"):
         return None
@@ -962,6 +866,9 @@ def get_serializer_name(block: Block) -> str | None:
             and getattr(meth.__self__, "__class__", None)
         ):
             for cls in inspect.getmro(meth.__self__.__class__):
+                # Find the first serializer defined in gradio_client that
+                if issubclass(cls, Serializable) and "gradio_client" in cls.__module__:
+                    return cls
                 if meth.__name__ in cls.__dict__:
                     return cls
             meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
@@ -988,7 +895,6 @@ def get_markdown_parser() -> MarkdownIt:
                 "linkify": True,
                 "typographer": True,
                 "html": True,
-                "breaks": True,
             },
         )
         .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)
@@ -1004,3 +910,10 @@ def get_markdown_parser() -> MarkdownIt:
     md.add_render_rule("link_open", render_blank_link)
 
     return md
+
+
+HTML_TAG_RE = re.compile("<.*?>")
+
+
+def remove_html_tags(raw_html: str | None) -> str:
+    return re.sub(HTML_TAG_RE, "", raw_html or "")

@@ -1,7 +1,20 @@
 <script lang="ts">
+	import { marked } from "marked";
+	import Prism from "prismjs";
+	import "prismjs/components/prism-python";
+	import "prismjs/components/prism-latex";
+	import "katex/dist/katex.min.css";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
+	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
+	import Copy from "./Copy.svelte";
+
+	const code_highlight_css = {
+		light: () => import("prismjs/themes/prism.css"),
+		dark: () => import("prismjs/themes/prism-dark.css")
+	};
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -13,6 +26,33 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+	export let theme_mode: ThemeMode;
+
+	$: if (theme_mode == "dark") {
+		code_highlight_css.dark();
+	} else {
+		code_highlight_css.light();
+	}
+	const marked_renderer = new marked.Renderer();
+	marked.setOptions({
+		renderer: marked_renderer,
+		gfm: true,
+		breaks: true,
+		pedantic: false,
+		sanitize: true,
+		smartLists: true,
+		smartypants: false
+	});
+
+	marked.setOptions({
+		highlight: (code: string, lang: string) => {
+			if (Prism.languages[lang]) {
+				return Prism.highlight(code, Prism.languages[lang], lang);
+			} else {
+				return code;
+			}
+		}
+	});
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -36,6 +76,33 @@
 				});
 			});
 		}
+		div.querySelectorAll("pre > code").forEach((n) => {
+			let code_node = n as HTMLElement;
+			const copy_div = document.createElement("div");
+			new Copy({
+				target: copy_div,
+				props: {
+					value: code_node.innerText.trimEnd()
+				}
+			});
+			let node = n.parentElement as HTMLElement;
+			copy_div.style.position = "absolute";
+			copy_div.style.right = "0";
+			copy_div.style.top = "0";
+			copy_div.style.zIndex = "1";
+			copy_div.style.padding = "var(--spacing-md)";
+			copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
+			node.style.position = "relative";
+			node.appendChild(copy_div);
+		});
+
+		render_math_in_element(div, {
+			delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "$", right: "$", display: false }
+			],
+			throwOnError: false
+		});
 	});
 
 	$: {
@@ -56,6 +123,7 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<div
 						data-testid={j == 0 ? "user" : "bot"}
 						class:latest={i === value.length - 1}
@@ -63,10 +131,13 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() =>
-							dispatch("select", { index: [i, j], value: message })}
+							dispatch("select", {
+								index: [i, j],
+								value: message
+							})}
 					>
 						{#if typeof message === "string"}
-							{@html message}
+							{@html marked.parse(message)}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -253,7 +324,50 @@
 		display: none;
 	}
 
+	/* Code blocks */
+	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
-		padding: var(--spacing-xl) 0px;
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		box-shadow: none;
+		border: none;
+		border-radius: var(--radius-md);
+		background-color: var(--chatbot-code-background-color);
+		padding: var(--spacing-xl) 10px;
+	}
+
+	/* Tables */
+	.message-wrap :global(table),
+	.message-wrap :global(tr),
+	.message-wrap :global(td),
+	.message-wrap :global(th) {
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		padding: var(--spacing-xl);
+	}
+
+	.message-wrap .bot :global(table),
+	.message-wrap .bot :global(tr),
+	.message-wrap .bot :global(td),
+	.message-wrap .bot :global(th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap .user :global(table),
+	.message-wrap .user :global(tr),
+	.message-wrap .user :global(td),
+	.message-wrap .user :global(th) {
+		border: 1px solid var(--border-color-accent);
+	}
+
+	/* Lists */
+	.message-wrap :global(ol),
+	.message-wrap :global(ul) {
+		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
 	}
 </style>

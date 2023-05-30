@@ -18,7 +18,7 @@ attrs==21.4.0
     #   pytest
 backcall==0.2.0
     # via ipython
-black==22.6.0
+black==23.3.0
     # via -r requirements.in
 boto3==1.26.65
     # via -r requirements.in
@@ -121,7 +121,7 @@ numpy==1.21.6
     #   shap
     #   tifffile
     #   transformers
-packaging==21.3
+packaging==22.0
     # via
     #   huggingface-hub
     #   pytest
@@ -163,7 +163,7 @@ pygments==2.12.0
     # via ipython
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.298
+pyright==1.1.305
 pyrsistent==0.18.1
     # via jsonschema
 pytest==7.1.2
@@ -197,7 +197,7 @@ respx==0.19.2
     # via -r requirements.in
 rfc3986[idna2008]==1.5.0
     # via httpx
-ruff==0.0.260
+ruff==0.0.264
     # via -r requirements.in
 s3transfer==0.6.0
     # via boto3

@@ -18,12 +18,10 @@
 	export let show_label: boolean;
 	export let max_lines: number | false;
 	export let type: "text" | "password" | "email" = "text";
-
 	export let style: Styles = {};
-
 	export let loading_status: LoadingStatus | undefined = undefined;
-
 	export let mode: "static" | "dynamic";
+	export let value_is_output: boolean = false;
 </script>
 
 <Block
@@ -38,6 +36,7 @@
 
 	<TextBox
 		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
@@ -47,6 +46,7 @@
 		{placeholder}
 		{style}
 		on:change
+		on:input
 		on:submit
 		on:blur
 		on:select

@@ -9,7 +9,7 @@ import socket
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import requests
 import uvicorn
@@ -89,21 +89,24 @@ def start_server(
     ssl_keyfile: str | None = None,
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
-) -> Tuple[str, int, str, App, Server]:
+    app_kwargs: dict | None = None,
+) -> tuple[str, int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
-    blocks: The Blocks object to run on the server
-    server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
-    server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
-    auth: If provided, username and password (or list of username-password tuples) required to access the Blocks. Can also provide function that takes username and password and returns True if valid login.
-    ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
-    ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
-    ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+        blocks: The Blocks object to run on the server
+        server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
+        server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
+        auth: If provided, username and password (or list of username-password tuples) required to access the Blocks. Can also provide function that takes username and password and returns True if valid login.
+        ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
+        ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+        ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+        app_kwargs: Additional keyword arguments to pass to the gradio.routes.App constructor.
+
     Returns:
-    port: the port number the server is running on
-    path_to_local_server: the complete address that the local server can be accessed at
-    app: the FastAPI app object
-    server: the server object that is a subclass of uvicorn.Server (used to close the server)
+        port: the port number the server is running on
+        path_to_local_server: the complete address that the local server can be accessed at
+        app: the FastAPI app object
+        server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
@@ -117,10 +120,11 @@ def start_server(
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((LOCALHOST_NAME, server_port))
             s.close()
-        except OSError:
+        except OSError as err:
             raise OSError(
-                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, you can close() it or gradio.close_all()."
-            )
+                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, "
+                f"you can close() it or gradio.close_all()."
+            ) from err
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
@@ -142,7 +146,7 @@ def start_server(
     else:
         host = server_name
 
-    app = App.create_app(blocks)
+    app = App.create_app(blocks, app_kwargs=app_kwargs)
 
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
@@ -173,9 +177,8 @@ def setup_tunnel(local_host: str, local_port: int, share_token: str) -> str:
             address = tunnel.start_tunnel()
             return address
         except Exception as e:
-            raise RuntimeError(str(e))
-    else:
-        raise RuntimeError("Could not get share link from Gradio API Server.")
+            raise RuntimeError(str(e)) from e
+    raise RuntimeError("Could not get share link from Gradio API Server.")
 
 
 def url_ok(url: str) -> bool:

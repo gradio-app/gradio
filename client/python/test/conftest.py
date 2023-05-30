@@ -1,3 +1,4 @@
+import inspect
 import random
 import time
 
@@ -35,6 +36,16 @@ def calculator_demo():
             [-4, "multiply", 2.5],
             [0, "subtract", 1.2],
         ],
+    )
+    return demo.queue()
+
+
+@pytest.fixture
+def state_demo():
+    demo = gr.Interface(
+        lambda x, y: (x, y),
+        ["textbox", "state"],
+        ["textbox", "state"],
     )
     return demo.queue()
 
@@ -157,3 +168,55 @@ def count_generator_demo():
         list_btn.click(show, num, out)
 
     return demo.queue()
+
+
+@pytest.fixture
+def file_io_demo():
+    demo = gr.Interface(
+        lambda x: print("foox"),
+        [gr.File(file_count="multiple"), "file"],
+        [gr.File(file_count="multiple"), "file"],
+    )
+
+    return demo
+
+
+@pytest.fixture
+def stateful_chatbot():
+    with gr.Blocks() as demo:
+        chatbot = gr.Chatbot()
+        msg = gr.Textbox()
+        clear = gr.Button("Clear")
+        st = gr.State([1, 2, 3])
+
+        def respond(message, st, chat_history):
+            assert st[0] == 1 and st[1] == 2 and st[2] == 3
+            bot_message = "I love you"
+            chat_history.append((message, bot_message))
+            return "", chat_history
+
+        msg.submit(respond, [msg, st, chatbot], [msg, chatbot], api_name="submit")
+        clear.click(lambda: None, None, chatbot, queue=False)
+        demo.queue()
+    return demo
+
+
+@pytest.fixture
+def all_components():
+    classes_to_check = gr.components.Component.__subclasses__()
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        children = subclass.__subclasses__()
+
+        if children:
+            classes_to_check.extend(children)
+        if (
+            "value" in inspect.signature(subclass).parameters
+            and subclass != gr.components.IOComponent
+            and not getattr(subclass, "is_template", False)
+        ):
+            subclasses.append(subclass)
+
+    return subclasses
