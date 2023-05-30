@@ -398,7 +398,7 @@ class BlockFunction:
     def spaces_auto_wrap(self):
         if spaces is None:
             return
-        if self.fn is None:
+        if not utils.is_space():
             return
         self.fn = spaces.gradio_auto_wrap(self.fn)
 
@@ -717,7 +717,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = os.getenv("SYSTEM") == "spaces"
+        self.is_space = utils.is_space()
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
