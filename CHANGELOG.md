@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+* Make `Blocks.load` behave like other event listeners (allows chaining `then` off of it) [@anentropic](https://github.com/anentropic/) in [PR 4304](https://github.com/gradio-app/gradio/pull/4304)
 
 ## Bug Fixes:
 
@@ -10,7 +10,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Performance optimization in the frontend's Blocks code by [@akx](https://github.com/akx) in [PR 4334](https://github.com/gradio-app/gradio/pull/4334)
 
 ## Breaking Changes:
 

@@ -1482,7 +1482,9 @@ Received outputs:
                 name=name, src=src, hf_token=api_key, alias=alias, **kwargs
             )
         else:
-            return self_or_cls.set_event_trigger(
+            from gradio.events import Dependency
+
+            dep, dep_index = self_or_cls.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
@@ -1498,7 +1500,8 @@ Received outputs:
                 max_batch_size=max_batch_size,
                 every=every,
                 no_target=True,
-            )[0]
+            )
+            return Dependency(self_or_cls, dep, dep_index)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
