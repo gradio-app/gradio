@@ -17,10 +17,13 @@
 	onMount(() => (canvas = document.createElement("canvas")));
 
 	async function access_webcam() {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+		}
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
 				video: { facingMode: facing_mode },
-				audio: include_audio
+				audio: include_audio,
 			});
 			video_source.srcObject = stream;
 			video_source.muted = true;
@@ -75,7 +78,7 @@
 					dispatch("capture", {
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
-						is_example: false
+						is_example: false,
 					});
 				}
 			};
@@ -94,7 +97,7 @@
 				return;
 			}
 			media_recorder = new MediaRecorder(stream, {
-				mimeType: mimeType
+				mimeType: mimeType,
 			});
 			media_recorder.addEventListener("dataavailable", function (e) {
 				recorded_blobs.push(e.data);
@@ -113,6 +116,41 @@
 			}
 		}, 500);
 	}
+
+	let show_camera_toggle = is_iphone_or_ipad();
+
+	function is_iphone_or_ipad() {
+		return (
+			navigator.userAgent.indexOf(" iPhone ") >= 0 ||
+			(typeof navigator.maxTouchPoints === "number" &&
+				navigator.maxTouchPoints > 2 &&
+				typeof navigator.vendor === "string" &&
+				navigator.vendor.indexOf("Apple") >= 0)
+		);
+	}
+
+	async function check_for_phone_cameras() {
+		const devices = await navigator.mediaDevices.enumerateDevices();
+		let front = false;
+		let back = false;
+		for (const device of devices) {
+			const device_string = device?.label.toLocaleLowerCase();
+			if (device_string.indexOf("front") > 1) {
+				front = true;
+			}
+
+			if (device_string.indexOf("back") > 1) {
+				back = true;
+			}
+
+			if (front && back) {
+				show_camera_toggle = true;
+				break;
+			}
+		}
+	}
+
+	check_for_phone_cameras();
 </script>
 
 <div class="wrap">
@@ -137,11 +175,13 @@
 					</div>
 				{/if}
 			</button>
-			<button on:click={switch_cameras}>
-				<div class="icon">
-					<Undo />
-				</div>
-			</button>
+			{#if show_camera_toggle}
+				<button on:click={switch_cameras}>
+					<div class="icon">
+						<Undo />
+					</div>
+				</button>
+			{/if}
 		</div>
 	{/if}
 </div>
