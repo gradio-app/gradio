@@ -357,7 +357,6 @@ export async function client(
 			let complete: false | Record<string, any> = false;
 			const listener_map: ListenerMap<EventType> = {};
 
-			//@ts-ignore
 			handle_blob(
 				`${http_protocol}//${host + config.path}`,
 				data,
