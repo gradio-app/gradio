@@ -1,5 +1,15 @@
 # @gradio/client
 
+## 0.1.2
+
+### Patch Changes
+
+- [#4273](https://github.com/gradio-app/gradio/pull/4273) [`1d0f0a9d`](https://github.com/gradio-app/gradio/commit/1d0f0a9db096552e67eb2197c932342587e9e61e) Thanks [@pngwn](https://github.com/pngwn)! - Ensure websocket error messages are correctly handled.
+
+- [#4315](https://github.com/gradio-app/gradio/pull/4315) [`b525b122`](https://github.com/gradio-app/gradio/commit/b525b122dd8569bbaf7e06db5b90d622d2e9073d) Thanks [@whitphx](https://github.com/whitphx)! - Refacor types.
+
+- [#4271](https://github.com/gradio-app/gradio/pull/4271) [`1151c525`](https://github.com/gradio-app/gradio/commit/1151c5253554cb87ebd4a44a8a470ac215ff782b) Thanks [@pngwn](https://github.com/pngwn)! - Ensure the full root path is always respected when making requests to a gradio app server.
+
 ## 0.1.1
 
 ### Patch Changes
