@@ -188,14 +188,22 @@ Note that this approach also allows you run your Gradio apps on custom paths (`h
 
 ## Security and File Access
 
-Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app. This is done so that Gradio apps are able to display output files created by Gradio or created by your prediction function.
+Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app. 
 
-In particular, Gradio apps grant users access to three kinds of files:
+In particular, Gradio apps ALLOW users to access to three kinds of files:
 
-* Files in the same folder (or a subdirectory) of where the Gradio script is launched from. For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is needed so that you can easily reference these files in your Gradio app.
+* **Files in the same directory (or a subdirectory) of where the Gradio script is launched from.** For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is done so that you can easily reference these files in your Gradio app (e.g. for your app's `examples`).
 
-* Temporary files created by Gradio. These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable GRADIO_TEMP_DIR to an absolute path, such as `/home/usr/scripts/project/temp/`.
+* **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
 
-* Files that you explicitly allow via the `allowed_paths` parameter in `launch()`. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
+* **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
-Users should NOT be able to access other arbitrary paths on the host. Furthermore, as a security measure, you can also **block** specific files or directories from being able to be accessed by users. To do this, pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
+Gradio DOES NOT ALLOW access to:
+
+* **Dotfiles** (any files whose name begins with `'.'`) or any files that are contained in any directory whose name begins with `'.'`
+
+* **Files that you explicitly allow via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
+
+* **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host. 
+
+Please make sure you are running the latest version of `gradio` for these security settings to apply. 
