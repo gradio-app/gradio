@@ -5,7 +5,7 @@
 * Make `Blocks.load` behave like other event listeners (allows chaining `then` off of it) [@anentropic](https://github.com/anentropic/) in [PR 4304](https://github.com/gradio-app/gradio/pull/4304)
 
 ## Bug Fixes:
-
+- Fixed bug where `.then` events would not trigger if they were already running by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4363](https://github.com/gradio-app/gradio/pull/4363)
 - Remove unused frontend code by [@akx](https://github.com/akx) in [PR 4275](https://github.com/gradio-app/gradio/pull/4275)
 
 ## Other Changes:
