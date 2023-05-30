@@ -10,6 +10,9 @@ import gradio as gr
 
 repo_directory = os.getcwd()
 readme_file = os.path.join(repo_directory, "README.md")
+github_action_template = os.path.join(
+    os.path.dirname(__file__), "deploy_space_action.yaml"
+)
 
 
 def add_configuration_to_readme(
@@ -71,6 +74,27 @@ def add_configuration_to_readme(
                 break
             with open(requirements_file, "a") as f:
                 f.write(requirement + "\n")
+
+    if (
+        input(
+            "Create Github Action to automatically update Space on 'git push'? [n]: "
+        ).lower()
+        == "y"
+    ):
+        track_branch = input("Enter branch to track [main]: ") or "main"
+        github_action_file = os.path.join(
+            repo_directory, ".github/workflows/update_space.yml"
+        )
+        os.makedirs(os.path.dirname(github_action_file), exist_ok=True)
+        with open(github_action_template, "r") as f:
+            github_action_content = f.read()
+        github_action_content = github_action_content.replace("$branch", track_branch)
+        with open(github_action_file, "w") as f:
+            f.write(github_action_content)
+
+        print(
+            "Github action created. To your Github repository, add your Hugging Face write token as a Secret named 'hf_token'. Github Secrets can be set in the Github Settings page."
+        )
 
     return configuration
 
