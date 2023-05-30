@@ -45,7 +45,7 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
-	view_api: (c?: Config) => Promise<Record<string, any>>;
+	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 
 type SubmitReturn = {
@@ -250,7 +250,7 @@ export async function client(
 				...return_obj
 			};
 		}
-		let api;
+		let api: ApiInfo<JsApiData>;
 		async function handle_space_sucess(status: SpaceStatus) {
 			if (status_callback) status_callback(status);
 			if (status.status === "running")
@@ -357,7 +357,6 @@ export async function client(
 			let complete: false | Record<string, any> = false;
 			const listener_map: ListenerMap<EventType> = {};
 
-			//@ts-ignore
 			handle_blob(
 				`${http_protocol}//${host + config.path}`,
 				data,
@@ -627,9 +626,7 @@ export async function client(
 			};
 		}
 
-		async function view_api(
-			config?: Config
-		): Promise<ApiInfo<JsApiData> | [{ error: string }, 500]> {
+		async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
 			if (api) return api;
 
 			const headers: {
@@ -639,46 +636,46 @@ export async function client(
 			if (hf_token) {
 				headers.Authorization = `Bearer ${hf_token}`;
 			}
-			try {
-				let response: Response;
-				// @ts-ignore
-				if (semiver(config.version || "2.0.0", "3.30") < 0) {
-					response = await fetch(
-						"https://gradio-space-api-fetcher-v2.hf.space/api",
-						{
-							method: "POST",
-							body: JSON.stringify({
-								serialize: false,
-								config: JSON.stringify(config)
-							}),
-							headers
-						}
-					);
-				} else {
-					response = await fetch(`${config.root}/info`, {
+			let response: Response;
+			// @ts-ignore
+			if (semiver(config.version || "2.0.0", "3.30") < 0) {
+				response = await fetch(
+					"https://gradio-space-api-fetcher-v2.hf.space/api",
+					{
+						method: "POST",
+						body: JSON.stringify({
+							serialize: false,
+							config: JSON.stringify(config)
+						}),
 						headers
-					});
-				}
-
-				let api_info = (await response.json()) as
-					| ApiInfo<ApiData>
-					| { api: ApiInfo<ApiData> };
-				if ("api" in api_info) {
-					api_info = api_info.api;
-				}
-
-				if (
-					api_info.named_endpoints["/predict"] &&
-					!api_info.unnamed_endpoints["0"]
-				) {
-					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
-				}
-
-				const x = transform_api_info(api_info, config, api_map);
-				return x;
-			} catch (e) {
-				return [{ error: BROKEN_CONNECTION_MSG }, 500];
+					}
+				);
+			} else {
+				response = await fetch(`${config.root}/info`, {
+					headers
+				});
 			}
+
+			if (!response.ok) {
+				throw new Error(BROKEN_CONNECTION_MSG);
+			}
+
+			let api_info = (await response.json()) as
+				| ApiInfo<ApiData>
+				| { api: ApiInfo<ApiData> };
+			if ("api" in api_info) {
+				api_info = api_info.api;
+			}
+
+			if (
+				api_info.named_endpoints["/predict"] &&
+				!api_info.unnamed_endpoints["0"]
+			) {
+				api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+			}
+
+			const x = transform_api_info(api_info, config, api_map);
+			return x;
 		}
 	});
 }
@@ -706,10 +703,25 @@ function transform_output(
 	});
 }
 
-export function normalise_file(
-	file: Array<FileData> | FileData | string | null,
+function normalise_file(
+	file: Array<FileData>,
 	root: string,
 	root_url: string | null
+): Array<FileData>;
+function normalise_file(
+	file: FileData | string,
+	root: string,
+	root_url: string | null
+): FileData;
+function normalise_file(
+	file: null,
+	root: string,
+	root_url: string | null
+): null;
+function normalise_file(
+	file,
+	root,
+	root_url
 ): Array<FileData> | FileData | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
@@ -724,7 +736,6 @@ export function normalise_file(
 			if (x === null) {
 				normalized_file.push(null);
 			} else {
-				//@ts-ignore
 				normalized_file.push(normalise_file(x, root, root_url));
 			}
 		}
