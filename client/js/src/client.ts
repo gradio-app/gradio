@@ -214,7 +214,7 @@ export async function client(
 			// duplicate
 		};
 
-		let transform_files = normalise_files ?? true;
+		const transform_files = normalise_files ?? true;
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
 			NodeBlob = (await import("node:buffer")).Blob;
@@ -547,7 +547,7 @@ export async function client(
 
 			function fire_event<K extends EventType>(event: Event<K>) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[event.type] || [];
+				const listeners = narrowed_listener_map[event.type] || [];
 				listeners?.forEach((l) => l(event));
 			}
 
@@ -556,7 +556,7 @@ export async function client(
 				listener: EventListener<K>
 			) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[eventType] || [];
+				const listeners = narrowed_listener_map[eventType] || [];
 				narrowed_listener_map[eventType] = listeners;
 				listeners?.push(listener);
 
@@ -686,7 +686,7 @@ function transform_output(
 	root_url: string,
 	remote_url?: string
 ): unknown[] {
-	let transformed_data = data.map((d, i) => {
+	return data.map((d, i) => {
 		if (api_info.returns?.[i]?.component === "File") {
 			return normalise_file(d, root_url, remote_url);
 		} else if (api_info.returns?.[i]?.component === "Gallery") {
@@ -701,8 +701,6 @@ function transform_output(
 			return d;
 		}
 	});
-
-	return transformed_data;
 }
 
 function normalise_file(
