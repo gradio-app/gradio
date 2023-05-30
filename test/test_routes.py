@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -645,3 +646,22 @@ def test_orjson_serialization():
     response = test_client.get("/")
     assert response.status_code == 200
     demo.close()
+
+
+def test_file_route_does_not_allow_dot_paths(tmp_path):
+    dot_file = tmp_path / ".env"
+    dot_file.write_text("secret=1234")
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    sub_dot_file = subdir / ".env"
+    sub_dot_file.write_text("secret=1234")
+    secret_sub_dir = tmp_path / ".versioncontrol"
+    secret_sub_dir.mkdir()
+    secret_sub_dir_regular_file = secret_sub_dir / "settings"
+    secret_sub_dir_regular_file.write_text("token = 8")
+    with closing(gr.Interface(lambda s: s.name, gr.File(), gr.File())) as io:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        assert client.get("/file=.env").status_code == 403
+        assert client.get("/file=subdir/.env").status_code == 403
+        assert client.get("/file=.versioncontrol/settings").status_code == 403
