@@ -86,7 +86,7 @@ def add_configuration_to_readme(
             repo_directory, ".github/workflows/update_space.yml"
         )
         os.makedirs(os.path.dirname(github_action_file), exist_ok=True)
-        with open(github_action_template, "r") as f:
+        with open(github_action_template) as f:
             github_action_content = f.read()
         github_action_content = github_action_content.replace("$branch", track_branch)
         with open(github_action_file, "w") as f:
