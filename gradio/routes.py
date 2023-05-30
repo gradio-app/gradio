@@ -326,7 +326,7 @@ class App(FastAPI):
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
-            if in_blocklist:
+            if in_blocklist or any(part.startswith(".") for part in abs_path.parts):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             in_app_dir = utils.is_in_or_equal(abs_path, app.cwd)

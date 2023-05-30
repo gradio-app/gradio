@@ -16,7 +16,7 @@
 
 ## Breaking Changes:
 
-No changes to highlight.
+- The `/file=` route no longer allows accessing dotfiles or files in "dot directories" by [@akx](https://github.com/akx) in [PR 4303](https://github.com/gradio-app/gradio/pull/4303)
 
 # 3.32.0
 
