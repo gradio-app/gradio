@@ -918,38 +918,33 @@ export async function handle_blob(
 		api_info
 	);
 
-	return new Promise((res) => {
-		Promise.all(
-			blob_refs.map(async ({ path, blob, data, type }) => {
-				if (blob) {
-					const file_url = (await upload_files(endpoint, [blob], token))
-						.files[0];
-					return { path, file_url, type };
-				} else {
-					return { path, base64: data, type };
-				}
-			})
-		)
-			.then((r) => {
-				r.forEach(({ path, file_url, base64, type }) => {
-					if (base64) {
-						update_object(data, base64, path);
-					} else if (type === "Gallery") {
-						update_object(data, file_url, path);
-					} else if (file_url) {
-						const o = {
-							is_file: true,
-							name: `${file_url}`,
-							data: null
-							// orig_name: "file.csv"
-						};
-						update_object(data, o, path);
-					}
-				});
+	return Promise.all(
+		blob_refs.map(async ({ path, blob, data, type }) => {
+			if (blob) {
+				const file_url = (await upload_files(endpoint, [blob], token)).files[0];
+				return { path, file_url, type };
+			} else {
+				return { path, base64: data, type };
+			}
+		})
+	).then((r) => {
+		r.forEach(({ path, file_url, base64, type }) => {
+			if (base64) {
+				update_object(data, base64, path);
+			} else if (type === "Gallery") {
+				update_object(data, file_url, path);
+			} else if (file_url) {
+				const o = {
+					is_file: true,
+					name: `${file_url}`,
+					data: null
+					// orig_name: "file.csv"
+				};
+				update_object(data, o, path);
+			}
+		});
 
-				res(data);
-			})
-			.catch(console.log);
+		return data;
 	});
 }
 
