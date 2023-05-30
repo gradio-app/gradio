@@ -31,6 +31,7 @@ from gradio.utils import (
     format_ner_list,
     get_type_hints,
     ipython_check,
+    is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
     readme_to_html,
@@ -39,7 +40,6 @@ from gradio.utils import (
     sanitize_value_for_csv,
     tex2svg,
     validate_url,
-    is_in_or_equal,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
