@@ -14,7 +14,7 @@ import pytest
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
-from gradio_client.serializing import SimpleSerializable
+from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
@@ -23,10 +23,10 @@ HF_TOKEN = "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"  # Intentionally reveali
 
 
 @contextmanager
-def connect(demo: gr.Blocks):
+def connect(demo: gr.Blocks, serialize: bool = True):
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     try:
-        yield Client(local_url)
+        yield Client(local_url, serialize=serialize)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -39,7 +39,7 @@ def connect(demo: gr.Blocks):
         demo.server.thread.join(timeout=1)
 
 
-class TestPredictionsFromSpaces:
+class TestClientPredictions:
     @pytest.mark.flaky
     def test_raise_error_invalid_state(self):
         with pytest.raises(ValueError, match="invalid state"):
@@ -48,8 +48,8 @@ class TestPredictionsFromSpaces:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        output = client.predict("male", 77, 10, api_name="/predict")
-        assert json.load(open(output))["label"] == "Perishes"
+        with open(client.predict("male", 77, 10, api_name="/predict")) as f:
+            assert json.load(f)["label"] == "Perishes"
         with pytest.raises(
             ValueError,
             match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
@@ -172,7 +172,6 @@ class TestPredictionsFromSpaces:
         assert pathlib.Path(job.result()).exists()
 
     def test_progress_updates(self, progress_demo):
-
         with connect(progress_demo) as client:
             job = client.submit("hello", api_name="/predict")
             statuses = []
@@ -242,11 +241,10 @@ class TestPredictionsFromSpaces:
                 time.sleep(0.1)
             # Ran all iterations from scratch
             assert job2.status().code == Status.FINISHED
-            assert len(job2.outputs()) == 5
+            assert len(job2.outputs()) == 4
 
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
-
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )
@@ -254,12 +252,19 @@ class TestPredictionsFromSpaces:
         with patch.object(
             client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
+            with patch.object(
+                client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+            ) as serialize:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                    f.write("Hello from private space!")
 
-            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
-            assert open(output).read() == "Hello from private space!"
+                output = client.submit(
+                    1, "foo", f.name, api_name="/file_upload"
+                ).result()
+            with open(output) as f:
+                assert f.read() == "Hello from private space!"
             upload.assert_called_once()
+            assert all(f["is_file"] for f in serialize.return_value())
 
         with patch.object(
             client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
@@ -267,24 +272,28 @@ class TestPredictionsFromSpaces:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 f.write("Hello from private space!")
 
-            output = client.submit(f.name, api_name="/upload_btn").result()
-            assert open(output).read() == "Hello from private space!"
+            with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
+                assert f.read() == "Hello from private space!"
             upload.assert_called_once()
 
         with patch.object(
             client.endpoints[2], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
+            # `delete=False` is required for Windows compat
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
-
                     f1.write("File1")
                     f2.write("File2")
-
-            output = client.submit(
-                3, [f1.name, f2.name], "hello", api_name="/upload_multiple"
+            r1, r2 = client.submit(
+                3,
+                [f1.name, f2.name],
+                "hello",
+                api_name="/upload_multiple",
             ).result()
-            assert open(output[0]).read() == "File1"
-            assert open(output[1]).read() == "File2"
+            with open(r1) as f:
+                assert f.read() == "File1"
+            with open(r2) as f:
+                assert f.read() == "File2"
             upload.assert_called_once()
 
     @pytest.mark.flaky
@@ -303,11 +312,17 @@ class TestPredictionsFromSpaces:
                 client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
 
+    def test_state_without_serialize(self, stateful_chatbot):
+        with connect(stateful_chatbot, serialize=False) as client:
+            initial_history = [["", None]]
+            message = "Hello"
+            ret = client.predict(message, initial_history, api_name="/submit")
+            assert ret == ("", [["", None], ["Hello", "I love you"]])
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_passed_correctly(self, mock_make_end_to_end_fn):
-
         now = datetime.now()
 
         messages = [
@@ -391,7 +406,6 @@ class TestStatusUpdates:
 
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_correct_two_concurrent(self, mock_make_end_to_end_fn):
-
         now = datetime.now()
 
         messages_1 = [
@@ -485,32 +499,45 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "Sex",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "Age",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "Fare (british pounds)",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "filepath to JSON file",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "str",
+                                "description": "filepath to JSON file",
+                            },
                             "component": "Label",
+                            "serializer": "JSONSerializable",
                         }
                     ],
                 },
@@ -518,32 +545,45 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "Sex",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "Age",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "Fare (british pounds)",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "filepath to JSON file",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "str",
+                                "description": "filepath to JSON file",
+                            },
                             "component": "Label",
+                            "serializer": "JSONSerializable",
                         }
                     ],
                 },
@@ -551,32 +591,45 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "Sex",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "Age",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "Fare (british pounds)",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Slider",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "filepath to JSON file",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "str",
+                                "description": "filepath to JSON file",
+                            },
                             "component": "Label",
+                            "serializer": "JSONSerializable",
                         }
                     ],
                 },
@@ -584,13 +637,18 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    @pytest.mark.flaky
     def test_serializable_in_mapping(self, calculator_demo):
         with connect(calculator_demo) as client:
             assert all(
-                isinstance(c, SimpleSerializable)
-                for c in client.endpoints[0].serializers
+                isinstance(c, Serializable) for c in client.endpoints[0].serializers
             )
+
+    def test_state_does_not_appear(self, state_demo):
+        with connect(state_demo) as client:
+            api_info = client.view_api(return_format="dict")
+            assert isinstance(api_info, dict)
+            for parameter in api_info["named_endpoints"]["/predict"]["parameters"]:
+                assert parameter["component"] != "State"
 
     @pytest.mark.flaky
     def test_private_space(self):
@@ -604,18 +662,20 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "x",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "component": "Textbox",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         }
                     ],
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "component": "Textbox",
+                            "serializer": "StringSerializable",
                         }
                     ],
                 }
@@ -631,32 +691,45 @@ class TestAPIInfo:
                     "parameters": [
                         {
                             "label": "num1",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Number",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                         {
                             "label": "operation",
-                            "type_python": "str",
-                            "type_description": "string value",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
                             "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
                         },
                         {
                             "label": "num2",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Number",
                             "example_input": 5,
+                            "serializer": "NumberSerializable",
                         },
                     ],
                     "returns": [
                         {
                             "label": "output",
-                            "type_python": "int | float",
-                            "type_description": "numeric value",
+                            "type": {"type": "number"},
+                            "python_type": {
+                                "type": "int | float",
+                                "description": "",
+                            },
                             "component": "Number",
+                            "serializer": "NumberSerializable",
                         }
                     ],
                 }
@@ -670,6 +743,37 @@ class TestAPIInfo:
             info = client.view_api(return_format="str")
             assert "fn_index=0" in info
             assert "api_name" not in info
+
+    def test_file_io(self, file_io_demo):
+        with connect(file_io_demo) as client:
+            info = client.view_api(return_format="dict")
+            inputs = info["named_endpoints"]["/predict"]["parameters"]
+            outputs = info["named_endpoints"]["/predict"]["returns"]
+
+            assert inputs[0]["type"]["type"] == "array"
+            assert inputs[0]["python_type"] == {
+                "type": "List[str]",
+                "description": "List of filepath(s) or URL(s) to files",
+            }
+            assert isinstance(inputs[0]["example_input"], list)
+            assert isinstance(inputs[0]["example_input"][0], str)
+
+            assert inputs[1]["python_type"] == {
+                "type": "str",
+                "description": "filepath or URL to file",
+            }
+            assert isinstance(inputs[1]["example_input"], str)
+
+            assert outputs[0]["python_type"] == {
+                "type": "List[str]",
+                "description": "List of filepath(s) or URL(s) to files",
+            }
+            assert outputs[0]["type"]["type"] == "array"
+
+            assert outputs[1]["python_type"] == {
+                "type": "str",
+                "description": "filepath or URL to file",
+            }
 
 
 class TestEndpoints:

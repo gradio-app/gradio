@@ -13,7 +13,7 @@ from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable
 
 import huggingface_hub
 import requests
@@ -30,7 +30,12 @@ from typing_extensions import Literal
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import Serializable
-from gradio_client.utils import Communicator, JobStatus, Status, StatusUpdate
+from gradio_client.utils import (
+    Communicator,
+    JobStatus,
+    Status,
+    StatusUpdate,
+)
 
 set_documentation_group("py-client")
 
@@ -132,7 +137,7 @@ class Client:
         hf_token: str | None = None,
         private: bool = True,
         hardware: str | None = None,
-        secrets: Dict[str, str] | None = None,
+        secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
         max_workers: int = 40,
         verbose: bool = True,
@@ -216,7 +221,7 @@ class Client:
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
         )
         hardware = hardware or original_info.hardware
-        if not current_hardware == hardware:
+        if current_hardware != hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
@@ -262,7 +267,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
-        result_callbacks: Callable | List[Callable] | None = None,
+        result_callbacks: Callable | list[Callable] | None = None,
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
@@ -290,7 +295,7 @@ class Client:
             helper = Communicator(
                 Lock(),
                 JobStatus(),
-                self.endpoints[inferred_fn_index].deserialize,
+                self.endpoints[inferred_fn_index].process_predictions,
                 self.reset_url,
             )
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -323,7 +328,7 @@ class Client:
         all_endpoints: bool | None = None,
         print_info: bool = True,
         return_format: Literal["dict", "str"] | None = None,
-    ) -> Dict | str | None:
+    ) -> dict | str | None:
         """
         Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
 
@@ -397,19 +402,19 @@ class Client:
             api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
         else:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
-        r = requests.get(api_info_url, headers=self.headers)
 
-        # Versions of Gradio older than 3.26 returned format of the API info
+        # Versions of Gradio older than 3.29.0 returned format of the API info
         # from the /info endpoint
-        if (
-            version.parse(self.config.get("version", "2.0")) >= version.Version("3.26")
-            and r.ok
-        ):
-            info = r.json()
+        if version.parse(self.config.get("version", "2.0")) > version.Version("3.29.0"):
+            r = requests.get(api_info_url, headers=self.headers)
+            if r.ok:
+                info = r.json()
+            else:
+                raise ValueError(f"Could not fetch api info for {self.src}")
         else:
             fetch = requests.post(
                 utils.SPACE_FETCHER_URL,
-                json={"serialize": self.serialize, "config": json.dumps(self.config)},
+                json={"config": json.dumps(self.config), "serialize": self.serialize},
             )
             if fetch.ok:
                 info = fetch.json()["api"]
@@ -434,7 +439,7 @@ class Client:
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
         else:
             if num_unnamed_endpoints > 0:
-                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
+                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(all_endpoints=True)\n"
 
         if print_info:
             print(human_info)
@@ -449,7 +454,7 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: Dict[str, List[Dict[str, str]]],
+        endpoints_info: dict[str, list[dict[str, Any]]],
     ) -> str:
         parameter_names = [p["label"] for p in endpoints_info["parameters"]]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
@@ -473,13 +478,25 @@ class Client:
         human_info += "    Parameters:\n"
         if endpoints_info["parameters"]:
             for info in endpoints_info["parameters"]:
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
+                desc = (
+                    f" ({info['python_type']['description']})"
+                    if info["python_type"].get("description")
+                    else ""
+                )
+                type_ = info["python_type"]["type"]
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
         if endpoints_info["returns"]:
             for info in endpoints_info["returns"]:
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {info['type_python']} ({info['type_description']})\n"
+                desc = (
+                    f" ({info['python_type']['description']})"
+                    if info["python_type"].get("description")
+                    else ""
+                )
+                type_ = info["python_type"]["type"]
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
         else:
             human_info += "     - None\n"
 
@@ -542,7 +559,7 @@ class Client:
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
-    def _get_config(self) -> Dict:
+    def _get_config(self) -> dict:
         r = requests.get(
             urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
         )
@@ -568,7 +585,7 @@ class Client:
 class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: Dict):
+    def __init__(self, client: Client, fn_index: int, dependency: dict):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
@@ -593,17 +610,16 @@ class Endpoint:
         return self.__repr__()
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
-
         _predict = self.make_predict(helper)
 
         def _inner(*data):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
+            data = self.insert_state(*data)
             if self.client.serialize:
                 data = self.serialize(*data)
             predictions = _predict(*data)
-            if self.client.serialize:
-                predictions = self.deserialize(*predictions)
+            predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -615,7 +631,7 @@ class Endpoint:
         return _inner
 
     def make_predict(self, helper: Communicator | None = None):
-        def _predict(*data) -> Tuple:
+        def _predict(*data) -> tuple:
             data = json.dumps(
                 {
                     "data": data,
@@ -669,8 +685,8 @@ class Endpoint:
         return outputs
 
     def _upload(
-        self, file_paths: List[str | List[str]]
-    ) -> List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]]:
+        self, file_paths: list[str | list[str]]
+    ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
         if not file_paths:
             return []
         # Put all the filepaths in one file
@@ -683,7 +699,7 @@ class Endpoint:
             if not isinstance(fs, list):
                 fs = [fs]
             for f in fs:
-                files.append(("files", (Path(f).name, open(f, "rb"))))
+                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
         r = requests.post(
             self.client.upload_url, headers=self.client.headers, files=files
@@ -718,8 +734,8 @@ class Endpoint:
 
     def _add_uploaded_files_to_data(
         self,
-        files: List[str | List[str]] | List[Dict[str, Any] | List[Dict[str, Any]]],
-        data: List[Any],
+        files: list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]],
+        data: list[Any],
     ) -> None:
         """Helper function to modify the input data with the uploaded files."""
         file_counter = 0
@@ -728,11 +744,37 @@ class Endpoint:
                 data[i] = files[file_counter]
                 file_counter += 1
 
-    def serialize(self, *data) -> Tuple:
+    def insert_state(self, *data) -> tuple:
         data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
                 data.insert(i, None)
+        return tuple(data)
+
+    def remove_state(self, *data) -> tuple:
+        data = [
+            d
+            for d, oct in zip(data, self.output_component_types)
+            if oct != utils.STATE_COMPONENT
+        ]
+        return tuple(data)
+
+    def reduce_singleton_output(self, *data) -> Any:
+        if (
+            len(
+                [
+                    oct
+                    for oct in self.output_component_types
+                    if oct != utils.STATE_COMPONENT
+                ]
+            )
+            == 1
+        ):
+            return data[0]
+        else:
+            return data
+
+    def serialize(self, *data) -> tuple:
         assert len(data) == len(
             self.serializers
         ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
@@ -743,40 +785,31 @@ class Endpoint:
             if t in ["file", "uploadbutton"]
         ]
         uploaded_files = self._upload(files)
+        data = list(data)
         self._add_uploaded_files_to_data(uploaded_files, data)
-
         o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
         return o
 
-    def deserialize(self, *data) -> Tuple | Any:
+    def deserialize(self, *data) -> tuple:
         assert len(data) == len(
             self.deserializers
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         outputs = tuple(
             [
                 s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
-                for s, d, oct in zip(
-                    self.deserializers, data, self.output_component_types
-                )
-                if not oct == utils.STATE_COMPONENT
+                for s, d in zip(self.deserializers, data)
             ]
         )
-        if (
-            len(
-                [
-                    oct
-                    for oct in self.output_component_types
-                    if not oct == utils.STATE_COMPONENT
-                ]
-            )
-            == 1
-        ):
-            output = outputs[0]
-        else:
-            output = outputs
-        return output
+        return outputs
 
-    def _setup_serializers(self) -> Tuple[List[Serializable], List[Serializable]]:
+    def process_predictions(self, *predictions):
+        if self.client.serialize:
+            predictions = self.deserialize(*predictions)
+        predictions = self.remove_state(*predictions)
+        predictions = self.reduce_singleton_output(*predictions)
+        return predictions
+
+    def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
         inputs = self.dependency["inputs"]
         serializers = []
 
@@ -820,7 +853,7 @@ class Endpoint:
 
         return serializers, deserializers
 
-    def _use_websocket(self, dependency: Dict) -> bool:
+    def _use_websocket(self, dependency: dict) -> bool:
         queue_enabled = self.client.config.get("enable_queue", False)
         queue_uses_websocket = version.parse(
             self.client.config.get("version", "2.0")
@@ -873,7 +906,7 @@ class Job(Future):
     def __iter__(self) -> Job:
         return self
 
-    def __next__(self) -> Tuple | Any:
+    def __next__(self) -> tuple | Any:
         if not self.communicator:
             raise StopIteration()
 
@@ -925,7 +958,7 @@ class Job(Future):
         else:
             return super().result(timeout=timeout)
 
-    def outputs(self) -> List[Tuple | Any]:
+    def outputs(self) -> list[tuple | Any]:
         """
         Returns a list containing the latest outputs from the Job.
 

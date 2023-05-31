@@ -14,6 +14,7 @@ import traceback
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import defaultdict
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
@@ -111,8 +112,14 @@ class App(FastAPI):
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
-        self.uploaded_file_dir = str(utils.abspath(tempfile.mkdtemp()))
-        super().__init__(**kwargs, docs_url=None, redoc_url=None)
+        self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
+            Path(tempfile.gettempdir()) / "gradio"
+        )
+        # Allow user to manually set `docs_url` and `redoc_url`
+        # when instantiating an App; when they're not set, disable docs and redoc.
+        kwargs.setdefault("docs_url", None)
+        kwargs.setdefault("redoc_url", None)
+        super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -130,6 +137,7 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
+        self.root_path = blocks.root_path
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -137,8 +145,12 @@ class App(FastAPI):
         return self.blocks
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> App:
-        app = App(default_response_class=ORJSONResponse)
+    def create_app(
+        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
+    ) -> App:
+        app_kwargs = app_kwargs or {}
+        app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        app = App(**app_kwargs)
         app.configure_app(blocks)
 
         app.add_middleware(
@@ -219,15 +231,17 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
+            root_path = request.scope.get("root_path", "")
 
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
+                config["root"] = root_path
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "is_space": app.get_blocks().is_space,
-                    "root": app.get_blocks().root,
+                    "root": root_path,
                 }
 
             try:
@@ -258,8 +272,11 @@ class App(FastAPI):
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
-        def get_config():
-            return app.get_blocks().config
+        def get_config(request: fastapi.Request):
+            root_path = request.scope.get("root_path", "")
+            config = app.get_blocks().config
+            config["root"] = root_path
+            return config
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
@@ -305,13 +322,18 @@ class App(FastAPI):
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
             abs_path = utils.abspath(path_or_url)
+            in_blocklist = any(
+                utils.is_in_or_equal(abs_path, blocked_path)
+                for blocked_path in blocks.blocked_paths
+            )
+            if in_blocklist or any(part.startswith(".") for part in abs_path.parts):
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
             in_app_dir = utils.abspath(app.cwd) in abs_path.parents
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_file_dir = any(
-                (
-                    utils.abspath(dir) in abs_path.parents
-                    for dir in blocks.file_directories
-                )
+                utils.is_in_or_equal(abs_path, allowed_path)
+                for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents
 
@@ -389,7 +411,7 @@ class App(FastAPI):
             dependency = app.get_blocks().dependencies[fn_index_inferred]
             target = dependency["targets"][0] if len(dependency["targets"]) else None
             event_data = EventData(
-                app.get_blocks().blocks[target] if target else None,
+                app.get_blocks().blocks.get(target) if target else None,
                 body.event_data,
             )
             batch = dependency["batch"]
@@ -452,14 +474,15 @@ class App(FastAPI):
                     )
             else:
                 fn_index_inferred = body.fn_index
-            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                fn_index_inferred
+            if (
+                not app.get_blocks().api_open
+                and app.get_blocks().queue_enabled_for_fn(fn_index_inferred)
+                and f"Bearer {app.queue_token}" != request.headers.get("Authorization")
             ):
-                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Not authorized to skip the queue",
-                    )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authorized to skip the queue",
+                )
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
@@ -499,14 +522,14 @@ class App(FastAPI):
             # to create a unique id for each job
             try:
                 await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=1
+                    websocket.send_json({"msg": "send_hash"}), timeout=5
                 )
             except AsyncTimeOutError:
                 return
 
             try:
                 session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=1
+                    websocket.receive_json(), timeout=5
                 )
             except AsyncTimeOutError:
                 return
@@ -769,7 +792,6 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
-    blocks.root = path[:-1] if path.endswith("/") else path
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks)

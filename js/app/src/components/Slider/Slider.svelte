@@ -20,6 +20,7 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
+	export let value_is_output: boolean = false;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -27,6 +28,7 @@
 
 	<Range
 		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
@@ -34,6 +36,7 @@
 		{maximum}
 		{step}
 		disabled={mode === "static"}
+		on:input
 		on:change
 		on:release
 	/>

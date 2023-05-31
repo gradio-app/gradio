@@ -54,6 +54,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.deploy_space import deploy
 from gradio.events import SelectData
 from gradio.exceptions import Error
 from gradio.external import load
@@ -65,7 +66,7 @@ from gradio.flagging import (
     SimpleCSVLogger,
 )
 from gradio.helpers import EventData, Progress, make_waveform, skip, update
-from gradio.helpers import create_examples as Examples
+from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs

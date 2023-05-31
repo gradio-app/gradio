@@ -12,6 +12,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: string;
+	export let value_is_output: boolean = false;
 	export let show_label: boolean;
 	export let container: boolean = false;
 	export let scale: number = 1;
@@ -25,10 +26,12 @@
 
 	<ColorPicker
 		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
 		on:change
+		on:input
 		on:submit
 		on:blur
 		disabled={mode === "static"}

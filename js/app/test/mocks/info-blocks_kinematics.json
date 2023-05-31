@@ -1,0 +1,49 @@
+{
+	"named_endpoints": {},
+	"unnamed_endpoints": {
+		"0": {
+			"parameters": [
+				{
+					"label": "Speed",
+					"type": {
+						"type": "number",
+						"description": "numeric value between 1 and 30"
+					},
+					"python_type": {
+						"type": "int | float",
+						"description": "numeric value between 1 and 30"
+					},
+					"component": "Slider",
+					"example_input": 1,
+					"serializer": "NumberSerializable"
+				},
+				{
+					"label": "Angle",
+					"type": {
+						"type": "number",
+						"description": "numeric value between 0 and 90"
+					},
+					"python_type": {
+						"type": "int | float",
+						"description": "numeric value between 0 and 90"
+					},
+					"component": "Slider",
+					"example_input": 0,
+					"serializer": "NumberSerializable"
+				}
+			],
+			"returns": [
+				{
+					"label": "value_6",
+					"type": { "type": {}, "description": "any valid json" },
+					"python_type": {
+						"type": "str",
+						"description": "filepath to JSON file"
+					},
+					"component": "Plot",
+					"serializer": "JSONSerializable"
+				}
+			]
+		}
+	}
+}

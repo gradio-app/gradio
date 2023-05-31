@@ -12,7 +12,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,9 +36,9 @@ set_documentation_group("helpers")
 
 
 def create_examples(
-    examples: List[Any] | List[List[Any]] | str,
-    inputs: IOComponent | List[IOComponent],
-    outputs: IOComponent | List[IOComponent] | None = None,
+    examples: list[Any] | list[list[Any]] | str,
+    inputs: IOComponent | list[IOComponent],
+    outputs: IOComponent | list[IOComponent] | None = None,
     fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -85,9 +85,9 @@ class Examples:
 
     def __init__(
         self,
-        examples: List[Any] | List[List[Any]] | str,
-        inputs: IOComponent | List[IOComponent],
-        outputs: IOComponent | List[IOComponent] | None = None,
+        examples: list[Any] | list[list[Any]] | str,
+        inputs: IOComponent | list[IOComponent],
+        outputs: IOComponent | list[IOComponent] | None = None,
         fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -256,7 +256,7 @@ class Examples:
                 targets = self.inputs_with_examples + self.outputs
             else:
                 targets = self.inputs_with_examples
-            self.dataset.click(
+            load_input_event = self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
                 outputs=targets,  # type: ignore
@@ -267,7 +267,7 @@ class Examples:
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
-                self.dataset.click(
+                load_input_event.then(
                     self.fn,
                     inputs=self.inputs,  # type: ignore
                     outputs=self.outputs,  # type: ignore
@@ -323,7 +323,7 @@ class Examples:
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
 
-    async def load_from_cache(self, example_id: int) -> List[Any]:
+    async def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
@@ -396,7 +396,7 @@ class Progress(Iterable):
         self.track_tqdm = track_tqdm
         self._callback = _callback
         self._event_id = _event_id
-        self.iterables: List[TrackedIterable] = []
+        self.iterables: list[TrackedIterable] = []
 
     def __len__(self):
         return self.iterables[-1].length
@@ -431,7 +431,7 @@ class Progress(Iterable):
 
     def __call__(
         self,
-        progress: float | Tuple[int, int | None] | None,
+        progress: float | tuple[int, int | None] | None,
         desc: str | None = None,
         total: int | None = None,
         unit: str = "steps",
@@ -522,7 +522,6 @@ class Progress(Iterable):
 
 
 def create_tracker(root_blocks, event_id, fn, track_tqdm):
-
     progress = Progress(_callback=root_blocks._queue.set_progress, _event_id=event_id)
     if not track_tqdm:
         return progress, fn
@@ -541,7 +540,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
         if self._progress is not None:
             self._progress.event_id = event_id
             self._progress.tqdm(iterable, desc, _tqdm=self)
-            kwargs["file"] = open(os.devnull, "w")
+            kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
         self.__init__orig__(iterable, desc, *args, **kwargs)
 
     def iter_tqdm(self):
@@ -595,7 +594,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
 
 def special_args(
     fn: Callable,
-    inputs: List[Any] | None = None,
+    inputs: list[Any] | None = None,
     request: routes.Request | None = None,
     event_data: EventData | None = None,
 ):
@@ -611,6 +610,7 @@ def special_args(
         updated inputs, progress index, event data index.
     """
     signature = inspect.signature(fn)
+    type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
         if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
@@ -619,22 +619,26 @@ def special_args(
     progress_index = None
     event_data_index = None
     for i, param in enumerate(positional_args):
+        type_hint = type_hints.get(param.name)
         if isinstance(param.default, Progress):
             progress_index = i
             if inputs is not None:
                 inputs.insert(i, param.default)
-        elif param.annotation == routes.Request:
+        elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif isinstance(param.annotation, type) and issubclass(
-            param.annotation, EventData
+        elif (
+            type_hint
+            and inspect.isclass(type_hint)
+            and issubclass(type_hint, EventData)
         ):
             event_data_index = i
             if inputs is not None and event_data is not None:
-                inputs.insert(i, param.annotation(event_data.target, event_data._data))
-        elif param.default is not param.empty:
-            if inputs is not None and len(inputs) <= i:
-                inputs.insert(i, param.default)
+                inputs.insert(i, type_hint(event_data.target, event_data._data))
+        elif (
+            param.default is not param.empty and inputs is not None and len(inputs) <= i
+        ):
+            inputs.insert(i, param.default)
     if inputs is not None:
         while len(inputs) < len(positional_args):
             i = len(inputs)
@@ -696,12 +700,12 @@ def skip() -> dict:
 
 @document()
 def make_waveform(
-    audio: str | Tuple[int, np.ndarray],
+    audio: str | tuple[int, np.ndarray],
     *,
     bg_color: str = "#f3f4f6",
     bg_image: str | None = None,
     fg_alpha: float = 0.75,
-    bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
+    bars_color: str | tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
     bar_width: float = 0.6,
 ):
@@ -723,18 +727,18 @@ def make_waveform(
         audio = processing_utils.audio_from_file(audio)
     else:
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
+        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
     duration = round(len(audio[1]) / audio[0], 4)
 
     # Helper methods to create waveform
-    def hex_to_RGB(hex_str):
+    def hex_to_rgb(hex_str):
         return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
 
     def get_color_gradient(c1, c2, n):
         assert n > 1
-        c1_rgb = np.array(hex_to_RGB(c1)) / 255
-        c2_rgb = np.array(hex_to_RGB(c2)) / 255
+        c1_rgb = np.array(hex_to_rgb(c1)) / 255
+        c2_rgb = np.array(hex_to_rgb(c2)) / 255
         mix_pcts = [x / (n - 1) for x in range(n)]
         rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
         return [
@@ -770,7 +774,7 @@ def make_waveform(
         plt.axis("off")
         plt.margins(x=0)
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        savefig_kwargs: Dict[str, Any] = {"bbox_inches": "tight"}
+        savefig_kwargs: dict[str, Any] = {"bbox_inches": "tight"}
         if bg_image is not None:
             savefig_kwargs["transparent"] = True
         else:

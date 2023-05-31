@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -226,7 +226,7 @@ class Tab(BlockContext, Selectable):
             **super(BlockContext, self).get_config(),
         }
 
-    def get_expected_parent(self) -> Type[Tabs]:
+    def get_expected_parent(self) -> type[Tabs]:
         return Tabs
 
     def get_block_name(self):

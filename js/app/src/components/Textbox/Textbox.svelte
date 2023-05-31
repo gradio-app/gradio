@@ -23,6 +23,7 @@
 	export let show_copy_button: boolean = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let mode: "static" | "dynamic";
+	export let value_is_output: boolean = false;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
@@ -32,6 +33,7 @@
 
 	<TextBox
 		bind:value
+		bind:value_is_output
 		{label}
 		{info}
 		{show_label}
@@ -41,6 +43,7 @@
 		{placeholder}
 		{show_copy_button}
 		on:change
+		on:input
 		on:submit
 		on:blur
 		on:select

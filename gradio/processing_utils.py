@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import shutil
 import subprocess
 import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
@@ -25,7 +25,7 @@ with warnings.catch_warnings():
 #########################
 
 
-def to_binary(x: str | Dict) -> bytes:
+def to_binary(x: str | dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
     if isinstance(x, dict):
         if x.get("data"):
@@ -65,13 +65,6 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
-def save_array_to_file(image_array, dir=None):
-    pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj)
-    return file_obj
-
-
 def get_pil_metadata(pil_image):
     # Copy any text-only metadata
     metadata = PngImagePlugin.PngInfo()
@@ -82,16 +75,14 @@ def get_pil_metadata(pil_image):
     return metadata
 
 
-def save_pil_to_file(pil_image, dir=None):
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
-    pil_image.save(file_obj, pnginfo=get_pil_metadata(pil_image))
-    return file_obj
+def encode_pil_to_bytes(pil_image, format="png"):
+    with BytesIO() as output_bytes:
+        pil_image.save(output_bytes, format, pnginfo=get_pil_metadata(pil_image))
+        return output_bytes.getvalue()
 
 
 def encode_pil_to_base64(pil_image):
-    with BytesIO() as output_bytes:
-        pil_image.save(output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image))
-        bytes_data = output_bytes.getvalue()
+    bytes_data = encode_pil_to_bytes(pil_image)
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
 
@@ -160,15 +151,16 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     return audio.frame_rate, data
 
 
-def audio_to_file(sample_rate, data, filename):
-    data = convert_to_16_bit_wav(data)
+def audio_to_file(sample_rate, data, filename, format="wav"):
+    if format == "wav":
+        data = convert_to_16_bit_wav(data)
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,
         sample_width=data.dtype.itemsize,
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
-    file = audio.export(filename, format="wav")
+    file = audio.export(filename, format=format)
     file.close()  # type: ignore
 
 
@@ -362,10 +354,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
     image = np.asarray(image)
     dtypeobj_in = image.dtype
-    if dtype is np.floating:
-        dtypeobj_out = np.dtype("float64")
-    else:
-        dtypeobj_out = np.dtype(dtype)
+    dtypeobj_out = np.dtype("float64") if dtype is np.floating else np.dtype(dtype)
     dtype_in = dtypeobj_in.type
     dtype_out = dtypeobj_out.type
     kind_in = dtypeobj_in.kind
@@ -522,8 +511,8 @@ def video_is_playable(video_filepath: str) -> bool:
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
     try:
-        output_path = Path(video_path).with_suffix(".mp4")
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            output_path = Path(video_path).with_suffix(".mp4")
             shutil.copy2(video_path, tmp_file.name)
             # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
             ff = FFmpeg(
@@ -535,4 +524,7 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
     except FFRuntimeError as e:
         print(f"Error converting video to browser-playable format {str(e)}")
         output_path = video_path
+    finally:
+        # Remove temp file
+        os.remove(tmp_file.name)  # type: ignore
     return str(output_path)

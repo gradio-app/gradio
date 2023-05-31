@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: string | null;
+	export let value_is_output: boolean = false;
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
@@ -13,10 +14,20 @@
 
 	const dispatch = createEventDispatcher<{
 		change: string | null;
+		input: undefined;
 		select: SelectData;
 	}>();
 
-	$: dispatch("change", value);
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 </script>
 
 <BlockTitle {show_label} {info}>{label}</BlockTitle>

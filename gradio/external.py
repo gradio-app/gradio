@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import re
 import warnings
-from typing import TYPE_CHECKING, Callable, Dict
+from typing import TYPE_CHECKING, Callable
 
 import requests
 from gradio_client import Client
@@ -87,7 +87,7 @@ def load_blocks_from_repo(
         src = tokens[0]
         name = "/".join(tokens[1:])
 
-    factory_methods: Dict[str, Callable] = {
+    factory_methods: dict[str, Callable] = {
         # for each repo type, we have a method that returns the Interface given the model name & optionally an api_key
         "huggingface": from_model,
         "models": from_model,
@@ -393,7 +393,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             data.update({"options": {"wait_for_model": True}})
             data = json.dumps(data)
         response = requests.request("POST", api_url, headers=headers, data=data)
-        if not (response.status_code == 200):
+        if response.status_code != 200:
             errors_json = response.json()
             errors, warns = "", ""
             if errors_json.get("error"):
@@ -494,13 +494,12 @@ def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
 
 def from_spaces_interface(
     model_name: str,
-    config: Dict,
+    config: dict,
     alias: str | None,
     api_key: str | None,
     iframe_url: str,
     **kwargs,
 ) -> Interface:
-
     config = streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}

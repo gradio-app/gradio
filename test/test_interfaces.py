@@ -95,7 +95,7 @@ class TestInterface:
                 interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
                 assert (
-                    output == "Keyboard interruption in main thread... closing server."
+                    "Keyboard interruption in main thread... closing server." in output
                 )
 
     @mock.patch("gradio.utils.colab_check")
@@ -159,6 +159,14 @@ class TestInterface:
         interface.launch(inline=True, prevent_thread_lock=True)
         assert mock_display.call_count == 2
         interface.close()
+
+    def test_setting_interactive_false(self):
+        output_textbox = Textbox()
+        Interface(lambda x: x, "textbox", output_textbox)
+        assert not output_textbox.get_config()["interactive"]
+        output_textbox = Textbox(interactive=True)
+        Interface(lambda x: x, "textbox", output_textbox)
+        assert output_textbox.get_config()["interactive"]
 
 
 class TestTabbedInterface:

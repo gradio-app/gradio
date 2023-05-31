@@ -8,14 +8,13 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import re
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import Examples, external, interpretation, utils
+from gradio import Examples, analytics, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -26,7 +25,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.events import Changeable, Streamable
+from gradio.events import Changeable, Streamable, Submittable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
@@ -63,7 +62,7 @@ class Interface(Blocks):
     instances: weakref.WeakSet = weakref.WeakSet()
 
     @classmethod
-    def get_instances(cls) -> List[Interface]:
+    def get_instances(cls) -> list[Interface]:
         """
         :return: list of all current instances.
         """
@@ -119,9 +118,9 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: str | IOComponent | List[str | IOComponent] | None,
-        outputs: str | IOComponent | List[str | IOComponent] | None,
-        examples: List[Any] | List[List[Any]] | str | None = None,
+        inputs: str | IOComponent | list[str | IOComponent] | None,
+        outputs: str | IOComponent | list[str | IOComponent] | None,
+        examples: list[Any] | list[list[Any]] | str | None = None,
         cache_examples: bool | None = None,
         examples_per_page: int = 10,
         live: bool = False,
@@ -134,7 +133,7 @@ class Interface(Blocks):
         theme: Theme | str | None = None,
         css: str | None = None,
         allow_flagging: str | None = None,
-        flagging_options: List[str] | List[Tuple[str, str]] | None = None,
+        flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: bool | None = None,
@@ -265,8 +264,10 @@ class Interface(Blocks):
         ]:
             for o in self.output_components:
                 assert isinstance(o, IOComponent)
-                o.interactive = False  # Force output components to be non-interactive
-
+                if o.interactive is None:
+                    # Unless explicitly otherwise specified, force output components to
+                    # be non-interactive
+                    o.interactive = False
         if (
             interpretation is None
             or isinstance(interpretation, list)
@@ -287,17 +288,11 @@ class Interface(Blocks):
         self.live = live
         self.title = title
 
-        CLEANER = re.compile("<.*?>")
-
-        def clean_html(raw_html):
-            cleantext = re.sub(CLEANER, "", raw_html)
-            return cleantext
-
         md = utils.get_markdown_parser()
-        simple_description = None
+        simple_description: str | None = None
         if description is not None:
             description = md.render(description)
-            simple_description = clean_html(description)
+            simple_description = utils.remove_html_tags(description)
         self.simple_description = simple_description
         self.description = description
         if article is not None:
@@ -369,7 +364,7 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
-        utils.version_check()
+        analytics.version_check()
         Interface.instances.add(self)
 
         param_names = inspect.getfullargspec(self.fn)[0]
@@ -466,19 +461,19 @@ class Interface(Blocks):
         if self.description:
             Markdown(self.description)
 
-    def render_flag_btns(self) -> List[Button]:
+    def render_flag_btns(self) -> list[Button]:
         return [Button(label) for label, _ in self.flagging_options]
 
     def render_input_column(
         self,
-    ) -> Tuple[
+    ) -> tuple[
         Button | None,
         Button | None,
         Button | None,
-        List[Button] | None,
+        list[Button] | None,
         Column,
         Column | None,
-        List[Interpretation] | None,
+        list[Interpretation] | None,
     ]:
         submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
         interpret_component_column, interpretation_set = None, None
@@ -507,12 +502,17 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        if inspect.isgeneratorfunction(self.fn):
+                        if inspect.isgeneratorfunction(
+                            self.fn
+                        ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Submit", variant="primary")
-                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                    if (
+                        inspect.isgeneratorfunction(self.fn)
+                        or inspect.isasyncgenfunction(self.fn)
+                    ) and not self.live:
                         stop_btn = Button("Stop", variant="stop")
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
@@ -531,7 +531,7 @@ class Interface(Blocks):
     def render_output_column(
         self,
         submit_btn_in: Button | None,
-    ) -> Tuple[Button | None, Button | None, Button | None, List | None, Button | None]:
+    ) -> tuple[Button | None, Button | None, Button | None, list | None, Button | None]:
         submit_btn = submit_btn_in
         interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
 
@@ -543,7 +543,10 @@ class Interface(Blocks):
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Generate", variant="primary")
-                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                    if (
+                        inspect.isgeneratorfunction(self.fn)
+                        or inspect.isasyncgenfunction(self.fn)
+                    ) and not self.live:
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
                         # is created. We use whether a generator function is provided
@@ -606,63 +609,86 @@ class Interface(Blocks):
             assert submit_btn is not None, "Submit button not rendered"
             fn = self.fn
             extra_output = []
-            if stop_btn:
 
+            triggers = [submit_btn.click] + [
+                component.submit
+                for component in self.input_components
+                if isinstance(component, Submittable)
+            ]
+            predict_events = []
+
+            if stop_btn:
                 # Wrap the original function to show/hide the "Stop" button
-                def fn(*args):
+                async def fn(*args):
                     # The main idea here is to call the original function
                     # and append some updates to keep the "Submit" button
                     # hidden and the "Stop" button visible
-                    # The 'finally' block hides the "Stop" button and
-                    # shows the "submit" button. Having a 'finally' block
-                    # will make sure the UI is "reset" even if there is an exception
-                    try:
-                        for output in self.fn(*args):
-                            if len(self.output_components) == 1 and not self.batch:
-                                output = [output]
-                            output = list(output)
-                            yield output + [
-                                Button.update(visible=False),
-                                Button.update(visible=True),
-                            ]
-                    finally:
-                        yield [
-                            {"__type__": "generic_update"}
-                            for _ in self.output_components
-                        ] + [Button.update(visible=True), Button.update(visible=False)]
+
+                    if inspect.isasyncgenfunction(self.fn):
+                        iterator = self.fn(*args)
+                    else:
+                        iterator = utils.SyncToAsyncIterator(
+                            self.fn(*args), limiter=self.limiter
+                        )
+                    async for output in iterator:
+                        yield output
 
                 extra_output = [submit_btn, stop_btn]
-            pred = submit_btn.click(
-                fn,
-                self.input_components,
-                self.output_components + extra_output,
-                api_name="predict",
-                scroll_to_output=True,
-                preprocess=not (self.api_mode),
-                postprocess=not (self.api_mode),
-                batch=self.batch,
-                max_batch_size=self.max_batch_size,
-            )
-            if stop_btn:
-                submit_btn.click(
-                    lambda: (
-                        submit_btn.update(visible=False),
-                        stop_btn.update(visible=True),
-                    ),
-                    inputs=None,
-                    outputs=[submit_btn, stop_btn],
-                    queue=False,
-                )
+
+                def cleanup():
+                    return [Button.update(visible=True), Button.update(visible=False)]
+
+                for i, trigger in enumerate(triggers):
+                    predict_event = trigger(
+                        lambda: (
+                            submit_btn.update(visible=False),
+                            stop_btn.update(visible=True),
+                        ),
+                        inputs=None,
+                        outputs=[submit_btn, stop_btn],
+                        queue=False,
+                    ).then(
+                        fn,
+                        self.input_components,
+                        self.output_components,
+                        api_name="predict" if i == 0 else None,
+                        scroll_to_output=True,
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
+                        batch=self.batch,
+                        max_batch_size=self.max_batch_size,
+                    )
+                    predict_events.append(predict_event)
+
+                    predict_event.then(
+                        cleanup,
+                        inputs=None,
+                        outputs=extra_output,  # type: ignore
+                        queue=False,
+                    )
+
                 stop_btn.click(
-                    lambda: (
-                        submit_btn.update(visible=True),
-                        stop_btn.update(visible=False),
-                    ),
+                    cleanup,
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
-                    cancels=[pred],
+                    cancels=predict_events,
                     queue=False,
                 )
+            else:
+                for i, trigger in enumerate(triggers):
+                    predict_events.append(
+                        trigger(
+                            fn,
+                            self.input_components,
+                            self.output_components,
+                            api_name="predict" if i == 0 else None,
+                            scroll_to_output=True,
+                            preprocess=not (self.api_mode),
+                            postprocess=not (self.api_mode),
+                            batch=self.batch,
+                            max_batch_size=self.max_batch_size,
+                        )
+                    )
 
     def attach_clear_events(
         self,
@@ -699,7 +725,7 @@ class Interface(Blocks):
     def attach_interpretation_events(
         self,
         interpretation_btn: Button | None,
-        interpretation_set: List[Interpretation] | None,
+        interpretation_set: list[Interpretation] | None,
         input_component_column: Column | None,
         interpret_component_column: Column | None,
     ):
@@ -711,53 +737,58 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def attach_flagging_events(self, flag_btns: List[Button] | None, clear_btn: Button):
-        if flag_btns:
-            if self.interface_type in [
+    def attach_flagging_events(self, flag_btns: list[Button] | None, clear_btn: Button):
+        if not (
+            flag_btns
+            and self.interface_type
+            in (
                 InterfaceTypes.STANDARD,
                 InterfaceTypes.OUTPUT_ONLY,
                 InterfaceTypes.UNIFIED,
-            ]:
-                if self.allow_flagging == "auto":
-                    flag_method = FlagMethod(
-                        self.flagging_callback, "", "", visual_feedback=False
-                    )
-                    flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
-                        flag_method,
-                        inputs=self.input_components,
-                        outputs=None,
-                        preprocess=False,
-                        queue=False,
-                    )
-                    return
+            )
+        ):
+            return
 
-                if self.interface_type == InterfaceTypes.UNIFIED:
-                    flag_components = self.input_components
-                else:
-                    flag_components = self.input_components + self.output_components
+        if self.allow_flagging == "auto":
+            flag_method = FlagMethod(
+                self.flagging_callback, "", "", visual_feedback=False
+            )
+            flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
+                flag_method,
+                inputs=self.input_components,
+                outputs=None,
+                preprocess=False,
+                queue=False,
+            )
+            return
 
-                for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-                    assert isinstance(value, str)
-                    flag_method = FlagMethod(self.flagging_callback, label, value)
-                    flag_btn.click(
-                        lambda: Button.update(value="Saving...", interactive=False),
-                        None,
-                        flag_btn,
-                        queue=False,
-                    )
-                    flag_btn.click(
-                        flag_method,
-                        inputs=flag_components,
-                        outputs=flag_btn,
-                        preprocess=False,
-                        queue=False,
-                    )
-                    clear_btn.click(
-                        flag_method.reset,
-                        None,
-                        flag_btn,
-                        queue=False,
-                    )
+        if self.interface_type == InterfaceTypes.UNIFIED:
+            flag_components = self.input_components
+        else:
+            flag_components = self.input_components + self.output_components
+
+        for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+            assert isinstance(value, str)
+            flag_method = FlagMethod(self.flagging_callback, label, value)
+            flag_btn.click(
+                lambda: Button.update(value="Saving...", interactive=False),
+                None,
+                flag_btn,
+                queue=False,
+            )
+            flag_btn.click(
+                flag_method,
+                inputs=flag_components,
+                outputs=flag_btn,
+                preprocess=False,
+                queue=False,
+            )
+            clear_btn.click(
+                flag_method.reset,
+                None,
+                flag_btn,
+                queue=False,
+            )
 
     def render_examples(self):
         if self.examples:
@@ -798,7 +829,7 @@ class Interface(Blocks):
             Column.update(visible=True),
         ]
 
-    async def interpret(self, raw_input: List[Any]) -> List[Any]:
+    async def interpret(self, raw_input: list[Any]) -> list[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
@@ -823,8 +854,8 @@ class TabbedInterface(Blocks):
 
     def __init__(
         self,
-        interface_list: List[Interface],
-        tab_names: List[str] | None = None,
+        interface_list: list[Interface],
+        tab_names: list[str] | None = None,
         title: str | None = None,
         theme: Theme | None = None,
         analytics_enabled: bool | None = None,
@@ -855,7 +886,7 @@ class TabbedInterface(Blocks):
                     f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
             with Tabs():
-                for (interface, tab_name) in zip(interface_list, tab_names):
+                for interface, tab_name in zip(interface_list, tab_names):
                     with Tab(label=tab_name):
                         interface.render()
 
