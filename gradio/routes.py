@@ -8,6 +8,7 @@ import inspect
 import json
 import mimetypes
 import os
+import posixpath
 import secrets
 import tempfile
 import traceback
@@ -292,7 +293,7 @@ class App(FastAPI):
         async def favicon():
             blocks = app.get_blocks()
             if blocks.favicon_path is None:
-                return static_resource("favicon.svg")
+                return static_resource("img/logo.svg")
             else:
                 return FileResponse(blocks.favicon_path)
 
@@ -624,7 +625,7 @@ def safe_join(directory: str, path: str) -> str:
     if path == "":
         raise HTTPException(400)
 
-    filename = os.path.normpath(path)
+    filename = posixpath.normpath(path)
     fullpath = os.path.join(directory, filename)
     if (
         any(sep in filename for sep in _os_alt_seps)
