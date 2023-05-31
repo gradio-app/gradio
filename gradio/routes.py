@@ -338,6 +338,7 @@ class App(FastAPI):
             )
             is_dotfile = any(part.startswith(".") for part in abs_path.parts)
             is_dir = abs_path.is_dir()
+
             if in_blocklist or is_dotfile or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
