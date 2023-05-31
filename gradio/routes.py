@@ -329,8 +329,6 @@ class App(FastAPI):
                 )
 
             abs_path = utils.abspath(path_or_url)
-            if not abs_path.exists():
-                raise HTTPException(404, f"File not found: {path_or_url}.")
 
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
@@ -341,6 +339,8 @@ class App(FastAPI):
 
             if in_blocklist or is_dotfile or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            if not abs_path.exists():
+                raise HTTPException(404, f"File not found: {path_or_url}.")
 
             in_app_dir = utils.is_in_or_equal(abs_path, app.cwd)
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
