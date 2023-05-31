@@ -15,6 +15,10 @@
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
+	let old_value: {
+		label: string;
+		confidences?: Array<{ label: string; confidence: number }>;
+	} | null = null;
 	export let label: string = "Label";
 	export let style: Styles = {};
 
@@ -24,7 +28,12 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
-	$: value, dispatch("change");
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block
