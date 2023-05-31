@@ -15,7 +15,7 @@
 	export let visible: boolean = true;
 	export let value: { data: Data; headers: Headers } = {
 		data: [["", "", ""]],
-		headers: ["1", "2", "3"],
+		headers: ["1", "2", "3"]
 	};
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];

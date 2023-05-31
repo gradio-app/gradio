@@ -319,6 +319,9 @@ class BlockContext(Block):
         self.children: List[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
 
+    def add_child(self, child: Block):
+        self.children.append(child)
+
     def __enter__(self):
         self.parent = Context.block
         Context.block = self
@@ -340,11 +343,11 @@ class BlockContext(Block):
                 if pseudo_parent is not None and isinstance(
                     pseudo_parent, expected_parent
                 ):
-                    pseudo_parent.children.append(child)
+                    pseudo_parent.add_child(child)
                 else:
                     pseudo_parent = expected_parent(render=False)
                     children.append(pseudo_parent)
-                    pseudo_parent.children = [child]
+                    pseudo_parent.add_child(child)
                     if Context.root_block:
                         Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent

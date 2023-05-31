@@ -14,7 +14,9 @@
 	class:hide={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
 	style:flex-grow={scale}
-	style:min-width="min(${min_width}px, 100%)"
+	style:min-width={typeof min_width === "number"
+		? `calc(min(${min_width}px, 100%))`
+		: null}
 	id={elem_id}
 	{disabled}
 >

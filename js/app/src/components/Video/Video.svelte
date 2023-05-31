@@ -78,7 +78,7 @@
 	{elem_classes}
 	{height}
 	{width}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 	allow_overflow={false}

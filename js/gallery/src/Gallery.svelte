@@ -9,6 +9,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 
+	export let container: boolean = true;
 	export let show_label: boolean = true;
 	export let label: string;
 	export let root: string = "";
@@ -18,7 +19,8 @@
 	export let grid_rows: number | Array<number> | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
-	export let object_fit: "contain"| "cover" | "fill" | "none" | "scale-down" = "cover";
+	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
+		"cover";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -99,7 +101,7 @@
 	$: scroll_to_img(selected_image);
 
 	let el: Array<HTMLButtonElement> = [];
-	let container: HTMLDivElement;
+	let container_element: HTMLDivElement;
 
 	async function scroll_to_img(index: number | null) {
 		if (typeof index !== "number") return;
@@ -108,15 +110,18 @@
 		el[index].focus();
 
 		const { left: container_left, width: container_width } =
-			container.getBoundingClientRect();
+			container_element.getBoundingClientRect();
 		const { left, width } = el[index].getBoundingClientRect();
 
 		const relative_left = left - container_left;
 
 		const pos =
-			relative_left + width / 2 - container_width / 2 + container.scrollLeft;
+			relative_left +
+			width / 2 -
+			container_width / 2 +
+			container_element.scrollLeft;
 
-		container.scrollTo({
+		container_element.scrollTo({
 			left: pos < 0 ? 0 : pos,
 			behavior: "smooth"
 		});
@@ -126,6 +131,35 @@
 
 	let client_height = 0;
 	let window_height = 0;
+
+	let grid_cols_style = "";
+	let grid_rows_style = "";
+	$: {
+		let grid_cols_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
+		let _grid_cols = Array.isArray(grid_cols) ? grid_cols : [grid_cols];
+
+		let grid_cols_style = [0, 0, 0, 0, 0, 0]
+			.map(
+				(_, i) =>
+					`--${grid_cols_map[i]}grid-cols: var(--grid-${
+						_grid_cols?.[i] || _grid_cols?.[_grid_cols?.length - 1]
+					});`
+			)
+			.join(" ");
+	}
+	$: {
+		let grid_rows_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
+		let _grid_rows = Array.isArray(grid_rows) ? grid_rows : [grid_rows];
+
+		let grid_rows_style = [0, 0, 0, 0, 0, 0]
+			.map(
+				(_, i) =>
+					`--${grid_rows_map[i]}grid-rows: var(--grid-${
+						_grid_rows?.[i] || _grid_rows?.[_grid_rows?.length - 1]
+					});`
+			)
+			.join(" ");
+	}
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -135,7 +169,7 @@
 		{show_label}
 		Icon={Image}
 		label={label || "Gallery"}
-		disable={container === false}
+		{container}
 	/>
 {/if}
 {#if value === null || _value === null || _value.length === 0}
@@ -164,7 +198,7 @@
 					{_value[selected_image][1]}
 				</div>
 			{/if}
-			<div bind:this={container} class="thumbnails scroll-hide">
+			<div bind:this={container_element} class="thumbnails scroll-hide">
 				{#each _value as image, i}
 					<button
 						bind:this={el[i]}
@@ -188,7 +222,12 @@
 		class="grid-wrap"
 		class:fixed-height={!height || height == "auto"}
 	>
-		<div class="grid-container" style={styles} style:object_fit class:pt-6={show_label}>
+		<div
+			class="grid-container"
+			style="{grid_cols_style} {grid_rows_style}"
+			style:object_fit
+			class:pt-6={show_label}
+		>
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"

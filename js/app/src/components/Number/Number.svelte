@@ -19,14 +19,7 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	disable={container === false}
-	{scale}
-	{min_width}
->
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Number

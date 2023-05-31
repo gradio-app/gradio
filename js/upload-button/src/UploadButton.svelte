@@ -9,7 +9,7 @@
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
-	export let size: "sm" | "lg" = "lg";	
+	export let size: "sm" | "lg" = "lg";
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
 

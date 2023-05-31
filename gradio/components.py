@@ -69,7 +69,7 @@ from gradio.events import (
     Uploadable,
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
-from gradio.layouts import Column, Form, Row
+from gradio.layouts import Form
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -128,9 +128,10 @@ class Component(Block, Serializable):
         """
         This method is deprecated. Please set these arguments in the Components constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the Components constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the Components constructor instead."
+        )
         return self
-
 
 
 class IOComponent(Component):
@@ -147,7 +148,7 @@ class IOComponent(Component):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int | None = 320,
+        min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -167,6 +168,10 @@ class IOComponent(Component):
         self.info = info
         self.show_label = show_label
         self.container = container
+        if scale != round(scale):
+            warnings.warn(
+                f"'scale' value should be an integer. Using {scale} will cause issues."
+            )
         self.scale = scale
         self.min_width = min_width
         self.interactive = interactive
@@ -305,6 +310,8 @@ class IOComponent(Component):
             "label": self.label,
             "show_label": self.show_label,
             "container": self.container,
+            "scale": self.scale,
+            "min_width": self.min_width,
             "interactive": self.interactive,
             **super().get_config(),
         }
@@ -334,7 +341,6 @@ class IOComponent(Component):
 class FormComponent:
     def get_expected_parent(self) -> Type[Form]:
         return Form
-
 
 
 class Textbox(
@@ -370,7 +376,7 @@ class Textbox(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -561,13 +567,14 @@ class Textbox(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if show_copy_button is not None:
             self.show_copy_button = show_copy_button
         if container is not None:
             self.container = container
         return self
-
 
 
 class Number(
@@ -598,7 +605,7 @@ class Number(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -764,7 +771,6 @@ class Number(
         return interpretation
 
 
-
 class Slider(
     FormComponent,
     Changeable,
@@ -796,7 +802,7 @@ class Slider(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -948,11 +954,12 @@ class Slider(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if container is not None:
             self.container = container
         return self
-
 
 
 class Checkbox(
@@ -982,7 +989,7 @@ class Checkbox(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -1071,7 +1078,6 @@ class Checkbox(
             return None, scores[0]
 
 
-
 class CheckboxGroup(
     FormComponent,
     Changeable,
@@ -1100,7 +1106,7 @@ class CheckboxGroup(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -1262,13 +1268,14 @@ class CheckboxGroup(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if item_container is not None:
             warnings.warn("The `item_container` parameter is deprecated.")
         if container is not None:
             self.container = container
         return self
-
 
 
 class Radio(
@@ -1300,7 +1307,7 @@ class Radio(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -1438,13 +1445,14 @@ class Radio(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if item_container is not None:
             warnings.warn("The `item_container` parameter is deprecated.")
         if container is not None:
             self.container = container
         return self
-
 
 
 class Dropdown(
@@ -1472,7 +1480,7 @@ class Dropdown(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -1659,11 +1667,12 @@ class Dropdown(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if container is not None:
             self.container = container
         return self
-
 
 
 class Image(
@@ -1703,7 +1712,7 @@ class Image(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         streaming: bool = False,
@@ -2022,13 +2031,14 @@ class Image(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if height is not None:
             self.height = height
         if width is not None:
             self.width = width
         return self
-
 
     def check_streamable(self):
         if self.source != "webcam":
@@ -2042,7 +2052,6 @@ class Image(
         ):  # If an externally hosted image, don't convert to absolute path
             return input_data
         return str(utils.abspath(input_data))
-
 
 
 class Video(
@@ -2078,7 +2087,7 @@ class Video(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -2384,13 +2393,14 @@ class Video(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if height is not None:
             self.height = height
         if width is not None:
             self.width = width
         return self
-
 
 
 class Audio(
@@ -2423,7 +2433,7 @@ class Audio(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         streaming: bool = False,
@@ -2680,7 +2690,6 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
 
-
 class File(
     Changeable,
     Selectable,
@@ -2709,7 +2718,7 @@ class File(
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -2910,7 +2919,6 @@ class File(
             return Path(input_data).name
 
 
-
 class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -2938,7 +2946,7 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         every: float | None = None,
         show_label: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -3185,7 +3193,6 @@ class Dataframe(Changeable, Selectable, IOComponent, JSONSerializable):
         return input_data
 
 
-
 class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
@@ -3207,7 +3214,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -3364,7 +3371,6 @@ class Variable(State):
         return "state"
 
 
-
 class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
@@ -3459,9 +3465,13 @@ class Button(Clickable, IOComponent, StringSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if full_width is not None:
-            warnings.warn("Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not.")
+            warnings.warn(
+                "Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not."
+            )
             self.scale = 1 if full_width else None
         if size is not None:
             self.size = size
@@ -3630,9 +3640,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if full_width is not None:
-            warnings.warn("Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not.")
+            warnings.warn(
+                "Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not."
+            )
             self.scale = 1 if full_width else None
         if size is not None:
             self.size = size
@@ -3658,7 +3672,7 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -3765,7 +3779,6 @@ class ColorPicker(Changeable, Submittable, Blurrable, IOComponent, StringSeriali
 ############################
 
 
-
 class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
@@ -3788,7 +3801,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -3919,11 +3932,12 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if container is not None:
             self.container = container
         return self
-
 
 
 class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
@@ -3950,7 +3964,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -4102,13 +4116,14 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if container is not None:
             self.container = container
         if color_map is not None:
             self.color_map = color_map
         return self
-
 
 
 class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
@@ -4137,7 +4152,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -4319,7 +4334,9 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if height is not None:
             self.height = height
         if width is not None:
@@ -4327,7 +4344,6 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         if color_map is not None:
             self.color_map = color_map
         return self
-
 
 
 class JSON(Changeable, IOComponent, JSONSerializable):
@@ -4348,7 +4364,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -4428,11 +4444,13 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if container is not None:
             self.container = container
         return self
- 
+
 
 @document()
 class HTML(Changeable, IOComponent, StringSerializable):
@@ -4522,7 +4540,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -4679,7 +4697,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if grid is not None:
             warnings.warn(
                 "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
@@ -4716,7 +4736,6 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
         )
 
 
-
 class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
@@ -4739,7 +4758,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -4919,11 +4938,12 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if height is not None:
             self.height = height
         return self
-
 
 
 class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
@@ -4946,7 +4966,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -5078,7 +5098,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -5179,7 +5199,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if container is not None:
             self.container = container
         return self
@@ -5243,7 +5265,7 @@ class ScatterPlot(Plot):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -5597,7 +5619,7 @@ class LinePlot(Plot):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         every: float | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -5945,7 +5967,7 @@ class BarPlot(Plot):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         every: float | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -6041,7 +6063,7 @@ class BarPlot(Plot):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
     ):
         """Update an existing BarPlot component.
@@ -6344,7 +6366,7 @@ class Code(Changeable, IOComponent, StringSerializable):
         show_label: bool = True,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: List[str] | str | None = None,
@@ -6434,7 +6456,6 @@ class Code(Changeable, IOComponent, StringSerializable):
 ############################
 
 
-
 class Dataset(Clickable, Selectable, Component, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
@@ -6457,7 +6478,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         elem_classes: List[str] | str | None = None,
         container: bool = True,
         scale: int = 1,
-        min_width: int = 320,
+        min_width: int = 160,
         **kwargs,
     ):
         """

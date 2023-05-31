@@ -25,14 +25,7 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	{scale}
-	{min_width}
-	disable={container === false}
->
+<Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
 	{#if loading_status}
 		<StatusTracker {...loading_status} />
 	{/if}

@@ -41,28 +41,17 @@
 	{elem_id}
 	{elem_classes}
 	padding={false}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >
 	<StatusTracker {...loading_status} />
 	{#if label}
-		<BlockLabel
-			Icon={TextHighlight}
-			{label}
-			float={false}
-			disable={container === false}
-		/>
+		<BlockLabel Icon={TextHighlight} {label} float={false} {container} />
 	{/if}
 
 	{#if value}
-		<HighlightedText
-			on:select
-			{selectable}
-			{value}
-			{show_legend}
-			{color_map}
-		/>
+		<HighlightedText on:select {selectable} {value} {show_legend} {color_map} />
 	{:else}
 		<Empty>
 			<TextHighlight />

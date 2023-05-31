@@ -144,7 +144,7 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >

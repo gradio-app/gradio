@@ -62,7 +62,6 @@
 	{size}
 	{scale}
 	{min_width}
-
 	on:click
 	on:load={handle_upload}
 >

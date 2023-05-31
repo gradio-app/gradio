@@ -32,7 +32,7 @@
 					: normalise_file(user_msg, root, root_url),
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url),
+					: normalise_file(bot_msg, root, root_url)
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
@@ -43,7 +43,7 @@
 	{elem_classes}
 	{visible}
 	padding={false}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >
@@ -53,7 +53,7 @@
 			Icon={Chat}
 			float={false}
 			label={label || "Chatbot"}
-			disable={container === false}
+			{container}
 		/>
 	{/if}
 	<ChatBot

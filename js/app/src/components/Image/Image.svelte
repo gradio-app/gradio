@@ -53,7 +53,7 @@
 		(source === "webcam" || mode === "static" ? undefined : FIXED_HEIGHT)}
 	{width}
 	allow_overflow={false}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >

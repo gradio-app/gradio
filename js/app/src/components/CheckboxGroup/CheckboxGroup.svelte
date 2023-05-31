@@ -25,7 +25,7 @@
 	{elem_id}
 	{elem_classes}
 	type="fieldset"
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >

@@ -21,12 +21,8 @@
 	export let grid_rows: number | Array<number> | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
-	export let object_fit:
-		| "contain"
-		| "cover"
-		| "fill"
-		| "none"
-		| "scale-down" = "cover";
+	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
+		"cover";
 </script>
 
 <Block
@@ -35,7 +31,7 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >

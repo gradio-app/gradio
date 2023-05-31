@@ -32,17 +32,13 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}
-		<BlockLabel
-			Icon={LabelIcon}
-			{label}
-			disable={container === false}
-		/>
+		<BlockLabel Icon={LabelIcon} {label} {container} />
 	{/if}
 	{#if typeof value === "object" && value !== undefined && value !== null}
 		<Label on:select {selectable} {value} {show_label} {color} />

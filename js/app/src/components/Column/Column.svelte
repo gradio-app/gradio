@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { create_classes } from "@gradio/utils";
-
 	export let scale: number = 1;
+	export let gap: boolean = true;
 	export let min_width: number = 0;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -12,12 +11,12 @@
 <div
 	id={elem_id}
 	class={elem_classes.join(" ")}
-	class:gap={style.gap !== false}
+	class:gap
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
 	class:hide={!visible}
 	style:flex-grow={scale}
-	style:min-width="min(${min_width}px, 100%)"
+	style:min-width="calc(min({min_width}px, 100%))"
 >
 	<slot />
 </div>

@@ -30,10 +30,7 @@
 
 <div class="wrap" data-testid="checkbox-group">
 	{#each choices as choice}
-		<label
-			class:disabled
-			class:selected={value.includes(choice)}
-		>
+		<label class:disabled class:selected={value.includes(choice)}>
 			<input
 				{disabled}
 				on:change={() => toggleChoice(choice)}

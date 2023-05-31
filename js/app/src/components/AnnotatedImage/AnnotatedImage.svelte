@@ -42,8 +42,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					label,
-				]),
+					label
+				])
 			];
 		} else {
 			_value = null;
@@ -64,10 +64,10 @@
 	padding={false}
 	style={{
 		height: height,
-		width: width,
+		width: width
 	}}
 	allow_overflow={false}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >
@@ -106,8 +106,7 @@
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<div
 							class="legend-item"
-							style="background-color: {color_map &&
-							label in color_map
+							style="background-color: {color_map && label in color_map
 								? color_map[label] + '88'
 								: `hsla(${Math.round(
 										(i * 360) / _value[1].length
@@ -116,8 +115,7 @@
 							on:focus={() => handle_mouseover(label)}
 							on:mouseout={() => handle_mouseout()}
 							on:blur={() => handle_mouseout()}
-							on:click={() =>
-								dispatch("select", { index: i, value: label })}
+							on:click={() => dispatch("select", { index: i, value: label })}
 						>
 							{label}
 						</div>

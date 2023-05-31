@@ -23,10 +23,7 @@
 
 <div class="wrap">
 	{#each choices as choice, i (i)}
-		<label
-			class:disabled
-			class:selected={value === choice}
-		>
+		<label class:disabled class:selected={value === choice}>
 			<input
 				{disabled}
 				bind:group={value}

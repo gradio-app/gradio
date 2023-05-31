@@ -30,7 +30,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >

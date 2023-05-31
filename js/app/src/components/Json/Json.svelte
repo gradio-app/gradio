@@ -35,7 +35,7 @@
 	test_id="json"
 	{elem_id}
 	{elem_classes}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 	padding={false}
@@ -46,7 +46,7 @@
 			{show_label}
 			{label}
 			float={false}
-			disable={container === false}
+			{container}
 		/>
 	{/if}
 

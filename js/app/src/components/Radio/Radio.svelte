@@ -24,7 +24,7 @@
 	type="fieldset"
 	{elem_id}
 	{elem_classes}
-	disable={container === false}
+	{container}
 	{scale}
 	{min_width}
 >
@@ -37,7 +37,6 @@
 		{elem_id}
 		{show_label}
 		{choices}
-		{style}
 		disabled={mode === "static"}
 		on:change
 		on:select
