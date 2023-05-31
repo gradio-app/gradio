@@ -20,7 +20,7 @@ authors = [
 keywords = ["machine learning", "reproducibility", "visualization"]
 
 [project.scripts]
-gradio = "gradio.reload:main"
+gradio = "gradio.cli:cli"
 upload_theme = "gradio.themes.upload_theme:main"
 
 [project.urls]
