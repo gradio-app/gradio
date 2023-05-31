@@ -147,11 +147,7 @@ class App(FastAPI):
     @staticmethod
     def build_proxy_request(url_path):
         url = httpx.URL(url_path)
-        is_hf_url = (
-            url.host.endswith(".huggingface.co")
-            or url.host.endswith(".hf.space")
-            or url.host.endswith(".hf.co")
-        )
+        is_hf_url = url.host.endswith(".hf.space")
         headers = {}
         if Context.hf_token is not None and is_hf_url:
             headers["Authorization"] = f"Bearer {Context.hf_token}"
