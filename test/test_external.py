@@ -320,7 +320,7 @@ class TestLoadInterface:
     def test_loading_files_via_proxy_works(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-private", api_key=api_key
+            "spaces/gradio-tests/test-loading-examples-private", hf_token=api_key
         )
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
