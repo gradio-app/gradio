@@ -59,7 +59,7 @@ httpx==0.23.0
     # via
     #   -r requirements.in
     #   respx
-huggingface-hub==0.13.0
+huggingface-hub==0.14.0
     # via
     #   -r requirements.in
     #   transformers
