@@ -71,7 +71,7 @@ from gradio.events import (
     Uploadable,
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
-from gradio.layouts import Form
+from gradio.layouts import Column, Form, Row
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -153,8 +153,6 @@ class Component(Block, Serializable):
                 "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
             )
             kwargs.pop("border")
-        if container is not None:
-            self._style["container"] = container
         if len(kwargs):
             for key in kwargs:
                 warnings.warn(f"Unknown style parameter: {key}")
@@ -4663,8 +4661,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        grid_cols: int | Tuple | None = 2,
-        grid_rows: int | Tuple | None = None,
+        grid_cols: int | tuple | None = 2,
+        grid_rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
@@ -4723,8 +4721,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         scale: int | None = None,
         min_width: int | None = None,
         visible: bool | None = None,
-        grid_cols: int | Tuple | None = None,
-        grid_rows: int | Tuple | None = None,
+        grid_cols: int | tuple | None = None,
+        grid_rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
