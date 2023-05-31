@@ -2,6 +2,8 @@
 
 ## New Features:
 
+- Introduced `gradio deploy` to launch a Gradio app to Spaces directly from your terminal. By [@aliabid94](https://github.com/aliabid94) in [PR 4033](https://github.com/gradio-app/gradio/pull/4033). 
+
 
 ## Bug Fixes:
 
@@ -16,7 +18,7 @@
 
 ## Breaking Changes:
 
-No changes to highlight.
+- The `/file=` route no longer allows accessing dotfiles or files in "dot directories" by [@akx](https://github.com/akx) in [PR 4303](https://github.com/gradio-app/gradio/pull/4303)
 
 # 3.32.0
 
@@ -53,7 +55,6 @@ No changes to highlight.
 - Added `format` argument to `Audio` component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4178](https://github.com/gradio-app/gradio/pull/4178)
 - Add JS client code snippets to use via api page by [@aliabd](https://github.com/aliabd) in [PR 3927](https://github.com/gradio-app/gradio/pull/3927).
 - Update to the JS client by [@pngwn](https://github.com/pngwn) in [PR 4202](https://github.com/gradio-app/gradio/pull/4202)
-
 
 ## Bug Fixes:
 
