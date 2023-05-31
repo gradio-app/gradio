@@ -53,6 +53,13 @@ def add_configuration_to_readme(
     configuration["sdk_version"] = gr.__version__
     huggingface_hub.metadata_save(readme_file, configuration)
 
+    configuration["hardware"] = (
+            input(
+                f"Enter Spaces hardware ({', '.join(hardware.value for hardware in huggingface_hub.SpaceHardware)}) [cpu-basic]: "
+            )
+            or "cpu-basic"
+        )    
+
     secrets = {}
     if input("Any Spaces secrets (y/n) [n]: ") == "y":
         while True:
@@ -155,6 +162,7 @@ def deploy():
         space_sdk="gradio",
         repo_type="space",
         exist_ok=True,
+        space_hardware=configuration.get("hardware"),
     ).repo_id
     hf_api.upload_folder(
         repo_id=space_id,
