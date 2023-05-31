@@ -46,7 +46,7 @@ $code_chatbot_streaming
 
 You'll notice that when a user submits their message, we now *chain* three event events with `.then()`:
 
-1. The first method `user()` updates the chatbot with the user message and clears the input field. This method also makes the input field non interactive so that the user can't send another message while the chatbot is responding. Because we want this to happen instantly, we set `queue=False`, which would skip any queue queue had it been enabled. The chatbot's history is appended with `(user_message, None)`, the `None` signifying that the bot has not responded.
+1. The first method `user()` updates the chatbot with the user message and clears the input field. This method also makes the input field non interactive so that the user can't send another message while the chatbot is responding. Because we want this to happen instantly, we set `queue=False`, which would skip any queue had it been enabled. The chatbot's history is appended with `(user_message, None)`, the `None` signifying that the bot has not responded.
 
 2. The second method, `bot()` updates the chatbot history with the bot's response. Instead of creating a new message, we just replace the previously-created `None` message with the bot's response. Finally, we construct the message character by character and `yield` the intermediate outputs as they are being constructed. Gradio automatically turns any function with the `yield` keyword [into a streaming output interface](/key-features/#iterative-outputs).
 
