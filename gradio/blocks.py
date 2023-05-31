@@ -349,6 +349,7 @@ class BlockContext(Block):
                     pseudo_parent.add_child(child)
                 else:
                     pseudo_parent = expected_parent(render=False)
+                    pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
                     if Context.root_block:

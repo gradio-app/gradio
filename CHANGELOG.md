@@ -14,6 +14,7 @@
 ## Other Changes:
 
 - Performance optimization in the frontend's Blocks code by [@akx](https://github.com/akx) in [PR 4334](https://github.com/gradio-app/gradio/pull/4334)
+- Deprecated `.style` parameter and moved arguments to constructor. Added support for update to all arguments initially in style. Added `scale` and `min_width` support to every Component. By [@aliabid94](https://github.com/aliabid94) in [PR 4374](https://github.com/gradio-app/gradio/pull/4374)
 
 ## Breaking Changes:
 

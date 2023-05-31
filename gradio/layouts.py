@@ -327,10 +327,11 @@ class Form(BlockContext):
         super().__init__(**kwargs)
 
     def add_child(self, child: Block):
-        if hasattr(child, "scale"):
-            self.scale += child.scale
-        if hasattr(child, "min_width"):
-            self.min_width += child.min_width
+        if isinstance(self.parent, Row):
+            if hasattr(child, "scale"):
+                self.scale += 1 if child.scale is None else child.scale
+            if hasattr(child, "min_width"):
+                self.min_width += child.min_width
         super().add_child(child)
 
     def get_config(self):
