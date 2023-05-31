@@ -93,7 +93,7 @@ def add_configuration_to_readme(
             f.write(github_action_content)
 
         print(
-            "Github action created. To your Github repository, add your Hugging Face write token as a Secret named 'hf_token'. Github Secrets can be set in the Github Settings page."
+            "Github Action created. Add your Hugging Face write token (from https://huggingface.co/settings/tokens) as an Actions Secret named 'hf_token' to your GitHub repository. This can be set in your repository's settings page."
         )
 
     return configuration
