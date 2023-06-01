@@ -97,4 +97,8 @@ export class WorkerProxy {
 
 		return response;
 	}
+
+	public terminate(): void {
+		this.worker.terminate();
+	}
 }
