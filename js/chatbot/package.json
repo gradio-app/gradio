@@ -8,15 +8,16 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/theme": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1",
-		"@gradio/upload": "workspace:^0.0.1",
 		"@gradio/icons": "workspace:^0.0.1",
-		"marked": "^5.0.1",
+		"@gradio/theme": "workspace:^0.0.1",
+		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
+		"@types/katex": "^0.16.0",
 		"@types/marked": "^4.3.0",
-		"prismjs": "1.29.0",
 		"@types/prismjs": "1.26.0",
 		"katex": "^0.16.7",
-		"@types/katex": "^0.16.0"
+		"marked": "^5.0.1",
+		"marked-highlight": "^2.0.1",
+		"prismjs": "1.29.0"
 	}
 }

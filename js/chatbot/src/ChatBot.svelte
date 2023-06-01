@@ -1,15 +1,11 @@
 <script lang="ts">
-	import { marked } from "marked";
-	import Prism from "prismjs";
-	import "prismjs/components/prism-python";
-	import "prismjs/components/prism-latex";
+	import { marked, copy } from "./utils";
 	import "katex/dist/katex.min.css";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import Copy from "./Copy.svelte";
 
 	const code_highlight_css = {
 		light: () => import("prismjs/themes/prism.css"),
@@ -33,26 +29,6 @@
 	} else {
 		code_highlight_css.light();
 	}
-	const marked_renderer = new marked.Renderer();
-	marked.setOptions({
-		renderer: marked_renderer,
-		gfm: true,
-		breaks: true,
-		pedantic: false,
-		sanitize: true,
-		smartLists: true,
-		smartypants: false
-	});
-
-	marked.setOptions({
-		highlight: (code: string, lang: string) => {
-			if (Prism.languages[lang]) {
-				return Prism.highlight(code, Prism.languages[lang], lang);
-			} else {
-				return code;
-			}
-		}
-	});
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -76,38 +52,6 @@
 				});
 			});
 		}
-		div.querySelectorAll("pre > code").forEach((n) => {
-			let code_node = n as HTMLElement;
-			// check whether copy button is already in there
-			let copy_div_exist = false;
-			if (code_node.parentElement) {
-				let buttonElement = code_node.parentElement.querySelector("button");
-				if (buttonElement) {
-					// button element is already inside code_node
-					copy_div_exist = true;
-				}
-			}
-			if (copy_div_exist) {
-				return;
-			} else {
-				const copy_div = document.createElement("div");
-				new Copy({
-					target: copy_div,
-					props: {
-						value: code_node.innerText.trimEnd()
-					}
-				});
-				let node = n.parentElement as HTMLElement;
-				copy_div.style.position = "absolute";
-				copy_div.style.right = "0";
-				copy_div.style.top = "0";
-				copy_div.style.zIndex = "1";
-				copy_div.style.padding = "var(--spacing-md)";
-				copy_div.style.borderBottomLeftRadius = "var(--radius-sm)";
-				node.style.position = "relative";
-				node.appendChild(copy_div);
-			}
-		});
 
 		render_math_in_element(div, {
 			delimiters: [
@@ -123,6 +67,17 @@
 			old_value = value;
 			dispatch("change");
 		}
+	}
+
+	function handle_select(
+		i: number,
+		j: number,
+		message: string | FileData | null
+	) {
+		dispatch("select", {
+			index: [i, j],
+			value: message
+		});
 	}
 </script>
 
@@ -143,11 +98,8 @@
 						class="message {j == 0 ? 'user' : 'bot'}"
 						class:hide={message === null}
 						class:selectable
-						on:click={() =>
-							dispatch("select", {
-								index: [i, j],
-								value: message
-							})}
+						use:copy
+						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
 							{@html marked.parse(message)}
@@ -382,5 +334,44 @@
 	/* KaTeX */
 	.message-wrap :global(span.katex) {
 		font-size: var(--text-lg);
+	}
+
+	/* Copy button */
+	.message-wrap :global(code > button) {
+		position: absolute;
+		cursor: pointer;
+		padding: 5px;
+		width: 22px;
+		height: 22px;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		padding: var(--spacing-md);
+		border-bottom-left-radius: var(--radius-sm);
+		z-index: 1;
+	}
+
+	.message-wrap :global(code > button > span) {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		width: 12px;
+		height: 12px;
+	}
+	.message-wrap :global(.check) {
+		position: absolute;
+		top: 0;
+		right: 0;
+		z-index: var(--layer-top);
+		background: var(--background-fill-primary);
+		padding: var(--size-1);
+		width: 100%;
+		height: 100%;
+		color: var(--body-text-color);
+		opacity: 0;
+		transition: opacity 0.2s;
+	}
+
+	.message-wrap :global(pre) {
+		position: relative;
 	}
 </style>

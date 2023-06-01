@@ -2,6 +2,13 @@ import gradio as gr
 import random
 import time
 
+md = """This is some code:
+
+```py
+def fn(x, y, z):
+    print(x, y, z)
+"""
+
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
     msg = gr.Textbox()
@@ -9,7 +16,7 @@ with gr.Blocks() as demo:
 
     def respond(message, chat_history):
         bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
-        chat_history.append((message, bot_message))
+        chat_history.append((message, md))
         time.sleep(1)
         return "", chat_history
 
