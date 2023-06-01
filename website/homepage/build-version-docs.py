@@ -7,7 +7,7 @@ import jinja2
 from src import docs
 from utils import get_latest_stable
 
-AUTH_TOKEN = os.getenv("AUTH_TOKEN")
+AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 SRC_DIR = "src"
 BUILD_DIR = "build"
 if os.path.exists(BUILD_DIR):
