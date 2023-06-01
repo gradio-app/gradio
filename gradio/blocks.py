@@ -1421,7 +1421,7 @@ Received outputs:
         outputs: list[Component] | None = None,
         api_name: str | None = None,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: str = "cover",
         queue=None,
         batch: bool = False,
         max_batch_size: int = 4,
