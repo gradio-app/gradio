@@ -616,6 +616,7 @@ def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
         head_request = requests.head(possible_url, headers=headers)
+        # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code == 405 or head_request.status_code == 403:
             return requests.get(possible_url, headers=headers).ok
         return head_request.ok
