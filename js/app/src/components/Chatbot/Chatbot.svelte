@@ -41,7 +41,9 @@
 </script>
 
 <Block {elem_id} {elem_classes} {visible} padding={false}>
-	<StatusTracker {...loading_status} show_progress="corner" />
+	{#if loading_status && loading_status.status === "pending"}
+		<StatusTracker {...loading_status} show_progress="corner" />
+	{/if}
 	{#if show_label}
 		<BlockLabel
 			{show_label}
