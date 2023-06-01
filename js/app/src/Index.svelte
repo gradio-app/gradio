@@ -60,7 +60,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import { client, SpaceStatus } from "@gradio/client";
 	import { WorkerProxy, makeWasmFetch } from "@gradio/wasm";
 
@@ -204,6 +204,8 @@
 	function handle_status(_status: SpaceStatus) {
 		status = _status;
 	}
+	let workerProxy: WorkerProxy | null = null;
+
 	onMount(async () => {
 		if (window.__gradio_mode__ !== "website") {
 			active_theme_mode = handle_darkmode(wrapper);
@@ -214,7 +216,6 @@
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
-		let workerProxy: WorkerProxy | null = null;
 		if (IS_WASM) {
 			workerProxy = new WorkerProxy({
 				gradioWheelUrl,
@@ -253,6 +254,10 @@
 		if (config.dev_mode) {
 			reload_check(config.root);
 		}
+	});
+
+	onDestroy(() => {
+		workerProxy?.terminate();
 	});
 
 	$: loader_status =
