@@ -187,14 +187,15 @@
 	class:hide={!status || status === "complete" || show_progress === "hidden"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
-		translucent}
+		translucent ||
+		show_progress === "corner"}
 	class:generating={status === "generating"}
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default" && show_eta_bar}
+		{#if variant === "default" && show_eta_bar && show_progress === "cover"}
 			<div
 				class="eta-bar"
 				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
@@ -257,7 +258,7 @@
 					/>
 				</div>
 			</div>
-		{:else}
+		{:else if show_progress === "cover"}
 			<Loader margin={variant === "default"} />
 		{/if}
 

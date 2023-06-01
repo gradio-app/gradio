@@ -6,6 +6,7 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -38,6 +39,7 @@
 </script>
 
 <Block {elem_id} {elem_classes} {visible} padding={false}>
+	<StatusTracker {...loading_status} show_progress="corner" />
 	{#if show_label}
 		<BlockLabel
 			{show_label}

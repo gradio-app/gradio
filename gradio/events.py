@@ -5,16 +5,16 @@ from __future__ import annotations
 
 import warnings
 from typing import TYPE_CHECKING, Any, Callable
-from typing_extensions import Literal
 
 from gradio_client.documentation import document, set_documentation_group
+from typing_extensions import Literal
 
 from gradio.blocks import Block
 from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.components import Component, StatusTracker
+    from gradio.components import Component
 
 set_documentation_group("events")
 
@@ -77,7 +77,9 @@ class EventListenerMethod:
         self,
         trigger: Block,
         event_name: str,
-        show_progress: Literal["cover"] | Literal["corner"] | Literal["hidden"] = "cover",
+        show_progress: Literal["cover"]
+        | Literal["corner"]
+        | Literal["hidden"] = "cover",
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -97,7 +99,9 @@ class EventListenerMethod:
         api_name: str | None = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
-        show_progress: Literal["cover"] | Literal["corner"] | Literal["hidden"] = "cover",
+        show_progress: Literal["cover"]
+        | Literal["corner"]
+        | Literal["hidden"] = "cover",
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
