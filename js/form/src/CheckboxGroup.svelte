@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { BlockTitle, Info } from "@gradio/atoms";
+	import { createEventDispatcher, afterUpdate } from "svelte";
+	import { BlockTitle } from "@gradio/atoms";
 	import { get_styles } from "@gradio/utils";
 	import type { Styles, SelectData } from "@gradio/utils";
 
 	export let value: Array<string> = [];
+	let old_value: Array<string> = value.slice();
+	export let value_is_output: boolean = false;
 	export let style: Styles = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
@@ -14,6 +16,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: Array<string>;
+		input: undefined;
 		select: SelectData;
 	}>();
 
@@ -23,9 +26,24 @@
 		} else {
 			value.push(choice);
 		}
-		dispatch("change", value);
 		value = value;
 	};
+
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value.slice();
+			handle_change();
+		}
+	}
 
 	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>

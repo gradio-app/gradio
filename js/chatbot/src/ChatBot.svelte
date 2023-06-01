@@ -1,8 +1,17 @@
 <script lang="ts">
+	import { marked, copy } from "./utils";
+	import "katex/dist/katex.min.css";
+	import DOMPurify from "dompurify";
+	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
+	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import "./manni.css";
+
+	const code_highlight_css = {
+		light: () => import("prismjs/themes/prism.css"),
+		dark: () => import("prismjs/themes/prism-dark.css")
+	};
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -14,6 +23,13 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+	export let theme_mode: ThemeMode;
+
+	$: if (theme_mode == "dark") {
+		code_highlight_css.dark();
+	} else {
+		code_highlight_css.light();
+	}
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -37,30 +53,13 @@
 				});
 			});
 		}
-		div.querySelectorAll("pre > code").forEach((n) => {
-			let code_node = n as HTMLElement;
-			let node = n.parentElement as HTMLElement;
-			node.style.position = "relative";
-			const button = document.createElement("button");
-			button.className = "copy-button";
-			button.innerHTML = "Copy";
-			button.style.position = "absolute";
-			button.style.right = "0";
-			button.style.top = "0";
-			button.style.zIndex = "1";
-			button.style.padding = "var(--spacing-md)";
-			button.style.marginTop = "12px";
-			button.style.fontSize = "var(--text-sm)";
-			button.style.borderBottomLeftRadius = "var(--radius-sm)";
-			button.style.backgroundColor = "var(--block-label-background-fill)";
-			button.addEventListener("click", () => {
-				navigator.clipboard.writeText(code_node.innerText.trimEnd());
-				button.innerHTML = "Copied!";
-				setTimeout(() => {
-					button.innerHTML = "Copy";
-				}, 1000);
-			});
-			node.appendChild(button);
+
+		render_math_in_element(div, {
+			delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "$", right: "$", display: false }
+			],
+			throwOnError: false
 		});
 	});
 
@@ -70,6 +69,17 @@
 			dispatch("change");
 		}
 	}
+
+	function handle_select(
+		i: number,
+		j: number,
+		message: string | FileData | null
+	) {
+		dispatch("select", {
+			index: [i, j],
+			value: message
+		});
+	}
 </script>
 
 <div
@@ -78,7 +88,7 @@
 	style:max-height={`${style.height}px`}
 	bind:this={div}
 >
-	<div class="message-wrap">
+	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
@@ -89,14 +99,10 @@
 						class="message {j == 0 ? 'user' : 'bot'}"
 						class:hide={message === null}
 						class:selectable
-						on:click={() =>
-							dispatch("select", {
-								index: [i, j],
-								value: message
-							})}
+						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							{@html message}
+							{@html DOMPurify.sanitize(marked.parse(message))}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -247,13 +253,6 @@
 	.dot-flashing:nth-child(3) {
 		animation-delay: 0.66s;
 	}
-	.message-wrap > div :global(.highlight) {
-		margin-top: var(--spacing-xs);
-		margin-bottom: var(--spacing-xs);
-		border-radius: var(--radius-md);
-		background: var(--chatbot-code-background-color);
-		padding-left: var(--spacing-xxl);
-	}
 
 	/* Small screen */
 	@media (max-width: 480px) {
@@ -290,7 +289,89 @@
 		display: none;
 	}
 
+	/* Code blocks */
+	.message-wrap :global(pre[class*="language-"]),
 	.message-wrap :global(pre) {
-		padding: var(--spacing-xl) 0px;
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		box-shadow: none;
+		border: none;
+		border-radius: var(--radius-md);
+		background-color: var(--chatbot-code-background-color);
+		padding: var(--spacing-xl) 10px;
+	}
+
+	/* Tables */
+	.message-wrap :global(table),
+	.message-wrap :global(tr),
+	.message-wrap :global(td),
+	.message-wrap :global(th) {
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+		padding: var(--spacing-xl);
+	}
+
+	.message-wrap .bot :global(table),
+	.message-wrap .bot :global(tr),
+	.message-wrap .bot :global(td),
+	.message-wrap .bot :global(th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap .user :global(table),
+	.message-wrap .user :global(tr),
+	.message-wrap .user :global(td),
+	.message-wrap .user :global(th) {
+		border: 1px solid var(--border-color-accent);
+	}
+
+	/* Lists */
+	.message-wrap :global(ol),
+	.message-wrap :global(ul) {
+		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
+	}
+
+	/* Copy button */
+	.message-wrap :global(code > button) {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		z-index: 1;
+		cursor: pointer;
+		border-bottom-left-radius: var(--radius-sm);
+		padding: 5px;
+		padding: var(--spacing-md);
+		width: 22px;
+		height: 22px;
+	}
+
+	.message-wrap :global(code > button > span) {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		width: 12px;
+		height: 12px;
+	}
+	.message-wrap :global(.check) {
+		position: absolute;
+		top: 0;
+		right: 0;
+		opacity: 0;
+		z-index: var(--layer-top);
+		transition: opacity 0.2s;
+		background: var(--background-fill-primary);
+		padding: var(--size-1);
+		width: 100%;
+		height: 100%;
+		color: var(--body-text-color);
+	}
+
+	.message-wrap :global(pre) {
+		position: relative;
 	}
 </style>

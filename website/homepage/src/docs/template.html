@@ -163,6 +163,8 @@
           <a class="thinner-link px-4 pl-8 block" href="#{{'gradio_client-' + component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
       </div>
+      <a class="thin-link px-4 block" href="#javascript-client">Javascript</a>
+
       </div>
       <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
         <div>
@@ -408,6 +410,8 @@
           {% endwith %}
         {% endfor %}
         </section>
+        <section id="javascript-client" class="pt-2 flex flex-col gap-10 mb-8">
+          {% include "docs/temporary_template.html" %}
         </section>
 
       </div>
@@ -568,4 +572,39 @@
 
     </script>
   </body>
+
+  <style>
+    #javascript-client-library {
+      font-size: 2.25rem; 
+      line-height: 2.5rem;
+      font-weight: 300;
+    }
+
+    h2 {
+      font-size: 1.875rem; 
+      line-height: 2.25rem; /* 36px */
+      font-weight: 300;
+    }
+
+    h3 {
+      font-size: 1.5rem; /* 24px */
+      line-height: 2rem; /* 32px */
+      font-weight: 300;
+      padding-top: 0.5rem; /* 16px */
+      padding-bottom: 0.5rem; /* 16px */
+    }
+
+    h4 {
+      font-size: 1.25rem; /* 20px */
+      line-height: 1.75rem; /* 28px */
+      font-weight: 300;
+    }
+
+    p {
+      font-size: 1.125rem; /* 18px */
+      line-height: 1.75rem; /* 28px */
+    }
+
+    
+  </style>
 </html>

@@ -3,6 +3,7 @@
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
+	import type { ThemeMode } from "js/app/src/components/types";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
@@ -21,6 +22,7 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let selectable: boolean = false;
+	export let theme_mode: ThemeMode;
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
@@ -52,6 +54,7 @@
 	<ChatBot
 		{style}
 		{selectable}
+		{theme_mode}
 		value={_value}
 		pending_message={loading_status?.status === "pending"}
 		on:change

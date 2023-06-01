@@ -1,4 +1,4 @@
-import json
+import os
 import threading
 from typing import Dict
 
@@ -20,7 +20,7 @@ en = {
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
     "COLAB_WARNING": "Note: opening Chrome Inspector may crash demo inside Colab notebooks.",
-    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades, run `gradio --deploy` to deploy to Spaces (https://huggingface.co/spaces)",
+    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades, run `gradio deploy` from Terminal to deploy to Spaces (https://huggingface.co/spaces)",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
     "TIPS": [
         "You can add authentication to your app with the `auth=` kwarg in the `launch()` command; for example: `gr.Interface(...).launch(auth=('username', 'password'))`",
@@ -37,12 +37,9 @@ def get_updated_messaging(en: Dict):
     try:
         updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
         en.update(updated_messaging)
-    except (
-        requests.ConnectionError,
-        requests.exceptions.ReadTimeout,
-        json.decoder.JSONDecodeError,
-    ):  # Use default messaging
+    except Exception:  # Use default messaging
         pass
 
 
-threading.Thread(target=get_updated_messaging, args=(en,)).start()
+if os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True":
+    threading.Thread(target=get_updated_messaging, args=(en,)).start()

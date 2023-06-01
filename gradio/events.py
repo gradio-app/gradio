@@ -124,7 +124,7 @@ class EventListenerMethod:
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
+            cancels: A list of other events to cancel when This listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         if status_tracker:
@@ -167,8 +167,19 @@ class Changeable(EventListener):
     def __init__(self):
         self.change = EventListenerMethod(self, "change")
         """
-        This event is triggered when the component's input value changes (e.g. when the user types in a textbox
-        or uploads an image). This method can be used when this component is in a Gradio Blocks.
+        This listener is triggered when the component's value changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger).
+        See `.input()` for a listener that is only triggered by user input.
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+
+@document("*input", inherit=True)
+class Inputable(EventListener):
+    def __init__(self):
+        self.input = EventListenerMethod(self, "input")
+        """
+        This listener is triggered when the user changes the value of the component.
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -177,7 +188,7 @@ class Clickable(EventListener):
     def __init__(self):
         self.click = EventListenerMethod(self, "click")
         """
-        This event is triggered when the component (e.g. a button) is clicked.
+        This listener is triggered when the component (e.g. a button) is clicked.
         This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -187,7 +198,7 @@ class Submittable(EventListener):
     def __init__(self):
         self.submit = EventListenerMethod(self, "submit")
         """
-        This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
+        This listener is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
         This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -197,7 +208,7 @@ class Editable(EventListener):
     def __init__(self):
         self.edit = EventListenerMethod(self, "edit")
         """
-        This event is triggered when the user edits the component (e.g. image) using the
+        This listener is triggered when the user edits the component (e.g. image) using the
         built-in editor. This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -207,7 +218,7 @@ class Clearable(EventListener):
     def __init__(self):
         self.clear = EventListenerMethod(self, "clear")
         """
-        This event is triggered when the user clears the component (e.g. image or audio)
+        This listener is triggered when the user clears the component (e.g. image or audio)
         using the X button for the component. This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -217,19 +228,19 @@ class Playable(EventListener):
     def __init__(self):
         self.play = EventListenerMethod(self, "play")
         """
-        This event is triggered when the user plays the component (e.g. audio or video).
+        This listener is triggered when the user plays the component (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
         self.pause = EventListenerMethod(self, "pause")
         """
-        This event is triggered when the user pauses the component (e.g. audio or video).
+        This listener is triggered when the user pauses the component (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
         self.stop = EventListenerMethod(self, "stop")
         """
-        This event is triggered when the user stops the component (e.g. audio or video).
+        This listener is triggered when the user stops the component (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -245,7 +256,7 @@ class Streamable(EventListener):
             callback=lambda: setattr(self, "streaming", True),
         )
         """
-        This event is triggered when the user streams the component (e.g. a live webcam
+        This listener is triggered when the user streams the component (e.g. a live webcam
         component). This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -258,7 +269,8 @@ class Blurrable(EventListener):
     def __init__(self):
         self.blur = EventListenerMethod(self, "blur")
         """
-        This event is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). This method can be used when this component is in a Gradio Blocks.
+        This listener is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). 
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -267,7 +279,8 @@ class Uploadable(EventListener):
     def __init__(self):
         self.upload = EventListenerMethod(self, "upload")
         """
-        This event is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component). This method can be used when this component is in a Gradio Blocks.
+        This listener is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component).
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -276,7 +289,8 @@ class Releaseable(EventListener):
     def __init__(self):
         self.release = EventListenerMethod(self, "release")
         """
-        This event is triggered when the user releases the mouse on this component (e.g. when the user releases the slider). This method can be used when this component is in a Gradio Blocks.
+        This listener is triggered when the user releases the mouse on this component (e.g. when the user releases the slider).
+        This method can be used when this component is in a Gradio Blocks.
         """
 
 
@@ -288,7 +302,7 @@ class Selectable(EventListener):
             self, "select", callback=lambda: setattr(self, "selectable", True)
         )
         """
-        This event is triggered when the user selects from within the Component.
+        This listener is triggered when the user selects from within the Component.
         This event has EventData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value.
         See EventData documentation on how to use this event data.
         """

@@ -1,60 +1,56 @@
 from __future__ import annotations
 
-import json
+import argparse
 import os
-import random
 import re
 
 import huggingface_hub
 
+import gradio as gr
 
-def add_configuration_to_readme(repo_directory, readme_file) -> dict:
+repo_directory = os.getcwd()
+readme_file = os.path.join(repo_directory, "README.md")
+github_action_template = os.path.join(
+    os.path.dirname(__file__), "deploy_space_action.yaml"
+)
+
+
+def add_configuration_to_readme(
+    title: str | None,
+    app_file: str | None,
+) -> dict:
     configuration = {}
 
     dir_name = os.path.basename(repo_directory)
-    title = input(f"Enter Spaces app title [{dir_name}]: ") or dir_name
+    if title is None:
+        title = input(f"Enter Spaces app title [{dir_name}]: ") or dir_name
     formatted_title = format_title(title)
     if formatted_title != title:
         print(f"Formatted to {formatted_title}. ")
     configuration["title"] = formatted_title
 
-    app_file = None
-    for file in os.listdir(repo_directory):
-        file_path = os.path.join(repo_directory, file)
-        if (not os.path.isfile(file_path)) or (
-            not file.endswith(".py") and not file.endswith(".ipynb")
-        ):
-            continue
+    if app_file is None:
+        for file in os.listdir(repo_directory):
+            file_path = os.path.join(repo_directory, file)
+            if not os.path.isfile(file_path) or not file.endswith(".py"):
+                continue
 
-        with open(file_path, encoding="utf-8", errors="ignore") as f:
-            content = f.read()
-            if "import gradio" in content:
-                app_file = file
-                break
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+                if "import gradio" in content:
+                    app_file = file
+                    break
 
-    app_file = (
-        input(f"Enter Gradio app file {f'[{app_file}]' if app_file else ''}: ")
-        or app_file
-    )
+        app_file = (
+            input(f"Enter Gradio app file {f'[{app_file}]' if app_file else ''}: ")
+            or app_file
+        )
     if not app_file or not os.path.exists(app_file):
         raise FileNotFoundError("Failed to find Gradio app file.")
-    if app_file.endswith(".ipynb"):
-        configuration["notebook_file"] = app_file
-        app_file = "_" + configuration["notebook_file"].replace(".ipynb", ".py")
     configuration["app_file"] = app_file
 
-    emoji_set = "🤯🤖🧠🐶👑💥🐮🎁🐙🦋"
-    default_emoji = random.choice(emoji_set)
-    configuration["emoji"] = (
-        input(f"Enter Spaces Card emoji [{default_emoji}]: ") or default_emoji
-    )
-
-    color_set = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
-    default_color = random.choice(color_set)
-    color = input(f"Enter Spaces Card color [{default_color}]: ") or default_color
-    configuration["colorFrom"] = color
-    configuration["colorTo"] = color
     configuration["sdk"] = "gradio"
+    configuration["sdk_version"] = gr.__version__
     huggingface_hub.metadata_save(readme_file, configuration)
 
     configuration["hardware"] = (
@@ -63,6 +59,7 @@ def add_configuration_to_readme(repo_directory, readme_file) -> dict:
         )
         or "cpu-basic"
     )
+
     secrets = {}
     if input("Any Spaces secrets (y/n) [n]: ") == "y":
         while True:
@@ -78,8 +75,32 @@ def add_configuration_to_readme(repo_directory, readme_file) -> dict:
         not os.path.exists(requirements_file)
         and input("Create requirements.txt file? (y/n) [n]: ").lower() == "y"
     ):
+        while True:
+            requirement = input("Enter a dependency (leave blank to end): ")
+            if not requirement:
+                break
+            with open(requirements_file, "a") as f:
+                f.write(requirement + "\n")
+
+    if (
         input(
-            "Created requirements.txt file. Please add any dependencies to this file now. Press enter to continue. "
+            "Create Github Action to automatically update Space on 'git push'? [n]: "
+        ).lower()
+        == "y"
+    ):
+        track_branch = input("Enter branch to track [main]: ") or "main"
+        github_action_file = os.path.join(
+            repo_directory, ".github/workflows/update_space.yml"
+        )
+        os.makedirs(os.path.dirname(github_action_file), exist_ok=True)
+        with open(github_action_template) as f:
+            github_action_content = f.read()
+        github_action_content = github_action_content.replace("$branch", track_branch)
+        with open(github_action_file, "w") as f:
+            f.write(github_action_content)
+
+        print(
+            "Github Action created. Add your Hugging Face write token (from https://huggingface.co/settings/tokens) as an Actions Secret named 'hf_token' to your GitHub repository. This can be set in your repository's settings page."
         )
 
     return configuration
@@ -94,45 +115,17 @@ def format_title(title: str):
     return title
 
 
-def notebook_to_script(notebook_path, script_path):
-    print(f"Converting {notebook_path} to {script_path}.")
-    with open(notebook_path, encoding="utf-8") as f:
-        notebook = json.load(f)
-    import_subprocess = False
-    script_content = []
-
-    for cell in notebook["cells"]:
-        if cell["cell_type"] == "code":
-            for line in cell["source"]:
-                spaces = ""
-                if line.startswith(" ") or line.startswith("\t"):
-                    spaces = line[: len(line) - len(line.lstrip())]
-                    line = line.strip()
-                elif line.startswith("%"):
-                    continue
-                elif line.startswith("!"):
-                    command = line[1:].rstrip()
-                    subprocess_call = f"subprocess.run('{command}', shell=True, check=True, text=True)"
-                    script_content.append(spaces + subprocess_call)
-                    import_subprocess = True
-                else:
-                    script_content.append(spaces + line)
-
-            script_content.append("\n")
-
-    if import_subprocess:
-        script_content.insert(0, "import subprocess\n")
-
-    script = "".join(script_content)
-    with open(script_path, "w", encoding="utf-8") as f:
-        f.write(script)
-
-
 def deploy():
     if (
         os.getenv("SYSTEM") == "spaces"
     ):  # in case a repo with this function is uploaded to spaces
         return
+    parser = argparse.ArgumentParser(description="Deploy to Spaces")
+    parser.add_argument("deploy")
+    parser.add_argument("--title", type=str, help="Spaces app title")
+    parser.add_argument("--app-file", type=str, help="File containing the Gradio app")
+
+    args = parser.parse_args()
 
     hf_api = huggingface_hub.HfApi()
     whoami = None
@@ -148,8 +141,6 @@ def deploy():
         huggingface_hub.login(add_to_git_credential=False)
         whoami = hf_api.whoami()
 
-    repo_directory = os.getcwd()
-    readme_file = os.path.join(repo_directory, "README.md")
     configuration: None | dict = None
     if os.path.exists(readme_file):
         try:
@@ -161,9 +152,10 @@ def deploy():
         print(
             f"Creating new Spaces Repo in '{repo_directory}'. Collecting metadata, press Enter to accept default value."
         )
-        configuration = add_configuration_to_readme(repo_directory, readme_file)
-    if configuration.get("notebook_file"):
-        notebook_to_script(configuration["notebook_file"], configuration["app_file"])
+        configuration = add_configuration_to_readme(
+            args.title,
+            args.app_file,
+        )
 
     space_id = huggingface_hub.create_repo(
         configuration["title"],

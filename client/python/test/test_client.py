@@ -23,10 +23,10 @@ HF_TOKEN = "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"  # Intentionally reveali
 
 
 @contextmanager
-def connect(demo: gr.Blocks):
+def connect(demo: gr.Blocks, serialize: bool = True):
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     try:
-        yield Client(local_url)
+        yield Client(local_url, serialize=serialize)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -39,7 +39,7 @@ def connect(demo: gr.Blocks):
         demo.server.thread.join(timeout=1)
 
 
-class TestPredictionsFromSpaces:
+class TestClientPredictions:
     @pytest.mark.flaky
     def test_raise_error_invalid_state(self):
         with pytest.raises(ValueError, match="invalid state"):
@@ -172,7 +172,6 @@ class TestPredictionsFromSpaces:
         assert pathlib.Path(job.result()).exists()
 
     def test_progress_updates(self, progress_demo):
-
         with connect(progress_demo) as client:
             job = client.submit("hello", api_name="/predict")
             statuses = []
@@ -246,7 +245,6 @@ class TestPredictionsFromSpaces:
 
     @pytest.mark.flaky
     def test_upload_file_private_space(self):
-
         client = Client(
             src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
         )
@@ -254,13 +252,19 @@ class TestPredictionsFromSpaces:
         with patch.object(
             client.endpoints[0], "_upload", wraps=client.endpoints[0]._upload
         ) as upload:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                f.write("Hello from private space!")
+            with patch.object(
+                client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+            ) as serialize:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                    f.write("Hello from private space!")
 
-            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
+                output = client.submit(
+                    1, "foo", f.name, api_name="/file_upload"
+                ).result()
             with open(output) as f:
                 assert f.read() == "Hello from private space!"
             upload.assert_called_once()
+            assert all(f["is_file"] for f in serialize.return_value())
 
         with patch.object(
             client.endpoints[1], "_upload", wraps=client.endpoints[0]._upload
@@ -308,11 +312,17 @@ class TestPredictionsFromSpaces:
                 client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
 
+    def test_state_without_serialize(self, stateful_chatbot):
+        with connect(stateful_chatbot, serialize=False) as client:
+            initial_history = [["", None]]
+            message = "Hello"
+            ret = client.predict(message, initial_history, api_name="/submit")
+            assert ret == ("", [["", None], ["Hello", "I love you"]])
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_passed_correctly(self, mock_make_end_to_end_fn):
-
         now = datetime.now()
 
         messages = [
@@ -396,7 +406,6 @@ class TestStatusUpdates:
 
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_correct_two_concurrent(self, mock_make_end_to_end_fn):
-
         now = datetime.now()
 
         messages_1 = [
