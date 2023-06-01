@@ -26,7 +26,7 @@ jobs:
           version: 7
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
@@ -50,7 +50,7 @@ jobs:
           version: 7
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install Python
