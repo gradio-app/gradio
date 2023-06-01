@@ -3,7 +3,7 @@
 ## New Features:
 
 - Introduced `gradio deploy` to launch a Gradio app to Spaces directly from your terminal. By [@aliabid94](https://github.com/aliabid94) in [PR 4033](https://github.com/gradio-app/gradio/pull/4033). 
-- Introduce `show_progress='corner'` argument to event listeners, which will not cover the entire screen with the progress animation, but instead show it in the corner of the screen. By [@aliabid94](https://github.com/aliabid94) in [PR 4396](https://github.com/gradio-app/gradio/pull/4396).
+- Introduce `show_progress='corner'` argument to event listeners, which will not cover the output components with the progress animation, but instead show it in the corner of the components. By [@aliabid94](https://github.com/aliabid94) in [PR 4396](https://github.com/gradio-app/gradio/pull/4396).
 
 ## Bug Fixes:
 
