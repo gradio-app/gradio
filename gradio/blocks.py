@@ -40,7 +40,7 @@ from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
-from gradio.tunneling import CURRENT_TUNNELS
+from gradio.tunneling import CURRENT_TUNNELS, BINARY_FILENAME
 from gradio.utils import (
     GRADIO_VERSION,
     TupleNoPrint,
@@ -1845,7 +1845,7 @@ Received outputs:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                print(strings.en["COULD_NOT_GET_SHARE_LINK"].format(BINARY_FILENAME))
         else:
             if not (quiet):
                 print(strings.en["PUBLIC_SHARE_TRUE"])
