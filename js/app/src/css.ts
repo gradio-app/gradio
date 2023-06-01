@@ -11,8 +11,9 @@ export function mount_css(url: string, target: HTMLElement): Promise<void> {
 
 	return new Promise((res, rej) => {
 		link.addEventListener("load", () => res());
-		link.addEventListener("error", () =>
-			rej(new Error(`Unable to preload CSS for ${url}`))
-		);
+		link.addEventListener("error", () => {
+			console.error(`Unable to preload CSS for ${url}`);
+			res();
+		});
 	});
 }
