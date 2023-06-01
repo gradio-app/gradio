@@ -1,3 +1,4 @@
+import type { PyProxy } from "pyodide/ffi";
 import type { HttpRequest, HttpResponse } from "../message-types";
 
 // Inspired by https://github.com/rstudio/shinylive/blob/v0.1.2/src/messageporthttp.ts
@@ -5,10 +6,37 @@ import type { HttpRequest, HttpResponse } from "../message-types";
 // A reference to an ASGI application instance in Python
 // Ref: https://asgi.readthedocs.io/en/latest/specs/main.html#applications
 type ASGIApplication = (
-	scope: unknown,
-	receive: Function,
-	send: Function
+	scope: Record<string, unknown>,
+	receive: () => Promise<ReceiveEvent>,
+	send: (event: PyProxy) => Promise<void>
 ) => Promise<void>;
+
+type ReceiveEvent = RequestReceiveEvent | DisconnectReceiveEvent;
+// https://asgi.readthedocs.io/en/latest/specs/www.html#request-receive-event
+interface RequestReceiveEvent {
+	type: "http.request";
+	body?: Uint8Array; // `bytes` in Python
+	more_body: boolean;
+}
+// https://asgi.readthedocs.io/en/latest/specs/www.html#disconnect-receive-event
+interface DisconnectReceiveEvent {
+	type: "http.disconnect";
+}
+
+type SendEvent = ResponseStartSendEvent | ResponseBodySendEvent;
+// https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event
+interface ResponseStartSendEvent {
+	type: "http.response.start";
+	status: number;
+	headers: Iterable<[Uint8Array, Uint8Array]>;
+	trailers: boolean;
+}
+// https://asgi.readthedocs.io/en/latest/specs/www.html#response-body-send-event
+interface ResponseBodySendEvent {
+	type: "http.response.body";
+	body: Uint8Array; // `bytes` in Python
+	more_body: boolean;
+}
 
 function headersToASGI(
 	headers: HttpRequest["headers"]
@@ -40,22 +68,34 @@ export const makeHttpRequest = (
 	request: HttpRequest
 ): Promise<HttpResponse> =>
 	new Promise((resolve, reject) => {
-		// https://asgi.readthedocs.io/en/latest/specs/www.html#request-receive-event
-		async function fromClient(): Promise<Record<string, any>> {
-			return {
+		let sent = false;
+		async function receiveFromJs(): Promise<ReceiveEvent> {
+			if (sent) {
+				// NOTE: I implemented this block just referring to the spec. However, it is not reached in practice so it's not combat-proven.
+				return {
+					type: "http.disconnect"
+				};
+			}
+
+			const event: RequestReceiveEvent = {
 				type: "http.request",
-				body: request.body,
 				more_body: false
 			};
+			if (request.body) {
+				event.body = request.body;
+			}
+
+			console.debug("receive", event);
+			sent = true;
+			return event;
 		}
 
-		// https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event
 		let status: number;
 		let headers: { [key: string]: string };
 		let body: Uint8Array = new Uint8Array();
-		async function toClient(event: Record<string, any>): Promise<void> {
-			event = Object.fromEntries(event.toJs());
-			console.debug("toClient", event);
+		async function sendToJs(proxiedEvent: PyProxy): Promise<void> {
+			const event = Object.fromEntries(proxiedEvent.toJs()) as SendEvent;
+			console.debug("send", event);
 			if (event.type === "http.response.start") {
 				status = event.status;
 				headers = asgiHeadersToRecord(event.headers);
@@ -71,7 +111,7 @@ export const makeHttpRequest = (
 					resolve(response);
 				}
 			} else {
-				throw new Error(`Unhandled ASGI event: ${event.type}`);
+				throw new Error(`Unhandled ASGI event: ${JSON.stringify(event)}`);
 			}
 		}
 
@@ -91,5 +131,5 @@ export const makeHttpRequest = (
 			headers: headersToASGI(request.headers)
 		};
 
-		asgiApp(scope, fromClient, toClient);
+		asgiApp(scope, receiveFromJs, sendToJs);
 	});
