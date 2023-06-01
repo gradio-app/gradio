@@ -13,7 +13,7 @@
 	export let color: undefined | string = undefined;
 	export let value: {
 		label: string;
-		confidences: Array<{ label: string; confidence: number }>;
+		confidences?: Array<{ label: string; confidence: number }>;
 	};
 	export let label: string = "Label";
 	export let style: Styles = {};
