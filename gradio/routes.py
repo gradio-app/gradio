@@ -8,6 +8,7 @@ import inspect
 import json
 import mimetypes
 import os
+import posixpath
 import secrets
 import tempfile
 import traceback
@@ -628,7 +629,7 @@ def safe_join(directory: str, path: str) -> str:
     if path == "":
         raise HTTPException(400)
 
-    filename = os.path.normpath(path)
+    filename = posixpath.normpath(path)
     fullpath = os.path.join(directory, filename)
     if (
         any(sep in filename for sep in _os_alt_seps)
