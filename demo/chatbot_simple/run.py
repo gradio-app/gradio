@@ -4,6 +4,8 @@ import time
 
 md = """This is some code:
 
+<h1>hello</h1>
+
 ```py
 def fn(x, y, z):
     print(x, y, z)

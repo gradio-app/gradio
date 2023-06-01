@@ -18,6 +18,8 @@
 		"katex": "^0.16.7",
 		"marked": "^5.0.1",
 		"marked-highlight": "^2.0.1",
-		"prismjs": "1.29.0"
+		"prismjs": "1.29.0",
+		"dompurify": "^3.0.3",
+		"@types/dompurify": "^3.0.2"
 	}
 }

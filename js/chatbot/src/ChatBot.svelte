@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { marked, copy } from "./utils";
 	import "katex/dist/katex.min.css";
+	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
@@ -101,7 +102,7 @@
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							{@html marked.parse(message)}
+							{@html DOMPurify.sanitize(marked.parse(message))}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
