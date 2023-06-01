@@ -401,7 +401,7 @@ class BlockFunction:
         if not utils.is_space():
             return
         wrapped_fn = spaces.gradio_auto_wrap(self.fn)
-        if self.fn is wrapped_fn:
+        if wrapped_fn is self.fn:
             return
         print(f"Your `{self.name}` event handler has been optimized for Spaces")
         self.fn = wrapped_fn
