@@ -46,6 +46,17 @@ async function loadPyodideAndPackages(options: InitOptions) {
 	console.debug("Install packages.", options.requirements);
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
+
+	console.debug("Mock os module methods.");
+	// `os.link` is used in `aiofiles` (https://github.com/Tinche/aiofiles/blob/v23.1.0/src/aiofiles/os.py#L31),
+	// which is imported from `gradio.ranged_response` (https://github.com/gradio-app/gradio/blob/v3.32.0/gradio/ranged_response.py#L12).
+	// However, it's not available on Wasm.
+	await pyodide.runPythonAsync(`
+import os
+
+os.link = lambda src, dst: None
+`);
+	console.debug("os module methods are mocked.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>) => {
