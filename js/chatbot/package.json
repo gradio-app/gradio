@@ -17,6 +17,8 @@
 		"prismjs": "1.29.0",
 		"@types/prismjs": "1.26.0",
 		"katex": "^0.16.7",
-		"@types/katex": "^0.16.0"
+		"@types/katex": "^0.16.0",
+		"dompurify": "^3.0.3",
+		"@types/dompurify": "^3.0.2"
 	}
 }

@@ -4,6 +4,7 @@
 	import "prismjs/components/prism-python";
 	import "prismjs/components/prism-latex";
 	import "katex/dist/katex.min.css";
+	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { Styles, SelectData } from "@gradio/utils";
@@ -39,7 +40,7 @@
 		gfm: true,
 		breaks: true,
 		pedantic: false,
-		sanitize: true,
+		sanitize: false,
 		smartLists: true,
 		smartypants: false
 	});
@@ -137,7 +138,7 @@
 							})}
 					>
 						{#if typeof message === "string"}
-							{@html marked.parse(message)}
+							{@html DOMPurify.sanitize(marked.parse(message))}
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
