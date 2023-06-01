@@ -252,7 +252,7 @@ class Streamable(EventListener):
         self.stream = EventListenerMethod(
             self,
             "stream",
-            show_progress=False,
+            show_progress="hidden",
             callback=lambda: setattr(self, "streaming", True),
         )
         """

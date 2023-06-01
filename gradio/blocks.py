@@ -160,7 +160,7 @@ class Block:
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: str = "cover",
         api_name: str | None = None,
         js: str | None = None,
         no_target: bool = False,
