@@ -62,7 +62,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { client, SpaceStatus } from "@gradio/client";
-	import { WorkerProxy, client as wasmClient } from "@gradio/wasm";
+	import { WorkerProxy, makeWasmFetch } from "@gradio/wasm";
 
 	// TODO: Make sure the wheel has been built.
 	// @ts-ignore
@@ -224,7 +224,12 @@
 
 			await workerProxy.runPythonAsync(wasm_py_code ?? "");
 
-			app = await wasmClient(workerProxy, handle_status);
+			const overridden_fetch = makeWasmFetch(workerProxy);
+			app = await client(api_url, {
+				status_callback: handle_status,
+				normalise_files: false,
+				overridden_fetch
+			});
 		} else {
 			app = await client(api_url, {
 				status_callback: handle_status,
