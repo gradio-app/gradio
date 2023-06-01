@@ -616,7 +616,7 @@ def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
         head_request = requests.head(possible_url, headers=headers)
-        if head_request.status_code == 405:
+        if head_request.status_code == 405 or head_request.status_code == 403:
             return requests.get(possible_url, headers=headers).ok
         return head_request.ok
     except Exception:
