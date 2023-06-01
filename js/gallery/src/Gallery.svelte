@@ -169,7 +169,7 @@
 		{show_label}
 		Icon={Image}
 		label={label || "Gallery"}
-		{container}
+		disable={container === false}
 	/>
 {/if}
 {#if value === null || _value === null || _value.length === 0}

@@ -25,6 +25,8 @@
 	export let label: string | null = null;
 	export let wrap: boolean;
 	export let datatype: Datatype | Array<Datatype>;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher();
 
@@ -52,7 +54,7 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	disable={true}
+	container={false}
 	{scale}
 	{min_width}
 	allow_overflow={false}

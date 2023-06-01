@@ -55,7 +55,7 @@
 			Icon={Chat}
 			float={false}
 			label={label || "Chatbot"}
-			{container}
+			disable={container === false}
 		/>
 	{/if}
 	<ChatBot

@@ -328,10 +328,9 @@ class Form(BlockContext):
 
     def add_child(self, child: Block):
         if isinstance(self.parent, Row):
-            if hasattr(child, "scale"):
-                self.scale += 1 if child.scale is None else child.scale
-            if hasattr(child, "min_width"):
-                self.min_width += child.min_width
+            scale = getattr(child, "scale", None)
+            self.scale += 1 if scale is None else scale
+            self.min_width += getattr(child, "min_width", 0)
         super().add_child(child)
 
     def get_config(self):

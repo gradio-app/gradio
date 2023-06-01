@@ -46,7 +46,7 @@
 			{show_label}
 			{label}
 			float={false}
-			{container}
+			disable={container === false}
 		/>
 	{/if}
 

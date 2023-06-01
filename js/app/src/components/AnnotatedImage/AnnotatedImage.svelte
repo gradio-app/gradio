@@ -62,10 +62,8 @@
 	{elem_id}
 	{elem_classes}
 	padding={false}
-	style={{
-		height: height,
-		width: width
-	}}
+	{height}
+	{width}
 	allow_overflow={false}
 	{container}
 	{scale}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let container: boolean = true;
-	export let height: number | undefined;
-	export let width: number | undefined;
+	export let height: number | undefined = undefined;
+	export let width: number | undefined = undefined;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let variant: "solid" | "dashed" | "none" = "solid";

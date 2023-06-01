@@ -47,7 +47,12 @@
 >
 	<StatusTracker {...loading_status} />
 	{#if label}
-		<BlockLabel Icon={TextHighlight} {label} float={false} {container} />
+		<BlockLabel
+			Icon={TextHighlight}
+			{label}
+			float={false}
+			disable={container === false}
+		/>
 	{/if}
 
 	{#if value}

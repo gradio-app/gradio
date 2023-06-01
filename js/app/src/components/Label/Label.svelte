@@ -38,7 +38,7 @@
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}
-		<BlockLabel Icon={LabelIcon} {label} {container} />
+		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}
 	{#if typeof value === "object" && value !== undefined && value !== null}
 		<Label on:select {selectable} {value} {show_label} {color} />
