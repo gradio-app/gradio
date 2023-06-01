@@ -146,6 +146,16 @@ class App(FastAPI):
         return self.blocks
 
     @staticmethod
+    def build_proxy_request(url_path):
+        url = httpx.URL(url_path)
+        is_hf_url = url.host.endswith(".hf.space")
+        headers = {}
+        if Context.hf_token is not None and is_hf_url:
+            headers["Authorization"] = f"Bearer {Context.hf_token}"
+        rp_req = client.build_request("GET", url, headers=headers)
+        return rp_req
+
+    @staticmethod
     def create_app(
         blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
@@ -301,11 +311,7 @@ class App(FastAPI):
         @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
-            url = httpx.URL(url_path)
-            headers = {}
-            if Context.hf_token is not None:
-                headers["Authorization"] = f"Bearer {Context.hf_token}"
-            rp_req = client.build_request("GET", url, headers=headers)
+            rp_req = app.build_proxy_request(url_path)
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
                 rp_resp.aiter_raw(),
@@ -322,49 +328,47 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
+
             abs_path = utils.abspath(path_or_url)
+
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
-            if in_blocklist or any(part.startswith(".") for part in abs_path.parts):
-                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            is_dotfile = any(part.startswith(".") for part in abs_path.parts)
+            is_dir = abs_path.is_dir()
 
-            in_app_dir = utils.abspath(app.cwd) in abs_path.parents
+            if in_blocklist or is_dotfile or is_dir:
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+            if not abs_path.exists():
+                raise HTTPException(404, f"File not found: {path_or_url}.")
+
+            in_app_dir = utils.is_in_or_equal(abs_path, app.cwd)
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
-            in_file_dir = any(
+            in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
             )
-            was_uploaded = utils.abspath(app.uploaded_file_dir) in abs_path.parents
+            was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
 
-            if in_app_dir or created_by_app or in_file_dir or was_uploaded:
-                if not abs_path.exists():
-                    raise HTTPException(404, "File not found")
-                if abs_path.is_dir():
-                    raise HTTPException(403)
+            if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-                range_val = request.headers.get("Range", "").strip()
-                if range_val.startswith("bytes=") and "-" in range_val:
-                    range_val = range_val[6:]
-                    start, end = range_val.split("-")
-                    if start.isnumeric() and end.isnumeric():
-                        start = int(start)
-                        end = int(end)
-                        response = ranged_response.RangedFileResponse(
-                            abs_path,
-                            ranged_response.OpenRange(start, end),
-                            dict(request.headers),
-                            stat_result=os.stat(abs_path),
-                        )
-                        return response
-                return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
-
-            else:
-                raise HTTPException(
-                    403,
-                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app.",
-                )
+            range_val = request.headers.get("Range", "").strip()
+            if range_val.startswith("bytes=") and "-" in range_val:
+                range_val = range_val[6:]
+                start, end = range_val.split("-")
+                if start.isnumeric() and end.isnumeric():
+                    start = int(start)
+                    end = int(end)
+                    response = ranged_response.RangedFileResponse(
+                        abs_path,
+                        ranged_response.OpenRange(start, end),
+                        dict(request.headers),
+                        stat_result=os.stat(abs_path),
+                    )
+                    return response
+            return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
