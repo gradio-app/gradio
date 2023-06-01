@@ -120,16 +120,7 @@ marked.use(
 );
 
 export function copy(node: HTMLDivElement) {
-	let timer: NodeJS.Timeout;
 	node.addEventListener("click", handle_copy);
-
-	function copy_feedback(copy_sucess_button: HTMLDivElement) {
-		copy_sucess_button.style.opacity = "1";
-		if (timer) clearTimeout(timer);
-		timer = setTimeout(() => {
-			copy_sucess_button.style.opacity = "0";
-		}, 2000);
-	}
 
 	async function handle_copy(event: MouseEvent) {
 		const path = event.composedPath() as HTMLButtonElement[];
@@ -149,6 +140,13 @@ export function copy(node: HTMLDivElement) {
 			const copied = await copy_to_clipboard(copy_text);
 
 			if (copied) copy_feedback(copy_sucess_button);
+
+			function copy_feedback(copy_sucess_button: HTMLDivElement) {
+				copy_sucess_button.style.opacity = "1";
+				setTimeout(() => {
+					copy_sucess_button.style.opacity = "0";
+				}, 2000);
+			}
 		}
 	}
 

@@ -87,7 +87,7 @@
 	style:max-height={`${style.height}px`}
 	bind:this={div}
 >
-	<div class="message-wrap">
+	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
@@ -98,7 +98,6 @@
 						class="message {j == 0 ? 'user' : 'bot'}"
 						class:hide={message === null}
 						class:selectable
-						use:copy
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
