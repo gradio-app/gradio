@@ -4,6 +4,7 @@ import re
 from gradio_client.documentation import document_cls, generate_documentation
 from gradio.events import EventListener
 import markdown2
+from urllib.request import urlretrieve
 
 
 from ..guides import guides
@@ -201,6 +202,11 @@ def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
     output_file = os.path.join(output_main, "index.html")
     with open(output_file, "w") as index_html:
         index_html.write(output)
+    if not os.path.exists(f"v{gradio_version}_template.html"):
+        urlretrieve(
+            f"https://huggingface.co/datasets/gradio/docs/resolve/main/v{gradio_version}_template.html",
+            f"src/docs/v{gradio_version}_template.html",
+        )
     template = jinja_env.get_template(f"docs/v{gradio_version}_template.html")
     output = template.render()
     version_docs_file = os.path.join(output_folder, "index.html")
@@ -219,8 +225,4 @@ def build_pip_template(version, jinja_env):
         canonical_suffix="",
         ordered_events=ordered_events,
     )
-    for file in os.listdir("src/docs"):
-        if file.startswith("v") and file.endswith("_template.html"):
-            os.remove(os.path.join("src/docs", file))
-    with open(f"src/docs/v{version}_template.html", "w+") as template_file:
-        template_file.write(output)
+    return output
