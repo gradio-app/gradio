@@ -844,12 +844,16 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
     Parameters:
-        path_1: str or Path (can be a file or directory)
+        path_1: str or Path (should be a file)
         path_2: str or Path (can be a file or directory)
     """
-    return (abspath(path_2) in abspath(path_1).parents) or abspath(path_1) == abspath(
-        path_2
-    )
+    path_1, path_2 = abspath(path_1), abspath(path_2)
+    try:
+        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
+            return False
+    except ValueError:
+        return False
+    return True
 
 
 def get_serializer_name(block: Block) -> str | None:

@@ -31,6 +31,7 @@ from gradio.utils import (
     format_ner_list,
     get_type_hints,
     ipython_check,
+    is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
     readme_to_html,
@@ -623,3 +624,12 @@ def test_tex2svg_preserves_matplotlib_backend():
     ):
         tex2svg("$$$1+1=2$$$")
     assert matplotlib.get_backend() == "svg"
+
+
+def test_is_in_or_equal():
+    assert is_in_or_equal("files/lion.jpg", "files/lion.jpg")
+    assert is_in_or_equal("files/lion.jpg", "files")
+    assert not is_in_or_equal("files", "files/lion.jpg")
+    assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
+    assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
+    assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
