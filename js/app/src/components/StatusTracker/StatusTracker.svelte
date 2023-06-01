@@ -315,6 +315,7 @@
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
+		pointer-events: none;
 	}
 
 	.wrap.center {
