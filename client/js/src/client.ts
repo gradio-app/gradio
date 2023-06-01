@@ -61,7 +61,8 @@ const BROKEN_CONNECTION_MSG = "Connection errored out.";
 export async function post_data(
 	url: string,
 	body: unknown,
-	token?: `hf_${string}`
+	token?: `hf_${string}`,
+	overridden_fetch: typeof fetch = fetch
 ): Promise<[PostResponse, number]> {
 	const headers: {
 		Authorization?: string;
@@ -71,7 +72,7 @@ export async function post_data(
 		headers.Authorization = `Bearer ${token}`;
 	}
 	try {
-		var response = await fetch(url, {
+		var response = await overridden_fetch(url, {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers
@@ -203,10 +204,16 @@ export async function client(
 		hf_token?: `hf_${string}`;
 		status_callback?: SpaceStatusCallback;
 		normalise_files?: boolean;
+		overridden_fetch?: typeof fetch;
 	} = { normalise_files: true }
 ): Promise<client_return> {
 	return new Promise(async (res) => {
-		const { status_callback, hf_token, normalise_files } = options;
+		const {
+			status_callback,
+			hf_token,
+			normalise_files,
+			overridden_fetch = fetch
+		} = options;
 		const return_obj = {
 			predict,
 			submit,
@@ -255,11 +262,16 @@ export async function client(
 			if (status_callback) status_callback(status);
 			if (status.status === "running")
 				try {
-					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
+					config = await resolve_config(
+						overridden_fetch,
+						`${http_protocol}//${host}`,
+						hf_token
+					);
 
 					const _config = await config_success(config);
 					res(_config);
 				} catch (e) {
+					console.error(e);
 					if (status_callback) {
 						status_callback({
 							status: "error",
@@ -272,11 +284,16 @@ export async function client(
 		}
 
 		try {
-			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
+			config = await resolve_config(
+				overridden_fetch,
+				`${http_protocol}//${host}`,
+				hf_token
+			);
 
 			const _config = await config_success(config);
 			res(_config);
 		} catch (e) {
+			console.error(e);
 			if (space_id) {
 				check_space_status(
 					space_id,
@@ -382,7 +399,8 @@ export async function client(
 							...payload,
 							session_hash
 						},
-						hf_token
+						hf_token,
+						overridden_fetch
 					)
 						.then(([output, status_code]) => {
 							const data = transform_files
@@ -598,11 +616,14 @@ export async function client(
 				}
 
 				try {
-					await fetch(`${http_protocol}//${host + config.path}/reset`, {
-						headers: { "Content-Type": "application/json" },
-						method: "POST",
-						body: JSON.stringify({ fn_index, session_hash })
-					});
+					await overridden_fetch(
+						`${http_protocol}//${host + config.path}/reset`,
+						{
+							headers: { "Content-Type": "application/json" },
+							method: "POST",
+							body: JSON.stringify({ fn_index, session_hash })
+						}
+					);
 				} catch (e) {
 					console.warn(
 						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
@@ -639,7 +660,7 @@ export async function client(
 			let response: Response;
 			// @ts-ignore
 			if (semiver(config.version || "2.0.0", "3.30") < 0) {
-				response = await fetch(
+				response = await overridden_fetch(
 					"https://gradio-space-api-fetcher-v2.hf.space/api",
 					{
 						method: "POST",
@@ -651,7 +672,7 @@ export async function client(
 					}
 				);
 			} else {
-				response = await fetch(`${config.root}/info`, {
+				response = await overridden_fetch(`${config.root}/info`, {
 					headers
 				});
 			}
@@ -1051,6 +1072,7 @@ function skip_queue(id: number, config: Config) {
 }
 
 async function resolve_config(
+	overridden_fetch: typeof fetch,
 	endpoint?: string,
 	token?: `hf_${string}`
 ): Promise<Config> {
@@ -1068,7 +1090,7 @@ async function resolve_config(
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
-		let response = await fetch(`${endpoint}/config`, { headers });
+		let response = await overridden_fetch(`${endpoint}/config`, { headers });
 
 		if (response.status === 200) {
 			const config = await response.json();
