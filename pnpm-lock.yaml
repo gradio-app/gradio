@@ -391,6 +391,9 @@ importers:
       marked:
         specifier: ^5.0.1
         version: 5.0.1
+      marked-highlight:
+        specifier: ^2.0.1
+        version: 2.0.1(marked@5.0.1)
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -4434,6 +4437,14 @@ packages:
   /map-obj@5.0.2:
     resolution: {integrity: sha512-K6K2NgKnTXimT3779/4KxSvobxOtMmx1LBZ3NwRxT/MDIR3Br/fQ4Q+WCX5QxjyUR8zg5+RV9Tbf2c5pAWTD2A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dev: false
+
+  /marked-highlight@2.0.1(marked@5.0.1):
+    resolution: {integrity: sha512-LDUfR/zDvD+dJ+lQOWHkxvBLNxiXcaN8pBtwJ/i4pI0bkDC/Ef6Mz1qUrAuHXfnpdr2rabdMpVFhqFuU+5Mskg==}
+    peerDependencies:
+      marked: ^4 || ^5
+    dependencies:
+      marked: 5.0.1
     dev: false
 
   /marked@5.0.1:
