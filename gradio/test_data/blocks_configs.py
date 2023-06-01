@@ -11,7 +11,6 @@ XRAY_CONFIG = {
                 "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -27,7 +26,8 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "checkboxgroup",
                 "visible": True,
-                "style": {},
+                "container": True,
+                "min_width": 160,
             },
             "serializer": "ListStringSerializable",
             "api_info": {
@@ -36,11 +36,20 @@ XRAY_CONFIG = {
             },
             "example_inputs": {"raw": "Covid", "serialized": "Covid"},
         },
-        {"id": 8, "type": "tabs", "props": {"visible": True, "style": {}}},
+        {
+            "id": 8,
+            "type": "tabs",
+            "props": {
+                "visible": True,
+            },
+        },
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "X-ray", "visible": True, "style": {}},
+            "props": {
+                "label": "X-ray",
+                "visible": True,
+            },
         },
         {
             "id": 10,
@@ -48,8 +57,8 @@ XRAY_CONFIG = {
             "props": {
                 "type": "row",
                 "variant": "default",
+                "equal_height": True,
                 "visible": True,
-                "style": {},
             },
         },
         {
@@ -65,7 +74,6 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
-                "style": {},
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -83,7 +91,11 @@ XRAY_CONFIG = {
         {
             "id": 12,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
+            "props": {
+                "show_label": True,
+                "name": "json",
+                "visible": True,
+            },
             "serializer": "JSONSerializable",
             "api_info": {
                 "info": {"type": {}, "description": "any valid json"},
@@ -100,7 +112,6 @@ XRAY_CONFIG = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -109,7 +120,10 @@ XRAY_CONFIG = {
         {
             "id": 14,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "visible": True, "style": {}},
+            "props": {
+                "label": "CT Scan",
+                "visible": True,
+            },
         },
         {
             "id": 15,
@@ -117,8 +131,8 @@ XRAY_CONFIG = {
             "props": {
                 "type": "row",
                 "variant": "default",
+                "equal_height": True,
                 "visible": True,
-                "style": {},
             },
         },
         {
@@ -134,7 +148,6 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
-                "style": {},
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -152,7 +165,11 @@ XRAY_CONFIG = {
         {
             "id": 17,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
+            "props": {
+                "show_label": True,
+                "name": "json",
+                "visible": True,
+            },
             "serializer": "JSONSerializable",
             "api_info": {
                 "info": {"type": {}, "description": "any valid json"},
@@ -169,7 +186,6 @@ XRAY_CONFIG = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -186,7 +202,6 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "textbox",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -195,12 +210,22 @@ XRAY_CONFIG = {
         {
             "id": 20,
             "type": "form",
-            "props": {"type": "form", "visible": True, "style": {}},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+            },
         },
         {
             "id": 21,
             "type": "form",
-            "props": {"type": "form", "visible": True, "style": {}},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+            },
         },
     ],
     "css": None,
@@ -320,7 +345,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -336,7 +360,8 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "checkboxgroup",
                 "visible": True,
-                "style": {},
+                "container": True,
+                "min_width": 160,
             },
             "serializer": "ListStringSerializable",
             "api_info": {
@@ -345,11 +370,20 @@ XRAY_CONFIG_DIFF_IDS = {
             },
             "example_inputs": {"raw": "Covid", "serialized": "Covid"},
         },
-        {"id": 8, "type": "tabs", "props": {"visible": True, "style": {}}},
+        {
+            "id": 8,
+            "type": "tabs",
+            "props": {
+                "visible": True,
+            },
+        },
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "X-ray", "visible": True, "style": {}},
+            "props": {
+                "label": "X-ray",
+                "visible": True,
+            },
         },
         {
             "id": 10,
@@ -357,8 +391,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "type": "row",
                 "variant": "default",
+                "equal_height": True,
                 "visible": True,
-                "style": {},
             },
         },
         {
@@ -374,7 +408,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
-                "style": {},
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -392,7 +425,11 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 2111,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
+            "props": {
+                "show_label": True,
+                "name": "json",
+                "visible": True,
+            },
             "serializer": "JSONSerializable",
             "api_info": {
                 "info": {"type": {}, "description": "any valid json"},
@@ -409,7 +446,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -418,7 +454,10 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 14,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "visible": True, "style": {}},
+            "props": {
+                "label": "CT Scan",
+                "visible": True,
+            },
         },
         {
             "id": 15,
@@ -426,8 +465,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "type": "row",
                 "variant": "default",
+                "equal_height": True,
                 "visible": True,
-                "style": {},
             },
         },
         {
@@ -443,7 +482,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
-                "style": {},
             },
             "serializer": "ImgSerializable",
             "api_info": {
@@ -461,7 +499,11 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 17,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
+            "props": {
+                "show_label": True,
+                "name": "json",
+                "visible": True,
+            },
             "serializer": "JSONSerializable",
             "api_info": {
                 "info": {"type": {}, "description": "any valid json"},
@@ -478,7 +520,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "interactive": True,
                 "name": "button",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -495,7 +536,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "textbox",
                 "visible": True,
-                "style": {},
             },
             "serializer": "StringSerializable",
             "api_info": {"info": {"type": "string"}, "serialized_info": False},
@@ -504,12 +544,22 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 20,
             "type": "form",
-            "props": {"type": "form", "visible": True, "style": {}},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+            },
         },
         {
             "id": 21,
             "type": "form",
-            "props": {"type": "form", "visible": True, "style": {}},
+            "props": {
+                "type": "form",
+                "scale": 0,
+                "min_width": 0,
+                "visible": True,
+            },
         },
     ],
     "css": None,
@@ -628,7 +678,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
-                "style": {},
             },
         },
         {
@@ -640,14 +689,14 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "checkboxgroup",
                 "show_label": True,
                 "label": "Disease to Scan For",
-                "style": {},
+                "container": True,
+                "min_width": 160,
             },
         },
         {
             "id": 3,
             "type": "tabs",
             "props": {
-                "style": {},
                 "value": True,
             },
         },
@@ -656,14 +705,18 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "tabitem",
             "props": {
                 "label": "X-ray",
-                "style": {},
                 "value": True,
             },
         },
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "variant": "default", "style": {}, "value": True},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "equal_height": True,
+                "value": True,
+            },
         },
         {
             "id": 6,
@@ -675,7 +728,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "mirror_webcam": True,
                 "tool": "editor",
                 "name": "image",
-                "style": {},
                 "selectable": False,
             },
         },
@@ -684,7 +736,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "json",
             "props": {
                 "name": "json",
-                "style": {},
             },
         },
         {
@@ -704,14 +755,18 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "show_label": True,
                 "label": "CT Scan",
-                "style": {},
                 "value": True,
             },
         },
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "variant": "default", "style": {}, "value": True},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "equal_height": True,
+                "value": True,
+            },
         },
         {
             "id": 11,
@@ -723,7 +778,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "streaming": False,
                 "mirror_webcam": True,
                 "name": "image",
-                "style": {},
                 "selectable": False,
             },
         },
@@ -732,7 +786,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "json",
             "props": {
                 "name": "json",
-                "style": {},
             },
         },
         {
@@ -742,7 +795,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "Run",
                 "interactive": True,
                 "name": "button",
-                "style": {},
                 "variant": "secondary",
             },
         },
@@ -754,7 +806,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "",
                 "name": "textbox",
                 "type": "text",
-                "style": {},
             },
         },
     ],

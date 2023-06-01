@@ -4821,7 +4821,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             warnings.warn(
                 "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
             )
-            self._style["grid_cols"] = grid
+            self.grid_cols = grid
         if columns is not None:
             self.grid_cols = columns
         if rows is not None:

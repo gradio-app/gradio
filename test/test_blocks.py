@@ -1106,6 +1106,9 @@ class TestSpecificUpdate:
             "interactive": False,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "container": None,
+            "min_width": None,
+            "scale": None,
             "__type__": "update",
         }
 
@@ -1122,6 +1125,9 @@ class TestSpecificUpdate:
             "interactive": True,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "container": None,
+            "min_width": None,
+            "scale": None,
             "__type__": "update",
         }
 
@@ -1132,6 +1138,11 @@ class TestSpecificUpdate:
                 "value": "test.mp4",
                 "__type__": "generic_update",
                 "interactive": True,
+                "container": None,
+                "height": None,
+                "min_width": None,
+                "scale": None,
+                "width": None,
             }
         )
         assert specific_update == {
@@ -1141,6 +1152,11 @@ class TestSpecificUpdate:
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
+            "container": None,
+            "height": None,
+            "min_width": None,
+            "scale": None,
+            "width": None,
             "__type__": "update",
         }
 
