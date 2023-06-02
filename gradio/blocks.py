@@ -774,7 +774,7 @@ class Blocks(BlockContext):
         components_config = config["components"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
-        root_urls = set()
+        root_urls = {root_url}
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
