@@ -16,7 +16,6 @@ ruff>=0.0.260
 respx
 scikit-image
 shap
-spaces; python_version >= '3.9'
 torch
 tqdm
 transformers

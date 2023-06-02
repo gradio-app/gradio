@@ -141,17 +141,14 @@ pluggy==1.0.0
     # via pytest
 prompt-toolkit==3.0.30
     # via ipython
-psutil==5.9.5
-    # via spaces
 ptyprocess==0.7.0
     # via pexpect
 py==1.11.0
     # via pytest
-pydantic==1.10.8
+pydantic==1.9.1
     # via
     #   -r requirements.in
     #   fastapi
-    #   spaces
 pygments==2.12.0
     # via ipython
 pyparsing==3.0.9
@@ -182,10 +179,9 @@ pyyaml==6.0
     #   transformers
 regex==2022.7.9
     # via transformers
-requests==2.31.0
+requests==2.28.1
     # via
     #   huggingface-hub
-    #   spaces
     #   transformers
 respx==0.19.2
     # via -r requirements.in
@@ -215,8 +211,6 @@ sniffio==1.2.0
     #   anyio
     #   httpcore
     #   httpx
-spaces==0.2.1 ; python_version >= "3.9"
-    # via -r requirements.in
 starlette==0.21.0
     # via fastapi
 threadpoolctl==3.1.0
@@ -246,12 +240,11 @@ traitlets==5.3.0
     #   matplotlib-inline
 transformers==4.20.1
     # via -r requirements.in
-typing-extensions==4.6.2
+typing-extensions==4.3.0
     # via
     #   black
     #   huggingface-hub
     #   pydantic
-    #   spaces
     #   starlette
     #   torch
 urllib3==1.26.10
