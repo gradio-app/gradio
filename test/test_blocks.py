@@ -149,7 +149,7 @@ class TestBlocksMethods:
             gr.Image().style(height=54, width=240)
 
         config1 = demo1.get_config_file()
-        demo2 = gr.Blocks.from_config(config1, [update])
+        demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 

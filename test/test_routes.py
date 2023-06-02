@@ -400,11 +400,14 @@ class TestRoutes:
 
     def test_proxy_does_not_leak_hf_token_externally(self):
         gr.context.Context.hf_token = "abcdef"
-        r = routes.App.build_proxy_request(
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        app.configure_app(interface)
+        r = app.build_proxy_request(
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
-        assert "authorization" in dict(r.headers)
-        r = routes.App.build_proxy_request("https://google.com")
+        assert "authorization" not in dict(r.headers)
+        r = app.build_proxy_request("https://google.com")
         assert "authorization" not in dict(r.headers)
 
 
