@@ -9,9 +9,17 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 const version_path = resolve(__dirname, "../../gradio/version.txt");
-const version = readFileSync(version_path, { encoding: "utf-8" })
-	.trim()
-	.replace(/\./g, "-");
+const version_raw = readFileSync(version_path, { encoding: "utf-8" }).trim();
+const version = version_raw.replace(/\./g, "-");
+
+const client_version_path = resolve(
+	__dirname,
+	"../../client/python/gradio_client/version.txt"
+);
+const client_version_raw = readFileSync(client_version_path, {
+	encoding: "utf-8"
+}).trim();
+const client_version = client_version_raw.replace(/\./g, "-");
 
 import {
 	inject_ejs,
@@ -153,6 +161,19 @@ export default defineConfig(({ mode }) => {
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 			globals: true
+		},
+		resolve: {
+			alias: {
+				// For the Wasm app to import the wheel file URLs.
+				"gradio.whl": resolve(
+					__dirname,
+					`../../dist/gradio-${version_raw}-py3-none-any.whl`
+				),
+				"gradio_client.whl": resolve(
+					__dirname,
+					`../../client/python/dist/gradio_client-${client_version_raw}-py3-none-any.whl`
+				)
+			}
 		},
 		assetsInclude: ["**/*.whl"] // To pass URLs of built wheel files to the Wasm worker.
 	};

@@ -3,9 +3,9 @@ import { WorkerProxy } from "@gradio/wasm";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
 
-// TODO: Make sure the wheel has been built.
-import gradioWheel from "../../../dist/gradio-3.32.0-py3-none-any.whl";
-import gradioClientWheel from "../../../client/python/dist/gradio_client-0.2.5-py3-none-any.whl";
+// These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
+import gradioWheel from "gradio.whl";
+import gradioClientWheel from "gradio_client.whl";
 
 declare let GRADIO_VERSION: string;
 
