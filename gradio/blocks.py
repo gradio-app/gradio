@@ -762,7 +762,8 @@ class Blocks(BlockContext):
         root_url: str,
     ) -> Blocks:
         """
-        Factory method that creates a Blocks from a config and list of functions.
+        Factory method that creates a Blocks from a config and list of functions. Used
+        internally by the gradio.external.load() method.
 
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
