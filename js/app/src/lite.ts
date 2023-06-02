@@ -1,7 +1,12 @@
 import "@gradio/theme";
+import { WorkerProxy } from "@gradio/wasm";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
 import { mount_css } from "./css";
+
+// TODO: Make sure the wheel has been built.
+import gradioWheel from "../../../dist/gradio-3.32.0-py3-none-any.whl";
+import gradioClientWheel from "../../../client/python/dist/gradio_client-0.2.5-py3-none-any.whl";
 
 declare let GRADIO_VERSION: string;
 
@@ -42,6 +47,17 @@ export async function create(options: Options) {
 
 	observer.observe(options.target, { childList: true });
 
+	const worker_proxy = new WorkerProxy({
+		gradioWheelUrl: gradioWheel,
+		gradioClientWheelUrl: gradioClientWheel,
+		requirements: []
+	});
+	// NOTE: We don't run `await worker_proxy.runPythonAsync()` here
+	// because its execution will be deferred until the worker initialization is done
+	// and it blocks mounting the app.
+	// Instead, we will pass the proxy and the Python code to the app component
+	// and run it in the app component when it's ready.
+
 	const app = new Index({
 		target: options.target,
 		props: {
@@ -64,7 +80,8 @@ export async function create(options: Options) {
 			// for gradio docs
 			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 			app_mode: options.appMode,
-			// For Wasm mode,
+			// For Wasm mode
+			wasm_worker_proxy: worker_proxy,
 			wasm_py_code: options.pyCode
 		}
 	});

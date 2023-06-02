@@ -81,7 +81,6 @@ export default defineConfig(({ mode }) => {
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
-			IS_WASM: is_lite,
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
