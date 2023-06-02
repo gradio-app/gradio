@@ -152,7 +152,7 @@ class App(FastAPI):
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(url.host.endswith(root) for root in self.blocks.root_urls)
         if not is_safe_url:
-            raise ValueError("This URL cannot be proxied.")
+            raise PermissionError("This URL cannot be proxied.")
         headers = {}
         if Context.hf_token is not None:
             headers["Authorization"] = f"Bearer {Context.hf_token}"
@@ -317,7 +317,7 @@ class App(FastAPI):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
                 rp_req = app.build_proxy_request(url_path)
-            except ValueError as err:
+            except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err))
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
