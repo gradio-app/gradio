@@ -10,7 +10,7 @@ en = {
     "RUNNING_LOCALLY": "Running on local URL:  {}",
     "RUNNING_LOCALLY_SEPARATED": "Running on local URL:  {}://{}:{}",
     "SHARE_LINK_DISPLAY": "Running on public URL: {}",
-    "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app. Also please ensure that your antivirus or firewall is not blocking the {} binary file.",
+    "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app. \n\nAlso please ensure that your antivirus or firewall is not blocking the binary file located at: {}",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",
     "PUBLIC_SHARE_TRUE": "\nTo create a public link, set `share=True` in `launch()`.",
     "MODEL_PUBLICLY_AVAILABLE_URL": "Model available publicly at: {} (may take up to a minute for link to be usable)",
