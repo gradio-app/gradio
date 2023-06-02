@@ -31,16 +31,9 @@
 
 	<Number
 		bind:value
-<<<<<<< HEAD
-<<<<<<< HEAD
 		bind:max
 		bind:min
-=======
 		bind:value_is_output
->>>>>>> 96b38fda0 (Input listener (#4157))
-=======
-		bind:value_is_output
->>>>>>> main
 		{label}
 		{info}
 		{show_label}

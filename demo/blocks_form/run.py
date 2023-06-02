@@ -20,7 +20,7 @@ with gr.Blocks() as demo:
         return {
             output_col: gr.update(visible=True),
             diagnosis_box: "covid" if "Cough" in symptoms else "flu",
-            patient_summary_box: f"{name}, {age} y/o"
+            patient_summary_box: f"{name}, {age} y/o",
         }
 
     submit_btn.click(
