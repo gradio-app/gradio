@@ -330,7 +330,7 @@
 
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
-			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
+			if (_target == "") a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach((dep, i) => {
