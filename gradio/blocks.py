@@ -51,6 +51,11 @@ from gradio.utils import (
     get_continuous_fn,
 )
 
+try:
+    import spaces  # type: ignore
+except Exception:
+    spaces = None
+
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -388,6 +393,14 @@ class BlockFunction:
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
         self.name = getattr(fn, "__name__", "fn") if fn is not None else None
+        self.spaces_auto_wrap()
+
+    def spaces_auto_wrap(self):
+        if spaces is None:
+            return
+        if not utils.is_space():
+            return
+        self.fn = spaces.gradio_auto_wrap(self.fn)
 
     def __str__(self):
         return str(
@@ -704,7 +717,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = os.getenv("SYSTEM") == "spaces"
+        self.is_space = utils.is_space()
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
