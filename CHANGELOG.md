@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- A very first implementation of a Wasm version of Gradio, by [@whitphx](https://github.com/whitphx) in [PR 4402](https://github.com/gradio-app/gradio/pull/4402).
 
 ## Bug Fixes:
 
