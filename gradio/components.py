@@ -3051,9 +3051,14 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         if y is None:
             return self.postprocess(self.empty_input)
         if isinstance(y, dict):
+            y["headers"] = y["headers"][: self.max_cols]
+            y["data"] = list(
+                map(lambda row: row[: self.max_cols], y["data"][: self.max_rows])
+            )
             return y
         if isinstance(y, str):
             dataframe = pd.read_csv(y)
+            dataframe = dataframe.loc[: self.max_rows - 1, y.columns[: self.max_cols]]
             return {
                 "headers": list(dataframe.columns),
                 "data": Dataframe.__process_markdown(
@@ -3061,6 +3066,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                 ),
             }
         if isinstance(y, pd.DataFrame):
+            y = y.loc[: self.max_rows - 1, y.columns[: self.max_cols]]
             return {
                 "headers": list(y.columns),  # type: ignore
                 "data": Dataframe.__process_markdown(
@@ -3073,6 +3079,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             assert isinstance(y, list), "output cannot be converted to list"
+            y = list(map(lambda row: row[: self.max_cols], y[: self.max_rows]))
 
             _headers = self.headers
 

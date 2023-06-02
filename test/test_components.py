@@ -1204,6 +1204,29 @@ class TestDataframe:
             ],
         }
 
+    def test_dataframe_postprocess_max_rows_cols(self):
+        examples_rows = 5
+        example_cols = 10
+
+        max_rows = 2
+        max_cols = 4
+
+        examples = [
+            np.zeros((examples_rows, example_cols)),  # numpy array of 5x10 zeros
+            [[0] * example_cols] * examples_rows,  # python array of 5x10 zeros
+            pd.DataFrame([[0] * example_cols] * examples_rows),
+            {
+                "headers": list(range(example_cols)),
+                "data": [[0] * example_cols] * examples_rows,
+            },
+        ]
+
+        correct_output = [[0] * max_cols] * max_rows
+        component = gr.Dataframe(max_rows=max_rows, max_cols=max_cols)
+        for ex in examples:
+            output = component.postprocess(ex)
+            assert output["data"] == correct_output
+
 
 class TestDataset:
     def test_preprocessing(self):
