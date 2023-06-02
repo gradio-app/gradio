@@ -153,8 +153,10 @@ class TestBlocksMethods:
         config1 = demo1.get_config_file()
         demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
 
-        config1["root_url"] = fake_url
+        for component in config1["components"]:
+            component["props"]["root_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
+
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
     def test_partial_fn_in_config(self):
