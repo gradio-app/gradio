@@ -170,12 +170,10 @@ self.onmessage = async (event: MessageEvent<InMessage>) => {
 				break;
 			}
 			case "run-python": {
-				const result = await pyodide.runPythonAsync(msg.data.code);
+				await pyodide.runPythonAsync(msg.data.code);
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
-					data: {
-						result
-					}
+					data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
 				};
 				messagePort.postMessage(replyMessage);
 				break;

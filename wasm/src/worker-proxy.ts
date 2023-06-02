@@ -32,8 +32,8 @@ export class WorkerProxy {
 		});
 	}
 
-	public async runPythonAsync(code: string): Promise<unknown> {
-		return this.postMessageAsync({
+	public async runPythonAsync(code: string): Promise<void> {
+		await this.postMessageAsync({
 			type: "run-python",
 			data: {
 				code
