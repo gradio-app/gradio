@@ -865,7 +865,6 @@ class Blocks(BlockContext):
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
 
-        root_urls.add(root_url)
         blocks.root_urls = root_urls
         return blocks
 
