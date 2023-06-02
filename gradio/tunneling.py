@@ -2,11 +2,12 @@ import atexit
 import os
 import platform
 import re
-import requests
 import stat
 import subprocess
 from pathlib import Path
 from typing import List
+
+import requests
 
 VERSION = "0.2"
 CURRENT_TUNNELS: List["Tunnel"] = []

@@ -40,7 +40,7 @@ from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
-from gradio.tunneling import CURRENT_TUNNELS, BINARY_PATH
+from gradio.tunneling import BINARY_PATH, CURRENT_TUNNELS
 from gradio.utils import (
     GRADIO_VERSION,
     TupleNoPrint,
