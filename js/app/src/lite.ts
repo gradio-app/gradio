@@ -2,7 +2,6 @@ import "@gradio/theme";
 import { WorkerProxy } from "@gradio/wasm";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
-import { mount_css } from "./css";
 
 // TODO: Make sure the wheel has been built.
 import gradioWheel from "../../../dist/gradio-3.32.0-py3-none-any.whl";
@@ -10,12 +9,20 @@ import gradioClientWheel from "../../../client/python/dist/gradio_client-0.2.5-p
 
 declare let GRADIO_VERSION: string;
 
-// const ENTRY_CSS = "__ENTRY_CSS__"; // TODO: What's this?
-const ENTRY_CSS = undefined;
-
-let FONTS: string | []; // TODO: What's this?
-
-FONTS = "__FONTS_CSS__";
+// NOTE: The following line has been copied from `main.ts`.
+// In `main.ts`, which is the normal Gradio app entry point,
+// the string literal "__ENTRY_CSS__" will be replaced with the actual CSS file path
+// by the Vite plugin `handle_ce_css` in `build_plugins.ts`,
+// and the CSS file will be dynamically loaded at runtime
+// as the file path (the `ENTRY_CSS` variable) will be passed to `mount_css()`.
+// This mechanism has been introduced in https://github.com/gradio-app/gradio/pull/1444
+// to make Gradio work as a Web Component library
+// with which users can use Gradio by loading only one JS file,
+// without a link tag referring to the CSS file.
+// However, we don't rely on this mechanism here to make things simpler by leaving the Vite plugins as is,
+// because it will be refactored in the near future.
+// As a result, the users of the Wasm app will have to load the CSS file manually.
+// const ENTRY_CSS = "__ENTRY_CSS__";
 
 interface Options {
 	target: HTMLElement;
@@ -32,14 +39,6 @@ interface Options {
 }
 export async function create(options: Options) {
 	// TODO: Runtime type validation for options.
-
-	if (typeof FONTS !== "string") {
-		FONTS.forEach((f) => mount_css(f, document.head));
-	}
-
-	if (ENTRY_CSS) {
-		await mount_css(ENTRY_CSS, document.head);
-	}
 
 	const observer = new MutationObserver(() => {
 		document.body.style.padding = "0";
