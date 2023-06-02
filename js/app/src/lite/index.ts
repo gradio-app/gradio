@@ -1,10 +1,10 @@
 import "@gradio/theme";
 import { WorkerProxy } from "@gradio/wasm";
-import { wasm_proxied_fetch } from "./lite/fetch";
-import { wasm_proxied_mount_css } from "./lite/css";
-import type { mount_css } from "./css";
-import Index from "./Index.svelte";
-import type { ThemeMode } from "./components/types";
+import { wasm_proxied_fetch } from "./fetch";
+import { wasm_proxied_mount_css } from "./css";
+import type { mount_css } from "../css";
+import Index from "../Index.svelte";
+import type { ThemeMode } from "../components/types";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
 import gradioWheel from "gradio.whl";
