@@ -1,7 +1,7 @@
-import type { HttpRequest } from "./message-types";
-import type { WorkerProxy } from "./worker-proxy";
+import type { WorkerProxy } from "@gradio/wasm";
+import { is_self_origin } from "./url";
 
-async function compileBody(
+async function compile_http_body(
 	body: RequestInit["body"]
 ): Promise<Uint8Array | undefined> {
 	if (body == undefined) {
@@ -37,7 +37,7 @@ async function compileBody(
  * A fetch() function that proxies HTTP requests to the worker,
  * which also falls back to the original fetch() for external resource requests.
  */
-export async function wasmProxiedFetch(
+export async function wasm_proxied_fetch(
 	workerProxy: WorkerProxy,
 	input: RequestInfo | URL,
 	init?: RequestInit
@@ -48,9 +48,7 @@ export async function wasmProxiedFetch(
 
 	const url = new URL(request.url);
 
-	const isDevMode = url.origin === "http://localhost:7860"; // Ref: https://github.com/gradio-app/gradio/blob/v3.32.0/js/app/src/Index.svelte#L194
-	const isSelfOrigin = url.origin === window.location.origin;
-	if (!isDevMode && !isSelfOrigin) {
+	if (!is_self_origin(url)) {
 		console.debug("Fallback to original fetch");
 		return fetch(input, init);
 	}
@@ -65,12 +63,13 @@ export async function wasmProxiedFetch(
 		throw new Error(`Unsupported method: ${method}`);
 	}
 
-	const headers: HttpRequest["headers"] = {};
+	const headers: Parameters<WorkerProxy["httpRequest"]>[0]["headers"] = {};
 	request.headers.forEach((value, key) => {
 		headers[key] = value;
 	});
 
-	const body: HttpRequest["body"] = await compileBody(init?.body);
+	const body: Parameters<WorkerProxy["httpRequest"]>[0]["body"] =
+		await compile_http_body(init?.body);
 
 	const response = await workerProxy.httpRequest({
 		path: url.pathname,

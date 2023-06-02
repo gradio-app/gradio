@@ -1,10 +1,8 @@
 import "@gradio/theme";
-import {
-	WorkerProxy,
-	wasmProxiedFetch,
-	mount_css as mount_css_from_wasm
-} from "@gradio/wasm";
-import { mount_css as default_mount_css } from "./css";
+import { WorkerProxy } from "@gradio/wasm";
+import { wasm_proxied_fetch } from "./lite/fetch";
+import { wasm_proxied_mount_css } from "./lite/css";
+import type { mount_css } from "./css";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
 
@@ -64,21 +62,10 @@ export async function create(options: Options) {
 	worker_proxy.runPythonAsync(options.pyCode);
 
 	const overridden_fetch: typeof fetch = (input, init?) => {
-		return wasmProxiedFetch(worker_proxy, input, init);
+		return wasm_proxied_fetch(worker_proxy, input, init);
 	};
-	const overridden_mount_css: typeof default_mount_css = (
-		urlString,
-		target
-	) => {
-		const request = new Request(urlString); // Resolve a relative URL.
-		const url = new URL(request.url);
-		const isDevModeSelfOrigin = url.origin === "http://localhost:7860"; // Ref: https://github.com/gradio-app/gradio/blob/v3.32.0/js/app/src/Index.svelte#L194
-		const isSelfOrigin = url.origin === window.location.origin;
-		if (isDevModeSelfOrigin || isSelfOrigin) {
-			return mount_css_from_wasm(worker_proxy, url.pathname, target);
-		}
-
-		return default_mount_css(urlString, target);
+	const overridden_mount_css: typeof mount_css = async (url, target) => {
+		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
 
 	const app = new Index({
