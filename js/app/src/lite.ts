@@ -51,11 +51,12 @@ export async function create(options: Options) {
 		gradioClientWheelUrl: gradioClientWheel,
 		requirements: []
 	});
-	// NOTE: We don't run `await worker_proxy.runPythonAsync()` here
-	// because its execution will be deferred until the worker initialization is done
-	// and it blocks mounting the app.
-	// Instead, we will pass the proxy and the Python code to the app component
-	// and run it in the app component when it's ready.
+
+	// Internally, the execution of `runPythonAsync()` is queued
+	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
+	// (see the await in the `onmessage` callback in the webworker code)
+	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
+	worker_proxy.runPythonAsync(options.pyCode);
 
 	const app = new Index({
 		target: options.target,
@@ -80,8 +81,7 @@ export async function create(options: Options) {
 			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 			app_mode: options.appMode,
 			// For Wasm mode
-			wasm_worker_proxy: worker_proxy,
-			wasm_py_code: options.pyCode
+			wasm_worker_proxy: worker_proxy
 		}
 	});
 }

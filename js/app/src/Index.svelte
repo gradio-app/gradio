@@ -78,7 +78,6 @@
 	export let info: boolean;
 	export let eager: boolean;
 	export let wasm_worker_proxy: WorkerProxy | null = null;
-	export let wasm_py_code: string | null = null;
 
 	export let space: string | null;
 	export let host: string | null;
@@ -203,7 +202,6 @@
 				: host || space || src || location.origin;
 
 		if (wasm_worker_proxy) {
-			await wasm_worker_proxy.runPythonAsync(wasm_py_code ?? "");
 			const overridden_fetch = makeWasmFetch(wasm_worker_proxy);
 			app = await client(api_url, {
 				status_callback: handle_status,
