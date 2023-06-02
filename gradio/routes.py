@@ -317,7 +317,7 @@ class App(FastAPI):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
                 rp_req = app.build_proxy_request(url_path)
-            except ValueError as err:
+            except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err))
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
