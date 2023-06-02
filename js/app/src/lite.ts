@@ -1,7 +1,7 @@
 import "@gradio/theme";
 import {
 	WorkerProxy,
-	makeWasmFetch,
+	wasmProxiedFetch,
 	mount_css as mount_css_from_wasm
 } from "@gradio/wasm";
 import { mount_css as default_mount_css } from "./css";
@@ -63,7 +63,9 @@ export async function create(options: Options) {
 	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
 	worker_proxy.runPythonAsync(options.pyCode);
 
-	const overridden_fetch = makeWasmFetch(worker_proxy);
+	const overridden_fetch: typeof fetch = (input, init?) => {
+		return wasmProxiedFetch(worker_proxy, input, init);
+	};
 	const overridden_mount_css: typeof default_mount_css = (
 		urlString,
 		target
