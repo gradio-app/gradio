@@ -11,7 +11,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- More explicit error message when share link binary is blocked by antivirus by [@abidlabs](https://github.com/abidlabs) in [PR 4380](https://github.com/gradio-app/gradio/pull/4380). 
 
 ## Breaking Changes:
 
