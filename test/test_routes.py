@@ -56,6 +56,10 @@ class TestRoutes:
         response = test_client.get("/config/")
         assert response.status_code == 200
 
+    def test_favicon_route(self, test_client):
+        response = test_client.get("/favicon.ico")
+        assert response.status_code == 200
+
     def test_upload_path(self, test_client):
         with open("test/test_files/alphabet.txt") as f:
             response = test_client.post("/upload", files={"files": f})
@@ -393,6 +397,15 @@ class TestRoutes:
             demo.launch(prevent_thread_lock=True)
 
         demo.close()
+
+    def test_proxy_does_not_leak_hf_token_externally(self):
+        gr.context.Context.hf_token = "abcdef"
+        r = routes.App.build_proxy_request(
+            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+        )
+        assert "authorization" in dict(r.headers)
+        r = routes.App.build_proxy_request("https://google.com")
+        assert "authorization" not in dict(r.headers)
 
 
 class TestApp:
