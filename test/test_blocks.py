@@ -137,6 +137,8 @@ class TestBlocksMethods:
         assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
+        fake_url = "https://fake.hf.space"
+
         def update(name):
             return f"Welcome to Gradio, {name}!"
 
@@ -150,6 +152,8 @@ class TestBlocksMethods:
 
         config1 = demo1.get_config_file()
         demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
+
+        config1["root_url"] = fake_url
         config2 = demo2.get_config_file()
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
