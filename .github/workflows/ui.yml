@@ -37,6 +37,8 @@ jobs:
         run: pnpm css
       - name: build client
         run: pnpm --filter @gradio/client build
+      - name: build the wasm module
+        run: pnpm --filter @gradio/wasm build
       - name: typecheck
         run: pnpm ts:check
       - name: unit tests
