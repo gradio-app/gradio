@@ -403,12 +403,12 @@ class TestRoutes:
         app = routes.App()
         interface = gr.Interface(lambda x: x, "text", "text")
         app.configure_app(interface)
-        r = app.build_proxy_request(
-            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
-        )
-        assert "authorization" not in dict(r.headers)
-        r = app.build_proxy_request("https://google.com")
-        assert "authorization" not in dict(r.headers)
+        with pytest.raises(ValueError):
+            app.build_proxy_request(
+                "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+            )
+        with pytest.raises(ValueError):
+            app.build_proxy_request("https://google.com")
 
 
 class TestApp:
