@@ -10,7 +10,6 @@
 	} from "./components/types";
 
 	declare let BUILD_MODE: string;
-	declare let IS_WASM: boolean;
 	interface Config {
 		auth_required: boolean | undefined;
 		auth_message: string;
@@ -60,17 +59,9 @@
 </script>
 
 <script lang="ts">
-	import { onMount, onDestroy } from "svelte";
+	import { onMount } from "svelte";
 	import { client, SpaceStatus } from "@gradio/client";
-	import { WorkerProxy, makeWasmFetch } from "@gradio/wasm";
-
-	// TODO: Make sure the wheel has been built.
-	// @ts-ignore
-	import gradioWheel from "../../../dist/gradio-3.32.0-py3-none-any.whl";
-	// @ts-ignore
-	import gradioClientWheel from "../../../client/python/dist/gradio_client-0.2.5-py3-none-any.whl";
-	const gradioWheelUrl = gradioWheel as unknown as string;
-	const gradioClientWheelUrl = gradioClientWheel as unknown as string;
+	import { type WorkerProxy, makeWasmFetch } from "@gradio/wasm";
 
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
@@ -86,6 +77,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
+	export let wasm_worker_proxy: WorkerProxy | null = null;
 	export let wasm_py_code: string | null = null;
 
 	export let space: string | null;
@@ -105,19 +97,15 @@
 
 	async function mount_custom_css(
 		target: HTMLElement,
-		css_string: string | null,
-		workerProxy?: WorkerProxy | null
+		css_string: string | null
 	) {
 		if (css_string) {
 			let style = document.createElement("style");
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
-		if (IS_WASM) {
-			if (workerProxy == null) {
-				throw new Error("Worker proxy is required for wasm mode");
-			}
-			await mount_css_from_wasm(workerProxy, "/theme.css", document.head);
+		if (wasm_worker_proxy) {
+			await mount_css_from_wasm(wasm_worker_proxy, "/theme.css", document.head);
 		} else {
 			await mount_css(config.root + "/theme.css", document.head);
 		}
@@ -204,8 +192,6 @@
 	function handle_status(_status: SpaceStatus) {
 		status = _status;
 	}
-	let workerProxy: WorkerProxy | null = null;
-
 	onMount(async () => {
 		if (window.__gradio_mode__ !== "website") {
 			active_theme_mode = handle_darkmode(wrapper);
@@ -216,16 +202,9 @@
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
-		if (IS_WASM) {
-			workerProxy = new WorkerProxy({
-				gradioWheelUrl,
-				gradioClientWheelUrl,
-				requirements: []
-			});
-
-			await workerProxy.runPythonAsync(wasm_py_code ?? "");
-
-			const overridden_fetch = makeWasmFetch(workerProxy);
+		if (wasm_worker_proxy) {
+			await wasm_worker_proxy.runPythonAsync(wasm_py_code ?? "");
+			const overridden_fetch = makeWasmFetch(wasm_worker_proxy);
 			app = await client(api_url, {
 				status_callback: handle_status,
 				normalise_files: false,
@@ -247,17 +226,13 @@
 			detail: "RUNNING"
 		};
 
-		await mount_custom_css(wrapper, config.css, workerProxy);
+		await mount_custom_css(wrapper, config.css);
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
 		if (config.dev_mode) {
 			reload_check(config.root);
 		}
-	});
-
-	onDestroy(() => {
-		workerProxy?.terminate();
 	});
 
 	$: loader_status =
