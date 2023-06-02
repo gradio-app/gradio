@@ -52,7 +52,7 @@ from gradio.utils import (
 )
 
 try:
-    import spaces
+    import spaces  # type: ignore
 except Exception:
     spaces = None
 
