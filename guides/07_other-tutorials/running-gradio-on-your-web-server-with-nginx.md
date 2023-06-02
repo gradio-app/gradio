@@ -20,11 +20,11 @@ In this Guide, we will guide you through the process of running a Gradio app beh
 
 1. Start by editing the Nginx configuration file on your web server. By default, this is located at: `/etc/nginx/nginx.conf`
 
-    In the `http` block, add the following line to include server block configurations from a separate file:
+In the `http` block, add the following line to include server block configurations from a separate file:
 
-    ```bash
-    include /etc/nginx/sites-enabled/*;
-    ```
+```bash
+include /etc/nginx/sites-enabled/*;
+```
 
 2. Create a new file in the `/etc/nginx/sites-available` directory (create the directory if it does not already exist), using a filename that represents your app, for example: `sudo nano /etc/nginx/sites-available/my_gradio_app`
 
@@ -50,25 +50,24 @@ server {
 
 1. Before you launch your Gradio app, you'll need to set the `root_path` to be the same as the subpath that you specified in your nginx configuration. This is necessary for Gradio to run on any subpath besides the root of the domain.
 
-    Here's a simple example of a Gradio app with a custom `root_path`:
+Here's a simple example of a Gradio app with a custom `root_path`:
 
-    ```python
-    import gradio as gr
-    import time
+```python
+import gradio as gr
+import time
 
-    def test(x):
-    time.sleep(4)
-    return x
+def test(x):
+time.sleep(4)
+return x
 
-    gr.Interface(test, "textbox", "textbox").queue().launch(root_path="/gradio-demo")
-    ```
+gr.Interface(test, "textbox", "textbox").queue().launch(root_path="/gradio-demo")
+```
 
 2. Start a `tmux` session by typing `tmux` and pressing enter (optional) 
 
-    It's recommended that you run your Gradio app in a `tmux` session so that you can keep it running in the background easily
+It's recommended that you run your Gradio app in a `tmux` session so that you can keep it running in the background easily
 
 3. Then, start your Gradio app. Simply type in `python` followed by the name of your Gradio python file. By default, your app will run on `localhost:7860`, but if it starts on a different port, you will need to update the nginx configuration file above.
-
 
 ## Restart Nginx
 
