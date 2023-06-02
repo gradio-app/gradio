@@ -150,7 +150,9 @@ class App(FastAPI):
         assert self.blocks
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
-        is_safe_url = any(url.host.endswith(root) for root in self.blocks.root_urls)
+        is_safe_url = any(
+            url.host == httpx.URL(root).host for root in self.blocks.root_urls
+        )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
@@ -319,7 +321,7 @@ class App(FastAPI):
             try:
                 rp_req = app.build_proxy_request(url_path)
             except PermissionError as err:
-                raise HTTPException(status_code=400, detail=str(err))
+                raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
                 rp_resp.aiter_raw(),
