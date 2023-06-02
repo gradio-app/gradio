@@ -3,7 +3,7 @@
 Prerequisites:
 
 - [Python 3.7+](https://www.python.org/downloads/)
-- [pnpm version 7.x](https://pnpm.io/7.x/installation) (optional for backend-only changes, but needed for any frontend changes)
+- [pnpm 8.1+](https://pnpm.io/8.x/installation) (optional for backend-only changes, but needed for any frontend changes)
 
 More than 80 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! Start by cloning this repo and installing Gradio locally:
 
@@ -22,9 +22,9 @@ bash scripts/install_gradio.sh
 bash scripts/build_frontend.sh
 ```
 
-### Install testing requirements
+### Install development requirements
 
-In order to be able to run the Python unit tests, do the following:
+In order to be able to run the Python linter, formatter, and unit tests, do the following:
 
 - Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment running **Python 3.9** since the versions are pinned)
 

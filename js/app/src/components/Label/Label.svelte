@@ -12,9 +12,9 @@
 	export let visible: boolean = true;
 	export let color: undefined | string = undefined;
 	export let value: {
-		label: string;
+		label?: string;
 		confidences?: Array<{ label: string; confidence: number }>;
-	};
+	} = {};
 	export let label: string = "Label";
 	export let style: Styles = {};
 
@@ -24,7 +24,8 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
-	$: value, dispatch("change");
+	$: ({ confidences, label: _label } = value);
+	$: _label, confidences, dispatch("change");
 </script>
 
 <Block

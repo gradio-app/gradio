@@ -3,10 +3,11 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
+	export let value_is_output: boolean = false;
 	export let minimum: number = 0;
 	export let maximum: number = 100;
 	export let step: number = 1;
@@ -16,13 +17,26 @@
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
-	const dispatch = createEventDispatcher<{ change: number; release: number }>();
+	const dispatch = createEventDispatcher<{
+		change: number;
+		input: undefined;
+		release: number;
+	}>();
+
+	function handle_change() {
+		dispatch("change", value);
+		if (!value_is_output) {
+			dispatch("input");
+		}
+	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
+	$: value, handle_change();
 
 	function handle_release(e: MouseEvent) {
 		dispatch("release", value);
 	}
-
-	$: dispatch("change", value);
 	const clamp = () => {
 		dispatch("release", value);
 		value = Math.min(Math.max(value, minimum), maximum);

@@ -295,7 +295,7 @@ class Client:
             helper = Communicator(
                 Lock(),
                 JobStatus(),
-                self.endpoints[inferred_fn_index].deserialize,
+                self.endpoints[inferred_fn_index].process_predictions,
                 self.reset_url,
             )
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -439,7 +439,7 @@ class Client:
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
         else:
             if num_unnamed_endpoints > 0:
-                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(`all_endpoints=True`)\n"
+                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(all_endpoints=True)\n"
 
         if print_info:
             print(human_info)
@@ -610,17 +610,16 @@ class Endpoint:
         return self.__repr__()
 
     def make_end_to_end_fn(self, helper: Communicator | None = None):
-
         _predict = self.make_predict(helper)
 
         def _inner(*data):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
+            data = self.insert_state(*data)
             if self.client.serialize:
                 data = self.serialize(*data)
             predictions = _predict(*data)
-            if self.client.serialize:
-                predictions = self.deserialize(*predictions)
+            predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -745,39 +744,22 @@ class Endpoint:
                 data[i] = files[file_counter]
                 file_counter += 1
 
-    def serialize(self, *data) -> tuple:
+    def insert_state(self, *data) -> tuple:
         data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type == utils.STATE_COMPONENT:
                 data.insert(i, None)
-        assert len(data) == len(
-            self.serializers
-        ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
+        return tuple(data)
 
-        files = [
-            f
-            for f, t in zip(data, self.input_component_types)
-            if t in ["file", "uploadbutton"]
+    def remove_state(self, *data) -> tuple:
+        data = [
+            d
+            for d, oct in zip(data, self.output_component_types)
+            if oct != utils.STATE_COMPONENT
         ]
-        uploaded_files = self._upload(files)
-        self._add_uploaded_files_to_data(uploaded_files, data)
+        return tuple(data)
 
-        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
-        return o
-
-    def deserialize(self, *data) -> tuple | Any:
-        assert len(data) == len(
-            self.deserializers
-        ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
-        outputs = tuple(
-            [
-                s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
-                for s, d, oct in zip(
-                    self.deserializers, data, self.output_component_types
-                )
-                if oct != utils.STATE_COMPONENT
-            ]
-        )
+    def reduce_singleton_output(self, *data) -> Any:
         if (
             len(
                 [
@@ -788,10 +770,44 @@ class Endpoint:
             )
             == 1
         ):
-            output = outputs[0]
+            return data[0]
         else:
-            output = outputs
-        return output
+            return data
+
+    def serialize(self, *data) -> tuple:
+        assert len(data) == len(
+            self.serializers
+        ), f"Expected {len(self.serializers)} arguments, got {len(data)}"
+
+        files = [
+            f
+            for f, t in zip(data, self.input_component_types)
+            if t in ["file", "uploadbutton"]
+        ]
+        uploaded_files = self._upload(files)
+        data = list(data)
+        self._add_uploaded_files_to_data(uploaded_files, data)
+        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
+        return o
+
+    def deserialize(self, *data) -> tuple:
+        assert len(data) == len(
+            self.deserializers
+        ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
+        outputs = tuple(
+            [
+                s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
+                for s, d in zip(self.deserializers, data)
+            ]
+        )
+        return outputs
+
+    def process_predictions(self, *predictions):
+        if self.client.serialize:
+            predictions = self.deserialize(*predictions)
+        predictions = self.remove_state(*predictions)
+        predictions = self.reduce_singleton_output(*predictions)
+        return predictions
 
     def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
         inputs = self.dependency["inputs"]

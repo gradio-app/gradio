@@ -18,7 +18,7 @@ attrs==21.4.0
     #   pytest
 backcall==0.2.0
     # via ipython
-black==22.6.0
+black==23.3.0
     # via -r requirements.in
 boto3==1.26.65
     # via -r requirements.in
@@ -59,7 +59,7 @@ httpx==0.23.0
     # via
     #   -r requirements.in
     #   respx
-huggingface-hub==0.13.0
+huggingface-hub==0.14.0
     # via
     #   -r requirements.in
     #   transformers
@@ -111,7 +111,7 @@ numpy==1.21.6
     #   shap
     #   tifffile
     #   transformers
-packaging==21.3
+packaging==22.0
     # via
     #   huggingface-hub
     #   pytest

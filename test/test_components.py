@@ -707,8 +707,8 @@ class TestImage:
         Interface, process
         """
 
-        def generate_noise(width, height):
-            return np.random.randint(0, 256, (width, height, 3))
+        def generate_noise(height, width):
+            return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         assert iface(10, 20).endswith(".png")
@@ -1546,7 +1546,6 @@ class TestLabel:
         }
 
     def test_color_argument(self):
-
         label = gr.Label(value=-10, color="red")
         assert label.get_config()["color"] == "red"
         update_1 = gr.Label.update(value="bad", color="brown")
@@ -1785,7 +1784,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([["You are **cool**\nand fun", "so are *you*"]]) == [
-            ["You are <strong>cool</strong>\nand fun", "so are <em>you</em>"]
+            ["You are **cool**\nand fun", "so are *you*"]
         ]
 
         multimodal_msg = [
@@ -2182,7 +2181,6 @@ simple = pd.DataFrame(
 class TestScatterPlot:
     @patch.dict("sys.modules", {"bokeh": MagicMock(__version__="3.0.3")})
     def test_get_config(self):
-
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,

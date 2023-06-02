@@ -18,14 +18,16 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 7
+          version: 8
       - name: setup node.js
         uses: actions/setup-node@v3
         with:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           node-version: 18
-          registry-url: "https://registry.npmjs.org"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build packages
@@ -40,6 +42,7 @@ jobs:
           publish: pnpm ci:publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: label PR
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}

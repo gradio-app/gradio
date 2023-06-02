@@ -94,38 +94,26 @@
 		type: "inputs" | "outputs",
 		deps: Array<Dependency>
 	) {
-		let dep_index = 0;
-		for (;;) {
-			const dep = deps[dep_index];
-			if (dep === undefined) break;
-
-			let dep_item_index = 0;
-			for (;;) {
-				const dep_item = dep[type][dep_item_index];
-				if (dep_item === undefined) break;
+		for (const dep of deps) {
+			for (const dep_item of dep[type]) {
 				if (dep_item === id) return true;
-				dep_item_index++;
 			}
-
-			dep_index++;
 		}
-
 		return false;
 	}
 
-	const dynamic_ids: Set<number> = components.reduce<Set<number>>(
-		(acc, { id, props }) => {
-			const is_input = is_dep(id, "inputs", dependencies);
-			const is_output = is_dep(id, "outputs", dependencies);
-
-			if (!is_input && !is_output && has_no_default_value(props?.value))
-				acc.add(id); // default dynamic
-			if (is_input) acc.add(id);
-
-			return acc;
-		},
-		new Set()
-	);
+	const dynamic_ids: Set<number> = new Set();
+	for (const comp of components) {
+		const { id, props } = comp;
+		const is_input = is_dep(id, "inputs", dependencies);
+		if (
+			is_input ||
+			(!is_dep(id, "outputs", dependencies) &&
+				has_no_default_value(props?.value))
+		) {
+			dynamic_ids.add(id);
+		}
+	}
 
 	function has_no_default_value(value: any) {
 		return (
@@ -213,6 +201,8 @@
 	function handle_update(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
+			output.props.value_is_output = true;
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -222,12 +212,12 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						instance_map[outputs[i]].props[update_key] = update_value;
+						output.props[update_key] = update_value;
 					}
 				}
 				rootNode = rootNode;
 			} else {
-				instance_map[outputs[i]].props.value = value;
+				output.props.value = value;
 			}
 		});
 	}
@@ -243,19 +233,25 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	const trigger_api_call = async (dep_index: number, event_data: unknown) => {
+	const trigger_api_call = async (
+		dep_index: number,
+		event_data: unknown = null
+	) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
-		if (current_status === "pending" || current_status === "generating") {
-			return;
-		}
 
 		if (dep.cancels) {
 			await Promise.all(
-				dep.cancels.map((fn_index) => {
-					submit_map.get(fn_index)?.cancel();
+				dep.cancels.map(async (fn_index) => {
+					const submission = submit_map.get(fn_index);
+					submission?.cancel();
+					return submission;
 				})
 			);
+		}
+
+		if (current_status === "pending" || current_status === "generating") {
+			return;
 		}
 
 		let payload = {
@@ -290,15 +286,6 @@
 				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
-					let status = loading_status.get_status_for_fn(fn_index);
-
-					if (status === "complete") {
-						dependencies.forEach((dep, i) => {
-							if (dep.trigger_after === fn_index) {
-								trigger_api_call(i, null);
-							}
-						});
-					}
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					loading_status.update({
@@ -308,16 +295,27 @@
 						fn_index
 					});
 
+					if (status.stage === "complete") {
+						dependencies.map(async (dep, i) => {
+							if (dep.trigger_after === fn_index) {
+								trigger_api_call(i);
+							}
+						});
+
+						submission.destroy();
+					}
+
 					if (status.stage === "error") {
-						// handle failed .then here, since "data" listener won't trigger
-						dependencies.forEach((dep, i) => {
+						dependencies.map(async (dep, i) => {
 							if (
 								dep.trigger_after === fn_index &&
 								!dep.trigger_only_on_success
 							) {
-								trigger_api_call(i, null);
+								trigger_api_call(i);
 							}
 						});
+
+						submission.destroy();
 					}
 				});
 
@@ -351,7 +349,7 @@
 				outputs.every((v) => instance_map?.[v].instance) &&
 				inputs.every((v) => instance_map?.[v].instance)
 			) {
-				trigger_api_call(i, null);
+				trigger_api_call(i);
 				handled_dependencies[i] = [-1];
 			}
 

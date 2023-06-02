@@ -21,7 +21,8 @@ import type {
 	UploadResponse,
 	Status,
 	SpaceStatus,
-	SpaceStatusCallback
+	SpaceStatusCallback,
+	FileData
 } from "./types.js";
 
 import type { Config } from "./types.js";
@@ -44,13 +45,13 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
-	view_api: (c?: Config) => Promise<Record<string, any>>;
+	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 
 type SubmitReturn = {
 	on: event;
 	off: event;
-	cancel: () => void;
+	cancel: () => Promise<void>;
 	destroy: () => void;
 };
 
@@ -201,10 +202,11 @@ export async function client(
 	options: {
 		hf_token?: `hf_${string}`;
 		status_callback?: SpaceStatusCallback;
-	} = {}
+		normalise_files?: boolean;
+	} = { normalise_files: true }
 ): Promise<client_return> {
 	return new Promise(async (res) => {
-		const { status_callback, hf_token } = options;
+		const { status_callback, hf_token, normalise_files } = options;
 		const return_obj = {
 			predict,
 			submit,
@@ -212,6 +214,7 @@ export async function client(
 			// duplicate
 		};
 
+		const transform_files = normalise_files ?? true;
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
 			NodeBlob = (await import("node:buffer")).Blob;
@@ -226,8 +229,6 @@ export async function client(
 		const last_status: Record<string, Status["stage"]> = {};
 		let config: Config;
 		let api_map: Record<string, number> = {};
-
-		const listener_map: ListenerMap<EventType> = {};
 
 		let jwt: false | string = false;
 
@@ -249,7 +250,7 @@ export async function client(
 				...return_obj
 			};
 		}
-		let api;
+		let api: ApiInfo<JsApiData>;
 		async function handle_space_sucess(status: SpaceStatus) {
 			if (status_callback) status_callback(status);
 			if (status.status === "running")
@@ -271,13 +272,11 @@ export async function client(
 		}
 
 		try {
-			console.log(`${http_protocol}//${host}`);
 			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-			console.log(config);
+
 			const _config = await config_success(config);
 			res(_config);
 		} catch (e) {
-			console.log(space_id, e);
 			if (space_id) {
 				check_space_status(
 					space_id,
@@ -334,6 +333,7 @@ export async function client(
 		): SubmitReturn {
 			let fn_index: number;
 			let api_info;
+
 			if (typeof endpoint === "number") {
 				fn_index = endpoint;
 				api_info = api.unnamed_endpoints[fn_index];
@@ -354,8 +354,9 @@ export async function client(
 
 			const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 			let payload: Payload;
+			let complete: false | Record<string, any> = false;
+			const listener_map: ListenerMap<EventType> = {};
 
-			//@ts-ignore
 			handle_blob(
 				`${http_protocol}//${host + config.path}`,
 				data,
@@ -384,7 +385,23 @@ export async function client(
 						hf_token
 					)
 						.then(([output, status_code]) => {
+							const data = transform_files
+								? transform_output(
+										output.data,
+										api_info,
+										config.root,
+										config.root_url
+								  )
+								: output.data;
 							if (status_code == 200) {
+								fire_event({
+									type: "data",
+									endpoint: _endpoint,
+									fn_index,
+									data: data,
+									time: new Date()
+								});
+
 								fire_event({
 									type: "status",
 									endpoint: _endpoint,
@@ -392,14 +409,6 @@ export async function client(
 									stage: "complete",
 									eta: output.average_duration,
 									queue: false,
-									time: new Date()
-								});
-
-								fire_event({
-									type: "data",
-									endpoint: _endpoint,
-									fn_index,
-									data: output.data,
 									time: new Date()
 								});
 							} else {
@@ -465,7 +474,7 @@ export async function client(
 							last_status[fn_index]
 						);
 
-						if (type === "update" && status) {
+						if (type === "update" && status && !complete) {
 							// call 'status' listeners
 							fire_event({
 								type: "status",
@@ -483,16 +492,7 @@ export async function client(
 						} else if (type === "data") {
 							websocket.send(JSON.stringify({ ...payload, session_hash }));
 						} else if (type === "complete") {
-							fire_event({
-								type: "status",
-								time: new Date(),
-								...status,
-								stage: status?.stage!,
-								queue: true,
-								endpoint: _endpoint,
-								fn_index
-							});
-							websocket.close();
+							complete = status;
 						} else if (type === "generating") {
 							fire_event({
 								type: "status",
@@ -508,10 +508,30 @@ export async function client(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: transform_files
+									? transform_output(
+											data.data,
+											api_info,
+											config.root,
+											config.root_url
+									  )
+									: data.data,
 								endpoint: _endpoint,
 								fn_index
 							});
+
+							if (complete) {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...complete,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+								websocket.close();
+							}
 						}
 					};
 
@@ -527,7 +547,7 @@ export async function client(
 
 			function fire_event<K extends EventType>(event: Event<K>) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[event.type] || [];
+				const listeners = narrowed_listener_map[event.type] || [];
 				listeners?.forEach((l) => l(event));
 			}
 
@@ -536,7 +556,7 @@ export async function client(
 				listener: EventListener<K>
 			) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[eventType] || [];
+				const listeners = narrowed_listener_map[eventType] || [];
 				narrowed_listener_map[eventType] = listeners;
 				listeners?.push(listener);
 
@@ -556,25 +576,18 @@ export async function client(
 			}
 
 			async function cancel() {
-				fire_event({
-					type: "status",
-					endpoint: _endpoint,
-					fn_index: fn_index,
+				const _status: Status = {
 					stage: "complete",
 					queue: false,
 					time: new Date()
+				};
+				complete = _status;
+				fire_event({
+					..._status,
+					type: "status",
+					endpoint: _endpoint,
+					fn_index: fn_index
 				});
-
-				try {
-					await fetch(`${http_protocol}//${host + config.path}/reset`, {
-						method: "POST",
-						body: JSON.stringify(session_hash)
-					});
-				} catch (e) {
-					console.warn(
-						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
-					);
-				}
 
 				if (websocket && websocket.readyState === 0) {
 					websocket.addEventListener("open", () => {
@@ -584,7 +597,17 @@ export async function client(
 					websocket.close();
 				}
 
-				destroy();
+				try {
+					await fetch(`${http_protocol}//${host + config.path}/reset`, {
+						headers: { "Content-Type": "application/json" },
+						method: "POST",
+						body: JSON.stringify({ fn_index, session_hash })
+					});
+				} catch (e) {
+					console.warn(
+						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
+					);
+				}
 			}
 
 			function destroy() {
@@ -603,9 +626,7 @@ export async function client(
 			};
 		}
 
-		async function view_api(
-			config?: Config
-		): Promise<ApiInfo<JsApiData> | [{ error: string }, 500]> {
+		async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
 			if (api) return api;
 
 			const headers: {
@@ -615,48 +636,119 @@ export async function client(
 			if (hf_token) {
 				headers.Authorization = `Bearer ${hf_token}`;
 			}
-			try {
-				let response: Response;
-				// @ts-ignore
-				if (semiver(config.version || "2.0.0", "3.30") < 0) {
-					response = await fetch(
-						"https://gradio-space-api-fetcher-v2.hf.space/api",
-						{
-							method: "POST",
-							body: JSON.stringify({
-								serialize: false,
-								config: JSON.stringify(config)
-							}),
-							headers
-						}
-					);
-				} else {
-					response = await fetch(`${http_protocol}//${host}/info`, {
+			let response: Response;
+			// @ts-ignore
+			if (semiver(config.version || "2.0.0", "3.30") < 0) {
+				response = await fetch(
+					"https://gradio-space-api-fetcher-v2.hf.space/api",
+					{
+						method: "POST",
+						body: JSON.stringify({
+							serialize: false,
+							config: JSON.stringify(config)
+						}),
 						headers
-					});
-				}
-
-				let api_info = (await response.json()) as
-					| ApiInfo<ApiData>
-					| { api: ApiInfo<ApiData> };
-				if ("api" in api_info) {
-					api_info = api_info.api;
-				}
-
-				if (
-					api_info.named_endpoints["/predict"] &&
-					!api_info.unnamed_endpoints["0"]
-				) {
-					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
-				}
-
-				const x = transform_api_info(api_info, config, api_map);
-				return x;
-			} catch (e) {
-				return [{ error: BROKEN_CONNECTION_MSG }, 500];
+					}
+				);
+			} else {
+				response = await fetch(`${config.root}/info`, {
+					headers
+				});
 			}
+
+			if (!response.ok) {
+				throw new Error(BROKEN_CONNECTION_MSG);
+			}
+
+			let api_info = (await response.json()) as
+				| ApiInfo<ApiData>
+				| { api: ApiInfo<ApiData> };
+			if ("api" in api_info) {
+				api_info = api_info.api;
+			}
+
+			if (
+				api_info.named_endpoints["/predict"] &&
+				!api_info.unnamed_endpoints["0"]
+			) {
+				api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+			}
+
+			const x = transform_api_info(api_info, config, api_map);
+			return x;
 		}
 	});
+}
+
+function transform_output(
+	data: any[],
+	api_info: any,
+	root_url: string,
+	remote_url?: string
+): unknown[] {
+	return data.map((d, i) => {
+		if (api_info.returns?.[i]?.component === "File") {
+			return normalise_file(d, root_url, remote_url);
+		} else if (api_info.returns?.[i]?.component === "Gallery") {
+			return d.map((img) => {
+				return Array.isArray(img)
+					? [normalise_file(img[0], root_url, remote_url), img[1]]
+					: [normalise_file(img, root_url, remote_url), null];
+			});
+		} else if (typeof d === "object" && d.is_file) {
+			return normalise_file(d, root_url, remote_url);
+		} else {
+			return d;
+		}
+	});
+}
+
+function normalise_file(
+	file: Array<FileData>,
+	root: string,
+	root_url: string | null
+): Array<FileData>;
+function normalise_file(
+	file: FileData | string,
+	root: string,
+	root_url: string | null
+): FileData;
+function normalise_file(
+	file: null,
+	root: string,
+	root_url: string | null
+): null;
+function normalise_file(
+	file,
+	root,
+	root_url
+): Array<FileData> | FileData | null {
+	if (file == null) return null;
+	if (typeof file === "string") {
+		return {
+			name: "file_data",
+			data: file
+		};
+	} else if (Array.isArray(file)) {
+		const normalized_file: Array<FileData | null> = [];
+
+		for (const x of file) {
+			if (x === null) {
+				normalized_file.push(null);
+			} else {
+				normalized_file.push(normalise_file(x, root, root_url));
+			}
+		}
+
+		return normalized_file as Array<FileData>;
+	} else if (file.is_file) {
+		if (!root_url) {
+			file.data = root + "/file=" + file.name;
+		} else {
+			file.data = "/proxy=" + root_url + "/file=" + file.name;
+		}
+	}
+	return file;
 }
 
 interface ApiData {
@@ -824,38 +916,33 @@ export async function handle_blob(
 		api_info
 	);
 
-	return new Promise((res) => {
-		Promise.all(
-			blob_refs.map(async ({ path, blob, data, type }) => {
-				if (blob) {
-					const file_url = (await upload_files(endpoint, [blob], token))
-						.files[0];
-					return { path, file_url, type };
-				} else {
-					return { path, base64: data, type };
-				}
-			})
-		)
-			.then((r) => {
-				r.forEach(({ path, file_url, base64, type }) => {
-					if (base64) {
-						update_object(data, base64, path);
-					} else if (type === "Gallery") {
-						update_object(data, file_url, path);
-					} else if (file_url) {
-						const o = {
-							is_file: true,
-							name: `${file_url}`,
-							data: null
-							// orig_name: "file.csv"
-						};
-						update_object(data, o, path);
-					}
-				});
+	return Promise.all(
+		blob_refs.map(async ({ path, blob, data, type }) => {
+			if (blob) {
+				const file_url = (await upload_files(endpoint, [blob], token)).files[0];
+				return { path, file_url, type };
+			} else {
+				return { path, base64: data, type };
+			}
+		})
+	).then((r) => {
+		r.forEach(({ path, file_url, base64, type }) => {
+			if (base64) {
+				update_object(data, base64, path);
+			} else if (type === "Gallery") {
+				update_object(data, file_url, path);
+			} else if (file_url) {
+				const o = {
+					is_file: true,
+					name: `${file_url}`,
+					data: null
+					// orig_name: "file.csv"
+				};
+				update_object(data, o, path);
+			}
+		});
 
-				res(data);
-			})
-			.catch(console.log);
+		return data;
 	});
 }
 
@@ -981,9 +1068,8 @@ async function resolve_config(
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
-		console.log(`${endpoint}/config`, headers);
 		let response = await fetch(`${endpoint}/config`, { headers });
-		console.log(response);
+
 		if (response.status === 200) {
 			const config = await response.json();
 			config.path = config.path ?? "";
@@ -1144,18 +1230,32 @@ function handle_message(
 				data: data.success ? data.output : null
 			};
 		case "process_completed":
-			return {
-				type: "complete",
-				status: {
-					queue,
-					message: !data.success ? data.output.error : undefined,
-					stage: data.success ? "complete" : "error",
-					code: data.code,
-					progress_data: data.progress_data,
-					eta: data.output.average_duration
-				},
-				data: data.success ? data.output : null
-			};
+			if ("error" in data.output) {
+				return {
+					type: "update",
+					status: {
+						queue,
+						message: data.output.error as string,
+						stage: "error",
+						code: data.code,
+						success: data.success
+					}
+				};
+			} else {
+				return {
+					type: "complete",
+					status: {
+						queue,
+						message: !data.success ? data.output.error : undefined,
+						stage: data.success ? "complete" : "error",
+						code: data.code,
+						progress_data: data.progress_data,
+						eta: data.output.average_duration
+					},
+					data: data.success ? data.output : null
+				};
+			}
+
 		case "process_starts":
 			return {
 				type: "update",

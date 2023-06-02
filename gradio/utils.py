@@ -13,12 +13,10 @@ import pkgutil
 import random
 import re
 import sys
-import threading
 import time
 import typing
 import warnings
 from contextlib import contextmanager
-from distutils.version import StrictVersion
 from enum import Enum
 from io import BytesIO
 from numbers import Number
@@ -32,7 +30,6 @@ from typing import (
     Union,
 )
 
-import aiohttp
 import anyio
 import httpx
 import matplotlib
@@ -42,9 +39,6 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from mdit_py_plugins.footnote.index import footnote_plugin
 from pydantic import BaseModel, parse_obj_as
-from pygments import highlight
-from pygments.formatters import HtmlFormatter
-from pygments.lexers import get_lexer_by_name
 
 import gradio
 from gradio.context import Context
@@ -54,184 +48,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import Block, BlockContext
     from gradio.components import Component
 
-analytics_url = "https://api.gradio.app/"
-PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 GRADIO_VERSION = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()
 )
 
 T = TypeVar("T")
-
-
-def version_check():
-    try:
-        version_data = pkgutil.get_data(__name__, "version.txt")
-        if not version_data:
-            raise FileNotFoundError
-        current_pkg_version = version_data.decode("ascii").strip()
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
-            "version"
-        ]
-        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-            print(
-                f"IMPORTANT: You are using gradio version {current_pkg_version}, "
-                f"however version {latest_pkg_version} is available, please upgrade."
-            )
-            print("--------")
-    except json.decoder.JSONDecodeError:
-        warnings.warn("unable to parse version details from package URL.")
-    except KeyError:
-        warnings.warn("package URL does not contain version info.")
-    except Exception:
-        pass
-
-
-def get_local_ip_address() -> str:
-    """Gets the public IP address or returns the string "No internet connection" if unable to obtain it. Does not make a new request if the IP address has already been obtained."""
-    if Context.ip_address is None:
-        try:
-            ip_address = requests.get(
-                "https://checkip.amazonaws.com/", timeout=3
-            ).text.strip()
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            ip_address = "No internet connection"
-        Context.ip_address = ip_address
-    else:
-        ip_address = Context.ip_address
-    return ip_address
-
-
-def initiated_analytics(data: dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def initiated_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-initiated-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
-
-
-def launch_analytics(data: dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def launch_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-launched-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=launch_analytics_thread, args=(data,)).start()
-
-
-def launched_telemetry(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
-    blocks_telemetry, inputs_telemetry, outputs_telemetry, targets_telemetry = (
-        [],
-        [],
-        [],
-        [],
-    )
-
-    from gradio.blocks import BlockContext
-
-    for x in list(blocks.blocks.values()):
-        blocks_telemetry.append(x.get_block_name()) if isinstance(
-            x, BlockContext
-        ) else blocks_telemetry.append(str(x))
-
-    for x in blocks.dependencies:
-        targets_telemetry = targets_telemetry + [
-            str(blocks.blocks[y]) for y in x["targets"]
-        ]
-        inputs_telemetry = inputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["inputs"]
-        ]
-        outputs_telemetry = outputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["outputs"]
-        ]
-    additional_data = {
-        "version": GRADIO_VERSION,
-        "is_kaggle": blocks.is_kaggle,
-        "is_sagemaker": blocks.is_sagemaker,
-        "using_auth": blocks.auth is not None,
-        "dev_mode": blocks.dev_mode,
-        "show_api": blocks.show_api,
-        "show_error": blocks.show_error,
-        "title": blocks.title,
-        "inputs": blocks.input_components
-        if blocks.mode == "interface"
-        else inputs_telemetry,
-        "outputs": blocks.output_components
-        if blocks.mode == "interface"
-        else outputs_telemetry,
-        "targets": targets_telemetry,
-        "blocks": blocks_telemetry,
-        "events": [str(x["trigger"]) for x in blocks.dependencies],
-    }
-
-    data.update(additional_data)
-    data.update({"ip_address": get_local_ip_address()})
-
-    def launched_telemtry_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-launched-telemetry/", data=data, timeout=5
-            )
-        except Exception:
-            pass
-
-    threading.Thread(target=launched_telemtry_thread, args=(data,)).start()
-
-
-def integration_analytics(data: dict[str, Any]) -> None:
-    data.update({"ip_address": get_local_ip_address()})
-
-    def integration_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-integration-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=integration_analytics_thread, args=(data,)).start()
-
-
-def error_analytics(message: str) -> None:
-    """
-    Send error analytics if there is network
-    Parameters:
-        message: Details about error
-    """
-    data = {"ip_address": get_local_ip_address(), "error": message}
-
-    def error_analytics_thread(data: dict[str, Any]) -> None:
-        try:
-            requests.post(
-                f"{analytics_url}gradio-error-analytics/", data=data, timeout=5
-            )
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-    threading.Thread(target=error_analytics_thread, args=(data,)).start()
-
-
-async def log_feature_analytics(feature: str) -> None:
-    data = {"ip_address": get_local_ip_address(), "feature": feature}
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(
-                f"{analytics_url}gradio-feature-analytics/", data=data
-            ):
-                pass
-        except (aiohttp.ClientError):
-            pass  # do not push analytics if no network
 
 
 def colab_check() -> bool:
@@ -794,7 +616,8 @@ def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
         head_request = requests.head(possible_url, headers=headers)
-        if head_request.status_code == 405:
+        # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
+        if head_request.status_code == 405 or head_request.status_code == 403:
             return requests.get(possible_url, headers=headers).ok
         return head_request.ok
     except Exception:
@@ -858,11 +681,41 @@ def get_cancel_function(
 
 
 def get_type_hints(fn):
+    # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
+    import gradio as gr  # noqa: F401
+    from gradio import Request  # noqa: F401
+
     if inspect.isfunction(fn) or inspect.ismethod(fn):
-        return typing.get_type_hints(fn)
+        pass
     elif callable(fn):
-        return typing.get_type_hints(fn.__call__)
-    return {}
+        fn = fn.__call__
+    else:
+        return {}
+
+    try:
+        return typing.get_type_hints(fn)
+    except TypeError:
+        # On Python 3.9 or earlier, get_type_hints throws a TypeError if the function
+        # has a type annotation that include "|". We resort to parsing the signature
+        # manually using inspect.signature.
+        type_hints = {}
+        sig = inspect.signature(fn)
+        for name, param in sig.parameters.items():
+            if param.annotation is inspect.Parameter.empty:
+                continue
+            if "|" in str(param.annotation):
+                continue
+            # To convert the string annotation to a class, we use the
+            # internal typing._eval_type function. This is not ideal, but
+            # it's the only way to do it without eval-ing the string.
+            # Since the API is internal, it may change in the future.
+            try:
+                type_hints[name] = typing._eval_type(  # type: ignore
+                    typing.ForwardRef(param.annotation), globals(), locals()
+                )
+            except (NameError, TypeError):
+                pass
+        return type_hints
 
 
 def is_special_typed_parameter(name, parameter_types):
@@ -992,12 +845,16 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
     Parameters:
-        path_1: str or Path (can be a file or directory)
+        path_1: str or Path (should be a file)
         path_2: str or Path (can be a file or directory)
     """
-    return (abspath(path_2) in abspath(path_1).parents) or abspath(path_1) == abspath(
-        path_2
-    )
+    path_1, path_2 = abspath(path_1), abspath(path_2)
+    try:
+        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
+            return False
+    except ValueError:
+        return False
+    return True
 
 
 def get_serializer_name(block: Block) -> str | None:
@@ -1035,16 +892,6 @@ def get_serializer_name(block: Block) -> str | None:
         return cls.__name__
 
 
-def highlight_code(code, name, attrs):
-    try:
-        lexer = get_lexer_by_name(name)
-    except Exception:
-        lexer = get_lexer_by_name("text")
-    formatter = HtmlFormatter()
-
-    return highlight(code, lexer, formatter)
-
-
 def get_markdown_parser() -> MarkdownIt:
     md = (
         MarkdownIt(
@@ -1053,7 +900,6 @@ def get_markdown_parser() -> MarkdownIt:
                 "linkify": True,
                 "typographer": True,
                 "html": True,
-                "highlight": highlight_code,
             },
         )
         .use(dollarmath_plugin, renderer=tex2svg, allow_digits=False)
