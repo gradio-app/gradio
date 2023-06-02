@@ -144,7 +144,7 @@
       <div class="sub-links hidden" hash="#themes">
         {% for theme in docs["themes"] %}
         {% with obj=theme %}
-        <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+        <a class="thinner-link px-4 pl-8 block" href="#themes-{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
         {% endwith %}
         {% endfor %}
       </div>
@@ -446,27 +446,27 @@
       loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
     }
 
-      {% endif %}
-    </script>
-    <script src="/assets/prism.js"></script>
-    <script>
-      window.__gradio_mode__ = "website";
-    </script>
-    {% include 'templates/footer.html' %}
-    <script>{% include 'templates/guide-color.js' %}</script>
-    <script>{% include 'templates/add_anchors.js' %}</script>
-    <script>{% include 'templates/add_copy.js' %}</script>
-    <script>
-    const throt = function(cb, timeout, args) {
-        let locked = false;
-        return function() {
-            if (locked) return;
-            locked = true;
-            cb(args);
-            setTimeout(function() {locked = false;}, timeout);
-        }
+    {% endif %}
+  </script>
+  <script src="/assets/prism.js"></script>
+  <script>
+    window.__gradio_mode__ = "website";
+  </script>
+  {% include 'templates/footer.html' %}
+  <script>{% include 'templates/guide-color.js' %}</script>
+  <script>{% include 'templates/add_anchors.js' %}</script>
+  <script>{% include 'templates/add_copy.js' %}</script>
+  <script>
+    const throt = function (cb, timeout, args) {
+      let locked = false;
+      return function () {
+        if (locked) return;
+        locked = true;
+        cb(args);
+        setTimeout(function () { locked = false; }, timeout);
+      }
     };
- 
+
     const show_demo = (component, demo) => {
       document.querySelectorAll(`#${component} .demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
       document.querySelectorAll(`#${component} .demo-content`).forEach(n => n.classList.add('hidden'));
@@ -484,62 +484,62 @@
     let menuBar = document.querySelector("#menu-bar");
     let mobileNav = document.querySelector("#mobile-nav");
 
-    mainNavLinksMobile.forEach(link => {    
-        link.onclick = function() {
-          mobileNav.classList.add("hidden");
-        }
-      });
+    mainNavLinksMobile.forEach(link => {
+      link.onclick = function () {
+        mobileNav.classList.add("hidden");
+      }
+    });
 
 
     function highlightCurrentNavLink() {
-        menuBar.classList.remove("hidden");
-        let fromTop = window.scrollY;
+      menuBar.classList.remove("hidden");
+      let fromTop = window.scrollY;
 
-        mainNavLinks.forEach(link => {
-            let section = document.querySelector(link.hash);
-            if (
-                section.offsetTop <= fromTop &&
-                section.offsetTop + section.offsetHeight > fromTop
-            ) {
-                link.classList.add("current-nav-link");
-            } else {
-                link.classList.remove("current-nav-link");
-            }
-        });
+      mainNavLinks.forEach(link => {
+        let section = document.querySelector(link.hash);
+        if (
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
+        ) {
+          link.classList.add("current-nav-link");
+        } else {
+          link.classList.remove("current-nav-link");
+        }
+      });
 
-        mainNavLinksMobile.forEach(link => {  
-            let section = document.querySelector(link.hash);
-            if (
-                section.offsetTop <= fromTop &&
-                section.offsetTop + section.offsetHeight > fromTop
-            ) {
-                link.classList.add("current-nav-link");
-            } else {
-                link.classList.remove("current-nav-link");
-            }
-        });
+      mainNavLinksMobile.forEach(link => {
+        let section = document.querySelector(link.hash);
+        if (
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
+        ) {
+          link.classList.add("current-nav-link");
+        } else {
+          link.classList.remove("current-nav-link");
+        }
+      });
     }
     window.addEventListener("scroll", throt(highlightCurrentNavLink, 300), true);
 
     let mainNavSubLinks = document.querySelectorAll(".navigation .sub-links");
-    
-    function toggleSublinksVisibility() {
-        let fromTop = window.scrollY;
-        mainNavSubLinks.forEach(subLinkDiv => {
-            let hash = subLinkDiv.getAttribute('hash');
-            let section = document.querySelector(hash);
 
-            if (
-                section.offsetTop <= fromTop &&
-                section.offsetTop + section.offsetHeight > fromTop
-            ) {
-                subLinkDiv.classList.remove("hidden");
-            } else {
-                if (document.querySelector("#search").value.length == 0) {
-                    subLinkDiv.classList.add("hidden");
-                }
-            }
-        });
+    function toggleSublinksVisibility() {
+      let fromTop = window.scrollY;
+      mainNavSubLinks.forEach(subLinkDiv => {
+        let hash = subLinkDiv.getAttribute('hash');
+        let section = document.querySelector(hash);
+
+        if (
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
+        ) {
+          subLinkDiv.classList.remove("hidden");
+        } else {
+          if (document.querySelector("#search").value.length == 0) {
+            subLinkDiv.classList.add("hidden");
+          }
+        }
+      });
     }
     window.addEventListener("scroll", throt(toggleSublinksVisibility, 300), true);
 
