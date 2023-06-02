@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "./css";
-	import { mount_css as mount_css_from_wasm } from "@gradio/wasm";
+	import { mount_css as default_mount_css } from "./css";
 
 	import type {
 		ComponentMeta,
@@ -61,7 +60,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { client, SpaceStatus } from "@gradio/client";
-	import { type WorkerProxy, makeWasmFetch } from "@gradio/wasm";
 
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
@@ -77,7 +75,10 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
-	export let wasm_worker_proxy: WorkerProxy | null = null;
+
+	// These utilities are exported to be injectable for the Wasm version.
+	export let mount_css: typeof default_mount_css = default_mount_css;
+	export let overridden_fetch: typeof fetch | undefined = undefined;
 
 	export let space: string | null;
 	export let host: string | null;
@@ -103,11 +104,7 @@
 			style.innerHTML = css_string;
 			target.appendChild(style);
 		}
-		if (wasm_worker_proxy) {
-			await mount_css_from_wasm(wasm_worker_proxy, "/theme.css", document.head);
-		} else {
-			await mount_css(config.root + "/theme.css", document.head);
-		}
+		await mount_css(config.root + "/theme.css", document.head);
 		if (!config.stylesheets) return;
 
 		await Promise.all(
@@ -201,20 +198,11 @@
 				? "http://localhost:7860"
 				: host || space || src || location.origin;
 
-		if (wasm_worker_proxy) {
-			const overridden_fetch = makeWasmFetch(wasm_worker_proxy);
-			app = await client(api_url, {
-				status_callback: handle_status,
-				normalise_files: false,
-				overridden_fetch
-			});
-		} else {
-			app = await client(api_url, {
-				status_callback: handle_status,
-				normalise_files: false
-			});
-		}
-
+		app = await client(api_url, {
+			status_callback: handle_status,
+			normalise_files: false,
+			overridden_fetch
+		});
 		config = app.config;
 
 		status = {
