@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 
 	export let value: {
-		label: string;
+		label?: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
