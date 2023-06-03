@@ -42,5 +42,10 @@
 		on:input
 		on:submit
 		on:blur
+		on:error={({ detail }) => {
+			loading_status = loading_status || {};
+			loading_status.status = "error";
+			loading_status.message = detail;
+		}}
 	/>
 </Block>

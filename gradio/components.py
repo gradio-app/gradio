@@ -714,26 +714,6 @@ class Number(
         else:
             return round(num, precision)
 
-    @staticmethod
-    def _handle_min_max(
-        num: float | int, min: float | int, max: float | int
-    ) -> float | int:
-        """
-        If the number is greater than max, it returns max. If the number is less than min returns min. If the number is between min and max it returns the original number.
-        Args:
-            num (float | int): The input number to be capped.
-            min (int | float): The minimum allowed value.
-            max (int | float): The maximum allowed value.
-        Returns:
-            The input `num` capped between `min` and `max`.
-        """
-        if num > max:
-            return max
-        elif num < min:
-            return min
-        else:
-            return num
-
     def get_config(self):
         return {
             "value": self.value,
@@ -773,7 +753,6 @@ class Number(
         if x is None:
             return None
 
-        x = self._handle_min_max(x, self.min, self.max)
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:
@@ -787,7 +766,6 @@ class Number(
         """
         if y is None:
             return None
-        y = self._handle_min_max(y, self.min, self.max)
         return self._round_to_precision(y, self.precision)
 
     def set_interpret_parameters(

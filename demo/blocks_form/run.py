@@ -15,8 +15,6 @@ with gr.Blocks() as demo:
     def submit(name, age, symptoms):
         if len(name) == 0:
             return {error_box: gr.update(value="Enter name", visible=True)}
-        if age < 0 or age > 200:
-            return {error_box: gr.update(value="Enter valid age", visible=True)}
         return {
             output_col: gr.update(visible=True),
             diagnosis_box: "covid" if "Cough" in symptoms else "flu",
