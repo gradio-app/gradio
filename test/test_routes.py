@@ -421,7 +421,8 @@ class TestRoutes:
         app = routes.App()
         interface = gr.Interface(lambda x: x, "text", "text")
         interface.root_urls = {
-            "https://gradio-tests-test-loading-examples-private.hf.space"
+            "https://gradio-tests-test-loading-examples-private.hf.space",
+            "https://google.com"
         }
         app.configure_app(interface)
         r = app.build_proxy_request(
