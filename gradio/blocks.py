@@ -786,6 +786,9 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
+            # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
+            # Gradio app C, then the root_urls of the components in A needs to be the
+            # URL of C, not B. The else clause below handles this case.
             if block_config["props"].get("root_url") is None:
                 block_config["props"]["root_url"] = f"{root_url}/"
             else:
