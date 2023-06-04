@@ -3057,8 +3057,8 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             )
             return y
         if isinstance(y, str):
-            dataframe = pd.read_csv(y)
-            dataframe = dataframe.loc[: self.max_rows - 1, y.columns[: self.max_cols]]
+            dataframe = pd.read_csv(y, nrows=self.max_rows)
+            dataframe = dataframe.loc[:, dataframe.columns[: self.max_cols]]
             return {
                 "headers": list(dataframe.columns),
                 "data": Dataframe.__process_markdown(

@@ -1205,27 +1205,35 @@ class TestDataframe:
         }
 
     def test_dataframe_postprocess_max_rows_cols(self):
-        examples_rows = 5
-        example_cols = 10
+        examples_rows = 4
+        example_cols = 5
 
         max_rows = 2
-        max_cols = 4
+        max_cols = 3
 
-        examples = [
-            np.zeros((examples_rows, example_cols)),  # numpy array of 5x10 zeros
-            [[0] * example_cols] * examples_rows,  # python array of 5x10 zeros
-            pd.DataFrame([[0] * example_cols] * examples_rows),
-            {
-                "headers": list(range(example_cols)),
-                "data": [[0] * example_cols] * examples_rows,
-            },
-        ]
+        test_values = range(examples_rows*example_cols)
+        test_array = np.array(test_values).reshape(examples_rows, example_cols)
+        test_dataframe = pd.DataFrame(test_array.copy())
 
-        correct_output = [[0] * max_cols] * max_rows
-        component = gr.Dataframe(max_rows=max_rows, max_cols=max_cols)
-        for ex in examples:
-            output = component.postprocess(ex)
-            assert output["data"] == correct_output
+        with tempfile.NamedTemporaryFile() as tmp_dataframe_csv:
+            test_dataframe.to_csv(tmp_dataframe_csv.name, index=False)
+
+            examples = [
+                test_array.tolist(),  # list of lists array
+                test_array.copy(),  # numpy array 
+                test_dataframe, # pandas dataframe
+                {
+                    "headers": list(range(example_cols)), # dictionary
+                    "data": test_array.tolist(),
+                },
+                tmp_dataframe_csv.name, # string file path to csv file
+            ]
+
+            correct_output = test_array[:max_rows, :max_cols].tolist()
+            component = gr.Dataframe(max_rows=max_rows, max_cols=max_cols)
+            for ex in examples:
+                output = component.postprocess(ex)
+                assert output["data"] == correct_output
 
 
 class TestDataset:
