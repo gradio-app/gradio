@@ -1,0 +1,36 @@
+// See https://containers.dev
+{
+	"name": "Python 3",
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.9",
+
+	// See https://containers.dev/features
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {}
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.black-formatter",
+				"ms-toolsai.jupyter",
+				"ms-toolsai.jupyter-renderers",
+				"esbenp.prettier-vscode",
+				"svelte.svelte-vscode",
+				"phoenisx.cssvar"
+			],
+			"remote.autoForwardPorts": false
+		}
+	},
+
+	"forwardPorts": [7860, 9876],
+	"portsAttributes": {
+		"7860": { "label": "gradio port" },
+		"9876": { "label": "gradio dev port" }
+	},
+
+	"postCreateCommand": "bash scripts/install_gradio.sh && scripts/install_test_requirements.sh && bash scripts/build_frontend.sh"
+}
