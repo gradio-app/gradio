@@ -90,6 +90,19 @@ pnpm ts:check
 
 Currently the following checks are run in CI:
 
+### static checks
+
 - Format check (`pnpm format:check`)
+- Build css (`pnpm css`)
+- Build client (`pnpm build`)
 - Type check (`pnpm ts:check`)
-- Build as a smoke test (`pnpm build`)
+- Unit tests (`pnpm test:run`)
+
+### functional test
+
+```
+pip install -r demo/outbreak_forecast/requirements.txt
+pnpm exec playwright install chromium
+pnpm exec playwright install-deps chromium
+pnpm test:browser:full
+```
