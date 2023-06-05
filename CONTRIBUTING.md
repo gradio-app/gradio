@@ -95,7 +95,7 @@ bash scripts/format_frontend.sh
 
 Currently the following checks are run in CI:
 
-### Gradio library
+### Gradio library (`gradio` package)
 
 ```
 bash scripts/lint_backend.sh
@@ -104,7 +104,7 @@ python -m pytest -m "not flaky" --ignore=client
 python -m pytest -m "flaky" --ignore=client
 ```
 
-### Python client
+### Gradio client (`gradio_client` package)
 
 ```
 cd client/python
