@@ -227,13 +227,13 @@ class Playable(EventListener):
 
         self.pause = EventListenerMethod(self, "pause")
         """
-        This listener is triggered when the user pauses the component (e.g. audio or video).
+        This listener is triggered when the media stops playing for any reason (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
         self.stop = EventListenerMethod(self, "stop")
         """
-        This listener is triggered when the user stops the component (e.g. audio or video).
+        This listener is triggered when the use reaches the end of the media track (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -256,6 +256,26 @@ class Streamable(EventListener):
     def check_streamable(self):
         pass
 
+
+@document("*start_recording", "*stop_recording", inherit=True)
+class Recordable(EventListener):
+    def __init__(self):
+        self.start_recording = EventListenerMethod(self, "start_recording")
+        """
+        This listener is triggered when the user starts recording with the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+        self.stop_recording = EventListenerMethod(self, "stop_recording")
+        """
+        This listener is triggered when the user stops recording with the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+        print('done')
+
+    def check_streamable(self):
+        pass
 
 @document("*blur", inherit=True)
 class Blurrable(EventListener):

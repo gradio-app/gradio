@@ -23,6 +23,7 @@
 		play: undefined;
 		pause: undefined;
 		ended: undefined;
+		stop: undefined;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -54,7 +55,7 @@
 		subtitle={subtitle?.data}
 		on:play
 		on:pause
-		on:ended
+		on:stop
 		mirror={false}
 	/>
 	<div class="download" data-testid="download-div">

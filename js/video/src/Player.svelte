@@ -1,10 +1,16 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
+
+	const dispatch = createEventDispatcher<{
+		play: undefined;
+		pause: undefined;
+		stop: undefined;
+	}>();
 
 	let time: number = 0;
 	let duration: number;
@@ -113,7 +119,7 @@
 		on:click={play_pause}
 		on:play
 		on:pause
-		on:ended
+		on:ended={() => dispatch("stop")}
 		bind:currentTime={time}
 		bind:duration
 		bind:paused
