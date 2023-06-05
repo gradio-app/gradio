@@ -145,9 +145,16 @@ class App(FastAPI):
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
 
-    @staticmethod
-    def build_proxy_request(url_path):
+    def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
+        assert self.blocks
+        # Don't proxy a URL unless it's a URL specifically loaded by the user using
+        # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
+        is_safe_url = any(
+            url.host == httpx.URL(root).host for root in self.blocks.root_urls
+        )
+        if not is_safe_url:
+            raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
         headers = {}
         if Context.hf_token is not None and is_hf_url:
@@ -311,7 +318,10 @@ class App(FastAPI):
         @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
-            rp_req = app.build_proxy_request(url_path)
+            try:
+                rp_req = app.build_proxy_request(url_path)
+            except PermissionError as err:
+                raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
                 rp_resp.aiter_raw(),

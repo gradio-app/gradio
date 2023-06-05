@@ -398,13 +398,38 @@ class TestRoutes:
 
         demo.close()
 
+    def test_proxy_route_is_restricted_to_load_urls(self):
+        gr.context.Context.hf_token = "abcdef"
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        app.configure_app(interface)
+        with pytest.raises(PermissionError):
+            app.build_proxy_request(
+                "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+            )
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("https://google.com")
+        interface.root_urls = {
+            "https://gradio-tests-test-loading-examples-private.hf.space"
+        }
+        app.build_proxy_request(
+            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+        )
+
     def test_proxy_does_not_leak_hf_token_externally(self):
         gr.context.Context.hf_token = "abcdef"
-        r = routes.App.build_proxy_request(
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        interface.root_urls = {
+            "https://gradio-tests-test-loading-examples-private.hf.space",
+            "https://google.com",
+        }
+        app.configure_app(interface)
+        r = app.build_proxy_request(
             "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
         )
         assert "authorization" in dict(r.headers)
-        r = routes.App.build_proxy_request("https://google.com")
+        r = app.build_proxy_request("https://google.com")
         assert "authorization" not in dict(r.headers)
 
 
