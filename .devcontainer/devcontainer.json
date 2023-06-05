@@ -17,7 +17,6 @@
 				"ms-python.vscode-pylance",
 				"ms-python.black-formatter",
 				"ms-toolsai.jupyter",
-				"ms-toolsai.jupyter-renderers",
 				"esbenp.prettier-vscode",
 				"svelte.svelte-vscode",
 				"phoenisx.cssvar"
