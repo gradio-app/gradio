@@ -95,6 +95,8 @@ bash scripts/format_frontend.sh
 
 Currently the following checks are run in CI:
 
+### Python client
+
 ```
 cd client/python
 bash scripts/lint.sh
@@ -102,12 +104,13 @@ python -m pytest -m "not flaky"
 python -m pytest -m "flaky"
 ```
 
-```
-bash scripts/lint_backend.sh
-```
+### Gradio library
 
 ```
+bash scripts/lint_backend.sh
 bash scripts/type_check_backend.sh
+python -m pytest -m "not flaky" --ignore=client
+python -m pytest -m "flaky" --ignore=client
 ```
 
 _Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!_
