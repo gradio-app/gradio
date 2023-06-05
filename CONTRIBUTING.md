@@ -48,7 +48,7 @@ Prerequisites:
 - Docker support on the host computer:
   - macOS: [Docker Desktop 2.0+](https://www.docker.com/products/docker-desktop/)
   - Windows: [Docker Desktop 2.0+](https://www.docker.com/products/docker-desktop/)
-  - Linux: [Docker CE/EE 18.06+](https://docs.docker.com/install/#supported-platforms) and [Docker Compose 1.21+](https://docs.docker.com/compose/install)
+  - Linux: [Docker CE/EE 18.06+](https://docs.docker.com/get-docker/) and [Docker Compose 1.21+](https://docs.docker.com/compose/install/)
 - If using VS Code, the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
 
 Steps:
