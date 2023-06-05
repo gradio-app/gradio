@@ -308,7 +308,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-5);
+		z-index: var(--layer-3);
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
