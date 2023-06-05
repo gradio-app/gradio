@@ -1205,15 +1205,17 @@ class TestDataframe:
         }
 
     def test_dataframe_postprocess_max_rows_cols(self):
-        examples_rows = 4
-        example_cols = 5
+        input_rows = 4
+        input_cols = 5
 
         max_rows = 2
         max_cols = 3
 
-        test_values = range(examples_rows*example_cols)
-        test_array = np.array(test_values).reshape(examples_rows, example_cols)
-        test_dataframe = pd.DataFrame(test_array.copy())
+        test_values = range(input_rows*input_cols)
+        test_array = np.array(test_values).reshape(input_rows, input_cols)
+
+        headers = [f"col {j}" for j in range(input_cols)]
+        test_dataframe = pd.DataFrame(test_array.copy(), index=[f"row {i}" for i in range(input_rows)], columns=headers)
 
         with tempfile.NamedTemporaryFile() as tmp_dataframe_csv:
             test_dataframe.to_csv(tmp_dataframe_csv.name, index=False)
@@ -1223,7 +1225,7 @@ class TestDataframe:
                 test_array.copy(),  # numpy array 
                 test_dataframe, # pandas dataframe
                 {
-                    "headers": list(range(example_cols)), # dictionary
+                    "headers": list(range(input_cols)), # dictionary
                     "data": test_array.tolist(),
                 },
                 tmp_dataframe_csv.name, # string file path to csv file
@@ -1234,6 +1236,9 @@ class TestDataframe:
             for ex in examples:
                 output = component.postprocess(ex)
                 assert output["data"] == correct_output
+
+                if isinstance(ex, pd.DataFrame):
+                    assert output["headers"] == headers[:max_cols]
 
 
 class TestDataset:
