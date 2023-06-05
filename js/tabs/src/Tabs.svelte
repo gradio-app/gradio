@@ -78,9 +78,7 @@
 
 <style>
 	.tabs {
-		display: flex;
 		position: relative;
-		flex-direction: column;
 	}
 
 	.hide {
@@ -90,7 +88,6 @@
 	.tab-nav {
 		display: flex;
 		position: relative;
-		flex-wrap: wrap;
 		border-bottom: 1px solid var(--border-color-primary);
 		white-space: nowrap;
 	}
