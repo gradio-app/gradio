@@ -52,17 +52,6 @@ function pnpm_required() {
 }
 
 #######################################
-# Check for the CircleCI program.
-# Arguments:
-#   None
-# Outputs:
-#   None
-#######################################
-function circleci_required() {
-  program_required "circleci" "https://circleci.com/docs/1.0/local-cli/"
-}
-
-#######################################
 # Check for the AWS CLI program.
 # Arguments:
 #   None
