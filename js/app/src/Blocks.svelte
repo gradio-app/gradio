@@ -330,7 +330,11 @@
 
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
-			if (_target == "") a[i].setAttribute("target", "_blank");
+			const _link = a[i].getAttribute("href");
+
+			// only target anchor tags that are not internal links
+			if (!_link?.startsWith("#") && _target !== "_blank")
+				a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach((dep, i) => {
