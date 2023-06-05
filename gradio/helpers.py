@@ -334,6 +334,7 @@ class Examples:
         output = []
         assert self.outputs is not None
         for component, value in zip(self.outputs, example):
+            is_list = False
             try:
                 value_as_dict = ast.literal_eval(value)
                 is_list = isinstance(value_as_dict, list)

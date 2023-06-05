@@ -6,7 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Fixed bug where `gr.File(file_count='multiple')` could not be cached as output by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4421](https://github.com/gradio-app/gradio/pull/4421)
 
 ## Other Changes:
 
