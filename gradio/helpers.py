@@ -336,10 +336,18 @@ class Examples:
         for component, value in zip(self.outputs, example):
             try:
                 value_as_dict = ast.literal_eval(value)
+                is_list = isinstance(value_as_dict, list)
                 assert utils.is_update(value_as_dict)
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
-                output.append(component.serialize(value, self.cached_folder))
+                # File components that output multiple files get saved as a python list
+                # need to pass the parsed list to serialize
+                # TODO: Better file serialization in 4.0
+                output.append(
+                    component.serialize(
+                        value_as_dict if is_list else value, self.cached_folder
+                    )
+                )
         return output
 
 
