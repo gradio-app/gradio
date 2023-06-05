@@ -353,3 +353,22 @@ class TestProcessExamples:
 
         response = client.post("/api/predict/", json={"fn_index": 7, "data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
+
+
+@pytest.mark.asyncio
+async def test_multiple_file_flagging(tmp_path):
+    with patch("gradio.helpers.CACHED_FOLDER", str(tmp_path)):
+        io = gr.Interface(
+            fn=lambda *x: list(x),
+            inputs=[
+                gr.Image(source="upload", type="filepath", label="frame 1"),
+                gr.Image(source="upload", type="filepath", label="frame 2"),
+            ],
+            outputs=[gr.Files()],
+            examples=[["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]],
+            cache_examples=True,
+        )
+        prediction = await io.examples_handler.load_from_cache(0)
+
+        assert len(prediction[0]) == 2
+        assert all(isinstance(d, dict) for d in prediction[0])
