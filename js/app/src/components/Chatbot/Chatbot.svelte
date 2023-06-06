@@ -6,6 +6,7 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -49,6 +50,14 @@
 	{scale}
 	{min_width}
 >
+	{#if loading_status}
+		<StatusTracker
+			{...loading_status}
+			show_progress={loading_status.show_progress === "hidden"
+				? "hidden"
+				: "minimal"}
+		/>
+	{/if}
 	{#if show_label}
 		<BlockLabel
 			{show_label}

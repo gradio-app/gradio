@@ -12,6 +12,8 @@
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
+	export let mode: "static" | "dynamic" = "dynamic";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -83,13 +85,14 @@
 
 <Button
 	{size}
-	variant="secondary"
+	{variant}
 	{elem_id}
 	{elem_classes}
 	{visible}
 	on:click={openFileUpload}
 	{scale}
 	{min_width}
+	disabled={mode === "static"}
 >
 	<slot />
 </Button>

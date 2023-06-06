@@ -17,6 +17,8 @@
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
+	export let mode: "static" | "dynamic" = "dynamic";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -62,6 +64,8 @@
 	{size}
 	{scale}
 	{min_width}
+	{mode}
+	{variant}
 	on:click
 	on:load={handle_upload}
 >

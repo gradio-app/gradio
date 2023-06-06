@@ -3492,7 +3492,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         self,
         value: str | Callable = "Run",
         *,
-        variant: str = "secondary",
+        variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm"] | Literal["lg"] | None = None,
         visible: bool = True,
         interactive: bool = True,
@@ -3545,7 +3545,7 @@ class Button(Clickable, IOComponent, StringSerializable):
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        variant: str | None = None,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
         size: Literal["sm"] | Literal["lg"] | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
@@ -3567,7 +3567,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         self,
         *,
         full_width: bool | None = None,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         **kwargs,
     ):
         """
@@ -3600,10 +3600,12 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
+        variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm"] | Literal["lg"] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
+        interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         type: str = "file",
@@ -3614,11 +3616,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         """
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
-            value: Default text for the button to display.
+            value: File or list of files to upload by default.
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            interactive: If False, the UploadButton will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
@@ -3638,6 +3642,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         self.size = size
         self.file_types = file_types
         self.label = label
+        self.variant = variant
         IOComponent.__init__(
             self,
             label=label,
@@ -3647,6 +3652,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             value=value,
             scale=scale,
             min_width=min_width,
+            interactive=interactive,
             **kwargs,
         )
 
@@ -3659,19 +3665,26 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             "file_types": self.file_types,
             "scale": self.scale,
             "min_width": self.min_width,
+            "variant": self.variant,
+            "interactive": self.interactive,
             **Component.get_config(self),
         }
 
     @staticmethod
     def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | list[str]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         size: Literal["sm"] | Literal["lg"] | None = None,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
     ):
         return {
+            "variant": variant,
             "interactive": interactive,
             "size": size,
             "visible": visible,
@@ -3747,7 +3760,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         self,
         *,
         full_width: bool | None = None,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         **kwargs,
     ):
         """

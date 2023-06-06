@@ -328,9 +328,16 @@
 
 		var a = target.getElementsByTagName("a");
 
+		const is_external_url = (link: string | null) =>
+			link && new URL(link).origin !== location.origin;
+
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
-			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
+			const _link = a[i].getAttribute("href");
+
+			// only target anchor tags with external links
+			if (is_external_url(_link) && _target !== "_blank")
+				a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach((dep, i) => {
@@ -384,7 +391,7 @@
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];
 			loading_status.scroll_to_output = dependency.scroll_to_output;
-			loading_status.visible = dependency.show_progress;
+			loading_status.show_progress = dependency.show_progress;
 
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}

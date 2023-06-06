@@ -1,7 +1,7 @@
 <h2 id="javascript-client-library">JavaScript Client Library</h2>
 
 <p>A javascript (and typescript) client to call Gradio APIs.</p>
-
+ 
 <h2 id="installation">Installation</h2>
 
 <p>The Gradio JavaScript client is available on npm as <code>@gradio/client</code>. You can install it as below:</p>
@@ -193,7 +193,7 @@ submission.off("/predict", handle_data);
 
 <h5 id="destroy"><code>destroy</code></h5>
 
-<p>The <code>destroy</code> method will remove all subscriptions to a job, regardless of whether or not they are <code>"data"</code> or <code>"status"</code> events. This is a convenience method for when you do not wnat to unsubscribe use the <code>off</code> method.</p>
+<p>The <code>destroy</code> method will remove all subscriptions to a job, regardless of whether or not they are <code>"data"</code> or <code>"status"</code> events. This is a convenience method for when you do not want to unsubscribe use the <code>off</code> method.</p>
 
 <div class='codeblock'><pre><code class='lang-js'>import { client } from "@gradio/client";
 
@@ -224,7 +224,7 @@ submission.cancel();
 
 <h4 id="view_api"><code>view_api</code></h4>
 
-<p>The <code>view_api</code> method provides details about the API you are connected too. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.</p>
+<p>The <code>view_api</code> method provides details about the API you are connected to. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.</p>
 
 <div class='codeblock'><pre><code class='lang-ts'>import { client } from "@gradio/client";
 
