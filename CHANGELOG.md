@@ -2,7 +2,7 @@
 
 ## New Features:
 
-No changes to highlight.
+- The `gr.UploadButton` component now supports the `variant` and `interactive` parameters by [@abidlabs](https://github.com/abidlabs) in [PR 4436](https://github.com/gradio-app/gradio/pull/4436). 
 
 ## Bug Fixes:
 
