@@ -26,8 +26,8 @@
 		drag: boolean;
 		error: string;
 		upload: FileData;
-		start_recoring: undefined;
-		stop_recoring: undefined;
+		start_recording: undefined;
+		stop_recording: undefined;
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>) {
