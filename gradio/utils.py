@@ -29,6 +29,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from types import GeneratorType
 
 import anyio
 import httpx
@@ -636,7 +637,10 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     def continuous_fn(*args):
         while True:
             output = fn(*args)
-            yield output
+            if isinstance(output,types.GeneratorType):
+                yield from output
+            else:
+                yield output
             time.sleep(every)
 
     return continuous_fn
