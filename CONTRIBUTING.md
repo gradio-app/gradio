@@ -3,7 +3,8 @@
 Prerequisites:
 
 - [Python 3.7+](https://www.python.org/downloads/)
-- [pnpm 8.1+](https://pnpm.io/8.x/installation) (optional for backend-only changes, but needed for any frontend changes)
+- [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
+- [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
 
 More than 80 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! Start by cloning this repo and installing Gradio locally:
 
