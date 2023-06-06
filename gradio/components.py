@@ -3355,7 +3355,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         self,
         value: str | Callable = "Run",
         *,
-        variant: str = "secondary",
+        variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
@@ -3396,7 +3396,7 @@ class Button(Clickable, IOComponent, StringSerializable):
     @staticmethod
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        variant: str | None = None,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
@@ -3412,7 +3412,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         self,
         *,
         full_width: bool | None = None,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         **kwargs,
     ):
         """
@@ -3445,7 +3445,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
+        variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
+        interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         type: str = "file",
@@ -3455,12 +3457,14 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     ):
         """
         Parameters:
-            value: Default text for the button to display.
+            label: Text to display on the button. Defaults to "Upload a File".
+            value: File or list of files to upload by default.
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
-            label: Text to display on the button. Defaults to "Upload a File".
             visible: If False, component will be hidden.
+            interactive: If False, the UploadButton will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -3476,6 +3480,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             )
         self.file_types = file_types
         self.label = label
+        self.variant = variant
         IOComponent.__init__(
             self,
             label=label,
@@ -3483,6 +3488,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             elem_id=elem_id,
             elem_classes=elem_classes,
             value=value,
+            interactive=interactive,
             **kwargs,
         )
 
@@ -3490,18 +3496,25 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         return {
             "label": self.label,
             "value": self.value,
+            "variant": self.variant,
             "file_count": self.file_count,
             "file_types": self.file_types,
+            "interactive": self.interactive,
             **Component.get_config(self),
         }
 
     @staticmethod
     def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | list[str]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
+        variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
     ):
         return {
+            "variant": variant,
             "interactive": interactive,
             "visible": visible,
             "value": value,
@@ -3574,7 +3587,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         self,
         *,
         full_width: bool | None = None,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         **kwargs,
     ):
         """
