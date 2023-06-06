@@ -328,9 +328,16 @@
 
 		var a = target.getElementsByTagName("a");
 
+		const is_external_url = (link: string | null) =>
+			link && new URL(link).origin !== location.origin;
+
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
-			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
+			const _link = a[i].getAttribute("href");
+
+			// only target anchor tags with external links
+			if (is_external_url(_link) && _target !== "_blank")
+				a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach((dep, i) => {
