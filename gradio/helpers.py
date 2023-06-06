@@ -21,7 +21,7 @@ import PIL.Image
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import processing_utils, routes, utils
+from gradio import components, processing_utils, routes, utils
 from gradio.context import Context
 from gradio.flagging import CSVLogger
 
@@ -260,7 +260,7 @@ class Examples:
                 load_example,
                 inputs=[self.dataset],
                 outputs=targets,  # type: ignore
-                show_progress=False,
+                show_progress="hidden",
                 postprocess=False,
                 queue=False,
             )
@@ -334,12 +334,25 @@ class Examples:
         output = []
         assert self.outputs is not None
         for component, value in zip(self.outputs, example):
+            value_to_use = value
             try:
                 value_as_dict = ast.literal_eval(value)
+                # File components that output multiple files get saved as a python list
+                # need to pass the parsed list to serialize
+                # TODO: Better file serialization in 4.0
+                if isinstance(value_as_dict, list) and isinstance(
+                    component, components.File
+                ):
+                    value_to_use = value_as_dict
                 assert utils.is_update(value_as_dict)
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
-                output.append(component.serialize(value, self.cached_folder))
+                output.append(
+                    component.serialize(
+                        value_to_use,
+                        self.cached_folder,
+                    )
+                )
         return output
 
 
