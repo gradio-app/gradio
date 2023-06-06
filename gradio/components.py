@@ -3487,7 +3487,10 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: str | list[str] | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | list[str]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
