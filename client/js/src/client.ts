@@ -1137,7 +1137,6 @@ async function check_space_status(
 				load_status: "pending",
 				message: "This space has been paused.",
 				detail: stage,
-				discussions_enabled: await discussions_enabled(space_name)
 			});
 			break;			
 		case "RUNNING":
