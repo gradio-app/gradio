@@ -58,7 +58,7 @@
 	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
-	export let show_progress: "cover" | "corner" | "hidden" = "cover";
+	export let show_progress: "full" | "minimal" | "hidden" = "full";
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
@@ -188,14 +188,14 @@
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||
-		show_progress === "corner"}
+		show_progress === "minimal"}
 	class:generating={status === "generating"}
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default" && show_eta_bar && show_progress === "cover"}
+		{#if variant === "default" && show_eta_bar && show_progress === "full"}
 			<div
 				class="eta-bar"
 				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
@@ -258,7 +258,7 @@
 					/>
 				</div>
 			</div>
-		{:else if show_progress === "cover"}
+		{:else if show_progress === "full"}
 			<Loader margin={variant === "default"} />
 		{/if}
 

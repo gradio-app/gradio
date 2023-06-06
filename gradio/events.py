@@ -77,9 +77,9 @@ class EventListenerMethod:
         self,
         trigger: Block,
         event_name: str,
-        show_progress: Literal["cover"]
-        | Literal["corner"]
-        | Literal["hidden"] = "cover",
+        show_progress: Literal["full"]
+        | Literal["minimal"]
+        | Literal["hidden"] = "full",
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -99,9 +99,9 @@ class EventListenerMethod:
         api_name: str | None = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
-        show_progress: Literal["cover"]
-        | Literal["corner"]
-        | Literal["hidden"] = "cover",
+        show_progress: Literal["full"]
+        | Literal["minimal"]
+        | Literal["hidden"] = "full",
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -134,7 +134,7 @@ class EventListenerMethod:
         if isinstance(self, Streamable):
             self.check_streamable()
         if isinstance(show_progress, bool):
-            show_progress = "cover" if show_progress else "hidden"
+            show_progress = "full" if show_progress else "hidden"
 
         dep, dep_index = self.trigger.set_event_trigger(
             self.event_name,
