@@ -548,7 +548,7 @@ XRAY_CONFIG_DIFF_IDS = {
                         "id": 9,
                         "children": [
                             {"id": 10, "children": [{"id": 11}, {"id": 12}]},
-                            {"id": 12},
+                            {"id": 13},
                         ],
                     },
                     {
@@ -588,7 +588,7 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "targets": [18],
             "trigger": "click",
-            "inputs": [17, 16],
+            "inputs": [7, 16],
             "outputs": [17],
             "backend_fn": True,
             "js": None,
