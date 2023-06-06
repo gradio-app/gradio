@@ -289,7 +289,9 @@ class TestLoadInterface:
 
     def test_private_space(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
-        io = gr.load("spaces/gradio-tests/not-actually-private-space", hf_token=hf_token)
+        io = gr.load(
+            "spaces/gradio-tests/not-actually-private-space", hf_token=hf_token
+        )
         try:
             output = io("abc")
             assert output == "abc"
