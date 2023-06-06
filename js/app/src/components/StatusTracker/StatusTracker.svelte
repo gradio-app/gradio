@@ -58,7 +58,7 @@
 	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
-	export let visible: boolean = true;
+	export let show_progress: "full" | "minimal" | "hidden" = "full";
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
@@ -184,17 +184,18 @@
 
 <div
 	class="wrap {variant}"
-	class:hide={!status || status === "complete" || !visible}
+	class:hide={!status || status === "complete" || show_progress === "hidden"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
-		translucent}
+		translucent ||
+		show_progress === "minimal"}
 	class:generating={status === "generating"}
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default" && show_eta_bar}
+		{#if variant === "default" && show_eta_bar && show_progress === "full"}
 			<div
 				class="eta-bar"
 				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
@@ -257,7 +258,7 @@
 					/>
 				</div>
 			</div>
-		{:else}
+		{:else if show_progress === "full"}
 			<Loader margin={variant === "default"} />
 		{/if}
 
@@ -308,12 +309,14 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-5);
+		z-index: var(--layer-3);
+		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
+		pointer-events: none;
 	}
 
 	.wrap.center {
