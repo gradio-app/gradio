@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { tick } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
@@ -70,42 +69,9 @@
 
 		return `${minutes}:${_seconds}`;
 	}
-
-	async function checkforVideo() {
-		transition = "0s";
-		await tick();
-		wrap_opacity = 0.8;
-		opacity = 0;
-		await tick();
-
-		var b = setInterval(async () => {
-			if (video.readyState >= 3) {
-				video.currentTime = 9999;
-				paused = true;
-				transition = "0.2s";
-
-				setTimeout(async () => {
-					video.currentTime = 0.0;
-					opacity = 1;
-					wrap_opacity = 1;
-				}, 50);
-				clearInterval(b);
-			}
-		}, 15);
-	}
-
-	async function _load() {
-		checkforVideo();
-	}
-
-	let opacity: number = 0;
-	let wrap_opacity: number = 0;
-	let transition: string = "0.5s";
-
-	$: src && _load();
 </script>
 
-<div style:opacity={wrap_opacity} class="wrap">
+<div class="wrap">
 	<video
 		{src}
 		preload="auto"
@@ -119,18 +85,11 @@
 		bind:paused
 		bind:this={video}
 		class:mirror
-		style:opacity
-		style:transition
 	>
 		<track kind="captions" src={subtitle} default />
 	</video>
 
-	<div
-		class="controls"
-		style:opacity={opacity === 1 && duration && show_controls ? 1 : 0}
-		on:mousemove={video_move}
-		style:transition
-	>
+	<div class="controls">
 		<div class="inner">
 			<span class="icon" on:click={play_pause}>
 				{#if time === duration}
@@ -180,6 +139,7 @@
 	}
 
 	video {
+		position: inherit;
 		background-color: black;
 		width: var(--size-full);
 		height: var(--size-full);
@@ -193,6 +153,7 @@
 	.controls {
 		position: absolute;
 		bottom: 0;
+		opacity: 0;
 		transition: 500ms;
 		margin: var(--size-2);
 		border-radius: var(--radius-md);
@@ -200,6 +161,9 @@
 		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);
 		width: calc(100% - var(--size-2) * 2);
+	}
+	.wrap:hover .controls {
+		opacity: 1;
 	}
 
 	.inner {
@@ -229,6 +193,7 @@
 		font-family: var(--font-mono);
 	}
 	.wrap {
+		position: relative;
 		background-color: var(--background-fill-secondary);
 	}
 </style>
