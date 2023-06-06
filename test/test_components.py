@@ -87,6 +87,7 @@ class TestTextbox:
             "placeholder": None,
             "value": "",
             "name": "textbox",
+            "show_copy_button": False,
             "show_label": True,
             "type": "text",
             "label": None,
