@@ -11,6 +11,9 @@ from unittest.mock import MagicMock, patch
 
 import gradio as gr
 import pytest
+import uvicorn
+from fastapi import FastAPI
+from gradio.networking import Server
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
@@ -318,6 +321,37 @@ class TestClientPredictions:
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
+
+    def test_can_call_mounted_app_via_api(self):
+        def greet(name):
+            return "Hello " + name + "!"
+
+        gradio_app = gr.Interface(
+            fn=greet,
+            inputs=gr.Textbox(lines=2, placeholder="Name Here..."),
+            outputs="text",
+        )
+
+        app = FastAPI()
+        app = gr.mount_gradio_app(app, gradio_app, path="/test/gradio")
+        config = uvicorn.Config(
+            app=app,
+            port=8000,
+            log_level="info",
+        )
+        server = Server(config=config)
+        # Using the gradio Server class to not have
+        # to implement code again to run uvicorn in a separate thread
+        # However, that means we need to set this flag to prevent
+        # run_in_thread_from_blocking
+        server.started = True
+        try:
+            server.run_in_thread()
+            time.sleep(1)
+            client = Client("http://127.0.0.1:8000/test/gradio/")
+            assert client.predict("freddy") == "Hello freddy!"
+        finally:
+            server.thread.join(timeout=1)
 
 
 class TestStatusUpdates:
