@@ -27,10 +27,10 @@
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
 	class:hide-container={!explicit_call && !container}
-	style:height={typeof height === "number"
-		? `height: ${height}px; `
+	style:height={typeof height === "number" ? height + "px" : undefined}
+	style:width={typeof width === "number"
+		? `calc(min(${width}px, 100%))`
 		: undefined}
-	style:width={typeof width === "number" ? `width: ${width}px; ` : undefined}
 	style:border-style={variant}
 	style:overflow={allow_overflow ? "visible" : "hidden"}
 	style:flex-grow={scale}

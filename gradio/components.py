@@ -518,6 +518,7 @@ class Textbox(
             "placeholder": self.placeholder,
             "value": self.value,
             "type": self.type,
+            "show_copy_button": self.show_copy_button,
             **IOComponent.get_config(self),
         }
 

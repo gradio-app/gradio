@@ -21,7 +21,6 @@
 	> | null = null;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
-	export let height: number = 480;
 	export let selectable: boolean = false;
 	export let theme_mode: ThemeMode;
 
@@ -82,12 +81,7 @@
 	}
 </script>
 
-<div
-	class="wrap"
-	style:height={`${height}px`}
-	style:max-height={`${height}px`}
-	bind:this={div}
->
+<div class="wrap" style:max-height="100%" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}

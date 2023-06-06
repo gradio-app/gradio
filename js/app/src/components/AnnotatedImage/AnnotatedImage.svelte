@@ -74,7 +74,7 @@
 
 	<div class="container">
 		{#if _value == null}
-			<Empty size="large" unpadded_box={true}><Image /></Empty>
+			<Empty unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container">
 				<!-- svelte-ignore a11y-missing-attribute -->

@@ -39,6 +39,7 @@
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
+	export let height: number = 480;
 </script>
 
 <Block
@@ -49,6 +50,8 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
+	allow_overflow={false}
 >
 	{#if loading_status}
 		<StatusTracker
