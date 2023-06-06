@@ -72,6 +72,7 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -672,8 +673,8 @@ class Number(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
-            min: Minimum value.
-            max: Maximum value.
+            min: Minimum value. Only applied when component is used as an input.
+            max: Maximum value. Only applied when component is used as an input.
         """
         self.precision = precision
         self.min = min
@@ -752,7 +753,10 @@ class Number(
         """
         if x is None:
             return None
-
+        elif self.min != None and x < self.min:
+            raise Error(f"Value {x} is less than minimum value {self.min}.")
+        elif self.max != None and x > self.max:
+            raise Error(f"Value {x} is greater than maximum value {self.max}.")
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:

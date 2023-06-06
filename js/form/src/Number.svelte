@@ -16,7 +16,6 @@
 		submit: undefined;
 		blur: undefined;
 		input: undefined;
-		error: string;
 	}>();
 
 	function handle_change() {
@@ -32,33 +31,15 @@
 	});
 	$: value, handle_change();
 
-	function handle_invalid_input() {
-		if (isNaN(value) || value === null) {
-			dispatch("error", "Please enter a valid number");
-			return;
-		} else if (max !== undefined && value > max) {
-			dispatch("error", `Please enter a number less than or equal to ${max}`);
-			return;
-		} else if (min !== undefined && value < min) {
-			dispatch(
-				"error",
-				`Please enter a number greater than or equal to ${min}`
-			);
-			return;
-		}
-	}
-
 	async function handle_keypress(e: KeyboardEvent) {
 		await tick();
 		if (e.key === "Enter") {
-			handle_invalid_input();
 			e.preventDefault();
 			dispatch("submit");
 		}
 	}
 
 	function handle_blur(e: FocusEvent) {
-		handle_invalid_input();
 		dispatch("blur");
 	}
 </script>
