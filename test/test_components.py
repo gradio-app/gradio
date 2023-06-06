@@ -207,6 +207,8 @@ class TestNumber:
             "name": "number",
             "show_label": True,
             "label": None,
+            "max": None,
+            "min": None,
             "style": {},
             "elem_id": "num",
             "elem_classes": ["first"],
