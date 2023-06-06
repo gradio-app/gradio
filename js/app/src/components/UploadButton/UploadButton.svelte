@@ -18,7 +18,6 @@
 	export let root: string;
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	console.log("mode", mode);
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
