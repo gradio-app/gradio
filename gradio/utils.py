@@ -21,6 +21,7 @@ from enum import Enum
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
+from types import GeneratorType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -29,7 +30,6 @@ from typing import (
     TypeVar,
     Union,
 )
-from types import GeneratorType
 
 import anyio
 import httpx
@@ -637,7 +637,7 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     def continuous_fn(*args):
         while True:
             output = fn(*args)
-            if isinstance(output,GeneratorType):
+            if isinstance(output, GeneratorType):
                 yield from output
             else:
                 yield output

@@ -29,6 +29,7 @@ from gradio.utils import (
     colab_check,
     delete_none,
     format_ner_list,
+    get_continuous_fn,
     get_type_hints,
     ipython_check,
     is_in_or_equal,
@@ -40,7 +41,6 @@ from gradio.utils import (
     sanitize_value_for_csv,
     tex2svg,
     validate_url,
-    get_continuous_fn,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -616,33 +616,33 @@ class TestCheckFunctionInputsMatch:
 
 class TestGetContinuousFn:
     def test_get_continuous_fn(self):
-        def int_return(x):#for origin condition
-            return x+1
+        def int_return(x):  # for origin condition
+            return x + 1
 
-        def int_yield(x):#new condition
-            for i in range(2):
+        def int_yield(x):  # new condition
+            for _i in range(2):
                 yield x
                 x += 1
 
-        def list_yield(x):#new condition
-            for i in range(2):
+        def list_yield(x):  # new condition
+            for _i in range(2):
                 yield x
                 x += [1]
 
-        gen_int_return=get_continuous_fn(fn=int_return,every=0.01)
-        gen_int_yield=get_continuous_fn(fn=int_yield,every=0.01)
+        gen_int_return = get_continuous_fn(fn=int_return, every=0.01)
+        gen_int_yield = get_continuous_fn(fn=int_yield, every=0.01)
         gen_list_yield = get_continuous_fn(fn=list_yield, every=0.01)
-        gener_int_return=gen_int_return(1)
-        gener_int=gen_int_yield(1)#Primitive
-        gener_list=gen_list_yield([1])#Reference
-        assert 2==next(gener_int_return)
-        assert 2 == next(gener_int_return)
-        assert 1==next(gener_int)
-        assert 2 == next(gener_int)
-        assert 1 == next(gener_int)
-        assert [1]==next(gener_list)
-        assert [1,1]==next(gener_list)
-        assert [1,1,1] == next(gener_list)
+        gener_int_return = gen_int_return(1)
+        gener_int = gen_int_yield(1)  # Primitive
+        gener_list = gen_list_yield([1])  # Reference
+        assert next(gener_int_return) == 2
+        assert next(gener_int_return) == 2
+        assert next(gener_int) == 1
+        assert next(gener_int) == 2
+        assert next(gener_int) == 1
+        assert [1] == next(gener_list)
+        assert [1, 1] == next(gener_list)
+        assert [1, 1, 1] == next(gener_list)
 
 
 def test_tex2svg_preserves_matplotlib_backend():
