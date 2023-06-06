@@ -310,10 +310,11 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-3);
+		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
-		max-height: var(--size-screen-h);-
+		max-height: var(--size-screen-h);
 		overflow: hidden;
 		pointer-events: none;
 	}
