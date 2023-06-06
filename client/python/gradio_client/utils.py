@@ -23,14 +23,14 @@ import requests
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
-API_URL = "/api/predict/"
-WS_URL = "/queue/join"
-UPLOAD_URL = "/upload"
-CONFIG_URL = "/config"
-API_INFO_URL = "/info"
-RAW_API_INFO_URL = "/info?serialize=False"
+API_URL = "api/predict/"
+WS_URL = "queue/join"
+UPLOAD_URL = "upload"
+CONFIG_URL = "config"
+API_INFO_URL = "info"
+RAW_API_INFO_URL = "info?serialize=False"
 SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
-RESET_URL = "/reset"
+RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
 STATE_COMPONENT = "state"

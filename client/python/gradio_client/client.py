@@ -85,7 +85,7 @@ class Client:
         self.space_id = None
 
         if src.startswith("http://") or src.startswith("https://"):
-            _src = src
+            _src = src if src.endswith("/") else src + "/"
         else:
             _src = self._space_name_to_src(src)
             if _src is None:
