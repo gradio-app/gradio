@@ -16,6 +16,9 @@
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let root: string;
+	export let mode: "static" | "dynamic" = "dynamic";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
+	console.log("mode", mode)
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -59,6 +62,8 @@
 	{visible}
 	{file_count}
 	{file_types}
+	{mode}
+	{variant}
 	on:click
 	on:load={handle_upload}
 >
