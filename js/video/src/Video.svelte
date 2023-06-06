@@ -73,6 +73,7 @@
 			on:play
 			on:pause
 			on:stop
+			on:ended
 			mirror={mirror_webcam && source === "webcam"}
 		/>
 	{:else if value.size}

@@ -10,6 +10,7 @@
 		play: undefined;
 		pause: undefined;
 		stop: undefined;
+		ended: undefined;
 	}>();
 
 	let time: number = 0;
@@ -109,6 +110,11 @@
 	let transition: string = "0.5s";
 
 	$: src && _load();
+
+	function handle_end() {
+		dispatch("stop");
+		dispatch("ended");
+	}
 </script>
 
 <div style:opacity={wrap_opacity} class="wrap">
@@ -119,7 +125,7 @@
 		on:click={play_pause}
 		on:play
 		on:pause
-		on:ended={() => dispatch("stop")}
+		on:ended={handle_end}
 		bind:currentTime={time}
 		bind:duration
 		bind:paused

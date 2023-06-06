@@ -56,6 +56,7 @@
 		on:play
 		on:pause
 		on:stop
+		on:ended
 		mirror={false}
 	/>
 	<div class="download" data-testid="download-div">

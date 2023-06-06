@@ -111,6 +111,7 @@
 			on:pause
 			on:upload
 			on:stop
+			on:ended
 			on:start_recording
 			on:stop_recording
 		>

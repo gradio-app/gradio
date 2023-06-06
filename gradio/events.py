@@ -126,6 +126,11 @@ class EventListenerMethod:
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
+        if self.event_name == "stop":
+            warnings.warn(
+                "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
+            )
+
         if isinstance(self, Streamable):
             self.check_streamable()
 
@@ -233,7 +238,13 @@ class Playable(EventListener):
 
         self.stop = EventListenerMethod(self, "stop")
         """
-This listener is triggered when the user reaches the end of the media track (e.g. audio or video).
+        This listener is triggered when the user reaches the end of the media track (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+        self.ended = EventListenerMethod(self, "ended")
+        """
+        This listener is triggered when the user reaches the end of the media track (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -272,10 +283,9 @@ class Recordable(EventListener):
         This method can be used when this component is in a Gradio Blocks.
         """
 
-        print('done')
-
     def check_streamable(self):
         pass
+
 
 @document("*blur", inherit=True)
 class Blurrable(EventListener):
