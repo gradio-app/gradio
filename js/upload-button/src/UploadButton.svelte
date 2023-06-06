@@ -64,9 +64,15 @@
 
 	const loadFilesFromUpload = (e: Event) => {
 		const target = e.target as HTMLInputElement;
-
-		if (!target.files) return;
+		if (!target.files) {
+			return;
+		}
 		loadFiles(target.files);
+	};
+
+	const clearInputValue = (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		if (target.value) target.value = "";
 	};
 </script>
 
@@ -76,6 +82,7 @@
 	type="file"
 	bind:this={hidden_upload}
 	on:change={loadFilesFromUpload}
+	on:click={clearInputValue}
 	multiple={file_count === "multiple" || undefined}
 	webkitdirectory={file_count === "directory" || undefined}
 	mozdirectory={file_count === "directory" || undefined}
