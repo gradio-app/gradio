@@ -262,6 +262,7 @@ XRAY_CONFIG = {
             "collects_event_data": False,
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
         {
             "targets": [18],
@@ -282,6 +283,7 @@ XRAY_CONFIG = {
             "collects_event_data": False,
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
         {
             "targets": [],
@@ -302,6 +304,7 @@ XRAY_CONFIG = {
             "collects_event_data": False,
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
     ],
 }
@@ -571,6 +574,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "collects_event_data": False,
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
         {
             "targets": [18],
@@ -591,6 +595,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "collects_event_data": False,
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
         {
             "targets": [],
@@ -611,6 +616,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "collects_event_data": False,
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
     ],
 }
@@ -797,6 +803,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "cancels": [],
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
         {
             "targets": [13],
@@ -809,6 +816,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "cancels": [],
             "trigger_after": None,
             "trigger_only_on_success": False,
+            "show_progress": "full",
         },
     ],
 }

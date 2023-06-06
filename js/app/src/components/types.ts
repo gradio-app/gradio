@@ -30,7 +30,7 @@ export interface Dependency {
 	backend_fn: boolean;
 	js: string | null;
 	scroll_to_output: boolean;
-	show_progress: boolean;
+	show_progress: "full" | "minimal" | "hidden";
 	frontend_fn?: Function;
 	status?: string;
 	queue: boolean | null;

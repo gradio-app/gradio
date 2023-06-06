@@ -384,7 +384,7 @@
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];
 			loading_status.scroll_to_output = dependency.scroll_to_output;
-			loading_status.visible = dependency.show_progress;
+			loading_status.show_progress = dependency.show_progress;
 
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}
