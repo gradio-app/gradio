@@ -1129,9 +1129,17 @@ async function check_space_status(
 
 			setTimeout(() => {
 				check_space_status(id, type, status_callback);
-			}, 1000);
-			break;
-		// poll for status
+			}, 1000);  // poll for status
+			break; 
+		case "PAUSED":
+			status_callback({
+				status: "paused",
+				load_status: "pending",
+				message: "This space has been paused.",
+				detail: stage,
+				discussions_enabled: await discussions_enabled(space_name)
+			});
+			break;			
 		case "RUNNING":
 		case "RUNNING_BUILDING":
 			status_callback({

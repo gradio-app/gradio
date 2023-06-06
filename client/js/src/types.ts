@@ -56,9 +56,10 @@ export interface Status {
 }
 
 export interface SpaceStatusNormal {
-	status: "sleeping" | "running" | "building" | "error" | "stopped";
+	status: "sleeping" | "running" | "building" | "error" | "stopped" | "paused";
 	detail:
 		| "SLEEPING"
+		| "PAUSED"
 		| "RUNNING"
 		| "RUNNING_BUILDING"
 		| "BUILDING"
