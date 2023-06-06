@@ -165,7 +165,7 @@ class Block:
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: str = "full",
         api_name: str | None = None,
         js: str | None = None,
         no_target: bool = False,
@@ -738,6 +738,7 @@ class Blocks(BlockContext):
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = ""
+        self.root_urls = set()
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -758,20 +759,22 @@ class Blocks(BlockContext):
         cls,
         config: dict,
         fns: list[Callable],
-        root_url: str | None = None,
+        root_url: str,
     ) -> Blocks:
         """
-        Factory method that creates a Blocks from a config and list of functions.
+        Factory method that creates a Blocks from a config and list of functions. Used
+        internally by the gradio.external.load() method.
 
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
-        root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        root_url: an external url to use as a root URL when serving files for components in the Blocks.
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
+        root_urls = {root_url}
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -783,8 +786,13 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
-            if block_config["props"].get("root_url") is None and root_url:
+            # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
+            # Gradio app C, then the root_urls of the components in A need to be the
+            # URL of C, not B. The else clause below handles this case.
+            if block_config["props"].get("root_url") is None:
                 block_config["props"]["root_url"] = f"{root_url}/"
+            else:
+                root_urls.add(block_config["props"]["root_url"])
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
             if style and isinstance(block, components.IOComponent):
@@ -860,6 +868,7 @@ class Blocks(BlockContext):
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
 
+        blocks.root_urls = root_urls
         return blocks
 
     def __str__(self):
@@ -935,6 +944,7 @@ class Blocks(BlockContext):
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
+            Context.root_block.root_urls.update(self.root_urls)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -1434,7 +1444,7 @@ Received outputs:
         outputs: list[Component] | None = None,
         api_name: str | None = None,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: str = "full",
         queue=None,
         batch: bool = False,
         max_batch_size: int = 4,
