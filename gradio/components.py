@@ -536,6 +536,7 @@ class Textbox(
         visible: bool | None = None,
         interactive: bool | None = None,
         type: str | None = None,
+        show_copy_button: bool | None = None,
     ):
         return {
             "lines": lines,
@@ -550,6 +551,7 @@ class Textbox(
             "value": value,
             "type": type,
             "interactive": interactive,
+            "show_copy_button": show_copy_button,
             "__type__": "update",
         }
 
