@@ -11,7 +11,7 @@ demo = gr.load(
     title="Speech-to-text",
     inputs="mic",
     description="Let me try to guess what you're saying!",
-    api_key=auth_token
+    hf_token=auth_token
 )
 
 demo.launch()

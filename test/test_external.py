@@ -68,7 +68,7 @@ class TestLoadInterface:
     def test_summarization(self):
         model_type = "summarization"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", api_key=None, alias=model_type
+            "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -77,7 +77,7 @@ class TestLoadInterface:
     def test_translation(self):
         model_type = "translation"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", api_key=None, alias=model_type
+            "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -86,7 +86,7 @@ class TestLoadInterface:
     def test_text2text_generation(self):
         model_type = "text2text-generation"
         interface = gr.load(
-            "models/sshleifer/tiny-mbart", api_key=None, alias=model_type
+            "models/sshleifer/tiny-mbart", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -96,7 +96,7 @@ class TestLoadInterface:
         model_type = "text-classification"
         interface = gr.load(
             "models/distilbert-base-uncased-finetuned-sst-2-english",
-            api_key=None,
+            hf_token=None,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -105,7 +105,7 @@ class TestLoadInterface:
 
     def test_fill_mask(self):
         model_type = "fill-mask"
-        interface = gr.load("models/bert-base-uncased", api_key=None, alias=model_type)
+        interface = gr.load("models/bert-base-uncased", hf_token=None, alias=model_type)
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Label)
@@ -113,7 +113,7 @@ class TestLoadInterface:
     def test_zero_shot_classification(self):
         model_type = "zero-shot-classification"
         interface = gr.load(
-            "models/facebook/bart-large-mnli", api_key=None, alias=model_type
+            "models/facebook/bart-large-mnli", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -124,7 +124,7 @@ class TestLoadInterface:
     def test_automatic_speech_recognition(self):
         model_type = "automatic-speech-recognition"
         interface = gr.load(
-            "models/facebook/wav2vec2-base-960h", api_key=None, alias=model_type
+            "models/facebook/wav2vec2-base-960h", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Audio)
@@ -133,7 +133,7 @@ class TestLoadInterface:
     def test_image_classification(self):
         model_type = "image-classification"
         interface = gr.load(
-            "models/google/vit-base-patch16-224", api_key=None, alias=model_type
+            "models/google/vit-base-patch16-224", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Image)
@@ -143,7 +143,7 @@ class TestLoadInterface:
         model_type = "feature-extraction"
         interface = gr.load(
             "models/sentence-transformers/distilbert-base-nli-mean-tokens",
-            api_key=None,
+            hf_token=None,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -154,7 +154,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            api_key=None,
+            hf_token=None,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -165,7 +165,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            api_key=None,
+            hf_token=None,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -175,7 +175,7 @@ class TestLoadInterface:
     def test_text_to_image(self):
         model_type = "text-to-image"
         interface = gr.load(
-            "models/osanseviero/BigGAN-deep-128", api_key=None, alias=model_type
+            "models/osanseviero/BigGAN-deep-128", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -288,8 +288,10 @@ class TestLoadInterface:
             pass
 
     def test_private_space(self):
-        api_key = "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"  # Intentionally revealing this key for testing purposes
-        io = gr.load("spaces/gradio-tests/not-actually-private-space", api_key=api_key)
+        hf_token = "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"  # Intentionally revealing this key for testing purposes
+        io = gr.load(
+            "spaces/gradio-tests/not-actually-private-space", hf_token=hf_token
+        )
         try:
             output = io("abc")
             assert output == "abc"
@@ -298,9 +300,9 @@ class TestLoadInterface:
             pass
 
     def test_private_space_audio(self):
-        api_key = "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"  # Intentionally revealing this key for testing purposes
+        hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space-audio", api_key=api_key
+            "spaces/gradio-tests/not-actually-private-space-audio", hf_token=hf_token
         )
         try:
             output = io(media_data.BASE64_AUDIO["name"])
@@ -309,18 +311,18 @@ class TestLoadInterface:
             pass
 
     def test_multiple_spaces_one_private(self):
-        api_key = "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"  # Intentionally revealing this key for testing purposes
+        hf_token = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
-            gr.load("spaces/gradio-tests/not-actually-private-space", api_key=api_key)
+            gr.load("spaces/gradio-tests/not-actually-private-space", hf_token=hf_token)
             gr.load(
                 "spaces/gradio/test-loading-examples",
             )
-        assert Context.hf_token == api_key
+        assert Context.hf_token == hf_token
 
     def test_loading_files_via_proxy_works(self):
-        api_key = "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"  # Intentionally revealing this key for testing purposes
+        hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-private", hf_token=api_key
+            "spaces/gradio-tests/test-loading-examples-private", hf_token=hf_token
         )
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
