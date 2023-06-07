@@ -395,6 +395,5 @@ async def test_examples_keep_all_suffixes(tmp_path):
         assert Path(prediction[0]["name"]).read_text() == "file 1"
         assert prediction[0]["orig_name"] == "foo.bar.txt"
         prediction = await io.examples_handler.load_from_cache(1)
-        breakpoint()
         assert Path(prediction[0]["name"]).read_text() == "file 2"
         assert prediction[0]["orig_name"] == "foo.bar.txt"
