@@ -1129,16 +1129,17 @@ async function check_space_status(
 
 			setTimeout(() => {
 				check_space_status(id, type, status_callback);
-			}, 1000);  // poll for status
-			break; 
+			}, 1000); // poll for status
+			break;
 		case "PAUSED":
 			status_callback({
 				status: "paused",
 				load_status: "pending",
-				message: "This space has been paused by the author. If you would like to try this demo consider duplicating the space",
-				detail: stage,
+				message:
+					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space",
+				detail: stage
 			});
-			break;			
+			break;
 		case "RUNNING":
 		case "RUNNING_BUILDING":
 			status_callback({
