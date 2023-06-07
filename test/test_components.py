@@ -254,6 +254,8 @@ class TestNumber:
             "name": "number",
             "show_label": True,
             "label": None,
+            "max": float("inf"),
+            "min": float("-inf"),
             "style": {},
             "elem_id": None,
             "elem_classes": None,
