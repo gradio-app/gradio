@@ -66,14 +66,14 @@ def load(
         )
         hf_token = api_key
     return load_blocks_from_repo(
-        name=name, src=src, api_key=hf_token, alias=alias, **kwargs
+        name=name, src=src, hf_token=hf_token, alias=alias, **kwargs
     )
 
 
 def load_blocks_from_repo(
     name: str,
     src: str | None = None,
-    api_key: str | None = None,
+    hf_token: str | None = None,
     alias: str | None = None,
     **kwargs,
 ) -> Blocks:
@@ -97,14 +97,14 @@ def load_blocks_from_repo(
         src.lower() in factory_methods
     ), f"parameter: src must be one of {factory_methods.keys()}"
 
-    if api_key is not None:
-        if Context.hf_token is not None and Context.hf_token != api_key:
+    if hf_token is not None:
+        if Context.hf_token is not None and Context.hf_token != hf_token:
             warnings.warn(
                 """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
             )
-        Context.hf_token = api_key
+        Context.hf_token = hf_token
 
-    blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
+    blocks: gradio.Blocks = factory_methods[src](name, hf_token, alias, **kwargs)
     return blocks
 
 
@@ -134,12 +134,12 @@ def chatbot_postprocess(response):
     return chatbot_value, response_json
 
 
-def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs):
+def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwargs):
     model_url = f"https://huggingface.co/{model_name}"
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     print(f"Fetching model from: {model_url}")
 
-    headers = {"Authorization": f"Bearer {api_key}"} if api_key is not None else {}
+    headers = {"Authorization": f"Bearer {hf_token}"} if hf_token is not None else {}
 
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url, headers=headers)
@@ -439,15 +439,15 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
 
 
 def from_spaces(
-    space_name: str, api_key: str | None, alias: str | None, **kwargs
+    space_name: str, hf_token: str | None, alias: str | None, **kwargs
 ) -> Blocks:
     space_url = f"https://huggingface.co/spaces/{space_name}"
 
     print(f"Fetching Space from: {space_url}")
 
     headers = {}
-    if api_key is not None:
-        headers["Authorization"] = f"Bearer {api_key}"
+    if hf_token is not None:
+        headers["Authorization"] = f"Bearer {hf_token}"
 
     iframe_url = (
         requests.get(
@@ -473,7 +473,7 @@ def from_spaces(
         raise ValueError(f"Could not load the Space: {space_name}") from ae
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
-            space_name, config, alias, api_key, iframe_url, **kwargs
+            space_name, config, alias, hf_token, iframe_url, **kwargs
         )
     else:  # Create a Blocks for Gradio 3.x Spaces
         if kwargs:
@@ -483,11 +483,11 @@ def from_spaces(
                 "Blocks or Interface locally. You may find this Guide helpful: "
                 "https://gradio.app/using_blocks_like_functions/"
             )
-        return from_spaces_blocks(space=space_name, api_key=api_key)
+        return from_spaces_blocks(space=space_name, hf_token=hf_token)
 
 
-def from_spaces_blocks(space: str, api_key: str | None) -> Blocks:
-    client = Client(space, hf_token=api_key)
+def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
+    client = Client(space, hf_token=hf_token)
     predict_fns = [endpoint._predict_resolve for endpoint in client.endpoints]
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
 
@@ -496,15 +496,15 @@ def from_spaces_interface(
     model_name: str,
     config: dict,
     alias: str | None,
-    api_key: str | None,
+    hf_token: str | None,
     iframe_url: str,
     **kwargs,
 ) -> Interface:
     config = streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
-    if api_key is not None:
-        headers["Authorization"] = f"Bearer {api_key}"
+    if hf_token is not None:
+        headers["Authorization"] = f"Bearer {hf_token}"
 
     # The function should call the API with preprocessed data
     def fn(*data):
