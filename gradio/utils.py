@@ -432,7 +432,8 @@ class AsyncRequest:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await self.client_.send(self._request)
+            # Fix Httpx request UI timeout issue, time-consuming task waiting for 30 seconds
+            self._response: httpx.Response = await self.client_.send(self._request,timeout=30)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
