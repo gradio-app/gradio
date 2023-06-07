@@ -43,7 +43,7 @@
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
-	{#if typeof value === "object" && value !== undefined && value !== null}
+	{#if _label !== undefined && _label !== null}
 		<Label on:select {selectable} {value} {show_label} {color} />
 	{:else}
 		<Empty><LabelIcon /></Empty>

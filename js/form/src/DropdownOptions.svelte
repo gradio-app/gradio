@@ -80,7 +80,7 @@
 	.options {
 		--window-padding: var(--size-8);
 		position: absolute;
-		z-index: var(--layer-5);
+		z-index: var(--layer-top);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--container-radius);
