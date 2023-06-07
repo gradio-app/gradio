@@ -12,6 +12,8 @@
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
+	export let mode: "static" | "dynamic" = "dynamic";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -90,12 +92,13 @@
 
 <Button
 	{size}
-	variant="secondary"
+	{variant}
 	{elem_id}
 	{elem_classes}
 	{visible}
 	on:click={openFileUpload}
 	{style}
+	disabled={mode === "static"}
 >
 	<slot />
 </Button>
