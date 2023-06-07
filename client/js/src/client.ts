@@ -1135,7 +1135,7 @@ async function check_space_status(
 			status_callback({
 				status: "paused",
 				load_status: "pending",
-				message: "This space has been paused.",
+				message: "This space has been paused by the author. If you would like to try this demo consider duplicating the space",
 				detail: stage,
 			});
 			break;			
