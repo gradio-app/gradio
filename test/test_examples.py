@@ -1,5 +1,6 @@
 import os
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -372,3 +373,27 @@ async def test_multiple_file_flagging(tmp_path):
 
         assert len(prediction[0]) == 2
         assert all(isinstance(d, dict) for d in prediction[0])
+
+
+@pytest.mark.asyncio
+async def test_examples_keep_all_suffixes(tmp_path):
+    with patch("gradio.helpers.CACHED_FOLDER", str(tmp_path)):
+        file_1 = tmp_path / "foo.bar.txt"
+        file_1.write_text("file 1")
+        file_2 = tmp_path / "file_2"
+        file_2.mkdir(parents=True)
+        file_2 = file_2 / "foo.bar.txt"
+        file_2.write_text("file 2")
+        io = gr.Interface(
+            fn=lambda x: x.name,
+            inputs=gr.File(),
+            outputs=[gr.File()],
+            examples=[[str(file_1)], [str(file_2)]],
+            cache_examples=True,
+        )
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert Path(prediction[0]["name"]).read_text() == "file 1"
+        assert prediction[0]["orig_name"] == "foo.bar.txt"
+        prediction = await io.examples_handler.load_from_cache(1)
+        assert Path(prediction[0]["name"]).read_text() == "file 2"
+        assert prediction[0]["orig_name"] == "foo.bar.txt"

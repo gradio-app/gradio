@@ -6,6 +6,7 @@ import json
 import mimetypes
 import os
 import pkgutil
+import secrets
 import shutil
 import tempfile
 from concurrent.futures import CancelledError
@@ -273,40 +274,27 @@ async def get_pred_from_ws(
 
 def download_tmp_copy_of_file(
     url_path: str, hf_token: str | None = None, dir: str | None = None
-) -> tempfile._TemporaryFileWrapper:
+) -> str:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
-    prefix = Path(url_path).stem
-    suffix = Path(url_path).suffix
-    file_obj = tempfile.NamedTemporaryFile(
-        delete=False,
-        prefix=prefix,
-        suffix=suffix,
-        dir=dir,
-    )
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
+    file_path = directory / Path(url_path).name
+
     with requests.get(url_path, headers=headers, stream=True) as r, open(
-        file_obj.name, "wb"
+        file_path, "wb"
     ) as f:
         shutil.copyfileobj(r.raw, f)
-    return file_obj
+    return str(file_path.resolve())
 
 
-def create_tmp_copy_of_file(
-    file_path: str, dir: str | None = None
-) -> tempfile._TemporaryFileWrapper:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    prefix = Path(file_path).stem
-    suffix = Path(file_path).suffix
-    file_obj = tempfile.NamedTemporaryFile(
-        delete=False,
-        prefix=prefix,
-        suffix=suffix,
-        dir=dir,
-    )
-    shutil.copy2(file_path, file_obj.name)
-    return file_obj
+def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(file_path).name
+    shutil.copy2(file_path, dest)
+    return str(dest.resolve())
 
 
 def get_mimetype(filename: str) -> str | None:

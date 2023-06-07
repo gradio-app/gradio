@@ -286,11 +286,9 @@ class FileSerializable(Serializable):
                         root_url + "file=" + filepath,
                         hf_token=hf_token,
                         dir=save_dir,
-                    ).name
+                    )
                 else:
-                    file_name = utils.create_tmp_copy_of_file(
-                        filepath, dir=save_dir
-                    ).name
+                    file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
             else:
                 data = x.get("data")
                 assert data is not None, f"The 'data' field is missing in {x}"

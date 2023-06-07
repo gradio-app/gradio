@@ -6,6 +6,25 @@ No changes to highlight.
 
 ## Bug Fixes:
 
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+# 0.2.6
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Fixed bug file deserialization didn't preserve all file extensions by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4440](https://github.com/gradio-app/gradio/pull/4440)
 - Fixed bug where mounted apps could not be called via the client by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4435](https://github.com/gradio-app/gradio/pull/4435)
 
 ## Breaking Changes:
