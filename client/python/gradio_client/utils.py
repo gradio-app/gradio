@@ -6,6 +6,7 @@ import json
 import mimetypes
 import os
 import pkgutil
+import secrets
 import shutil
 import tempfile
 from concurrent.futures import CancelledError
@@ -273,11 +274,12 @@ async def get_pred_from_ws(
 
 def download_tmp_copy_of_file(
     url_path: str, hf_token: str | None = None, dir: str | None = None
-) -> tempfile._TemporaryFileWrapper:
+) -> str:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
-    directory = Path(dir or tempfile.gettempdir())
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
     with requests.get(url_path, headers=headers, stream=True) as r, open(
@@ -287,13 +289,10 @@ def download_tmp_copy_of_file(
     return str(file_path.resolve())
 
 
-def create_tmp_copy_of_file(
-    file_path: str, dir: str | None = None
-) -> tempfile._TemporaryFileWrapper:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    directory = dir or tempfile.gettempdir()
-    dest = Path(directory) / Path(file_path).name
+def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(file_path).name
     shutil.copy2(file_path, dest)
     return str(dest.resolve())
 
