@@ -20,5 +20,5 @@
 {#if value}
 	<FilePreview {selectable} on:select {value} />
 {:else}
-	<Empty unpadded_box={true}><File /></Empty>
+	<Empty unpadded_box={true} size="large"><File /></Empty>
 {/if}
