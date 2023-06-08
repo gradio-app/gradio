@@ -1,9 +1,17 @@
 <script lang="ts">
+	import { tick, createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
+
+	const dispatch = createEventDispatcher<{
+		play: undefined;
+		pause: undefined;
+		stop: undefined;
+		end: undefined;
+	}>();
 
 	let time: number = 0;
 	let duration: number;
@@ -69,6 +77,44 @@
 
 		return `${minutes}:${_seconds}`;
 	}
+
+	async function checkforVideo() {
+		transition = "0s";
+		await tick();
+		wrap_opacity = 0.8;
+		opacity = 0;
+		await tick();
+
+		var b = setInterval(async () => {
+			if (video.readyState >= 3) {
+				video.currentTime = 9999;
+				paused = true;
+				transition = "0.2s";
+
+				setTimeout(async () => {
+					video.currentTime = 0.0;
+					opacity = 1;
+					wrap_opacity = 1;
+				}, 50);
+				clearInterval(b);
+			}
+		}, 15);
+	}
+
+	async function _load() {
+		checkforVideo();
+	}
+
+	let opacity: number = 0;
+	let wrap_opacity: number = 0;
+	let transition: string = "0.5s";
+
+	$: src && _load();
+
+	function handle_end() {
+		dispatch("stop");
+		dispatch("end");
+	}
 </script>
 
 <div class="wrap">
@@ -79,7 +125,7 @@
 		on:click={play_pause}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_end}
 		bind:currentTime={time}
 		bind:duration
 		bind:paused

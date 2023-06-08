@@ -78,7 +78,10 @@
 			on:edit
 			on:play
 			on:pause
-			on:ended
+			on:stop
+			on:end
+			on:start_recording
+			on:stop_recording
 			on:upload
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};

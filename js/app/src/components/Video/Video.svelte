@@ -93,6 +93,7 @@
 			{show_label}
 			on:play
 			on:pause
+			on:stop
 		/>
 	{:else}
 		<Video
@@ -114,6 +115,10 @@
 			on:play
 			on:pause
 			on:upload
+			on:stop
+			on:end
+			on:start_recording
+			on:stop_recording
 		>
 			<UploadText type="video" />
 		</Video>
