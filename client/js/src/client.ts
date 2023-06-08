@@ -1138,7 +1138,7 @@ async function check_space_status(
 				status: "paused",
 				load_status: "error",
 				message:
-					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space",
+					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space.",
 				detail: stage,
 				discussions_enabled: await discussions_enabled(space_name)
 			});
