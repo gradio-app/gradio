@@ -113,7 +113,7 @@ demo = gr.Interface(
         gr.Textbox(label="Textbox"),
         gr.Label(label="Label"),
         gr.Audio(label="Audio"),
-        gr.Image(label="Image", height=120),
+        gr.Image(label="Image"),
         gr.Video(label="Video"),
         gr.HighlightedText(label="HighlightedText").style(
             color_map={"punc": "pink", "test 0": "blue"}
