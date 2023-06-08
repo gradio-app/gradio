@@ -658,9 +658,6 @@
 		margin-right: var(--size-1);
 		margin-left: -5px;
 	}
-	.label {
-		margin-top: var(--size-6);
-	}
 
 	.label p {
 		position: relative;

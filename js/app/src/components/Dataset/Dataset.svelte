@@ -88,6 +88,7 @@
 	{scale}
 	{min_width}
 	allow_overflow={false}
+	container={false}
 >
 	<div class="label">
 		<svg
