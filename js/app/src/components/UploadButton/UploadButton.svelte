@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import type { Styles } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import { UploadButton } from "@gradio/upload-button";
 	import { upload_files } from "@gradio/client";
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
-	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
@@ -16,6 +14,11 @@
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let root: string;
+	export let size: "sm" | "lg" = "lg";
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
+	export let mode: "static" | "dynamic" = "dynamic";
+	export let variant: "primary" | "secondary" | "stop" = "secondary";
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -55,10 +58,14 @@
 <UploadButton
 	{elem_id}
 	{elem_classes}
-	{style}
 	{visible}
 	{file_count}
 	{file_types}
+	{size}
+	{scale}
+	{min_width}
+	{mode}
+	{variant}
 	on:click
 	on:load={handle_upload}
 >

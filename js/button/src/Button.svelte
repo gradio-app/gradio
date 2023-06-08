@@ -1,23 +1,22 @@
 <script lang="ts">
-	import { get_styles } from "../../utils";
-	import type { Styles } from "@gradio/utils";
-
-	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let size: "sm" | "lg" = style.size || "lg";
+	export let size: "sm" | "lg" = "lg";
 	export let disabled: boolean = false;
-
-	$: ({ styles } = get_styles(style, ["full_width"]));
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 </script>
 
 <button
 	on:click
 	class:hide={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
-	style={styles}
+	style:flex-grow={scale}
+	style:min-width={typeof min_width === "number"
+		? `calc(min(${min_width}px, 100%))`
+		: null}
 	id={elem_id}
 	{disabled}
 >

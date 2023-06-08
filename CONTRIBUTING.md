@@ -3,7 +3,8 @@
 Prerequisites:
 
 - [Python 3.7+](https://www.python.org/downloads/)
-- [pnpm 8.1+](https://pnpm.io/8.x/installation) (optional for backend-only changes, but needed for any frontend changes)
+- [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
+- [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
 
 More than 80 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! Start by cloning this repo and installing Gradio locally:
 
@@ -91,10 +92,26 @@ bash scripts/format_backend.sh
 bash scripts/format_frontend.sh
 ```
 
-You can run the circleci checks locally as well.
+## CI checks
+
+Currently the following checks are run in CI:
+
+### Gradio library (`gradio` package)
 
 ```
-bash scripts/run_circleci.sh
+bash scripts/lint_backend.sh
+bash scripts/type_check_backend.sh
+python -m pytest -m "not flaky" --ignore=client
+python -m pytest -m "flaky" --ignore=client
+```
+
+### Gradio client (`gradio_client` package)
+
+```
+cd client/python
+bash scripts/lint.sh
+python -m pytest -m "not flaky"
+python -m pytest -m "flaky"
 ```
 
 _Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!_

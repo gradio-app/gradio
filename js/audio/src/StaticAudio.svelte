@@ -40,7 +40,7 @@
 
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
 {#if value === null}
-	<Empty size="small" unpadded_box={true}>
+	<Empty unpadded_box={true}>
 		<Music />
 	</Empty>
 {:else}
