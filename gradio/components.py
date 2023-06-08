@@ -4677,8 +4677,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        grid_cols: int | tuple | None = 2,
-        grid_rows: int | tuple | None = None,
+        columns: int | tuple | None = 2,
+        rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
@@ -4696,14 +4696,14 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            grid_cols: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
-            grid_rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
+            rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
         """
-        self.grid_cols = grid_cols
-        self.grid_rows = grid_rows
+        self.grid_cols = columns
+        self.grid_rows = rows
         self.height = height
         self.preview = preview
         self.object_fit = object_fit
@@ -4737,8 +4737,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         scale: int | None = None,
         min_width: int | None = None,
         visible: bool | None = None,
-        grid_cols: int | tuple | None = None,
-        grid_rows: int | tuple | None = None,
+        columns: int | tuple | None = None,
+        rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
@@ -4751,8 +4751,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "min_width": min_width,
             "visible": visible,
             "value": value,
-            "grid_cols": grid_cols,
-            "grid_rows": grid_rows,
+            "grid_cols": columns,
+            "grid_rows": rows,
             "height": height,
             "preview": preview,
             "object_fit": object_fit,
