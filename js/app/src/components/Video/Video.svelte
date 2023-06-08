@@ -30,6 +30,8 @@
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
+	export let autoplay: boolean = false;
+
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
 
@@ -91,6 +93,7 @@
 			subtitle={_subtitle}
 			{label}
 			{show_label}
+			{autoplay}
 			on:play
 			on:pause
 			on:stop
@@ -111,6 +114,7 @@
 			{source}
 			{mirror_webcam}
 			{include_audio}
+			{autoplay}
 			on:clear
 			on:play
 			on:pause
