@@ -138,7 +138,7 @@
 		let grid_cols_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
 		let _grid_cols = Array.isArray(grid_cols) ? grid_cols : [grid_cols];
 
-		let grid_cols_style = [0, 0, 0, 0, 0, 0]
+		grid_cols_style = [0, 0, 0, 0, 0, 0]
 			.map(
 				(_, i) =>
 					`--${grid_cols_map[i]}grid-cols: var(--grid-${
@@ -151,7 +151,7 @@
 		let grid_rows_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
 		let _grid_rows = Array.isArray(grid_rows) ? grid_rows : [grid_rows];
 
-		let grid_rows_style = [0, 0, 0, 0, 0, 0]
+		grid_rows_style = [0, 0, 0, 0, 0, 0]
 			.map(
 				(_, i) =>
 					`--${grid_rows_map[i]}grid-rows: var(--grid-${

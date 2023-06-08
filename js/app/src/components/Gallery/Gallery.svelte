@@ -34,6 +34,7 @@
 	{container}
 	{scale}
 	{min_width}
+	{height}
 >
 	<StatusTracker {...loading_status} />
 	<Gallery
