@@ -20,7 +20,6 @@
 		if (!files) return;
 		const _files = Array.from(files);
 		request_data[i] = files.length === 1 ? _files[0] : _files;
-		console.log(request_data);
 	}
 </script>
 

@@ -822,6 +822,7 @@ class TestAudio:
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
+            "autoplay": False,
             "source": "upload",
             "name": "audio",
             "streaming": False,
@@ -856,6 +857,7 @@ class TestAudio:
         audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         assert audio_output.get_config() == {
+            "autoplay": False,
             "name": "audio",
             "streaming": False,
             "show_label": True,
@@ -1306,6 +1308,7 @@ class TestVideo:
 
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
+            "autoplay": False,
             "source": "upload",
             "name": "video",
             "show_label": True,

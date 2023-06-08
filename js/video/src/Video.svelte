@@ -16,6 +16,7 @@
 	export let show_label: boolean = true;
 	export let mirror_webcam: boolean = false;
 	export let include_audio: boolean;
+	export let autoplay: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: any;
@@ -68,6 +69,7 @@
 	{#if playable()}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<Player
+			{autoplay}
 			src={value.data}
 			subtitle={subtitle?.data}
 			on:play

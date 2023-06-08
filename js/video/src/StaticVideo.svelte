@@ -10,6 +10,8 @@
 	export let subtitle: FileData | null = null;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean = true;
+	export let autoplay: boolean;
+
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
 
@@ -49,6 +51,7 @@
 		<Player
 			src={value.data}
 			subtitle={subtitle?.data}
+			{autoplay}
 			on:play
 			on:pause
 			on:ended

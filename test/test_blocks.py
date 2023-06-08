@@ -1154,6 +1154,7 @@ class TestSpecificUpdate:
             }
         )
         assert specific_update == {
+            "autoplay": None,
             "source": None,
             "label": None,
             "show_label": None,

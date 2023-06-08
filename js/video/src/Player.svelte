@@ -5,6 +5,7 @@
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
+	export let autoplay: boolean;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -17,15 +18,6 @@
 	let duration: number;
 	let paused: boolean = true;
 	let video: HTMLVideoElement;
-
-	let show_controls = true;
-	let show_controls_timeout: NodeJS.Timeout;
-
-	function video_move() {
-		clearTimeout(show_controls_timeout);
-		show_controls_timeout = setTimeout(() => (show_controls = false), 500);
-		show_controls = true;
-	}
 
 	function handleMove(e: TouchEvent | MouseEvent) {
 		if (!duration) return;
@@ -79,22 +71,17 @@
 	}
 
 	async function checkforVideo() {
-		transition = "0s";
 		await tick();
-		wrap_opacity = 0.8;
-		opacity = 0;
+
 		await tick();
 
 		var b = setInterval(async () => {
 			if (video.readyState >= 3) {
 				video.currentTime = 9999;
 				paused = true;
-				transition = "0.2s";
 
 				setTimeout(async () => {
 					video.currentTime = 0.0;
-					opacity = 1;
-					wrap_opacity = 1;
 				}, 50);
 				clearInterval(b);
 			}
@@ -105,23 +92,20 @@
 		checkforVideo();
 	}
 
-	let opacity: number = 0;
-	let wrap_opacity: number = 0;
-	let transition: string = "0.5s";
-
 	$: src && _load();
 
 	function handle_end() {
 		dispatch("stop");
 		dispatch("end");
 	}
+
+	$: autoplay && video && src && video.play();
 </script>
 
 <div class="wrap">
 	<video
 		{src}
 		preload="auto"
-		on:mousemove={video_move}
 		on:click={play_pause}
 		on:play
 		on:pause

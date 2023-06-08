@@ -24,6 +24,7 @@
 	export let source: "microphone" | "upload" | "none";
 	export let pending: boolean = false;
 	export let streaming: boolean = false;
+	export let autoplay: boolean;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -34,7 +35,7 @@
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Array<Uint8Array> = [];
 	let submit_pending_stream_on_pending_end: boolean = false;
-	let player;
+	let player: HTMLAudioElement;
 	let inited = false;
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
@@ -259,8 +260,18 @@
 		dispatch("end");
 	}
 
+	let old_val: any;
+	function value_has_changed(val: any) {
+		if (val === old_val) return false;
+		else {
+			old_val = val;
+			return true;
+		}
+	}
+
 	export let dragging = false;
 	$: dispatch("drag", dragging);
+	$: autoplay && player && value_has_changed(value?.data) && player.play();
 </script>
 
 <BlockLabel
