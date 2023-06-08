@@ -34,8 +34,8 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: var(--size-full);
 		margin-top: calc(0px - var(--size-6));
+		height: var(--size-full);
 	}
 
 	.icon {
