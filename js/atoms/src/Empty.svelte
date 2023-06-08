@@ -29,11 +29,11 @@
 	}
 
 	.small {
-		height: calc(var(--size-32) - 20px);
+		min-height: calc(var(--size-32) - 20px);
 	}
 
 	.large {
-		height: calc(var(--size-64) - 20px);
+		min-height: calc(var(--size-64) - 20px);
 	}
 
 	.unpadded_box.small {
