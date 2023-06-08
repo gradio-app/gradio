@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { get_styles } from "../../utils";
-	import type { Styles } from "@gradio/utils";
-
-	import { getContext } from "svelte";
-
-	export let style: Styles = {};
+	export let container: boolean = true;
+	export let height: number | undefined = undefined;
+	export let width: number | undefined = undefined;
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let variant: "solid" | "dashed" | "none" = "solid";
@@ -12,26 +9,13 @@
 	export let padding: boolean = true;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
-	export let disable: boolean = false;
 	export let explicit_call: boolean = false;
 	export let visible = true;
 	export let allow_overflow = true;
+	export let scale: number | null = null;
+	export let min_width: number = 0;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
-
-	const parent = getContext<string | null>("BLOCK_KEY");
-
-	$: _parent = parent === "column" || parent == "row" ? parent : "column";
-
-	$: ({ styles } = explicit_call
-		? get_styles(style, [])
-		: disable
-		? get_styles({ container: false }, ["container"])
-		: { styles: "" });
-	$: size_style =
-		"" +
-		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
-		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
 </script>
 
 <svelte:element
@@ -42,9 +26,15 @@
 	class="block {elem_classes.join(' ')}"
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
-	style="{styles} {size_style || null}"
+	class:hide-container={!explicit_call && !container}
+	style:height={typeof height === "number" ? height + "px" : undefined}
+	style:width={typeof width === "number"
+		? `calc(min(${width}px, 100%))`
+		: undefined}
 	style:border-style={variant}
 	style:overflow={allow_overflow ? "visible" : "hidden"}
+	style:flex-grow={scale}
+	style:min-width={`calc(min(${min_width}px, 100%))`}
 >
 	<slot />
 </svelte:element>
@@ -72,5 +62,13 @@
 
 	.hidden {
 		display: none;
+	}
+	.hide-container {
+		margin: 0;
+		box-shadow: none;
+		border-width: 0;
+		background: transparent;
+		padding: 0;
+		overflow: visible;
 	}
 </style>

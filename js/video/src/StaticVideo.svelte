@@ -46,17 +46,19 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
-	<Empty size="large" unpadded_box={true}><Video /></Empty>
+	<Empty unpadded_box={true}><Video /></Empty>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<Player
-		src={value.data}
-		subtitle={subtitle?.data}
-		on:play
-		on:pause
-		on:ended
-		mirror={false}
-	/>
+	{#key value.data}
+		<Player
+			src={value.data}
+			subtitle={subtitle?.data}
+			on:play
+			on:pause
+			on:ended
+			mirror={false}
+		/>
+	{/key}
 	<div class="download" data-testid="download-div">
 		<a
 			href={value.data}
