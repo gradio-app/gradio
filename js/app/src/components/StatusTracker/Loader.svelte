@@ -9,18 +9,11 @@
 
 	let dismounted: boolean;
 
-	function animate(): Promise<void> {
-		return new Promise(async (res) => {
-			await Promise.all([top.set([125, 140]), bottom.set([-125, -140])]);
-
-			await Promise.all([top.set([-125, 140]), bottom.set([125, -140])]);
-
-			await Promise.all([top.set([-125, 0]), bottom.set([125, -0])]);
-
-			await Promise.all([top.set([125, 0]), bottom.set([-125, 0])]);
-
-			res();
-		});
+	async function animate() {
+		await Promise.all([top.set([125, 140]), bottom.set([-125, -140])]);
+		await Promise.all([top.set([-125, 140]), bottom.set([125, -140])]);
+		await Promise.all([top.set([-125, 0]), bottom.set([125, -0])]);
+		await Promise.all([top.set([125, 0]), bottom.set([-125, 0])]);
 	}
 
 	async function run() {
