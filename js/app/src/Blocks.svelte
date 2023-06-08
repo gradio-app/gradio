@@ -42,7 +42,6 @@
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
-	export let space: string | null;
 
 	let loading_status = create_loading_status_store();
 
@@ -456,9 +455,9 @@
 				</button>
 				<div>·</div>
 			{/if}
-			{#if space}
+			{#if window.__space_name__}
 				<a
-					href="https://huggingface.co/spaces/{space}?duplicate=true"
+					href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
 					class="footer-link"
 					target="_blank"
 				>

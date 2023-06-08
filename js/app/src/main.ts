@@ -38,7 +38,8 @@ function create_custom_element() {
 			observer.observe(this, { childList: true });
 
 			const host = this.getAttribute("host");
-			const space = this.getAttribute("space");
+			const space = this.getAttribute("space")?.trim();
+			window.__space_name__ = space;
 			const src = this.getAttribute("src");
 
 			const control_page_title = this.getAttribute("control_page_title");
@@ -54,7 +55,6 @@ function create_custom_element() {
 				target: this,
 				props: {
 					// embed source
-					space: space ? space.trim() : space,
 					src: src ? src.trim() : src,
 					host: host ? host.trim() : host,
 					// embed info

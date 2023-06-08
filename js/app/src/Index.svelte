@@ -76,7 +76,6 @@
 	export let info: boolean;
 	export let eager: boolean;
 
-	export let space: string | null;
 	export let host: string | null;
 	export let src: string | null;
 
@@ -192,7 +191,7 @@
 		const api_url =
 			BUILD_MODE === "dev"
 				? "http://localhost:7860"
-				: host || space || src || location.origin;
+				: host || window.__space_name__ || src || location.origin;
 
 		app = await client(api_url, {
 			status_callback: handle_status,
@@ -277,10 +276,10 @@
 <Embed
 	display={container && is_embed}
 	{is_embed}
-	info={!!space && info}
+	info={!!window.__space_name__ && info}
 	{version}
 	{initial_height}
-	{space}
+	space={window.__space_name__}
 	loaded={loader_status === "complete"}
 	bind:wrapper
 >
@@ -299,7 +298,7 @@
 				{#if status.status === "space_error" && status.discussions_enabled}
 					<p>
 						Please <a
-							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
+							href="https://huggingface.co/spaces/{window.__space_name__}/discussions/new?title={discussion_message.title(
 								status?.detail
 							)}&description={discussion_message.description(
 								status?.detail,
@@ -325,7 +324,6 @@
 	{:else if config && Blocks && css_ready}
 		<Blocks
 			{app}
-			{space}
 			{...config}
 			theme_mode={active_theme_mode}
 			{control_page_title}

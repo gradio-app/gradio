@@ -2,6 +2,7 @@
 	import { tick } from "svelte";
 	import { fade } from "svelte/transition";
 	import { prettySI } from "../utils/helpers";
+	import duplicate_icon from "../../images/duplicate.svg";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -78,6 +79,19 @@
 	let last_progress_level: number | undefined = undefined;
 	let progress_bar: HTMLElement | null = null;
 	let show_eta_bar: boolean = true;
+	let show_duplicate_message = false;
+	const MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE = 10;
+	const MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE = 3;
+	$: if (
+		window.__space_name__ &&
+		eta_level &&
+		eta_level > MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE &&
+		progress?.length &&
+		progress?.[0].index &&
+		progress?.[0].index > MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE
+	) {
+		show_duplicate_message = true;
+	}
 
 	$: eta_level =
 		eta === null || eta <= 0 || !timer_diff
@@ -261,6 +275,15 @@
 		{:else if show_progress === "full"}
 			<Loader margin={variant === "default"} />
 		{/if}
+		{#if show_duplicate_message}
+			<a
+				href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
+				class="duplicate-message"
+			>
+				<img src={duplicate_icon} alt="duplicate" />
+				Duplicate Space to skip queue
+			</a>
+		{/if}
 
 		{#if !timer}
 			<p class="loading">{loading_text}</p>
@@ -425,6 +448,19 @@
 		font-size: var(--text-sm);
 		font-family: var(--font-mono);
 		text-align: center;
+	}
+
+	.duplicate-message {
+		position: absolute;
+		bottom: var(--size-1);
+		font-size: var(--text-xs);
+		pointer-events: all;
+		display: flex;
+		gap: var(--size-1);
+		align-items: center;
+	}
+	.duplicate-message img {
+		height: var(--text-xs);
 	}
 
 	.error {
