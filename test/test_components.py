@@ -822,6 +822,7 @@ class TestAudio:
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
+            "autoplay": False,
             "source": "upload",
             "name": "audio",
             "streaming": False,
@@ -1306,6 +1307,7 @@ class TestVideo:
 
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
+            "autoplay": False,
             "source": "upload",
             "name": "video",
             "show_label": True,
