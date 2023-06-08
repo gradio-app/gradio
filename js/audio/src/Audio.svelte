@@ -65,6 +65,7 @@
 		play: undefined;
 		pause: undefined;
 		stop: undefined;
+		end: undefined;
 		drag: boolean;
 		error: string;
 		upload: FileData;
@@ -253,6 +254,11 @@
 		dispatch("upload", detail);
 	}
 
+	function handle_ended() {
+		dispatch("stop");
+		dispatch("end");
+	}
+
 	export let dragging = false;
 	$: dispatch("drag", dragging);
 </script>
@@ -309,7 +315,7 @@
 		src={value.data}
 		on:play
 		on:pause
-		on:ended={() => dispatch("stop")}
+		on:ended={handle_ended}
 	/>
 
 	{#if mode === "edit" && player?.duration}

@@ -249,7 +249,7 @@ class Playable(EventListener):
         This method can be used when this component is in a Gradio Blocks.
         """
 
-        self.ended = EventListenerMethod(self, "ended")
+        self.end = EventListenerMethod(self, "end")
         """
         This listener is triggered when the user reaches the end of the media track (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.

@@ -22,7 +22,7 @@
 		clear: undefined;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		end: undefined;
 		drag: boolean;
 		error: string;
 		upload: FileData;
@@ -73,7 +73,7 @@
 			on:play
 			on:pause
 			on:stop
-			on:ended
+			on:end
 			mirror={mirror_webcam && source === "webcam"}
 		/>
 	{:else if value.size}

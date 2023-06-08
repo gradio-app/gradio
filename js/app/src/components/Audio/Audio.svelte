@@ -74,6 +74,7 @@
 			on:play
 			on:pause
 			on:stop
+			on:end
 			on:start_recording
 			on:stop_recording
 			on:upload

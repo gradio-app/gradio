@@ -22,7 +22,7 @@
 		change: FileData;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		end: undefined;
 		stop: undefined;
 	}>();
 
@@ -56,7 +56,7 @@
 		on:play
 		on:pause
 		on:stop
-		on:ended
+		on:end
 		mirror={false}
 	/>
 	<div class="download" data-testid="download-div">

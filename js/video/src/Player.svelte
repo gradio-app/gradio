@@ -10,7 +10,7 @@
 		play: undefined;
 		pause: undefined;
 		stop: undefined;
-		ended: undefined;
+		end: undefined;
 	}>();
 
 	let time: number = 0;
@@ -113,7 +113,7 @@
 
 	function handle_end() {
 		dispatch("stop");
-		dispatch("ended");
+		dispatch("end");
 	}
 </script>
 
