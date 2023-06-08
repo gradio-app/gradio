@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import warnings
+from typing import TYPE_CHECKING
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
 from gradio.events import Changeable, Selectable
+
+if TYPE_CHECKING:
+    from gradio.blocks import Block
 
 set_documentation_group("layout")
 
@@ -17,8 +21,8 @@ class Row(BlockContext):
     Example:
         with gr.Blocks() as demo:
             with gr.Row():
-                gr.Image("lion.jpg")
-                gr.Image("tiger.jpg")
+                gr.Image("lion.jpg", scale=2)
+                gr.Image("tiger.jpg", scale=1)
         demo.launch()
     Guides: controlling-layout
     """
@@ -29,6 +33,7 @@ class Row(BlockContext):
         variant: str = "default",
         visible: bool = True,
         elem_id: str | None = None,
+        equal_height: bool = True,
         **kwargs,
     ):
         """
@@ -36,14 +41,21 @@ class Row(BlockContext):
             variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            equal_height: If True, makes every child element have equal height
         """
         self.variant = variant
+        self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
-        return {"type": "row", "variant": self.variant, **super().get_config()}
+        return {
+            "type": "row",
+            "variant": self.variant,
+            "equal_height": self.equal_height,
+            **super().get_config(),
+        }
 
     @staticmethod
     def update(
@@ -58,19 +70,18 @@ class Row(BlockContext):
         self,
         *,
         equal_height: bool | None = None,
-        mobile_collapse: bool | None = None,
         **kwargs,
     ):
         """
         Styles the Row.
         Parameters:
             equal_height: If True, makes every child element have equal height
-            mobile_collapse: DEPRECATED.
         """
+        warnings.warn(
+            "The `style` method is deprecated. Please set these arguments in the constructor instead."
+        )
         if equal_height is not None:
-            self._style["equal_height"] = equal_height
-        if mobile_collapse is not None:
-            warnings.warn("mobile_collapse is no longer supported.")
+            self.equal_height = equal_height
         return self
 
 
@@ -301,12 +312,35 @@ class Box(BlockContext):
         }
 
     def style(self, **kwargs):
+        warnings.warn("The `style` method is deprecated.")
         return self
 
 
 class Form(BlockContext):
+    def __init__(self, *, scale: int = 0, min_width: int = 0, **kwargs):
+        """
+        Parameters:
+            scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
+            min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
+        """
+        self.scale = scale
+        self.min_width = min_width
+        super().__init__(**kwargs)
+
+    def add_child(self, child: Block):
+        if isinstance(self.parent, Row):
+            scale = getattr(child, "scale", None)
+            self.scale += 1 if scale is None else scale
+            self.min_width += getattr(child, "min_width", 0)
+        super().add_child(child)
+
     def get_config(self):
-        return {"type": "form", **super().get_config()}
+        return {
+            "type": "form",
+            "scale": self.scale,
+            "min_width": self.min_width,
+            **super().get_config(),
+        }
 
 
 @document()

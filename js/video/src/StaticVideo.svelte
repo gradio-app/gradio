@@ -46,7 +46,7 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
-	<Empty size="large" unpadded_box={true}><Video /></Empty>
+	<Empty unpadded_box={true}><Video /></Empty>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
 	{#key value.data}

@@ -22,6 +22,20 @@ with gr.Blocks() as demo:
         btn2 = gr.Button("Button 2")
 ```
 
+The widths of elements in a Row can be controlled via a combination of `scale` and `min_width` arguments that are present in every Component.
+
+- `scale` is an integer that defines how an element will take up space in a Row. If scale is set to `0`, and element will not expand to take up space. If scale is set to `1` or greater, the element well expand. Multiple elements in a row will expand proportional to their scale. Below, `btn1` will expand twice as much as `btn2`, while `btn0` will not expand at all:
+
+```python
+with gr.Blocks() as demo:
+    with gr.Row():
+        btn0 = gr.Button("Button 0", scale=0)
+        btn1 = gr.Button("Button 1", scale=1)
+        btn2 = gr.Button("Button 2", scale=2)
+```
+
+- `min_width` will set the minimum width the element will take. The Row will wrap if there isn't sufficient space to satisfy all `min_width` values.
+
 Learn more about Rows in the [docs](https://gradio.app/docs/#row).
 
 ## Columns and Nesting
@@ -32,8 +46,6 @@ $code_rows_and_columns
 $demo_rows_and_columns
 
 See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
-
-Columns have a `min_width` parameter as well (320 pixels by default). This prevents adjacent columns from becoming too narrow on mobile screens.
 
 Learn more about Columns in the [docs](https://gradio.app/docs/#column).
 

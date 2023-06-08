@@ -26,8 +26,10 @@
 	export let file_types: Array<string> = ["file"];
 	export let root_url: null | string;
 	export let selectable: boolean = false;
-
 	export let loading_status: LoadingStatus;
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	$: _value = normalise_file(value, root, root_url);
 
@@ -98,6 +100,9 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
+	{container}
+	{scale}
+	{min_width}
 >
 	<StatusTracker
 		{...loading_status}
