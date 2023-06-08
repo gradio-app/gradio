@@ -546,15 +546,15 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if not hasattr(root_blocks, "_progress_tracker_per_thread"):
         root_blocks._progress_tracker_per_thread = {}
 
-    def init_tqdm(self, iterable=None, desc=None, *args, **kwargs):
+    def init_tqdm(self, iterable=None, desc=None, total=None, unit='steps', *args, **kwargs):
         self._progress = root_blocks._progress_tracker_per_thread.get(
             threading.get_ident()
         )
         if self._progress is not None:
             self._progress.event_id = event_id
-            self._progress.tqdm(iterable, desc, _tqdm=self)
+            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
-        self.__init__orig__(iterable, desc, *args, **kwargs)
+        self.__init__orig__(iterable, desc, total, unit=unit, *args, **kwargs)
 
     def iter_tqdm(self):
         if self._progress is not None:
