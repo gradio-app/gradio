@@ -298,7 +298,7 @@
 		>
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
-				{#if status.status === "space_error" && status.discussions_enabled}
+				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
