@@ -429,14 +429,15 @@ class AsyncRequest:
 
         Returns:
             Request
-        """
-        # Send the request and get the response.
+        """    
         try:
-            self._response: httpx.Response = await self.client_.send(self._request,timeout=30)
-        except Exception as exception:
-            self._response: httpx.Response = await self.client_.send(self._request)
-                
-        try:
+            # Send the request and get the response.
+            try:
+                self._response: httpx.Response = await self.client_.send(
+                    self._request,timeout=30
+                )
+            except Exception as exception:
+                self._response: httpx.Response = await self.client_.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
