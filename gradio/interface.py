@@ -16,6 +16,7 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio import Examples, analytics, external, interpretation, utils
 from gradio.blocks import Blocks
+from gradio.buttons import ClearButton
 from gradio.components import (
     Button,
     Interpretation,
@@ -494,7 +495,7 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
                 ]:
-                    clear_btn = Button("Clear")
+                    clear_btn = ClearButton()
                     if not self.live:
                         submit_btn = Button("Submit", variant="primary")
                         # Stopping jobs only works if the queue is enabled
@@ -541,7 +542,7 @@ class Interface(Blocks):
                     component.render()
             with Row():
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                    clear_btn = Button("Clear")
+                    clear_btn = ClearButton()
                     submit_btn = Button("Generate", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
