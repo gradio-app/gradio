@@ -1108,10 +1108,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": False,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": False,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1124,10 +1128,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": True,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": True,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1138,6 +1146,11 @@ class TestSpecificUpdate:
                 "value": "test.mp4",
                 "__type__": "generic_update",
                 "interactive": True,
+                "container": None,
+                "height": None,
+                "min_width": None,
+                "scale": None,
+                "width": None,
             }
         )
         assert specific_update == {
@@ -1147,6 +1160,11 @@ class TestSpecificUpdate:
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
+            "container": None,
+            "height": None,
+            "min_width": None,
+            "scale": None,
+            "width": None,
             "__type__": "update",
         }
 

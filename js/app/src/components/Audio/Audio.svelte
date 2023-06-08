@@ -31,7 +31,9 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let root_url: null | string;
-
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
@@ -49,6 +51,9 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
+	{container}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 
@@ -73,7 +78,10 @@
 			on:edit
 			on:play
 			on:pause
-			on:ended
+			on:stop
+			on:end
+			on:start_recording
+			on:stop_recording
 			on:upload
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};

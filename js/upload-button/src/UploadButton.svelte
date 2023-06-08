@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { Button } from "@gradio/button";
-	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
 
-	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let size: "sm" | "lg" = style.size || "lg";
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
+	export let size: "sm" | "lg" = "lg";
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 
@@ -66,9 +66,15 @@
 
 	const loadFilesFromUpload = (e: Event) => {
 		const target = e.target as HTMLInputElement;
-
-		if (!target.files) return;
+		if (!target.files) {
+			return;
+		}
 		loadFiles(target.files);
+	};
+
+	const clearInputValue = (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		if (target.value) target.value = "";
 	};
 </script>
 
@@ -78,6 +84,7 @@
 	type="file"
 	bind:this={hidden_upload}
 	on:change={loadFilesFromUpload}
+	on:click={clearInputValue}
 	multiple={file_count === "multiple" || undefined}
 	webkitdirectory={file_count === "directory" || undefined}
 	mozdirectory={file_count === "directory" || undefined}
@@ -90,7 +97,8 @@
 	{elem_classes}
 	{visible}
 	on:click={openFileUpload}
-	{style}
+	{scale}
+	{min_width}
 	disabled={mode === "static"}
 >
 	<slot />

@@ -1,7 +1,5 @@
 <script lang="ts">
-	import type { Styles } from "@gradio/utils";
-
-	export let style: Styles = {};
+	export let equal_height: boolean = true;
 	export let elem_id: string;
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
@@ -11,8 +9,8 @@
 <div
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
-	class:unequal-height={style.equal_height === false}
-	class:stretch={style.equal_height}
+	class:unequal-height={equal_height === false}
+	class:stretch={equal_height}
 	class:hide={!visible}
 	id={elem_id}
 	class={elem_classes.join(" ")}

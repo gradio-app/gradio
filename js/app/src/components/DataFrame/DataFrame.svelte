@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Block } from "@gradio/atoms";
 	import { Table } from "@gradio/table";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -24,6 +25,8 @@
 	export let label: string | null = null;
 	export let wrap: boolean;
 	export let datatype: Datatype | Array<Datatype>;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher();
 
@@ -46,7 +49,16 @@
 	}
 </script>
 
-<div id={elem_id} class={elem_classes.join(" ")} class:hide={!visible}>
+<Block
+	{visible}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	container={false}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+>
 	<StatusTracker {...loading_status} />
 	<Table
 		{label}
@@ -62,15 +74,4 @@
 		{wrap}
 		{datatype}
 	/>
-</div>
-
-<style>
-	div {
-		position: relative;
-		overflow: hidden;
-	}
-
-	.hide {
-		display: none;
-	}
-</style>
+</Block>
