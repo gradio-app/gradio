@@ -687,8 +687,8 @@ class Number(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         precision: int | None = None,
-        minimum: float | int = float("-inf"),
-        maximum: float | int = float("inf"),
+        minimum: float | None = None,
+        maximum: float | None = None,
         **kwargs,
     ):
         """
@@ -762,8 +762,8 @@ class Number(
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        minimum: float | int | None = None,
-        maximum: float | int | None = None,
+        minimum: float | None = None,
+        maximum: float | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
