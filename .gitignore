@@ -46,6 +46,9 @@ demo/*/config.json
 workspace.code-workspace
 *.h5
 
+# dev containers
+.pnpm-store/
+
 # log files
 .pnpm-debug.log
 
