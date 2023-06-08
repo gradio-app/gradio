@@ -1,6 +1,5 @@
 # Upcoming Release
 
-- Added dev containers support, by [@2-5](https://github.com/2-5) in [PR 4417](https://github.com/gradio-app/gradio/pull/4417).
 
 ## New Features:
 
