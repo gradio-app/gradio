@@ -1117,6 +1117,8 @@ async function check_space_status(
 		id: space_name
 	} = response;
 
+	console.log(id, "stage", stage)
+
 	switch (stage) {
 		case "STOPPED":
 		case "SLEEPING":
