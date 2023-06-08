@@ -12,7 +12,8 @@
 		const { height: parent_height } =
 			el.parentElement?.getBoundingClientRect() || { height: el_height };
 
-		return el_height > parent_height;
+		console.log(el_height, parent_height, el_height > parent_height + 2);
+		return el_height > parent_height + 2;
 	}
 </script>
 
@@ -56,13 +57,13 @@
 		margin-top: 0;
 	}
 
-	.unpadded_box.small {
+	/* .unpadded_box.small {
 		min-height: var(--size-32);
 	}
 
 	.unpadded_box.large {
 		min-height: var(--size-64);
-	}
+	} */
 
 	.small_parent {
 		min-height: 100% !important;
