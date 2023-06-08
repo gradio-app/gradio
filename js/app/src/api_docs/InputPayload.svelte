@@ -60,11 +60,7 @@
 </Block>
 
 <span class="space" />
-<Button
-	variant="primary"
-	on:click={run.bind(null, dependency_index)}
-	style={{ full_width: true }}
->
+<Button variant="primary" on:click={run.bind(null, dependency_index)}>
 	Try It Out
 </Button>
 
