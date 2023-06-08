@@ -89,6 +89,7 @@
 		display: flex;
 		position: relative;
 		border-bottom: 1px solid var(--border-color-primary);
+		flex-wrap: wrap;
 	}
 
 	button {
