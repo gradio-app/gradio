@@ -1,8 +1,15 @@
 <script lang="ts">
 	export let visible = true;
+	export let scale: number = 1;
+	export let min_width: number = 0;
 </script>
 
-<div class="form" class:hidden={!visible}>
+<div
+	class="form"
+	class:hidden={!visible}
+	style:flex-grow={scale}
+	style:min-width={`calc(min(${min_width}px, 100%))`}
+>
 	<slot />
 </div>
 
