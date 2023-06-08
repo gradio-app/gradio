@@ -268,7 +268,7 @@
 	--checkbox-label-text-color: var(--body-text-color);
 	--checkbox-label-text-color-selected: var(--checkbox-label-text-color);
 	--error-background-fill: var(--background-fill-primary);
-	--error-border-color: #dc2626;
+	--error-border-color: #ef4444;
 	--error-border-width: var(--error-border-width);
 	--error-text-color: #ef4444;
 	--input-background-fill: var(--neutral-800);
