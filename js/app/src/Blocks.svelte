@@ -321,13 +321,13 @@
 		}
 	};
 
+	const is_external_url = (link: string | null) =>
+		link && new URL(link, location.href).origin !== location.origin;
+
 	async function handle_mount() {
 		await tick();
 
 		var a = target.getElementsByTagName("a");
-
-		const is_external_url = (link: string | null) =>
-			link && new URL(link).origin !== location.origin;
 
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
