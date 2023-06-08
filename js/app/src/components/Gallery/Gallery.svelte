@@ -34,7 +34,7 @@
 	{container}
 	{scale}
 	{min_width}
-	{height}
+	height={typeof height === "number" ? height : undefined}
 >
 	<StatusTracker {...loading_status} />
 	<Gallery
