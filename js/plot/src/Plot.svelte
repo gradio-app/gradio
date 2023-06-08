@@ -207,7 +207,7 @@
 		<img src={plot} />
 	</div>
 {:else}
-	<Empty unpadded_box={true}><PlotIcon /></Empty>
+	<Empty  unpadded_box={true} size="large"><PlotIcon /></Empty>
 {/if}
 
 <style>

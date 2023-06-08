@@ -173,7 +173,7 @@
 	/>
 {/if}
 {#if value === null || _value === null || _value.length === 0}
-	<Empty unpadded_box={true}><Image /></Empty>
+	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null}
 		<div

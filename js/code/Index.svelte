@@ -50,7 +50,7 @@
 		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 
 		{#if !value}
-			<Empty unpadded_box={true}>
+			<Empty unpadded_box={true} size="large">
 				<CodeIcon />
 			</Empty>
 		{:else}

@@ -36,6 +36,7 @@
 	{container}
 	{scale}
 	{min_width}
+	padding={false}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}
@@ -44,6 +45,6 @@
 	{#if _label !== undefined && _label !== null}
 		<Label on:select {selectable} {value} {show_label} {color} />
 	{:else}
-		<Empty><LabelIcon /></Empty>
+		<Empty unpadded_box={true}><LabelIcon /></Empty>
 	{/if}
 </Block>
