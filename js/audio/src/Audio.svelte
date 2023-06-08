@@ -260,8 +260,6 @@
 		dispatch("end");
 	}
 
-	$: console.log(value?.data, "FIRED");
-
 	let old_val: any;
 	function value_has_changed(val: any) {
 		if (val === old_val) return false;
