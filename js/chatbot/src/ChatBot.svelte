@@ -4,7 +4,7 @@
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { Styles, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 
@@ -21,7 +21,6 @@
 	> | null = null;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
-	export let style: Styles = {};
 	export let selectable: boolean = false;
 	export let theme_mode: ThemeMode;
 
@@ -82,12 +81,7 @@
 	}
 </script>
 
-<div
-	class="wrap"
-	style:height={`${style.height}px`}
-	style:max-height={`${style.height}px`}
-	bind:this={div}
->
+<div class="wrap" style:max-height="100%" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
@@ -154,8 +148,6 @@
 <style>
 	.wrap {
 		padding: var(--block-padding);
-		height: 100%;
-		max-height: 480px;
 		overflow-y: auto;
 	}
 

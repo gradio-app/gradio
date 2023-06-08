@@ -18,10 +18,12 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let clearColor: Array<number>;
-
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -36,6 +38,9 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
+	{container}
+	{scale}
+	{min_width}
 >
 	<StatusTracker {...loading_status} />
 
@@ -60,6 +65,6 @@
 
 		<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
-		<Empty size="large" unpadded_box={true}><File /></Empty>
+		<Empty unpadded_box={true}><File /></Empty>
 	{/if}
 </Block>

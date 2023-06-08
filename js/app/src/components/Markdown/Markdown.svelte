@@ -17,7 +17,7 @@
 	$: label, dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} disable={true}>
+<Block {visible} {elem_id} {elem_classes} container={false}>
 	<StatusTracker {...loading_status} variant="center" />
 	<div class:pending={loading_status?.status === "pending"}>
 		<Markdown

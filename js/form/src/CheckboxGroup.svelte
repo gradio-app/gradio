@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { get_styles } from "@gradio/utils";
-	import type { Styles, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 
 	export let value: Array<string> = [];
 	let old_value: Array<string> = value.slice();
 	export let value_is_output: boolean = false;
-	export let style: Styles = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
@@ -44,19 +42,13 @@
 			handle_change();
 		}
 	}
-
-	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>
 
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 <div class="wrap" data-testid="checkbox-group">
 	{#each choices as choice}
-		<label
-			class:disabled
-			class:selected={value.includes(choice)}
-			style={item_container}
-		>
+		<label class:disabled class:selected={value.includes(choice)}>
 			<input
 				{disabled}
 				on:change={() => toggleChoice(choice)}

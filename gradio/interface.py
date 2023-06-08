@@ -403,7 +403,7 @@ class Interface(Blocks):
             interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
-            with Row().style(equal_height=False):
+            with Row(equal_height=False):
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
