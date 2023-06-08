@@ -244,18 +244,20 @@
 		| "NO_APP_FILE"
 		| "CONFIG_ERROR"
 		| "BUILD_ERROR"
-		| "RUNTIME_ERROR";
+		| "RUNTIME_ERROR"
+		| "PAUSED";
 
 	const discussion_message = {
 		readable_error: {
-			NO_APP_FILE: "no app file",
-			CONFIG_ERROR: "a config error",
-			BUILD_ERROR: "a build error",
-			RUNTIME_ERROR: "a runtime error"
+			NO_APP_FILE: "there is no app file",
+			CONFIG_ERROR: "there is a config error",
+			BUILD_ERROR: "there is a build error",
+			RUNTIME_ERROR: "there is a runtime error",
+			PAUSED: "the space is paused"
 		} as const,
 		title(error: error_types) {
 			return encodeURIComponent(
-				`Space isn't working because there is ${
+				`Space isn't working because ${
 					this.readable_error[error] || "an error"
 				}`
 			);

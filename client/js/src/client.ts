@@ -1117,7 +1117,7 @@ async function check_space_status(
 		id: space_name
 	} = response;
 
-	console.log(id, "stage", stage)
+	console.log(id, "stage", stage);
 
 	switch (stage) {
 		case "STOPPED":
@@ -1136,10 +1136,11 @@ async function check_space_status(
 		case "PAUSED":
 			status_callback({
 				status: "paused",
-				load_status: "pending",
+				load_status: "error",
 				message:
 					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space",
-				detail: stage
+				detail: stage,
+				discussions_enabled: await discussions_enabled(space_name)
 			});
 			break;
 		case "RUNNING":

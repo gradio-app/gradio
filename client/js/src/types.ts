@@ -56,10 +56,9 @@ export interface Status {
 }
 
 export interface SpaceStatusNormal {
-	status: "sleeping" | "running" | "building" | "error" | "stopped" | "paused";
+	status: "sleeping" | "running" | "building" | "error" | "stopped";
 	detail:
 		| "SLEEPING"
-		| "PAUSED"
 		| "RUNNING"
 		| "RUNNING_BUILDING"
 		| "BUILDING"
@@ -68,8 +67,13 @@ export interface SpaceStatusNormal {
 	message: string;
 }
 export interface SpaceStatusError {
-	status: "space_error";
-	detail: "NO_APP_FILE" | "CONFIG_ERROR" | "BUILD_ERROR" | "RUNTIME_ERROR";
+	status: "space_error" | "paused";
+	detail:
+		| "NO_APP_FILE"
+		| "CONFIG_ERROR"
+		| "BUILD_ERROR"
+		| "RUNTIME_ERROR"
+		| "PAUSED";
 	load_status: "error";
 	message: string;
 	discussions_enabled: boolean;
