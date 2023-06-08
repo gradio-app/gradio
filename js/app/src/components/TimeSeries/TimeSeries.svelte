@@ -155,7 +155,7 @@
 		{#if static_data}
 			<Chart value={static_data} {colors} />
 		{:else}
-			<Empty unpadded_box={true}>
+			<Empty unpadded_box={true} size="large">
 				<ChartIcon />
 			</Empty>
 		{/if}
