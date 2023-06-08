@@ -3,8 +3,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
-	export let max: number | undefined = undefined;
-	export let min: number | undefined = undefined;
+	export let minimum: number | undefined = undefined;
+	export let maximum: number | undefined = undefined;
 	export let value_is_output: boolean = false;
 	export let disabled: boolean = false;
 	export let label: string;
@@ -50,8 +50,8 @@
 	<input
 		type="number"
 		bind:value
-		{max}
-		{min}
+		min={minimum}
+		max={maximum}
 		on:keypress={handle_keypress}
 		on:blur={handle_blur}
 		{disabled}

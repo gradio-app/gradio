@@ -687,8 +687,8 @@ class Number(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         precision: int | None = None,
-        min: float | int = float("-inf"),
-        max: float | int = float("inf"),
+        minimum: float | int = float("-inf"),
+        maximum: float | int = float("inf"),
         **kwargs,
     ):
         """
@@ -706,12 +706,12 @@ class Number(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
-            min: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
-            max: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
+            minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
+            maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
         """
         self.precision = precision
-        self.min = min
-        self.max = max
+        self.minimum = minimum
+        self.maximum = maximum
 
         IOComponent.__init__(
             self,
@@ -754,16 +754,16 @@ class Number(
     def get_config(self):
         return {
             "value": self.value,
-            "max": self.max,
-            "min": self.min,
+            "minimum": self.minimum,
+            "maximum": self.maximum,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        max: float | int | None = None,
-        min: float | int | None = None,
+        minimum: float | int | None = None,
+        maximum: float | int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
@@ -780,8 +780,8 @@ class Number(
             "min_width": min_width,
             "visible": visible,
             "value": value,
-            "max": max,
-            "min": min,
+            "minimum": minimum,
+            "maximum": maximum,
             "interactive": interactive,
             "__type__": "update",
         }
@@ -795,10 +795,10 @@ class Number(
         """
         if x is None:
             return None
-        elif self.min != None and x < self.min:
-            raise Error(f"Value {x} is less than minimum value {self.min}.")
-        elif self.max != None and x > self.max:
-            raise Error(f"Value {x} is greater than maximum value {self.max}.")
+        elif self.minimum != None and x < self.minimum:
+            raise Error(f"Value {x} is less than minimum value {self.minimum}.")
+        elif self.maximum != None and x > self.maximum:
+            raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:
