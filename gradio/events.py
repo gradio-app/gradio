@@ -290,9 +290,6 @@ class Recordable(EventListener):
         This method can be used when this component is in a Gradio Blocks.
         """
 
-    def check_streamable(self):
-        pass
-
 
 @document("*blur", inherit=True)
 class Blurrable(EventListener):
