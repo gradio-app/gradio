@@ -22,7 +22,8 @@
 		change: AudioData;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		end: undefined;
+		stop: undefined;
 	}>();
 
 	$: value &&
@@ -30,6 +31,11 @@
 			name: name,
 			data: value?.data
 		});
+
+	function handle_ended() {
+		dispatch("stop");
+		dispatch("end");
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
@@ -44,7 +50,7 @@
 		src={value.data}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_ended}
 	/>
 {/if}
 

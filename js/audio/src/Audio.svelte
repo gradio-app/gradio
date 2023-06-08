@@ -64,11 +64,14 @@
 		edit: AudioData;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		stop: undefined;
+		end: undefined;
 		drag: boolean;
 		error: string;
 		upload: FileData;
 		clear: undefined;
+		start_recording: undefined;
+		stop_recording: undefined;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -164,7 +167,7 @@
 
 	async function record() {
 		recording = true;
-
+		dispatch("start_recording");
 		if (!inited) await prepare_audio();
 		header = undefined;
 		if (streaming) {
@@ -181,6 +184,7 @@
 	});
 
 	const stop = async () => {
+		dispatch("stop_recording");
 		recorder.stop();
 		if (streaming) {
 			recording = false;
@@ -250,6 +254,11 @@
 		dispatch("upload", detail);
 	}
 
+	function handle_ended() {
+		dispatch("stop");
+		dispatch("end");
+	}
+
 	export let dragging = false;
 	$: dispatch("drag", dragging);
 </script>
@@ -306,7 +315,7 @@
 		src={value.data}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_ended}
 	/>
 
 	{#if mode === "edit" && player?.duration}
