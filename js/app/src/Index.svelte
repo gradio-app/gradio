@@ -325,6 +325,7 @@
 	{:else if config && Blocks && css_ready}
 		<Blocks
 			{app}
+			{space}
 			{...config}
 			theme_mode={active_theme_mode}
 			{control_page_title}

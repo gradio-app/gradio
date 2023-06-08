@@ -22,6 +22,7 @@
 	import type { ThemeMode } from "./components/types";
 
 	import logo from "./images/logo.svg";
+	import duplicate_icon from "./images/duplicate.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 
 	setupi18n();
@@ -41,6 +42,7 @@
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
+	export let space: string | null;
 
 	let loading_status = create_loading_status_store();
 
@@ -448,15 +450,25 @@
 					on:click={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					class="show-api"
+					class="footer-link"
 				>
 					Use via API <img src={api_logo} alt="" />
 				</button>
 				<div>·</div>
 			{/if}
+			{#if space}
+				<a
+					href="https://huggingface.co/spaces/{space}?duplicate=true"
+					class="footer-link"
+					target="_blank"
+				>
+					Duplicate Space <img src={duplicate_icon} alt="" />
+				</a>
+				<div>·</div>
+			{/if}
 			<a
 				href="https://gradio.app"
-				class="built-with"
+				class="footer-link"
 				target="_blank"
 				rel="noreferrer"
 			>
@@ -510,32 +522,16 @@
 		margin-left: var(--size-2);
 	}
 
-	.show-api {
+	.footer-link {
 		display: flex;
 		align-items: center;
 	}
-	.show-api:hover {
+	.footer-link:hover {
 		color: var(--body-text-color);
 	}
 
-	.show-api img {
-		margin-right: var(--size-1);
-		margin-left: var(--size-2);
-		width: var(--size-3);
-	}
-
-	.built-with {
-		display: flex;
-		align-items: center;
-	}
-
-	.built-with:hover {
-		color: var(--body-text-color);
-	}
-
-	.built-with img {
-		margin-right: var(--size-1);
-		margin-left: var(--size-2);
+	.footer-link img {
+		margin-left: var(--size-1-5);
 		width: var(--size-3);
 	}
 
