@@ -41,8 +41,8 @@
 			  );
 
 	let prevValue: string[] | FileData[] | null = value;
-	let selected_image: number | null = null;
-	let old_selected_image: number | null = null;
+	let selected_image = preview && value?.length ? 0 : null;
+	let old_selected_image: number | null = selected_image;
 
 	$: if (prevValue !== value) {
 		// When value is falsy (clear button or first load),
