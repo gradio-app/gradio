@@ -35,6 +35,7 @@
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let autoplay: boolean = false;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -75,6 +76,7 @@
 			{source}
 			{pending}
 			{streaming}
+			{autoplay}
 			on:edit
 			on:play
 			on:pause
@@ -93,6 +95,7 @@
 		</Audio>
 	{:else}
 		<StaticAudio
+			{autoplay}
 			{show_label}
 			value={_value}
 			name={_value?.name || "audio_file"}
