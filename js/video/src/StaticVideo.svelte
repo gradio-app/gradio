@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		createEventDispatcher,
-		afterUpdate,
-		tick,
-		beforeUpdate
-	} from "svelte";
+	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
 	import { Video, Download } from "@gradio/icons";
@@ -22,7 +17,8 @@
 		change: FileData;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		end: undefined;
+		stop: undefined;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -46,17 +42,19 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
-	<Empty size="large" unpadded_box={true}><Video /></Empty>
+	<Empty unpadded_box={true}><Video /></Empty>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<Player
-		src={value.data}
-		subtitle={subtitle?.data}
-		on:play
-		on:pause
-		on:ended
-		mirror={false}
-	/>
+	{#key value.data}
+		<Player
+			src={value.data}
+			subtitle={subtitle?.data}
+			on:play
+			on:pause
+			on:ended
+			mirror={false}
+		/>
+	{/key}
 	<div class="download" data-testid="download-div">
 		<a
 			href={value.data}

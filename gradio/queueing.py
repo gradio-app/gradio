@@ -6,7 +6,7 @@ import sys
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
-from typing import Any, Deque
+from typing import Any
 
 import fastapi
 import httpx
@@ -46,7 +46,7 @@ class Queue:
         max_size: int | None,
         blocks_dependencies: list,
     ):
-        self.event_queue: Deque[Event] = deque()
+        self.event_queue: deque[Event] = deque()
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count

@@ -8,7 +8,6 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
@@ -23,12 +22,14 @@
 	export let root_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
-	export let style: Styles = {};
+	export let height: number | undefined;
+	export let width: number | undefined;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
-
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
-
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
 
@@ -75,7 +76,11 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	style={{ height: style.height, width: style.width }}
+	{height}
+	{width}
+	{container}
+	{scale}
+	{min_width}
 	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
@@ -88,6 +93,7 @@
 			{show_label}
 			on:play
 			on:pause
+			on:stop
 		/>
 	{:else}
 		<Video
@@ -109,6 +115,10 @@
 			on:play
 			on:pause
 			on:upload
+			on:stop
+			on:end
+			on:start_recording
+			on:stop_recording
 		>
 			<UploadText type="video" />
 		</Video>

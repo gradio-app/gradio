@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { hover } from "@testing-library/user-event/dist/hover";
+	import { Block } from "@gradio/atoms";
 	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
@@ -16,6 +16,8 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let samples_per_page: number = 10;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
 		click: number;
@@ -23,7 +25,7 @@
 	}>();
 
 	let samples_dir: string = root_url
-		? "proxy=" + root_url + "/file="
+		? "proxy=" + root_url + "file="
 		: root + "/file=";
 	let page = 0;
 	$: gallery = components.length < 2;
@@ -78,7 +80,15 @@
 	);
 </script>
 
-<div id={elem_id} class="wrap {elem_classes.join(' ')}" class:hide={!visible}>
+<Block
+	{visible}
+	padding={false}
+	{elem_id}
+	{elem_classes}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+>
 	<div class="label">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +193,7 @@
 			{/each}
 		</div>
 	{/if}
-</div>
+</Block>
 
 <style>
 	.wrap {

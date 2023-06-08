@@ -137,6 +137,8 @@ class TestBlocksMethods:
         assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
+        fake_url = "https://fake.hf.space"
+
         def update(name):
             return f"Welcome to Gradio, {name}!"
 
@@ -149,8 +151,12 @@ class TestBlocksMethods:
             gr.Image().style(height=54, width=240)
 
         config1 = demo1.get_config_file()
-        demo2 = gr.Blocks.from_config(config1, [update])
+        demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
+
+        for component in config1["components"]:
+            component["props"]["root_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
+
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
     def test_partial_fn_in_config(self):
@@ -1102,10 +1108,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": False,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": False,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1118,10 +1128,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": True,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": True,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1132,6 +1146,11 @@ class TestSpecificUpdate:
                 "value": "test.mp4",
                 "__type__": "generic_update",
                 "interactive": True,
+                "container": None,
+                "height": None,
+                "min_width": None,
+                "scale": None,
+                "width": None,
             }
         )
         assert specific_update == {
@@ -1141,6 +1160,11 @@ class TestSpecificUpdate:
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
+            "container": None,
+            "height": None,
+            "min_width": None,
+            "scale": None,
+            "width": None,
             "__type__": "update",
         }
 
