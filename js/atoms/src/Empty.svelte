@@ -12,7 +12,6 @@
 		const { height: parent_height } =
 			el.parentElement?.getBoundingClientRect() || { height: el_height };
 
-		console.log(el_height, parent_height, el_height > parent_height + 2);
 		return el_height > parent_height + 2;
 	}
 </script>
