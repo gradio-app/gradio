@@ -10,6 +10,7 @@
 **/demo/**
 **/gradio/**
 **/website/**
+**/.pnpm-store/**
 **/.venv/**
 **/.github/**
 **/guides/**
