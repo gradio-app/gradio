@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 
 	export let value: {
-		label: string;
+		label?: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
@@ -14,7 +14,7 @@
 	export let selectable: boolean = false;
 </script>
 
-<div>
+<div class="container">
 	<div
 		class:sr-only={!show_label}
 		class="output-class"
@@ -50,6 +50,9 @@
 </div>
 
 <style>
+	.container {
+		padding: var(--block-padding);
+	}
 	.output-class {
 		display: flex;
 		justify-content: center;

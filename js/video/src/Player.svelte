@@ -1,10 +1,17 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
+
+	const dispatch = createEventDispatcher<{
+		play: undefined;
+		pause: undefined;
+		stop: undefined;
+		end: undefined;
+	}>();
 
 	let time: number = 0;
 	let duration: number;
@@ -103,9 +110,14 @@
 	let transition: string = "0.5s";
 
 	$: src && _load();
+
+	function handle_end() {
+		dispatch("stop");
+		dispatch("end");
+	}
 </script>
 
-<div style:opacity={wrap_opacity} class="wrap">
+<div class="wrap">
 	<video
 		{src}
 		preload="auto"
@@ -113,24 +125,17 @@
 		on:click={play_pause}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_end}
 		bind:currentTime={time}
 		bind:duration
 		bind:paused
 		bind:this={video}
 		class:mirror
-		style:opacity
-		style:transition
 	>
 		<track kind="captions" src={subtitle} default />
 	</video>
 
-	<div
-		class="controls"
-		style:opacity={opacity === 1 && duration && show_controls ? 1 : 0}
-		on:mousemove={video_move}
-		style:transition
-	>
+	<div class="controls">
 		<div class="inner">
 			<span class="icon" on:click={play_pause}>
 				{#if time === duration}
@@ -180,6 +185,7 @@
 	}
 
 	video {
+		position: inherit;
 		background-color: black;
 		width: var(--size-full);
 		height: var(--size-full);
@@ -193,6 +199,7 @@
 	.controls {
 		position: absolute;
 		bottom: 0;
+		opacity: 0;
 		transition: 500ms;
 		margin: var(--size-2);
 		border-radius: var(--radius-md);
@@ -200,6 +207,9 @@
 		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);
 		width: calc(100% - var(--size-2) * 2);
+	}
+	.wrap:hover .controls {
+		opacity: 1;
 	}
 
 	.inner {
@@ -229,6 +239,7 @@
 		font-family: var(--font-mono);
 	}
 	.wrap {
+		position: relative;
 		background-color: var(--background-fill-secondary);
 	}
 </style>

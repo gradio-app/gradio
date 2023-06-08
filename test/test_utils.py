@@ -29,8 +29,10 @@ from gradio.utils import (
     colab_check,
     delete_none,
     format_ner_list,
+    get_continuous_fn,
     get_type_hints,
     ipython_check,
+    is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
     readme_to_html,
@@ -612,6 +614,37 @@ class TestCheckFunctionInputsMatch:
                 check_function_inputs_match(x, [None], False)
 
 
+class TestGetContinuousFn:
+    def test_get_continuous_fn(self):
+        def int_return(x):  # for origin condition
+            return x + 1
+
+        def int_yield(x):  # new condition
+            for _i in range(2):
+                yield x
+                x += 1
+
+        def list_yield(x):  # new condition
+            for _i in range(2):
+                yield x
+                x += [1]
+
+        gen_int_return = get_continuous_fn(fn=int_return, every=0.01)
+        gen_int_yield = get_continuous_fn(fn=int_yield, every=0.01)
+        gen_list_yield = get_continuous_fn(fn=list_yield, every=0.01)
+        gener_int_return = gen_int_return(1)
+        gener_int = gen_int_yield(1)  # Primitive
+        gener_list = gen_list_yield([1])  # Reference
+        assert next(gener_int_return) == 2
+        assert next(gener_int_return) == 2
+        assert next(gener_int) == 1
+        assert next(gener_int) == 2
+        assert next(gener_int) == 1
+        assert [1] == next(gener_list)
+        assert [1, 1] == next(gener_list)
+        assert [1, 1, 1] == next(gener_list)
+
+
 def test_tex2svg_preserves_matplotlib_backend():
     import matplotlib
 
@@ -623,3 +656,12 @@ def test_tex2svg_preserves_matplotlib_backend():
     ):
         tex2svg("$$$1+1=2$$$")
     assert matplotlib.get_backend() == "svg"
+
+
+def test_is_in_or_equal():
+    assert is_in_or_equal("files/lion.jpg", "files/lion.jpg")
+    assert is_in_or_equal("files/lion.jpg", "files")
+    assert not is_in_or_equal("files", "files/lion.jpg")
+    assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
+    assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
+    assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")

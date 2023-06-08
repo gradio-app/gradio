@@ -85,7 +85,7 @@ class Interface(Blocks):
         Parameters:
             name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
             src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens. Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
             alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
         Returns:
             a Gradio Interface object for the given model
@@ -264,8 +264,10 @@ class Interface(Blocks):
         ]:
             for o in self.output_components:
                 assert isinstance(o, IOComponent)
-                o.interactive = False  # Force output components to be non-interactive
-
+                if o.interactive is None:
+                    # Unless explicitly otherwise specified, force output components to
+                    # be non-interactive
+                    o.interactive = False
         if (
             interpretation is None
             or isinstance(interpretation, list)
@@ -401,7 +403,7 @@ class Interface(Blocks):
             interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
-            with Row().style(equal_height=False):
+            with Row(equal_height=False):
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,

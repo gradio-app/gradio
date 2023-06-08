@@ -5,12 +5,20 @@ demo = gr.Blocks()
 
 with demo:
     with gr.Row():
-        gr.Image(interactive=True)
+        gr.Image(interactive=True, scale=2)
         gr.Image()
     with gr.Row():
         gr.Textbox(label="Text")
-        gr.Number(label="Count")
+        gr.Number(label="Count", scale=2)
         gr.Radio(choices=["One", "Two"])
+    with gr.Row():
+        gr.Button("500", scale=0, min_width=500)
+        gr.Button("A").style(full_width=False)
+        gr.Button("grow")
+    with gr.Row():
+        gr.Textbox()
+        gr.Textbox()
+        gr.Button()        
     with gr.Row():
         with gr.Row():
             with gr.Column():

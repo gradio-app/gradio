@@ -94,38 +94,26 @@
 		type: "inputs" | "outputs",
 		deps: Array<Dependency>
 	) {
-		let dep_index = 0;
-		for (;;) {
-			const dep = deps[dep_index];
-			if (dep === undefined) break;
-
-			let dep_item_index = 0;
-			for (;;) {
-				const dep_item = dep[type][dep_item_index];
-				if (dep_item === undefined) break;
+		for (const dep of deps) {
+			for (const dep_item of dep[type]) {
 				if (dep_item === id) return true;
-				dep_item_index++;
 			}
-
-			dep_index++;
 		}
-
 		return false;
 	}
 
-	const dynamic_ids: Set<number> = components.reduce<Set<number>>(
-		(acc, { id, props }) => {
-			const is_input = is_dep(id, "inputs", dependencies);
-			const is_output = is_dep(id, "outputs", dependencies);
-
-			if (!is_input && !is_output && has_no_default_value(props?.value))
-				acc.add(id); // default dynamic
-			if (is_input) acc.add(id);
-
-			return acc;
-		},
-		new Set()
-	);
+	const dynamic_ids: Set<number> = new Set();
+	for (const comp of components) {
+		const { id, props } = comp;
+		const is_input = is_dep(id, "inputs", dependencies);
+		if (
+			is_input ||
+			(!is_dep(id, "outputs", dependencies) &&
+				has_no_default_value(props?.value))
+		) {
+			dynamic_ids.add(id);
+		}
+	}
 
 	function has_no_default_value(value: any) {
 		return (
@@ -147,25 +135,23 @@
 		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
-	function load_component<T extends ComponentMeta["type"]>(
+	async function load_component<T extends ComponentMeta["type"]>(
 		name: T
 	): Promise<{
 		name: T;
 		component: LoadedComponent;
 	}> {
-		return new Promise(async (res, rej) => {
-			try {
-				const c = await component_map[name]();
-				res({
-					name,
-					component: c as LoadedComponent
-				});
-			} catch (e) {
-				console.error("failed to load: " + name);
-				console.error(e);
-				rej(e);
-			}
-		});
+		try {
+			const c = await component_map[name]();
+			return {
+				name,
+				component: c as LoadedComponent
+			};
+		} catch (e) {
+			console.error(`failed to load: ${name}`);
+			console.error(e);
+			throw e;
+		}
 	}
 
 	const component_set = new Set<
@@ -335,6 +321,9 @@
 		}
 	};
 
+	const is_external_url = (link: string | null) =>
+		link && new URL(link, location.href).origin !== location.origin;
+
 	async function handle_mount() {
 		await tick();
 
@@ -342,7 +331,11 @@
 
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
-			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
+			const _link = a[i].getAttribute("href");
+
+			// only target anchor tags with external links
+			if (is_external_url(_link) && _target !== "_blank")
+				a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach((dep, i) => {
@@ -396,7 +389,7 @@
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];
 			loading_status.scroll_to_output = dependency.scroll_to_output;
-			loading_status.visible = dependency.show_progress;
+			loading_status.show_progress = dependency.show_progress;
 
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}
