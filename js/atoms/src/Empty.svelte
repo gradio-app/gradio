@@ -1,8 +1,14 @@
 <script lang="ts">
+	export let size: "small" | "large" = "small";
 	export let unpadded_box = false;
 </script>
 
-<div class="empty" class:unpadded_box>
+<div
+	class="empty"
+	class:small={size === "small"}
+	class:large={size === "large"}
+	class:unpadded_box
+>
 	<div class="icon">
 		<slot />
 	</div>
@@ -20,6 +26,13 @@
 		opacity: 0.5;
 		height: var(--size-5);
 		color: var(--body-text-color);
+	}
+
+	.small {
+		height: calc(var(--size-32) - 20px);
+	}
+	.large {
+		height: calc(var(--size-64) - 20px);
 	}
 
 	.unpadded_box.small {
