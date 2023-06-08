@@ -90,6 +90,7 @@
 		position: relative;
 		border-bottom: 1px solid var(--border-color-primary);
 		white-space: nowrap;
+		flex-wrap: wrap;
 	}
 
 	button {
