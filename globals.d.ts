@@ -1,7 +1,7 @@
 declare global {
 	interface Window {
 		__gradio_mode__: "app" | "website";
-		__space_name__: string | undefined;
+		__space_name__: string | null;
 		launchGradio: Function;
 		launchGradioFromSpaces: Function;
 		gradio_config: Config;
@@ -24,7 +24,7 @@ export interface Config {
 	theme: string;
 	title: string;
 	version: string;
-	is_space: boolean;
+	space_id: string | null;
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];

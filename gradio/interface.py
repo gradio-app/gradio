@@ -201,7 +201,7 @@ class Interface(Blocks):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        if self.is_space and cache_examples is None:
+        if self.space_id and cache_examples is None:
             self.cache_examples = True
         else:
             self.cache_examples = cache_examples or False

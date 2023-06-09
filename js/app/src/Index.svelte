@@ -23,7 +23,7 @@
 		theme: string;
 		title: string;
 		version: string;
-		is_space: boolean;
+		space_id: string | null;
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
@@ -76,6 +76,7 @@
 	export let info: boolean;
 	export let eager: boolean;
 
+	export let space: string | null;
 	export let host: string | null;
 	export let src: string | null;
 
@@ -191,13 +192,14 @@
 		const api_url =
 			BUILD_MODE === "dev"
 				? "http://localhost:7860"
-				: host || window.__space_name__ || src || location.origin;
+				: host || space || src || location.origin;
 
 		app = await client(api_url, {
 			status_callback: handle_status,
 			normalise_files: false
 		});
 		config = app.config;
+		window.__space_name__ = config.space_id;
 
 		status = {
 			message: "",
@@ -276,9 +278,10 @@
 <Embed
 	display={container && is_embed}
 	{is_embed}
-	info={!!window.__space_name__ && info}
+	info={!!space && info}
 	{version}
 	{initial_height}
+	{space}
 	loaded={loader_status === "complete"}
 	bind:wrapper
 >
@@ -297,7 +300,7 @@
 				{#if status.status === "space_error" && status.discussions_enabled}
 					<p>
 						Please <a
-							href="https://huggingface.co/spaces/{window.__space_name__}/discussions/new?title={discussion_message.title(
+							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
 								status?.detail
 							)}&description={discussion_message.description(
 								status?.detail,
@@ -317,7 +320,7 @@
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
-			is_space={config.is_space}
+			space_id={space}
 			{app_mode}
 		/>
 	{:else if config && Blocks && css_ready}

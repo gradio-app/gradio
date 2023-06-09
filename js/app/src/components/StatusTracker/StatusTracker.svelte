@@ -79,7 +79,7 @@
 	let last_progress_level: number | undefined = undefined;
 	let progress_bar: HTMLElement | null = null;
 	let show_eta_bar: boolean = true;
-	let show_duplicate_message = true;
+	let show_duplicate_message = false;
 	const MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE = 10;
 	const MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE = 3;
 	$: if (
@@ -280,8 +280,8 @@
 				href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
 				class="duplicate-message"
 			>
+				Duplicate
 				<img src={duplicate_icon} alt="duplicate" />
-				Duplicate Space to skip queue
 			</a>
 		{/if}
 
@@ -456,6 +456,7 @@
 		bottom: var(--size-1);
 		align-items: center;
 		gap: var(--size-1);
+		z-index: var(--layer-2);
 		pointer-events: all;
 		font-size: var(--text-xs);
 	}
