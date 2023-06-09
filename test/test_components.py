@@ -264,7 +264,6 @@ class TestNumber:
             "container": True,
             "min_width": 160,
             "scale": None,
-            "style": {},
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
