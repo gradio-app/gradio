@@ -16,7 +16,6 @@ export interface Config {
 	space_id: string | null;
 	is_colab: boolean;
 	show_api: boolean;
-	show_duplication: boolean;
 	stylesheets: string[];
 	path: string;
 }

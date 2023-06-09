@@ -24,7 +24,7 @@
 		title: string;
 		version: string;
 		space_id: string | null;
-		show_duplication: boolean;
+		show_duplication?: boolean;
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
