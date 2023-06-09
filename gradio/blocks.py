@@ -1387,7 +1387,7 @@ Received outputs:
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
-            "show_duplication": self.show_duplication,
+            "show_duplication": self.show_duplication and self.space_id is not None,
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
