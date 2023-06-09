@@ -1,5 +1,6 @@
 import "@gradio/theme";
 import { WorkerProxy } from "@gradio/wasm";
+import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
 import { wasm_proxied_mount_css } from "./css";
 import type { mount_css } from "../css";
@@ -64,6 +65,7 @@ export async function create(options: Options) {
 	const overridden_fetch: typeof fetch = (input, init?) => {
 		return wasm_proxied_fetch(worker_proxy, input, init);
 	};
+	const { client } = api_factory(overridden_fetch);
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
@@ -91,7 +93,7 @@ export async function create(options: Options) {
 			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 			app_mode: options.appMode,
 			// For Wasm mode
-			overridden_fetch,
+			client,
 			mount_css: overridden_mount_css
 		}
 	});

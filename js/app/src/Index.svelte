@@ -59,7 +59,7 @@
 
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { client, SpaceStatus } from "@gradio/client";
+	import type { api_factory, SpaceStatus } from "@gradio/client";
 
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
@@ -78,7 +78,7 @@
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let overridden_fetch: typeof fetch | undefined = undefined;
+	export let client: ReturnType<typeof api_factory>["client"];
 
 	export let space: string | null;
 	export let host: string | null;
@@ -200,8 +200,7 @@
 
 		app = await client(api_url, {
 			status_callback: handle_status,
-			normalise_files: false,
-			overridden_fetch
+			normalise_files: false
 		});
 		config = app.config;
 
