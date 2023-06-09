@@ -27,7 +27,10 @@ interface InitOptions {
 }
 async function loadPyodideAndPackages(options: InitOptions) {
 	console.debug("Loading Pyodide.");
-	pyodide = await loadPyodide();
+	pyodide = await loadPyodide({
+		stdout: console.log,
+		stderr: console.error
+	});
 	console.debug("Pyodide is loaded.");
 
 	console.debug("Loading micropip");
