@@ -65,7 +65,7 @@ export async function create(options: Options) {
 	const overridden_fetch: typeof fetch = (input, init?) => {
 		return wasm_proxied_fetch(worker_proxy, input, init);
 	};
-	const { client } = api_factory(overridden_fetch);
+	const { client, upload_files } = api_factory(overridden_fetch);
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
@@ -94,6 +94,7 @@ export async function create(options: Options) {
 			app_mode: options.appMode,
 			// For Wasm mode
 			client,
+			upload_files,
 			mount_css: overridden_mount_css
 		}
 	});
@@ -128,9 +129,23 @@ if (BUILD_MODE === "dev") {
 import gradio as gr
 
 def greet(name):
-		return "Hello " + name + "!"
+    return "Hello " + name + "!"
 
-demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+def upload_file(files):
+    file_paths = [file.name for file in files]
+    return file_paths
+
+with gr.Blocks() as demo:
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+
+    gr.File()
+
+    file_output = gr.File()
+    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
+    upload_button.upload(upload_file, upload_button, file_output)
 
 demo.launch()
 		`,
