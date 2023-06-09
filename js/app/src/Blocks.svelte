@@ -20,6 +20,7 @@
 	import Render from "./Render.svelte";
 	import { ApiDocs } from "./api_docs/";
 	import type { ThemeMode } from "./components/types";
+	import Toast from "./components/StatusTracker/Toast.svelte";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -231,13 +232,21 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
+	let messages: {
+		type: "error" | "marning" | "info";
+		message: string;
+		id: number;
+		fn_index: number;
+	}[] = [];
+	let _error_id = -1;
+
 	const trigger_api_call = async (
 		dep_index: number,
 		event_data: unknown = null
 	) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
-
+		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (dep.cancels) {
 			await Promise.all(
 				dep.cancels.map(async (fn_index) => {
@@ -304,6 +313,21 @@
 					}
 
 					if (status.stage === "error") {
+						if (status.message) {
+							console.log();
+							messages = [
+								{
+									type: "error",
+									message: status.message.substring(
+										1,
+										status.message.length - 1
+									),
+									id: ++_error_id,
+									fn_index
+								},
+								...messages
+							];
+						}
 						dependencies.map(async (dep, i) => {
 							if (
 								dep.trigger_after === fn_index &&
@@ -320,6 +344,11 @@
 			submit_map.set(dep_index, submission);
 		}
 	};
+
+	function handle_error_close(e: Event & { detail: number }) {
+		const _id = e.detail;
+		messages = messages.filter((m) => m.id !== _id);
+	}
 
 	const is_external_url = (link: string | null) =>
 		link && new URL(link, location.href).origin !== location.origin;
@@ -487,6 +516,10 @@
 			/>
 		</div>
 	</div>
+{/if}
+
+{#if messages}
+	<Toast {messages} on:close={handle_error_close} />
 {/if}
 
 <style>
