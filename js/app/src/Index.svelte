@@ -279,7 +279,6 @@
 	info={!!window.__space_name__ && info}
 	{version}
 	{initial_height}
-	space={window.__space_name__}
 	loaded={loader_status === "complete"}
 	bind:wrapper
 >

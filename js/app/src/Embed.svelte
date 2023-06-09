@@ -5,7 +5,6 @@
 	export let initial_height: string;
 	export let is_embed: boolean;
 
-	export let space: string | null;
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
@@ -23,10 +22,12 @@
 	<div class="main">
 		<slot />
 	</div>
-	{#if display && space && info}
+	{#if display && window.__space_name__ && info}
 		<div class="info">
 			<span>
-				<a href="https://huggingface.co/spaces/{space}" class="title">{space}</a
+				<a
+					href="https://huggingface.co/spaces/{window.__space_name__}"
+					class="title">{window.__space_name__}</a
 				>
 			</span>
 			<span>
