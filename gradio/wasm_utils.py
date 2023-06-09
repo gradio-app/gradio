@@ -3,6 +3,11 @@ import sys
 # See https://pyodide.org/en/stable/usage/faq.html#how-to-detect-that-code-is-run-with-pyodide
 IS_WASM = sys.platform == "emscripten"
 
+
+class WasmUnsupportedError(Exception):
+    pass
+
+
 app = None
 
 

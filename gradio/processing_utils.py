@@ -483,6 +483,10 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
 
 def ffmpeg_installed() -> bool:
+    if wasm_utils.IS_WASM:
+        # TODO: Support ffmpeg in WASM
+        return False
+
     return shutil.which("ffmpeg") is not None
 
 

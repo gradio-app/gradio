@@ -2312,6 +2312,10 @@ class Video(
             )
             if Path(output_file_name).exists():
                 return output_file_name
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "Video formatting is not supported in the Wasm mode."
+                )
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
@@ -2320,6 +2324,10 @@ class Video(
             return output_file_name
         elif not self.include_audio:
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "include_audio=False is not supported in the Wasm mode."
+                )
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
@@ -2408,6 +2416,10 @@ class Video(
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
         if self.format is not None and returned_format != self.format:
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "Returning a video in a different format is not supported in the Wasm mode."
+                )
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={video: None}, outputs={output_file_name: None})
             ff.run()
