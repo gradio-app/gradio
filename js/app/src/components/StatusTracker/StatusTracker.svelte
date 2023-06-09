@@ -278,6 +278,7 @@
 			<a
 				href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
 				class="duplicate-message"
+				target="_blank"
 			>
 				Duplicate
 				<img src={duplicate_icon} alt="duplicate" />
