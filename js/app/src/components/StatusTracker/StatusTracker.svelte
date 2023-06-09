@@ -267,6 +267,7 @@
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
+		<slot name="error" />
 	{/if}
 </div>
 
