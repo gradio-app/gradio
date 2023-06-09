@@ -458,12 +458,12 @@
 			{#if window.__show_duplication__}
 				<a
 					href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
-					class="footer-link"
+					class="footer-link duplicate-link"
 					target="_blank"
 				>
 					Duplicate Space <img src={duplicate_icon} alt="" />
 				</a>
-				<div>·</div>
+				<div class="duplicate-link">·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -532,6 +532,14 @@
 	.footer-link img {
 		margin-left: var(--size-1-5);
 		width: var(--size-3);
+	}
+	.duplicate-link {
+		display: none;
+	}
+	@media (--screen-sm) {
+		.duplicate-link {
+			display: inherit;
+		}
 	}
 
 	.api-docs {
