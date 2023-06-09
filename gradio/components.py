@@ -4550,7 +4550,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None]]
+        value: list[
+            list[str | tuple[str] | tuple[str, str] | tuple[str, str, str] | None]
+        ]
         | Callable
         | None = None,
         color_map: dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
@@ -4646,14 +4648,18 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 message_pair, (tuple, list)
             ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
             assert (
-                len(message_pair) == 2
-            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+                len(message_pair) == 2 or len(message_pair) == 3
+            ), f"Expected a list of lists of length 2 or 3, or list of tuples of length 2 or 3. Received: {message_pair}"
             processed_messages.append(
                 [
                     self._preprocess_chat_messages(message_pair[0]),
                     self._preprocess_chat_messages(message_pair[1]),
                 ]
             )
+            if len(message_pair) == 3:
+                processed_messages[-1].append(
+                    self._preprocess_chat_messages(message_pair[2])
+                )
         return processed_messages
 
     def _postprocess_chat_messages(
@@ -4700,14 +4706,18 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 message_pair, (tuple, list)
             ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
             assert (
-                len(message_pair) == 2
-            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+                len(message_pair) == 2 or len(message_pair) == 3
+            ), f"Expected a list of lists of length 2 or 3, or list of tuples of length 2 or 3. Received: {message_pair}"
             processed_messages.append(
                 [
                     self._postprocess_chat_messages(message_pair[0]),
                     self._postprocess_chat_messages(message_pair[1]),
                 ]
             )
+            if len(message_pair) == 3:
+                processed_messages[-1].append(
+                    self._postprocess_chat_messages(message_pair[2])
+                )
         return processed_messages
 
     def style(self, height: int | None = None, **kwargs):

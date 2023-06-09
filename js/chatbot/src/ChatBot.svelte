@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { marked, copy } from "./utils";
+	import RatingBar from "./RatingBar.svelte";
 	import "katex/dist/katex.min.css";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
@@ -14,10 +15,20 @@
 	};
 
 	export let value: Array<
-		[string | FileData | null, string | FileData | null]
+		| [string | FileData | null, string | FileData | null]
+		| [
+				string | FileData | null,
+				string | FileData | null,
+				string | FileData | null
+		  ]
 	> | null;
 	let old_value: Array<
-		[string | FileData | null, string | FileData | null]
+		| [string | FileData | null, string | FileData | null]
+		| [
+				string | FileData | null,
+				string | FileData | null,
+				string | FileData | null
+		  ]
 	> | null = null;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
@@ -80,6 +91,16 @@
 			value: message
 		});
 	}
+
+	function handleSelectRating(
+		event: CustomEvent<{ i: number; j: number; score: number }>
+	) {
+		const { i, j, score } = event.detail;
+		dispatch("select", {
+			index: j,
+			value: score
+		});
+	}
 </script>
 
 <div
@@ -137,6 +158,12 @@
 						{/if}
 					</div>
 				{/each}
+				{#if i == value.length - 1}
+					<RatingBar
+						messagePairIndex={i}
+						on:select_response={handleSelectRating}
+					/>
+				{/if}
 			{/each}
 		{/if}
 		{#if pending_message}

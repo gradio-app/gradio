@@ -12,9 +12,21 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: Array<
-		[string | FileData | null, string | FileData | null]
+		| [string | FileData | null, string | FileData | null]
+		| [
+				string | FileData | null,
+				string | FileData | null,
+				string | FileData | null
+		  ]
 	> = [];
-	let _value: Array<[string | FileData | null, string | FileData | null]>;
+	let _value: Array<
+		| [string | FileData | null, string | FileData | null]
+		| [
+				string | FileData | null,
+				string | FileData | null,
+				string | FileData | null
+		  ]
+	> = [];
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
@@ -26,15 +38,15 @@
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
 
+	//@ts-ignore
 	$: _value = value
-		? value.map(([user_msg, bot_msg]) => [
-				typeof user_msg === "string"
-					? redirect_src_url(user_msg)
-					: normalise_file(user_msg, root, root_url),
-				typeof bot_msg === "string"
-					? redirect_src_url(bot_msg)
-					: normalise_file(bot_msg, root, root_url)
-		  ])
+		? value.map((messages) => {
+				return messages.map((message) => {
+					return typeof message === "string"
+						? redirect_src_url(message)
+						: normalise_file(message, root, root_url);
+				});
+		  })
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
 </script>

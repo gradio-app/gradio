@@ -3,7 +3,7 @@ export const modes = ["static"];
 
 export const document = (config: Record<string, any>) => ({
 	type: {
-		payload: "Array<[string, string]>"
+		payload: "Array<[string, string, string]>"
 	},
 	description: {
 		payload: "list of message pairs of"
