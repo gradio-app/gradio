@@ -19,6 +19,7 @@
 	export let grid_rows: number | Array<number> | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
+	export let detailed_view: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 
@@ -175,7 +176,7 @@
 {#if value === null || _value === null || _value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
-	{#if selected_image !== null}
+	{#if selected_image !== null && detailed_view}
 		<div
 			on:keydown={on_keydown}
 			class="preview"
@@ -184,6 +185,7 @@
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
 			<img
+				data-testid="detailed-image"
 				on:click={() => (selected_image = next)}
 				src={_value[selected_image][0].data}
 				alt={_value[selected_image][1] || ""}
