@@ -455,7 +455,7 @@
 				</button>
 				<div>·</div>
 			{/if}
-			{#if window.__space_name__}
+			{#if true}
 				<a
 					href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
 					class="footer-link"

@@ -79,7 +79,7 @@
 	let last_progress_level: number | undefined = undefined;
 	let progress_bar: HTMLElement | null = null;
 	let show_eta_bar: boolean = true;
-	let show_duplicate_message = false;
+	let show_duplicate_message = true;
 	const MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE = 10;
 	const MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE = 3;
 	$: if (
@@ -451,13 +451,13 @@
 	}
 
 	.duplicate-message {
+		display: flex;
 		position: absolute;
 		bottom: var(--size-1);
-		font-size: var(--text-xs);
-		pointer-events: all;
-		display: flex;
-		gap: var(--size-1);
 		align-items: center;
+		gap: var(--size-1);
+		pointer-events: all;
+		font-size: var(--text-xs);
 	}
 	.duplicate-message img {
 		height: var(--text-xs);
