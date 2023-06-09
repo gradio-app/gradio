@@ -7,9 +7,13 @@
 		message: string;
 		id: number;
 	}[] = [];
+
+	let el: HTMLDivElement;
+
+	$: messages && el.scrollIntoView({ behavior: "smooth" });
 </script>
 
-<div class="toast-wrap">
+<div class="toast-wrap" bind:this={el}>
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
 			{#if type === "error"}
