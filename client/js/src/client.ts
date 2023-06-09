@@ -147,7 +147,7 @@ export async function duplicate(
  * We need to inject a customized fetch implementation for the Wasm version.
  */
 export function api_factory(fetch_implementation: typeof fetch) {
-	return { post_data, upload_files, client };
+	return { post_data, upload_files, client, handle_blob };
 
 	async function post_data(
 		url: string,
@@ -702,9 +702,55 @@ export function api_factory(fetch_implementation: typeof fetch) {
 			}
 		});
 	}
+
+	async function handle_blob(
+		endpoint: string,
+		data: unknown[],
+		api_info,
+		token?: `hf_${string}`
+	): Promise<unknown[]> {
+		const blob_refs = await walk_and_store_blobs(
+			data,
+			undefined,
+			[],
+			true,
+			api_info
+		);
+
+		return Promise.all(
+			blob_refs.map(async ({ path, blob, data, type }) => {
+				if (blob) {
+					const file_url = (await upload_files(endpoint, [blob], token))
+						.files[0];
+					return { path, file_url, type };
+				} else {
+					return { path, base64: data, type };
+				}
+			})
+		).then((r) => {
+			r.forEach(({ path, file_url, base64, type }) => {
+				if (base64) {
+					update_object(data, base64, path);
+				} else if (type === "Gallery") {
+					update_object(data, file_url, path);
+				} else if (file_url) {
+					const o = {
+						is_file: true,
+						name: `${file_url}`,
+						data: null
+						// orig_name: "file.csv"
+					};
+					update_object(data, o, path);
+				}
+			});
+
+			return data;
+		});
+	}
 }
 
-export const { post_data, upload_files, client } = api_factory(fetch);
+export const { post_data, upload_files, client, handle_blob } =
+	api_factory(fetch);
 
 function transform_output(
 	data: any[],
@@ -926,50 +972,6 @@ async function get_jwt(
 		console.error(e);
 		return false;
 	}
-}
-
-export async function handle_blob(
-	endpoint: string,
-	data: unknown[],
-	api_info,
-	token?: `hf_${string}`
-): Promise<unknown[]> {
-	const blob_refs = await walk_and_store_blobs(
-		data,
-		undefined,
-		[],
-		true,
-		api_info
-	);
-
-	return Promise.all(
-		blob_refs.map(async ({ path, blob, data, type }) => {
-			if (blob) {
-				const file_url = (await upload_files(endpoint, [blob], token)).files[0];
-				return { path, file_url, type };
-			} else {
-				return { path, base64: data, type };
-			}
-		})
-	).then((r) => {
-		r.forEach(({ path, file_url, base64, type }) => {
-			if (base64) {
-				update_object(data, base64, path);
-			} else if (type === "Gallery") {
-				update_object(data, file_url, path);
-			} else if (file_url) {
-				const o = {
-					is_file: true,
-					name: `${file_url}`,
-					data: null
-					// orig_name: "file.csv"
-				};
-				update_object(data, o, path);
-			}
-		});
-
-		return data;
-	});
 }
 
 function update_object(object, newValue, stack) {
