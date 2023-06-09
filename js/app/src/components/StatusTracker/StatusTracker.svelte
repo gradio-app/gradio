@@ -81,14 +81,13 @@
 	let show_eta_bar: boolean = true;
 	let show_duplicate_message = false;
 	const MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE = 10;
-	const MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE = 3;
+	const MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE = 2;
 	$: if (
 		window.__space_name__ &&
-		eta_level &&
-		eta_level > MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE &&
-		progress?.length &&
-		progress?.[0].index &&
-		progress?.[0].index > MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE
+		eta &&
+		eta > MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE &&
+		queue_position &&
+		queue_position >= MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE
 	) {
 		show_duplicate_message = true;
 	}
