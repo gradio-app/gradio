@@ -1405,6 +1405,15 @@ class TestVideo:
             full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
+    def test_convert_video_to_playable_format(self, monkeypatch, tmp_path):
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        video = gr.Video(format="mp4")
+        output = video.postprocess(
+            str(test_file_dir / "playable_but_bad_container.mkv")
+        )
+        assert Path(output[0]["name"]).suffix == ".mp4"
+
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
