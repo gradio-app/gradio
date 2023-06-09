@@ -1,38 +1,6 @@
 import type { WorkerProxy } from "@gradio/wasm";
 import { is_self_origin } from "./url";
 
-async function compile_http_body(
-	body: RequestInit["body"]
-): Promise<Uint8Array | undefined> {
-	if (body == undefined) {
-		return undefined;
-	}
-	if (typeof body === "string") {
-		return new TextEncoder().encode(body);
-	}
-	if (body instanceof Uint8Array) {
-		return body;
-	}
-	if (body instanceof ArrayBuffer) {
-		return new Uint8Array(body);
-	}
-	if (body instanceof Blob) {
-		return new Uint8Array(await body.arrayBuffer());
-	}
-	if (body instanceof FormData) {
-		throw new Error("FormData is not supported");
-	}
-	if (body instanceof URLSearchParams) {
-		throw new Error("URLSearchParams is not supported");
-	}
-	if (body instanceof ReadableStream) {
-		throw new Error("ReadableStream is not supported");
-	}
-
-	console.error({ body });
-	throw new Error(`Unsupported body type: ${typeof body}`);
-}
-
 /**
  * A fetch() function that proxies HTTP requests to the worker,
  * which also falls back to the original fetch() for external resource requests.
@@ -42,7 +10,7 @@ export async function wasm_proxied_fetch(
 	input: RequestInfo | URL,
 	init?: RequestInit
 ): Promise<Response> {
-	console.debug("overriddenFetch", input, init);
+	console.debug("wasm_proxied_fetch", input, init);
 
 	const request = new Request(input, init);
 
@@ -68,8 +36,9 @@ export async function wasm_proxied_fetch(
 		headers[key] = value;
 	});
 
+	const bodyArrayBuffer = await new Response(request.body).arrayBuffer();
 	const body: Parameters<WorkerProxy["httpRequest"]>[0]["body"] =
-		await compile_http_body(init?.body);
+		new Uint8Array(bodyArrayBuffer);
 
 	const response = await workerProxy.httpRequest({
 		path: url.pathname,
