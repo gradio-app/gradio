@@ -10,7 +10,7 @@
 
 	let el: HTMLDivElement;
 
-	$: messages && el.scrollIntoView({ behavior: "smooth" });
+	$: messages && el && el.scrollIntoView({ behavior: "smooth" });
 </script>
 
 <div class="toast-wrap" bind:this={el}>
