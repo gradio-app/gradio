@@ -4,6 +4,7 @@ import torch
 from typing import List
 import threading
 
+
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
 
