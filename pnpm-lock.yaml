@@ -279,7 +279,7 @@ importers:
         version: link:../video
       '@gradio/wasm':
         specifier: workspace:^0.0.1
-        version: link:../../wasm
+        version: link:../wasm
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
@@ -699,6 +699,12 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../upload
 
+  js/wasm:
+    devDependencies:
+      pyodide:
+        specifier: ^0.23.2
+        version: 0.23.2
+
   js/workbench:
     dependencies:
       '@gradio/accordion':
@@ -807,12 +813,6 @@ importers:
       typescript:
         specifier: ~4.5.4
         version: 4.5.5
-
-  wasm:
-    devDependencies:
-      pyodide:
-        specifier: ^0.23.2
-        version: 0.23.2
 
 packages:
 
