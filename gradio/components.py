@@ -73,7 +73,7 @@ from gradio.events import (
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 
-if not wasm_utils.is_wasm:
+if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
     from ffmpy import FFmpeg
 

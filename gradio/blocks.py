@@ -743,7 +743,7 @@ class Blocks(BlockContext):
         self.root_path = ""
         self.root_urls = set()
 
-        if not wasm_utils.is_wasm and self.analytics_enabled:
+        if not wasm_utils.IS_WASM and self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
@@ -1773,7 +1773,7 @@ Received outputs:
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            if wasm_utils.is_wasm:
+            if wasm_utils.IS_WASM:
                 server_name = "xxx"
                 server_port = 99999
                 local_url = ""
@@ -1825,10 +1825,10 @@ Received outputs:
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            if not wasm_utils.is_wasm:
+            if not wasm_utils.IS_WASM:
                 requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
 
-        if wasm_utils.is_wasm:
+        if wasm_utils.IS_WASM:
             return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
         utils.launch_counter()

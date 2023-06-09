@@ -16,7 +16,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 
-if not wasm_utils.is_wasm:
+if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
     from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 

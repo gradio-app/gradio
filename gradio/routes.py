@@ -167,12 +167,12 @@ class App(FastAPI):
         blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
     ) -> App:
         app_kwargs = app_kwargs or {}
-        if not wasm_utils.is_wasm:
+        if not wasm_utils.IS_WASM:
             app_kwargs.setdefault("default_response_class", ORJSONResponse)
         app = App(**app_kwargs)
         app.configure_app(blocks)
 
-        if not wasm_utils.is_wasm:
+        if not wasm_utils.IS_WASM:
             app.add_middleware(
                 CORSMiddleware,
                 allow_origins=["*"],
