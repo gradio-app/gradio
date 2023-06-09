@@ -25,23 +25,23 @@
 
 <style>
 	.toast-wrap {
-		z-index: var(--layer-top);
+		display: flex;
 		position: fixed;
 		right: var(--size-4);
 		bottom: var(--size-4);
-		display: flex;
 		flex-direction: column-reverse;
-		gap: var(--size-2);
 		align-items: end;
+		gap: var(--size-2);
+		z-index: var(--layer-top);
 		width: calc(100% - var(--size-8));
 	}
 
 	@media (--screen-sm) {
 		.toast-wrap {
-			width: calc(var(--size-96) + var(--size-10));
-			flex-direction: column;
-			bottom: unset;
 			top: var(--size-4);
+			bottom: unset;
+			flex-direction: column;
+			width: calc(var(--size-96) + var(--size-10));
 		}
 	}
 </style>

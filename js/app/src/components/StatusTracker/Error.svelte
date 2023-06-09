@@ -53,24 +53,24 @@
 
 <style>
 	.toast-body {
-		position: relative;
 		display: flex;
+		position: relative;
 		right: 0;
 		left: 0;
 		align-items: center;
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
+		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
 		border: 1px solid var(--error-border-color);
 		border-radius: var(--container-radius);
 		background: var(--error-background-fill);
 		padding: var(--size-4) var(--size-6);
+		width: 100%;
 		max-width: 1200px;
 		max-width: 610px;
 		overflow: hidden;
 		pointer-events: auto;
-		margin-left: 0;
-		width: 100%;
 	}
 
 	.toast-title {
@@ -86,6 +86,7 @@
 
 	.toast-close {
 		display: flex;
+		position: relative;
 		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
@@ -96,7 +97,6 @@
 		width: var(--size-10);
 		height: var(--size-10);
 		color: white;
-		position: relative;
 	}
 
 	.toast-text {
@@ -115,11 +115,11 @@
 
 	.close-svg {
 		top: var(--size-2);
-		left: var(--size-2);
 		right: var(--size-2);
 		bottom: var(--size-2);
-		height: var(--size-6);
+		left: var(--size-2);
 		width: var(--size-6);
+		height: var(--size-6);
 	}
 
 	@keyframes countdown {
@@ -133,12 +133,12 @@
 
 	.timer {
 		position: absolute;
-		height: 4px;
 		bottom: 0;
 		left: 0;
-		width: 100%;
-		background: var(--color-red-600);
 		transform-origin: 0 0;
 		animation: countdown 10s linear forwards;
+		background: var(--color-red-600);
+		width: 100%;
+		height: 4px;
 	}
 </style>
