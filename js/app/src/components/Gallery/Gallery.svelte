@@ -21,7 +21,6 @@
 	export let grid_rows: number | Array<number> | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
-	export let detailed_view: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 </script>
@@ -50,6 +49,5 @@
 		{height}
 		{preview}
 		{object_fit}
-		{detailed_view}
 	/>
 </Block>
