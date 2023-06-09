@@ -83,7 +83,7 @@
 	const MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE = 10;
 	const MIN_RANK_TO_SHOW_DUPLICATE_MESSAGE = 2;
 	$: if (
-		window.__space_name__ &&
+		window.__show_duplication__ &&
 		eta &&
 		eta > MIN_ETA_TO_SHOW_DUPLICATE_MESSAGE &&
 		queue_position &&

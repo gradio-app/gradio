@@ -1386,6 +1386,7 @@ Received outputs:
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
+            "show_duplication": self.show_duplication,
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
@@ -1646,6 +1647,7 @@ Received outputs:
         root_path: str = "",
         _frontend: bool = True,
         app_kwargs: dict[str, Any] | None = None,
+        show_duplication: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1680,6 +1682,7 @@ Received outputs:
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
+            show_duplication: If True, will show duplication links if deployed on Spaces.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1740,6 +1743,7 @@ Received outputs:
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
+        self.show_duplication = show_duplication
 
         if file_directories is not None:
             warnings.warn(
@@ -1956,7 +1960,7 @@ Received outputs:
                 "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
-                "space_id": self.space_id,
+                "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)
