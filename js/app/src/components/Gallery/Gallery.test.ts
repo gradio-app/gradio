@@ -2,7 +2,6 @@ import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 
 import Gallery from "./Gallery.svelte";
-import { scroll_to_img } from "@gradio/gallery";
 import type { LoadingStatus } from "../StatusTracker/types";
 
 const loading_status = {
@@ -22,8 +21,6 @@ describe("Gallery", () => {
 	});
 
 	test("preview shows detailed image by default", async () => {
-		const mock = vi.fn().mockImplementation(scroll_to_img);
-
 		const { component, getAllByTestId } = render(Gallery, {
 			loading_status,
 			label: "gallery",
@@ -59,8 +56,6 @@ describe("Gallery", () => {
 	});
 
 	test("detailed view does not show larger image", async () => {
-		const mock = vi.fn().mockImplementation(scroll_to_img);
-
 		const { component, queryAllByTestId } = render(Gallery, {
 			loading_status,
 			label: "gallery",

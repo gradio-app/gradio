@@ -99,7 +99,9 @@
 		}
 	}
 
-	$: scroll_to_img(selected_image);
+	$: if (detailed_view) {
+		scroll_to_img(selected_image);
+	}
 
 	let el: Array<HTMLButtonElement> = [];
 	let container_element: HTMLDivElement;
