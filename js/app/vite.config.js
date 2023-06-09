@@ -59,7 +59,7 @@ export default defineConfig(({ mode }) => {
 			target: "esnext",
 			minify: production,
 			outDir: is_lite
-				? resolve(__dirname, "../../lite/dist")
+				? resolve(__dirname, "../lite/dist")
 				: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
