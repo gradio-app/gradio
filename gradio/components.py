@@ -73,6 +73,7 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -686,6 +687,8 @@ class Number(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         precision: int | None = None,
+        minimum: float | None = None,
+        maximum: float | None = None,
         **kwargs,
     ):
         """
@@ -703,8 +706,13 @@ class Number(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
+            minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
+            maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
         """
         self.precision = precision
+        self.minimum = minimum
+        self.maximum = maximum
+
         IOComponent.__init__(
             self,
             label=label,
@@ -746,12 +754,16 @@ class Number(
     def get_config(self):
         return {
             "value": self.value,
+            "minimum": self.minimum,
+            "maximum": self.maximum,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        minimum: float | None = None,
+        maximum: float | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
@@ -768,6 +780,8 @@ class Number(
             "min_width": min_width,
             "visible": visible,
             "value": value,
+            "minimum": minimum,
+            "maximum": maximum,
             "interactive": interactive,
             "__type__": "update",
         }
@@ -781,6 +795,10 @@ class Number(
         """
         if x is None:
             return None
+        elif self.minimum != None and x < self.minimum:
+            raise Error(f"Value {x} is less than minimum value {self.minimum}.")
+        elif self.maximum != None and x > self.maximum:
+            raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:
@@ -2172,6 +2190,7 @@ class Video(
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
+        autoplay: bool = False,
         **kwargs,
     ):
         """
@@ -2195,6 +2214,7 @@ class Video(
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
         """
         self.format = format
+        self.autoplay = autoplay
         valid_sources = ["upload", "webcam"]
         if source not in valid_sources:
             raise ValueError(
@@ -2231,6 +2251,7 @@ class Video(
             "width": self.width,
             "mirror_webcam": self.mirror_webcam,
             "include_audio": self.include_audio,
+            "autoplay": self.autoplay,
             **IOComponent.get_config(self),
         }
 
@@ -2250,6 +2271,7 @@ class Video(
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        autoplay: bool | None = None,
     ):
         return {
             "source": source,
@@ -2263,6 +2285,7 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "autoplay": autoplay,
             "__type__": "update",
         }
 
@@ -2518,6 +2541,7 @@ class Audio(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
+        autoplay: bool = False,
         **kwargs,
     ):
         """
@@ -2572,12 +2596,14 @@ class Audio(
         )
         TokenInterpretable.__init__(self)
         self.format = format
+        self.autoplay = autoplay
 
     def get_config(self):
         return {
             "source": self.source,
             "value": self.value,
             "streaming": self.streaming,
+            "autoplay": self.autoplay,
             **IOComponent.get_config(self),
         }
 
@@ -2598,6 +2624,7 @@ class Audio(
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        autoplay: bool | None = None,
     ):
         return {
             "source": source,
@@ -2609,6 +2636,7 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "autoplay": autoplay,
             "__type__": "update",
         }
 
