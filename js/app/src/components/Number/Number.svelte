@@ -14,7 +14,8 @@
 	export let min_width: number | undefined = undefined;
 	export let value: number = 0;
 	export let show_label: boolean;
-
+	export let minimum: number | undefined = undefined;
+	export let maximum: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
 	export let value_is_output: boolean = false;
@@ -29,6 +30,8 @@
 		{label}
 		{info}
 		{show_label}
+		{minimum}
+		{maximum}
 		disabled={mode === "static"}
 		on:change
 		on:input
