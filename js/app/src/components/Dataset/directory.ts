@@ -3,6 +3,7 @@ import ExampleDropdown from "./ExampleComponents/Dropdown.svelte";
 import ExampleCheckbox from "./ExampleComponents/Checkbox.svelte";
 import ExampleCheckboxGroup from "./ExampleComponents/CheckboxGroup.svelte";
 import ExampleSlider from "./ExampleComponents/Slider.svelte";
+import ExampleKnob from "./ExampleComponents/Knob.svelte";
 import ExampleRadio from "./ExampleComponents/Radio.svelte";
 import ExampleImage from "./ExampleComponents/Image.svelte";
 import ExampleTextbox from "./ExampleComponents/Textbox.svelte";
@@ -23,6 +24,7 @@ export const component_map = {
 	checkboxgroup: ExampleCheckboxGroup,
 	number: ExampleNumber,
 	slider: ExampleSlider,
+	knob: ExampleKnob,
 	radio: ExampleRadio,
 	image: ExampleImage,
 	textbox: ExampleTextbox,

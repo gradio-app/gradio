@@ -22,6 +22,7 @@ export const component_map = {
 	image: () => import("./Image"),
 	interpretation: () => import("./Interpretation"),
 	json: () => import("./Json"),
+	knob: () => import("./Knob"),
 	label: () => import("./Label"),
 	markdown: () => import("./Markdown"),
 	model3d: () => import("./Model3D"),

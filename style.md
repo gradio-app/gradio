@@ -22,6 +22,12 @@
 | ----------- | ------ | ------------------------------ |
 | `container` | `bool` | show or hide the container box |
 
+## Knob
+
+| name        | type   | description                    |
+| ----------- | ------ | ------------------------------ |
+| `container` | `bool` | show or hide the container box |
+
 ## Checkbox
 
 | name        | type                                 | description                    |

@@ -5,4 +5,5 @@ export { default as Number } from "./Number.svelte";
 export { default as Radio } from "./Radio.svelte";
 export { default as TextBox } from "./Textbox.svelte";
 export { default as Range } from "./Range.svelte";
+export { default as Knob } from "./Knob.svelte";
 export { default as ColorPicker } from "./ColorPicker.svelte";

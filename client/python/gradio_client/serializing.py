@@ -517,6 +517,7 @@ COMPONENT_MAPPING: dict[str, type] = {
     "textbox": StringSerializable,
     "number": NumberSerializable,
     "slider": NumberSerializable,
+    "knob": NumberSerializable,
     "checkbox": BooleanSerializable,
     "checkboxgroup": ListStringSerializable,
     "radio": StringSerializable,

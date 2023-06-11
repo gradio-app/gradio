@@ -100,6 +100,44 @@ class Slider(components.Slider):
         )
 
 
+class Knob(components.Knob):
+    """
+    Component creates a knob that ranges from `minimum` to `maximum`. Provides number as an argument to the wrapped function.
+    Input type: float
+    """
+
+    def __init__(
+        self,
+        minimum: float = 0,
+        maximum: float = 100,
+        step: Optional[float] = None,
+        default: Optional[float] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        minimum (float): minimum value for knob.
+        maximum (float): maximum value for knob.
+        step (float): increment between knob values.
+        default (float): default value.
+        label (str): component name in interface.
+        optional (bool): this parameter is ignored.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+        )
+
+        super().__init__(
+            value=default,
+            minimum=minimum,
+            maximum=maximum,
+            step=step,
+            label=label,
+            optional=optional,
+        )
+
+
 class Checkbox(components.Checkbox):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.

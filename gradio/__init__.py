@@ -34,6 +34,7 @@ from gradio.components import (
     Image,
     Interpretation,
     Json,
+    Knob,
     Label,
     LinePlot,
     Markdown,
