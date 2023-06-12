@@ -4908,7 +4908,6 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         return self
 
 
-@document()
 class Carousel(IOComponent, Changeable, SimpleSerializable):
     """
     Deprecated Component
