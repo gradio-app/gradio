@@ -91,7 +91,7 @@ describe("Gallery", () => {
 			root: "http://localhost:7860",
 			root_url: null,
 			preview: true,
-			detailed_view: false
+			allow_preview: false
 		});
 
 		const details = queryAllByTestId("detailed-image");
