@@ -151,9 +151,6 @@
 	let plugin_scripts = [];
 
 	const resolves = [];
-	const bokehPromises = Array(5)
-		.fill(0)
-		.map((_, i) => createPromise(i));
 
 	const initializeBokeh = (index) => {
 		if (type == "bokeh") {
@@ -210,7 +207,7 @@
 		<img src={plot} />
 	</div>
 {:else}
-	<Empty size="large" unpadded_box={true}><PlotIcon /></Empty>
+	<Empty  unpadded_box={true} size="large"><PlotIcon /></Empty>
 {/if}
 
 <style>

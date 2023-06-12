@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -53,6 +54,10 @@ class TestRoutes:
 
     def test_get_config_route(self, test_client):
         response = test_client.get("/config/")
+        assert response.status_code == 200
+
+    def test_favicon_route(self, test_client):
+        response = test_client.get("/favicon.ico")
         assert response.status_code == 200
 
     def test_upload_path(self, test_client):
@@ -393,6 +398,40 @@ class TestRoutes:
 
         demo.close()
 
+    def test_proxy_route_is_restricted_to_load_urls(self):
+        gr.context.Context.hf_token = "abcdef"
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        app.configure_app(interface)
+        with pytest.raises(PermissionError):
+            app.build_proxy_request(
+                "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+            )
+        with pytest.raises(PermissionError):
+            app.build_proxy_request("https://google.com")
+        interface.root_urls = {
+            "https://gradio-tests-test-loading-examples-private.hf.space"
+        }
+        app.build_proxy_request(
+            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+        )
+
+    def test_proxy_does_not_leak_hf_token_externally(self):
+        gr.context.Context.hf_token = "abcdef"
+        app = routes.App()
+        interface = gr.Interface(lambda x: x, "text", "text")
+        interface.root_urls = {
+            "https://gradio-tests-test-loading-examples-private.hf.space",
+            "https://google.com",
+        }
+        app.configure_app(interface)
+        r = app.build_proxy_request(
+            "https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+        )
+        assert "authorization" in dict(r.headers)
+        r = app.build_proxy_request("https://google.com")
+        assert "authorization" not in dict(r.headers)
+
 
 class TestApp:
     def test_create_app(self):
@@ -645,3 +684,22 @@ def test_orjson_serialization():
     response = test_client.get("/")
     assert response.status_code == 200
     demo.close()
+
+
+def test_file_route_does_not_allow_dot_paths(tmp_path):
+    dot_file = tmp_path / ".env"
+    dot_file.write_text("secret=1234")
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    sub_dot_file = subdir / ".env"
+    sub_dot_file.write_text("secret=1234")
+    secret_sub_dir = tmp_path / ".versioncontrol"
+    secret_sub_dir.mkdir()
+    secret_sub_dir_regular_file = secret_sub_dir / "settings"
+    secret_sub_dir_regular_file.write_text("token = 8")
+    with closing(gr.Interface(lambda s: s.name, gr.File(), gr.File())) as io:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        assert client.get("/file=.env").status_code == 403
+        assert client.get("/file=subdir/.env").status_code == 403
+        assert client.get("/file=.versioncontrol/settings").status_code == 403

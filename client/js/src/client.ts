@@ -45,7 +45,7 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown
 	) => SubmitReturn;
-	view_api: (c?: Config) => Promise<Record<string, any>>;
+	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
 };
 
 type SubmitReturn = {
@@ -214,7 +214,7 @@ export async function client(
 			// duplicate
 		};
 
-		let transform_files = normalise_files ?? true;
+		const transform_files = normalise_files ?? true;
 		if (typeof window === "undefined" || !("WebSocket" in window)) {
 			const ws = await import("ws");
 			NodeBlob = (await import("node:buffer")).Blob;
@@ -250,7 +250,7 @@ export async function client(
 				...return_obj
 			};
 		}
-		let api;
+		let api: ApiInfo<JsApiData>;
 		async function handle_space_sucess(status: SpaceStatus) {
 			if (status_callback) status_callback(status);
 			if (status.status === "running")
@@ -357,7 +357,6 @@ export async function client(
 			let complete: false | Record<string, any> = false;
 			const listener_map: ListenerMap<EventType> = {};
 
-			//@ts-ignore
 			handle_blob(
 				`${http_protocol}//${host + config.path}`,
 				data,
@@ -399,7 +398,7 @@ export async function client(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: output.data,
+									data: data,
 									time: new Date()
 								});
 
@@ -548,7 +547,7 @@ export async function client(
 
 			function fire_event<K extends EventType>(event: Event<K>) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[event.type] || [];
+				const listeners = narrowed_listener_map[event.type] || [];
 				listeners?.forEach((l) => l(event));
 			}
 
@@ -557,7 +556,7 @@ export async function client(
 				listener: EventListener<K>
 			) {
 				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[eventType] || [];
+				const listeners = narrowed_listener_map[eventType] || [];
 				narrowed_listener_map[eventType] = listeners;
 				listeners?.push(listener);
 
@@ -627,9 +626,7 @@ export async function client(
 			};
 		}
 
-		async function view_api(
-			config?: Config
-		): Promise<ApiInfo<JsApiData> | [{ error: string }, 500]> {
+		async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
 			if (api) return api;
 
 			const headers: {
@@ -639,46 +636,46 @@ export async function client(
 			if (hf_token) {
 				headers.Authorization = `Bearer ${hf_token}`;
 			}
-			try {
-				let response: Response;
-				// @ts-ignore
-				if (semiver(config.version || "2.0.0", "3.30") < 0) {
-					response = await fetch(
-						"https://gradio-space-api-fetcher-v2.hf.space/api",
-						{
-							method: "POST",
-							body: JSON.stringify({
-								serialize: false,
-								config: JSON.stringify(config)
-							}),
-							headers
-						}
-					);
-				} else {
-					response = await fetch(`${http_protocol}//${host}/info`, {
+			let response: Response;
+			// @ts-ignore
+			if (semiver(config.version || "2.0.0", "3.30") < 0) {
+				response = await fetch(
+					"https://gradio-space-api-fetcher-v2.hf.space/api",
+					{
+						method: "POST",
+						body: JSON.stringify({
+							serialize: false,
+							config: JSON.stringify(config)
+						}),
 						headers
-					});
-				}
-
-				let api_info = (await response.json()) as
-					| ApiInfo<ApiData>
-					| { api: ApiInfo<ApiData> };
-				if ("api" in api_info) {
-					api_info = api_info.api;
-				}
-
-				if (
-					api_info.named_endpoints["/predict"] &&
-					!api_info.unnamed_endpoints["0"]
-				) {
-					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
-				}
-
-				const x = transform_api_info(api_info, config, api_map);
-				return x;
-			} catch (e) {
-				return [{ error: BROKEN_CONNECTION_MSG }, 500];
+					}
+				);
+			} else {
+				response = await fetch(`${config.root}/info`, {
+					headers
+				});
 			}
+
+			if (!response.ok) {
+				throw new Error(BROKEN_CONNECTION_MSG);
+			}
+
+			let api_info = (await response.json()) as
+				| ApiInfo<ApiData>
+				| { api: ApiInfo<ApiData> };
+			if ("api" in api_info) {
+				api_info = api_info.api;
+			}
+
+			if (
+				api_info.named_endpoints["/predict"] &&
+				!api_info.unnamed_endpoints["0"]
+			) {
+				api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+			}
+
+			const x = transform_api_info(api_info, config, api_map);
+			return x;
 		}
 	});
 }
@@ -689,7 +686,7 @@ function transform_output(
 	root_url: string,
 	remote_url?: string
 ): unknown[] {
-	let transformed_data = data.map((d, i) => {
+	return data.map((d, i) => {
 		if (api_info.returns?.[i]?.component === "File") {
 			return normalise_file(d, root_url, remote_url);
 		} else if (api_info.returns?.[i]?.component === "Gallery") {
@@ -704,14 +701,27 @@ function transform_output(
 			return d;
 		}
 	});
-
-	return transformed_data;
 }
 
-export function normalise_file(
-	file: Array<FileData> | FileData | string | null,
+function normalise_file(
+	file: Array<FileData>,
 	root: string,
 	root_url: string | null
+): Array<FileData>;
+function normalise_file(
+	file: FileData | string,
+	root: string,
+	root_url: string | null
+): FileData;
+function normalise_file(
+	file: null,
+	root: string,
+	root_url: string | null
+): null;
+function normalise_file(
+	file,
+	root,
+	root_url
 ): Array<FileData> | FileData | null {
 	if (file == null) return null;
 	if (typeof file === "string") {
@@ -726,7 +736,6 @@ export function normalise_file(
 			if (x === null) {
 				normalized_file.push(null);
 			} else {
-				//@ts-ignore
 				normalized_file.push(normalise_file(x, root, root_url));
 			}
 		}
@@ -736,7 +745,7 @@ export function normalise_file(
 		if (!root_url) {
 			file.data = root + "/file=" + file.name;
 		} else {
-			file.data = "/proxy=" + root_url + "/file=" + file.name;
+			file.data = "/proxy=" + root_url + "file=" + file.name;
 		}
 	}
 	return file;
@@ -907,38 +916,33 @@ export async function handle_blob(
 		api_info
 	);
 
-	return new Promise((res) => {
-		Promise.all(
-			blob_refs.map(async ({ path, blob, data, type }) => {
-				if (blob) {
-					const file_url = (await upload_files(endpoint, [blob], token))
-						.files[0];
-					return { path, file_url, type };
-				} else {
-					return { path, base64: data, type };
-				}
-			})
-		)
-			.then((r) => {
-				r.forEach(({ path, file_url, base64, type }) => {
-					if (base64) {
-						update_object(data, base64, path);
-					} else if (type === "Gallery") {
-						update_object(data, file_url, path);
-					} else if (file_url) {
-						const o = {
-							is_file: true,
-							name: `${file_url}`,
-							data: null
-							// orig_name: "file.csv"
-						};
-						update_object(data, o, path);
-					}
-				});
+	return Promise.all(
+		blob_refs.map(async ({ path, blob, data, type }) => {
+			if (blob) {
+				const file_url = (await upload_files(endpoint, [blob], token)).files[0];
+				return { path, file_url, type };
+			} else {
+				return { path, base64: data, type };
+			}
+		})
+	).then((r) => {
+		r.forEach(({ path, file_url, base64, type }) => {
+			if (base64) {
+				update_object(data, base64, path);
+			} else if (type === "Gallery") {
+				update_object(data, file_url, path);
+			} else if (file_url) {
+				const o = {
+					is_file: true,
+					name: `${file_url}`,
+					data: null
+					// orig_name: "file.csv"
+				};
+				update_object(data, o, path);
+			}
+		});
 
-				res(data);
-			})
-			.catch(console.log);
+		return data;
 	});
 }
 
@@ -1125,9 +1129,18 @@ async function check_space_status(
 
 			setTimeout(() => {
 				check_space_status(id, type, status_callback);
-			}, 1000);
+			}, 1000); // poll for status
 			break;
-		// poll for status
+		case "PAUSED":
+			status_callback({
+				status: "paused",
+				load_status: "error",
+				message:
+					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space.",
+				detail: stage,
+				discussions_enabled: await discussions_enabled(space_name)
+			});
+			break;
 		case "RUNNING":
 		case "RUNNING_BUILDING":
 			status_callback({
@@ -1226,18 +1239,32 @@ function handle_message(
 				data: data.success ? data.output : null
 			};
 		case "process_completed":
-			return {
-				type: "complete",
-				status: {
-					queue,
-					message: !data.success ? data.output.error : undefined,
-					stage: data.success ? "complete" : "error",
-					code: data.code,
-					progress_data: data.progress_data,
-					eta: data.output.average_duration
-				},
-				data: data.success ? data.output : null
-			};
+			if ("error" in data.output) {
+				return {
+					type: "update",
+					status: {
+						queue,
+						message: data.output.error as string,
+						stage: "error",
+						code: data.code,
+						success: data.success
+					}
+				};
+			} else {
+				return {
+					type: "complete",
+					status: {
+						queue,
+						message: !data.success ? data.output.error : undefined,
+						stage: data.success ? "complete" : "error",
+						code: data.code,
+						progress_data: data.progress_data,
+						eta: data.output.average_duration
+					},
+					data: data.success ? data.output : null
+				};
+			}
+
 		case "process_starts":
 			return {
 				type: "update",

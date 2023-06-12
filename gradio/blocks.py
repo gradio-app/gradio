@@ -40,7 +40,7 @@ from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
-from gradio.tunneling import CURRENT_TUNNELS
+from gradio.tunneling import BINARY_PATH, CURRENT_TUNNELS
 from gradio.utils import (
     GRADIO_VERSION,
     TupleNoPrint,
@@ -50,6 +50,11 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
 )
+
+try:
+    import spaces  # type: ignore
+except Exception:
+    spaces = None
 
 set_documentation_group("blocks")
 
@@ -92,7 +97,6 @@ class Block:
         self.root_url = root_url
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
-        self._style = {}
         self.parent: BlockContext | None = None
 
         if render:
@@ -160,7 +164,7 @@ class Block:
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: str = "full",
         api_name: str | None = None,
         js: str | None = None,
         no_target: bool = False,
@@ -292,7 +296,6 @@ class Block:
             "visible": self.visible,
             "elem_id": self.elem_id,
             "elem_classes": self.elem_classes,
-            "style": self._style,
             "root_url": self.root_url,
         }
 
@@ -324,6 +327,9 @@ class BlockContext(Block):
         self.children: list[Block] = []
         Block.__init__(self, visible=visible, render=render, **kwargs)
 
+    def add_child(self, child: Block):
+        self.children.append(child)
+
     def __enter__(self):
         self.parent = Context.block
         Context.block = self
@@ -345,11 +351,12 @@ class BlockContext(Block):
                 if pseudo_parent is not None and isinstance(
                     pseudo_parent, expected_parent
                 ):
-                    pseudo_parent.children.append(child)
+                    pseudo_parent.add_child(child)
                 else:
                     pseudo_parent = expected_parent(render=False)
+                    pseudo_parent.parent = self
                     children.append(pseudo_parent)
-                    pseudo_parent.children = [child]
+                    pseudo_parent.add_child(child)
                     if Context.root_block:
                         Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
@@ -388,6 +395,14 @@ class BlockFunction:
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
         self.name = getattr(fn, "__name__", "fn") if fn is not None else None
+        self.spaces_auto_wrap()
+
+    def spaces_auto_wrap(self):
+        if spaces is None:
+            return
+        if not utils.is_space():
+            return
+        self.fn = spaces.gradio_auto_wrap(self.fn)
 
     def __str__(self):
         return str(
@@ -704,7 +719,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = os.getenv("SYSTEM") == "spaces"
+        self.is_space = utils.is_space()
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
@@ -725,6 +740,7 @@ class Blocks(BlockContext):
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = ""
+        self.root_urls = set()
 
         if self.analytics_enabled:
             is_custom_theme = not any(
@@ -745,20 +761,27 @@ class Blocks(BlockContext):
         cls,
         config: dict,
         fns: list[Callable],
-        root_url: str | None = None,
+        root_url: str,
     ) -> Blocks:
         """
-        Factory method that creates a Blocks from a config and list of functions.
+        Factory method that creates a Blocks from a config and list of functions. Used
+        internally by the gradio.external.load() method.
 
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
-        root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        root_url: an external url to use as a root URL when serving files for components in the Blocks.
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
+        for component_config in components_config:
+            # for backwards compatibility, extract style into props
+            if "style" in component_config["props"]:
+                component_config["props"].update(component_config["props"]["style"])
+                del component_config["props"]["style"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
+        root_urls = {root_url}
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -769,13 +792,15 @@ class Blocks(BlockContext):
             cls = component_or_layout_class(block_config["type"])
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
-            style = block_config["props"].pop("style", None)
-            if block_config["props"].get("root_url") is None and root_url:
+            # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
+            # Gradio app C, then the root_urls of the components in A need to be the
+            # URL of C, not B. The else clause below handles this case.
+            if block_config["props"].get("root_url") is None:
                 block_config["props"]["root_url"] = f"{root_url}/"
+            else:
+                root_urls.add(block_config["props"]["root_url"])
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
-            if style and isinstance(block, components.IOComponent):
-                block.style(**style)
             return block
 
         def iterate_over_children(children_list):
@@ -847,6 +872,7 @@ class Blocks(BlockContext):
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
 
+        blocks.root_urls = root_urls
         return blocks
 
     def __str__(self):
@@ -922,6 +948,7 @@ class Blocks(BlockContext):
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
+            Context.root_block.root_urls.update(self.root_urls)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -1421,7 +1448,7 @@ Received outputs:
         outputs: list[Component] | None = None,
         api_name: str | None = None,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: str = "full",
         queue=None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -1448,7 +1475,7 @@ Received outputs:
         Parameters:
             name: Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
             src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-            api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens. Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
             alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
             fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
@@ -1482,7 +1509,9 @@ Received outputs:
                 name=name, src=src, hf_token=api_key, alias=alias, **kwargs
             )
         else:
-            return self_or_cls.set_event_trigger(
+            from gradio.events import Dependency
+
+            dep, dep_index = self_or_cls.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
@@ -1498,7 +1527,8 @@ Received outputs:
                 max_batch_size=max_batch_size,
                 every=every,
                 no_target=True,
-            )[0]
+            )
+            return Dependency(self_or_cls, dep, dep_index)
 
     def clear(self):
         """Resets the layout of the Blocks object."""
@@ -1615,6 +1645,7 @@ Received outputs:
         blocked_paths: list[str] | None = None,
         root_path: str = "",
         _frontend: bool = True,
+        app_kwargs: dict[str, Any] | None = None,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -1648,6 +1679,7 @@ Received outputs:
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp".
+            app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1747,6 +1779,7 @@ Received outputs:
                 ssl_keyfile,
                 ssl_certfile,
                 ssl_keyfile_password,
+                app_kwargs=app_kwargs,
             )
             self.server_name = server_name
             self.local_url = local_url
@@ -1839,7 +1872,7 @@ Received outputs:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                print(strings.en["COULD_NOT_GET_SHARE_LINK"].format(BINARY_PATH))
         else:
             if not (quiet):
                 print(strings.en["PUBLIC_SHARE_TRUE"])

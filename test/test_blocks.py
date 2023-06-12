@@ -15,11 +15,14 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
+import gradio_client as grc
+import numpy as np
 import pytest
 import uvicorn
 import websockets
 from fastapi.testclient import TestClient
 from gradio_client import media_data
+from PIL import Image
 
 import gradio as gr
 from gradio.events import SelectData
@@ -134,6 +137,8 @@ class TestBlocksMethods:
         assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
+        fake_url = "https://fake.hf.space"
+
         def update(name):
             return f"Welcome to Gradio, {name}!"
 
@@ -146,8 +151,12 @@ class TestBlocksMethods:
             gr.Image().style(height=54, width=240)
 
         config1 = demo1.get_config_file()
-        demo2 = gr.Blocks.from_config(config1, [update])
+        demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
+
+        for component in config1["components"]:
+            component["props"]["root_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
+
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
     def test_partial_fn_in_config(self):
@@ -358,7 +367,6 @@ class TestBlocksMethods:
             demo.close()
 
     def test_socket_reuse(self):
-
         try:
             io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
             io.launch(server_port=9441, prevent_thread_lock=True)
@@ -375,7 +383,6 @@ class TestBlocksMethods:
             yield from range(10)
 
         with gr.Blocks() as demo:
-
             gr.Number(value=lambda: 2, every=2)
             meaning_of_life = gr.Number()
             counter = gr.Number()
@@ -465,6 +472,106 @@ class TestBlocksMethods:
         demo.close()
 
 
+class TestTempFile:
+    def test_pil_images_hashed(self, tmp_path, connect, monkeypatch):
+        images = [
+            Image.new("RGB", (512, 512), color) for color in ("red", "green", "blue")
+        ]
+
+        def create_images(n_images):
+            return random.sample(images, n_images)
+
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        demo = gr.Interface(
+            create_images,
+            inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
+            outputs=[gr.Gallery().style(grid=2, preview=True)],
+        )
+        with connect(demo) as client:
+            _ = client.predict(3)
+            _ = client.predict(3)
+        # only three files created
+        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+
+    def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
+        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        image = str(file_dir / "bus.png")
+
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        demo = gr.Interface(
+            lambda x: x,
+            inputs=gr.Image(type="filepath"),
+            outputs=gr.Image(),
+        )
+        with connect(demo) as client:
+            _ = client.predict(image)
+            _ = client.predict(image)
+            _ = client.predict(image)
+        # only three files created
+        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 1
+
+    @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
+    def test_file_component_uploads(self, component, tmp_path, connect, monkeypatch):
+        code_file = str(pathlib.Path(__file__))
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        demo = gr.Interface(lambda x: x.name, component(), gr.File())
+        with connect(demo) as client:
+            _ = client.predict(code_file)
+            _ = client.predict(code_file)
+        # the upload route does not hash the file so 2 files from there
+        # We create two tempfiles (empty) because API says we return
+        # preprocess/postprocess will only create one file since we hash
+        # so 2 + 2 + 1 = 5
+        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 5
+
+    @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
+    def test_file_component_uploads_no_serialize(
+        self, component, tmp_path, connect, monkeypatch
+    ):
+        code_file = str(pathlib.Path(__file__))
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        demo = gr.Interface(lambda x: x.name, component(), gr.File())
+        with connect(demo, serialize=False) as client:
+            _ = client.predict(gr.File().serialize(code_file))
+            _ = client.predict(gr.File().serialize(code_file))
+        # We skip the upload route in this case
+        # We create two tempfiles (empty) because API says we return
+        # preprocess/postprocess will only create one file since we hash
+        # so 2 + 1 = 3
+        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+
+    def test_no_empty_video_files(self, tmp_path, monkeypatch, connect):
+        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        video = str(file_dir / "video_sample.mp4")
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
+        with connect(demo) as client:
+            _, url, _ = demo.launch(prevent_thread_lock=True)
+            client = grc.Client(url)
+            _ = client.predict(video)
+            _ = client.predict(video)
+        # During preprocessing we compute the hash based on base64
+        # In postprocessing we compute it based on the file
+        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+
+    def test_no_empty_audio_files(self, tmp_path, monkeypatch, connect):
+        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        audio = str(file_dir / "audio_sample.wav")
+
+        def reverse_audio(audio):
+            sr, data = audio
+            return (sr, np.flipud(data))
+
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
+        with connect(demo) as client:
+            _ = client.predict(audio)
+            _ = client.predict(audio)
+            # During preprocessing we compute the hash based on base64
+            # In postprocessing we compute it based on the file
+            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+
+
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
         with gr.Blocks() as demo:
@@ -524,7 +631,6 @@ class TestComponentsInBlocks:
 
 class TestBlocksPostprocessing:
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
-
         io_components = [
             c()
             for c in io_components
@@ -1002,10 +1108,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": False,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": False,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1018,10 +1128,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": True,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": True,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1032,15 +1146,26 @@ class TestSpecificUpdate:
                 "value": "test.mp4",
                 "__type__": "generic_update",
                 "interactive": True,
+                "container": None,
+                "height": None,
+                "min_width": None,
+                "scale": None,
+                "width": None,
             }
         )
         assert specific_update == {
+            "autoplay": None,
             "source": None,
             "label": None,
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
+            "container": None,
+            "height": None,
+            "min_width": None,
+            "scale": None,
+            "width": None,
             "__type__": "update",
         }
 
@@ -1284,7 +1409,6 @@ class TestEvery:
 
     @pytest.mark.asyncio
     async def test_every_does_not_block_queue(self):
-
         with gr.Blocks() as demo:
             num = gr.Number(value=0)
             name = gr.Textbox()

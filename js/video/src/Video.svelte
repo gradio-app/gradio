@@ -16,16 +16,19 @@
 	export let show_label: boolean = true;
 	export let mirror_webcam: boolean = false;
 	export let include_audio: boolean;
+	export let autoplay: boolean;
 
 	const dispatch = createEventDispatcher<{
-		change: FileData | null;
+		change: any;
 		clear: undefined;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		end: undefined;
 		drag: boolean;
 		error: string;
 		upload: FileData;
+		start_recording: undefined;
+		stop_recording: undefined;
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>) {
@@ -57,6 +60,8 @@
 			mode="video"
 			on:error
 			on:capture={({ detail }) => dispatch("change", detail)}
+			on:start_recording
+			on:stop_recording
 		/>
 	{/if}
 {:else}
@@ -64,11 +69,13 @@
 	{#if playable()}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<Player
+			{autoplay}
 			src={value.data}
 			subtitle={subtitle?.data}
 			on:play
 			on:pause
-			on:ended
+			on:stop
+			on:end
 			mirror={mirror_webcam && source === "webcam"}
 		/>
 	{:else if value.size}

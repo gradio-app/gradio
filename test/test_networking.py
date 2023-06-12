@@ -54,7 +54,6 @@ class TestInterfaceErrors:
 
 
 class TestStartServer:
-
     # Test IPv4 and IPv6 hostnames as they would be passed from --server-name.
     @pytest.mark.parametrize("host", ["127.0.0.1", "[::1]"])
     def test_start_server(self, host):
@@ -82,3 +81,20 @@ class TestURLs:
     def test_url_ok(self):
         res = networking.url_ok("https://www.gradio.app")
         assert res
+
+
+def test_start_server_app_kwargs():
+    """
+    Test that start_server accepts app_kwargs and they're propagated to FastAPI.
+    """
+    io = Interface(lambda x: x, "number", "number")
+    app, _, _ = io.launch(
+        show_error=True,
+        prevent_thread_lock=True,
+        app_kwargs={
+            "docs_url": "/docs",
+        },
+    )
+    client = TestClient(app)
+    assert client.get("/docs").status_code == 200
+    io.close()

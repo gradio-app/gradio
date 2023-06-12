@@ -3,7 +3,6 @@
 	import { Block, Info } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -13,16 +12,13 @@
 	export let label: string = "Checkbox";
 	export let info: string | undefined = undefined;
 	export let mode: "static" | "dynamic";
-	export let style: Styles = {};
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	disable={typeof style.container === "boolean" && !style.container}
->
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	{#if info}

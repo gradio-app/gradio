@@ -205,7 +205,6 @@ class TestSemverMatch:
 
 class TestGetThemeAssets:
     def test_get_theme_assets(self):
-
         space_info = huggingface_hub.hf_api.SpaceInfo(
             id="freddyaboulton/dracula",
             siblings=[
@@ -285,20 +284,18 @@ class TestThemeUploadDownload:
 
     @pytest.mark.flaky
     def test_theme_download(self):
-
         assert (
-            gr.themes.Base.from_hub("gradio/dracula_test@0.0.1").to_dict()
+            gr.themes.Base.from_hub("gradio/dracula_test@0.0.2").to_dict()
             == dracula.to_dict()
         )
 
-        with gr.Blocks(theme="gradio/dracula_test@0.0.1") as demo:
+        with gr.Blocks(theme="gradio/dracula_test@0.0.2") as demo:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()
         assert demo.theme.name == "gradio/dracula_test"
 
     def test_theme_download_raises_error_if_theme_does_not_exist(self):
-
         with pytest.raises(
             ValueError, match="The space freddyaboulton/nonexistent does not exist"
         ):
