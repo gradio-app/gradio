@@ -12,7 +12,6 @@ from gradio_client.serializing import StringSerializable
 from gradio.components.base import (
     FormComponent,
     IOComponent,
-    TokenInterpretable,
     _Keywords,
 )
 from gradio.events import (
@@ -23,6 +22,7 @@ from gradio.events import (
     Selectable,
     Submittable,
 )
+from gradio.interpretation import TokenInterpretable
 
 set_documentation_group("components")
 

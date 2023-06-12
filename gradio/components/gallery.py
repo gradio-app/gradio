@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import inspect
 import warnings
 from typing import Any, Callable, Literal
 
 import numpy as np
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
