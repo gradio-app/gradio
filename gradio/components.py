@@ -165,7 +165,7 @@ class Component(Block, Serializable):
         ):
             self.parent.variant = "compact"
         return self
-    
+
     def cleared_value(self):
         """The value to set the component to when the clear button is clicked."""
         return None
@@ -959,10 +959,10 @@ class Slider(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
+        self.original_value = self.value
 
     def cleared_value(self):
-        return self.cleared_value
+        return self.original_value
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
@@ -1472,10 +1472,10 @@ class Radio(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
+        self.original_value = self.value
 
     def cleared_value(self):
-        return self.cleared_value
+        return self.original_value
 
     def get_config(self):
         return {
@@ -1673,7 +1673,10 @@ class Dropdown(
             **kwargs,
         )
 
-        self.cleared_value = self.value or ([] if multiselect else "")
+        self.original_value = self.value or ([] if multiselect else "")
+
+    def cleared_value(self):
+        return self.original_value
 
     def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
@@ -3886,7 +3889,6 @@ class ColorPicker(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.cleared_value = "#000000"
         IOComponent.__init__(
             self,
             label=label,

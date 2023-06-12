@@ -15,6 +15,8 @@ class ClearButton(Button):
     Button that clears the value of a component or a list of components when clicked.
     """
 
+    is_template = True
+
     def __init__(
         self,
         components: list[Component] | Component,
