@@ -53,7 +53,7 @@ class ClearButton(Button):
         if isinstance(components, Component):
             components = [components]
         clear_values = json.dumps(
-            [{"value": component.cleared_value(), "__type__": "update"} for component in components]
+            [{"value": component.postprocess(None), "__type__": "update"} for component in components]
         )
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self

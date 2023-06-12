@@ -166,10 +166,6 @@ class Component(Block, Serializable):
             self.parent.variant = "compact"
         return self
 
-    def cleared_value(self):
-        """The value to set the component to when the clear button is clicked."""
-        return None
-
 
 class IOComponent(Component):
     """
@@ -516,9 +512,6 @@ class Textbox(
         )
         TokenInterpretable.__init__(self)
         self.type = type
-
-    def cleared_value(self):
-        return ""
 
     def get_config(self):
         return {
@@ -959,10 +952,6 @@ class Slider(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.original_value = self.value
-
-    def cleared_value(self):
-        return self.original_value
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
@@ -1270,9 +1259,6 @@ class CheckboxGroup(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-
-    def cleared_value(self):
-        return []
 
     def get_config(self):
         return {
