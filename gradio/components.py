@@ -20,7 +20,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, Literal
 
 import aiofiles
 import altair as alt
@@ -50,7 +50,6 @@ from gradio_client.serializing import (
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from typing_extensions import Literal
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
