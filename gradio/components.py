@@ -2430,9 +2430,7 @@ class Video(
         """
         if video is None:
             return None
-
         returned_format = video.split(".")[-1].lower()
-
         if self.format is None or returned_format == self.format:
             conversion_needed = False
         else:
@@ -2453,9 +2451,16 @@ class Video(
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
+        # Recalculate the format in case convert_video_to_playable_mp4 already made it the
+        # selected format
+        returned_format = video.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={video: None}, outputs={output_file_name: None})
+            ff = FFmpeg(
+                inputs={video: None},
+                outputs={output_file_name: None},
+                global_options="-y",
+            )
             ff.run()
             video = output_file_name
 
@@ -4748,6 +4753,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
+        allow_preview: bool = True,
         **kwargs,
     ):
         """
@@ -4767,12 +4773,14 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             height: Height of the gallery.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
+            allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
         """
         self.grid_cols = columns
         self.grid_rows = rows
         self.height = height
         self.preview = preview
         self.object_fit = object_fit
+        self.allow_preview = allow_preview
         self.select: EventListenerMethod
         """
         Event listener for when the user selects image within Gallery.
@@ -4808,6 +4816,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
+        allow_preview: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -4822,6 +4831,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "height": height,
             "preview": preview,
             "object_fit": object_fit,
+            "allow_preview": allow_preview,
             "__type__": "update",
         }
         return updated_config
@@ -4834,6 +4844,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "height": self.height,
             "preview": self.preview,
             "object_fit": self.object_fit,
+            "allow_preview": self.allow_preview,
             **IOComponent.get_config(self),
         }
 
