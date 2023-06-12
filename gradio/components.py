@@ -2413,9 +2413,7 @@ class Video(
         """
         if video is None:
             return None
-
         returned_format = video.split(".")[-1].lower()
-
         if self.format is None or returned_format == self.format:
             conversion_needed = False
         else:
@@ -2436,9 +2434,16 @@ class Video(
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
+        # Recalculate the format in case convert_video_to_playable_mp4 already made it the
+        # selected format
+        returned_format = video.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={video: None}, outputs={output_file_name: None})
+            ff = FFmpeg(
+                inputs={video: None},
+                outputs={output_file_name: None},
+                global_options="-y",
+            )
             ff.run()
             video = output_file_name
 
