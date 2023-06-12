@@ -25,6 +25,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "image_mod_default_image",
         "interface_parallel_load",
         "interface_random_slider",
+        "interface_random_knob",
         "interface_series_load",
         "kitchen_sink",
         "kitchen_sink_random",
