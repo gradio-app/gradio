@@ -1458,10 +1458,6 @@ class Radio(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.original_value = self.value
-
-    def cleared_value(self):
-        return self.original_value
 
     def get_config(self):
         return {
@@ -1658,11 +1654,6 @@ class Dropdown(
             value=value,
             **kwargs,
         )
-
-        self.original_value = self.value or ([] if multiselect else "")
-
-    def cleared_value(self):
-        return self.original_value
 
     def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
