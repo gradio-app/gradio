@@ -39,7 +39,7 @@ Gradio is useful for:
 
 ## Quickstart
 
-**Prerequisite**: Gradio requires Python 3.7 or higher, that's all!
+**Prerequisite**: Gradio requires Python 3.8 or higher, that's all!
 
 ### What Does Gradio Do?
 
