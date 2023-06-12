@@ -414,6 +414,7 @@ class FormComponent:
         return Form
 
 
+@document()
 class Textbox(
     FormComponent,
     Changeable,
@@ -652,6 +653,7 @@ class Textbox(
         return self
 
 
+@document()
 class Number(
     FormComponent,
     Changeable,
@@ -864,6 +866,7 @@ class Number(
         return interpretation
 
 
+@document()
 class Slider(
     FormComponent,
     Changeable,
@@ -1056,6 +1059,7 @@ class Slider(
         return self
 
 
+@document()
 class Checkbox(
     FormComponent,
     Changeable,
@@ -1173,6 +1177,7 @@ class Checkbox(
             return None, scores[0]
 
 
+@document()
 class CheckboxGroup(
     FormComponent,
     Changeable,
@@ -1371,6 +1376,7 @@ class CheckboxGroup(
         return self
 
 
+@document()
 class Radio(
     FormComponent,
     Selectable,
@@ -1549,6 +1555,7 @@ class Radio(
         return self
 
 
+@document()
 class Dropdown(
     Changeable,
     Inputable,
@@ -1771,6 +1778,7 @@ class Dropdown(
         return self
 
 
+@document()
 class Image(
     Editable,
     Clearable,
@@ -2149,6 +2157,7 @@ class Image(
         return str(utils.abspath(input_data))
 
 
+@document()
 class Video(
     Changeable,
     Clearable,
@@ -2404,9 +2413,7 @@ class Video(
         """
         if video is None:
             return None
-
         returned_format = video.split(".")[-1].lower()
-
         if self.format is None or returned_format == self.format:
             conversion_needed = False
         else:
@@ -2427,9 +2434,16 @@ class Video(
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
+        # Recalculate the format in case convert_video_to_playable_mp4 already made it the
+        # selected format
+        returned_format = video.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={video: None}, outputs={output_file_name: None})
+            ff = FFmpeg(
+                inputs={video: None},
+                outputs={output_file_name: None},
+                global_options="-y",
+            )
             ff.run()
             video = output_file_name
 
@@ -2503,6 +2517,7 @@ class Video(
         return self
 
 
+@document()
 class Audio(
     Changeable,
     Clearable,
@@ -2806,6 +2821,7 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
 
+@document()
 class File(
     Changeable,
     Selectable,
@@ -3061,6 +3077,7 @@ class File(
             return self._multiple_file_example_inputs()
 
 
+@document()
 class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -3335,6 +3352,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         return input_data
 
 
+@document()
 class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
@@ -3513,6 +3531,7 @@ class Variable(State):
         return "state"
 
 
+@document()
 class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
@@ -3620,6 +3639,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         return self
 
 
+@document()
 class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
@@ -3813,6 +3833,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         return self
 
 
+@document()
 class ColorPicker(
     Changeable, Inputable, Submittable, Blurrable, IOComponent, StringSerializable
 ):
@@ -3941,6 +3962,7 @@ class ColorPicker(
 ############################
 
 
+@document()
 class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
@@ -4102,6 +4124,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
@@ -4288,6 +4311,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
@@ -4510,6 +4534,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
@@ -4645,8 +4670,6 @@ class HTML(Changeable, IOComponent, StringSerializable):
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -4686,6 +4709,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
         return updated_config
 
 
+@document()
 class Gallery(IOComponent, GallerySerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
@@ -4713,6 +4737,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
+        allow_preview: bool = True,
         **kwargs,
     ):
         """
@@ -4732,12 +4757,14 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             height: Height of the gallery.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
+            allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
         """
         self.grid_cols = columns
         self.grid_rows = rows
         self.height = height
         self.preview = preview
         self.object_fit = object_fit
+        self.allow_preview = allow_preview
         self.select: EventListenerMethod
         """
         Event listener for when the user selects image within Gallery.
@@ -4773,6 +4800,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
+        allow_preview: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -4787,6 +4815,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "height": height,
             "preview": preview,
             "object_fit": object_fit,
+            "allow_preview": allow_preview,
             "__type__": "update",
         }
         return updated_config
@@ -4799,6 +4828,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "height": self.height,
             "preview": self.preview,
             "object_fit": self.object_fit,
+            "allow_preview": self.allow_preview,
             **IOComponent.get_config(self),
         }
 
@@ -4900,6 +4930,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
         )
 
 
+@document()
 class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
@@ -5105,6 +5136,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class Model3D(
     Changeable, Uploadable, Editable, Clearable, IOComponent, FileSerializable
 ):
@@ -6613,6 +6645,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
 ############################
 
 
+@document()
 class Dataset(Clickable, Selectable, Component, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
