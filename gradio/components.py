@@ -73,6 +73,7 @@ from gradio.events import (
 )
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -413,6 +414,7 @@ class FormComponent:
         return Form
 
 
+@document()
 class Textbox(
     FormComponent,
     Changeable,
@@ -651,6 +653,7 @@ class Textbox(
         return self
 
 
+@document()
 class Number(
     FormComponent,
     Changeable,
@@ -686,6 +689,8 @@ class Number(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         precision: int | None = None,
+        minimum: float | None = None,
+        maximum: float | None = None,
         **kwargs,
     ):
         """
@@ -703,8 +708,13 @@ class Number(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
+            minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
+            maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
         """
         self.precision = precision
+        self.minimum = minimum
+        self.maximum = maximum
+
         IOComponent.__init__(
             self,
             label=label,
@@ -746,12 +756,16 @@ class Number(
     def get_config(self):
         return {
             "value": self.value,
+            "minimum": self.minimum,
+            "maximum": self.maximum,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        minimum: float | None = None,
+        maximum: float | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
@@ -768,6 +782,8 @@ class Number(
             "min_width": min_width,
             "visible": visible,
             "value": value,
+            "minimum": minimum,
+            "maximum": maximum,
             "interactive": interactive,
             "__type__": "update",
         }
@@ -781,6 +797,10 @@ class Number(
         """
         if x is None:
             return None
+        elif self.minimum != None and x < self.minimum:
+            raise Error(f"Value {x} is less than minimum value {self.minimum}.")
+        elif self.maximum != None and x > self.maximum:
+            raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
         return self._round_to_precision(x, self.precision)
 
     def postprocess(self, y: float | None) -> float | None:
@@ -846,6 +866,7 @@ class Number(
         return interpretation
 
 
+@document()
 class Slider(
     FormComponent,
     Changeable,
@@ -1038,6 +1059,7 @@ class Slider(
         return self
 
 
+@document()
 class Checkbox(
     FormComponent,
     Changeable,
@@ -1155,6 +1177,7 @@ class Checkbox(
             return None, scores[0]
 
 
+@document()
 class CheckboxGroup(
     FormComponent,
     Changeable,
@@ -1353,6 +1376,7 @@ class CheckboxGroup(
         return self
 
 
+@document()
 class Radio(
     FormComponent,
     Selectable,
@@ -1531,6 +1555,7 @@ class Radio(
         return self
 
 
+@document()
 class Dropdown(
     Changeable,
     Inputable,
@@ -1753,6 +1778,7 @@ class Dropdown(
         return self
 
 
+@document()
 class Image(
     Editable,
     Clearable,
@@ -2131,6 +2157,7 @@ class Image(
         return str(utils.abspath(input_data))
 
 
+@document()
 class Video(
     Changeable,
     Clearable,
@@ -2172,6 +2199,7 @@ class Video(
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
+        autoplay: bool = False,
         **kwargs,
     ):
         """
@@ -2195,6 +2223,7 @@ class Video(
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
         """
         self.format = format
+        self.autoplay = autoplay
         valid_sources = ["upload", "webcam"]
         if source not in valid_sources:
             raise ValueError(
@@ -2231,6 +2260,7 @@ class Video(
             "width": self.width,
             "mirror_webcam": self.mirror_webcam,
             "include_audio": self.include_audio,
+            "autoplay": self.autoplay,
             **IOComponent.get_config(self),
         }
 
@@ -2250,6 +2280,7 @@ class Video(
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        autoplay: bool | None = None,
     ):
         return {
             "source": source,
@@ -2263,6 +2294,7 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "autoplay": autoplay,
             "__type__": "update",
         }
 
@@ -2480,6 +2512,7 @@ class Video(
         return self
 
 
+@document()
 class Audio(
     Changeable,
     Clearable,
@@ -2518,6 +2551,7 @@ class Audio(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
+        autoplay: bool = False,
         **kwargs,
     ):
         """
@@ -2572,12 +2606,14 @@ class Audio(
         )
         TokenInterpretable.__init__(self)
         self.format = format
+        self.autoplay = autoplay
 
     def get_config(self):
         return {
             "source": self.source,
             "value": self.value,
             "streaming": self.streaming,
+            "autoplay": self.autoplay,
             **IOComponent.get_config(self),
         }
 
@@ -2598,6 +2634,7 @@ class Audio(
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        autoplay: bool | None = None,
     ):
         return {
             "source": source,
@@ -2609,6 +2646,7 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "autoplay": autoplay,
             "__type__": "update",
         }
 
@@ -2778,6 +2816,7 @@ class Audio(
         return Path(input_data).name if input_data else ""
 
 
+@document()
 class File(
     Changeable,
     Selectable,
@@ -3033,6 +3072,7 @@ class File(
             return self._multiple_file_example_inputs()
 
 
+@document()
 class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -3307,6 +3347,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         return input_data
 
 
+@document()
 class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
@@ -3485,6 +3526,7 @@ class Variable(State):
         return "state"
 
 
+@document()
 class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
@@ -3592,6 +3634,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         return self
 
 
+@document()
 class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
@@ -3785,6 +3828,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         return self
 
 
+@document()
 class ColorPicker(
     Changeable, Inputable, Submittable, Blurrable, IOComponent, StringSerializable
 ):
@@ -3913,6 +3957,7 @@ class ColorPicker(
 ############################
 
 
+@document()
 class Label(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
@@ -4074,6 +4119,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
@@ -4260,6 +4306,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
@@ -4482,6 +4529,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
@@ -4617,8 +4665,6 @@ class HTML(Changeable, IOComponent, StringSerializable):
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -4658,6 +4704,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
         return updated_config
 
 
+@document()
 class Gallery(IOComponent, GallerySerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
@@ -4856,6 +4903,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         return self
 
 
+@document()
 class Carousel(IOComponent, Changeable, SimpleSerializable):
     """
     Deprecated Component
@@ -4872,6 +4920,7 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
         )
 
 
+@document()
 class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
@@ -5077,6 +5126,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         return self
 
 
+@document()
 class Model3D(
     Changeable, Uploadable, Editable, Clearable, IOComponent, FileSerializable
 ):
@@ -6585,6 +6635,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
 ############################
 
 
+@document()
 class Dataset(Clickable, Selectable, Component, StringSerializable):
     """
     Used to create an output widget for showing datasets. Used to render the examples
