@@ -26,6 +26,13 @@ components = [
         value=lambda: random.random(),
         label="Slider with value func",
     ),
+    gr.Knob(minimum=-1, maximum=1, randomize=True, label="Knob with randomize"),
+    gr.Knob(
+        minimum=0,
+        maximum=1,
+        value=lambda: random.random(),
+        label="Knob with value func",
+    ),
     gr.Checkbox(value=lambda: random.random() > 0.5, label="Random Checkbox"),
     gr.CheckboxGroup(
         choices=["a", "b", "c", "d"],
