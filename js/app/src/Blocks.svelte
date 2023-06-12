@@ -213,11 +213,11 @@
 						output.props[update_key] = update_value;
 					}
 				}
-				rootNode = rootNode;
 			} else {
 				output.props.value = value;
-			}
+			}			
 		});
+		rootNode = rootNode;
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
@@ -259,6 +259,7 @@
 		};
 
 		if (dep.frontend_fn) {
+			console.log("running frontend fn")
 			dep
 				.frontend_fn(
 					payload.data.concat(
@@ -266,6 +267,7 @@
 					)
 				)
 				.then((v: []) => {
+					console.log("got frontend fn result:", v)
 					if (dep.backend_fn) {
 						payload.data = v;
 						make_prediction();
