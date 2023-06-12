@@ -1,5 +1,5 @@
 {
-	"python.formatting.provider": "none",
+	"python.formatting.provider": "black",
 	"cssvar.files": [
 		// Or your custom Pollen bundle
 		"./js/node_modules/pollen-css/pollen.css"
@@ -18,8 +18,5 @@
 	"prettier.ignorePath": ".config/.prettierignore",
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
-	"python.testing.pytestEnabled": true,
-	"[python]": {
-		"editor.defaultFormatter": "ms-python.black-formatter"
-	}
+	"python.testing.pytestEnabled": true
 }
