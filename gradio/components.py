@@ -4737,6 +4737,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
+        allow_preview: bool = True,
         **kwargs,
     ):
         """
@@ -4756,12 +4757,14 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             height: Height of the gallery.
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
+            allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
         """
         self.grid_cols = columns
         self.grid_rows = rows
         self.height = height
         self.preview = preview
         self.object_fit = object_fit
+        self.allow_preview = allow_preview
         self.select: EventListenerMethod
         """
         Event listener for when the user selects image within Gallery.
@@ -4797,6 +4800,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         height: str | None = None,
         preview: bool | None = None,
         object_fit: str | None = None,
+        allow_preview: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -4811,6 +4815,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "height": height,
             "preview": preview,
             "object_fit": object_fit,
+            "allow_preview": allow_preview,
             "__type__": "update",
         }
         return updated_config
@@ -4823,6 +4828,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "height": self.height,
             "preview": self.preview,
             "object_fit": self.object_fit,
+            "allow_preview": self.allow_preview,
             **IOComponent.get_config(self),
         }
 
