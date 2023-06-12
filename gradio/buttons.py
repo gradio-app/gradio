@@ -44,7 +44,19 @@ class ClearButton(Button):
         )
         if isinstance(components, Component):
             components = [components]
-        clear_js = json.dumps(
-            [getattr(component, "cleared_value", None) for component in components]
+        clear_values = json.dumps(
+            [component.cleared_value() for component in components]
         )
-        self.click(None, [], components, _js=f"() => {clear_js}")
+        self.click(None, [], components, _js=f"() => {clear_values}")
+
+    def add(self, components: Component | list[Component]):
+        """
+        Adds a component or list of components to the list of components that will be cleared when the button is clicked.
+        """
+        if isinstance(components, Component):
+            components = [components]
+        clear_values = json.dumps(
+            [component.cleared_value() for component in components]
+        )
+        self.click(None, [], components, _js=f"() => {clear_values}")
+        return self

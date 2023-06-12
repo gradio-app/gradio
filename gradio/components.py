@@ -165,6 +165,10 @@ class Component(Block, Serializable):
         ):
             self.parent.variant = "compact"
         return self
+    
+    def cleared_value(self):
+        """The value to set the component to when the clear button is clicked."""
+        return None
 
 
 class IOComponent(Component):
@@ -511,8 +515,10 @@ class Textbox(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        self.cleared_value = ""
         self.type = type
+
+    def cleared_value(self):
+        return ""
 
     def get_config(self):
         return {
@@ -955,6 +961,9 @@ class Slider(
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
 
+    def cleared_value(self):
+        return self.cleared_value
+
     def api_info(self) -> dict[str, dict | bool]:
         return {
             "info": {
@@ -1232,7 +1241,6 @@ class CheckboxGroup(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
-        self.cleared_value = []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -1262,6 +1270,9 @@ class CheckboxGroup(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
+
+    def cleared_value(self):
+        return []
 
     def get_config(self):
         return {
@@ -1462,6 +1473,9 @@ class Radio(
         )
         NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
+
+    def cleared_value(self):
+        return self.cleared_value
 
     def get_config(self):
         return {

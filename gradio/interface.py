@@ -469,7 +469,7 @@ class Interface(Blocks):
         self,
     ) -> tuple[
         Button | None,
-        Button | None,
+        ClearButton | None,
         Button | None,
         list[Button] | None,
         Column,
@@ -508,7 +508,7 @@ class Interface(Blocks):
                         ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
-                    clear_btn = Button("Clear")
+                    clear_btn = ClearButton()
                     submit_btn = Button("Submit", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
@@ -532,7 +532,9 @@ class Interface(Blocks):
     def render_output_column(
         self,
         submit_btn_in: Button | None,
-    ) -> tuple[Button | None, Button | None, Button | None, list | None, Button | None]:
+    ) -> tuple[
+        Button | None, ClearButton | None, Button | None, list | None, Button | None
+    ]:
         submit_btn = submit_btn_in
         interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
 
@@ -693,22 +695,20 @@ class Interface(Blocks):
 
     def attach_clear_events(
         self,
-        clear_btn: Button,
+        clear_btn: ClearButton,
         input_component_column: Column | None,
         interpret_component_column: Column | None,
     ):
+        clear_btn.add(self.input_components + self.output_components)
         clear_btn.click(
             None,
             [],
             (
-                self.input_components
-                + self.output_components
-                + ([input_component_column] if input_component_column else [])
+                ([input_component_column] if input_component_column else [])
                 + ([interpret_component_column] if self.interpretation else [])
             ),  # type: ignore
             _js=f"""() => {json.dumps(
-                [getattr(component, "cleared_value", None)
-                    for component in self.input_components + self.output_components] + (
+                (
                     [Column.update(visible=True)]
                     if self.interface_type
                         in [
@@ -738,7 +738,9 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def attach_flagging_events(self, flag_btns: list[Button] | None, clear_btn: Button):
+    def attach_flagging_events(
+        self, flag_btns: list[Button] | None, clear_btn: ClearButton
+    ):
         if not (
             flag_btns
             and self.interface_type
