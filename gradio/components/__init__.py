@@ -1,7 +1,13 @@
 from gradio.components.annotated_image import AnnotatedImage
 from gradio.components.audio import Audio
 from gradio.components.bar_plot import BarPlot
-from gradio.components.base import Component, IOComponent
+from gradio.components.base import (
+    Component,
+    IOComponent,
+    component,
+    get_component_instance,
+    _Keywords,
+)
 from gradio.components.button import Button
 from gradio.components.carousel import Carousel
 from gradio.components.chatbot import Chatbot
@@ -51,6 +57,9 @@ __all__ = [
     "Carousel",
     "Chatbot",
     "Component",
+    "component",
+    "get_component_instance",
+    "_Keywords",
     "Checkbox",
     "CheckboxGroup",
     "Code",

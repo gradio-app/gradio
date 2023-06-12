@@ -53,6 +53,7 @@ from gradio.components import (
     UploadButton,
     Variable,
     Video,
+    component,
 )
 from gradio.deploy_space import deploy
 from gradio.events import SelectData

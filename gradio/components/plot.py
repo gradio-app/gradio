@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import warnings
 from typing import Any, Callable, Literal
+from types import ModuleType
 
 import altair as alt
 import pandas as pd
