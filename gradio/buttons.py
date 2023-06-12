@@ -44,12 +44,7 @@ class ClearButton(Button):
             min_width=min_width,
             **kwargs,
         )
-        if isinstance(components, Component):
-            components = [components]
-        clear_values = json.dumps(
-            [component.cleared_value() for component in components]
-        )
-        self.click(None, [], components, _js=f"() => {clear_values}")
+        self.add(components)
 
     def add(self, components: Component | list[Component]):
         """
@@ -58,7 +53,7 @@ class ClearButton(Button):
         if isinstance(components, Component):
             components = [components]
         clear_values = json.dumps(
-            [component.cleared_value() for component in components]
+            [{"value": component.cleared_value(), "__type__": "update"} for component in components]
         )
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
