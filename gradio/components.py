@@ -1738,6 +1738,16 @@ class Dropdown(
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
+        
+    def postprocess(self, y):
+        if y is not None:
+            return y
+        elif self.multiselect:
+            return []
+        elif self.choices:
+            return self.choices[0]
+        else:
+            return None
 
     def set_interpret_parameters(self):
         """
