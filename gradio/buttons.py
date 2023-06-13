@@ -7,12 +7,14 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
 
-set_documentation_group("buttons")
+set_documentation_group("component")
 
-
+@document("add")
 class ClearButton(Button):
     """
-    Button that clears the value of a component or a list of components when clicked.
+    Button that clears the value of a component or a list of components when clicked. It is instantiated with the list of components to clear.
+    Preprocessing: passes the button value as a {str} into the function
+    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
     """
 
     is_template = True
