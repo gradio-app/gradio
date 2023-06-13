@@ -1739,16 +1739,6 @@ class Dropdown(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y):
-        if y is not None:
-            return y
-        elif self.multiselect:
-            return []
-        elif self.choices:
-            return self.choices[0]
-        else:
-            return None
-
     def set_interpret_parameters(self):
         """
         Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
