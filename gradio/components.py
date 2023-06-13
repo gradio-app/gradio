@@ -71,9 +71,9 @@ from gradio.events import (
     Submittable,
     Uploadable,
 )
+from gradio.exceptions import Error
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
-from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -796,9 +796,9 @@ class Number(
         """
         if x is None:
             return None
-        elif self.minimum != None and x < self.minimum:
+        elif self.minimum is not None and x < self.minimum:
             raise Error(f"Value {x} is less than minimum value {self.minimum}.")
-        elif self.maximum != None and x > self.maximum:
+        elif self.maximum is not None and x > self.maximum:
             raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
         return self._round_to_precision(x, self.precision)
 
@@ -1738,7 +1738,7 @@ class Dropdown(
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
-        
+
     def postprocess(self, y):
         if y is not None:
             return y

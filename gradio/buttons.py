@@ -1,13 +1,14 @@
 """ Predefined buttons with bound events that can be included in a gr.Blocks for convenience. """
 
-from typing_extensions import Literal
-
 import json
+
 from gradio_client.documentation import document, set_documentation_group
+from typing_extensions import Literal
 
 from gradio.components import Button, Component
 
 set_documentation_group("component")
+
 
 @document("add")
 class ClearButton(Button):
@@ -55,7 +56,7 @@ class ClearButton(Button):
         if isinstance(components, Component):
             components = [components]
         clear_values = json.dumps(
-            [{"value": component.postprocess(None), "__type__": "update"} for component in components]
+            [component.postprocess(None) for component in components]
         )
         self.click(None, [], components, _js=f"() => {clear_values}")
         return self
