@@ -4,6 +4,7 @@ import copy
 import inspect
 import json
 import os
+from pathlib import Path
 import random
 import secrets
 import sys
@@ -11,6 +12,7 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+import tempfile
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable
 
@@ -73,6 +75,10 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Glass(),
     ]
 }
+
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
 
 
 class Block:
@@ -1135,7 +1141,10 @@ class Blocks(BlockContext):
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(
-                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
+                outputs[o],
+                save_dir=DEFAULT_TEMP_DIR,
+                root_url=block.root_url,
+                hf_token=Context.hf_token,
             )
             predictions.append(deserialized)
 

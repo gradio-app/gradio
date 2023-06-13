@@ -148,7 +148,7 @@ class TestBlocksMethods:
 
             inp.submit(fn=update, inputs=inp, outputs=out, api_name="greet")
 
-            gr.Image().style(height=54, width=240)
+            gr.Image(height=54, width=240)
 
         config1 = demo1.get_config_file()
         demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
@@ -485,7 +485,7 @@ class TestTempFile:
         demo = gr.Interface(
             create_images,
             inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
-            outputs=[gr.Gallery().style(grid=2, preview=True)],
+            outputs=[gr.Gallery(columns=2, preview=True)],
         )
         with connect(demo) as client:
             _ = client.predict(3)
