@@ -24,7 +24,7 @@ class ClearButton(Button):
 
     def __init__(
         self,
-        components: list[Component] | Component,
+        components: None | list[Component] | Component = None,
         *,
         value: str = "Clear",
         variant: Literal["primary", "secondary", "stop"] = "secondary",
@@ -51,7 +51,7 @@ class ClearButton(Button):
         )
         self.add(components)
 
-    def add(self, components: Component | list[Component]) -> ClearButton:
+    def add(self, components: None | Component | list[Component]) -> ClearButton:
         """
         Adds a component or list of components to the list of components that will be cleared when the button is clicked.
         """

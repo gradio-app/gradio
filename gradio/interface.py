@@ -495,7 +495,7 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
                 ]:
-                    clear_btn = ClearButton([])
+                    clear_btn = ClearButton()
                     if not self.live:
                         submit_btn = Button("Submit", variant="primary")
                         # Stopping jobs only works if the queue is enabled
@@ -508,7 +508,7 @@ class Interface(Blocks):
                         ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
-                    clear_btn = ClearButton([])
+                    clear_btn = ClearButton()
                     submit_btn = Button("Submit", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
@@ -544,7 +544,7 @@ class Interface(Blocks):
                     component.render()
             with Row():
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                    clear_btn = ClearButton([])
+                    clear_btn = ClearButton()
                     submit_btn = Button("Generate", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
