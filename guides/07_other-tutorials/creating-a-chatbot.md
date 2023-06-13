@@ -14,7 +14,7 @@ This tutorial will show how to make several kinds of chatbot UIs with Gradio: fi
 $demo_chatbot_streaming
 
 **Prerequisite**: We'll be using the `gradio.Blocks` class to build our Chatbot demo.
-You can [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) if you are not already familiar with it.
+You can [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) if you are not already familiar with it. Also please make sure you are using the **latest version** version of Gradio: `pip install --upgrade gradio`. 
 
 ## A Simple Chatbot Demo
 
