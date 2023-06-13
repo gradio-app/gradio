@@ -383,7 +383,7 @@ def decode_base64_to_file(
     dir: str | Path | None = None,
     prefix: str | None = None,
 ):
-    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)    
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
     directory.mkdir(exist_ok=True, parents=True)
     data, extension = decode_base64_to_binary(encoding)
     if file_path is not None and prefix is None:
@@ -397,7 +397,9 @@ def decode_base64_to_file(
         prefix = strip_invalid_filename_characters(prefix)
 
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=directory)
+        file_obj = tempfile.NamedTemporaryFile(
+            delete=False, prefix=prefix, dir=directory
+        )
     else:
         file_obj = tempfile.NamedTemporaryFile(
             delete=False,
