@@ -2,11 +2,11 @@
 
 ## New Features:
 
-No changes to highlight.
+- The output directory for files downloaded via the Client can now be set by the `output_dir` parameter in `Client` by [@abidlabs](https://github.com/abidlabs) in [PR 4501](https://github.com/gradio-app/gradio/pull/4501)
 
 ## Bug Fixes:
 
-No changes to highlight.
+- The output directory for files downloaded via the Client are now set to a temporary directory by default (instead of the working directory in some cases) by [@abidlabs](https://github.com/abidlabs) in [PR 4501](https://github.com/gradio-app/gradio/pull/4501)
 
 ## Breaking Changes:
 
