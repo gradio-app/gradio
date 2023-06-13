@@ -26,13 +26,11 @@ There are three Gradio components here:
 
 * A `Chatbot`, whose value stores the entire history of the conversation, as a list of response pairs between the user and bot.
 * A `Textbox` where the user can type their message, and then hit enter/submit to trigger the chatbot response
-* A `Clear` button to clear the entire Chatbot history
+* A `ClearButton` button to clear the Textbox and entire Chatbot history
 
 We have a single function, `respond()`, which takes in the entire history of the chatbot, appends a random message, waits 1 second, and then returns the updated chat history. The `respond()` function also clears the textbox when it returns. 
 
 Of course, in practice, you would replace `respond()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
-
-Finally, when the `Clear` button is clicked, we assign `None` to the value of the `Chatbot` to clear its entire history. Try out this chatbot here: 
 
 $demo_chatbot_simple
 
