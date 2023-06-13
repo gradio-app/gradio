@@ -13,7 +13,6 @@ with open(Path(__file__).parent / "types.json") as f:
     serializer_types = json.load(f)
 
 
-
 class Serializable:
     def serialized_info(self):
         """
