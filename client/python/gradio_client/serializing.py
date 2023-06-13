@@ -4,7 +4,6 @@ import json
 import os
 import uuid
 from pathlib import Path
-import tempfile
 from typing import Any
 
 from gradio_client import media_data, utils
@@ -13,10 +12,6 @@ from gradio_client.data_classes import FileData
 with open(Path(__file__).parent / "types.json") as f:
     serializer_types = json.load(f)
 
-
-DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
-    Path(tempfile.gettempdir()) / "gradio"
-)
 
 
 class Serializable:
@@ -279,7 +274,6 @@ class FileSerializable(Serializable):
         root_url: str | None = None,
         hf_token: str | None = None,
     ) -> str | None:
-        print("x", x)
         if x is None:
             return None
         if isinstance(x, str):

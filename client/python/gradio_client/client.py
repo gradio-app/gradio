@@ -80,7 +80,7 @@ class Client:
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             serialize: Whether the client should serialize the inputs and deserialize the outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing/deserializing them. E.g. you if you set this to False, you'd submit an image in base64 format instead of a filepath, and you'd get back an image in base64 format from the remote API instead of a filepath.
-            output_dir: The directory to save files that are downloaded from the remote API. Defaults to a temporary directory on your machine. Can alternatively be set using the GRADIO_TEMP_DIR environment variable.
+            output_dir: The directory to save files that are downloaded from the remote API. If None, can be set using the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine. 
             verbose: Whether the client should print statements to the console.
         """
         self.verbose = verbose
