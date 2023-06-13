@@ -12,4 +12,4 @@ LATEST_COMMIT=$(git log -1 --format="%H")
 npm install
 npm run build --url=https://gradio-main-build.s3.amazonaws.com/$LATEST_COMMIT/
 cd build
-python3 -m http.server
+python -m http.server
