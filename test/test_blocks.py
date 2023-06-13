@@ -12,6 +12,7 @@ import uuid
 import warnings
 from contextlib import contextmanager
 from functools import partial
+from pathlib import Path
 from string import capwords
 from unittest.mock import patch
 
@@ -25,6 +26,7 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
+from gradio.blocks import DEFAULT_TEMP_DIR
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -488,10 +490,11 @@ class TestTempFile:
             outputs=[gr.Gallery(columns=2, preview=True)],
         )
         with connect(demo) as client:
+            path = client.predict(3)
             _ = client.predict(3)
-            _ = client.predict(3)
-        # only three files created
+        # only three files created and in correct directory
         assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(path).resolve().parents
 
     def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
