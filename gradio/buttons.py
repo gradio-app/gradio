@@ -58,9 +58,9 @@ class ClearButton(Button):
         if not components:
             # This needs to be here because when the ClearButton is created in an gr.Interface, we don't
             # want to create dependencies for it before we have created the dependencies for the submit function.
-            # We generally assume that the submit function depdenencies are the first thing to be created in an gr.Interface.
+            # We generally assume that the submit function dependency is the first thing created in an gr.Interface.
             return self
-        
+
         if isinstance(components, Component):
             components = [components]
         clear_values = json.dumps(
