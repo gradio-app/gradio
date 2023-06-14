@@ -89,11 +89,13 @@ jobs:
           client/python/requirements.txt
           requirements.txt
           test/requirements.txt
-    - name: Install Client
+    - name: Install Test Requirements
       if: steps.env.outputs.cache-hit != 'true'
       run: |
-        pip install -e .
         pip install -r test/requirements.txt
+    - name: Install Client Library
+      run: |
+        pip install -e .
     - name: Tests
       shell: bash
       run: |
@@ -154,11 +156,9 @@ jobs:
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Install Gradio
-      if: steps.env.outputs.cache-hit != 'true'
       shell: bash
       run: |
         pip install -e .
-        python -m pip install --upgrade pip
     - name: Install 3.8 Test Dependencies
       if: steps.env.outputs.cache-hit != 'true'
       shell: bash
