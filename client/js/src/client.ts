@@ -503,6 +503,14 @@ export async function client(
 								endpoint: _endpoint,
 								fn_index
 							});
+						} else if (type === "log") {
+							fire_event({
+								type: "log",
+								log: data.log,
+								level: data.level,
+								endpoint: _endpoint,
+								fn_index
+							});
 						}
 						if (data) {
 							fire_event({
@@ -612,8 +620,8 @@ export async function client(
 
 			function destroy() {
 				for (const event_type in listener_map) {
-					listener_map[event_type as "data" | "status"].forEach((fn) => {
-						off(event_type as "data" | "status", fn);
+					listener_map[event_type as EventType].forEach((fn) => {
+						off(event_type as EventType, fn);
 					});
 				}
 			}
@@ -1180,7 +1188,7 @@ function handle_message(
 	data: any,
 	last_status: Status["stage"]
 ): {
-	type: "hash" | "data" | "update" | "complete" | "generating" | "none";
+	type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none";
 	data?: any;
 	status?: Status;
 } {
@@ -1225,6 +1233,8 @@ function handle_message(
 					success: data.success
 				}
 			};
+		case "log":
+			return { type: "log", data: data };
 		case "process_generating":
 			return {
 				type: "generating",

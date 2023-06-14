@@ -55,6 +55,11 @@ export interface Status {
 	time?: Date;
 }
 
+export interface LogMessage {
+	log: string;
+	level: "warning" | "info";
+}
+
 export interface SpaceStatusNormal {
 	status: "sleeping" | "running" | "building" | "error" | "stopped";
 	detail:
@@ -83,11 +88,12 @@ export type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
 export type status_callback_function = (a: Status) => void;
 export type SpaceStatusCallback = (a: SpaceStatus) => void;
 
-export type EventType = "data" | "status";
+export type EventType = "data" | "status" | "log";
 
 export interface EventMap {
 	data: Payload;
 	status: Status;
+	log: LogMessage;
 }
 
 export type Event<K extends EventType> = {

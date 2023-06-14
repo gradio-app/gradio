@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import threading
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
@@ -9,10 +10,19 @@ from typing import Any
 
 import fastapi
 import httpx
+from typing_extensions import Literal
 
-from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
+from gradio.data_classes import (
+    Estimation,
+    LogMessage,
+    PredictBody,
+    Progress,
+    ProgressUnit,
+)
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
+
+thread_data = threading.local()
 
 
 class Event:
@@ -31,6 +41,7 @@ class Event:
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
+        self.log_messages: list[LogMessage] = []
 
     async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
@@ -66,13 +77,12 @@ class Queue:
         self.access_token = ""
         self.queue_client = None
 
-    async def start(self, progress_tracking=False, ssl_verify=True):
+    async def start(self, ssl_verify=True):
         # So that the client is attached to the running event loop
         self.queue_client = httpx.AsyncClient(verify=ssl_verify)
 
         run_coro_in_background(self.start_processing)
-        if progress_tracking:
-            run_coro_in_background(self.start_progress_tracking)
+        run_coro_in_background(self.start_log_and_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
 
@@ -134,7 +144,7 @@ class Queue:
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
-    async def start_progress_tracking(self) -> None:
+    async def start_log_and_progress_updates(self) -> None:
         while not self.stopped:
             if not any(self.active_jobs):
                 await asyncio.sleep(self.progress_update_sleep_when_free)
@@ -151,8 +161,16 @@ class Queue:
                         )
                         if not client_awake:
                             await self.clean_event(event)
+                    await self.send_log_updates_for_event(event)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
+
+    async def send_log_updates_for_event(self, event: Event) -> None:
+        while len(event.log_messages) > 0:
+            message = event.log_messages.pop(0)
+            client_awake = await self.send_message(event, message.dict())
+            if not client_awake:
+                await self.clean_event(event)
 
     def set_progress(
         self,
@@ -178,6 +196,23 @@ class Queue:
                         progress_data.append(progress_unit)
                     evt.progress = Progress(progress_data=progress_data)
                     evt.progress_pending = True
+
+    def log_message(
+        self,
+        event_id: str,
+        log: str,
+        level: Literal["info", "warning"],
+    ):
+        for job in self.active_jobs:
+            if job is None:
+                continue
+            for evt in job:
+                if evt._id == event_id:
+                    log_message = LogMessage(
+                        log=log,
+                        level=level,
+                    )
+                    evt.log_messages.append(log_message)
 
     def push(self, event: Event) -> int | None:
         """
@@ -404,6 +439,9 @@ class Queue:
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.json.get("data")))[e]
+                    await self.send_log_updates_for_event(
+                        event
+                    )  # clean out pending log updates first
                     await self.send_message(
                         event,
                         {
@@ -436,7 +474,8 @@ class Queue:
                 event.websocket.send_json(data=data), timeout=timeout
             )
             return True
-        except Exception:
+        except Exception as e:
+            print(e)
             await self.clean_event(event)
             return False
 

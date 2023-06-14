@@ -1071,11 +1071,16 @@ class Blocks(BlockContext):
             else:
                 fn = block_fn.fn
 
+            def fn_wrap(*args, **kwargs):
+                queueing.thread_data.blocks = self
+                queueing.thread_data.event_id = event_id
+                return fn(*args, **kwargs)
+
             if inspect.iscoroutinefunction(fn):
                 prediction = await fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
-                    fn, *processed_input, limiter=self.limiter
+                    fn_wrap, *processed_input, limiter=self.limiter
                 )
         else:
             prediction = None
@@ -2088,9 +2093,7 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(
-                self._queue.start, self.progress_tracking, self.ssl_verify
-            )
+            utils.run_coro_in_background(self._queue.start, self.ssl_verify)
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
