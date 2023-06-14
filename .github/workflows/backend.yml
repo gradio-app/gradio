@@ -19,8 +19,6 @@ jobs:
     outputs:
       python-client: ${{ steps.changes.outputs.python-client }}
       gradio: ${{ steps.changes.outputs.gradio }}
-      js: ${{ steps.changes.outputs.js }}
-      js-client:  ${{ steps.changes.outputs.js-client }}
     steps:
     - uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2
@@ -31,13 +29,9 @@ jobs:
             - 'client/python/**'
           gradio:
             - 'gradio/**'
-          js:
-            - 'js/**'
-          js-client:
-            - "client/js/**"
   client-lint:
     needs: changes
-    if: needs.changes.outputs.python-client == 'true'  || ( needs.changes.outputs.js == 'true' && needs.changes.outputs.js-client == 'true' )
+    if: needs.changes.outputs.python-client == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -93,7 +87,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.gradio == 'true'  || ( needs.changes.outputs.js == 'true' && needs.changes.outputs.js-client == 'true' )
+    if: (needs.changes.outputs.gradio == 'true'  || needs.changes.outputs.python-client == 'true')
     steps:
       - uses: actions/checkout@v3
       - name: Install Python
