@@ -65,34 +65,52 @@ jobs:
       id: cache
       with:
         path: |
-          venv/*
+          client/python/venv/*
         key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
         restore-keys: |
           python-client-${{ runner.os }}-pip-
           python-client-${{ runner.os }}-
-    - name: Activate virtualenv (Linux)
+    - name: Install Test Requirements (Linux)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        pip install -r test/requirements.txt
+    - name: Install Client Library (Linux)
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: Activate virtualenv (Windows)
-      if: runner.os == 'Windows'
+        pip install -e .
+    - name: Lint (Linux)
+      if: runner.os == 'Linux'
       run: |
-          venv\Scripts\activate
-          echo PATH=$PATH >> $GITHUB_ENV
-    - name: Install Test Requirements
-      if: steps.cache.outputs.cache-hit != 'true'
+        . venv/bin/activate
+        bash scripts/lint.sh
+    - name: Tests
+      if: runner.os == 'Linux'
+      shell: bash
       run: |
+        . venv/bin/activate
+        python -m pytest -m "${{ matrix.test-type }}"
+    - name: Install Test Requirements (Windows)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
         pip install -r test/requirements.txt
     - name: Install Client Library
+      if: runner.os == 'Windows'
       run: |
+        venv\Scripts\activate
         pip install -e .
     - name: Lint
+      if: runner.os == 'Windows'
       run: |
+        venv\Scripts\activate
         bash scripts/lint.sh
     - name: Tests
       shell: bash
+      if: runner.os == 'Windows'
       run: |
+        venv\Scripts\activate
         python -m pytest -m "${{ matrix.test-type }}"
   test:
     needs: [changes]
@@ -123,20 +141,6 @@ jobs:
         restore-keys: |
           gradio-lib-${{ runner.os }}-pip-
           gradio-lib-${{ runner.os }}-
-    - name: Activate virtualenv (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        . venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: Activate virtualenv (Windows)
-      if: runner.os == 'Windows'
-      run: |
-          venv\Scripts\activate
-          echo PATH=$PATH >> $GITHUB_ENV
-    - name: Install Test Dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        pip install -e . -r test/requirements.txt
     - name: Install pnpm
       if: steps.cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
@@ -154,20 +158,60 @@ jobs:
       run: |
         pnpm i --frozen-lockfile
         pnpm build
-    - name: Install Gradio
+    - name: Install Gradio (Linux)
       shell: bash
       run: |
+        . venv/bin/activate
         pip install .
+    - name: Install Test Dependencies (Linux)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        pip install -e . -r test/requirements.txt
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
-    - name: Lint
+    - name: Lint (Linux)
+      if: runner.os == 'Linux'
       run: |
+        . venv/bin/activate
         bash scripts/lint_backend.sh
-    - name: Typecheck
+    - name: Typecheck (Linux)
+      if: runner.os == 'Linux'
       run: |
+        . venv/bin/activate
         bash scripts/type_check_backend.sh
-    - name: Run tests
+    - name: Run tests (Linux)
       shell: bash
+      if: runner.os == 'Linux'
       run: |
+        . venv/bin/activate
+        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
+        python -m coverage xml
+    - name: Install Gradio (Windows)
+      shell: bash
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        pip install .
+    - name: Install Test Dependencies (Windows)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        pip install -e . -r test/requirements.txt
+    - name: Lint (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        bash scripts/lint_backend.sh
+    - name: Typecheck (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        bash scripts/type_check_backend.sh
+    - name: Run tests (Windows)
+      shell: bash
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
         python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         python -m coverage xml
