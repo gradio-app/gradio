@@ -5,13 +5,14 @@ from __future__ import annotations
 import warnings
 from typing import Callable, Literal
 
+from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.events import Clickable
-from gradio_client.documentation import document, set_documentation_group
 
 set_documentation_group("component")
+
 
 @document()
 class Button(Clickable, IOComponent, StringSerializable):
