@@ -13,7 +13,7 @@ from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import huggingface_hub
 import requests
@@ -25,7 +25,6 @@ from huggingface_hub.utils import (
     send_telemetry,
 )
 from packaging import version
-from typing_extensions import Literal
 
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
