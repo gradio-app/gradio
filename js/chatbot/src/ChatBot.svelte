@@ -19,8 +19,7 @@
 	let old_value: Array<
 		[string | FileData | null, string | FileData | null]
 	> | null = null;
-	export let enable_latex: boolean = true;
-	export let latex_delimiters: Array<{left: string, right: string, display: boolean}> = [{ left: "$$", right: "$$", display: true }];
+	export let latex_delimiters: Array<{left: string, right: string, display: boolean}> | null = [{ left: "$$", right: "$$", display: true }];
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
@@ -55,7 +54,7 @@
 			});
 		}
 
-		if (enable_latex) {
+		if (latex_delimiters !== null && latex_delimiters.length > 0) {
 			render_math_in_element(div, {
 				delimiters: latex_delimiters,
 				throwOnError: false

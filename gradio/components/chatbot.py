@@ -38,7 +38,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         | Callable
         | None = None,
         color_map: dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
-        enable_latex: bool = True,
         latex_delimiters: list[dict[str, str | bool]] | None = [{"left": "$$", "right": "$$", "display": True}],
         *,
         label: str | None = None,
@@ -56,8 +55,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            enable_latex: If True, will render LaTeX expressions enclosed in $$ delimiters or custom delimiters passed in `latex_delimiters` parameter. True by default.
-            latex_delimiters: A list of dicts of the form {open_delimiter, close_delimiter, display} that will be used to render LaTeX expressions. By default this is set to `[{ left: "$$", right: "$$", display: true }]`, so LaTeX expressions enclosed in $$ delimiters will be rendered.
+            latex_delimiters: A list of dicts of the form {open_delimiter, close_delimiter, display} that will be used to render LaTeX expressions. Display set to `False` means LaTeX will be rendered inline. By default `latex_delimiters` is set to `[{ left: "$$", right: "$$", display: true }]`, so LaTeX expressions enclosed in $$ delimiters will be rendered. Pass in `None` or an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -80,7 +78,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         See EventData documentation on how to use this event data.
         """
         self.height = height
-        self.enable_latex = enable_latex
         self.latex_delimiters = latex_delimiters
 
         IOComponent.__init__(
@@ -101,7 +98,6 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
-            "enable_latex": self.enable_latex,
             "latex_delimiters": self.latex_delimiters,
             "selectable": self.selectable,
             "height": self.height,
