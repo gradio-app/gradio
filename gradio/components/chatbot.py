@@ -38,7 +38,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         | Callable
         | None = None,
         color_map: dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
-        latex_delimiters: list[dict[str, str | bool]] | None = [{"left": "$$", "right": "$$", "display": True}],
+        latex_delimiters: list[dict[str, str | bool]]
+        | None = [{"left": "$$", "right": "$$", "display": True}],
         *,
         label: str | None = None,
         every: float | None = None,

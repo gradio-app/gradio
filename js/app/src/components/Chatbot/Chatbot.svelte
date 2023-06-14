@@ -15,7 +15,11 @@
 		[string | FileData | null, string | FileData | null]
 	> = [];
 	let _value: Array<[string | FileData | null, string | FileData | null]>;
-	export let latex_delimiters: Array<{left: string, right: string, display: boolean}> | null = [{ left: "$$", right: "$$", display: true }];
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}> | null = [{ left: "$$", right: "$$", display: true }];
 	export let container: boolean = false;
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
