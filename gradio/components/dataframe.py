@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         data: list[list[str | int | bool]]
 
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

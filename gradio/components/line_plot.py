@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio.components.base import _Keywords
 from gradio.components.plot import AltairPlot, Plot
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

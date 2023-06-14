@@ -12,7 +12,7 @@ from gradio_client.serializing import JSONSerializable
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

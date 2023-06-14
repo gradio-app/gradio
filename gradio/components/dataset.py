@@ -15,7 +15,7 @@ from gradio.components.base import (
 )
 from gradio.events import Clickable, Selectable
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

@@ -10,7 +10,7 @@ from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import IOComponent
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

@@ -12,7 +12,7 @@ from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

@@ -14,7 +14,7 @@ from gradio.events import (
     Changeable,
 )
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()

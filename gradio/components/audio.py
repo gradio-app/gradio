@@ -24,7 +24,7 @@ from gradio.events import (
 )
 from gradio.interpretation import TokenInterpretable
 
-set_documentation_group("components")
+set_documentation_group("component")
 
 
 @document()
