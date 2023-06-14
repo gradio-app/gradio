@@ -5,12 +5,11 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
-from typing_extensions import Literal
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
-from typing_extensions import Literal
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (

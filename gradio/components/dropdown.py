@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
-from typing_extensions import Literal
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import (

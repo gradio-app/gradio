@@ -5,12 +5,11 @@ from __future__ import annotations
 import math
 import random
 import warnings
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import numpy as np
 from gradio_client.documentation import set_documentation_group
 from gradio_client.serializing import NumberSerializable
-from typing_extensions import Literal
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import Changeable, Inputable, Releaseable

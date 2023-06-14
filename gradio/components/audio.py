@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import numpy as np
 from gradio_client import media_data
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
-from typing_extensions import Literal
 
 from gradio import processing_utils, utils
 from gradio.components.base import IOComponent, _Keywords

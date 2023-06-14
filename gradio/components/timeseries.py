@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
-from typing_extensions import Literal
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import Changeable

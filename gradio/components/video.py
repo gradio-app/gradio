@@ -5,14 +5,13 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Literal
 
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import set_documentation_group
 from gradio_client.serializing import VideoSerializable
-from typing_extensions import Literal
 
 from gradio import processing_utils, utils
 from gradio.components.base import IOComponent, _Keywords

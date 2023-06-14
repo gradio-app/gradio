@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import PIL
@@ -13,7 +13,6 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from typing_extensions import Literal
 
 from gradio import processing_utils, utils
 from gradio.components.base import IOComponent, _Keywords
