@@ -1419,7 +1419,7 @@ class TestVideo:
         assert Path(output[0]["name"]).suffix == ".mp4"
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
-    @patch("gradio.components.FFmpeg")
+    @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = deepcopy(media_data.BASE64_VIDEO)

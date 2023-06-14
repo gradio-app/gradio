@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from typing_extensions import Literal
 
 from gradio.components import Button, Component
 
