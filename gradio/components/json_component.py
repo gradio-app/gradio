@@ -8,7 +8,6 @@ from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
-from typing_extensions import Literal
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (

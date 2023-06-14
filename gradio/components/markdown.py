@@ -13,7 +13,6 @@ from gradio import utils
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.events import (
     Changeable,
-    Inputable,
 )
 
 set_documentation_group("component")

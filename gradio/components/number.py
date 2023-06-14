@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import math
-from typing import Callable
+from typing import Callable, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
-from typing_extensions import Literal
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import (
@@ -17,11 +16,13 @@ from gradio.events import (
     Inputable,
     Submittable,
 )
+from gradio.exceptions import Error
 from gradio.interpretation import NeighborInterpretable
 
 set_documentation_group("component")
 
 
+@document()
 class Number(
     FormComponent,
     Changeable,

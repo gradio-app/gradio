@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 import warnings
-from typing import Any, Callable, Literal
 from types import ModuleType
+from typing import Any, Callable, Literal
 
 import altair as alt
 import pandas as pd

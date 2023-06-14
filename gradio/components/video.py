@@ -10,7 +10,7 @@ from typing import Callable
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import set_documentation_group
 from gradio_client.serializing import VideoSerializable
 from typing_extensions import Literal
 

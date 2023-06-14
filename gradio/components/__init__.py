@@ -4,9 +4,9 @@ from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
     Component,
     IOComponent,
+    _Keywords,
     component,
     get_component_instance,
-    _Keywords,
 )
 from gradio.components.button import Button
 from gradio.components.carousel import Carousel
