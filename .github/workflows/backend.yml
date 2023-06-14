@@ -121,13 +121,30 @@ jobs:
         id: cache
         with:
           path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
-          key: gradio-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+          key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
           restore-keys: |
-            gradio-${{ runner.os }}-pip-
-            gradio-${{ runner.os }}-
+            gradio-lib-${{ runner.os }}-pip-
+            gradio-lib-${{ runner.os }}-
       - name: Install Test Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install -e . -r test/requirements.txt
+      - name: Install pnpm
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          node-version: 18
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Build frontend
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          pnpm i --frozen-lockfile
+          pnpm build
       - name: Lint
         run: bash scripts/lint_backend.sh
       - name: Typecheck
@@ -151,21 +168,10 @@ jobs:
       id: cache
       with:
         path: ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
-        key: gradio-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+        key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
         restore-keys: |
-          gradio-${{ runner.os }}-pip-
-          gradio-${{ runner.os }}-
-    - name: Install pnpm
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
-    - uses: actions/setup-node@v3
-      if: steps.cache.outputs.cache-hit != 'true'
-      with:
-        node-version: 18
-        cache: pnpm
-        cache-dependency-path: pnpm-lock.yaml
+          gradio-lib-${{ runner.os }}-pip-
+          gradio-lib-${{ runner.os }}-
     - name: Install Gradio
       shell: bash
       run: |
@@ -175,12 +181,6 @@ jobs:
       shell: bash
       run: |
         pip install -r test/requirements.txt
-    - name: Build frontend
-      if: steps.cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        pnpm i --frozen-lockfile
-        pnpm build
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Run tests
