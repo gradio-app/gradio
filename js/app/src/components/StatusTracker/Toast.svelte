@@ -5,10 +5,10 @@
 
 	export let messages: ToastMessage[] = [];
 
-	let el: HTMLDivElement;
+	$: messages && window.parent.parent.scrollTo(0, 0);
 </script>
 
-<div class="toast-wrap" bind:this={el}>
+<div class="toast-wrap">
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
 			{#if type === "error"}
