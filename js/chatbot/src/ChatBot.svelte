@@ -19,6 +19,8 @@
 	let old_value: Array<
 		[string | FileData | null, string | FileData | null]
 	> | null = null;
+	export let enable_latex: boolean = true;
+	export let latex_delimiters: Array<{left: string, right: string, display: boolean}> = [{ left: "$$", right: "$$", display: true }];
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
@@ -53,13 +55,12 @@
 			});
 		}
 
-		render_math_in_element(div, {
-			delimiters: [
-				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false }
-			],
-			throwOnError: false
-		});
+		if (enable_latex) {
+			render_math_in_element(div, {
+				delimiters: latex_delimiters,
+				throwOnError: false
+			});
+		}
 	});
 
 	$: {

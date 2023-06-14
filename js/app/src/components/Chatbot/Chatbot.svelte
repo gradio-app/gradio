@@ -15,6 +15,8 @@
 		[string | FileData | null, string | FileData | null]
 	> = [];
 	let _value: Array<[string | FileData | null, string | FileData | null]>;
+	export let enable_latex: boolean = true;
+	export let latex_delimiters: Array<{left: string, right: string, display: boolean}> = [{ left: "$$", right: "$$", display: true }];
 	export let container: boolean = false;
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
@@ -74,6 +76,8 @@
 		{selectable}
 		{theme_mode}
 		value={_value}
+		{enable_latex}
+		{latex_delimiters}
 		pending_message={loading_status?.status === "pending"}
 		on:change
 		on:select
