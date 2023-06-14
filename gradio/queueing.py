@@ -368,13 +368,6 @@ class Queue:
             elif response.json.get("is_generating", False):
                 old_response = response
                 while response.json.get("is_generating", False):
-                    # Python 3.7 doesn't have named tasks.
-                    # In order to determine if a task was cancelled, we
-                    # ping the websocket to see if it was closed mid-iteration.
-                    if sys.version_info < (3, 8):
-                        is_alive = await self.send_message(event, {"msg": "alive?"})
-                        if not is_alive:
-                            return
                     old_response = response
                     open_ws = []
                     for event in awake_events:

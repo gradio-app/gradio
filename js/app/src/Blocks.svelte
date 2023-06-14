@@ -213,11 +213,11 @@
 						output.props[update_key] = update_value;
 					}
 				}
-				rootNode = rootNode;
 			} else {
 				output.props.value = value;
 			}
 		});
+		rootNode = rootNode;
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
