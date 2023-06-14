@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import inspect
 import json
@@ -709,6 +710,7 @@ class Blocks(BlockContext):
         self.blocks: dict[int, Block] = {}
         self.fns: list[BlockFunction] = []
         self.dependencies = []
+        self.continuos_tasks: list[asyncio.Task] = []
         self.mode = mode
 
         self.is_running = False
@@ -893,6 +895,12 @@ class Blocks(BlockContext):
                     block = self.blocks[output_id]
                     repr += f"\n |-{block}"
         return repr
+
+    def cancel_all_continuous_tasks(self):
+        if self.continuos_tasks:
+            for task in self.continuos_tasks:
+                task.cancel()
+            asyncio.gather(*self.continuos_tasks, return_exceptions=True)
 
     def render(self):
         if Context.root_block is not None:

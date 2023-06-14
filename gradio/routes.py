@@ -565,6 +565,8 @@ class App(FastAPI):
                     blocks._queue.process_events, [event], False
                 )
                 set_task_name(task, event.session_hash, event.fn_index, batch=False)
+                # add task to continuos tasks list
+                blocks.continuos_tasks.append(task)
             else:
                 rank = blocks._queue.push(event)
 
