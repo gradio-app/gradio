@@ -56,8 +56,7 @@ jobs:
         cache: pip
         cache-dependency-path: |
           client/python/requirements.txt
-          requirements.txt
-          test/requirements.txt
+          client/python/test/requirements.txt
     - name: Install Client
       if: steps.env.outputs.cache-hit != 'true'
       run: |
@@ -87,8 +86,7 @@ jobs:
         cache: pip
         cache-dependency-path: |
           client/python/requirements.txt
-          requirements.txt
-          test/requirements.txt
+          client/python/test/requirements.txt
     - name: Install Test Requirements
       if: steps.env.outputs.cache-hit != 'true'
       run: |
