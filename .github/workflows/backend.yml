@@ -39,39 +39,8 @@ jobs:
             - '.github/**'
           scripts:
             - 'scripts/**'
-  client-lint:
-    needs: changes
-    if: needs.changes.outputs.python-client == 'true' ||  needs.changes.outputs.workflows == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client/python
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.8"
-    - uses: actions/cache@master
-      id: cache
-      with:
-        path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
-        key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
-        restore-keys: |
-          python-client-${{ runner.os }}-pip-
-          python-client-${{ runner.os }}-
-    - name: Install Lint deps Client
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        pip install -e .
-        pip install -r test/requirements.txt
-    - name: Install Client
-      run: |
-        pip install -e .
-    - name: Lint
-      run: bash scripts/lint.sh
   client-test:
-    needs: [client-lint]
+    needs: [changes]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -103,58 +72,14 @@ jobs:
     - name: Install Client Library
       run: |
         pip install -e .
+    - name: Lint
+      run: bash scripts/lint.sh
     - name: Tests
       shell: bash
       run: |
         python -m pytest -m "${{ matrix.test-type }}"
-  lint:
-    runs-on: ubuntu-latest
-    needs: changes
-    if: needs.changes.outputs.gradio == 'true'  || needs.changes.outputs.python-client == 'true' || needs.changes.outputs.workflows == 'true' ||  needs.changes.outputs.scripts == 'true' || needs.changes.outputs.test == 'true'
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-      - uses: actions/cache@master
-        id: cache
-        with:
-          path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
-          key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('js/**') }}-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
-          restore-keys: |
-            gradio-lib-${{ runner.os }}-pip-
-            gradio-lib-${{ runner.os }}-
-      - name: Install Test Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -e . -r test/requirements.txt
-      - name: Install pnpm
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v3
-        if: steps.cache.outputs.cache-hit != 'true'
-        with:
-          node-version: 18
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-      - name: Build frontend
-        if: steps.cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          pnpm i --frozen-lockfile
-          pnpm build
-      - name: Install Gradio
-        shell: bash
-        run: |
-          pip install -e .
-      - name: Lint
-        run: bash scripts/lint_backend.sh
-      - name: Typecheck
-        run: bash scripts/type_check_backend.sh
   test:
-    needs: [lint]
+    needs: [changes]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -171,20 +96,16 @@ jobs:
     - uses: actions/cache@master
       id: cache
       with:
-        path: ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
+        path: |
+          ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
+          gradio/templates/*
         key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('js/**') }}-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
         restore-keys: |
           gradio-lib-${{ runner.os }}-pip-
           gradio-lib-${{ runner.os }}-
-    - name: Install 3.8 Test Dependencies
+    - name: Install Test Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        pip install -r test/requirements.txt
-        - name: Install Gradio
-        shell: bash
-        run: |
-          pip install -e .
+      run: pip install -e . -r test/requirements.txt
     - name: Install pnpm
       if: steps.cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
@@ -205,11 +126,17 @@ jobs:
     - name: Install Gradio
       shell: bash
       run: |
-        pip install -e .
+        pip install .
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
+    - name: Lint
+      run: bash scripts/lint_backend.sh
+    - name: Typecheck
+      run: bash scripts/type_check_backend.sh
     - name: Run tests
       shell: bash
+      # move to test directory so that gradio is picked up from site-packages
+      # needed to be able to use cached front-end files
       run: |
         mkdir -p test-reports
         python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
