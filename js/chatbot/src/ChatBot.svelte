@@ -162,6 +162,10 @@
 		max-width: 30vw;
 	}
 
+	.message-wrap > div :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
+	}
+
 	.message-wrap :global(audio) {
 		width: 100%;
 	}
