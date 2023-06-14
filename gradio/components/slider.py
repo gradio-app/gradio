@@ -8,7 +8,7 @@ import warnings
 from typing import Any, Callable, Literal
 
 import numpy as np
-from gradio_client.documentation import set_documentation_group
+from gradio_client.documentation import set_documentation_group, document
 from gradio_client.serializing import NumberSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
@@ -18,6 +18,7 @@ from gradio.interpretation import NeighborInterpretable
 set_documentation_group("component")
 
 
+@document()
 class Slider(
     FormComponent,
     Changeable,

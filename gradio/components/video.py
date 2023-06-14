@@ -10,7 +10,7 @@ from typing import Callable, Literal
 from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
-from gradio_client.documentation import set_documentation_group
+from gradio_client.documentation import set_documentation_group, document
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils
@@ -20,6 +20,7 @@ from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadabl
 set_documentation_group("component")
 
 
+@document()
 class Video(
     Changeable,
     Clearable,

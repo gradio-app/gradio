@@ -9,8 +9,11 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.events import Clickable
+from gradio_client.documentation import document, set_documentation_group
 
+set_documentation_group("component")
 
+@document()
 class Button(Clickable, IOComponent, StringSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.

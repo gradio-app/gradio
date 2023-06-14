@@ -13,7 +13,6 @@ from gradio.events import Changeable, Inputable
 set_documentation_group("components")
 
 
-@document()
 @document("languages")
 class Code(Changeable, Inputable, IOComponent, StringSerializable):
     """
