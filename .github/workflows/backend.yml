@@ -22,6 +22,7 @@ jobs:
       test: ${{ steps.changes.outputs.test }}
       workflows: ${{ steps.changes.outputs.workflows }}
       scripts: ${{ steps.changes.outputs.scripts }}
+      client-scripts: ${{ steps.changes.outputs.client-scripts }}
     steps:
     - uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2
@@ -40,7 +41,7 @@ jobs:
             - 'scripts/**'
   client-lint:
     needs: changes
-    if: needs.changes.outputs.python-client == 'true' ||  needs.changes.outputs.workflows == 'true' ||  needs.changes.outputs.scripts == 'true'
+    if: needs.changes.outputs.python-client == 'true' ||  needs.changes.outputs.workflows == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
