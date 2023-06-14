@@ -4,8 +4,6 @@
 	import type { ToastMessage } from "./types";
 
 	export let messages: ToastMessage[] = [];
-
-	$: messages && window.parent.parent.scrollTo(0, 0);
 </script>
 
 <div class="toast-wrap">
