@@ -14,6 +14,51 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      python-client: ${{ steps.changes.outputs.python-client }}
+      gradio: ${{ steps.changes.outputs.gradio }}
+      js: ${{ steps.changes.outputs.js }}
+      js-client:  ${{ steps.changes.outputs.js-client }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          python-client:
+            - 'client/python/**'
+          gradio:
+            - 'gradio/**'
+          js:
+            - 'js/**'
+          js-client:
+            - "client/js/**"
+  client-lint:
+    needs: changes
+    if: ${{ needs.changes.outputs.python-client == 'true' }} || ( ${{ needs.changes.outputs.js == 'true' }} && ${{ needs.changes.outputs.js-client == 'true' }} )
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/python
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.8"
+        cache: pip
+        cache-dependency-path: |
+          client/python/requirements.txt
+          requirements.txt
+          test/requirements.txt
+    - name: Install Client
+      run: |
+        pip install -e .
+        pip install -r test/requirements.txt
+    - name: Lint
+      run: bash scripts/lint.sh
   client-test:
     needs: [client-lint]
     strategy:
@@ -45,28 +90,27 @@ jobs:
       shell: bash
       run: |
         python -m pytest -m "${{ matrix.test-type }}"
-  client-lint:
+  lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client/python
+    needs: changes
+    if: ${{ needs.changes.outputs.gradio == 'true' }} || ( ${{ needs.changes.outputs.js == 'true' }} && ${{ needs.changes.outputs.js-client == 'true' }} )
     steps:
-    - uses: actions/checkout@v3
-    - name: Install Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.8"
-        cache: pip
-        cache-dependency-path: |
-          client/python/requirements.txt
-          requirements.txt
-          test/requirements.txt
-    - name: Install Client
-      run: |
-        pip install -e .
-        pip install -r test/requirements.txt
-    - name: Lint
-      run: bash scripts/lint.sh
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+          cache: pip
+          cache-dependency-path: |
+            client/python/requirements.txt
+            requirements.txt
+            test/requirements.txt
+      - name: Install Test Dependencies
+        run: pip install -e . -r test/requirements.txt
+      - name: Lint
+        run: bash scripts/lint_backend.sh
+      - name: Typecheck
+        run: bash scripts/type_check_backend.sh
   test:
     needs: [lint]
     strategy:
@@ -118,22 +162,3 @@ jobs:
         mkdir -p test-reports
         coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         coverage xml
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-          cache: pip
-          cache-dependency-path: |
-            client/python/requirements.txt
-            requirements.txt
-            test/requirements.txt
-      - name: Install Test Dependencies
-        run: pip install -e . -r test/requirements.txt
-      - name: Lint
-        run: bash scripts/lint_backend.sh
-      - name: Typecheck
-        run: bash scripts/type_check_backend.sh
