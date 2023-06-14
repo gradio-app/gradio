@@ -16,9 +16,9 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio import Examples, analytics, external, interpretation, utils
 from gradio.blocks import Blocks
-from gradio.buttons import ClearButton
 from gradio.components import (
     Button,
+    ClearButton,
     Interpretation,
     IOComponent,
     Markdown,
