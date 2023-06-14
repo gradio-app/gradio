@@ -235,6 +235,7 @@
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	let _error_id = -1;
+	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const trigger_api_call = async (
 		dep_index: number,
@@ -310,13 +311,14 @@
 
 					if (status.stage === "error") {
 						if (status.message) {
+							const _message = status.message.replace(
+								MESSAGE_QUOTE_RE,
+								(_, b) => b
+							);
 							messages = [
 								{
 									type: "error",
-									message: status.message.substring(
-										1,
-										status.message.length - 1
-									),
+									message: _message,
 									id: ++_error_id,
 									fn_index
 								},
