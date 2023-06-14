@@ -125,10 +125,6 @@ jobs:
           restore-keys: |
             gradio-lib-${{ runner.os }}-pip-
             gradio-lib-${{ runner.os }}-
-      - name: Install Gradio
-        shell: bash
-        run: |
-          pip install -e .
       - name: Install Test Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install -e . -r test/requirements.txt
@@ -149,6 +145,10 @@ jobs:
         run: |
           pnpm i --frozen-lockfile
           pnpm build
+      - name: Install Gradio
+        shell: bash
+        run: |
+          pip install -e .
       - name: Lint
         run: bash scripts/lint_backend.sh
       - name: Typecheck
@@ -176,10 +176,6 @@ jobs:
         restore-keys: |
           gradio-lib-${{ runner.os }}-pip-
           gradio-lib-${{ runner.os }}-
-    - name: Install Gradio
-      shell: bash
-      run: |
-        pip install -e .
     - name: Install 3.8 Test Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
@@ -206,6 +202,10 @@ jobs:
       run: |
         pnpm i --frozen-lockfile
         pnpm build
+    - name: Install Gradio
+      shell: bash
+      run: |
+        pip install -e .
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Run tests
