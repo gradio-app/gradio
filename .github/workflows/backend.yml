@@ -56,10 +56,10 @@ jobs:
       id: cache
       with:
         path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
-        key: ${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
+        key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
+          python-client-${{ runner.os }}-pip-
+          python-client-${{ runner.os }}-
     - name: Install Lint deps Client
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
@@ -92,10 +92,10 @@ jobs:
       id: cache
       with:
         path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
-        key: ${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
+        key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
+          python-client-${{ runner.os }}-pip-
+          python-client-${{ runner.os }}-
     - name: Install Test Requirements
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
@@ -121,10 +121,10 @@ jobs:
         id: cache
         with:
           path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
-          key: ${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+          key: gradio-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+            gradio-${{ runner.os }}-pip-
+            gradio-${{ runner.os }}-
       - name: Install Test Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install -e . -r test/requirements.txt
@@ -151,10 +151,10 @@ jobs:
       id: cache
       with:
         path: ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
-        key: ${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+        key: gradio-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
+          gradio-${{ runner.os }}-pip-
+          gradio-${{ runner.os }}-
     - name: Install pnpm
       if: steps.cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
