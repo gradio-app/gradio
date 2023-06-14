@@ -7,7 +7,7 @@
   [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
   [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
   [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-  ![Python version](https://img.shields.io/badge/python-3.7+-important)
+  ![Python version](https://img.shields.io/badge/python-3.8+-important)
   [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
   [Website](https://gradio.app)

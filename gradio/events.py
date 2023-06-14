@@ -4,10 +4,9 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from typing_extensions import Literal
 
 from gradio.blocks import Block
 from gradio.helpers import EventData

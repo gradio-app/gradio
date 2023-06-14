@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal
 
 import anyio
 import requests
@@ -21,7 +21,6 @@ from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from packaging import version
-from typing_extensions import Literal
 
 from gradio import (
     analytics,
