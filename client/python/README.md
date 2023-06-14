@@ -1,6 +1,6 @@
 # `gradio_client`: Use a Gradio app as an API -- in 3 lines of Python
 
-This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API. Delete me.
+This directory contains the source code for `gradio_client`, a lightweight Python library that makes it very easy to use any Gradio app as an API.
 
 As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
 
