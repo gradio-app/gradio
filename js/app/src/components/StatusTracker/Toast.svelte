@@ -1,16 +1,11 @@
 <script lang="ts">
 	import { flip } from "svelte/animate";
 	import Error from "./Error.svelte";
+	import type { ToastMessage } from "./types";
 
-	export let messages: {
-		type: "error" | "marning" | "info";
-		message: string;
-		id: number;
-	}[] = [];
+	export let messages: ToastMessage[] = [];
 
 	let el: HTMLDivElement;
-
-	$: messages && el && el.scrollIntoView({ behavior: "smooth" });
 </script>
 
 <div class="toast-wrap" bind:this={el}>

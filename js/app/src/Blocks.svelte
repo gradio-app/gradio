@@ -21,6 +21,7 @@
 	import { ApiDocs } from "./api_docs/";
 	import type { ThemeMode } from "./components/types";
 	import Toast from "./components/StatusTracker/Toast.svelte";
+	import type { ToastMessage } from "./components/StatusTracker/types";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -232,12 +233,7 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
-	let messages: {
-		type: "error" | "marning" | "info";
-		message: string;
-		id: number;
-		fn_index: number;
-	}[] = [];
+	let messages: (ToastMessage & { fn_index: number })[] = [];
 	let _error_id = -1;
 
 	const trigger_api_call = async (
@@ -314,7 +310,6 @@
 
 					if (status.stage === "error") {
 						if (status.message) {
-							console.log();
 							messages = [
 								{
 									type: "error",

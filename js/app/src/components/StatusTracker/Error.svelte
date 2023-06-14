@@ -139,6 +139,6 @@
 		animation: countdown 10s linear forwards;
 		background: var(--color-red-600);
 		width: 100%;
-		height: 4px;
+		height: var(--size-1);
 	}
 </style>
