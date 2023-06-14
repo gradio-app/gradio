@@ -49,6 +49,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
+      id: env
       uses: actions/setup-python@v4
       with:
         python-version: "3.8"
@@ -58,6 +59,7 @@ jobs:
           requirements.txt
           test/requirements.txt
     - name: Install Client
+      if: steps.env.outputs.cache-hit != 'true'
       run: |
         pip install -e .
         pip install -r test/requirements.txt
@@ -79,6 +81,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install Python
       uses: actions/setup-python@v4
+      id: env
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -87,6 +90,7 @@ jobs:
           requirements.txt
           test/requirements.txt
     - name: Install Client
+      if: steps.env.outputs.cache-hit != 'true'
       run: |
         pip install -e .
         pip install -r test/requirements.txt
@@ -102,6 +106,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Python
         uses: actions/setup-python@v4
+        id: env
         with:
           python-version: "3.8"
           cache: pip
@@ -110,6 +115,7 @@ jobs:
             requirements.txt
             test/requirements.txt
       - name: Install Test Dependencies
+        if: steps.env.outputs.cache-hit != 'true'
         run: pip install -e . -r test/requirements.txt
       - name: Lint
         run: bash scripts/lint_backend.sh
@@ -128,6 +134,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install Python
       uses: actions/setup-python@v4
+      id: env
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -136,24 +143,29 @@ jobs:
           requirements.txt
           test/requirements.txt
     - name: Install pnpm
+      if: steps.env.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
       with:
         version: 8
     - uses: actions/setup-node@v3
+      if: steps.env.outputs.cache-hit != 'true'
       with:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Install Gradio
+      if: steps.env.outputs.cache-hit != 'true'
       shell: bash
       run: |
         pip install -e .
         python -m pip install --upgrade pip
     - name: Install 3.8 Test Dependencies
+      if: steps.env.outputs.cache-hit != 'true'
       shell: bash
       run: |
         pip install -r test/requirements.txt
     - name: Build frontend
+      if: steps.env.outputs.cache-hit != 'true'
       shell: bash
       run: |
         pnpm i --frozen-lockfile
