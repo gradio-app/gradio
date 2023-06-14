@@ -7,6 +7,7 @@ import gradio.processing_utils
 import gradio.templates
 import gradio.themes as themes
 from gradio.blocks import Blocks
+from gradio.buttons import ClearButton
 from gradio.components import (
     HTML,
     JSON,
