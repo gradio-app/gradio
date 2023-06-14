@@ -126,7 +126,7 @@ jobs:
     - name: Activate virtualenv (Linux)
       if: runner.os == 'Linux'
       run: |
-        . .venv/bin/activate
+        . venv/bin/activate
         echo PATH=$PATH >> $GITHUB_ENV
     - name: Activate virtualenv (Windows)
       if: runner.os == 'Windows'
