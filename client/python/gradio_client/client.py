@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import os
 import re
+import tempfile
 import threading
 import time
 import urllib.parse
@@ -39,6 +41,11 @@ from gradio_client.utils import (
 set_documentation_group("py-client")
 
 
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
+
+
 @document("predict", "submit", "view_api", "duplicate")
 class Client:
     """
@@ -63,6 +70,7 @@ class Client:
         hf_token: str | None = None,
         max_workers: int = 40,
         serialize: bool = True,
+        output_dir: str | Path | None = DEFAULT_TEMP_DIR,
         verbose: bool = True,
     ):
         """
@@ -71,6 +79,7 @@ class Client:
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             serialize: Whether the client should serialize the inputs and deserialize the outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing/deserializing them. E.g. you if you set this to False, you'd submit an image in base64 format instead of a filepath, and you'd get back an image in base64 format from the remote API instead of a filepath.
+            output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
         """
         self.verbose = verbose
@@ -82,6 +91,7 @@ class Client:
             library_version=utils.__version__,
         )
         self.space_id = None
+        self.output_dir = output_dir
 
         if src.startswith("http://") or src.startswith("https://"):
             _src = src if src.endswith("/") else src + "/"
@@ -795,7 +805,12 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         outputs = tuple(
             [
-                s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
+                s.deserialize(
+                    d,
+                    save_dir=self.client.output_dir,
+                    hf_token=self.client.hf_token,
+                    root_url=self.root_url,
+                )
                 for s, d in zip(self.deserializers, data)
             ]
         )
