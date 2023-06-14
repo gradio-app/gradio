@@ -6,6 +6,7 @@ import os
 import pathlib
 import random
 import sys
+import tempfile
 import time
 import unittest.mock as mock
 import uuid
@@ -26,7 +27,6 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
-from gradio.blocks import DEFAULT_TEMP_DIR
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -484,17 +484,18 @@ class TestTempFile:
             return random.sample(images, n_images)
 
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        gallery = gr.Gallery()
         demo = gr.Interface(
             create_images,
-            inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
-            outputs=[gr.Gallery(columns=2, preview=True)],
+            inputs="slider",
+            outputs=gallery,
         )
         with connect(demo) as client:
             path = client.predict(3)
             _ = client.predict(3)
-        # only three files created and in correct directory
+        # only three files created and in temp directory
         assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
-        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(path).resolve().parents
+        assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
     def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
