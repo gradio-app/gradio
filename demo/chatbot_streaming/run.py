@@ -5,7 +5,7 @@ import time
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
     msg = gr.Textbox()
-    clear = gr.Button("Clear")
+    clear = gr.ClearButton([msg, chatbot])
 
     def user(user_message, history):
         return gr.update(value="", interactive=False), history + [[user_message, None]]
@@ -22,7 +22,6 @@ with gr.Blocks() as demo:
         bot, chatbot, chatbot
     )
     response.then(lambda: gr.update(interactive=True), None, [msg], queue=False)
-    clear.click(lambda: None, None, chatbot, queue=False)
 
 demo.queue()
 if __name__ == "__main__":

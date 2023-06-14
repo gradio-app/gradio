@@ -263,6 +263,7 @@ class Examples:
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
+                api_name="load_example",
             )
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:

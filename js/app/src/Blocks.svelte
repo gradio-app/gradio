@@ -259,7 +259,6 @@
 		};
 
 		if (dep.frontend_fn) {
-			console.log("running frontend fn");
 			dep
 				.frontend_fn(
 					payload.data.concat(
@@ -267,7 +266,6 @@
 					)
 				)
 				.then((v: []) => {
-					console.log("got frontend fn result:", v);
 					if (dep.backend_fn) {
 						payload.data = v;
 						make_prediction();

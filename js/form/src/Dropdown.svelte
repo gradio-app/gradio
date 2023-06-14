@@ -23,12 +23,12 @@
 		blur: undefined;
 	}>();
 
-	let inputValue: string,
+	let inputValue: string | undefined,
 		activeOption: string | null,
 		showOptions = false,
 		filterInput: HTMLElement;
 
-	$: if (typeof value === "string") {
+	$: if (typeof value === "string" || value === null) {
 		inputValue = value;
 	}
 

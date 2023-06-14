@@ -1588,7 +1588,7 @@ class TestLabel:
             "name": "label",
             "show_label": True,
             "num_top_classes": 2,
-            "value": None,
+            "value": {},
             "label": None,
             "container": True,
             "min_width": 160,
