@@ -37,7 +37,7 @@ jobs:
           workflows:
             - '.github/**'
           scripts:
-            - 'scripts/**''
+            - 'scripts/**'
   client-lint:
     needs: changes
     if: needs.changes.outputs.python-client == 'true' ||  needs.changes.outputs.workflows == 'true' ||  needs.changes.outputs.scripts == 'true'
