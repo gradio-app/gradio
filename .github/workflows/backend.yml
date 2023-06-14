@@ -187,5 +187,5 @@ jobs:
       shell: bash
       run: |
         mkdir -p test-reports
-        coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
-        coverage xml
+        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
+        python -m coverage xml
