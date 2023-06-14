@@ -16,7 +16,7 @@ in the variable `output`.
 If I put you to sleep 🥱, please bear with me! By using apps like functions, you can seamlessly compose Gradio apps.
 The following section will show how.
 
-## Treating spaces like functions
+## Treating Blocks like functions
 
 Let's say we have the following demo that translates english text to german text. 
 
