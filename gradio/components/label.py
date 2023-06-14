@@ -108,7 +108,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if y is None or y == {}:
-            return None
+            return {}
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
             return self.serialize(y)
         if isinstance(y, (str, float, int)):

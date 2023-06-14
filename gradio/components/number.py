@@ -165,9 +165,9 @@ class Number(
         """
         if x is None:
             return None
-        elif self.minimum != None and x < self.minimum:
+        elif self.minimum is not None and x < self.minimum:
             raise Error(f"Value {x} is less than minimum value {self.minimum}.")
-        elif self.maximum != None and x > self.maximum:
+        elif self.maximum is not None and x > self.maximum:
             raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
         return self._round_to_precision(x, self.precision)
 
