@@ -20,7 +20,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, Literal
 
 import aiofiles
 import altair as alt
@@ -50,7 +50,6 @@ from gradio_client.serializing import (
 )
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
-from typing_extensions import Literal
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -71,9 +70,9 @@ from gradio.events import (
     Submittable,
     Uploadable,
 )
+from gradio.exceptions import Error
 from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
-from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -511,7 +510,6 @@ class Textbox(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        self.cleared_value = ""
         self.type = type
 
     def get_config(self):
@@ -797,9 +795,9 @@ class Number(
         """
         if x is None:
             return None
-        elif self.minimum != None and x < self.minimum:
+        elif self.minimum is not None and x < self.minimum:
             raise Error(f"Value {x} is less than minimum value {self.minimum}.")
-        elif self.maximum != None and x > self.maximum:
+        elif self.maximum is not None and x > self.maximum:
             raise Error(f"Value {x} is greater than maximum value {self.maximum}.")
         return self._round_to_precision(x, self.precision)
 
@@ -953,7 +951,6 @@ class Slider(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
@@ -1232,7 +1229,6 @@ class CheckboxGroup(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
-        self.cleared_value = []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -1461,7 +1457,6 @@ class Radio(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
 
     def get_config(self):
         return {
@@ -1658,8 +1653,6 @@ class Dropdown(
             value=value,
             **kwargs,
         )
-
-        self.cleared_value = self.value or ([] if multiselect else "")
 
     def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
@@ -3877,7 +3870,6 @@ class ColorPicker(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.cleared_value = "#000000"
         IOComponent.__init__(
             self,
             label=label,
@@ -4047,7 +4039,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
             Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if y is None or y == {}:
-            return None
+            return {}
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
             return self.serialize(y)
         if isinstance(y, (str, float, int)):

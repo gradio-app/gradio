@@ -14,8 +14,7 @@ with input_demo:
     t = gr.Textbox(label="Enter your text here")
     with gr.Row():
         btn = gr.Button("Submit")
-        clr = gr.Button("Clear")
-    clr.click(lambda x: "", t, t)
+        clr = gr.ClearButton(t)
 
 with output_demo:
     gr.Textbox("This is a static output")
