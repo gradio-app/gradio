@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import sys
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
