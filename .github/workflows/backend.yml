@@ -70,23 +70,29 @@ jobs:
         restore-keys: |
           python-client-${{ runner.os }}-pip-
           python-client-${{ runner.os }}-
+    - name: Activate virtualenv (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . .venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: Activate virtualenv (Windows)
+      if: runner.os == 'Windows'
+      run: |
+          venv\Scripts\activate
+          echo PATH=$PATH >> $GITHUB_ENV
     - name: Install Test Requirements
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        . venv/bin/activate
         pip install -r test/requirements.txt
     - name: Install Client Library
       run: |
-        . venv/bin/activate
         pip install -e .
     - name: Lint
       run: |
-        . venv/bin/activate
         bash scripts/lint.sh
     - name: Tests
       shell: bash
       run: |
-        . venv/bin/activate
         python -m pytest -m "${{ matrix.test-type }}"
   test:
     needs: [changes]
@@ -117,10 +123,19 @@ jobs:
         restore-keys: |
           gradio-lib-${{ runner.os }}-pip-
           gradio-lib-${{ runner.os }}-
+    - name: Activate virtualenv (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . .venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: Activate virtualenv (Windows)
+      if: runner.os == 'Windows'
+      run: |
+          venv\Scripts\activate
+          echo PATH=$PATH >> $GITHUB_ENV
     - name: Install Test Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        . venv/bin/activate
         pip install -e . -r test/requirements.txt
     - name: Install pnpm
       if: steps.cache.outputs.cache-hit != 'true'
@@ -142,21 +157,17 @@ jobs:
     - name: Install Gradio
       shell: bash
       run: |
-        . venv/bin/activate
         pip install .
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Lint
       run: |
-        . venv/bin/activate
         bash scripts/lint_backend.sh
     - name: Typecheck
       run: |
-        . venv/bin/activate
         bash scripts/type_check_backend.sh
     - name: Run tests
       shell: bash
       run: |
-        . venv/bin/activate
         python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         python -m coverage xml
