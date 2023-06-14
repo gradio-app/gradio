@@ -7,6 +7,7 @@ import uuid
 from concurrent.futures import CancelledError, TimeoutError
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
@@ -17,6 +18,7 @@ from gradio.networking import Server
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
+from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
@@ -172,7 +174,17 @@ class TestClientPredictions:
             "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
             fn_index=0,
         )
-        assert pathlib.Path(job.result()).exists()
+        assert Path(job.result()).exists()
+        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(job.result()).resolve().parents
+
+        temp_dir = tempfile.mkdtemp()
+        client = Client(src="gradio/video_component", output_dir=temp_dir)
+        job = client.submit(
+            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+            fn_index=0,
+        )
+        assert Path(job.result()).exists()
+        assert Path(temp_dir).resolve() in Path(job.result()).resolve().parents
 
     def test_progress_updates(self, progress_demo):
         with connect(progress_demo) as client:
