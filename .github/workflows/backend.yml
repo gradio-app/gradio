@@ -60,7 +60,9 @@ jobs:
     - uses: actions/cache@master
       id: cache
       with:
-        path: ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
+        path: |
+          ${{ env.pythonLocation}}/lib/python3.8/site-packages/*
+          ${{ env.pythonLocation}}\lib\python3.8\site-packages\*
         key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
         restore-keys: |
           python-client-${{ runner.os }}-pip-
@@ -98,6 +100,7 @@ jobs:
       with:
         path: |
           ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
+          ${{ env.pythonLocation}}\lib\python3.8\site-packages\*
           gradio/templates/*
         key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('js/**') }}-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
         restore-keys: |
