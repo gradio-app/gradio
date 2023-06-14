@@ -13,6 +13,7 @@ from gradio.components.carousel import Carousel
 from gradio.components.chatbot import Chatbot
 from gradio.components.checkbox import Checkbox
 from gradio.components.checkboxgroup import CheckboxGroup
+from gradio.components.clear_button import ClearButton
 from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
@@ -56,6 +57,7 @@ __all__ = [
     "Button",
     "Carousel",
     "Chatbot",
+    "ClearButton",
     "Component",
     "component",
     "get_component_instance",
