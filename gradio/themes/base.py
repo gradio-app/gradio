@@ -1421,7 +1421,7 @@ class Base(ThemeClass):
             self, "error_border_color", colors.red.c200
         )
         self.error_border_color_dark = error_border_color_dark or getattr(
-            self, "error_border_color_dark", "*border_color_primary"
+            self, "error_border_color_dark", colors.red.c500
         )
         self.error_border_width = error_border_width or getattr(
             self, "error_border_width", "1px"
