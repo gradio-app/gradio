@@ -185,6 +185,27 @@ jobs:
       shell: bash
       run: |
         pip install -r test/requirements.txt
+        - name: Install Gradio
+        shell: bash
+        run: |
+          pip install -e .
+    - name: Install pnpm
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+    - uses: actions/setup-node@v3
+      if: steps.cache.outputs.cache-hit != 'true'
+      with:
+        node-version: 18
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+    - name: Build frontend
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        pnpm i --frozen-lockfile
+        pnpm build
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Run tests
