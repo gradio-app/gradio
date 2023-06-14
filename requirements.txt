@@ -22,6 +22,5 @@ pydub
 pyyaml
 requests
 semantic_version
-typing_extensions
 uvicorn>=0.14.0
 websockets>=10.0

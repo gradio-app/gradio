@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import json
 
 from gradio_client.documentation import document, set_documentation_group
-from typing_extensions import Literal
 
 from gradio.components import Button, Component
 
