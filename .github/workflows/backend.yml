@@ -87,7 +87,6 @@ jobs:
         bash scripts/lint.sh
     - name: Tests (Linux)
       if: runner.os == 'Linux'
-      shell: bash
       run: |
         . venv/bin/activate
         python -m pytest -m "${{ matrix.test-type }}"
@@ -153,12 +152,10 @@ jobs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Build frontend
       if: steps.cache.outputs.cache-hit != 'true'
-      shell: bash
       run: |
         pnpm i --frozen-lockfile
         pnpm build
     - name: Install Gradio (Linux)
-      shell: bash
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
@@ -181,7 +178,6 @@ jobs:
         . venv/bin/activate
         bash scripts/type_check_backend.sh
     - name: Run tests (Linux)
-      shell: bash
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
