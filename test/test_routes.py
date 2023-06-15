@@ -361,6 +361,19 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_with_app_kwargs(self):
+        app = FastAPI()
+
+        demo = gr.Interface(
+            lambda s: f"You said {s}!", "textbox", "textbox"
+        ).queue()
+
+        app = gr.mount_gradio_app(app, demo, path="/echo", app_kwargs={"docs_url": "/docs-custom"})
+
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/echo/docs-custom").is_success
+
     def test_static_file_missing(self, test_client):
         response = test_client.get(r"/static/not-here.js")
         assert response.status_code == 404
