@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { copy } from "./utils";
 	import "katex/dist/katex.min.css";
-	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import {
+		beforeUpdate,
+		afterUpdate,
+		createEventDispatcher
+	} from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
@@ -47,12 +51,17 @@
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
-	afterUpdate(() => {
+	const scroll = () => {
 		if (autoscroll) {
 			div.scrollTo(0, div.scrollHeight);
+		}
+	};
+	afterUpdate(() => {
+		if (autoscroll) {
+			scroll();
 			div.querySelectorAll("img").forEach((n) => {
 				n.addEventListener("load", () => {
-					div.scrollTo(0, div.scrollHeight);
+					scroll();
 				});
 			});
 		}
@@ -77,7 +86,7 @@
 	}
 </script>
 
-<div class="wrap" style:max-height="100%" bind:this={div}>
+<div class="wrap" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
@@ -92,7 +101,7 @@
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} />
+							<Markdown {message} {latex_delimiters} on:load={scroll} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -145,6 +154,7 @@
 	.wrap {
 		padding: var(--block-padding);
 		overflow-y: auto;
+		width: 100%;
 	}
 
 	.message-wrap {
