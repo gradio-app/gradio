@@ -2,6 +2,25 @@
 
 ## New Features:
 
+No changes to highlight.
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+
+# 3.35.0
+
+## New Features:
+
 - A `gr.ClearButton` which allows users to easily clear the values of components by [@abidlabs](https://github.com/abidlabs) in [PR 4456](https://github.com/gradio-app/gradio/pull/4456)
 
 Example usage:
