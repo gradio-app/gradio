@@ -52,7 +52,12 @@
 		</div>
 	</div>
 
-	<button class="toast-close" type="button" aria-label="Close">
+	<button
+		on:click={close_message}
+		class="toast-close"
+		type="button"
+		aria-label="Close"
+	>
 		<span aria-hidden="true">×</span>
 	</button>
 
