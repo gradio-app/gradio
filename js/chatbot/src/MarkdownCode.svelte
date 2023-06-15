@@ -25,7 +25,6 @@
 
 	$: mounted &&
 		latex_delimiters.length > 0 &&
-		message &&
 		render_math_in_element(el, {
 			delimiters: latex_delimiters,
 			throwOnError: false
