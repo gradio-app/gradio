@@ -133,7 +133,7 @@ with gr.Blocks() as bar_plot:
                 label="Type of Bar Plot",
             )
         with gr.Column():
-            plot = gr.BarPlot(show_label=False).style(container=True)
+            plot = gr.BarPlot(show_label=False)
     display.change(bar_plot_fn, inputs=display, outputs=plot)
     bar_plot.load(fn=bar_plot_fn, inputs=display, outputs=plot)
 

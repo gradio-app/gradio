@@ -41,7 +41,7 @@ seattle_weather = data.seattle_weather()
 def line_plot_fn(dataset):
     if dataset == "stocks":
         return gr.LinePlot.update(
-            fake_stocks,
+            stocks,
             x="date",
             y="price",
             color="symbol",
@@ -97,7 +97,7 @@ with gr.Blocks() as line_plot:
                 value="stocks",
             )
         with gr.Column():
-            plot = gr.LinePlot(show_label=False).style(container=False)
+            plot = gr.LinePlot(show_label=False)
     dataset.change(line_plot_fn, inputs=dataset, outputs=plot)
     line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)
 
