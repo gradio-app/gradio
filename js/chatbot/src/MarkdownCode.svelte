@@ -6,6 +6,7 @@
 	const dispatch = createEventDispatcher();
 
 	export let message: string;
+	let old_message: string = "";
 	export let latex_delimiters: Array<{
 		left: string;
 		right: string;
@@ -17,11 +18,14 @@
 
 	afterUpdate(() => {
 		tick().then(() => {
-			requestAnimationFrame(() => {
-				el.innerHTML = DOMPurify.sanitize(marked.parse(message));
-				mounted = true;
-				dispatch("load");
-			});
+			if (message !== old_message) {
+				requestAnimationFrame(() => {
+					el.innerHTML = DOMPurify.sanitize(marked.parse(message));
+					mounted = true;
+					old_message = message;
+					dispatch("load");
+				});
+			}
 		});
 	});
 
