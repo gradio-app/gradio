@@ -128,7 +128,7 @@ class BarPlot(Plot):
         x: str | None = None,
         y: str | None = None,
         color: str | None = None,
-        vertical: bool = True,
+        vertical: bool | None = None,
         group: str | None = None,
         title: str | None = None,
         tooltip: list[str] | str | None = None,
@@ -143,11 +143,11 @@ class BarPlot(Plot):
         caption: str | None = None,
         interactive: bool | None = None,
         label: str | None = None,
-        show_label: bool = True,
-        container: bool = True,
+        show_label: bool | None = None,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
     ):
         """Update an existing BarPlot component.
 
