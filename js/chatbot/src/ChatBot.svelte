@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { copy } from "./utils";
 	import "katex/dist/katex.min.css";
-	import {
-		beforeUpdate,
-		afterUpdate,
-		createEventDispatcher
-	} from "svelte";
+	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
@@ -153,8 +149,8 @@
 <style>
 	.wrap {
 		padding: var(--block-padding);
-		overflow-y: auto;
 		width: 100%;
+		overflow-y: auto;
 	}
 
 	.message-wrap {
