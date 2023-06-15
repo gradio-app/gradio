@@ -23,7 +23,7 @@
 		left: string;
 		right: string;
 		display: boolean;
-	}> = [{ left: "$$", right: "$$", display: true }];
+	}>;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
