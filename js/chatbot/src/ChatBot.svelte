@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { marked, copy } from "./utils";
+	import { copy } from "./utils";
 	import "katex/dist/katex.min.css";
-	import DOMPurify from "dompurify";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
+	import MarkdownCode from "./MarkdownCode.svelte";
 
 	const code_highlight_css = {
 		light: () => import("prismjs/themes/prism.css"),
@@ -52,14 +51,6 @@
 				});
 			});
 		}
-
-		render_math_in_element(div, {
-			delimiters: [
-				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false }
-			],
-			throwOnError: false
-		});
 	});
 
 	$: {
@@ -96,7 +87,7 @@
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							{@html DOMPurify.sanitize(marked.parse(message))}
+							<MarkdownCode {message} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
