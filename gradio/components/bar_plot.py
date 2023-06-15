@@ -22,7 +22,7 @@ class BarPlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots, chicago-bikeshare-dashboard
+    Demos: bar_plot, chicago-bikeshare-dashboard
     """
 
     def __init__(
