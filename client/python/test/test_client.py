@@ -94,7 +94,7 @@ class TestClientPredictions:
     def test_job_status(self, calculator_demo):
         with connect(calculator_demo) as client:
             statuses = []
-            job = client.submit(5, "add", 4)
+            job = client.submit(5, "add", 4, api_name="/predict")
             while not job.done():
                 time.sleep(0.1)
                 statuses.append(job.status())
@@ -441,7 +441,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6)
+        job = client.submit(5, "add", 6, api_name="/predict")
 
         statuses = []
         while not job.done():
@@ -516,8 +516,8 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job_1 = client.submit(5, "add", 6)
-        job_2 = client.submit(11, "subtract", 1)
+        job_1 = client.submit(5, "add", 6, api_name="/predict")
+        job_2 = client.submit(11, "subtract", 1, api_name="/predict")
 
         statuses_1 = []
         statuses_2 = []
