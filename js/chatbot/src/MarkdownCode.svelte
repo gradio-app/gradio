@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { afterUpdate, tick } from "svelte";
+	import { afterUpdate, tick, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { marked } from "./utils";
+	const dispatch = createEventDispatcher();
 
 	export let message: string;
+	let old_message: string = "";
 	export let latex_delimiters: Array<{
 		left: string;
 		right: string;
@@ -16,10 +18,14 @@
 
 	afterUpdate(() => {
 		tick().then(() => {
-			requestAnimationFrame(() => {
-				el.innerHTML = DOMPurify.sanitize(marked.parse(message));
-				mounted = true;
-			});
+			if (message !== old_message) {
+				requestAnimationFrame(() => {
+					el.innerHTML = DOMPurify.sanitize(marked.parse(message));
+					mounted = true;
+					old_message = message;
+					dispatch("load");
+				});
+			}
 		});
 	});
 
