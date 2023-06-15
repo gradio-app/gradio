@@ -120,7 +120,7 @@ export async function duplicate(
 		hf_token: `hf_${string}`;
 		private?: boolean;
 		status_callback: SpaceStatusCallback;
-		hardware?: (typeof hardware_types)[number];
+		hardware?: typeof hardware_types[number];
 		timeout?: number;
 	}
 ) {
