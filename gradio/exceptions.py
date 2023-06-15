@@ -55,7 +55,9 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             warnings.warn(message)
         return
     if not queueing.thread_data.blocks.enable_queue:
-        warnings.warn(f"Queueing must be enabled to issue {level.capitalize()}: '{message}'.")
+        warnings.warn(
+            f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
+        )
         return
     queueing.thread_data.blocks._queue.log_message(
         event_id=queueing.thread_data.event_id, log=message, level=level
