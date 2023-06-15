@@ -15,7 +15,7 @@
 	let mounted = false;
 
 	onMount(() => {
-		tick().then((v) => {
+		tick().then(() => {
 			requestAnimationFrame(() => {
 				el.innerHTML = DOMPurify.sanitize(marked.parse(message));
 				mounted = true;
