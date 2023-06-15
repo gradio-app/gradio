@@ -1071,16 +1071,13 @@ class Blocks(BlockContext):
             else:
                 fn = block_fn.fn
 
-            def fn_wrap(*args, **kwargs):
-                queueing.thread_data.blocks = self
-                queueing.thread_data.event_id = event_id
-                return fn(*args, **kwargs)
+            fn = utils.get_function_with_locals(fn, self, event_id)
 
             if inspect.iscoroutinefunction(fn):
-                prediction = await fn_wrap(*processed_input)
+                prediction = await fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
-                    fn_wrap, *processed_input, limiter=self.limiter
+                    fn, *processed_input, limiter=self.limiter
                 )
         else:
             prediction = None

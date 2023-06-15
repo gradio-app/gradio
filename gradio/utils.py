@@ -46,7 +46,7 @@ from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import Block, BlockContext
+    from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
@@ -644,6 +644,14 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
             time.sleep(every)
 
     return continuous_fn
+
+def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str):
+    from gradio.queueing import thread_data
+    def fn_wrap(*args, **kwargs):
+        thread_data.blocks = blocks
+        thread_data.event_id = event_id
+        return fn(*args, **kwargs)
+    return fn_wrap
 
 
 async def cancel_tasks(task_ids: set[str]):

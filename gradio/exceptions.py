@@ -59,6 +59,7 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
         )
         return
+    print("here")
     queueing.thread_data.blocks._queue.log_message(
         event_id=queueing.thread_data.event_id, log=message, level=level
     )

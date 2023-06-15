@@ -76,6 +76,7 @@ class Queue:
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
         self.queue_client = None
+        self.continuous_tasks: list[Event] = []
 
     async def start(self, ssl_verify=True):
         # So that the client is attached to the running event loop
@@ -150,18 +151,19 @@ class Queue:
                 await asyncio.sleep(self.progress_update_sleep_when_free)
                 continue
 
-            for job in self.active_jobs:
-                if job is None:
-                    continue
-                for event in job:
-                    if event.progress_pending and event.progress:
-                        event.progress_pending = False
-                        client_awake = await self.send_message(
-                            event, event.progress.dict()
-                        )
-                        if not client_awake:
-                            await self.clean_event(event)
-                    await self.send_log_updates_for_event(event)
+            events = [
+                evt for job in self.active_jobs if job is not None for evt in job
+            ] + self.continuous_tasks
+
+            for event in events:
+                if event.progress_pending and event.progress:
+                    event.progress_pending = False
+                    client_awake = await self.send_message(
+                        event, event.progress.dict()
+                    )
+                    if not client_awake:
+                        await self.clean_event(event)
+                await self.send_log_updates_for_event(event)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
