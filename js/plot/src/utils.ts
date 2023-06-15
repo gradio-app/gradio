@@ -1,7 +1,7 @@
 import type { Config as VegaConfig } from "vega";
 
-const dark = "#e2e8f0";
-const light = "#111827";
+export const dark = "#e2e8f0";
+export const light = "#111827";
 
 export function create_config(darkmode: boolean): VegaConfig {
 	return {
@@ -30,4 +30,8 @@ export function create_config(darkmode: boolean): VegaConfig {
 			anchor: "middle"
 		}
 	};
+}
+
+export function bar_plot_header_encoding(darkmode: boolean): Object {
+	return { labelFont: "sans-serif", labelColor: darkmode ? dark : light };
 }
