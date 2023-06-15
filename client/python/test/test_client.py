@@ -441,7 +441,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6)
+        job = client.submit(5, "add", 6, api_name="/predict")
 
         statuses = []
         while not job.done():
