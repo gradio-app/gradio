@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect } from "@gradio/tootils";
 import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
 
 test("renders the correct elements", async ({ page }) => {

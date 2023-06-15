@@ -1,4 +1,6 @@
-import { test, expect, Page, Locator } from "@playwright/test";
+import { Page, Locator } from "@playwright/test";
+import { test, expect } from "@gradio/tootils";
+
 import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
 
 //taken from: https://github.com/microsoft/playwright/issues/20032
