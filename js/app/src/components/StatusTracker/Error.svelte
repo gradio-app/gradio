@@ -86,23 +86,23 @@
 		line-height: var(--line-xs);
 	}
 	.toast-icon {
-		position: relative;
 		display: flex;
+		position: relative;
 		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
+		margin: var(--size-2);
 		border-radius: var(--radius-full);
 		padding: var(--size-1);
 		padding-left: calc(var(--size-1) - 1px);
 		color: var(--error-icon-color);
-		margin: var(--size-2);
 	}
 
 	.toast-close {
-		color: var(--error-icon-color);
 		margin: 0 var(--size-3);
 		border-radius: var(--size-3);
 		padding: 0px var(--size-1-5);
+		color: var(--error-icon-color);
 		font-size: var(--size-5);
 		line-height: var(--size-5);
 	}
@@ -113,8 +113,8 @@
 	}
 
 	.toast-details {
-		width: 100%;
 		margin: var(--size-3) var(--size-3) var(--size-3) 0;
+		width: 100%;
 	}
 	svg {
 		position: absolute;
