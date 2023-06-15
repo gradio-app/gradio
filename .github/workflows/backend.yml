@@ -85,7 +85,7 @@ jobs:
       run: |
         . venv/bin/activate
         bash scripts/lint.sh
-    - name: Tests
+    - name: Tests (Linux)
       if: runner.os == 'Linux'
       shell: bash
       run: |
@@ -96,17 +96,17 @@ jobs:
       run: |
         venv\Scripts\activate
         pip install -r test/requirements.txt
-    - name: Install Client Library
+    - name: Install Client Library (Windows)
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
         pip install -e .
-    - name: Lint
+    - name: Lint (Windows)
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
         bash scripts/lint.sh
-    - name: Tests
+    - name: Tests (Windows)
       shell: bash
       if: runner.os == 'Windows'
       run: |
@@ -160,6 +160,7 @@ jobs:
         pnpm build
     - name: Install Gradio (Linux)
       shell: bash
+      if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
         pip install .
