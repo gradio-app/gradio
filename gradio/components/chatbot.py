@@ -37,7 +37,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         value: list[list[str | tuple[str] | tuple[str, str] | None]]
         | Callable
         | None = None,
-        color_map: dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
+        color_map: dict[str, str] | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -49,6 +49,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         height: int | None = None,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         **kwargs,
     ):
         """
@@ -64,6 +65,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             height: height of the component in pixels.
+            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
         """
         if color_map is not None:
             warnings.warn(
@@ -76,6 +78,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         See EventData documentation on how to use this event data.
         """
         self.height = height
+        if latex_delimiters is None:
+            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
+        self.latex_delimiters = latex_delimiters
 
         IOComponent.__init__(
             self,
@@ -95,6 +100,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     def get_config(self):
         return {
             "value": self.value,
+            "latex_delimiters": self.latex_delimiters,
             "selectable": self.selectable,
             "height": self.height,
             **IOComponent.get_config(self),
