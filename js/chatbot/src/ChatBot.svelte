@@ -5,7 +5,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
-	import MarkdownCode from "./MarkdownCode.svelte";
+	import Markdown from "./MarkdownCode.svelte";
 
 	const code_highlight_css = {
 		light: () => import("prismjs/themes/prism.css"),
@@ -18,6 +18,11 @@
 	let old_value: Array<
 		[string | FileData | null, string | FileData | null]
 	> | null = null;
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}>;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
@@ -87,7 +92,7 @@
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							<MarkdownCode {message} />
+							<Markdown {message} {latex_delimiters} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}

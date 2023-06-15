@@ -5,6 +5,11 @@
 	import { marked } from "./utils";
 
 	export let message: string;
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}>;
 
 	let el: HTMLSpanElement;
 	let mounted = false;
@@ -19,11 +24,9 @@
 	});
 
 	$: mounted &&
+		latex_delimiters.length > 0 &&
 		render_math_in_element(el, {
-			delimiters: [
-				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false }
-			],
+			delimiters: latex_delimiters,
 			throwOnError: false
 		});
 </script>
