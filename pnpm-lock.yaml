@@ -18,8 +18,8 @@ importers:
         specifier: workspace:^0.0.1
         version: link:js/tootils
       '@playwright/test':
-        specifier: ^1.27.1
-        version: 1.27.1
+        specifier: ^1.35.1
+        version: 1.35.1
       '@sveltejs/vite-plugin-svelte':
         specifier: ^1.0.0-next.44
         version: 1.0.0-next.44(svelte@3.59.1)(vite@4.2.1)
@@ -60,8 +60,8 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5
       playwright:
-        specifier: ^1.27.1
-        version: 1.27.1
+        specifier: ^1.35.1
+        version: 1.35.1
       plotly.js-dist-min:
         specifier: ^2.10.1
         version: 2.11.1
@@ -124,7 +124,7 @@ importers:
         version: 4.2.1(@types/node@17.0.14)
       vitest:
         specifier: ^0.29.8
-        version: 0.29.8(happy-dom@9.20.3)(playwright@1.27.1)
+        version: 0.29.8(happy-dom@9.20.3)(playwright@1.35.1)
     devDependencies:
       '@types/three':
         specifier: ^0.138.0
@@ -277,6 +277,9 @@ importers:
       '@gradio/video':
         specifier: workspace:^0.0.1
         version: link:../video
+      '@playwright/test':
+        specifier: ^1.35.1
+        version: 1.35.1
       d3-dsv:
         specifier: ^3.0.1
         version: 3.0.1
@@ -1580,13 +1583,15 @@ packages:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
     dev: false
 
-  /@playwright/test@1.27.1:
-    resolution: {integrity: sha512-mrL2q0an/7tVqniQQF6RBL2saskjljXzqNcCOVMUjRIgE6Y38nCNaP+Dc2FBW06bcpD3tqIws/HT9qiMHbNU0A==}
-    engines: {node: '>=14'}
+  /@playwright/test@1.35.1:
+    resolution: {integrity: sha512-b5YoFe6J9exsMYg0pQAobNDR85T1nLumUYgUTtKm4d21iX2L7WqKq9dW8NGJ+2vX0etZd+Y7UeuqsxDXm9+5ZA==}
+    engines: {node: '>=16'}
     hasBin: true
     dependencies:
       '@types/node': 17.0.14
-      playwright-core: 1.27.1
+      playwright-core: 1.35.1
+    optionalDependencies:
+      fsevents: 2.3.2
     dev: false
 
   /@polka/url@1.0.0-next.21:
@@ -4984,19 +4989,19 @@ packages:
       pathe: 1.1.0
     dev: false
 
-  /playwright-core@1.27.1:
-    resolution: {integrity: sha512-9EmeXDncC2Pmp/z+teoVYlvmPWUC6ejSSYZUln7YaP89Z6lpAaiaAnqroUt/BoLo8tn7WYShcfaCh+xofZa44Q==}
-    engines: {node: '>=14'}
+  /playwright-core@1.35.1:
+    resolution: {integrity: sha512-pNXb6CQ7OqmGDRspEjlxE49w+4YtR6a3X6mT1hZXeJHWmsEz7SunmvZeiG/+y1yyMZdHnnn73WKYdtV1er0Xyg==}
+    engines: {node: '>=16'}
     hasBin: true
     dev: false
 
-  /playwright@1.27.1:
-    resolution: {integrity: sha512-xXYZ7m36yTtC+oFgqH0eTgullGztKSRMb4yuwLPl8IYSmgBM88QiB+3IWb1mRIC9/NNwcgbG0RwtFlg+EAFQHQ==}
-    engines: {node: '>=14'}
+  /playwright@1.35.1:
+    resolution: {integrity: sha512-NbwBeGJLu5m7VGM0+xtlmLAH9VUfWwYOhUi/lSEDyGg46r1CA9RWlvoc5yywxR9AzQb0mOCm7bWtOXV7/w43ZA==}
+    engines: {node: '>=16'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      playwright-core: 1.27.1
+      playwright-core: 1.35.1
     dev: false
 
   /plotly.js-dist-min@2.11.1:
@@ -7138,7 +7143,7 @@ packages:
       vite: 4.3.5(@types/node@17.0.14)
     dev: true
 
-  /vitest@0.29.8(happy-dom@9.20.3)(playwright@1.27.1):
+  /vitest@0.29.8(happy-dom@9.20.3)(playwright@1.35.1):
     resolution: {integrity: sha512-JIAVi2GK5cvA6awGpH0HvH/gEG9PZ0a/WoxdiV3PmqK+3CjQMf8c+J/Vhv4mdZ2nRyXFw66sAg6qz7VNkaHfDQ==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
@@ -7185,7 +7190,7 @@ packages:
       local-pkg: 0.4.3
       pathe: 1.1.0
       picocolors: 1.0.0
-      playwright: 1.27.1
+      playwright: 1.35.1
       source-map: 0.6.1
       std-env: 3.3.2
       strip-literal: 1.0.1
