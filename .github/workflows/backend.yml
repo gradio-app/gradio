@@ -107,7 +107,6 @@ jobs:
         venv\Scripts\activate
         bash scripts/lint.sh
     - name: Tests (Windows)
-      shell: bash
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
@@ -189,7 +188,6 @@ jobs:
         python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
         python -m coverage xml
     - name: Install Gradio (Windows)
-      shell: bash
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
@@ -210,7 +208,6 @@ jobs:
         venv\Scripts\activate
         bash scripts/type_check_backend.sh
     - name: Run tests (Windows)
-      shell: bash
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
