@@ -105,7 +105,7 @@ class Audio(
                 "Audio streaming only available if source is 'microphone'."
             )
         self.format = format
-        self.autoplay = autoplay        
+        self.autoplay = autoplay
         IOComponent.__init__(
             self,
             label=label,
