@@ -143,11 +143,11 @@ class BarPlot(Plot):
         caption: str | None = None,
         interactive: bool | None = None,
         label: str | None = None,
-        show_label: bool = True,
-        container: bool = True,
+        show_label: bool | None = None,
+        container: bool | None = None,
         scale: int | None = None,
-        min_width: int = 160,
-        visible: bool = True,
+        min_width: int | None = None,
+        visible: bool | None = None,
     ):
         """Update an existing BarPlot component.
 
