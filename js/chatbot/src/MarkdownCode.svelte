@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick, createEventDispatcher } from "svelte";
+	import { afterUpdate, tick, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { marked } from "./utils";
@@ -15,7 +15,7 @@
 	let el: HTMLSpanElement;
 	let mounted = false;
 
-	onMount(() => {
+	afterUpdate(() => {
 		tick().then(() => {
 			requestAnimationFrame(() => {
 				el.innerHTML = DOMPurify.sanitize(marked.parse(message));
