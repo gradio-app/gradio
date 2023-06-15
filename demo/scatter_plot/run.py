@@ -61,7 +61,7 @@ with gr.Blocks() as scatter_plot:
         with gr.Column():
             dataset = gr.Dropdown(choices=["cars", "iris"], value="cars")
         with gr.Column():
-            plot = gr.ScatterPlot(show_label=False)
+            plot = gr.ScatterPlot()
     dataset.change(scatter_plot_fn, inputs=dataset, outputs=plot)
     scatter_plot.load(fn=scatter_plot_fn, inputs=dataset, outputs=plot)
 
