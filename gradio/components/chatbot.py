@@ -65,7 +65,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             height: height of the component in pixels.
-            latex_delimiters: A list of dicts of the form {"left": open_delimiter, "right": close_delimiter, "display": display_in_newline} that will be used to render LaTeX expressions. Setting "display" to `False` means LaTeX will be rendered inline instead of in a newline. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only LaTeX expressions enclosed in $$ delimiters will be rendered, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
+            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
         """
         if color_map is not None:
             warnings.warn(
