@@ -54,7 +54,6 @@ code,
 kbd,
 samp,
 pre {
-	font-size: 1em;
 	font-family: -var(--font-mono);
 }
 
