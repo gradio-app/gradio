@@ -47,8 +47,12 @@ class Default(Base):
         super().set(
             # Colors
             input_background_fill_dark="*neutral_800",
-            error_background_fill=colors.red.c200,
-            error_border_color=colors.red.c600,
+            error_background_fill=colors.red.c50,
+            error_background_fill_dark="*neutral_900",
+            error_border_color=colors.red.c100,
+            error_border_color_dark=colors.red.c500,
+            error_icon_color=colors.red.c700,
+            error_icon_color_dark=colors.red.c500,
             # Transition
             button_transition="none",
             # Shadows
