@@ -145,6 +145,12 @@ dracula = gr.themes.Base(
 ).set(
     body_background_fill=dracula_gray.c500,
     color_accent_soft=dracula_gray.c100,
+    error_border_color="#fecaca",
+    error_background_fill="#fee2e2",
+    error_icon_color="#b91c1c",
+    error_icon_color_dark="#ef4444",
+    error_text_color="#ef4444",
+    error_text_color_dark="#ef4444",
     background_fill_primary=dracula_gray.c500,
     background_fill_secondary=dracula_gray.c500,
     block_background_fill=dracula_gray.c300,

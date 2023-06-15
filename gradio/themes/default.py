@@ -47,6 +47,12 @@ class Default(Base):
         super().set(
             # Colors
             input_background_fill_dark="*neutral_800",
+            error_background_fill=colors.red.c50,
+            error_background_fill_dark="*neutral_900",
+            error_border_color=colors.red.c100,
+            error_border_color_dark=colors.red.c500,
+            error_icon_color=colors.red.c700,
+            error_icon_color_dark=colors.red.c500,
             # Transition
             button_transition="none",
             # Shadows
@@ -65,8 +71,6 @@ class Default(Base):
             # Gradients
             stat_background_fill="linear-gradient(to right, *primary_400, *primary_200)",
             stat_background_fill_dark="linear-gradient(to right, *primary_400, *primary_600)",
-            error_background_fill=f"linear-gradient(to right, {colors.red.c100}, *background_fill_secondary)",
-            error_background_fill_dark="*background_fill_primary",
             checkbox_label_background_fill="linear-gradient(to top, *neutral_50, white)",
             checkbox_label_background_fill_dark="linear-gradient(to top, *neutral_900, *neutral_800)",
             checkbox_label_background_fill_hover="linear-gradient(to top, *neutral_100, white)",
