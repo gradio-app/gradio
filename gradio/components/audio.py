@@ -104,6 +104,8 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
+        self.format = format
+        self.autoplay = autoplay
         IOComponent.__init__(
             self,
             label=label,
@@ -120,8 +122,6 @@ class Audio(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        self.format = format
-        self.autoplay = autoplay
 
     def get_config(self):
         return {
