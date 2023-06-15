@@ -1922,7 +1922,7 @@ class TestChatbot:
             "height": None,
             "root_url": None,
             "selectable": False,
-            'latex_delimiters': [{'display': True, 'left': '$$', 'right': '$$'}]
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
         }
 
 

@@ -19,7 +19,7 @@
 		left: string;
 		right: string;
 		display: boolean;
-	}> | null = [{ left: "$$", right: "$$", display: true }];
+	}> = [{ left: "$$", right: "$$", display: true }];
 	export let container: boolean = false;
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;

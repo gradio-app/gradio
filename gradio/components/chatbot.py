@@ -37,9 +37,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         value: list[list[str | tuple[str] | tuple[str, str] | None]]
         | Callable
         | None = None,
-        color_map: dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
-        latex_delimiters: list[dict[str, str | bool]]
-        | None = [{"left": "$$", "right": "$$", "display": True}],
+        color_map: dict[str, str] | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -51,12 +49,12 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         height: int | None = None,
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         **kwargs,
     ):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            latex_delimiters: A list of dicts of the form {open_delimiter, close_delimiter, display} that will be used to render LaTeX expressions. Display set to `False` means LaTeX will be rendered inline. By default `latex_delimiters` is set to `[{ left: "$$", right: "$$", display: true }]`, so LaTeX expressions enclosed in $$ delimiters will be rendered. Pass in `None` or an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -67,6 +65,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             height: height of the component in pixels.
+            latex_delimiters: A list of dicts of the form {open_delimiter, close_delimiter, display} that will be used to render LaTeX expressions. Display set to `False` means LaTeX will be rendered inline. If not provided, `latex_delimiters` is set to `[{ left: "$$", right: "$$", display: true }]`, so only LaTeX expressions enclosed in $$ delimiters will be rendered. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
         """
         if color_map is not None:
             warnings.warn(
@@ -79,6 +78,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         See EventData documentation on how to use this event data.
         """
         self.height = height
+        if latex_delimiters is None:
+            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
 
         IOComponent.__init__(

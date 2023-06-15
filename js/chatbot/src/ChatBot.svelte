@@ -23,7 +23,7 @@
 		left: string;
 		right: string;
 		display: boolean;
-	}> | null = [{ left: "$$", right: "$$", display: true }];
+	}> = [{ left: "$$", right: "$$", display: true }];
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
@@ -58,7 +58,7 @@
 			});
 		}
 
-		if (latex_delimiters !== null && latex_delimiters.length > 0) {
+		if (latex_delimiters.length > 0) {
 			render_math_in_element(div, {
 				delimiters: latex_delimiters,
 				throwOnError: false
