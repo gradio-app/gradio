@@ -32,3 +32,10 @@
 </script>
 
 <span bind:this={el} />
+
+<style>
+	span :global(code[class*="language-"]),
+	span :global(pre[class*="language-"]) {
+		font-size: var(--text-md);
+	}
+</style>
