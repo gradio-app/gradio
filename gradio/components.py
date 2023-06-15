@@ -5000,7 +5000,7 @@ class ScatterPlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots
+    Demos: scatter_plot
     Guides: creating-a-dashboard-from-bigquery-data
     """
 
@@ -5346,7 +5346,7 @@ class LinePlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots, live_dashboard
+    Demos: line_plot, live_dashboard
     """
 
     def __init__(
@@ -5684,7 +5684,7 @@ class BarPlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots, chicago-bikeshare-dashboard
+    Demos: bar_plot, chicago-bikeshare-dashboard
     """
 
     def __init__(
