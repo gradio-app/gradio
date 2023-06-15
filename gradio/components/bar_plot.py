@@ -128,7 +128,7 @@ class BarPlot(Plot):
         x: str | None = None,
         y: str | None = None,
         color: str | None = None,
-        vertical: bool | None = None,
+        vertical: bool = True,
         group: str | None = None,
         title: str | None = None,
         tooltip: list[str] | str | None = None,

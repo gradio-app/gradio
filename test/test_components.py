@@ -2631,10 +2631,9 @@ class TestBarPlot:
         }
 
     def test_update_defaults_none(self):
+        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
         assert all(
-            v is None
-            for k, v in gr.BarPlot.update().items()
-            if k not in ["value", "__type__"]
+            v is None for k, v in output.items() if k not in ["value", "__type__"]
         )
 
     def test_no_color(self):
