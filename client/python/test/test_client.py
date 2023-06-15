@@ -94,7 +94,7 @@ class TestClientPredictions:
     def test_job_status(self, calculator_demo):
         with connect(calculator_demo) as client:
             statuses = []
-            job = client.submit(5, "add", 4)
+            job = client.submit(5, "add", 4, api_name="/predict")
             while not job.done():
                 time.sleep(0.1)
                 statuses.append(job.status())
