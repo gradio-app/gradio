@@ -24,6 +24,7 @@
 	export let source: "microphone" | "upload" | "none";
 	export let pending: boolean = false;
 	export let streaming: boolean = false;
+	export let autoplay: boolean;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -34,7 +35,7 @@
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Array<Uint8Array> = [];
 	let submit_pending_stream_on_pending_end: boolean = false;
-	let player;
+	let player: HTMLAudioElement;
 	let inited = false;
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
@@ -64,11 +65,14 @@
 		edit: AudioData;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		stop: undefined;
+		end: undefined;
 		drag: boolean;
 		error: string;
 		upload: FileData;
 		clear: undefined;
+		start_recording: undefined;
+		stop_recording: undefined;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -164,7 +168,7 @@
 
 	async function record() {
 		recording = true;
-
+		dispatch("start_recording");
 		if (!inited) await prepare_audio();
 		header = undefined;
 		if (streaming) {
@@ -181,6 +185,7 @@
 	});
 
 	const stop = async () => {
+		dispatch("stop_recording");
 		recorder.stop();
 		if (streaming) {
 			recording = false;
@@ -250,8 +255,23 @@
 		dispatch("upload", detail);
 	}
 
+	function handle_ended() {
+		dispatch("stop");
+		dispatch("end");
+	}
+
+	let old_val: any;
+	function value_has_changed(val: any) {
+		if (val === old_val) return false;
+		else {
+			old_val = val;
+			return true;
+		}
+	}
+
 	export let dragging = false;
 	$: dispatch("drag", dragging);
+	$: autoplay && player && value_has_changed(value?.data) && player.play();
 </script>
 
 <BlockLabel
@@ -306,7 +326,7 @@
 		src={value.data}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_ended}
 	/>
 
 	{#if mode === "edit" && player?.duration}

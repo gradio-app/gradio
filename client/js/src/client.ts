@@ -745,7 +745,7 @@ function normalise_file(
 		if (!root_url) {
 			file.data = root + "/file=" + file.name;
 		} else {
-			file.data = "/proxy=" + root_url + "/file=" + file.name;
+			file.data = "/proxy=" + root_url + "file=" + file.name;
 		}
 	}
 	return file;
@@ -1129,9 +1129,18 @@ async function check_space_status(
 
 			setTimeout(() => {
 				check_space_status(id, type, status_callback);
-			}, 1000);
+			}, 1000); // poll for status
 			break;
-		// poll for status
+		case "PAUSED":
+			status_callback({
+				status: "paused",
+				load_status: "error",
+				message:
+					"This space has been paused by the author. If you would like to try this demo, consider duplicating the space.",
+				detail: stage,
+				discussions_enabled: await discussions_enabled(space_name)
+			});
+			break;
 		case "RUNNING":
 		case "RUNNING_BUILDING":
 			status_callback({

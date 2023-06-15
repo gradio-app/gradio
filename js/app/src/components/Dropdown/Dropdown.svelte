@@ -3,7 +3,6 @@
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "Dropdown";
 	export let info: string | undefined = undefined;
@@ -16,7 +15,9 @@
 	export let max_choices: number;
 	export let choices: Array<string>;
 	export let show_label: boolean;
-	export let style: Styles = {};
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value: boolean = false;
 
@@ -29,12 +30,7 @@
 	}
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	disable={typeof style.container === "boolean" && !style.container}
->
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Dropdown

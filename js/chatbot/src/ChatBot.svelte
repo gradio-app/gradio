@@ -4,7 +4,7 @@
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { Styles, SelectData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 
@@ -19,9 +19,13 @@
 	let old_value: Array<
 		[string | FileData | null, string | FileData | null]
 	> | null = null;
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}>;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
-	export let style: Styles = {};
 	export let selectable: boolean = false;
 	export let theme_mode: ThemeMode;
 
@@ -54,13 +58,12 @@
 			});
 		}
 
-		render_math_in_element(div, {
-			delimiters: [
-				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false }
-			],
-			throwOnError: false
-		});
+		if (latex_delimiters.length > 0) {
+			render_math_in_element(div, {
+				delimiters: latex_delimiters,
+				throwOnError: false
+			});
+		}
 	});
 
 	$: {
@@ -82,12 +85,7 @@
 	}
 </script>
 
-<div
-	class="wrap"
-	style:height={`${style.height}px`}
-	style:max-height={`${style.height}px`}
-	bind:this={div}
->
+<div class="wrap" style:max-height="100%" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
@@ -154,8 +152,6 @@
 <style>
 	.wrap {
 		padding: var(--block-padding);
-		height: 100%;
-		max-height: 480px;
 		overflow-y: auto;
 	}
 
@@ -168,6 +164,10 @@
 	.message-wrap > div :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
+	}
+
+	.message-wrap > div :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
 	}
 
 	.message-wrap :global(audio) {

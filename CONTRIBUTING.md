@@ -2,7 +2,7 @@
 
 Prerequisites:
 
-- [Python 3.7+](https://www.python.org/downloads/)
+- [Python 3.8+](https://www.python.org/downloads/)
 - [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
 - [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
 
@@ -38,6 +38,27 @@ bash scripts/install_test_requirements.sh
 ```
 bash scripts/create_test_requirements.sh
 ```
+
+### Using dev containers
+
+Instead of the above steps, you can alternatively use dev containers. This is supported on all platforms (macOS/Windows/Linux).
+
+Prerequisites:
+
+- An editor which supports dev containers, like VS Code
+- Docker support on the host computer:
+  - macOS: [Docker Desktop 2.0+](https://www.docker.com/products/docker-desktop/)
+  - Windows: [Docker Desktop 2.0+](https://www.docker.com/products/docker-desktop/)
+  - Linux: [Docker CE/EE 18.06+](https://docs.docker.com/get-docker/) and [Docker Compose 1.21+](https://docs.docker.com/compose/install/)
+- If using VS Code, the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+
+Steps:
+
+- Clone repository
+- Open it in editor
+- For VS Code, execute `Dev Containers: Reopen in container` command
+
+For detailed instructions, please see the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial).
 
 ### Extra tidbits
 

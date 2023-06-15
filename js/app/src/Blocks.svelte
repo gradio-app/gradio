@@ -20,6 +20,8 @@
 	import Render from "./Render.svelte";
 	import { ApiDocs } from "./api_docs/";
 	import type { ThemeMode } from "./components/types";
+	import Toast from "./components/StatusTracker/Toast.svelte";
+	import type { ToastMessage } from "./components/StatusTracker/types";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -135,25 +137,23 @@
 		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
-	function load_component<T extends ComponentMeta["type"]>(
+	async function load_component<T extends ComponentMeta["type"]>(
 		name: T
 	): Promise<{
 		name: T;
 		component: LoadedComponent;
 	}> {
-		return new Promise(async (res, rej) => {
-			try {
-				const c = await component_map[name]();
-				res({
-					name,
-					component: c as LoadedComponent
-				});
-			} catch (e) {
-				console.error("failed to load: " + name);
-				console.error(e);
-				rej(e);
-			}
-		});
+		try {
+			const c = await component_map[name]();
+			return {
+				name,
+				component: c as LoadedComponent
+			};
+		} catch (e) {
+			console.error(`failed to load: ${name}`);
+			console.error(e);
+			throw e;
+		}
 	}
 
 	const component_set = new Set<
@@ -215,11 +215,11 @@
 						output.props[update_key] = update_value;
 					}
 				}
-				rootNode = rootNode;
 			} else {
 				output.props.value = value;
 			}
 		});
+		rootNode = rootNode;
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
@@ -233,13 +233,17 @@
 	}
 	let handled_dependencies: Array<number[]> = [];
 
+	let messages: (ToastMessage & { fn_index: number })[] = [];
+	let _error_id = -1;
+	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
+
 	const trigger_api_call = async (
 		dep_index: number,
 		event_data: unknown = null
 	) => {
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
-
+		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (dep.cancels) {
 			await Promise.all(
 				dep.cancels.map(async (fn_index) => {
@@ -306,6 +310,21 @@
 					}
 
 					if (status.stage === "error") {
+						if (status.message) {
+							const _message = status.message.replace(
+								MESSAGE_QUOTE_RE,
+								(_, b) => b
+							);
+							messages = [
+								{
+									type: "error",
+									message: _message,
+									id: ++_error_id,
+									fn_index
+								},
+								...messages
+							];
+						}
 						dependencies.map(async (dep, i) => {
 							if (
 								dep.trigger_after === fn_index &&
@@ -323,13 +342,18 @@
 		}
 	};
 
+	function handle_error_close(e: Event & { detail: number }) {
+		const _id = e.detail;
+		messages = messages.filter((m) => m.id !== _id);
+	}
+
+	const is_external_url = (link: string | null) =>
+		link && new URL(link, location.href).origin !== location.origin;
+
 	async function handle_mount() {
 		await tick();
 
 		var a = target.getElementsByTagName("a");
-
-		const is_external_url = (link: string | null) =>
-			link && new URL(link).origin !== location.origin;
 
 		for (var i = 0; i < a.length; i++) {
 			const _target = a[i].getAttribute("target");
@@ -489,6 +513,10 @@
 			/>
 		</div>
 	</div>
+{/if}
+
+{#if messages}
+	<Toast {messages} on:close={handle_error_close} />
 {/if}
 
 <style>

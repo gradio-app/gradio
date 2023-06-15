@@ -1,23 +1,23 @@
 <script lang="ts">
+	import { tick, createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
+	export let autoplay: boolean;
+
+	const dispatch = createEventDispatcher<{
+		play: undefined;
+		pause: undefined;
+		stop: undefined;
+		end: undefined;
+	}>();
 
 	let time: number = 0;
 	let duration: number;
 	let paused: boolean = true;
 	let video: HTMLVideoElement;
-
-	let show_controls = true;
-	let show_controls_timeout: NodeJS.Timeout;
-
-	function video_move() {
-		clearTimeout(show_controls_timeout);
-		show_controls_timeout = setTimeout(() => (show_controls = false), 500);
-		show_controls = true;
-	}
 
 	function handleMove(e: TouchEvent | MouseEvent) {
 		if (!duration) return;
@@ -69,17 +69,47 @@
 
 		return `${minutes}:${_seconds}`;
 	}
+
+	async function checkforVideo() {
+		await tick();
+
+		await tick();
+
+		var b = setInterval(async () => {
+			if (video.readyState >= 3) {
+				video.currentTime = 9999;
+				paused = true;
+
+				setTimeout(async () => {
+					video.currentTime = 0.0;
+				}, 50);
+				clearInterval(b);
+			}
+		}, 15);
+	}
+
+	async function _load() {
+		checkforVideo();
+	}
+
+	$: src && _load();
+
+	function handle_end() {
+		dispatch("stop");
+		dispatch("end");
+	}
+
+	$: autoplay && video && src && video.play();
 </script>
 
 <div class="wrap">
 	<video
 		{src}
 		preload="auto"
-		on:mousemove={video_move}
 		on:click={play_pause}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_end}
 		bind:currentTime={time}
 		bind:duration
 		bind:paused

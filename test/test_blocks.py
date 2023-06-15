@@ -6,12 +6,14 @@ import os
 import pathlib
 import random
 import sys
+import tempfile
 import time
 import unittest.mock as mock
 import uuid
 import warnings
 from contextlib import contextmanager
 from functools import partial
+from pathlib import Path
 from string import capwords
 from unittest.mock import patch
 
@@ -148,7 +150,7 @@ class TestBlocksMethods:
 
             inp.submit(fn=update, inputs=inp, outputs=out, api_name="greet")
 
-            gr.Image().style(height=54, width=240)
+            gr.Image(height=54, width=240)
 
         config1 = demo1.get_config_file()
         demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
@@ -482,16 +484,18 @@ class TestTempFile:
             return random.sample(images, n_images)
 
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        gallery = gr.Gallery()
         demo = gr.Interface(
             create_images,
-            inputs=[gr.Slider(value=3, minimum=1, maximum=3, step=1)],
-            outputs=[gr.Gallery().style(grid=2, preview=True)],
+            inputs="slider",
+            outputs=gallery,
         )
         with connect(demo) as client:
+            path = client.predict(3)
             _ = client.predict(3)
-            _ = client.predict(3)
-        # only three files created
+        # only three files created and in temp directory
         assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
     def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -1108,10 +1112,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": False,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": False,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1124,10 +1132,14 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
-            "type": None,
-            "interactive": True,
+            "container": None,
+            "scale": None,
+            "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
+            "type": None,
+            "interactive": True,
+            "show_copy_button": None,
             "__type__": "update",
         }
 
@@ -1138,15 +1150,26 @@ class TestSpecificUpdate:
                 "value": "test.mp4",
                 "__type__": "generic_update",
                 "interactive": True,
+                "container": None,
+                "height": None,
+                "min_width": None,
+                "scale": None,
+                "width": None,
             }
         )
         assert specific_update == {
+            "autoplay": None,
             "source": None,
             "label": None,
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
             "interactive": True,
+            "container": None,
+            "height": None,
+            "min_width": None,
+            "scale": None,
+            "width": None,
             "__type__": "update",
         }
 

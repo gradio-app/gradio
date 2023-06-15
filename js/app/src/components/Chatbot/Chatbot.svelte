@@ -2,7 +2,6 @@
 	import { ChatBot } from "@gradio/chatbot";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
@@ -16,7 +15,14 @@
 		[string | FileData | null, string | FileData | null]
 	> = [];
 	let _value: Array<[string | FileData | null, string | FileData | null]>;
-	export let style: Styles = {};
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}>;
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let label: string;
 	export let show_label: boolean = true;
 	export let root: string;
@@ -38,9 +44,20 @@
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
+	export let height: number = 480;
 </script>
 
-<Block {elem_id} {elem_classes} {visible} padding={false}>
+<Block
+	{elem_id}
+	{elem_classes}
+	{visible}
+	padding={false}
+	{container}
+	{scale}
+	{min_width}
+	{height}
+	allow_overflow={false}
+>
 	{#if loading_status}
 		<StatusTracker
 			{...loading_status}
@@ -55,14 +72,14 @@
 			Icon={Chat}
 			float={false}
 			label={label || "Chatbot"}
-			disable={typeof style.container === "boolean" && !style.container}
+			disable={container === false}
 		/>
 	{/if}
 	<ChatBot
-		{style}
 		{selectable}
 		{theme_mode}
 		value={_value}
+		{latex_delimiters}
 		pending_message={loading_status?.status === "pending"}
 		on:change
 		on:select
