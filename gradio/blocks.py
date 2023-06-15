@@ -1077,7 +1077,7 @@ class Blocks(BlockContext):
                 return fn(*args, **kwargs)
 
             if inspect.iscoroutinefunction(fn):
-                prediction = await fn(*processed_input)
+                prediction = await fn_wrap(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
                     fn_wrap, *processed_input, limiter=self.limiter

@@ -474,8 +474,7 @@ class Queue:
                 event.websocket.send_json(data=data), timeout=timeout
             )
             return True
-        except Exception as e:
-            print(e)
+        except Exception:
             await self.clean_event(event)
             return False
 

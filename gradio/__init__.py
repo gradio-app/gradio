@@ -57,7 +57,7 @@ from gradio.components import (
 )
 from gradio.deploy_space import deploy
 from gradio.events import SelectData
-from gradio.exceptions import Error, Warning
+from gradio.exceptions import Error, Warning, Info
 from gradio.external import load
 from gradio.flagging import (
     CSVLogger,
