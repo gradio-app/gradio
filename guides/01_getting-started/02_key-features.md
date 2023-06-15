@@ -25,9 +25,11 @@ You can load a large dataset into the examples to browse and interact with the d
 
 Continue learning about examples in the [More On Examples](https://gradio.app/more-on-examples) guide.
 
-## Errors
+## Errors and Warnings
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error). 
+
+You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work. 
 
 ## Descriptive Content
 
