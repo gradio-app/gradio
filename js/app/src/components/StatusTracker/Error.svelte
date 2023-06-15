@@ -68,7 +68,6 @@
 	.toast-body {
 		display: flex;
 		position: relative;
-		top: var(--size-8);
 		right: 0;
 		left: 0;
 		align-items: center;
@@ -87,8 +86,8 @@
 		align-items: center;
 		color: var(--error-text-color);
 		font-weight: var(--weight-bold);
-		font-size: var(--text-md);
-		line-height: var(--line-xs);
+		font-size: var(--text-lg);
+		line-height: var(--line-sm);
 	}
 	.toast-icon {
 		display: flex;
@@ -114,7 +113,7 @@
 
 	.toast-text {
 		color: var(--error-text-color);
-		font-size: var(--text-sm);
+		font-size: var(--text-lg);
 	}
 
 	.toast-details {
