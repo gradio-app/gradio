@@ -73,9 +73,6 @@ jobs:
         path: |
           client/python/venv/*
         key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
-        restore-keys: |
-          python-client-${{ runner.os }}-pip-
-          python-client-${{ runner.os }}-
     - name: Install Test Requirements (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
@@ -142,9 +139,6 @@ jobs:
         path: |
           venv/*
         key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
-        restore-keys: |
-          gradio-lib-${{ runner.os }}-pip-
-          gradio-lib-${{ runner.os }}-
     - uses: actions/cache@v3
       id: frontend-cache
       with:
