@@ -2,9 +2,11 @@ import gradio as gr
 import random
 import time
 
+disease_values = [0.25, 0.5, 0.75]
+
 def xray_model(diseases, img):
     time.sleep(4)
-    return [{disease: random.random() for disease in diseases}]
+    return [{disease: disease_values[idx] for idx,disease in enumerate(diseases)}]
 
 
 def ct_model(diseases, img):

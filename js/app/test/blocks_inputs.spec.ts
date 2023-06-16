@@ -1,12 +1,6 @@
 import { test, expect } from "@gradio/tootils";
-import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
 
 test("renders the correct elements", async ({ page }) => {
-	await mock_demo(page, "blocks_inputs");
-	await mock_api(page, [["hi dawood"]]);
-	await mock_theme(page);
-	await wait_for_page(page);
-
 	const textboxes = await page.getByLabel("Input");
 
 	const textboxOne = await textboxes.first();

@@ -1,8 +1,6 @@
 import { Page, Locator } from "@playwright/test";
 import { test, expect } from "@gradio/tootils";
 
-import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
-
 //taken from: https://github.com/microsoft/playwright/issues/20032
 async function changeSlider(
 	page: Page,
@@ -36,10 +34,6 @@ async function changeSlider(
 }
 
 test("slider release", async ({ page }) => {
-	await mock_demo(page, "slider_release");
-	await mock_api(page, [[70, null, 1]]);
-	await mock_theme(page);
-	await wait_for_page(page);
 	const slider = page.getByLabel("Slider");
 
 	await changeSlider(page, slider, slider, 0.7);
@@ -49,6 +43,6 @@ test("slider release", async ({ page }) => {
 
 	const val = await slider.inputValue();
 	expect(parseInt(val)).toBeCloseTo(70);
-	expect(value).toHaveValue("70");
+	expect(parseInt(await value.inputValue())).toBeCloseTo(70);
 	expect(events).toHaveValue("1");
 });
