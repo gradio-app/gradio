@@ -6,8 +6,25 @@ No changes to highlight.
 
 ## Bug Fixes:
 
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
+# 3.35.2
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
 - Fix chatbot streaming by [@aliabid94](https://github.com/aliabid94) in [PR 4537](https://github.com/gradio-app/gradio/pull/4537)
-- Fix error modal position and text size by [@pngwn](https://github.com/pngwn) in [PR 4538](https://github.com/gradio-app/gradio/pull/4538).
 - Fix chatbot height and scrolling by [@aliabid94](https://github.com/aliabid94) in [PR 4540](https://github.com/gradio-app/gradio/pull/4540)
 
 ## Other Changes:
@@ -17,6 +34,26 @@ No changes to highlight.
 ## Breaking Changes:
 
 No changes to highlight.
+
+# 3.35.1
+
+## New Features:
+
+No changes to highlight.
+
+## Bug Fixes:
+
+- Fix chatbot streaming by [@aliabid94](https://github.com/aliabid94) in [PR 4537](https://github.com/gradio-app/gradio/pull/4537)
+- Fix error modal position and text size by [@pngwn](https://github.com/pngwn) in [PR 4538](https://github.com/gradio-app/gradio/pull/4538).
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
 
 # 3.35.0
 
