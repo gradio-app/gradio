@@ -46,6 +46,11 @@ function spawn_gradio_app(
 			if (PORT_RE.test(_data)) {
 				res(_process);
 			}
+			console.log("OUT: ", _data);
+		});
+
+		_process.stderr.on("data", (data) => {
+			console.log("ERR: ", data.toString());
 		});
 	});
 }
