@@ -33,7 +33,7 @@ function spawn_gradio_app(
 			stdio: "pipe",
 			env: {
 				...process.env,
-				GRADIO_SERVER_PORT: `786${workerIndex}`,
+				GRADIO_SERVER_PORT: `787${workerIndex}`,
 				PYTHONUNBUFFERED: "true"
 			}
 		});
@@ -41,7 +41,7 @@ function spawn_gradio_app(
 
 		_process.stdout.on("data", (data) => {
 			const _data = data.toString();
-			const PORT_RE = new RegExp(`:786${workerIndex}`);
+			const PORT_RE = new RegExp(`:787${workerIndex}`);
 
 			if (PORT_RE.test(_data)) {
 				res(_process);
@@ -93,7 +93,7 @@ export const test = base.extend<{ setup: void }>({
 				}
 			}
 
-			await page.goto(`localhost:786${workerIndex}`);
+			await page.goto(`localhost:787${workerIndex}`);
 
 			await use();
 		},
