@@ -23,7 +23,11 @@
 			| string;
 		error: string;
 		start_recording: undefined;
-		stop_recording: undefined;
+		stop_recording: {
+			data: FileReader["result"];
+			name: string;
+			is_example?: boolean;
+		};
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
@@ -74,13 +78,17 @@
 
 	function take_recording() {
 		if (recording) {
-			dispatch("stop_recording");
 			media_recorder.stop();
 			let video_blob = new Blob(recorded_blobs, { type: mimeType });
 			let ReaderObj = new FileReader();
 			ReaderObj.onload = function (e) {
 				if (e.target) {
 					dispatch("capture", {
+						data: e.target.result,
+						name: "sample." + mimeType.substring(6),
+						is_example: false
+					});
+					dispatch("stop_recording", {
 						data: e.target.result,
 						name: "sample." + mimeType.substring(6),
 						is_example: false
