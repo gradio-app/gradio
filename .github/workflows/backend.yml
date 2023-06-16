@@ -105,11 +105,6 @@ jobs:
       run: |
         venv\Scripts\activate
         pip install -e .
-    - name: Lint (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        venv\Scripts\activate
-        bash scripts/lint.sh
     - name: Tests (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -208,16 +203,6 @@ jobs:
       run: |
         venv\Scripts\activate
         python -m pip install -e . -r test/requirements.txt
-    - name: Lint (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        venv\Scripts\activate
-        bash scripts/lint_backend.sh
-    - name: Typecheck (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        venv\Scripts\activate
-        bash scripts/type_check_backend.sh
     - name: Run tests (Windows)
       if: runner.os == 'Windows'
       run: |
