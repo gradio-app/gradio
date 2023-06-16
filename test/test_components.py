@@ -854,6 +854,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        # Confirm Audio can be instantiated with a numpy array
+        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
@@ -2626,6 +2629,12 @@ class TestBarPlot:
             "visible": True,
             "bokeh_version": "3.0.3",
         }
+
+    def test_update_defaults_none(self):
+        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
+        assert all(
+            v is None for k, v in output.items() if k not in ["value", "__type__"]
+        )
 
     def test_no_color(self):
         plot = gr.BarPlot(

@@ -19,27 +19,31 @@
 
 <div
 	class="toast-body"
+	role="alert"
 	on:click|stopPropagation
 	on:keydown|stopPropagation
 	in:fade={{ duration: 200, delay: 100 }}
 	out:fade={{ duration: 200 }}
 >
-	<button on:click={close_message} class="toast-close">
-		<svg
-			width="100%"
-			height="100%"
-			viewBox="0 0 24 24"
-			fill="currentColor"
-			stroke="currentColor"
-			stroke-width="3"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="close-svg"
-		>
-			<line x1="18" y1="6" x2="6" y2="18" />
-			<line x1="6" y1="6" x2="18" y2="18" />
-		</svg>
-	</button>
+	<svg
+		aria-hidden="true"
+		xmlns="http://www.w3.org/2000/svg"
+		width="35"
+		height="35"
+		fill="none"
+		viewBox="0 0 24 24"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		class="toast-icon"
+		><circle cx="12" cy="12" r="10" /><line
+			x1="12"
+			x2="12"
+			y2="13"
+			y1="7"
+		/><line x1="13" y1="16" x2="11.01" y2="16" /></svg
+	>
 
 	<div class="toast-details">
 		<div class="toast-title">Something went wrong</div>
@@ -47,6 +51,15 @@
 			{message}
 		</div>
 	</div>
+
+	<button
+		on:click={close_message}
+		class="toast-close"
+		type="button"
+		aria-label="Close"
+	>
+		<span aria-hidden="true">×</span>
+	</button>
 
 	<div class="timer" />
 </div>
@@ -60,66 +73,55 @@
 		align-items: center;
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
-		margin-left: 0;
-		box-shadow: var(--shadow-drop-lg);
 		border: 1px solid var(--error-border-color);
 		border-radius: var(--container-radius);
 		background: var(--error-background-fill);
-		padding: var(--size-4) var(--size-6);
-		width: 100%;
 		max-width: 1200px;
 		max-width: 610px;
 		overflow: hidden;
 		pointer-events: auto;
 	}
-
 	.toast-title {
 		display: flex;
 		align-items: center;
-		padding: var(--size-1) var(--size-3);
 		color: var(--error-text-color);
-		color: var(--color-red-500);
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
-		line-height: var(--line-xs);
+		line-height: var(--line-sm);
 	}
-
-	.toast-close {
+	.toast-icon {
 		display: flex;
 		position: relative;
 		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
+		margin: var(--size-2);
 		border-radius: var(--radius-full);
-		background: var(--color-red-600);
-		padding: var(--size-2);
-		padding-left: calc(var(--size-2) - 1px);
-		width: var(--size-10);
-		height: var(--size-10);
-		color: white;
+		padding: var(--size-1);
+		padding-left: calc(var(--size-1) - 1px);
+		color: var(--error-icon-color);
+	}
+
+	.toast-close {
+		margin: 0 var(--size-3);
+		border-radius: var(--size-3);
+		padding: 0px var(--size-1-5);
+		color: var(--error-icon-color);
+		font-size: var(--size-5);
+		line-height: var(--size-5);
 	}
 
 	.toast-text {
-		padding: var(--size-1) var(--size-3);
-		color: var(--body-text-color);
-		font-family: var(--font-mono);
+		color: var(--error-text-color);
+		font-size: var(--text-lg);
 	}
 
 	.toast-details {
-		padding-left: var(--size-3);
+		margin: var(--size-3) var(--size-3) var(--size-3) 0;
 		width: 100%;
 	}
 	svg {
 		position: absolute;
-	}
-
-	.close-svg {
-		top: var(--size-2);
-		right: var(--size-2);
-		bottom: var(--size-2);
-		left: var(--size-2);
-		width: var(--size-6);
-		height: var(--size-6);
 	}
 
 	@keyframes countdown {
@@ -137,7 +139,7 @@
 		left: 0;
 		transform-origin: 0 0;
 		animation: countdown 10s linear forwards;
-		background: var(--color-red-600);
+		background: var(--error-icon-color);
 		width: 100%;
 		height: var(--size-1);
 	}
