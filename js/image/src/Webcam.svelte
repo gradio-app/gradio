@@ -23,11 +23,7 @@
 			| string;
 		error: string;
 		start_recording: undefined;
-		stop_recording: {
-			data: FileReader["result"];
-			name: string;
-			is_example?: boolean;
-		};
+		stop_recording: undefined;
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
@@ -88,11 +84,7 @@
 						name: "sample." + mimeType.substring(6),
 						is_example: false
 					});
-					dispatch("stop_recording", {
-						data: e.target.result,
-						name: "sample." + mimeType.substring(6),
-						is_example: false
-					});
+					dispatch("stop_recording");
 				}
 			};
 			ReaderObj.readAsDataURL(video_blob);
