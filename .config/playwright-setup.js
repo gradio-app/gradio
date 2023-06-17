@@ -11,12 +11,12 @@ const test_files = readdirSync(test_files_path)
 	.filter((f) => f.endsWith("spec.ts") && !f.endsWith(".skip.spec.ts"))
 	.map((f) => basename(f, ".spec.ts"));
 
-export default async function global_setup(x) {
+export default async function global_setup() {
 	const verbose = process.env.GRADIO_TEST_VERBOSE;
 	console.info("\nCreating test gradio app and starting server.\n");
-	const test_app = make_app(test_files, verbose);
+	const test_app = make_app(test_files);
 	writeFileSync(test_app_path, test_app);
-	const app = await spawn_gradio_app();
+	const app = await spawn_gradio_app(test_app_path, verbose);
 	console.info("Server started. Running tests.\n");
 
 	return () => {
@@ -28,7 +28,7 @@ const PORT_RE = new RegExp(`:7879`);
 
 function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
-		const _process = spawn(`python`, [test_app_path], {
+		const _process = spawn(`python`, [app], {
 			shell: true,
 			stdio: "pipe",
 			env: {
@@ -61,6 +61,11 @@ function spawn_gradio_app(app, verbose) {
 			}
 			if (verbose) {
 				console.warn("ERR: ", _data);
+			} else if (_data.includes("Traceback")) {
+				kill_process(_process);
+				throw new Error(
+					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
+				);
 			}
 		});
 	});
@@ -80,7 +85,7 @@ import uvicorn
 from fastapi import FastAPI
 import gradio as gr
 ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
-
+print("hi")
 app = FastAPI()
 
 ${demos

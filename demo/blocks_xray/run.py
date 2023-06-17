@@ -51,6 +51,7 @@ With this model you can lorem ipsum
 
     upload_btn = gr.Button("Upload Results", variant="primary")
     upload_btn.click(
+        lambda ct, xr: None,
         inputs=[ct_results, xray_results],
         outputs=[],
     )
