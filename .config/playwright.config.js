@@ -5,6 +5,5 @@ export default {
 	},
 	// testMatch: /.*.spec.ts/,
 	testDir: "..",
-	// globalSetup:
-	globalTeardown: "./playwright-teardown.js"
+	globalSetup: "./playwright-setup.js"
 };

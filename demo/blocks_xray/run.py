@@ -1,16 +1,15 @@
 import gradio as gr
-import random
 import time
 
 disease_values = [0.25, 0.5, 0.75]
 
 def xray_model(diseases, img):
-    time.sleep(4)
+    time.sleep(0.25)
     return [{disease: disease_values[idx] for idx,disease in enumerate(diseases)}]
 
 
 def ct_model(diseases, img):
-    time.sleep(3)
+    time.sleep(0.25)
     return [{disease: 0.1 for disease in diseases}]
 
 with gr.Blocks() as demo:
