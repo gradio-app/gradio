@@ -4,12 +4,10 @@ import time
 disease_values = [0.25, 0.5, 0.75]
 
 def xray_model(diseases, img):
-    time.sleep(0.25)
     return [{disease: disease_values[idx] for idx,disease in enumerate(diseases)}]
 
 
 def ct_model(diseases, img):
-    time.sleep(0.25)
     return [{disease: 0.1 for disease in diseases}]
 
 with gr.Blocks() as demo:
@@ -53,7 +51,6 @@ With this model you can lorem ipsum
 
     upload_btn = gr.Button("Upload Results", variant="primary")
     upload_btn.click(
-        lambda ct, xr: time.sleep(5),
         inputs=[ct_results, xray_results],
         outputs=[],
     )

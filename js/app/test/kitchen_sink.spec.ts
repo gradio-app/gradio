@@ -96,7 +96,9 @@ test("test outputs", async ({ page, browser }) => {
 	const audio = await page.locator("audio").nth(0);
 	const audio_data = await audio.getAttribute("src");
 
-	await expect(audio_data).toEqual(
-		`${page.url()}file=/var/folders/3w/6btg016509v7b2lz9h7vwqv00000gn/T/gradio/92aff6ffe140da201a4a94cb3c3b9e1ff0b2a25a/cantina.wav`
-	);
+	await expect(
+		audio_data?.endsWith(
+			"gradio/92aff6ffe140da201a4a94cb3c3b9e1ff0b2a25a/cantina.wav"
+		)
+	).toBeTruthy();
 });
