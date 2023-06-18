@@ -14,6 +14,7 @@ runs:
           requirements.txt
           test/requirements.txt
     - name: Create env
+      shell: bash
       run: |
         python -m pip install --upgrade virtualenv
         python -m virtualenv venv
@@ -25,11 +26,13 @@ runs:
         key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - name: Install Gradio (Linux)
       if: runner.os == 'Linux'
+      shell: bash
       run: |
         . venv/bin/activate
         python -m pip install .
     - name: Install Test Dependencies (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      shell: bash
       run: |
         . venv/bin/activate
         python -m pip install -e . -r test/requirements.txt

@@ -22,6 +22,7 @@ runs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Build frontend
       if: steps.frontend-cache.outputs.cache-hit != 'true'
+      shell: bash
       run: |
         pnpm i --frozen-lockfile
         pnpm build
