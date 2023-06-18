@@ -30,11 +30,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
-        run: pnpm i --frozen-lockfile
-      - name: formatting check
-        run: pnpm format:check
-      - name: build css
-        run: pnpm css
+        uses: "./install-frontend.yml"
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: typecheck
@@ -53,13 +49,9 @@ jobs:
           node-version: 18
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
-      - name: Install Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
-      - run: pip install -e .
+      - name: install dependencies
+        uses: "./install-frontend.yml"
       - run: pip install -r demo/outbreak_forecast/requirements.txt
-      - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm test:browser:full
       - name: Upload failed tests screenshots
