@@ -29,7 +29,7 @@ const PORT_RE = new RegExp(`:7879`);
 
 function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
-		console.log(process.env.path);
+		console.log(process.env.PATH);
 		const _process = spawn(`python`, [app], {
 			shell: true,
 			stdio: "pipe",
@@ -66,12 +66,10 @@ function spawn_gradio_app(app, verbose) {
 			}
 			if (_data.includes("Traceback")) {
 				kill_process(_process);
-
-				if (!verbose) {
-					throw new Error(
-						"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
-					);
-				}
+				throw new Error(
+					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
+				);
+				rej();
 			}
 		});
 	});
