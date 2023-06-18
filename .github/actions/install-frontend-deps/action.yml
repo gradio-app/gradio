@@ -18,6 +18,10 @@ runs:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-    - name: Build frontend
+    - name: Install deps
       shell: bash
       run: pnpm i --frozen-lockfile
+    - name: Build frontend
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: pnpm build

@@ -42,4 +42,5 @@ jobs:
           . venv/bin/activate
           ls -a
           ls demo
+          ls demo/blocks_inputs
           pnpm test:browser:verbose
