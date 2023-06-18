@@ -40,12 +40,4 @@ jobs:
       - run: pnpm build
       - run: |
           . venv/bin/activate
-          python -m pip install .
-      - run: pnpm test:browser:verbose
-      - name: Upload failed tests screenshots
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          retention-days: 3
-          name: test-failure-${{ github.run_id }}
-          path: js/app/test-results
+          pnpm test:browser:verbose
