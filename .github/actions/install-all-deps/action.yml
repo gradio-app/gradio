@@ -36,4 +36,4 @@ runs:
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: install-frontend
-      uses: "./.github/actions/install-frontend"
+      uses: "./.github/actions/install-frontend-deps"

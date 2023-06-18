@@ -30,7 +30,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
-        uses: "./.github/actions/install-frontend"
+        uses: "./.github/actions/install-frontend-deps"
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: typecheck
