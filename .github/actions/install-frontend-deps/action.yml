@@ -20,5 +20,4 @@ runs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Build frontend
       shell: bash
-      run: |
-        pnpm i --frozen-lockfile
+      run: pnpm i --frozen-lockfile
