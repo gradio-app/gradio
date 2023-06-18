@@ -30,7 +30,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
-        uses: "./install-frontend.yml"
+        uses: "gradio-app/gradio/.github/workflows/install-all-deps.yml@main"
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: typecheck

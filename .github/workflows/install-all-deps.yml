@@ -39,4 +39,4 @@ jobs:
       - name: Install ffmpeg
         uses: FedericoCarboni/setup-ffmpeg@v2
       - name: install-frontend
-        uses: "./install-frontend.yml"
+        uses: "gradio-app/gradio/.github/workflows/install-frontend.yml"
