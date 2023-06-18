@@ -10,19 +10,15 @@ runs:
           gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
-      if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
       with:
         version: 8
     - uses: actions/setup-node@v3
-      if: steps.frontend-cache.outputs.cache-hit != 'true'
       with:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Build frontend
-      if: steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         pnpm i --frozen-lockfile
-        pnpm build
