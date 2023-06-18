@@ -21,14 +21,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
         uses: "./.github/actions/install-frontend-deps"
       - name: build client
@@ -41,14 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
       - name: install dependencies
         uses: "./.github/actions/install-all-deps"
       - run: pip install -r demo/outbreak_forecast/requirements.txt
