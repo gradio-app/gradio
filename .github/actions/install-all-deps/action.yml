@@ -29,12 +29,6 @@ runs:
       run: |
         . venv/bin/activate
         python -m pip install .
-    - name: Install Test Dependencies (Linux)
-      if: steps.cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        . venv/bin/activate
-        python -m pip install -e . -r test/requirements.txt
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: install-frontend

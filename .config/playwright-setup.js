@@ -14,6 +14,7 @@ const test_files = readdirSync(test_files_path)
 export default async function global_setup() {
 	const verbose = process.env.GRADIO_TEST_VERBOSE;
 	console.info("\nCreating test gradio app and starting server.\n");
+
 	const test_app = make_app(test_files);
 	writeFileSync(test_app_path, test_app);
 	const app = await spawn_gradio_app(test_app_path, verbose);
