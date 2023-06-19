@@ -7,6 +7,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const TEST_APP_PATH = join(__dirname, "./test.py");
 const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
 const ROOT = join(__dirname, "..");
+
 const test_files = readdirSync(TEST_FILES_PATH)
 	.filter((f) => f.endsWith("spec.ts") && !f.endsWith(".skip.spec.ts"))
 	.map((f) => basename(f, ".spec.ts"));
@@ -29,15 +30,6 @@ const PORT_RE = new RegExp(`:7879`);
 
 function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
-		// console.log(process.env.PATH);
-		console.log("PRINTING PWD:");
-		spawn("ls", [join(ROOT, "demo")], { stdio: "inherit" });
-		console.log("PRINTING process.cwd():");
-		console.log(process.cwd());
-
-		spawn("cat", [join(ROOT, "demo", "blocks_inputs", "run.py")], {
-			stdio: "inherit"
-		});
 		const _process = spawn(`python`, [app], {
 			shell: true,
 			stdio: "pipe",
@@ -94,19 +86,26 @@ function kill_process(process) {
 
 function make_app(demos) {
 	return `
-import gradio as gr
-import uvicorn
-from fastapi import FastAPI
-import gradio as gr
-${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
-print("hi")
-app = FastAPI()
-
-${demos
-	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
-	.join("\n")}
-
-config = uvicorn.Config(app, port=7879, log_level="info")
-server = uvicorn.Server(config=config)
-server.run()`;
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+print("DIR_PATH: ", dir_path)
+print("CWD: ", os.getcwd())
+print("FILES_IN_CURRENT_DIR: ", os.listdir(dir_path))
+`;
 }
+
+// import gradio as gr
+// import uvicorn
+// from fastapi import FastAPI
+// import gradio as gr
+// ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
+// print("hi")
+// app = FastAPI()
+
+// ${demos
+// 	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+// 	.join("\n")}
+
+// config = uvicorn.Config(app, port=7879, log_level="info")
+// server = uvicorn.Server(config=config)
+// server.run()`;
