@@ -2,14 +2,13 @@ name: 'install all deps'
 description: 'Install all deps'
 
 inputs:
-  always-install-pnpm:  # id of input
+  always-install-pnpm: 
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: false
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
     - name: Install Python
       uses: actions/setup-python@v4
       with:
@@ -40,4 +39,4 @@ runs:
     - name: install-frontend
       uses: "./.github/actions/install-frontend-deps"
       with:
-        - always-install-pnpm: ${{ inputs.always-install-pnpm }}
+        always-install-pnpm: ${{ inputs.always-install-pnpm }}

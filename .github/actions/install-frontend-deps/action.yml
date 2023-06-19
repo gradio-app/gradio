@@ -1,8 +1,8 @@
 name: 'install frontend'
-description: 'Greet someone'
+description: 'Install frontend deps'
 
 inputs:
-  always-install-pnpm:  # id of input
+  always-install-pnpm:
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: false
 
