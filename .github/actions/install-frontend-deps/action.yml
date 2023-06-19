@@ -16,7 +16,7 @@ runs:
           gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
-      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install == 'true'
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       uses: pnpm/action-setup@v2
       with:
         version: 8
