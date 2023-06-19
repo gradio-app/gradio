@@ -4,10 +4,10 @@ import { fileURLToPath } from "url";
 import { readdirSync, writeFileSync } from "fs";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const test_app_path = join(__dirname, "./test.py");
-const test_files_path = join(__dirname, "..", "js", "app", "test");
-
-const test_files = readdirSync(test_files_path)
+const TEST_APP_PATH = join(__dirname, "./test.py");
+const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
+const ROOT = join(__dirname, "..");
+const test_files = readdirSync(TEST_FILES_PATH)
 	.filter((f) => f.endsWith("spec.ts") && !f.endsWith(".skip.spec.ts"))
 	.map((f) => basename(f, ".spec.ts"));
 
@@ -16,8 +16,8 @@ export default async function global_setup() {
 	console.info("\nCreating test gradio app and starting server.\n");
 
 	const test_app = make_app(test_files);
-	writeFileSync(test_app_path, test_app);
-	const app = await spawn_gradio_app(test_app_path, verbose);
+	writeFileSync(TEST_APP_PATH, test_app);
+	const app = await spawn_gradio_app(TEST_APP_PATH, verbose);
 	console.info("Server started. Running tests.\n");
 
 	return () => {
@@ -36,49 +36,50 @@ function spawn_gradio_app(app, verbose) {
 		console.log(process.cwd());
 		console.log("PRINTING PYTHONPATH:");
 		spawnSync("echo $PYTHONPATH");
-		// const _process = spawn(`python`, [app], {
-		// 	shell: true,
-		// 	stdio: "pipe",
-		// 	env: {
-		// 		...process.env,
-		// 		GRADIO_SERVER_PORT: `7879`,
-		// 		PYTHONUNBUFFERED: "true"
-		// 	}
-		// });
-		// _process.stdout.setEncoding("utf8");
+		const _process = spawn(`python`, [app], {
+			shell: true,
+			stdio: "pipe",
+			cwd: ROOT,
+			env: {
+				...process.env,
+				GRADIO_SERVER_PORT: `7879`,
+				PYTHONUNBUFFERED: "true"
+			}
+		});
+		_process.stdout.setEncoding("utf8");
 
-		// _process.stdout.on("data", (data) => {
-		// 	const _data = data.toString();
+		_process.stdout.on("data", (data) => {
+			const _data = data.toString();
 
-		// 	if (verbose) {
-		// 		console.log("\n");
-		// 		console.log("OUT: ", _data);
-		// 		console.log("\n");
-		// 	}
+			if (verbose) {
+				console.log("\n");
+				console.log("OUT: ", _data);
+				console.log("\n");
+			}
 
-		// 	if (PORT_RE.test(_data)) {
-		// 		res(_process);
-		// 	}
-		// });
+			if (PORT_RE.test(_data)) {
+				res(_process);
+			}
+		});
 
-		// _process.stderr.on("data", (data) => {
-		// 	const _data = data.toString();
+		_process.stderr.on("data", (data) => {
+			const _data = data.toString();
 
-		// 	if (PORT_RE.test(_data)) {
-		// 		res(_process);
-		// 	}
-		// 	if (verbose) {
-		// 		console.warn("ERR: ", _data);
-		// 	}
-		// 	if (_data.includes("Traceback")) {
-		// 		kill_process(_process);
-		// 		throw new Error(
-		// 			"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
-		// 		);
-		// 		rej();
-		// 	}
-		// });
-		res();
+			if (PORT_RE.test(_data)) {
+				res(_process);
+			}
+			if (verbose) {
+				console.warn("ERR: ", _data);
+			}
+			if (_data.includes("Traceback")) {
+				kill_process(_process);
+				throw new Error(
+					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
+				);
+				rej();
+			}
+		});
+		// res();
 	});
 }
 
