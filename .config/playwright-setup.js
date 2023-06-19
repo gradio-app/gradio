@@ -68,14 +68,13 @@ function spawn_gradio_app(app, verbose) {
 				console.warn("ERR: ", _data);
 			}
 			if (_data.includes("Traceback")) {
-				// // kill_process(_process);
-				// // throw new Error(
-				// // 	"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
-				// // );
-				// rej();
+				kill_process(_process);
+				throw new Error(
+					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
+				);
+				rej();
 			}
 		});
-		// res();
 	});
 }
 
@@ -87,8 +86,7 @@ function kill_process(process) {
 }
 
 function make_app(demos) {
-	return `
-import gradio as gr
+	return `import gradio as gr
 import uvicorn
 from fastapi import FastAPI
 import gradio as gr
@@ -98,6 +96,7 @@ app = FastAPI()
 ${demos
 	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
 	.join("\n")}
+
 config = uvicorn.Config(app, port=7879, log_level="info")
 server = uvicorn.Server(config=config)
 server.run()`;

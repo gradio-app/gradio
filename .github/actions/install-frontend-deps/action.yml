@@ -1,5 +1,11 @@
 name: 'install frontend'
 description: 'Greet someone'
+
+inputs:
+  always-install:  # id of input
+    description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
+    default: true
+
 runs:
   using: "composite"
   steps:
@@ -11,6 +17,7 @@ runs:
           venv/lib/python3.8/site-packages/gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install == 'true'
       uses: pnpm/action-setup@v2
       with:
         version: 8
@@ -20,12 +27,10 @@ runs:
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Install deps
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install == 'true'
       shell: bash
       run: pnpm i --frozen-lockfile
     - name: Build frontend
-      # if: steps.frontend-cache.outputs.cache-hit != 'true'
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
-    # - name: copy assets
-    #   shell: bash
-    #   run: cp -r gradio/templates /home/runner/work/gradio/gradio/venv/lib/python3.8/site-packages/gradio/templates
