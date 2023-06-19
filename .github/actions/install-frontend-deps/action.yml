@@ -14,7 +14,6 @@ runs:
       with:
         path: |
           gradio/templates/*
-          venv/lib/python3.8/site-packages/gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install == 'true'
