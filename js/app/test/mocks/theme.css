@@ -241,6 +241,7 @@
 	--button-small-text-weight: 400;
 	--button-transition: none;
 }
+
 .dark {
 	--color-accent-soft: var(--neutral-900);
 	--background-fill-primary: var(--neutral-950);
@@ -297,7 +298,7 @@
 	--checkbox-label-text-color: var(--body-text-color);
 	--checkbox-label-text-color-selected: var(--checkbox-label-text-color);
 	--error-background-fill: var(--background-fill-primary);
-	--error-border-color: var(--border-color-primary);
+	--error-border-color: #ef4444;
 	--error-border-width: var(--error-border-width);
 	--error-text-color: #ef4444;
 	--input-background-fill: var(--neutral-800);

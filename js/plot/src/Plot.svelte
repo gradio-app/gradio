@@ -6,7 +6,7 @@
 	import { get_next_color } from "@gradio/utils";
 	import { Vega } from "svelte-vega";
 	import { afterUpdate, beforeUpdate, onDestroy } from "svelte";
-	import { create_config } from "./utils";
+	import { create_config, bar_plot_header_encoding} from "./utils";
 	import { Empty } from "@gradio/atoms";
 	import type { ThemeMode } from "js/app/src/components/types";
 
@@ -96,6 +96,7 @@
 							(e, i) => get_color(i)
 						);
 				}
+				spec.config.header = bar_plot_header_encoding(darkmode);
 				break;
 			default:
 				break;
