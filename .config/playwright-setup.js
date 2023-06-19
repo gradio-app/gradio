@@ -31,7 +31,7 @@ function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
 		// console.log(process.env.PATH);
 		console.log("PRINTING PWD:");
-		spawn("pwd", { stdio: "inherit" });
+		spawn("ls", [join(ROOT, "demo")], { stdio: "inherit" });
 		console.log("PRINTING process.cwd():");
 		console.log(process.cwd());
 
