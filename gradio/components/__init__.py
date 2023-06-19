@@ -2,12 +2,8 @@ from gradio.components.annotated_image import AnnotatedImage
 from gradio.components.audio import Audio
 from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
-    Column,
     Component,
-    Form,
-    FormComponent,
     IOComponent,
-    Row,
     _Keywords,
     component,
     get_component_instance,
@@ -70,12 +66,9 @@ __all__ = [
     "CheckboxGroup",
     "Code",
     "ColorPicker",
-    "Column",
     "Dataframe",
     "DataFrame",
     "Dataset",
-    "Form",
-    "FormComponent",
     "Gallery",
     "HTML",
     "Image",
@@ -103,7 +96,6 @@ __all__ = [
     "Number",
     "Plot",
     "Radio",
-    "Row,"
     "ScatterPlot",
     "Slider",
     "State",
