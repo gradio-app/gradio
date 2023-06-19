@@ -31,11 +31,10 @@ function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
 		// console.log(process.env.PATH);
 		console.log("PRINTING PWD:");
-		spawn("pwd");
+		spawn("pwd", { stdio: "inherit" });
 		console.log("PRINTING process.cwd():");
 		console.log(process.cwd());
-		console.log("PRINTING PYTHONPATH:");
-		spawn("echo $PYTHONPATH");
+
 		spawn("cat", [join(ROOT, "demo", "blocks_inputs", "run.py")], {
 			stdio: "inherit"
 		});
