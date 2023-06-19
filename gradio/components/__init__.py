@@ -37,6 +37,7 @@ from gradio.components.model3d import Model3D
 from gradio.components.number import Number
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
+from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
 from gradio.components.state import State, Variable
 from gradio.components.status_tracker import StatusTracker
