@@ -304,17 +304,9 @@
 						progress: status.progress_data,
 						fn_index
 					});
-					console.log(
-						!showed_duplicate_message,
-						// space_id !== null &&
-						status.position !== undefined,
-						status.position,
-						status.eta !== undefined,
-						status.eta
-					);
 					if (
 						!showed_duplicate_message &&
-						// space_id !== null &&
+						space_id !== null &&
 						status.position !== undefined &&
 						status.position >= 2 &&
 						status.eta !== undefined &&
