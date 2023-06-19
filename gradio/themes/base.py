@@ -617,6 +617,8 @@ class Base(ThemeClass):
         error_border_width_dark=None,
         error_text_color=None,
         error_text_color_dark=None,
+        error_icon_color=None,
+        error_icon_color_dark=None,
         input_background_fill=None,
         input_background_fill_dark=None,
         input_background_fill_focus=None,
@@ -1412,16 +1414,16 @@ class Base(ThemeClass):
             )
         )
         self.error_background_fill = error_background_fill or getattr(
-            self, "error_background_fill", colors.red.c100
+            self, "error_background_fill", colors.red.c50
         )
         self.error_background_fill_dark = error_background_fill_dark or getattr(
             self, "error_background_fill_dark", "*background_fill_primary"
         )
         self.error_border_color = error_border_color or getattr(
-            self, "error_border_color", colors.red.c200
+            self, "error_border_color", colors.red.c100
         )
         self.error_border_color_dark = error_border_color_dark or getattr(
-            self, "error_border_color_dark", "*border_color_primary"
+            self, "error_border_color_dark", colors.red.c500
         )
         self.error_border_width = error_border_width or getattr(
             self, "error_border_width", "1px"
@@ -1430,10 +1432,16 @@ class Base(ThemeClass):
             self, "error_border_width_dark", None
         )
         self.error_text_color = error_text_color or getattr(
-            self, "error_text_color", colors.red.c500
+            self, "error_text_color", colors.red.c700
         )
         self.error_text_color_dark = error_text_color_dark or getattr(
-            self, "error_text_color_dark", colors.red.c500
+            self, "error_text_color_dark", colors.red.c50
+        )
+        self.error_icon_color = error_icon_color or getattr(
+            self, "error_icon_color", colors.red.c700
+        )
+        self.error_icon_color_dark = error_icon_color_dark or getattr(
+            self, "error_icon_color_dark", colors.red.c500
         )
         self.input_background_fill = input_background_fill or getattr(
             self, "input_background_fill", "*neutral_100"

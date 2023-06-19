@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { marked, copy } from "./utils";
+	import { copy } from "./utils";
 	import "katex/dist/katex.min.css";
-	import DOMPurify from "dompurify";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
+	import Markdown from "./MarkdownCode.svelte";
 
 	const code_highlight_css = {
 		light: () => import("prismjs/themes/prism.css"),
@@ -19,6 +18,11 @@
 	let old_value: Array<
 		[string | FileData | null, string | FileData | null]
 	> | null = null;
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}>;
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
@@ -43,23 +47,20 @@
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
-	afterUpdate(() => {
+	const scroll = () => {
 		if (autoscroll) {
 			div.scrollTo(0, div.scrollHeight);
+		}
+	};
+	afterUpdate(() => {
+		if (autoscroll) {
+			scroll();
 			div.querySelectorAll("img").forEach((n) => {
 				n.addEventListener("load", () => {
-					div.scrollTo(0, div.scrollHeight);
+					scroll();
 				});
 			});
 		}
-
-		render_math_in_element(div, {
-			delimiters: [
-				{ left: "$$", right: "$$", display: true },
-				{ left: "$", right: "$", display: false }
-			],
-			throwOnError: false
-		});
 	});
 
 	$: {
@@ -81,7 +82,7 @@
 	}
 </script>
 
-<div class="wrap" style:max-height="100%" bind:this={div}>
+<div class="wrap" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
 			{#each value as message_pair, i}
@@ -96,7 +97,7 @@
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							{@html DOMPurify.sanitize(marked.parse(message))}
+							<Markdown {message} {latex_delimiters} on:load={scroll} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -148,6 +149,7 @@
 <style>
 	.wrap {
 		padding: var(--block-padding);
+		width: 100%;
 		overflow-y: auto;
 	}
 
@@ -160,6 +162,10 @@
 	.message-wrap > div :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
+	}
+
+	.message-wrap > div :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
 	}
 
 	.message-wrap :global(audio) {

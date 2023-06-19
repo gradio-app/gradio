@@ -15,6 +15,11 @@
 		[string | FileData | null, string | FileData | null]
 	> = [];
 	let _value: Array<[string | FileData | null, string | FileData | null]>;
+	export let latex_delimiters: Array<{
+		left: string;
+		right: string;
+		display: boolean;
+	}>;
 	export let container: boolean = false;
 	export let scale: number = 1;
 	export let min_width: number | undefined = undefined;
@@ -39,7 +44,7 @@
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height: number = 480;
+	export let height: number = 400;
 </script>
 
 <Block
@@ -61,21 +66,35 @@
 				: "minimal"}
 		/>
 	{/if}
-	{#if show_label}
-		<BlockLabel
-			{show_label}
-			Icon={Chat}
-			float={false}
-			label={label || "Chatbot"}
-			disable={container === false}
+	<div class="wrapper">
+		{#if show_label}
+			<BlockLabel
+				{show_label}
+				Icon={Chat}
+				float={false}
+				label={label || "Chatbot"}
+				disable={container === false}
+			/>
+		{/if}
+		<ChatBot
+			{selectable}
+			{theme_mode}
+			value={_value}
+			{latex_delimiters}
+			pending_message={loading_status?.status === "pending"}
+			on:change
+			on:select
 		/>
-	{/if}
-	<ChatBot
-		{selectable}
-		{theme_mode}
-		value={_value}
-		pending_message={loading_status?.status === "pending"}
-		on:change
-		on:select
-	/>
+	</div>
 </Block>
+
+<style>
+	.wrapper {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		align-items: start;
+		width: 100%;
+		height: 100%;
+	}
+</style>

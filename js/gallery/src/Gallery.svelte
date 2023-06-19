@@ -19,6 +19,7 @@
 	export let grid_rows: number | Array<number> | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
+	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 
@@ -98,7 +99,9 @@
 		}
 	}
 
-	$: scroll_to_img(selected_image);
+	$: if (allow_preview) {
+		scroll_to_img(selected_image);
+	}
 
 	let el: Array<HTMLButtonElement> = [];
 	let container_element: HTMLDivElement;
@@ -127,7 +130,8 @@
 		});
 	}
 
-	$: can_zoom = window_height >= client_height;
+	// If you don't allow preview, assume can always zoom to trigger select event
+	$: can_zoom = !allow_preview ? true : window_height >= client_height;
 
 	let client_height = 0;
 	let window_height = 0;
@@ -175,7 +179,7 @@
 {#if value === null || _value === null || _value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
-	{#if selected_image !== null}
+	{#if selected_image !== null && allow_preview}
 		<div
 			on:keydown={on_keydown}
 			class="preview"
@@ -184,6 +188,7 @@
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
 			<img
+				data-testid="detailed-image"
 				on:click={() => (selected_image = next)}
 				src={_value[selected_image][0].data}
 				alt={_value[selected_image][1] || ""}
