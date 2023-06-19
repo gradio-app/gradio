@@ -34,6 +34,7 @@ class DuplicateButton(Button):
         elem_classes: list[str] | str | None = None,
         scale: int | None = 0,
         min_width: int | None = None,
+        _activate: bool = True,
         **kwargs,
     ):
         super().__init__(
@@ -49,6 +50,10 @@ class DuplicateButton(Button):
             render=get_space() is not None,
             **kwargs,
         )
+        if _activate:
+            self.activate()
+
+    def activate(self):
         self.click(
             fn=None,
             _js="() => { window.open(`https://huggingface.co/spaces/${window.__space_name__}?duplicate=true`, '_blank') }",

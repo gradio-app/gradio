@@ -142,6 +142,7 @@ class Interface(Blocks):
         batch: bool = False,
         max_batch_size: int = 4,
         _api_mode: bool = False,
+        allow_duplication: bool = True,
         **kwargs,
     ):
         """
@@ -168,6 +169,7 @@ class Interface(Blocks):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            allow_duplication: If True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -359,6 +361,7 @@ class Interface(Blocks):
         self.flagging_dir = flagging_dir
         self.batch = batch
         self.max_batch_size = max_batch_size
+        self.allow_duplication = allow_duplication
 
         self.save_to = None  # Used for selenium tests
         self.share = None
@@ -401,7 +404,13 @@ class Interface(Blocks):
         with self:
             self.render_title_description()
 
-            submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
+            submit_btn, clear_btn, stop_btn, flag_btns, duplicate_btn = (
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
             interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
@@ -442,6 +451,8 @@ class Interface(Blocks):
             self.attach_clear_events(
                 clear_btn, input_component_column, interpret_component_column
             )
+            if duplicate_btn is not None:
+                duplicate_btn._activate()
             self.attach_interpretation_events(
                 interpretation_btn,
                 interpretation_set,
@@ -565,7 +576,9 @@ class Interface(Blocks):
 
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
-                DuplicateButton(scale=1, size="lg")
+
+                if self.allow_duplication:
+                    DuplicateButton(scale=1, size="lg", _activate=False)
 
         return submit_btn, clear_btn, stop_btn, flag_btns, interpretation_btn
 
