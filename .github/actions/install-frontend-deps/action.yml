@@ -27,4 +27,4 @@ runs:
       run: pnpm build
     - name: copy assets
       shell: bash
-      run: cp gradio/templates /home/runner/work/gradio/gradio/venv/lib/python3.8/site-packages/gradio/templates
+      run: cp -r gradio/templates /home/runner/work/gradio/gradio/venv/lib/python3.8/site-packages/gradio/templates
