@@ -88,6 +88,10 @@ function create_custom_element() {
 			});
 		}
 
+		static get observedAttributes() {
+			return ["src", "space", "host"];
+		}
+
 		attributeChangedCallback(name: string, old_val: string, new_val: string) {
 			if (
 				(name === "host" || name === "space" || name === "src") &&
