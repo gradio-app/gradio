@@ -6,7 +6,6 @@ import Group from "./Group.svelte";
 describe("Group", () => {
 	afterEach(() => {
 		cleanup();
-		vi.restoreAllMocks();
 	});
 
 	test("setting visible to false hides the Group", async () => {
