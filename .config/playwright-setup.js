@@ -30,7 +30,9 @@ const PORT_RE = new RegExp(`:7879`);
 function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
 		// console.log(process.env.PATH);
+		console.log("PRINTING PWD:");
 		spawnSync("pwd");
+		console.log("PRINTING PYTHONPATH:");
 		spawnSync("echo $PYTHONPATH");
 		// const _process = spawn(`python`, [app], {
 		// 	shell: true,
