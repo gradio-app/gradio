@@ -39,7 +39,5 @@ jobs:
       - run: pnpm exec playwright install chromium
       - run: |
           . venv/bin/activate
-          ls -a
-          ls demo
-          pwd
+          echo $PATH
           pnpm test:browser:verbose
