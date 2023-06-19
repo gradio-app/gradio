@@ -54,4 +54,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please ensure that you have filled all of the sections above. Incomplete issues will be closed.
+        📌  Please ensure that you have filled all of the sections above. Incomplete issues will be closed.
