@@ -6,6 +6,7 @@ import { readdirSync, writeFileSync } from "fs";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const TEST_APP_PATH = join(__dirname, "./test.py");
 const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
+const DEMO_MODULE_PATH = join(__dirname, "..", "demo", "__init__.py");
 const ROOT = join(__dirname, "..");
 
 const test_files = readdirSync(TEST_FILES_PATH)
@@ -73,7 +74,7 @@ function spawn_gradio_app(app, verbose) {
 				rej();
 			}
 		});
-		res();
+		// res();
 	});
 }
 
@@ -86,27 +87,28 @@ function kill_process(process) {
 
 function make_app(demos) {
 	return `
-import os 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-print("DIR_PATH: ", dir_path)
-print("CWD: ", os.getcwd())
-print("FILES_IN_CURRENT_DIR: ", os.listdir(dir_path))
-print("FILES_IN_DEMO_DIR: ", os.listdir(os.path.join(os.getcwd(), "demo")))
-`;
+import importlib
+import sys
+
+MODULE_PATH = "${DEMO_MODULE_PATH}"
+MODULE_NAME = "demo"
+
+spec = importlib.util.spec_from_file_location(MODULE_NAME, MODULE_PATH)
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module 
+spec.loader.exec_module(module)
+
+import gradio as gr
+import uvicorn
+from fastapi import FastAPI
+import gradio as gr
+${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
+
+app = FastAPI()
+${demos
+	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+	.join("\n")}
+config = uvicorn.Config(app, port=7879, log_level="info")
+server = uvicorn.Server(config=config)
+server.run()`;
 }
-
-// import gradio as gr
-// import uvicorn
-// from fastapi import FastAPI
-// import gradio as gr
-// ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
-// print("hi")
-// app = FastAPI()
-
-// ${demos
-// 	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
-// 	.join("\n")}
-
-// config = uvicorn.Config(app, port=7879, log_level="info")
-// server = uvicorn.Server(config=config)
-// server.run()`;
