@@ -36,6 +36,7 @@ function spawn_gradio_app(app, verbose) {
 		console.log(process.cwd());
 		console.log("PRINTING PYTHONPATH:");
 		spawnSync("echo $PYTHONPATH");
+		spawnSync("cat", [join(ROOT, "demo", "blocks_inputs", "run.py")]);
 		const _process = spawn(`python`, [app], {
 			shell: true,
 			stdio: "pipe",
