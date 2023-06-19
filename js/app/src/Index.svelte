@@ -24,7 +24,6 @@
 		title: string;
 		version: string;
 		space_id: string | null;
-		show_duplication?: boolean;
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
@@ -200,8 +199,6 @@
 			normalise_files: false
 		});
 		config = app.config;
-		window.__space_name__ = config.space_id;
-		window.__show_duplication__ = config.show_duplication;
 
 		status = {
 			message: "",

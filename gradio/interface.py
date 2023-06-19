@@ -19,6 +19,7 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     ClearButton,
+    DuplicateButton,
     Interpretation,
     IOComponent,
     Markdown,
@@ -561,8 +562,10 @@ class Interface(Blocks):
                 elif self.allow_flagging == "auto":
                     assert submit_btn is not None, "Submit button not rendered"
                     flag_btns = [submit_btn]
+
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
+                DuplicateButton(scale=1, size="lg")
 
         return submit_btn, clear_btn, stop_btn, flag_btns, interpretation_btn
 

@@ -24,7 +24,6 @@
 	import type { ToastMessage } from "./components/StatusTracker/types";
 
 	import logo from "./images/logo.svg";
-	import duplicate_icon from "./images/duplicate.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 
 	setupi18n();
@@ -44,6 +43,7 @@
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
+	export let space_id: string | null;
 
 	let loading_status = create_loading_status_store();
 
@@ -238,6 +238,11 @@
 	let _error_id = -1;
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
+	const DUPLICATE_MESSAGE =
+		"There is a long queue of requests pending. Duplicate this Space to skip.";
+	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
+	let showed_duplicate_message = false;
+
 	const trigger_api_call = async (
 		dep_index: number,
 		event_data: unknown = null
@@ -299,6 +304,33 @@
 						progress: status.progress_data,
 						fn_index
 					});
+					console.log(
+						!showed_duplicate_message,
+						// space_id !== null &&
+						status.position !== undefined,
+						status.position,
+						status.eta !== undefined,
+						status.eta
+					);
+					if (
+						!showed_duplicate_message &&
+						// space_id !== null &&
+						status.position !== undefined &&
+						status.position >= 2 &&
+						status.eta !== undefined &&
+						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+					) {
+						showed_duplicate_message = true;
+						messages = [
+							{
+								type: "warning",
+								message: DUPLICATE_MESSAGE,
+								id: ++_error_id,
+								fn_index
+							},
+							...messages
+						];
+					}
 
 					if (status.stage === "complete") {
 						dependencies.map(async (dep, i) => {
@@ -475,25 +507,15 @@
 					on:click={() => {
 						set_api_docs_visible(!api_docs_visible);
 					}}
-					class="footer-link"
+					class="show-api"
 				>
 					Use via API <img src={api_logo} alt="" />
 				</button>
 				<div>·</div>
 			{/if}
-			{#if window.__show_duplication__}
-				<a
-					href="https://huggingface.co/spaces/{window.__space_name__}?duplicate=true"
-					class="footer-link duplicate-link"
-					target="_blank"
-				>
-					Duplicate Space <img src={duplicate_icon} alt="" />
-				</a>
-				<div class="duplicate-link">·</div>
-			{/if}
 			<a
 				href="https://gradio.app"
-				class="footer-link"
+				class="built-with"
 				target="_blank"
 				rel="noreferrer"
 			>
@@ -551,25 +573,33 @@
 		margin-left: var(--size-2);
 	}
 
-	.footer-link {
+	.show-api {
 		display: flex;
 		align-items: center;
 	}
-	.footer-link:hover {
+	.show-api:hover {
 		color: var(--body-text-color);
 	}
 
-	.footer-link img {
-		margin-left: var(--size-1-5);
+	.show-api img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
 		width: var(--size-3);
 	}
-	.duplicate-link {
-		display: none;
+
+	.built-with {
+		display: flex;
+		align-items: center;
 	}
-	@media (--screen-sm) {
-		.duplicate-link {
-			display: inherit;
-		}
+
+	.built-with:hover {
+		color: var(--body-text-color);
+	}
+
+	.built-with img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
 	}
 
 	.api-docs {
