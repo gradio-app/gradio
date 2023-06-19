@@ -32,6 +32,8 @@ function spawn_gradio_app(app, verbose) {
 		// console.log(process.env.PATH);
 		console.log("PRINTING PWD:");
 		spawnSync("pwd");
+		console.log("PRINTING process.cwd():");
+		console.log(process.cwd());
 		console.log("PRINTING PYTHONPATH:");
 		spawnSync("echo $PYTHONPATH");
 		// const _process = spawn(`python`, [app], {
