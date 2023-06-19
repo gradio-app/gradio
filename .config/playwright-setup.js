@@ -67,11 +67,11 @@ function spawn_gradio_app(app, verbose) {
 				console.warn("ERR: ", _data);
 			}
 			if (_data.includes("Traceback")) {
-				kill_process(_process);
-				throw new Error(
-					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
-				);
-				rej();
+				// // kill_process(_process);
+				// // throw new Error(
+				// // 	"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
+				// // );
+				// rej();
 			}
 		});
 		// res();
