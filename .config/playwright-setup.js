@@ -91,6 +91,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 print("DIR_PATH: ", dir_path)
 print("CWD: ", os.getcwd())
 print("FILES_IN_CURRENT_DIR: ", os.listdir(dir_path))
+print("FILES_IN_DEMO_DIR: ", os.listdir(os.path.join(os.getcwd(), "demo")))
 `;
 }
 
