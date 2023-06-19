@@ -22,6 +22,6 @@ runs:
       shell: bash
       run: pnpm i --frozen-lockfile
     - name: Build frontend
-      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      # if: steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
