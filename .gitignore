@@ -63,3 +63,4 @@ node_modules
 public/build/
 test-results
 client/js/test.js
+.config/test.py

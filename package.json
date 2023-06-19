@@ -19,8 +19,9 @@
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
 		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
-		"test:browser": "pnpm --filter @gradio/app test:browser:full",
+		"test:browser": "pnpm --filter @gradio/app test:browser",
 		"test:browser:full": "run-s build test:browser",
+		"test:browser:verbose": "GRADIO_TEST_VERBOSE=true pnpm test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
 		"ci:version": "changeset version && pnpm i --lockfile-only"
@@ -33,7 +34,7 @@
 		"@changesets/changelog-github": "^0.4.8",
 		"@changesets/cli": "^2.26.1",
 		"@gradio/tootils": "workspace:^0.0.1",
-		"@playwright/test": "^1.27.1",
+		"@playwright/test": "^1.35.1",
 		"@sveltejs/vite-plugin-svelte": "^1.0.0-next.44",
 		"@tailwindcss/forms": "^0.5.0",
 		"@testing-library/dom": "^8.11.3",
@@ -47,7 +48,7 @@
 		"msw": "^1.0.0",
 		"node-html-parser": "^5.3.3",
 		"npm-run-all": "^4.1.5",
-		"playwright": "^1.27.1",
+		"playwright": "^1.35.1",
 		"plotly.js-dist-min": "^2.10.1",
 		"polka": "^1.0.0-next.22",
 		"pollen-css": "^4.6.1",
@@ -67,7 +68,7 @@
 		"tailwindcss": "^3.1.6",
 		"tinyspy": "^0.3.0",
 		"typescript": "^4.7.4",
-		"vite": "^4.2.1",
+		"vite": "^4.3.9",
 		"vitest": "^0.29.8"
 	},
 	"devDependencies": {

@@ -1,12 +1,7 @@
-import { test, expect, Page } from "@playwright/test";
-import { BASE64_IMAGE, BASE64_AUDIO } from "./media_data";
-import { mock_theme, wait_for_page, mock_api, mock_demo } from "./utils";
+import { test, expect } from "@gradio/tootils";
+import { BASE64_IMAGE } from "./media_data";
 
 test("test inputs", async ({ page }) => {
-	await mock_demo(page, "kitchen_sink");
-	await mock_theme(page);
-	await wait_for_page(page);
-
 	const textbox = await page.getByLabel("Textbox").nth(0);
 	await expect(textbox).toHaveValue("Lorem ipsum");
 
@@ -39,162 +34,7 @@ test("test inputs", async ({ page }) => {
 	await expect(image_data_cropper).toContain("cheetah1.jpg");
 });
 
-test("test outputs", async ({ page }) => {
-	await mock_demo(page, "kitchen_sink");
-
-	await mock_api(page, [
-		[
-			"the quick brown fox, selected:foo, baz",
-			{
-				label: "negative",
-				confidences: [
-					{
-						label: "negative",
-						confidence: 0.46153846153846156
-					},
-					{
-						label: "positive",
-						confidence: 0.38461538461538464
-					},
-					{
-						label: "neutral",
-						confidence: 0.15384615384615385
-					}
-				]
-			},
-			BASE64_AUDIO,
-			BASE64_IMAGE,
-			[
-				{
-					name: "worldt30a4ike.mp4",
-					data: ""
-				},
-				{
-					name: null,
-					data: null
-				}
-			],
-			[
-				["The", "art"],
-				["quick brown", "adj"],
-				["fox", "nn"],
-				["jumped", "vrb"],
-				["testing testing testing", null],
-				["over", "prp"],
-				["the", "art"],
-				["testing", null],
-				["lazy", "adj"],
-				["dogs", "nn"],
-				[".", "punc"],
-				["test 0", "test 0"],
-				["test 1", "test 1"],
-				["test 2", "test 2"],
-				["test 3", "test 3"],
-				["test 4", "test 4"],
-				["test 5", "test 5"],
-				["test 6", "test 6"],
-				["test 7", "test 7"],
-				["test 8", "test 8"],
-				["test 9", "test 9"]
-			],
-			[
-				["The testing testing testing", null],
-				["over", 0.6],
-				["the", 0.2],
-				["testing", null],
-				["lazy", -0.1],
-				["dogs", 0.4],
-				[".", 0],
-				["test", -1],
-				["test", -0.9],
-				["test", -0.8],
-				["test", -0.7],
-				["test", -0.6],
-				["test", -0.5],
-				["test", -0.4],
-				["test", -0.3],
-				["test", -0.2],
-				["test", -0.1],
-				["test", 0],
-				["test", 0.1],
-				["test", 0.2],
-				["test", 0.3],
-				["test", 0.4],
-				["test", 0.5],
-				["test", 0.6],
-				["test", 0.7],
-				["test", 0.8],
-				["test", 0.9]
-			],
-			{
-				items: {
-					item: [
-						{
-							id: "0001",
-							type: null,
-							is_good: false,
-							ppu: 0.55,
-							batters: {
-								batter: [
-									{
-										id: "1001",
-										type: "Regular"
-									},
-									{
-										id: "1002",
-										type: "Chocolate"
-									},
-									{
-										id: "1003",
-										type: "Blueberry"
-									},
-									{
-										id: "1004",
-										type: "Devil's Food"
-									}
-								]
-							},
-							topping: [
-								{
-									id: "5001",
-									type: "None"
-								},
-								{
-									id: "5002",
-									type: "Glazed"
-								},
-								{
-									id: "5005",
-									type: "Sugar"
-								},
-								{
-									id: "5007",
-									type: "Powdered Sugar"
-								},
-								{
-									id: "5006",
-									type: "Chocolate with Sprinkles"
-								},
-								{
-									id: "5003",
-									type: "Chocolate"
-								},
-								{
-									id: "5004",
-									type: "Maple"
-								}
-							]
-						}
-					]
-				}
-			},
-			"<button style='background-color: red'>Click Me: baz</button>"
-		]
-	]);
-
-	await mock_theme(page);
-	await wait_for_page(page);
-
+test("test outputs", async ({ page, browser }) => {
 	const submit_button = await page.locator("button", { hasText: /Submit/ });
 
 	await Promise.all([
@@ -203,16 +43,12 @@ test("test outputs", async ({ page }) => {
 	]);
 
 	const textbox = await page.getByLabel("Textbox").nth(2);
-	await expect(textbox).toHaveValue("the quick brown fox, selected:foo, baz");
+	await expect(textbox).toHaveValue(", selected:foo, bar");
 
 	const label = await page.getByTestId("label");
-	await expect(label).toContainText(`negative
-    negative
-    46%
-    positive
-    38%
-    neutral
-    15%`);
+	await expect(label).toContainText(
+		`  Label positive  positive  74%  negative  26%  neutral  0%`
+	);
 
 	const highlight_text_color_map = await page
 		.getByTestId("highlighted-text")
@@ -226,9 +62,6 @@ test("test outputs", async ({ page }) => {
 	await expect(highlight_text_legend).toContainText(
 		"The testing testing testing over the testing lazy dogs . test test test test test test test test test test test test test test test test test test test test"
 	);
-
-	// const click_me_button =await page.locator("button", { hasText: /Click Me: baz/ });
-	// click_me_button.click()
 
 	const json = await page.locator("data-testid=json");
 	await expect(json).toContainText(`{
@@ -262,5 +95,10 @@ test("test outputs", async ({ page }) => {
 
 	const audio = await page.locator("audio").nth(0);
 	const audio_data = await audio.getAttribute("src");
-	await expect(audio_data).toEqual(BASE64_AUDIO);
+
+	await expect(
+		audio_data?.endsWith(
+			"gradio/92aff6ffe140da201a4a94cb3c3b9e1ff0b2a25a/cantina.wav"
+		)
+	).toBeTruthy();
 });

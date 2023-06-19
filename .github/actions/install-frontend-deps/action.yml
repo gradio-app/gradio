@@ -1,0 +1,35 @@
+name: 'install frontend'
+description: 'Install frontend deps'
+
+inputs:
+  always-install-pnpm:
+    description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
+    default: false
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v3
+      id: frontend-cache
+      with:
+        path: |
+          gradio/templates/*
+        key: gradio-lib-front-end-${{ hashFiles('js/**')}}
+    - name: Install pnpm
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+    - name: Install deps
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
+      shell: bash
+      run: pnpm i --frozen-lockfile
+    - name: Build frontend
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: pnpm build
