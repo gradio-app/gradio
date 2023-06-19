@@ -2,9 +2,9 @@ name: 'install frontend'
 description: 'Greet someone'
 
 inputs:
-  always-install:  # id of input
+  always-install-pnpm:  # id of input
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
-    default: true
+    default: false
 
 runs:
   using: "composite"
@@ -26,7 +26,7 @@ runs:
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Install deps
-      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install == 'true'
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       shell: bash
       run: pnpm i --frozen-lockfile
     - name: Build frontend

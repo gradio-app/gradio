@@ -18,7 +18,6 @@ export default async function global_setup() {
 	console.info("\nCreating test gradio app and starting server.\n");
 
 	const test_app = make_app(test_files);
-	console.log(test_app);
 	writeFileSync(TEST_APP_PATH, test_app);
 	const app = await spawn_gradio_app(TEST_APP_PATH, verbose);
 	console.info("Server started. Running tests.\n");
