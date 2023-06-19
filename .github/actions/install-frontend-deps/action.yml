@@ -25,3 +25,4 @@ runs:
       # if: steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
+      run: cp gradio/templates /home/runner/work/gradio/gradio/venv/lib/python3.8/site-packages/gradio/templates
