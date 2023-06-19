@@ -8,6 +8,7 @@ runs:
       with:
         path: |
           gradio/templates/*
+          venv/lib/python3.8/site-packages/gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
       uses: pnpm/action-setup@v2
@@ -25,6 +26,6 @@ runs:
       # if: steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
-    - name: copy assets
-      shell: bash
-      run: cp -r gradio/templates /home/runner/work/gradio/gradio/venv/lib/python3.8/site-packages/gradio/templates
+    # - name: copy assets
+    #   shell: bash
+    #   run: cp -r gradio/templates /home/runner/work/gradio/gradio/venv/lib/python3.8/site-packages/gradio/templates
