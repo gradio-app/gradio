@@ -39,7 +39,5 @@ jobs:
       - run: pnpm exec playwright install chromium
       - run: |
           . venv/bin/activate
-          pip show gradio
-          pip show demo.blocks_input.run
           echo $PATH
           pnpm test:browser:verbose
