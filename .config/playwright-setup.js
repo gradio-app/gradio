@@ -31,56 +31,58 @@ function spawn_gradio_app(app, verbose) {
 	return new Promise((res, rej) => {
 		// console.log(process.env.PATH);
 		console.log("PRINTING PWD:");
-		spawnSync("pwd");
+		spawn("pwd");
 		console.log("PRINTING process.cwd():");
 		console.log(process.cwd());
 		console.log("PRINTING PYTHONPATH:");
-		spawnSync("echo $PYTHONPATH");
-		spawnSync("cat", [join(ROOT, "demo", "blocks_inputs", "run.py")]);
-		const _process = spawn(`python`, [app], {
-			shell: true,
-			stdio: "pipe",
-			cwd: ROOT,
-			env: {
-				...process.env,
-				GRADIO_SERVER_PORT: `7879`,
-				PYTHONUNBUFFERED: "true"
-			}
+		spawn("echo $PYTHONPATH");
+		spawn("cat", [join(ROOT, "demo", "blocks_inputs", "run.py")], {
+			stdio: "inherit"
 		});
-		_process.stdout.setEncoding("utf8");
+		// const _process = spawn(`python`, [app], {
+		// 	shell: true,
+		// 	stdio: "pipe",
+		// 	cwd: ROOT,
+		// 	env: {
+		// 		...process.env,
+		// 		GRADIO_SERVER_PORT: `7879`,
+		// 		PYTHONUNBUFFERED: "true"
+		// 	}
+		// });
+		// _process.stdout.setEncoding("utf8");
 
-		_process.stdout.on("data", (data) => {
-			const _data = data.toString();
+		// _process.stdout.on("data", (data) => {
+		// 	const _data = data.toString();
 
-			if (verbose) {
-				console.log("\n");
-				console.log("OUT: ", _data);
-				console.log("\n");
-			}
+		// 	if (verbose) {
+		// 		console.log("\n");
+		// 		console.log("OUT: ", _data);
+		// 		console.log("\n");
+		// 	}
 
-			if (PORT_RE.test(_data)) {
-				res(_process);
-			}
-		});
+		// 	if (PORT_RE.test(_data)) {
+		// 		res(_process);
+		// 	}
+		// });
 
-		_process.stderr.on("data", (data) => {
-			const _data = data.toString();
+		// _process.stderr.on("data", (data) => {
+		// 	const _data = data.toString();
 
-			if (PORT_RE.test(_data)) {
-				res(_process);
-			}
-			if (verbose) {
-				console.warn("ERR: ", _data);
-			}
-			if (_data.includes("Traceback")) {
-				kill_process(_process);
-				throw new Error(
-					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
-				);
-				rej();
-			}
-		});
-		// res();
+		// 	if (PORT_RE.test(_data)) {
+		// 		res(_process);
+		// 	}
+		// 	if (verbose) {
+		// 		console.warn("ERR: ", _data);
+		// 	}
+		// 	if (_data.includes("Traceback")) {
+		// 		kill_process(_process);
+		// 		throw new Error(
+		// 			"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
+		// 		);
+		// 		rej();
+		// 	}
+		// });
+		res();
 	});
 }
 
