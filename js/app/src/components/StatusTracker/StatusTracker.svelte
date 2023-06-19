@@ -58,7 +58,7 @@
 	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
-	export let visible: boolean = true;
+	export let show_progress: "full" | "minimal" | "hidden" = "full";
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
@@ -184,17 +184,18 @@
 
 <div
 	class="wrap {variant}"
-	class:hide={!status || status === "complete" || !visible}
+	class:hide={!status || status === "complete" || show_progress === "hidden"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
-		translucent}
+		translucent ||
+		show_progress === "minimal"}
 	class:generating={status === "generating"}
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default" && show_eta_bar}
+		{#if variant === "default" && show_eta_bar && show_progress === "full"}
 			<div
 				class="eta-bar"
 				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
@@ -257,7 +258,7 @@
 					/>
 				</div>
 			</div>
-		{:else}
+		{:else if show_progress === "full"}
 			<Loader margin={variant === "default"} />
 		{/if}
 
@@ -267,38 +268,6 @@
 	{:else if status === "error"}
 		<span class="error">Error</span>
 		<slot name="error" />
-		{#if message_visible}
-			<div class="toast">
-				<div
-					class="toast-body"
-					on:click|stopPropagation
-					in:fade={{ duration: 100 }}
-				>
-					<button on:click={close_message} class="toast-close">
-						<svg
-							width="100%"
-							height="100%"
-							viewBox="0 0 24 24"
-							fill="currentColor"
-							stroke="currentColor"
-							stroke-width="3"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="18" y1="6" x2="6" y2="18" />
-							<line x1="6" y1="6" x2="18" y2="18" />
-						</svg>
-					</button>
-
-					<div class="toast-details">
-						<div class="toast-title">Something went wrong</div>
-						<div class="toast-text">
-							{message || ""}
-						</div>
-					</div>
-				</div>
-			</div>
-		{/if}
 	{/if}
 </div>
 
@@ -309,11 +278,13 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
+		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
+		pointer-events: none;
 	}
 
 	.wrap.center {
@@ -436,77 +407,5 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		font-family: var(--font);
-	}
-
-	.toast {
-		position: fixed;
-		top: 0;
-		right: var(--size-4);
-		left: var(--size-4);
-		z-index: var(--layer-top);
-		padding: var(--size-4);
-	}
-
-	.toast-body {
-		display: flex;
-		position: absolute;
-		top: var(--size-8);
-		right: 0;
-		left: 0;
-		align-items: center;
-		margin: var(--size-6) var(--size-4);
-		margin: auto;
-		box-shadow: var(--shadow-drop-lg);
-		border: 1px solid var(--error-border-color);
-		border-radius: var(--container-radius);
-		background: var(--error-background-fill);
-		padding: var(--size-4) var(--size-6);
-		max-width: 1200px;
-		max-width: 610px;
-		overflow: hidden;
-		pointer-events: auto;
-	}
-
-	.toast-title {
-		display: flex;
-		align-items: center;
-		padding: var(--size-1) var(--size-3);
-		color: var(--error-text-color);
-		color: var(--color-red-500);
-		font-weight: var(--weight-bold);
-		font-size: var(--text-lg);
-		line-height: var(--line-xs);
-	}
-
-	.toast-close {
-		display: flex;
-		flex-shrink: 0;
-		justify-content: center;
-		align-items: center;
-		border-radius: var(--radius-full);
-		background: var(--color-red-600);
-		padding: var(--size-2);
-		padding-left: calc(var(--size-2) - 1px);
-		width: var(--size-10);
-		height: var(--size-10);
-		color: white;
-	}
-
-	.toast-text {
-		padding: var(--size-1) var(--size-3);
-		color: var(--body-text-color);
-		font-family: var(--font-mono);
-	}
-
-	.toast-details {
-		padding-left: var(--size-3);
-		width: 100%;
-	}
-
-	@media (--screen-md) {
-		.toast-body {
-			right: var(--size-4);
-			left: auto;
-		}
 	}
 </style>

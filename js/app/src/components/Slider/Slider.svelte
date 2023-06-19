@@ -3,7 +3,6 @@
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -11,7 +10,9 @@
 	export let value: number = 0;
 	export let label: string = "Slider";
 	export let info: string | undefined = undefined;
-	export let style: Styles = {};
+	export let container: boolean = false;
+	export let scale: number = 1;
+	export let min_width: number | undefined = undefined;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
@@ -22,12 +23,7 @@
 	export let value_is_output: boolean = false;
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	{elem_classes}
-	disable={typeof style.container === "boolean" && !style.container}
->
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Range

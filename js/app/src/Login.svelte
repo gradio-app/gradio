@@ -68,14 +68,7 @@
 			/>
 		</Form>
 
-		<Button
-			size="lg"
-			variant="primary"
-			style={{ full_width: true }}
-			on:click={submit}
-		>
-			Login
-		</Button>
+		<Button size="lg" variant="primary" on:click={submit}>Login</Button>
 	</Column>
 </div>
 

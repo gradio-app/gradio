@@ -7,13 +7,18 @@ import uuid
 from concurrent.futures import CancelledError, TimeoutError
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
 import pytest
+import uvicorn
+from fastapi import FastAPI
+from gradio.networking import Server
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
+from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
@@ -89,7 +94,7 @@ class TestClientPredictions:
     def test_job_status(self, calculator_demo):
         with connect(calculator_demo) as client:
             statuses = []
-            job = client.submit(5, "add", 4)
+            job = client.submit(5, "add", 4, api_name="/predict")
             while not job.done():
                 time.sleep(0.1)
                 statuses.append(job.status())
@@ -169,7 +174,17 @@ class TestClientPredictions:
             "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
             fn_index=0,
         )
-        assert pathlib.Path(job.result()).exists()
+        assert Path(job.result()).exists()
+        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(job.result()).resolve().parents
+
+        temp_dir = tempfile.mkdtemp()
+        client = Client(src="gradio/video_component", output_dir=temp_dir)
+        job = client.submit(
+            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+            fn_index=0,
+        )
+        assert Path(job.result()).exists()
+        assert Path(temp_dir).resolve() in Path(job.result()).resolve().parents
 
     def test_progress_updates(self, progress_demo):
         with connect(progress_demo) as client:
@@ -319,6 +334,37 @@ class TestClientPredictions:
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
 
+    def test_can_call_mounted_app_via_api(self):
+        def greet(name):
+            return "Hello " + name + "!"
+
+        gradio_app = gr.Interface(
+            fn=greet,
+            inputs=gr.Textbox(lines=2, placeholder="Name Here..."),
+            outputs="text",
+        )
+
+        app = FastAPI()
+        app = gr.mount_gradio_app(app, gradio_app, path="/test/gradio")
+        config = uvicorn.Config(
+            app=app,
+            port=8000,
+            log_level="info",
+        )
+        server = Server(config=config)
+        # Using the gradio Server class to not have
+        # to implement code again to run uvicorn in a separate thread
+        # However, that means we need to set this flag to prevent
+        # run_in_thread_from_blocking
+        server.started = True
+        try:
+            server.run_in_thread()
+            time.sleep(1)
+            client = Client("http://127.0.0.1:8000/test/gradio/")
+            assert client.predict("freddy") == "Hello freddy!"
+        finally:
+            server.thread.join(timeout=1)
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
@@ -395,7 +441,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6)
+        job = client.submit(5, "add", 6, api_name="/predict")
 
         statuses = []
         while not job.done():
@@ -470,8 +516,8 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job_1 = client.submit(5, "add", 6)
-        job_2 = client.submit(11, "subtract", 1)
+        job_1 = client.submit(5, "add", 6, api_name="/predict")
+        job_2 = client.submit(11, "subtract", 1, api_name="/predict")
 
         statuses_1 = []
         statuses_2 = []

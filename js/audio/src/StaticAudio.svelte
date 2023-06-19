@@ -17,12 +17,14 @@
 	export let label: string;
 	export let name: string;
 	export let show_label: boolean = true;
+	export let autoplay: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
 		play: undefined;
 		pause: undefined;
-		ended: undefined;
+		end: undefined;
+		stop: undefined;
 	}>();
 
 	$: value &&
@@ -30,21 +32,40 @@
 			name: name,
 			data: value?.data
 		});
+
+	let el: HTMLAudioElement;
+
+	let old_val: any;
+	function value_has_changed(val: any) {
+		if (val === old_val) return false;
+		else {
+			old_val = val;
+			return true;
+		}
+	}
+
+	$: autoplay && el && value_has_changed(value) && el.play();
+
+	function handle_ended() {
+		dispatch("stop");
+		dispatch("end");
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
 {#if value === null}
-	<Empty size="small" unpadded_box={true}>
+	<Empty size="small">
 		<Music />
 	</Empty>
 {:else}
 	<audio
+		bind:this={el}
 		controls
 		preload="metadata"
 		src={value.data}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_ended}
 	/>
 {/if}
 

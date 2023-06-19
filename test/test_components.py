@@ -87,10 +87,13 @@ class TestTextbox:
             "placeholder": None,
             "value": "",
             "name": "textbox",
+            "show_copy_button": False,
             "show_label": True,
             "type": "text",
             "label": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -207,7 +210,11 @@ class TestNumber:
             "name": "number",
             "show_label": True,
             "label": None,
-            "style": {},
+            "minimum": None,
+            "maximum": None,
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": "num",
             "elem_classes": ["first"],
             "visible": True,
@@ -252,7 +259,11 @@ class TestNumber:
             "name": "number",
             "show_label": True,
             "label": None,
-            "style": {},
+            "minimum": None,
+            "maximum": None,
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -368,7 +379,9 @@ class TestSlider:
             "name": "slider",
             "show_label": True,
             "label": "Slide Your Input",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -439,7 +452,9 @@ class TestCheckbox:
             "name": "checkbox",
             "show_label": True,
             "label": "Check Your Input",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -483,7 +498,9 @@ class TestCheckboxGroup:
             "name": "checkboxgroup",
             "show_label": True,
             "label": "Check Your Inputs",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -527,7 +544,9 @@ class TestRadio:
             "name": "radio",
             "show_label": True,
             "label": "Pick Your One Input",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -581,7 +600,9 @@ class TestDropdown:
             "name": "dropdown",
             "show_label": True,
             "label": "Select Your Inputs",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -640,7 +661,11 @@ class TestImage:
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
+            "height": None,
+            "width": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -801,12 +826,15 @@ class TestAudio:
 
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
+            "autoplay": False,
             "source": "upload",
             "name": "audio",
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Audio",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -826,6 +854,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        # Confirm Audio can be instantiated with a numpy array
+        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
@@ -833,12 +864,15 @@ class TestAudio:
         audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         assert audio_output.get_config() == {
+            "autoplay": False,
             "name": "audio",
             "streaming": False,
             "show_label": True,
             "label": None,
             "source": "upload",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -952,7 +986,9 @@ class TestFile:
             "name": "file",
             "show_label": True,
             "label": "Upload Your File",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1066,7 +1102,9 @@ class TestDataframe:
             "max_rows": 20,
             "max_cols": None,
             "overflow_row_behaviour": "paginate",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1089,7 +1127,9 @@ class TestDataframe:
             "name": "dataframe",
             "show_label": True,
             "label": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1275,11 +1315,16 @@ class TestVideo:
 
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
+            "autoplay": False,
             "source": "upload",
             "name": "video",
             "show_label": True,
             "label": "Upload Your Video",
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
+            "height": None,
+            "width": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1367,8 +1412,17 @@ class TestVideo:
             full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
+    def test_convert_video_to_playable_format(self, monkeypatch, tmp_path):
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        video = gr.Video(format="mp4")
+        output = video.postprocess(
+            str(test_file_dir / "playable_but_bad_container.mkv")
+        )
+        assert Path(output[0]["name"]).suffix == ".mp4"
+
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
-    @patch("gradio.components.FFmpeg")
+    @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = deepcopy(media_data.BASE64_VIDEO)
@@ -1436,7 +1490,9 @@ class TestTimeseries:
             "show_label": True,
             "label": "Upload Your Timeseries",
             "colors": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1459,7 +1515,9 @@ class TestTimeseries:
             "show_label": True,
             "label": "Disease",
             "colors": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1533,9 +1591,11 @@ class TestLabel:
             "name": "label",
             "show_label": True,
             "num_top_classes": 2,
-            "value": None,
+            "value": {},
             "label": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1674,7 +1734,9 @@ class TestHighlightedText:
             "show_label": True,
             "label": None,
             "show_legend": False,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1748,7 +1810,12 @@ class TestAnnotatedImage:
             "show_label": True,
             "label": "sections",
             "show_legend": False,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
+            "color_map": None,
+            "height": None,
+            "width": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1852,9 +1919,13 @@ class TestChatbot:
             "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
+            "height": None,
             "root_url": None,
             "selectable": False,
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
         }
 
 
@@ -1866,7 +1937,9 @@ class TestJSON:
         js_output = gr.JSON()
         assert js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
         assert js_output.get_config() == {
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1921,7 +1994,9 @@ class TestHTML:
         """
         html_component = gr.components.HTML("#Welcome onboard", label="HTML Input")
         assert {
-            "style": {},
+            "container": True,
+            "min_width": None,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -1982,7 +2057,9 @@ class TestModel3D:
             "visible": True,
             "elem_id": None,
             "elem_classes": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
         } == component.get_config()
 
         file = "test/test_files/Box.gltf"
@@ -2018,7 +2095,9 @@ class TestColorPicker:
             "value": None,
             "show_label": True,
             "label": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,
@@ -2190,7 +2269,9 @@ class TestScatterPlot:
             "name": "plot",
             "root_url": None,
             "show_label": True,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "value": None,
             "visible": True,
             "bokeh_version": "3.0.3",
@@ -2375,7 +2456,9 @@ class TestLinePlot:
             "name": "plot",
             "root_url": None,
             "show_label": True,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "value": None,
             "visible": True,
             "bokeh_version": "3.0.3",
@@ -2539,11 +2622,19 @@ class TestBarPlot:
             "name": "plot",
             "root_url": None,
             "show_label": True,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "value": None,
             "visible": True,
             "bokeh_version": "3.0.3",
         }
+
+    def test_update_defaults_none(self):
+        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
+        assert all(
+            v is None for k, v in output.items() if k not in ["value", "__type__"]
+        )
 
     def test_no_color(self):
         plot = gr.BarPlot(
@@ -2710,7 +2801,9 @@ class TestCode:
             "name": "code",
             "show_label": True,
             "label": None,
-            "style": {},
+            "container": True,
+            "min_width": 160,
+            "scale": None,
             "elem_id": None,
             "elem_classes": None,
             "visible": True,

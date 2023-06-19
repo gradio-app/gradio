@@ -21,6 +21,7 @@ from enum import Enum
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
+from types import GeneratorType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -104,6 +105,10 @@ def ipython_check() -> bool:
     except (ImportError, NameError):
         pass
     return is_ipython
+
+
+def is_space() -> bool:
+    return os.getenv("SYSTEM") == "spaces"
 
 
 def readme_to_html(article: str) -> str:
@@ -632,7 +637,10 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     def continuous_fn(*args):
         while True:
             output = fn(*args)
-            yield output
+            if isinstance(output, GeneratorType):
+                yield from output
+            else:
+                yield output
             time.sleep(every)
 
     return continuous_fn

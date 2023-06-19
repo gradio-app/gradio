@@ -1,24 +1,23 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
+	export let autoplay: boolean;
+
+	const dispatch = createEventDispatcher<{
+		play: undefined;
+		pause: undefined;
+		stop: undefined;
+		end: undefined;
+	}>();
 
 	let time: number = 0;
 	let duration: number;
 	let paused: boolean = true;
 	let video: HTMLVideoElement;
-
-	let show_controls = true;
-	let show_controls_timeout: NodeJS.Timeout;
-
-	function video_move() {
-		clearTimeout(show_controls_timeout);
-		show_controls_timeout = setTimeout(() => (show_controls = false), 500);
-		show_controls = true;
-	}
 
 	function handleMove(e: TouchEvent | MouseEvent) {
 		if (!duration) return;
@@ -72,22 +71,17 @@
 	}
 
 	async function checkforVideo() {
-		transition = "0s";
 		await tick();
-		wrap_opacity = 0.8;
-		opacity = 0;
+
 		await tick();
 
 		var b = setInterval(async () => {
 			if (video.readyState >= 3) {
 				video.currentTime = 9999;
 				paused = true;
-				transition = "0.2s";
 
 				setTimeout(async () => {
 					video.currentTime = 0.0;
-					opacity = 1;
-					wrap_opacity = 1;
 				}, 50);
 				clearInterval(b);
 			}
@@ -98,39 +92,34 @@
 		checkforVideo();
 	}
 
-	let opacity: number = 0;
-	let wrap_opacity: number = 0;
-	let transition: string = "0.5s";
-
 	$: src && _load();
+
+	function handle_end() {
+		dispatch("stop");
+		dispatch("end");
+	}
+
+	$: autoplay && video && src && video.play();
 </script>
 
-<div style:opacity={wrap_opacity} class="wrap">
+<div class="wrap">
 	<video
 		{src}
 		preload="auto"
-		on:mousemove={video_move}
 		on:click={play_pause}
 		on:play
 		on:pause
-		on:ended
+		on:ended={handle_end}
 		bind:currentTime={time}
 		bind:duration
 		bind:paused
 		bind:this={video}
 		class:mirror
-		style:opacity
-		style:transition
 	>
 		<track kind="captions" src={subtitle} default />
 	</video>
 
-	<div
-		class="controls"
-		style:opacity={opacity === 1 && duration && show_controls ? 1 : 0}
-		on:mousemove={video_move}
-		style:transition
-	>
+	<div class="controls">
 		<div class="inner">
 			<span class="icon" on:click={play_pause}>
 				{#if time === duration}
@@ -180,6 +169,7 @@
 	}
 
 	video {
+		position: inherit;
 		background-color: black;
 		width: var(--size-full);
 		height: var(--size-full);
@@ -193,6 +183,7 @@
 	.controls {
 		position: absolute;
 		bottom: 0;
+		opacity: 0;
 		transition: 500ms;
 		margin: var(--size-2);
 		border-radius: var(--radius-md);
@@ -200,6 +191,9 @@
 		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);
 		width: calc(100% - var(--size-2) * 2);
+	}
+	.wrap:hover .controls {
+		opacity: 1;
 	}
 
 	.inner {
@@ -229,6 +223,7 @@
 		font-family: var(--font-mono);
 	}
 	.wrap {
+		position: relative;
 		background-color: var(--background-fill-secondary);
 	}
 </style>

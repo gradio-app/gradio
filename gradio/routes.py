@@ -145,9 +145,16 @@ class App(FastAPI):
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
 
-    @staticmethod
-    def build_proxy_request(url_path):
+    def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
+        assert self.blocks
+        # Don't proxy a URL unless it's a URL specifically loaded by the user using
+        # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
+        is_safe_url = any(
+            url.host == httpx.URL(root).host for root in self.blocks.root_urls
+        )
+        if not is_safe_url:
+            raise PermissionError("This URL cannot be proxied.")
         is_hf_url = url.host.endswith(".hf.space")
         headers = {}
         if Context.hf_token is not None and is_hf_url:
@@ -311,7 +318,10 @@ class App(FastAPI):
         @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
-            rp_req = app.build_proxy_request(url_path)
+            try:
+                rp_req = app.build_proxy_request(url_path)
+            except PermissionError as err:
+                raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
                 rp_resp.aiter_raw(),
@@ -777,6 +787,7 @@ def mount_gradio_app(
     blocks: gradio.Blocks,
     path: str,
     gradio_api_url: str | None = None,
+    app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -785,6 +796,7 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
+        app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -799,7 +811,7 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
-    gradio_app = App.create_app(blocks)
+    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
 
     @app.on_event("startup")
     async def start_queue():

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import sys
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
-from typing import Any, Deque
+from typing import Any
 
 import fastapi
 import httpx
@@ -46,7 +45,7 @@ class Queue:
         max_size: int | None,
         blocks_dependencies: list,
     ):
-        self.event_queue: Deque[Event] = deque()
+        self.event_queue: deque[Event] = deque()
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -368,13 +367,6 @@ class Queue:
             elif response.json.get("is_generating", False):
                 old_response = response
                 while response.json.get("is_generating", False):
-                    # Python 3.7 doesn't have named tasks.
-                    # In order to determine if a task was cancelled, we
-                    # ping the websocket to see if it was closed mid-iteration.
-                    if sys.version_info < (3, 8):
-                        is_alive = await self.send_message(event, {"msg": "alive?"})
-                        if not is_alive:
-                            return
                     old_response = response
                     open_ws = []
                     for event in awake_events:

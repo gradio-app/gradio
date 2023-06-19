@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -13,7 +13,7 @@ from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.components import Component, StatusTracker
+    from gradio.components import Component
 
 set_documentation_group("events")
 
@@ -76,7 +76,9 @@ class EventListenerMethod:
         self,
         trigger: Block,
         event_name: str,
-        show_progress: bool = True,
+        show_progress: Literal["full"]
+        | Literal["minimal"]
+        | Literal["hidden"] = "full",
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -94,9 +96,11 @@ class EventListenerMethod:
         inputs: Component | list[Component] | set[Component] | None = None,
         outputs: Component | list[Component] | None = None,
         api_name: str | None = None,
-        status_tracker: StatusTracker | None = None,
+        status_tracker: None = None,
         scroll_to_output: bool = False,
-        show_progress: bool | None = None,
+        show_progress: Literal["full"]
+        | Literal["minimal"]
+        | Literal["hidden"] = "full",
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
@@ -126,8 +130,15 @@ class EventListenerMethod:
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
+        if self.event_name == "stop":
+            warnings.warn(
+                "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
+            )
+
         if isinstance(self, Streamable):
             self.check_streamable()
+        if isinstance(show_progress, bool):
+            show_progress = "full" if show_progress else "hidden"
 
         dep, dep_index = self.trigger.set_event_trigger(
             self.event_name,
@@ -227,13 +238,19 @@ class Playable(EventListener):
 
         self.pause = EventListenerMethod(self, "pause")
         """
-        This listener is triggered when the user pauses the component (e.g. audio or video).
+        This listener is triggered when the media stops playing for any reason (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
         self.stop = EventListenerMethod(self, "stop")
         """
-        This listener is triggered when the user stops the component (e.g. audio or video).
+        This listener is triggered when the user reaches the end of the media track (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+        self.end = EventListenerMethod(self, "end")
+        """
+        This listener is triggered when the user reaches the end of the media track (e.g. audio or video).
         This method can be used when this component is in a Gradio Blocks.
         """
 
@@ -245,7 +262,7 @@ class Streamable(EventListener):
         self.stream = EventListenerMethod(
             self,
             "stream",
-            show_progress=False,
+            show_progress="hidden",
             callback=lambda: setattr(self, "streaming", True),
         )
         """
@@ -255,6 +272,22 @@ class Streamable(EventListener):
 
     def check_streamable(self):
         pass
+
+
+@document("*start_recording", "*stop_recording", inherit=True)
+class Recordable(EventListener):
+    def __init__(self):
+        self.start_recording = EventListenerMethod(self, "start_recording")
+        """
+        This listener is triggered when the user starts recording with the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+        self.stop_recording = EventListenerMethod(self, "stop_recording")
+        """
+        This listener is triggered when the user stops recording with the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
+        """
 
 
 @document("*blur", inherit=True)
