@@ -6,7 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Restored missing imports in `gr.components` by [@abidlabs](https://github.com/abidlabs) in [PR 4566](https://github.com/gradio-app/gradio/pull/4566)
 
 ## Other Changes:
 
