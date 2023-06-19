@@ -51,5 +51,5 @@ class DuplicateButton(Button):
         )
         self.click(
             fn=None,
-            _js="() => { window.open('https://huggingface.co/spaces/{window.__space_name__}?duplicate=true', '_blank') }",
+            _js="() => { window.open(`https://huggingface.co/spaces/{window.__space_name__}?duplicate=true`, '_blank') }",
         )
