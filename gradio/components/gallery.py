@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import warnings
 from typing import Any, Callable, Literal
+from pathlib import Path
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -170,7 +171,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
                 file = self.pil_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
                 file_path = str(utils.abspath(file))
                 self.temp_files.add(file_path)
-            elif isinstance(img, str):
+            elif isinstance(img, (str, Path)):
                 if utils.validate_url(img):
                     file_path = img
                 else:

@@ -173,7 +173,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            file_uri = chat_message[0]
+            file_uri = str(chat_message[0])
             if utils.validate_url(file_uri):
                 filepath = file_uri
             else:
