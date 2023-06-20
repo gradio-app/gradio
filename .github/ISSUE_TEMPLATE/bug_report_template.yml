@@ -40,8 +40,6 @@ body:
       label: Logs
       description: "Please include the full stacktrace of the errors you get from Python or Javascript. If you are running in a colab notebooks, you can get the logs with by setting `debug=True`, i.e: `gradio.Interface.launch(debug=True)`"
       render: shell
-    validations:
-      required: true
   - type: textarea
     id: system-info
     attributes:
