@@ -142,7 +142,7 @@ class Interface(Blocks):
         batch: bool = False,
         max_batch_size: int = 4,
         _api_mode: bool = False,
-        allow_duplication: bool = True,
+        allow_duplication: bool = False,
         **kwargs,
     ):
         """
