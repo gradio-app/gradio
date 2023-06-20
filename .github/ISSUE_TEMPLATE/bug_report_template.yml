@@ -5,27 +5,27 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to fill out this bug report! Before you get started, please [search to see](https://github.com/gradio-app/gradio/issues) if an issue already exists for the bug you encountered
   - type: textarea
     id: bug-description
     attributes:
       label: Describe the bug
-      description: A clear and concise description of what the bug is. If you intend to submit a PR for this issue, tell us in the description. Thanks!
+      description: Please provide a concise description of what the bug is, in clear English. If you intend to submit a PR for this issue, tell us in the description.
       placeholder: Bug description
     validations:
       required: true
   - type: checkboxes
     attributes:
-      label: Is there an existing issue for this?
+      label: Have you searched existing issues?  🔎
       description: Please search to see if an issue already exists for the issue you encountered.
       options:
-        - label: I have searched the existing issues
+        - label: I have searched and found no existing issues
           required: true
   - type: textarea
     id: reproduction
     attributes:
       label: Reproduction
-      description: Please provide a link to a repo or REPL that can reproduce the problem you ran into. Or provide the Python code below that can be run to reproduce the issue. 
+      description: Please provide a minimal example, with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications. Use ``` to format code blocks.
       placeholder: Reproduction
     validations:
       required: true
@@ -33,22 +33,20 @@ body:
     id: screenshot
     attributes:
       label: Screenshot
-      description: "If possible, please include screenshot(s) so that we can understand what the issue is."
+      description: If relevant, please include screenshot(s) of your Gradio app so that we can understand what the issue is.
   - type: textarea
     id: logs
     attributes:
       label: Logs
       description: "Please include the full stacktrace of the errors you get from Python or Javascript. If you are running in a colab notebooks, you can get the logs with by setting `debug=True`, i.e: `gradio.Interface.launch(debug=True)`"
       render: shell
-    validations:
-      required: true
   - type: textarea
     id: system-info
     attributes:
       label: System Info
-      description: Please share your system info with us, you can get the Gradio version with `gradio.__version__`
+      description: Please ensure you are running the latest version of Gradio. You can get the Gradio version by running `pip show gradio`
       render: shell
-      placeholder: Gradio version, Operating System, Browser
+      placeholder: Please include (1) gradio (or gradio_client) version (2) the operating system (3) (if relevant,) the browser
     validations:
       required: true
   - type: dropdown
@@ -57,9 +55,11 @@ body:
       label: Severity
       description: Select the severity of this issue
       options:
-        - annoying
-        - serious, but I can work around it
-        - blocking upgrade to latest gradio version
-        - blocking all usage of gradio
+        - I can work around it
+        - Blocking usage of gradio
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: |
+        📌  Please ensure that you have filled all of the required sections above, and that the reproduction you have provided is [minimal, complete, and reproducible](https://stackoverflow.com/help/minimal-reproducible-example). Incomplete issues will be closed. 
