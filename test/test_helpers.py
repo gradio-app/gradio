@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -397,3 +398,11 @@ async def test_examples_keep_all_suffixes(tmp_path):
         prediction = await io.examples_handler.load_from_cache(1)
         assert Path(prediction[0]["name"]).read_text() == "file 2"
         assert prediction[0]["orig_name"] == "foo.bar.txt"
+
+
+def test_make_waveform_with_spaces_in_filename():
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        audio = os.path.join(tmpdirname, "test audio.wav")
+        shutil.copy("test/test_files/audio_sample.wav", audio)
+        waveform = gr.make_waveform(audio)
+        assert waveform.endswith(".mp4")
