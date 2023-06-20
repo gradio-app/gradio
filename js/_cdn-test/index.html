@@ -278,7 +278,7 @@
 		<h2>Working</h2>
 		 -->
 
-		<gradio-app
+		 <gradio-app
 			space="gradio/live_with_vars"
 			initial_height="200px"
 			control_page_title="true"
@@ -300,20 +300,18 @@
 			// 	"#myIframe"
 			// );
 
-			let spaces = [
-				"gradio/live_with_vars",
-				"gradio/colorpicker_component_main"
-			];
+			let spaces = ['gradio/live_with_vars', 'gradio/colorpicker_component_main']
 
-			const b = document.getElementsByTagName("button")[0];
-			b.addEventListener("click", update_space);
+			const b = document.getElementsByTagName('button')[0];
+				b.addEventListener('click', update_space)
 
 			function update_space() {
-				const g = document.getElementsByTagName("gradio-app")[0];
-				g.setAttribute("space", spaces[1]);
+				const g = document.getElementsByTagName('gradio-app')[0];
+				g.setAttribute('space', spaces[1])
 				const [_old, _new] = spaces;
-				spaces = [_new, _old];
+				spaces = [_new, _old]
 			}
+			
 		</script>
 	</body>
 </html>
