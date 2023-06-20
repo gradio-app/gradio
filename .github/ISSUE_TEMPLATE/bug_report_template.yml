@@ -25,7 +25,7 @@ body:
     id: reproduction
     attributes:
       label: Reproduction
-      description: Please provide a minimal example, with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications. 
+      description: Please provide a minimal example, with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications. Use ``` to format code blocks.
       placeholder: Reproduction
     validations:
       required: true
