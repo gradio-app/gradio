@@ -55,8 +55,9 @@ class DuplicateButton(Button):
             self.activate()
 
     def activate(self):
-        if get_space() is not None:
+        space_name = get_space()
+        if space_name is not None:
             self.click(
                 fn=None,
-                _js="() => { window.open(`https://huggingface.co/spaces/${window.__space_name__}?duplicate=true`, '_blank') }",
+                _js=f"() => {{ window.open(`https://huggingface.co/spaces/{space_name}?duplicate=true`, '_blank') }}",
             )

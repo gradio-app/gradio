@@ -199,7 +199,6 @@
 			normalise_files: false
 		});
 		config = app.config;
-		window.__space_name__ = config.space_id;
 
 		status = {
 			message: "",
