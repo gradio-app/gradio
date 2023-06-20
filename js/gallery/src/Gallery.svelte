@@ -261,6 +261,7 @@
 		z-index: var(--layer-2);
 		backdrop-filter: blur(8px);
 		background: var(--background-fill-primary);
+		height: var(--size-full);
 	}
 
 	.fixed-height {
@@ -277,7 +278,6 @@
 	.preview img {
 		width: var(--size-full);
 		height: calc(var(--size-full) - 60px);
-		height: var(--size-full);
 		object-fit: contain;
 	}
 
