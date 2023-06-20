@@ -44,7 +44,7 @@ body:
     id: system-info
     attributes:
       label: System Info
-      description: Please share your system info with us, you can get the Gradio version with `gradio.__version__`
+      description: Please ensure you are running a recent version of Gradio. You can get the Gradio version by running `pip show gradio`
       render: shell
       placeholder: Gradio version, Operating System, Browser
     validations:
