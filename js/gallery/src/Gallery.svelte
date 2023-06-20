@@ -180,11 +180,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
-		<div
-			on:keydown={on_keydown}
-			class="preview"
-			class:fixed-height={height !== "auto"}
-		>
+		<div on:keydown={on_keydown} class="preview">
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
 			<img
@@ -265,7 +261,6 @@
 		z-index: var(--layer-2);
 		backdrop-filter: blur(8px);
 		background: var(--background-fill-primary);
-		height: var(--size-full);
 	}
 
 	.fixed-height {
