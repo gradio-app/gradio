@@ -893,11 +893,15 @@ class TestDuplication:
         mock_set_timeout.assert_not_called()
 
     @pytest.mark.flaky
+    @patch("huggingface_hub.request_space_hardware")
     @patch("gradio_client.utils.set_space_timeout")
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
+    @patch(
+        "huggingface_hub.get_space_runtime",
+        return_value=MagicMock(hardware=huggingface_hub.SpaceHardware.CPU_UPGRADE),
+    )
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_set_timeout_if_not_default_hardware(
-        self, mock_init, mock_runtime, mock_set_timeout
+        self, mock_init, mock_runtime, mock_set_timeout, mock_request_hardware
     ):
         Client.duplicate(
             "gradio/calculator",
@@ -907,7 +911,7 @@ class TestDuplication:
             sleep_timeout=15,
         )
         mock_set_timeout.assert_called_once_with(
-            "gradio/test", hf_token=HF_TOKEN, timeout_in_seconds=15 * 60
+            "gradio-tests/test", hf_token=HF_TOKEN, timeout_in_seconds=15 * 60
         )
 
     @pytest.mark.flaky
