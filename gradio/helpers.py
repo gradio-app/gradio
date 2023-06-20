@@ -743,6 +743,8 @@ def make_waveform(
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
+    if not os.path.isfile(audio_file):
+        raise ValueError("Audio file not found.")
     duration = round(len(audio[1]) / audio[0], 4)
 
     # Helper methods to create waveform
