@@ -55,9 +55,7 @@ body:
       label: Severity
       description: Select the severity of this issue
       options:
-        - annoying
-        - serious, but I can work around it
-        - blocking upgrade to latest gradio version
-        - blocking all usage of gradio
+        - I can work around it
+        - Blocking usage of gradio
     validations:
       required: true
