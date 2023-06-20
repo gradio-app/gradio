@@ -723,7 +723,7 @@ def make_waveform(
     bars_color: str | tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
     bar_width: float = 0.6,
-):
+) -> str:
     """
     Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
     Parameters:
@@ -735,7 +735,7 @@ def make_waveform(
         bar_count: Number of bars in waveform
         bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
     Returns:
-        A filepath to the output video.
+        A filepath to the output video in mp4 format.
     """
     if isinstance(audio, str):
         audio_file = audio
