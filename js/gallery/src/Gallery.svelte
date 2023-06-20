@@ -130,9 +130,6 @@
 		});
 	}
 
-	// If you don't allow preview, assume can always zoom to trigger select event
-	$: can_zoom = !allow_preview ? true : window_height >= client_height;
-
 	let client_height = 0;
 	let window_height = 0;
 
@@ -232,7 +229,7 @@
 				<button
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
-					on:click={() => (selected_image = can_zoom ? i : selected_image)}
+					on:click={() => (selected_image = i)}
 				>
 					<img
 						alt={caption || ""}
