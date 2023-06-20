@@ -554,7 +554,13 @@ class Interface(Blocks):
         Button | None,
     ]:
         submit_btn = submit_btn_in
-        interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
+        interpretation_btn, clear_btn, duplicate_btn, flag_btns, stop_btn = (
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
 
         with Column(variant="panel"):
             for component in self.output_components:
@@ -583,7 +589,8 @@ class Interface(Blocks):
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
 
-                duplicate_btn = DuplicateButton(scale=1, size="lg", _activate=False)
+                if self.allow_duplication:
+                    duplicate_btn = DuplicateButton(scale=1, size="lg", _activate=False)
 
         return (
             submit_btn,
