@@ -5,12 +5,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! Before you get started, please search to see if an issue already exists for the bug you encountered.
+        Thanks for taking the time to fill out this bug report!
   - type: textarea
     id: bug-description
     attributes:
       label: Describe the bug
-      description: Please provide a concise description of what the bug is, in clear English. If you intend to submit a PR for this issue, tell us in the description.
+      description: A clear and concise description of what the bug is. If you intend to submit a PR for this issue, tell us in the description. Thanks!
       placeholder: Bug description
     validations:
       required: true
@@ -25,7 +25,7 @@ body:
     id: reproduction
     attributes:
       label: Reproduction
-      description: Please provide a minimal example, with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications.
+      description: Please provide a link to a repo or REPL that can reproduce the problem you ran into. Or provide the Python code below that can be run to reproduce the issue. 
       placeholder: Reproduction
     validations:
       required: true
@@ -33,7 +33,7 @@ body:
     id: screenshot
     attributes:
       label: Screenshot
-      description: "If relevant, please include screenshot(s) of your Gradio app so that we can understand what the issue is."
+      description: "If possible, please include screenshot(s) so that we can understand what the issue is."
   - type: textarea
     id: logs
     attributes:
@@ -46,22 +46,20 @@ body:
     id: system-info
     attributes:
       label: System Info
-      description: Please ensure you are running a recent version of Gradio. You can get the Gradio version by running `pip show gradio`
+      description: Please share your system info with us, you can get the Gradio version with `gradio.__version__`
       render: shell
-      placeholder: 1. gradio (or gradio_client) version 2. operating system 3. (if relevant), the browser
+      placeholder: Gradio version, Operating System, Browser
     validations:
       required: true
-   - type: dropdown
+  - type: dropdown
     id: severity
     attributes:
       label: Severity
       description: Select the severity of this issue
       options:
-        - I can work around it
-        - Blocking usage of gradio
+        - annoying
+        - serious, but I can work around it
+        - blocking upgrade to latest gradio version
+        - blocking all usage of gradio
     validations:
-      required: true     
-  - type: markdown
-    attributes:
-      value: |
-        📌  Please ensure that you have filled all of the sections above. Incomplete issues will be closed.
+      required: true
