@@ -404,8 +404,13 @@ class Interface(Blocks):
         with self:
             self.render_title_description()
 
-            submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
-
+            submit_btn, clear_btn, stop_btn, flag_btns, duplicate_btn = (
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
             interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
