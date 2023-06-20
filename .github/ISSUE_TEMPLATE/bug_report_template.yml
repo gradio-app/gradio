@@ -5,12 +5,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to fill out this bug report! Before you get started, please search to see if an issue already exists for the bug you encountered.
   - type: textarea
     id: bug-description
     attributes:
       label: Describe the bug
-      description: A clear and concise description of what the bug is. If you intend to submit a PR for this issue, tell us in the description. Thanks!
+      description: Please provide a concise description of what the bug is, in clear English. If you intend to submit a PR for this issue, tell us in the description.
       placeholder: Bug description
     validations:
       required: true
