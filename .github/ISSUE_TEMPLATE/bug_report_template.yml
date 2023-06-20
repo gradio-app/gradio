@@ -25,7 +25,7 @@ body:
     id: reproduction
     attributes:
       label: Reproduction
-      description: Please provide a link to a repo or REPL that can reproduce the problem you ran into. Or provide the Python code below that can be run to reproduce the issue. 
+      description: Please provide a minimal example, with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications. 
       placeholder: Reproduction
     validations:
       required: true
@@ -33,7 +33,7 @@ body:
     id: screenshot
     attributes:
       label: Screenshot
-      description: "If possible, please include screenshot(s) so that we can understand what the issue is."
+      description: If relevant, please include screenshot(s) of your Gradio app so that we can understand what the issue is.
   - type: textarea
     id: logs
     attributes:
