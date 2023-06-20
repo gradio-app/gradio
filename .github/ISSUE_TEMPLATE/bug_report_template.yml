@@ -62,4 +62,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        📌  Please ensure that you have filled all of the required sections above. Incomplete issues will be closed.
+        📌  Please ensure that you have filled all of the required sections above, and that the reproduction you have provided is [minimal, complete, and reproducible](https://stackoverflow.com/help/minimal-reproducible-example). Incomplete issues will be closed. 
