@@ -404,13 +404,8 @@ class Interface(Blocks):
         with self:
             self.render_title_description()
 
-            submit_btn, clear_btn, stop_btn, flag_btns, duplicate_btn = (
-                None,
-                None,
-                None,
-                None,
-                None,
-            )
+            submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
+
             interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
@@ -436,6 +431,7 @@ class Interface(Blocks):
                     (
                         submit_btn_out,
                         clear_btn_2_out,
+                        duplicate_btn,
                         stop_btn_2_out,
                         flag_btns_out,
                         interpretation_btn,
@@ -452,7 +448,7 @@ class Interface(Blocks):
                 clear_btn, input_component_column, interpret_component_column
             )
             if duplicate_btn is not None:
-                duplicate_btn._activate()
+                duplicate_btn.activate()
             self.attach_interpretation_events(
                 interpretation_btn,
                 interpretation_set,
@@ -545,7 +541,12 @@ class Interface(Blocks):
         self,
         submit_btn_in: Button | None,
     ) -> tuple[
-        Button | None, ClearButton | None, Button | None, list | None, Button | None
+        Button | None,
+        ClearButton | None,
+        DuplicateButton,
+        Button | None,
+        list | None,
+        Button | None,
     ]:
         submit_btn = submit_btn_in
         interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
@@ -577,10 +578,16 @@ class Interface(Blocks):
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
 
-                if self.allow_duplication:
-                    DuplicateButton(scale=1, size="lg", _activate=False)
+                duplicate_btn = DuplicateButton(scale=1, size="lg", _activate=False)
 
-        return submit_btn, clear_btn, stop_btn, flag_btns, interpretation_btn
+        return (
+            submit_btn,
+            clear_btn,
+            duplicate_btn,
+            stop_btn,
+            flag_btns,
+            interpretation_btn,
+        )
 
     def render_article(self):
         if self.article:
