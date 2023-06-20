@@ -131,7 +131,7 @@
 	}
 
 	// If you don't allow preview, assume can always zoom to trigger select event
-	$: can_zoom = !allow_preview ? true : window_height >= client_height;
+	$: can_zoom = true;
 
 	let client_height = 0;
 	let window_height = 0;
@@ -277,6 +277,7 @@
 	.preview img {
 		width: var(--size-full);
 		height: calc(var(--size-full) - 60px);
+		height: var(--size-full);
 		object-fit: contain;
 	}
 
