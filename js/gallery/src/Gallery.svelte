@@ -229,8 +229,7 @@
 	>
 		<div
 			class="grid-container"
-			style="{grid_cols_style} {grid_rows_style}"
-			style:object_fit
+			style="{grid_cols_style} {grid_rows_style} --object-fit: {object_fit}; height: {height}"
 			class:pt-6={show_label}
 		>
 			{#each _value as [image, caption], i}
