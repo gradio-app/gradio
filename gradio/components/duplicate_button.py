@@ -28,7 +28,7 @@ class DuplicateButton(Button):
         value: str = "Duplicate Space",
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = "sm",
-        visible: bool = True,
+        visible: bool | None = None,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -37,6 +37,8 @@ class DuplicateButton(Button):
         _activate: bool = True,
         **kwargs,
     ):
+        if visible is None:
+            visible = get_space() is not None
         super().__init__(
             value,
             variant=variant,
@@ -47,7 +49,6 @@ class DuplicateButton(Button):
             elem_classes=elem_classes,
             scale=scale,
             min_width=min_width,
-            render=get_space() is not None,
             **kwargs,
         )
         if _activate:
