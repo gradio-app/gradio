@@ -26,6 +26,8 @@ function create_custom_element() {
 		space: string | null;
 		src: string | null;
 		app?: Index;
+		loading: boolean;
+		updating: { name: string; value: string } | false;
 
 		constructor() {
 			super();
@@ -41,9 +43,17 @@ function create_custom_element() {
 			this.autoscroll = this.getAttribute("autoscroll");
 			this.eager = this.getAttribute("eager");
 			this.theme_mode = this.getAttribute("theme_mode") as ThemeMode | null;
+			this.updating = false;
+			this.loading = false;
 		}
 
 		async connectedCallback() {
+			this.loading = true;
+
+			if (this.app) {
+				this.app.$destroy();
+			}
+
 			if (typeof FONTS !== "string") {
 				FONTS.forEach((f) => mount_css(f, document.head));
 			}
@@ -61,6 +71,8 @@ function create_custom_element() {
 			});
 
 			observer.observe(this, { childList: true });
+
+			// if (this.)
 
 			this.app = new Index({
 				target: this,
@@ -86,6 +98,12 @@ function create_custom_element() {
 					app_mode: window.__gradio_mode__ === "app"
 				}
 			});
+
+			if (this.updating) {
+				this.setAttribute(this.updating.name, this.updating.value);
+			}
+
+			this.loading = false;
 		}
 
 		static get observedAttributes() {
@@ -97,6 +115,9 @@ function create_custom_element() {
 				(name === "host" || name === "space" || name === "src") &&
 				new_val !== old_val
 			) {
+				this.updating = { name, value: new_val };
+				if (this.loading) return;
+
 				if (this.app) {
 					this.app.$destroy();
 				}
@@ -138,6 +159,8 @@ function create_custom_element() {
 						app_mode: window.__gradio_mode__ === "app"
 					}
 				});
+
+				this.updating = false;
 			}
 		}
 	}
