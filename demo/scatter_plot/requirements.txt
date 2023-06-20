@@ -1,0 +1,2 @@
+vega_datasets
+pandas

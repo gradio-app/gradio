@@ -22,7 +22,7 @@ class LinePlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots, live_dashboard
+    Demos: line_plot, live_dashboard
     """
 
     def __init__(
