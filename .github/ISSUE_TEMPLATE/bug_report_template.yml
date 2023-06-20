@@ -44,9 +44,9 @@ body:
     id: system-info
     attributes:
       label: System Info
-      description: Please ensure you are running a recent version of Gradio. You can get the Gradio version by running `pip show gradio`
+      description: Please ensure you are running the latest version of Gradio. You can get the Gradio version by running `pip show gradio`
       render: shell
-      placeholder: Please include the: 1. gradio (or gradio_client) version 2. operating system 3. (if relevant,) the browser
+      placeholder: Please include (1) gradio (or gradio_client) version (2) the operating system (3) (if relevant,) the browser
     validations:
       required: true
   - type: dropdown
