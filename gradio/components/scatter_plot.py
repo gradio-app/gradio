@@ -23,7 +23,7 @@ class ScatterPlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots
+    Demos: scatter_plot
     Guides: creating-a-dashboard-from-bigquery-data
     """
 
