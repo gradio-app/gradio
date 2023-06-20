@@ -10,7 +10,7 @@ body:
     id: bug-description
     attributes:
       label: Describe the bug
-      description: Please provide a concise description of what the bug is, in clear English.
+      description: Please provide a concise description of what the bug is, in clear English. If you intend to submit a PR for this issue, tell us in the description.
       placeholder: Bug description
     validations:
       required: true
@@ -25,7 +25,7 @@ body:
     id: reproduction
     attributes:
       label: Reproduction
-      description: Please provide a minimal example, with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications.
+      description: Please provide a [minimal example](https://stackoverflow.com/help/minimal-reproducible-example), with code, that can be run to reproduce the issue. Do NOT provide screenshots of code, or link to external repos or applications.
       placeholder: Reproduction
     validations:
       required: true
@@ -46,11 +46,21 @@ body:
     id: system-info
     attributes:
       label: System Info
-      description: Please ensure you are running a recent version of Gradio. You can get the Gradio version with `gradio.__version__`
+      description: Please ensure you are running a recent version of Gradio. You can get the Gradio version by running `pip show gradio`
       render: shell
-      placeholder: 1. Gradio version 2. Operating system 3. (If relevant), the browser
+      placeholder: 1. gradio (or gradio_client) version 2. operating system 3. (if relevant), the browser
     validations:
       required: true
+   - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Select the severity of this issue
+      options:
+        - I can work around it
+        - Blocking usage of gradio
+    validations:
+      required: true     
   - type: markdown
     attributes:
       value: |
