@@ -58,6 +58,8 @@
 
 	$: obj = data.obj;
 	$: mode = data.mode;
+
+	$: console.log("gradio/" + obj.name.toLowerCase());
 </script>
 
 <MetaTags
@@ -163,9 +165,11 @@
 
 					{#if mode === "components"}
 						<div class="embedded-component">
-							<gradio-app
-								space={"gradio/" + obj.name.toLowerCase() + "_component"}
-							/>
+							{#key obj.name}
+								<gradio-app
+									space={"gradio/" + obj.name.toLowerCase() + "_component"}
+								/>
+							{/key}
 						</div>
 					{/if}
 
