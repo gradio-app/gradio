@@ -74,7 +74,6 @@
 
 	function take_recording() {
 		if (recording) {
-			dispatch("stop_recording");
 			media_recorder.stop();
 			let video_blob = new Blob(recorded_blobs, { type: mimeType });
 			let ReaderObj = new FileReader();
@@ -85,6 +84,7 @@
 						name: "sample." + mimeType.substring(6),
 						is_example: false
 					});
+					dispatch("stop_recording");
 				}
 			};
 			ReaderObj.readAsDataURL(video_blob);
