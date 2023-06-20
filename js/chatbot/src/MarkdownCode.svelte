@@ -16,6 +16,13 @@
 	let el: HTMLSpanElement;
 	let mounted = false;
 
+	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+		if ("target" in node) {
+			node.setAttribute("target", "_blank");
+			node.setAttribute("rel", "noopener noreferrer");
+		}
+	});
+
 	afterUpdate(() => {
 		tick().then(() => {
 			if (message !== old_message) {
