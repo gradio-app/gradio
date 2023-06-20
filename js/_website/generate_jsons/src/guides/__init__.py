@@ -6,7 +6,7 @@ import json
 
 # DIR = os.path.dirname(__file__)
 
-GRADIO_DIR = "../../../"
+GRADIO_DIR = "../../"
 GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets")
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
@@ -143,6 +143,7 @@ for guide_folder in guide_folders:
 
 
 def generate(json_path):
+    print(json_path)
     if not os.path.isdir(json_path):
         os.mkdir(json_path)
     with open(json_path + "guides_by_category.json", 'w+') as f:

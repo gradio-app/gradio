@@ -7,6 +7,7 @@ import uuid
 from concurrent.futures import CancelledError, TimeoutError
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
@@ -17,6 +18,7 @@ from gradio.networking import Server
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
+from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
@@ -92,7 +94,7 @@ class TestClientPredictions:
     def test_job_status(self, calculator_demo):
         with connect(calculator_demo) as client:
             statuses = []
-            job = client.submit(5, "add", 4)
+            job = client.submit(5, "add", 4, api_name="/predict")
             while not job.done():
                 time.sleep(0.1)
                 statuses.append(job.status())
@@ -172,7 +174,17 @@ class TestClientPredictions:
             "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
             fn_index=0,
         )
-        assert pathlib.Path(job.result()).exists()
+        assert Path(job.result()).exists()
+        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(job.result()).resolve().parents
+
+        temp_dir = tempfile.mkdtemp()
+        client = Client(src="gradio/video_component", output_dir=temp_dir)
+        job = client.submit(
+            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
+            fn_index=0,
+        )
+        assert Path(job.result()).exists()
+        assert Path(temp_dir).resolve() in Path(job.result()).resolve().parents
 
     def test_progress_updates(self, progress_demo):
         with connect(progress_demo) as client:
@@ -429,7 +441,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6)
+        job = client.submit(5, "add", 6, api_name="/predict")
 
         statuses = []
         while not job.done():
@@ -504,8 +516,8 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job_1 = client.submit(5, "add", 6)
-        job_2 = client.submit(11, "subtract", 1)
+        job_1 = client.submit(5, "add", 6, api_name="/predict")
+        job_2 = client.submit(11, "subtract", 1, api_name="/predict")
 
         statuses_1 = []
         statuses_2 = []

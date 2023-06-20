@@ -56,7 +56,9 @@
 				{@html code}
 			</div>
 			<div class="mx-auto max-w-5xl">
-				<gradio-app space={demo} />
+				{#key demo}
+					<gradio-app space={demo} />
+				{/key}
 			</div>
 		</div>
 	{/each}

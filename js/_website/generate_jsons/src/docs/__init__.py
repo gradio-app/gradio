@@ -5,7 +5,7 @@ from gradio.events import EventListener
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
-GRADIO_DIR = "../../../"
+GRADIO_DIR = "../../"
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 
 docs = generate_documentation()
@@ -269,7 +269,7 @@ def organize_docs(d):
 
     organized["ordered_events"] = ordered_events
 
-    with open("../../../client/js/README.md", "r") as f:
+    with open("../../client/js/README.md", "r") as f:
         readme_content = f.read()
     return {"docs": organized, "pages": pages, "js_client": readme_content}
 

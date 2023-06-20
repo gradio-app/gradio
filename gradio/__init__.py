@@ -20,6 +20,7 @@ from gradio.components import (
     Checkbox,
     CheckboxGroup,
     Checkboxgroup,
+    ClearButton,
     Code,
     ColorPicker,
     DataFrame,

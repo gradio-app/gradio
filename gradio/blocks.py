@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal
 
 import anyio
 import requests
@@ -21,7 +21,6 @@ from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from packaging import version
-from typing_extensions import Literal
 
 from gradio import (
     analytics,
@@ -1135,7 +1134,10 @@ class Blocks(BlockContext):
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(
-                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
+                outputs[o],
+                save_dir=block.DEFAULT_TEMP_DIR,
+                root_url=block.root_url,
+                hf_token=Context.hf_token,
             )
             predictions.append(deserialized)
 
