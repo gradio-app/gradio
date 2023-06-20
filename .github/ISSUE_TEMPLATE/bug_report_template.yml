@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! Before you get started, please [search to see](https://github.com/gradio-app/gradio/issues) if an issue already exists for the bug you encountered 
+        Thanks for taking the time to fill out this bug report! Before you get started, please [search to see](https://github.com/gradio-app/gradio/issues) if an issue already exists for the bug you encountered 🔎
   - type: textarea
     id: bug-description
     attributes:
@@ -16,7 +16,8 @@ body:
       required: true
   - type: checkboxes
     attributes:
-      label: Please search to see if an issue already exists for the issue you encountered 🔎
+      label: Have you searched existing issues?
+      description: Please search to see if an issue already exists for the issue you encountered.
       options:
         - label: I have searched and found no existing issues
           required: true
