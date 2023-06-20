@@ -130,9 +130,6 @@
 		});
 	}
 
-	// If you don't allow preview, assume can always zoom to trigger select event
-	$: can_zoom = !allow_preview ? true : window_height >= client_height;
-
 	let client_height = 0;
 	let window_height = 0;
 
@@ -180,11 +177,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
-		<div
-			on:keydown={on_keydown}
-			class="preview"
-			class:fixed-height={height !== "auto"}
-		>
+		<div on:keydown={on_keydown} class="preview">
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
 			<img
@@ -229,15 +222,14 @@
 	>
 		<div
 			class="grid-container"
-			style="{grid_cols_style} {grid_rows_style}"
-			style:object_fit
+			style="{grid_cols_style} {grid_rows_style} --object-fit: {object_fit}; height: {height}"
 			class:pt-6={show_label}
 		>
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
-					on:click={() => (selected_image = can_zoom ? i : selected_image)}
+					on:click={() => (selected_image = i)}
 				>
 					<img
 						alt={caption || ""}
