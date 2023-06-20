@@ -131,7 +131,7 @@
 	}
 
 	// If you don't allow preview, assume can always zoom to trigger select event
-	$: can_zoom = true;
+	$: can_zoom = !allow_preview ? true : window_height >= client_height;
 
 	let client_height = 0;
 	let window_height = 0;
