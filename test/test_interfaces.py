@@ -125,6 +125,14 @@ class TestInterface:
         assert prediction_fn.__name__ in repr[0]
         assert len(repr[0]) == len(repr[1])
 
+    @pytest.mark.asyncio
+    async def test_interface_none_interp(self):
+        interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
+        scores = (await interface.interpret(["quickest brown fox"]))[0][
+            "interpretation"
+        ]
+        assert scores is None
+
     @mock.patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
         interface = Interface(lambda x: x, "textbox", "label")
