@@ -18,6 +18,7 @@
 ## Other Changes:
 
 - Update frontend dependencies in [PR 4601](https://github.com/gradio-app/gradio/pull/4601)
+- Use `typing.Literal` where possible in gradio library and client by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4608](https://github.com/gradio-app/gradio/pull/4608)
 
 ## Breaking Changes:
 
