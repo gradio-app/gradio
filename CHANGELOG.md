@@ -16,7 +16,7 @@
 
 ## Other Changes:
 
-No changes to highlight.
+- Add `.git-blame-ignore-revs` by [@akx](https://github.com/akx) in [PR 4586](https://github.com/gradio-app/gradio/pull/4586)
 
 ## Breaking Changes:
 
