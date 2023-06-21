@@ -38,8 +38,8 @@
 		"**/test/**/*",
 		"**/website/**/*",
 		"**/node_modules/**/*",
-		"**/venv/**/*"
-		// "client/js/**"
+		"**/venv/**/*",
+		"client/js/**"
 		// "js/_spaces-test/**"
 	],
 	"include": [

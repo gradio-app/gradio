@@ -4,3 +4,4 @@ dist
 .config
 **/*.spec.ts
 **/*.test.ts
+**/*.node-test.ts

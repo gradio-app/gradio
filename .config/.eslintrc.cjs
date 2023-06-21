@@ -35,6 +35,13 @@ module.exports = {
 			parserOptions: {
 				parser: "@typescript-eslint/parser"
 			}
+		},
+		{
+			files: ["*client/js/**/*"],
+
+			parserOptions: {
+				project: "./client/js//tsconfig.json"
+			}
 		}
 	],
 	extends: [
