@@ -18,10 +18,6 @@ const js_rules_disabled = Object.fromEntries(
 	Object.keys(js_plugin.configs.all.rules).map((rule) => [rule, "off"])
 );
 
-// console.log(js_rules_disabled, ts_rules_disabled);
-// module.exports =
-// };
-
 const rules = {
 	...ts_rules_disabled,
 	...js_rules_disabled,
@@ -60,19 +56,8 @@ export default [
 			"js/app/test/**/*"
 		]
 	},
-
-	// Load predefined config
-	// js.configs.recommended,
-
-	// JavaScript
-	// {
-	// 	files: ["**/*.js", "**/*.cjs"]
-	// },
-
-	// TypeScript
 	{
 		files: ["**/*.ts", "**/*.js", "**/*.cjs"],
-
 		languageOptions: {
 			parser: typescriptParser,
 			parserOptions: {
@@ -86,8 +71,6 @@ export default [
 		},
 		rules
 	},
-
-	// Svelte
 	{
 		files: ["**/*.svelte"],
 		languageOptions: {
