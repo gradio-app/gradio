@@ -5,3 +5,4 @@ dist
 **/*.spec.ts
 **/*.test.ts
 **/*.node-test.ts
+/js/app/test
