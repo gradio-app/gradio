@@ -69,10 +69,10 @@
 		"tinyspy": "^0.3.0",
 		"typescript": "^4.7.4",
 		"vite": "^4.3.9",
-		"vitest": "^0.29.8"
+		"vitest": "^0.32.0"
 	},
 	"devDependencies": {
-		"@types/three": "^0.138.0"
+		"@types/three": "^0.152.0"
 	},
 	"prettier": {
 		"useTabs": true,
