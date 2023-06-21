@@ -853,7 +853,7 @@ def make_waveform(
         output_mp4.name,
     ]
 
-    subprocess.call(ffmpeg_cmd)
+    subprocess.check_call(ffmpeg_cmd)
     return output_mp4.name
 
 
