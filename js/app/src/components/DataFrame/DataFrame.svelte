@@ -25,7 +25,7 @@
 	export let label: string | null = null;
 	export let wrap: boolean;
 	export let datatype: Datatype | Array<Datatype>;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher();

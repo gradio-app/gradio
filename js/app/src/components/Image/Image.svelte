@@ -24,7 +24,7 @@
 	export let brush_radius: number;
 	export let selectable: boolean = false;
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";

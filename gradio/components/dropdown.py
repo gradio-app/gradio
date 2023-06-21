@@ -22,13 +22,13 @@ set_documentation_group("component")
 
 @document()
 class Dropdown(
+    FormComponent,
     Changeable,
     Inputable,
     Selectable,
     Blurrable,
     IOComponent,
     SimpleSerializable,
-    FormComponent,
 ):
     """
     Creates a dropdown of choices from which entries can be selected.
