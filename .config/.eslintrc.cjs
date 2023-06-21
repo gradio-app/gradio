@@ -42,7 +42,7 @@ module.exports = {
 		"plugin:svelte/recommended"
 	],
 	rules: {
-		// we want the rules available but we want thtme mostly switched off
+		// we want the rules available but we want them mostly switched off
 		...ts_rules_disabled,
 		...js_rules_disabled,
 		"no-console": ["off", { allow: ["warn", "error"] }],
