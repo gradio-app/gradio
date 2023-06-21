@@ -15,20 +15,22 @@
 	},
 	"editor.formatOnSave": true,
 	"svelte.plugin.svelte.format.enable": true,
+	"svelte.plugin.svelte.diagnostics.enable": false,
 	"prettier.configPath": ".config/.prettierrc.json",
 	"prettier.ignorePath": ".config/.prettierignore",
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,
 	"eslint.packageManager": "pnpm",
-	"eslint.probe": ["javascript", "typescript", "html", "markdown", "svelte"],
 	"eslint.validate": ["javascript", "typescript", "html", "markdown", "svelte"],
+
 	"eslint.lintTask.options": ".",
 	"eslint.options": {
-		"overrideConfigFile": "./.config/.eslintrc.cjs",
-		"ignorePath": "./.config/.eslintignore"
+		"overrideConfigFile": "./.config/eslint.config.js"
+		// "ignorePath": "./.config/.eslintignore"
 	},
 	"[python]": {
 		"editor.defaultFormatter": "ms-python.black-formatter"
-	}
+	},
+	"eslint.experimental.useFlatConfig": true
 }

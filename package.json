@@ -15,7 +15,7 @@
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
-		"lint": "eslint -c .config/.eslintrc.cjs --ignore-path .config/.eslintignore --ext .js,.svelte js client/js",
+		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
@@ -74,10 +74,10 @@
 		"tinyspy": "^0.3.0",
 		"typescript": "^4.7.4",
 		"vite": "^4.3.9",
-		"vitest": "^0.29.8"
+		"vitest": "^0.32.0"
 	},
 	"devDependencies": {
-		"@types/three": "^0.138.0"
+		"@types/three": "^0.152.0"
 	},
 	"prettier": {
 		"useTabs": true,
