@@ -24,11 +24,11 @@
 	"exclude": [
 		"**/dist/**/*",
 		"**/public/**/*",
-		"**/*.config.js",
+		"**/.config/*",
 		"**/*.test.ts",
 		"**/dist",
 		"**/workbench/**/*",
-		"**/Plot.svelte",
+		// "**/Plot.svelte",
 		".github/**/*",
 		"**/demo/**/*",
 		"**/gradio/**/*",
@@ -38,9 +38,9 @@
 		"**/test/**/*",
 		"**/website/**/*",
 		"**/node_modules/**/*",
-		"**/venv/**/*",
-		"client/js/**",
-		"js/_spaces-test/**"
+		"**/venv/**/*"
+		// "client/js/**"
+		// "js/_spaces-test/**"
 	],
 	"include": [
 		"**/*.d.ts",
