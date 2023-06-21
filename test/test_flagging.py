@@ -22,6 +22,7 @@ class TestDefaultFlagging:
         io.close()
 
 
+
 class TestSimpleFlagging:
     def test_simple_csv_flagging_callback(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
