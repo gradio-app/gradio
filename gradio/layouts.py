@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -30,7 +30,7 @@ class Row(BlockContext):
     def __init__(
         self,
         *,
-        variant: str = "default",
+        variant: Literal["default", "panel", "compact"] = "default",
         visible: bool = True,
         elem_id: str | None = None,
         equal_height: bool = True,
@@ -107,7 +107,7 @@ class Column(BlockContext):
         *,
         scale: int = 1,
         min_width: int = 320,
-        variant: str = "default",
+        variant: Literal["default", "panel", "compact"] = "default",
         visible: bool = True,
         elem_id: str | None = None,
         **kwargs,

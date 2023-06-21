@@ -34,14 +34,14 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        type: str = "file",
-        file_count: str = "single",
+        type: Literal["file", "bytes"] = "file",
+        file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
         **kwargs,
     ):
@@ -108,7 +108,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         | list[str]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,

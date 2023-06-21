@@ -34,7 +34,7 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         components: list[IOComponent] | list[str],
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
-        type: str = "values",
+        type: Literal["values", "index"] = "values",
         samples_per_page: int = 10,
         visible: bool = True,
         elem_id: str | None = None,

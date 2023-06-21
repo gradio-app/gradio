@@ -38,7 +38,7 @@ class CheckboxGroup(
         choices: list[str] | None = None,
         *,
         value: list[str] | str | Callable | None = None,
-        type: str = "value",
+        type: Literal["value", "index"] = "value",
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
