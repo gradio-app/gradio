@@ -9,9 +9,9 @@
 <div class="toast-wrap">
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
-			{#if type === "error"}
-				<Error {message} on:close {id} />
-			{/if}
+			<!-- {#if type === "error"} -->
+			<Error {message} on:close {id} />
+			<!-- {/if} -->
 		</div>
 	{/each}
 </div>

@@ -23,7 +23,7 @@
 		theme: string;
 		title: string;
 		version: string;
-		is_space: boolean;
+		space_id: string | null;
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
@@ -321,7 +321,7 @@
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
-			is_space={config.is_space}
+			space_id={space}
 			{app_mode}
 		/>
 	{:else if config && Blocks && css_ready}

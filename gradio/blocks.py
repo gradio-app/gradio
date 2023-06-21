@@ -399,7 +399,7 @@ class BlockFunction:
     def spaces_auto_wrap(self):
         if spaces is None:
             return
-        if not utils.is_space():
+        if utils.get_space() is None:
             return
         self.fn = spaces.gradio_auto_wrap(self.fn)
 
@@ -718,7 +718,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = utils.is_space()
+        self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
@@ -1384,7 +1384,7 @@ Received outputs:
             "components": [],
             "css": self.css,
             "title": self.title or "Gradio",
-            "is_space": self.is_space,
+            "space_id": self.space_id,
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
@@ -1735,7 +1735,7 @@ Received outputs:
                 DeprecationWarning,
             )
 
-        if self.is_space:
+        if self.space_id:
             self.enable_queue = self.enable_queue is not False
         else:
             self.enable_queue = self.enable_queue is True
@@ -1859,7 +1859,7 @@ Received outputs:
             )
 
         if self.share:
-            if self.is_space:
+            if self.space_id:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
@@ -1958,7 +1958,7 @@ Received outputs:
                 "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
-                "is_spaces": self.is_space,
+                "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)
