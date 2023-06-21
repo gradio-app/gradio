@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.8
 
 RUN apt-get update
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
