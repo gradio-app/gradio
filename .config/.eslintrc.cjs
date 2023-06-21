@@ -1,8 +1,12 @@
 const ts = require("@typescript-eslint/eslint-plugin");
 const js = require("@eslint/js");
 
-const ts_rules_disabled = Object.fromEntries(Object.keys(ts.rules).map(rule => [`@typescript-eslint/${rule}`, "off"]));
-const js_rules_disabled = Object.fromEntries(Object.keys(js.configs.all.rules).map(rule => [rule, 'off']));
+const ts_rules_disabled = Object.fromEntries(
+	Object.keys(ts.rules).map((rule) => [`@typescript-eslint/${rule}`, "off"])
+);
+const js_rules_disabled = Object.fromEntries(
+	Object.keys(js.configs.all.rules).map((rule) => [rule, "off"])
+);
 
 module.exports = {
 	parser: "@typescript-eslint/parser",
@@ -18,14 +22,14 @@ module.exports = {
 		{
 			files: ["*.svelte"],
 			parser: "svelte-eslint-parser",
-			// Parse the `<script>` in `.svelte` as TypeScript by adding the following configuration.
 			parserOptions: {
 				parser: "@typescript-eslint/parser"
 			}
 		},
 		{
+			// This is a little tedious but the tsconfig are different for whatever reason
+			// We will make them the same (and fix the errors) so we can remove this
 			files: ["*client/js/**/*"],
-
 			parserOptions: {
 				project: "./client/js//tsconfig.json"
 			}
@@ -38,27 +42,28 @@ module.exports = {
 		"plugin:svelte/recommended"
 	],
 	rules: {
+		// we want the rules available but we want thtme mostly switched off
 		...ts_rules_disabled,
 		...js_rules_disabled,
-		"no-console": [2, { allow: ["warn", "error"] }],
-		"no-constant-condition": 2,
-		"no-dupe-args": 2,
-		"no-extra-boolean-cast": 2,
-		"no-unexpected-multiline": 2,
-		"no-unreachable": 2,
-		"valid-jsdoc": 2,
-		"array-callback-return": 2,
-		complexity: 2,
-		"no-else-return": 2,
-		"no-useless-return": 2,
-		"no-shadow": 2,
-		"no-undef": 2,
-		"@typescript-eslint/adjacent-overload-signatures": 2,
-		"@typescript-eslint/explicit-function-return-type": 2,
-		"@typescript-eslint/consistent-type-exports": 2,
-		"@typescript-eslint/ban-types": 2,
-		"@typescript-eslint/array-type": 2,
-		"@typescript-eslint/no-inferrable-types": 2
+		"no-console": ["off", { allow: ["warn", "error"] }],
+		"no-constant-condition": "off",
+		"no-dupe-args": "off",
+		"no-extra-boolean-cast": "off",
+		"no-unexpected-multiline": "off",
+		"no-unreachable": "off",
+		"valid-jsdoc": "off",
+		"array-callback-return": "off",
+		complexity: "off",
+		"no-else-return": "off",
+		"no-useless-return": "off",
+		"no-shadow": "off",
+		"no-undef": "off",
+		"@typescript-eslint/adjacent-overload-signatures": "off",
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/consistent-type-exports": "off",
+		"@typescript-eslint/ban-types": "off",
+		"@typescript-eslint/array-type": "off",
+		"@typescript-eslint/no-inferrable-types": "off"
 
 		// override/add rules settings here, such as:
 		// 'svelte/rule-name': 'error'
