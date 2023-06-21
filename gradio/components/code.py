@@ -51,8 +51,8 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             "dockerfile",
             "shell",
             "r",
-            None,
-        ] = None,
+        ]
+        | None = None,
         *,
         lines: int = 5,
         label: str | None = None,
@@ -139,7 +139,6 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             "dockerfile",
             "shell",
             "r",
-            None,
         ]
         | None = None,
         interactive: bool | None = None,
