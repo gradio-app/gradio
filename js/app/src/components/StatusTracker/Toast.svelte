@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { flip } from "svelte/animate";
-	import Error from "./Error.svelte";
 	import type { ToastMessage } from "./types";
+	import ToastContent from "./ToastContent.svelte";
 
 	export let messages: ToastMessage[] = [];
 </script>
@@ -9,9 +9,34 @@
 <div class="toast-wrap">
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
-			<!-- {#if type === "error"} -->
-			<Error {message} on:close {id} />
-			<!-- {/if} -->
+			{#if type === "warning"}
+				<ToastContent
+					{type}
+					{message}
+					description="Warning"
+					theme_color={"orange"}
+					on:close
+					{id}
+				/>
+			{:else if type === "info"}
+				<ToastContent
+					{type}
+					description="Notification"
+					theme_color={"grey"}
+					{message}
+					on:close
+					{id}
+				/>
+			{:else if type === "error"}
+				<ToastContent
+					{type}
+					description="Error"
+					theme_color={"red"}
+					{message}
+					on:close
+					{id}
+				/>
+			{/if}
 		</div>
 	{/each}
 </div>
