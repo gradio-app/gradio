@@ -17,7 +17,7 @@
 
 ## Other Changes:
 
-No changes to highlight.
+- Update frontend dependencies in [PR 4601](https://github.com/gradio-app/gradio/pull/4601)
 
 ## Breaking Changes:
 
