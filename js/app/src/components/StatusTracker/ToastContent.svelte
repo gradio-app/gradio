@@ -2,10 +2,13 @@
 	import { Alert, Information, Warning } from "@gradio/icons";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { fade } from "svelte/transition";
+	import type { ThemeMode } from "../types";
+
 	export let message: string = "";
 	export let description: string = "";
 	export let type: string = "";
 	export let theme_color: string = "";
+	export let theme_mode: ThemeMode;
 	export let id: number;
 
 	const dispatch = createEventDispatcher();
@@ -14,14 +17,23 @@
 		dispatch("close", id);
 	}
 
-	let styles = {
+	let lightStyles = {
 		"toast-bg-color": `var(--color-${theme_color}-50)`,
 		"toast-text-color": `var(--color-${theme_color}-700)`,
 		"toast-border-color": `var(--color-${theme_color}-700)`,
 		"toast-icon-color": `var(--color-${theme_color}-700)`
 	};
 
-	$: cssVarStyles = Object.entries(styles)
+	let darkStyles = {
+		"toast-bg-color": `var(--color-grey-950)`,
+		"toast-text-color": `var(--color-${theme_color}-50)`,
+		"toast-border-color": `var(--color-${theme_color}-500)`,
+		"toast-icon-color": `var(--color-${theme_color}-500)`
+	};
+
+	$: cssVarStyles = Object.entries(
+		theme_mode === "light" ? lightStyles : darkStyles
+	)
 		.map(([key, value]) => `--${key}:${value}`)
 		.join(";");
 

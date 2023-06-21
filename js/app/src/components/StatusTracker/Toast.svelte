@@ -2,7 +2,9 @@
 	import { flip } from "svelte/animate";
 	import type { ToastMessage } from "./types";
 	import ToastContent from "./ToastContent.svelte";
+	import type { ThemeMode } from "../types";
 
+	export let theme_mode: ThemeMode;
 	export let messages: ToastMessage[] = [];
 </script>
 
@@ -15,24 +17,27 @@
 					{message}
 					description="Warning"
 					theme_color={"orange"}
+					{theme_mode}
 					on:close
 					{id}
 				/>
 			{:else if type === "info"}
 				<ToastContent
 					{type}
+					{message}
 					description="Notification"
 					theme_color={"grey"}
-					{message}
+					{theme_mode}
 					on:close
 					{id}
 				/>
 			{:else if type === "error"}
 				<ToastContent
 					{type}
+					{message}
 					description="Error"
 					theme_color={"red"}
-					{message}
+					{theme_mode}
 					on:close
 					{id}
 				/>
