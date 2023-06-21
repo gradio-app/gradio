@@ -15,7 +15,7 @@
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
-		"lint": "eslint -c .config/.eslintrc.cjs --ignore-path .config/.eslintignore --ext .js,.svelte js client/js",
+		"lint": "eslint -c .config/.eslintrc.cjs --ignore-path .config/.eslintignore --ext .ts,.js,.svelte js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
