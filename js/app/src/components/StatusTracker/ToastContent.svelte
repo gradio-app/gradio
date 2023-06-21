@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Alert, Information, Warning } from "@gradio/icons";
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onMount, afterUpdate } from "svelte";
 	import { fade } from "svelte/transition";
 	import type { ThemeMode } from "../types";
 
@@ -31,17 +31,25 @@
 		"toast-icon-color": `var(--color-${theme_color}-500)`
 	};
 
-	$: cssVarStyles = Object.entries(
-		theme_mode === "light" ? lightStyles : darkStyles
-	)
-		.map(([key, value]) => `--${key}:${value}`)
-		.join(";");
+	let cssVarStyles = "";
+
+	function updateCssVarStyles() {
+		cssVarStyles = Object.entries(
+			theme_mode === "light" ? lightStyles : darkStyles
+		)
+			.map(([key, value]) => `--${key}:${value}`)
+			.join(";");
+	}
+
+	afterUpdate(updateCssVarStyles);
 
 	onMount(() => {
 		setTimeout(() => {
 			close_message();
 		}, 10000);
 	});
+
+	$: updateCssVarStyles();
 </script>
 
 <div
