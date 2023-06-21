@@ -19,6 +19,7 @@ With this model you can lorem ipsum
 - ipsum 2
 """
     )
+    gr.DuplicateButton()
     disease = gr.CheckboxGroup(
         info="Select the diseases you want to scan for.",
         choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
