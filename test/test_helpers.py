@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -406,3 +407,19 @@ def test_make_waveform_with_spaces_in_filename():
         shutil.copy("test/test_files/audio_sample.wav", audio)
         waveform = gr.make_waveform(audio)
         assert waveform.endswith(".mp4")
+
+
+def test_make_waveform_raises_if_ffmpeg_fails(tmp_path, monkeypatch):
+    """
+    Test that make_waveform raises an exception if ffmpeg fails,
+    instead of returning a path to a non-existent or empty file.
+    """
+    audio = tmp_path / "test audio.wav"
+    shutil.copy("test/test_files/audio_sample.wav", audio)
+
+    def _failing_ffmpeg(*args, **kwargs):
+        raise subprocess.CalledProcessError(1, "ffmpeg")
+
+    monkeypatch.setattr(subprocess, "call", _failing_ffmpeg)
+    with pytest.raises(Exception):
+        gr.make_waveform(str(audio))

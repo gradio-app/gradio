@@ -28,7 +28,7 @@
 	export let selectable: boolean = false;
 	export let loading_status: LoadingStatus;
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
 	$: _value = normalise_file(value, root, root_url);
