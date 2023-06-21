@@ -1,21 +1,8 @@
 const ts = require("@typescript-eslint/eslint-plugin");
 const js = require("@eslint/js");
 
-const ts_rules_disabled = Object.keys(ts.rules).reduce(
-	(acc, rule) => ({
-		...acc,
-		[`@typescript-eslint/${rule}`]: "off"
-	}),
-	{}
-);
-
-const js_rules_disabled = Object.keys(js.configs.all.rules).reduce(
-	(acc, rule) => ({
-		...acc,
-		[`${rule}`]: "off"
-	}),
-	{}
-);
+const ts_rules_disabled = Object.fromEntries(Object.keys(ts.rules).map(rule => [`@typescript-eslint/${rule}`, "off"]));
+const js_rules_disabled = Object.fromEntries(Object.keys(js.configs.all.rules).map(rule => [rule, 'off']));
 
 module.exports = {
 	parser: "@typescript-eslint/parser",
