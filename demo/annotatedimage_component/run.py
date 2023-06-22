@@ -22,7 +22,12 @@ building_image = Image.open(str(source_dir / "buildings.png"))
 # Create segmentation mask
 building_image = np.asarray(building_image)[:, :, -1] > 0
 
-with gr.Blocks() as demo:
-    gr.AnnotatedImage(value=(base_image, [(building_image, "buildings")]))
+css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
+
+with gr.Blocks(css=css) as demo:
+    gr.AnnotatedImage(
+        value=(base_image, [(building_image, "buildings")]),
+        height=500,
+    )
 
 demo.launch()
