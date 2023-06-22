@@ -665,9 +665,7 @@ class Blocks(BlockContext):
             title: The tab title to display when this is opened in a browser window.
             css: custom css or path to custom css file to apply to entire Blocks
         """
-        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
-        self.save_to = None
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
