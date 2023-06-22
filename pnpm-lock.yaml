@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -384,8 +384,8 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0
       '@types/marked':
-        specifier: ^4.3.0
-        version: 4.3.0
+        specifier: ^5.0.0
+        version: 5.0.0
       '@types/prismjs':
         specifier: 1.26.0
         version: 1.26.0
@@ -2145,8 +2145,8 @@ packages:
     resolution: {integrity: sha512-hz+S3nV6Mym5xPbT9fnO8dDhBFQguMYpY0Ipxv06JMi1ORgnEM4M1ymWDUhUNer3ElLmT583opRo4RzxKmh9jw==}
     dev: false
 
-  /@types/marked@4.3.0:
-    resolution: {integrity: sha512-zK4gSFMjgslsv5Lyvr3O1yCjgmnE4pr8jbG8qVn4QglMwtpvPCf4YT2Wma7Nk95OxUUJI8Z+kzdXohbM7mVpGw==}
+  /@types/marked@5.0.0:
+    resolution: {integrity: sha512-YcZe50jhltsCq7rc9MNZC/4QB/OnA2Pd6hrOSTOFajtabN+38slqgDDCeE/0F83SjkKBQcsZUj7VLWR0H5cKRA==}
     dev: false
 
   /@types/minimist@1.2.2:
