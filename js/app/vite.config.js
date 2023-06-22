@@ -10,6 +10,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
+const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
+
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
 	.replace(/\./g, "-");
@@ -90,7 +92,7 @@ export default defineConfig(({ mode }) => {
 				preprocess: sveltePreprocess({
 					postcss: {
 						plugins: [
-							global_data({ files: ["../theme/src/tokens.css"] }),
+							global_data({ files: [theme_token_path] }),
 							custom_media()
 						]
 					}
