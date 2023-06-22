@@ -11,7 +11,7 @@
 		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
-		"babylonjs": "^4.2.1",
+		"babylonjs": "^6.0.0",
 		"babylonjs-loaders": "^4.2.1"
 	}
 }

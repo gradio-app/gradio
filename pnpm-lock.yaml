@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -42,8 +42,8 @@ importers:
         specifier: ^10.4.4
         version: 10.4.4(postcss@8.4.6)
       babylonjs:
-        specifier: ^5.17.1
-        version: 5.18.0
+        specifier: ^6.0.0
+        version: 6.0.0
       babylonjs-loaders:
         specifier: ^5.17.1
         version: 5.18.0
@@ -588,8 +588,8 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../upload
       babylonjs:
-        specifier: ^4.2.1
-        version: 4.2.2
+        specifier: ^6.0.0
+        version: 6.0.0
       babylonjs-loaders:
         specifier: ^4.2.1
         version: 4.2.2
@@ -2483,6 +2483,11 @@ packages:
 
   /babylonjs@5.18.0:
     resolution: {integrity: sha512-d4WrcR3e1FOnOlEtOofRH+OniZT4cx6EuDvKB0OkqnPnjD7ALuo5cmJDQmILWnDTOJRqojK7Psz9etEeNDionA==}
+    requiresBuild: true
+    dev: false
+
+  /babylonjs@6.0.0:
+    resolution: {integrity: sha512-K3vv1B+wi6r0uSLOpDkHMK9+UbSSXZP5k2tDxFeX8QzoIwV6iodf75WBqgoRNitzEvOlCSsLWktA8GW6Kq/QMg==}
     requiresBuild: true
     dev: false
 
