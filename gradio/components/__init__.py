@@ -23,6 +23,7 @@ from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
 from gradio.components.dropdown import Dropdown
+from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.file import File
 from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
@@ -74,6 +75,7 @@ __all__ = [
     "Dataframe",
     "DataFrame",
     "Dataset",
+    "DuplicateButton",
     "Form",
     "FormComponent",
     "Gallery",
