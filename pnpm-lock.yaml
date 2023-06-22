@@ -14,6 +14,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.26.1
         version: 2.26.1
+      '@csstools/postcss-global-data':
+        specifier: ^1.0.3
+        version: 1.0.3(postcss@8.4.6)
       '@gradio/tootils':
         specifier: workspace:^0.0.1
         version: link:js/tootils
@@ -93,8 +96,8 @@ importers:
         specifier: ^8.4.6
         version: 8.4.6
       postcss-custom-media:
-        specifier: '8'
-        version: 8.0.2(postcss@8.4.6)
+        specifier: '9'
+        version: 9.0.0(postcss@8.4.6)
       postcss-nested:
         specifier: ^5.0.6
         version: 5.0.6(postcss@8.4.6)
@@ -1200,6 +1203,40 @@ packages:
       '@codemirror/state': 6.1.2
       style-mod: 4.0.0
       w3c-keyname: 2.2.6
+    dev: false
+
+  /@csstools/css-parser-algorithms@1.0.0(@csstools/css-tokenizer@1.0.0):
+    resolution: {integrity: sha512-lPphY34yfV15tEXiz/SYaU8hwqAhbAwqiTExv5tOfc7QZxT70VVYrsiPBaX1osdWZFowrDEAhHe4H3JnyzbjhA==}
+    engines: {node: ^14 || ^16 || >=18}
+    peerDependencies:
+      '@csstools/css-tokenizer': ^1.0.0
+    dependencies:
+      '@csstools/css-tokenizer': 1.0.0
+    dev: false
+
+  /@csstools/css-tokenizer@1.0.0:
+    resolution: {integrity: sha512-xdFjdQ+zqqkOsmee+kYRieZD9Cqh4hr01YBQ2/8NtTkMMxbtRX18MC50LX6cMrtaLryqmIdZHN9e16/l0QqnQw==}
+    engines: {node: ^14 || ^16 || >=18}
+    dev: false
+
+  /@csstools/media-query-list-parser@1.0.0(@csstools/css-parser-algorithms@1.0.0)(@csstools/css-tokenizer@1.0.0):
+    resolution: {integrity: sha512-HsTj5ejI8NKKZ4IEd6kK2kQZA/JmIVlUV8+XvO/YS9ntrlYPnbmFT3rkqtbxOVfEafblYCNOpeNw1c+fKGkAqw==}
+    engines: {node: ^14 || ^16 || >=18}
+    peerDependencies:
+      '@csstools/css-parser-algorithms': ^1.0.0
+      '@csstools/css-tokenizer': ^1.0.0
+    dependencies:
+      '@csstools/css-parser-algorithms': 1.0.0(@csstools/css-tokenizer@1.0.0)
+      '@csstools/css-tokenizer': 1.0.0
+    dev: false
+
+  /@csstools/postcss-global-data@1.0.3(postcss@8.4.6):
+    resolution: {integrity: sha512-x2fZOl7RJJtKC9ZfG+1bdrQKeRfP1a3Ff4uF2/fykNUKly8E8Q7lw7oegsEnqenSEDC1xjk6qXJ/fcJkTAdcNg==}
+    engines: {node: ^14 || ^16 || >=18}
+    peerDependencies:
+      postcss: ^8.4
+    dependencies:
+      postcss: 8.4.6
     dev: false
 
   /@esbuild/android-arm64@0.17.14:
@@ -5763,14 +5800,16 @@ packages:
       prettier: 2.8.1
     dev: false
 
-  /postcss-custom-media@8.0.2(postcss@8.4.6):
-    resolution: {integrity: sha512-7yi25vDAoHAkbhAzX9dHx2yc6ntS4jQvejrNcC+csQJAXjj15e7VcWfMgLqBNAbOvqi5uIa9huOVwdHbf+sKqg==}
-    engines: {node: ^12 || ^14 || >=16}
+  /postcss-custom-media@9.0.0(postcss@8.4.6):
+    resolution: {integrity: sha512-HZvWFVMRRkJ92N2Typx8AV9ecQKjkLALd3uHJvVoq41GWdKqiB3GHWrzSmPiGtNWdrPbZIXs5RkNjkSHmCIfqA==}
+    engines: {node: ^14 || ^16 || >=18}
     peerDependencies:
-      postcss: ^8.3
+      postcss: ^8.4
     dependencies:
+      '@csstools/css-parser-algorithms': 1.0.0(@csstools/css-tokenizer@1.0.0)
+      '@csstools/css-tokenizer': 1.0.0
+      '@csstools/media-query-list-parser': 1.0.0(@csstools/css-parser-algorithms@1.0.0)(@csstools/css-tokenizer@1.0.0)
       postcss: 8.4.6
-      postcss-value-parser: 4.2.0
     dev: false
 
   /postcss-import@14.1.0(postcss@8.4.21):
