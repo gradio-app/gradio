@@ -15,9 +15,9 @@
 	}
 
 	onMount(() => {
-		// setTimeout(() => {
-		// 	close_message();
-		// }, 10000);
+		setTimeout(() => {
+			close_message();
+		}, 10000);
 	});
 </script>
 
@@ -77,11 +77,11 @@
 
 	.toast-body.error {
 		background: var(--color-red-50);
-		border: 1px solid var(--color-red-600);
+		border: 1px solid var(--color-red-700);
 	}
 	:global(.dark) .toast-body.error {
 		background-color: var(--color-grey-950);
-		border: 1px solid var(--color-red-600);
+		border: 1px solid var(--color-red-500);
 	}
 
 	.toast-body.warning {
@@ -112,7 +112,7 @@
 	}
 
 	.toast-title.error {
-		color: var(--color-red-600);
+		color: var(--color-red-700);
 	}
 	:global(.dark) .toast-title.error {
 		color: var(--color-red-50);
@@ -141,10 +141,10 @@
 	}
 
 	.toast-close.error {
-		color: var(--color-red-600);
+		color: var(--color-red-700);
 	}
 	:global(.dark) .toast-close.error {
-		color: var(--color-red-600);
+		color: var(--color-red-500);
 	}
 
 	.toast-close.warning {
@@ -166,7 +166,7 @@
 	}
 
 	.toast-text.error {
-		color: var(--color-red-600);
+		color: var(--color-red-700);
 	}
 	:global(.dark) .toast-text.error {
 		color: var(--color-red-50);
@@ -207,11 +207,11 @@
 	}
 
 	.toast-icon.error {
-		color: var(--color-red-600);
+		color: var(--color-red-700);
 	}
 
 	:global(.dark) .toast-icon.error {
-		color: var(--color-red-600);
+		color: var(--color-red-500);
 	}
 
 	.toast-icon.warning {
@@ -250,11 +250,11 @@
 	}
 
 	.timer.error {
-		background: var(--color-red-600);
+		background: var(--color-red-700);
 	}
 
 	:global(.dark) .timer.error {
-		background: var(--color-red-600);
+		background: var(--color-red-500);
 	}
 
 	.timer.warning {
