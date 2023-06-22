@@ -16,7 +16,7 @@
 		"postcss": "^8.4.5",
 		"postcss-load-config": "^3.1.1",
 		"svelte-check": "^3.0.0",
-		"svelte-preprocess": "^4.10.1",
+		"svelte-preprocess": "^5.0.0",
 		"tailwindcss": "^3.0.12",
 		"tslib": "^2.3.1",
 		"typescript": "~4.9.0"
