@@ -7,5 +7,10 @@
 		"group:allNonMajor",
 		":semanticCommitTypeAll(chore)"
 	],
-	"ignorePaths": ["**/demo/**", "**/requirements.txt", "**/Dockerfile"]
+	"ignorePaths": [
+		"**/demo/**",
+		"**/requirements.txt",
+		"**/Dockerfile",
+		"**/website/**"
+	]
 }
