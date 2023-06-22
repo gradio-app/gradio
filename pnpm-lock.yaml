@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -553,8 +553,8 @@ importers:
         specifier: ^1.5.12
         version: 1.5.12
       lazy-brush:
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^2.0.0
+        version: 2.0.0
       resize-observer-polyfill:
         specifier: ^1.5.1
         version: 1.5.1
@@ -4552,8 +4552,8 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  /lazy-brush@1.0.1:
-    resolution: {integrity: sha512-xT/iSClTVi7vLoF8dCWTBhCuOWqsLXCMPa6ucVmVAk6hyNCM5JeS1NLhXqIrJktUg+caEYKlqSOUU4u3cpXzKg==}
+  /lazy-brush@2.0.0:
+    resolution: {integrity: sha512-DOZxh4oRLhXCYJpX6fjZDKluJumq7pa43TI1rp8r5Q78vPLiYyLib4gHSVYraWmlq0BkzZ4ME6dHcls/hG6ntA==}
     dev: false
 
   /lil-gui@0.17.0:
