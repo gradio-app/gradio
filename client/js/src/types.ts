@@ -13,7 +13,7 @@ export interface Config {
 	theme: string;
 	title: string;
 	version: string;
-	is_space: boolean;
+	space_id: string | null;
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];

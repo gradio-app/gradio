@@ -15,7 +15,7 @@
 	export let visible: boolean = true;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let grid_cols: number | Array<number> | undefined = [2];
 	export let grid_rows: number | Array<number> | undefined = undefined;

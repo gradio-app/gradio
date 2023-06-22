@@ -15,7 +15,7 @@
 	export let color_map: Record<string, string> = {};
 	export let label: string = "Highlighted Text";
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let selectable: boolean = false;
 
