@@ -2,6 +2,7 @@
 	"name": "@gradio/app",
 	"version": "1.0.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
 		"dev": "vite --port 9876",
 		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
