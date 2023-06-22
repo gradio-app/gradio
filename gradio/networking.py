@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 import requests
 import uvicorn
 
+from gradio.exceptions import ServerFailedToStart
 from gradio.routes import App
 from gradio.tunneling import Tunnel
 
@@ -35,8 +36,13 @@ class Server(uvicorn.Server):
     def run_in_thread(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
+        start = time.time()
         while not self.started:
             time.sleep(1e-3)
+            if time.time() - start > 5:
+                raise ServerFailedToStart(
+                    "Server failed to start. Please check that the port is available."
+                )
 
     def close(self):
         self.should_exit = True
@@ -110,7 +116,6 @@ def start_server(
     """
     server_name = server_name or LOCALHOST_NAME
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
-
     # Strip IPv6 brackets from the address if they exist.
     # This is needed as http://[::1]:port/ is a valid browser address,
     # but not a valid IPv6 address, so asyncio will throw an exception.
