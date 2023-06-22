@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -45,8 +45,8 @@ importers:
         specifier: ^5.17.1
         version: 5.18.0
       babylonjs-loaders:
-        specifier: ^5.17.1
-        version: 5.18.0
+        specifier: ^6.0.0
+        version: 6.0.0
       happy-dom:
         specifier: ^9.20.3
         version: 9.20.3
@@ -591,8 +591,8 @@ importers:
         specifier: ^4.2.1
         version: 4.2.2
       babylonjs-loaders:
-        specifier: ^4.2.1
-        version: 4.2.2
+        specifier: ^6.0.0
+        version: 6.0.0
 
   js/plot:
     dependencies:
@@ -2455,26 +2455,15 @@ packages:
     engines: {node: '>= 0.4'}
     dev: false
 
-  /babylonjs-gltf2interface@4.2.2:
-    resolution: {integrity: sha512-LCQgW1lM+EpKK4yWMiPEgi6ONwJ7W4JrSu3t9JixNRgvnic72OnN2f0bt91rE30EJr1ZaokvkXD/aEiBp/Juyg==}
+  /babylonjs-gltf2interface@6.9.0:
+    resolution: {integrity: sha512-RyXOadnFWVEE1xgJSWrsJS/KgC2E9rYMj+qhjq7NWCG/b6azVjIUoWUJrmZQx44LObaoC49dJexNuUSdPUyR9A==}
     dev: false
 
-  /babylonjs-gltf2interface@5.18.0:
-    resolution: {integrity: sha512-VucYtbedtHv89lEhgrD5ULoXTCcU8ZjyBygdh06VybiVSaCzQqTxam6ZFibazpkzB6maSHe8yAm3wE1EPfOxhg==}
-    dev: false
-
-  /babylonjs-loaders@4.2.2:
-    resolution: {integrity: sha512-IuShR5N4zkDMzKEGsCZ0uZDCn07BLLj8LlKwyiSwFR1V9KxAALkt2INTMCdXjuWELTcZEALZlyO85mKJ2pDPHw==}
+  /babylonjs-loaders@6.0.0:
+    resolution: {integrity: sha512-nZmrQcLJeMboMZ15cJndFuivYf7Z8NXN+e5i1vs4Oc5lynz+2YSZsdoI1sdONpKbeaAFa0RyvSGbgJ7DC10ACQ==}
     dependencies:
-      babylonjs: 4.2.2
-      babylonjs-gltf2interface: 4.2.2
-    dev: false
-
-  /babylonjs-loaders@5.18.0:
-    resolution: {integrity: sha512-O4v8kGylkWlcHJfhToKiyQprkhcIWe0PiT5yudfTSkpXrWy7YXb1VzssxilfkLRFOr7MWHlNvW+zZNcTs+Sk8Q==}
-    dependencies:
-      babylonjs: 5.18.0
-      babylonjs-gltf2interface: 5.18.0
+      babylonjs: 6.9.0
+      babylonjs-gltf2interface: 6.9.0
     dev: false
 
   /babylonjs@4.2.2:
@@ -2483,6 +2472,11 @@ packages:
 
   /babylonjs@5.18.0:
     resolution: {integrity: sha512-d4WrcR3e1FOnOlEtOofRH+OniZT4cx6EuDvKB0OkqnPnjD7ALuo5cmJDQmILWnDTOJRqojK7Psz9etEeNDionA==}
+    requiresBuild: true
+    dev: false
+
+  /babylonjs@6.9.0:
+    resolution: {integrity: sha512-+nScb5evOFP7JHYPVbWg3z9porpQ3uNXALuSeMu2ppum47El0jIan9a5d8mhX+Od9DrlSK272Cc5VdhRSoB7Mw==}
     requiresBuild: true
     dev: false
 

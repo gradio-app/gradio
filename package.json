@@ -43,7 +43,7 @@
 		"@testing-library/user-event": "^14.0.0",
 		"autoprefixer": "^10.4.4",
 		"babylonjs": "^5.17.1",
-		"babylonjs-loaders": "^5.17.1",
+		"babylonjs-loaders": "^6.0.0",
 		"happy-dom": "^9.20.3",
 		"msw": "^1.0.0",
 		"node-html-parser": "^5.3.3",
