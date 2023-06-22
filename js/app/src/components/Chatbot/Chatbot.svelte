@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { ChatBot } from "@gradio/chatbot";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Block, BlockLabel, IconButton } from "@gradio/atoms";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import { Community } from "@gradio/icons";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -29,6 +30,7 @@
 	export let root_url: null | string;
 	export let selectable: boolean = false;
 	export let theme_mode: ThemeMode;
+	export let shareable: boolean = true;
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
@@ -76,6 +78,11 @@
 				disable={container === false}
 			/>
 		{/if}
+		{#if shareable && value.length > 0}
+			<div class="icon-button">
+				<IconButton Icon={Community} label="Post" show_label={true} />
+			</div>
+		{/if}
 		<ChatBot
 			{selectable}
 			{theme_mode}
@@ -96,5 +103,10 @@
 		align-items: start;
 		width: 100%;
 		height: 100%;
+	}
+	.icon-button {
+		position: absolute;
+		top: 6px;
+		right: 6px;
 	}
 </style>

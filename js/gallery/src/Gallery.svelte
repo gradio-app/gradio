@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { BlockLabel, Empty } from "@gradio/atoms";
+	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
+
+	import { Community } from "@gradio/icons";
+
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
@@ -22,6 +25,7 @@
 	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
+	export let shareable: boolean = true;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -244,6 +248,11 @@
 			{/each}
 		</div>
 	</div>
+	{#if shareable}
+		<div class="icon-button">
+			<IconButton Icon={Community} label="Post" show_label={true} />
+		</div>
+	{/if}
 {/if}
 
 <style lang="postcss">
@@ -349,6 +358,7 @@
 		padding: var(--size-2);
 		height: var(--size-full);
 		overflow-y: auto;
+		position: relative;
 	}
 
 	.grid-container {
@@ -410,5 +420,11 @@
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.icon-button {
+		position: absolute;
+		top: 6px;
+		right: 6px;
 	}
 </style>
