@@ -43,7 +43,9 @@ class Server(uvicorn.Server):
         self.thread.join()
 
 
-def get_first_available_port(initial: int, final: int, server_name=LOCALHOST_NAME) -> int:
+def get_first_available_port(
+    initial: int, final: int, server_name=LOCALHOST_NAME
+) -> int:
     """
     Gets the first open port in a specified range of port numbers
     Parameters:
@@ -128,7 +130,7 @@ def start_server(
         )
     else:
         try:
-            s = socket.socket(socket.AF_INET6 if ':' in host else socket.AF_INET)
+            s = socket.socket(socket.AF_INET6 if ":" in host else socket.AF_INET)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, server_port))
             s.close()
