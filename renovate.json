@@ -12,5 +12,6 @@
 		"**/requirements.txt",
 		"**/Dockerfile",
 		"**/website/**"
-	]
+	],
+	"ignoreDeps": ["lazy-brush", "babylonjs", "babylonjs-loaders"]
 }
