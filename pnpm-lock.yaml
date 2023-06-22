@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -36,8 +36,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0(svelte@3.59.1)
       '@testing-library/user-event':
-        specifier: ^13.5.0
-        version: 13.5.0(@testing-library/dom@9.0.0)
+        specifier: ^14.0.0
+        version: 14.0.0(@testing-library/dom@9.0.0)
       autoprefixer:
         specifier: ^10.4.4
         version: 10.4.4(postcss@8.4.6)
@@ -841,13 +841,6 @@ packages:
     dependencies:
       core-js-pure: 3.21.1
       regenerator-runtime: 0.13.11
-    dev: false
-
-  /@babel/runtime@7.17.7:
-    resolution: {integrity: sha512-L6rvG9GDxaLgFjg41K+5Yv9OMrU98sWe+Ykmc6FDJW/+vYZMhdOMKkISgzptMaERHvS2Y2lw9MDRm2gHhlQQoA==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      regenerator-runtime: 0.13.9
     dev: false
 
   /@babel/runtime@7.21.0:
@@ -2021,13 +2014,12 @@ packages:
       svelte: 3.59.1
     dev: false
 
-  /@testing-library/user-event@13.5.0(@testing-library/dom@9.0.0):
-    resolution: {integrity: sha512-5Kwtbo3Y/NowpkbRuSepbyMFkZmHgD+vPzYB/RJ4oxt5Gj/avFFBYjhw27cqSVPVw/3a67NK1PbiIr9k4Gwmdg==}
-    engines: {node: '>=10', npm: '>=6'}
+  /@testing-library/user-event@14.0.0(@testing-library/dom@9.0.0):
+    resolution: {integrity: sha512-hZhjNrle/DMi1ziHwHy8LS0fYJtf+cID7fuG5+4h+Bk83xQaRDQT/DlqfL4hJYw3mxW6KTIxoODrhGnhqJebdQ==}
+    engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
     dependencies:
-      '@babel/runtime': 7.17.7
       '@testing-library/dom': 9.0.0
     dev: false
 
@@ -5689,10 +5681,6 @@ packages:
 
   /regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
-    dev: false
-
-  /regenerator-runtime@0.13.9:
-    resolution: {integrity: sha512-p3VT+cOEgxFsRRA9X4lkI1E+k2/CtnKtU4gcxyaCUreilL/vqI6CdZ3wxVUx3UOUg+gnUOQQcRI7BmSI656MYA==}
     dev: false
 
   /regexp.prototype.flags@1.4.3:
