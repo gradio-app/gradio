@@ -167,7 +167,7 @@ def start_server(
             pass
         else:
             raise OSError(
-                f"Cannot find empty port in range: {min(server_ports)}-{max(server_port)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing a `server_port` parameter to `launch()`."
+                f"Cannot find empty port in range: {min(server_ports)}-{max(server_ports)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing a `server_port` parameter to `launch()`."
             )
 
     if ssl_keyfile is not None:
