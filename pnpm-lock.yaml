@@ -129,8 +129,8 @@ importers:
         specifier: ^3.1.6
         version: 3.1.6(postcss@8.4.6)
       tinyspy:
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^2.0.0
+        version: 2.1.1
       typescript:
         specifier: ^4.7.4
         version: 4.7.4
@@ -7177,11 +7177,6 @@ packages:
 
   /tinypool@0.5.0:
     resolution: {integrity: sha512-paHQtnrlS1QZYKF/GnLoOM/DN9fqaGOFbCbxzAhwniySnzl9Ebk8w73/dd34DAhe/obUbPAOldTyYXQZxnPBPQ==}
-    engines: {node: '>=14.0.0'}
-    dev: false
-
-  /tinyspy@0.3.0:
-    resolution: {integrity: sha512-c5uFHqtUp74R2DJE3/Efg0mH5xicmgziaQXMm/LvuuZn3RdpADH32aEGDRyCzObXT1DNfwDMqRQ/Drh1MlO12g==}
     engines: {node: '>=14.0.0'}
     dev: false
 
