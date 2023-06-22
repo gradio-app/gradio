@@ -76,30 +76,30 @@
 	}
 
 	.toast-body.error {
-		background: var(--color-red-50);
 		border: 1px solid var(--color-red-700);
+		background: var(--color-red-50);
 	}
 	:global(.dark) .toast-body.error {
-		background-color: var(--color-grey-950);
 		border: 1px solid var(--color-red-500);
+		background-color: var(--color-grey-950);
 	}
 
 	.toast-body.warning {
-		background: var(--color-yellow-50);
 		border: 1px solid var(--color-yellow-700);
+		background: var(--color-yellow-50);
 	}
 	:global(.dark) .toast-body.warning {
-		background-color: var(--color-grey-950);
 		border: 1px solid var(--color-yellow-500);
+		background-color: var(--color-grey-950);
 	}
 
 	.toast-body.info {
-		background: var(--color-grey-50);
 		border: 1px solid var(--color-grey-700);
+		background: var(--color-grey-50);
 	}
 	:global(.dark) .toast-body.info {
-		background-color: var(--color-grey-950);
 		border: 1px solid var(--color-grey-500);
+		background-color: var(--color-grey-950);
 	}
 
 	.toast-title {
@@ -194,8 +194,8 @@
 	}
 
 	.toast-icon {
-		position: absolute;
 		display: flex;
+		position: absolute;
 		position: relative;
 		flex-shrink: 0;
 		justify-content: center;
