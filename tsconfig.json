@@ -27,7 +27,6 @@
 		"**/.config/*",
 		"**/*.test.ts",
 		"**/dist",
-		"**/workbench/**/*",
 		".github/**/*",
 		"**/demo/**/*",
 		"**/gradio/**/*",

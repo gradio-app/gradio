@@ -46,7 +46,6 @@ export default [
 	{
 		ignores: [
 			".svelte-kit/**/*",
-			"js/workbench",
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/.config/*",
