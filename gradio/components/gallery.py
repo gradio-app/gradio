@@ -50,6 +50,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
         allow_preview: bool = True,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -70,6 +71,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         self.grid_cols = columns
         self.grid_rows = rows
@@ -83,6 +85,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
+        if shareable is None:
+            shareable = utils.get_space() is not None
+        self.shareable = shareable
         IOComponent.__init__(
             self,
             label=label,
@@ -142,6 +147,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "preview": self.preview,
             "object_fit": self.object_fit,
             "allow_preview": self.allow_preview,
+            "shareable": self.shareable,
             **IOComponent.get_config(self),
         }
 

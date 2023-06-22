@@ -24,6 +24,7 @@
 	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
+	export let shareable: boolean = false;
 </script>
 
 <Block
@@ -40,6 +41,7 @@
 	<StatusTracker {...loading_status} />
 	<Gallery
 		on:select
+		on:share
 		{label}
 		{value}
 		{show_label}
@@ -51,5 +53,6 @@
 		{preview}
 		{object_fit}
 		{allow_preview}
+		{shareable}
 	/>
 </Block>

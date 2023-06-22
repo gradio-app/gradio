@@ -28,6 +28,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
+	export let shareable: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -59,7 +60,7 @@
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
-		<StaticImage on:select {value} {label} {show_label} {selectable} />
+		<StaticImage on:select on:share {value} {label} {show_label} {selectable} {shareable} />
 	{:else}
 		<Image
 			{brush_radius}
@@ -75,6 +76,7 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload
 			on:select
+			on:share
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";

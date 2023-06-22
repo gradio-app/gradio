@@ -79,6 +79,7 @@ class Image(
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -105,6 +106,7 @@ class Image(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
@@ -138,6 +140,9 @@ class Image(
         Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
         See EventData documentation on how to use this event data.
         """
+        if shareable is None:
+            shareable = utils.get_space() is not None
+        self.shareable = shareable
 
         IOComponent.__init__(
             self,
@@ -169,6 +174,7 @@ class Image(
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
             "selectable": self.selectable,
+            "shareable": self.shareable,
             **IOComponent.get_config(self),
         }
 

@@ -67,6 +67,7 @@ class Audio(
         elem_classes: list[str] | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -86,6 +87,7 @@ class Audio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
@@ -106,6 +108,9 @@ class Audio(
             )
         self.format = format
         self.autoplay = autoplay
+        if shareable is None:
+            shareable = utils.get_space() is not None
+        self.shareable = shareable
         IOComponent.__init__(
             self,
             label=label,
@@ -129,6 +134,7 @@ class Audio(
             "value": self.value,
             "streaming": self.streaming,
             "autoplay": self.autoplay,
+            "shareable": self.shareable,
             **IOComponent.get_config(self),
         }
 

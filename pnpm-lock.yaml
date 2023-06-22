@@ -313,6 +313,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^0.0.1
+        version: link:../utils
       extendable-media-recorder:
         specifier: ^7.0.2
         version: 7.0.2
@@ -365,6 +368,9 @@ importers:
 
   js/chatbot:
     dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^0.0.1
+        version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
@@ -698,6 +704,9 @@ importers:
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^0.0.1
+        version: link:../utils
 
   js/workbench:
     dependencies:

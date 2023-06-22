@@ -2,7 +2,9 @@
 	import { copy } from "./utils";
 	import "katex/dist/katex.min.css";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import type { SelectData } from "@gradio/utils";
+	import { IconButton } from "@gradio/atoms";
+	import { Community } from "@gradio/icons";
+	import type { SelectData, ShareData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import Markdown from "./MarkdownCode.svelte";
@@ -26,6 +28,7 @@
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
+	export let shareable: boolean = false;
 	export let theme_mode: ThemeMode;
 
 	$: if (theme_mode == "dark") {
@@ -40,6 +43,7 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
+		share: ShareData;
 	}>();
 
 	beforeUpdate(() => {
@@ -82,6 +86,18 @@
 	}
 </script>
 
+{#if shareable && value !== null && value.length > 0}
+	<div class="icon-button">
+		<IconButton
+			Icon={Community}
+			label="Post"
+			show_label={true}
+			on:click={() => {
+				dispatch("share", { title_from_inputs: false, description: "img" });
+			}}
+		/>
+	</div>
+{/if}
 <div class="wrap" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
@@ -371,5 +387,11 @@
 
 	.message-wrap :global(pre) {
 		position: relative;
+	}
+
+	.icon-button {
+		position: absolute;
+		top: 6px;
+		right: 6px;
 	}
 </style>

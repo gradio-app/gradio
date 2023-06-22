@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, ShareData } from "@gradio/utils";
+	import { uploadToHuggingFace } from "@gradio/utils";
 
 	import { Community } from "@gradio/icons";
 
@@ -25,10 +26,11 @@
 	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let shareable: boolean = true;
+	export let shareable: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
+		share: ShareData;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -250,7 +252,28 @@
 	</div>
 	{#if shareable}
 		<div class="icon-button">
-			<IconButton Icon={Community} label="Post" show_label={true} />
+			<IconButton
+				Icon={Community}
+				label="Post"
+				show_label={true}
+				on:click={async () => {
+					if (!value) return;
+					let urls = await Promise.all(
+						value.map(async (image) => {
+							if (typeof image === "string")
+								return await uploadToHuggingFace(image, "base64");
+							return await uploadToHuggingFace(image.data, "url");
+						})
+					);
+
+					dispatch("share", {
+						title_from_inputs: true,
+						description: `<div style="display: flex; gap: 16px">${urls.map(
+							(url) => `<img src="${url}" height="400"/>`
+						)}></div>`
+					});
+				}}
+			/>
 		</div>
 	{/if}
 {/if}

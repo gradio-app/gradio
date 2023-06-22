@@ -63,6 +63,7 @@ class Video(
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         autoplay: bool = False,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -84,6 +85,7 @@ class Video(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         self.format = format
         self.autoplay = autoplay
@@ -99,6 +101,9 @@ class Video(
         self.include_audio = (
             include_audio if include_audio is not None else source == "upload"
         )
+        if shareable is None:
+            shareable = utils.get_space() is not None
+        self.shareable = shareable
         IOComponent.__init__(
             self,
             label=label,
@@ -124,6 +129,7 @@ class Video(
             "mirror_webcam": self.mirror_webcam,
             "include_audio": self.include_audio,
             "autoplay": self.autoplay,
+            "shareable": self.shareable,
             **IOComponent.get_config(self),
         }
 

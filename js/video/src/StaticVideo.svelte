@@ -2,7 +2,9 @@
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
-	import { Video, Download } from "@gradio/icons";
+	import { Video, Download, Community } from "@gradio/icons";
+	import type { ShareData } from "@gradio/utils";
+	import { uploadToHuggingFace } from "@gradio/utils";
 
 	import Player from "./Player.svelte";
 
@@ -11,6 +13,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean = true;
 	export let autoplay: boolean;
+	export let shareable: boolean = true;
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
@@ -21,6 +24,7 @@
 		pause: undefined;
 		end: undefined;
 		stop: undefined;
+		share: ShareData;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -58,7 +62,7 @@
 			mirror={false}
 		/>
 	{/key}
-	<div class="download" data-testid="download-div">
+	<div class="icon-buttons" data-testid="download-div">
 		<a
 			href={value.data}
 			target={window.__is_colab__ ? "_blank" : null}
@@ -66,11 +70,28 @@
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>
+		{#if shareable}
+			<IconButton
+				Icon={Community}
+				label="Post"
+				show_label={true}
+				on:click={async () => {
+					if (!value) return;
+					let url = await uploadToHuggingFace(value.data, "url");
+					dispatch("share", {
+						title_from_inputs: true,
+						description: `<video><source src="${url}"></video>`
+					});
+				}}
+				/>
+		{/if}
 	</div>
 {/if}
 
 <style>
-	.download {
+	.icon-buttons {
+		display: flex;
+		gap: var(--size-1);
 		position: absolute;
 		top: 6px;
 		right: 6px;

@@ -31,6 +31,7 @@
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let autoplay: boolean = false;
+	export let shareable: boolean = true;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -94,9 +95,11 @@
 			{label}
 			{show_label}
 			{autoplay}
+			{shareable}
 			on:play
 			on:pause
 			on:stop
+			on:share
 		/>
 	{:else}
 		<Video

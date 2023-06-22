@@ -36,6 +36,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay: boolean = false;
+	export let shareable: boolean = false;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -97,6 +98,7 @@
 		<StaticAudio
 			{autoplay}
 			{show_label}
+			{shareable}
 			value={_value}
 			name={_value?.name || "audio_file"}
 			{label}

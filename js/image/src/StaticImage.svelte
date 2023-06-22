@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, ShareData } from "@gradio/utils";
+	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
 	import { Download, Community } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
@@ -11,11 +12,12 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let selectable: boolean = false;
-	export let shareable: boolean = true;
+	export let shareable: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
 		select: SelectData;
+		share: ShareData;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -41,13 +43,16 @@
 			<IconButton Icon={Download} label="Download" />
 		</a>
 		{#if shareable}
-			<a
-				href={value}
-				target={window.__is_colab__ ? "_blank" : null}
-				download={"image"}
-			>
-				<IconButton Icon={Community} label="Post" show_label={true} />
-			</a>
+			<IconButton
+				Icon={Community}
+				label="Post"
+				show_label={true}
+				on:click={async () => {
+					if (!value) return;
+					let url = await uploadToHuggingFace(value, "base64");
+					dispatch("share", { title_from_inputs: true, description: `<img src="${url}" />` });
+				}}
+			/>
 		{/if}
 	</div>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->

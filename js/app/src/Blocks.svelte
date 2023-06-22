@@ -22,6 +22,7 @@
 	import type { ThemeMode } from "./components/types";
 	import Toast from "./components/StatusTracker/Toast.svelte";
 	import type { ToastMessage } from "./components/StatusTracker/types";
+	import type { ShareData } from "@gradio/utils";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -44,6 +45,7 @@
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
+	space_id = "aliabid94/crossword"
 
 	let loading_status = create_loading_status_store();
 
@@ -367,6 +369,20 @@
 		}
 	};
 
+	const trigger_share = (title: string, description: string) => {
+		if (space_id === null) {
+			return;
+		}
+		const discussion_url = new URL(
+			"https://huggingface.co/spaces/aliabid94/crossword/discussions/new"
+		);
+		if (title.length > 0) {
+			discussion_url.searchParams.set("title", title);
+		}
+		discussion_url.searchParams.set("description", description);
+		window.open(discussion_url.toString(), "_blank");
+	};
+
 	function handle_error_close(e: Event & { detail: number }) {
 		const _id = e.detail;
 		messages = messages.filter((m) => m.id !== _id);
@@ -389,6 +405,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
+		let shareable_components: Array<number> = [];
 		dependencies.forEach((dep, i) => {
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
@@ -409,6 +426,7 @@
 				handled_dependencies[i] = [-1];
 			}
 
+			// component events
 			target_instances
 				.filter((v) => !!v && !!v[1])
 				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
@@ -420,6 +438,27 @@
 					if (!handled_dependencies[i]) handled_dependencies[i] = [];
 					handled_dependencies[i].push(id);
 				});
+
+			// share events
+			const FORM_INPUTS = ["checkbox", "dropdown", "number", "textbox", "radio", "slider"];
+			outputs.forEach((output_id: number) => {
+				const output_component = instance_map[output_id];
+				if (output_component.props.shareable && !shareable_components.includes(output_id)) {
+					shareable_components.push(output_id);
+					output_component.instance.$on("share", (event_data) => {
+						const { description, title_from_inputs } =
+							event_data.detail as ShareData;
+						let title = "";
+						if (title_from_inputs) {
+							title = inputs
+								.filter((input_id) => FORM_INPUTS.includes(instance_map[input_id].type))
+								.map((input_id) => instance_map[input_id].props.value)
+								.join(", ");
+						}
+						trigger_share(title, description);
+					});
+				}
+			});
 		});
 	}
 
