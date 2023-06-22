@@ -43,7 +43,7 @@ class Server(uvicorn.Server):
         self.thread.join()
 
 
-def get_first_available_port(initial: int, final: int) -> int:
+def get_first_available_port(initial: int, final: int, server_name=LOCALHOST_NAME) -> int:
     """
     Gets the first open port in a specified range of port numbers
     Parameters:
@@ -56,7 +56,7 @@ def get_first_available_port(initial: int, final: int) -> int:
         try:
             s = socket.socket()  # create a socket object
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((LOCALHOST_NAME, port))  # Bind to the port
+            s.bind((server_name, port))  # Bind to the port
             s.close()
             return port
         except OSError:
@@ -109,34 +109,7 @@ def start_server(
         server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
     server_name = server_name or LOCALHOST_NAME
-    # if port is not specified, search for first available port
-    if server_port is None:
-        port = get_first_available_port(
-            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
-        )
-    else:
-        try:
-            s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((LOCALHOST_NAME, server_port))
-            s.close()
-        except OSError as err:
-            raise OSError(
-                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, "
-                f"you can close() it or gradio.close_all()."
-            ) from err
-        port = server_port
-
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
-
-    if ssl_keyfile is not None:
-        if ssl_certfile is None:
-            raise ValueError(
-                "ssl_certfile must be provided if ssl_keyfile is provided."
-            )
-        path_to_local_server = f"https://{url_host_name}:{port}/"
-    else:
-        path_to_local_server = f"http://{url_host_name}:{port}/"
 
     # Strip IPv6 brackets from the address if they exist.
     # This is needed as http://[::1]:port/ is a valid browser address,
@@ -148,8 +121,33 @@ def start_server(
 
     app = App.create_app(blocks, app_kwargs=app_kwargs)
 
-    if blocks.save_to is not None:  # Used for selenium tests
-        blocks.save_to["port"] = port
+    # if port is not specified, search for first available port
+    if server_port is None:
+        port = get_first_available_port(
+            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS, host
+        )
+    else:
+        try:
+            s = socket.socket(socket.AF_INET6 if ':' in host else socket.AF_INET)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((host, server_port))
+            s.close()
+        except OSError as err:
+            raise OSError(
+                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, "
+                f"you can close() it or gradio.close_all()."
+            ) from err
+        port = server_port
+
+    if ssl_keyfile is not None:
+        if ssl_certfile is None:
+            raise ValueError(
+                "ssl_certfile must be provided if ssl_keyfile is provided."
+            )
+        path_to_local_server = f"https://{url_host_name}:{port}/"
+    else:
+        path_to_local_server = f"http://{url_host_name}:{port}/"
+
     config = uvicorn.Config(
         app=app,
         port=port,
