@@ -125,6 +125,11 @@
 </Block>
 
 <style>
+	.base-image {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
 	.container {
 		display: flex;
 		position: relative;
@@ -144,7 +149,7 @@
 	}
 	.fit-height {
 		position: absolute;
-		top: 0;
+		bottom: 0;
 		left: 0;
 		width: 100%;
 		height: 100%;
