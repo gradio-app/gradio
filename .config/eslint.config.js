@@ -1,6 +1,4 @@
-// const ts = require("@typescript-eslint/eslint-plugin");
-// const js = require();
-
+import globals from "globals";
 import ts_plugin from "@typescript-eslint/eslint-plugin";
 import js_plugin from "@eslint/js";
 
@@ -42,6 +40,8 @@ const rules = {
 	"@typescript-eslint/no-inferrable-types": "error"
 };
 
+const { browser, es2021 } = globals;
+
 export default [
 	{
 		ignores: [
@@ -56,6 +56,7 @@ export default [
 			"js/app/test/**/*"
 		]
 	},
+
 	{
 		files: ["**/*.ts", "**/*.js", "**/*.cjs"],
 		languageOptions: {
@@ -63,13 +64,26 @@ export default [
 			parserOptions: {
 				project: "./tsconfig.json",
 				extraFileExtensions: [".svelte"]
+			},
+			globals: {
+				...browser,
+				...es2021
 			}
 		},
+
 		plugins: {
 			"@typescript-eslint": ts_plugin,
 			"eslint:recommended": js_plugin
 		},
 		rules
+	},
+	{
+		files: ["./client/js/**"],
+		languageOptions: {
+			parserOptions: {
+				project: "./client/js/tsconfig.json"
+			}
+		}
 	},
 	{
 		files: ["**/*.svelte"],
@@ -79,11 +93,16 @@ export default [
 				parser: typescriptParser,
 				project: "./tsconfig.json",
 				extraFileExtensions: [".svelte"]
+			},
+			globals: {
+				...browser,
+				...es2021
 			}
 		},
 		plugins: {
 			svelte: sveltePlugin,
-			"@typescript-eslint": ts_plugin
+			"@typescript-eslint": ts_plugin,
+			"eslint:recommended": js_plugin
 		},
 		rules: {
 			...rules,

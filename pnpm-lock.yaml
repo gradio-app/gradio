@@ -59,6 +59,9 @@ importers:
       eslint-plugin-svelte:
         specifier: ^2.31.0
         version: 2.31.0(eslint@8.43.0)(svelte@3.59.1)
+      globals:
+        specifier: ^13.20.0
+        version: 13.20.0
       happy-dom:
         specifier: ^9.20.3
         version: 9.20.3
