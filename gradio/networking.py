@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import requests
 import uvicorn
 
-from gradio.exceptions import ServerFailedToStart
+from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
 from gradio.tunneling import Tunnel
 
@@ -40,7 +40,7 @@ class Server(uvicorn.Server):
         while not self.started:
             time.sleep(1e-3)
             if time.time() - start > 5:
-                raise ServerFailedToStart(
+                raise ServerFailedToStartError(
                     "Server failed to start. Please check that the port is available."
                 )
 
@@ -114,8 +114,12 @@ def start_server(
         app: the FastAPI app object
         server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
+    if ssl_keyfile is not None and ssl_certfile is None:
+        raise ValueError("ssl_certfile must be provided if ssl_keyfile is provided.")
+
     server_name = server_name or LOCALHOST_NAME
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
+
     # Strip IPv6 brackets from the address if they exist.
     # This is needed as http://[::1]:port/ is a valid browser address,
     # but not a valid IPv6 address, so asyncio will throw an exception.
@@ -126,48 +130,51 @@ def start_server(
 
     app = App.create_app(blocks, app_kwargs=app_kwargs)
 
-    # if port is not specified, search for first available port
-    if server_port is None:
-        port = get_first_available_port(
-            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
-        )
-    else:
+    # if port is not specified, search for an open port in the range of 7860 to 7959
+    server_ports = (
+        [server_port]
+        if server_port is not None
+        else range(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
+    )
+
+    for port in server_ports:
         try:
+            # The fastest way to check if a port is available is to try to bind to it with socket.
+            # If the port is not available, socket will throw an OSError.
             s = socket.socket()
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Really, we should be checking if (server_name, server_port) is available, but 
+            # Really, we should be checking if (server_name, server_port) is available, but
             # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
             # Instead, we just check if the port is available on localhost.
-            s.bind((LOCALHOST_NAME, server_port))
+            s.bind((LOCALHOST_NAME, port))
             s.close()
-        except OSError as err:
+
+            # To avoid race conditions, so we also check if the port by trying to start the uvicorn server.
+            # If the port is not available, this will throw a ServerFailedToStartError.
+            config = uvicorn.Config(
+                app=app,
+                port=port,
+                host=host,
+                log_level="warning",
+                ssl_keyfile=ssl_keyfile,
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile_password=ssl_keyfile_password,
+                ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
+            )
+            server = Server(config=config)
+            server.run_in_thread()
+        except (OSError, ServerFailedToStartError):
+            pass
+        else:
             raise OSError(
-                f"Port {server_port} is in use. If a gradio.Blocks is running on the port, "
-                f"you can close() it or gradio.close_all()."
-            ) from err
-        port = server_port
+                f"Cannot find empty port in range: {min(server_ports)}-{max(server_port)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing a `server_port` parameter to `launch()`."
+            )
 
     if ssl_keyfile is not None:
-        if ssl_certfile is None:
-            raise ValueError(
-                "ssl_certfile must be provided if ssl_keyfile is provided."
-            )
         path_to_local_server = f"https://{url_host_name}:{port}/"
     else:
         path_to_local_server = f"http://{url_host_name}:{port}/"
 
-    config = uvicorn.Config(
-        app=app,
-        port=port,
-        host=host,
-        log_level="warning",
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
-        ssl_keyfile_password=ssl_keyfile_password,
-        ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
-    )
-    server = Server(config=config)
-    server.run_in_thread()
     return server_name, port, path_to_local_server, app, server
 
 

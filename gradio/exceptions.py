@@ -19,7 +19,7 @@ class InvalidApiNameError(ValueError):
     pass
 
 
-class ServerFailedToStart(Exception):
+class ServerFailedToStartError(Exception):
     pass
 
 
