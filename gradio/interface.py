@@ -363,7 +363,6 @@ class Interface(Blocks):
         self.max_batch_size = max_batch_size
         self.allow_duplication = allow_duplication
 
-        self.save_to = None  # Used for selenium tests
         self.share = None
         self.share_url = None
         self.local_url = None

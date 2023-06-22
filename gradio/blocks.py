@@ -667,7 +667,6 @@ class Blocks(BlockContext):
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
-        self.save_to = None
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
