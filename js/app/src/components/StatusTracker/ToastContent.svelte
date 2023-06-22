@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Alert, Information, Warning } from "@gradio/icons";
+	import { Error, Info, Warning } from "@gradio/icons";
 	import { createEventDispatcher, onMount, afterUpdate } from "svelte";
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
@@ -33,9 +33,9 @@
 		{#if type === "warning"}
 			<Warning />
 		{:else if type === "info"}
-			<Information />
+			<Info />
 		{:else if type === "error"}
-			<Alert />
+			<Error />
 		{/if}
 	</div>
 
@@ -69,8 +69,6 @@
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
 		border-radius: var(--container-radius);
-		max-width: 1200px;
-		max-width: 610px;
 		overflow: hidden;
 		pointer-events: auto;
 	}
@@ -204,6 +202,8 @@
 		border-radius: var(--radius-full);
 		padding: var(--size-1);
 		padding-left: calc(var(--size-1) - 1px);
+		width: 35px;
+		height: 35px;
 	}
 
 	.toast-icon.error {

@@ -1,4 +1,4 @@
-export { default as Alert } from "./Alert.svelte";
+export { default as Error } from "./Error.svelte";
 export { default as Brush } from "./Brush.svelte";
 export { default as Camera } from "./Camera.svelte";
 export { default as Chart } from "./Chart.svelte";
@@ -14,7 +14,7 @@ export { default as DropdownArrow } from "./DropdownArrow.svelte";
 export { default as Edit } from "./Edit.svelte";
 export { default as Erase } from "./Erase.svelte";
 export { default as File } from "./File.svelte";
-export { default as Information } from "./Information.svelte";
+export { default as Info } from "./Info.svelte";
 export { default as Image } from "./Image.svelte";
 export { default as JSON } from "./JSON.svelte";
 export { default as LineChart } from "./LineChart.svelte";
