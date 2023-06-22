@@ -71,9 +71,8 @@ export default defineConfig(({ mode }) => {
 								fileName.indexOf(".svelte") > -1
 							) {
 								return selector;
-							} else {
-								return prefixedSelector;
 							}
+							return prefixedSelector;
 						}
 					}),
 					custom_media({
@@ -94,9 +93,7 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			svelte({
-				experimental: {
-					inspector: true
-				},
+				inspector: true,
 				compilerOptions: {
 					dev: !production
 				},

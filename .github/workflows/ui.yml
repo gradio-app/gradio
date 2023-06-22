@@ -27,6 +27,9 @@ jobs:
           always-install-pnpm: true
       - name: build client
         run: pnpm --filter @gradio/client build
+      - name: lint
+        run: pnpm lint
+        continue-on-error: true
       - name: typecheck
         run: pnpm ts:check
       - name: unit tests
