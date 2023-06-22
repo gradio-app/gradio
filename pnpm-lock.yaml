@@ -167,8 +167,8 @@ importers:
   js/_cdn-test:
     devDependencies:
       vite:
-        specifier: ^2.9.9
-        version: 2.9.9
+        specifier: ^4.0.0
+        version: 4.3.9(@types/node@17.0.14)
 
   js/_spaces-test:
     dependencies:
@@ -5962,15 +5962,6 @@ packages:
   /postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  /postcss@8.4.14:
-    resolution: {integrity: sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==}
-    engines: {node: ^10 || ^12 || >=14}
-    dependencies:
-      nanoid: 3.3.4
-      picocolors: 1.0.0
-      source-map-js: 1.0.2
-    dev: true
-
   /postcss@8.4.21:
     resolution: {integrity: sha512-tP7u/Sn/dVxK2NnruI4H9BG+x+Wxz6oeZ1cJ8P6G/PZY0IKk4k/63TDsQf2kQq3+qoJeLm2kIBUNlZe3zgb4Zg==}
     engines: {node: ^10 || ^12 || >=14}
@@ -7823,7 +7814,7 @@ packages:
         optional: true
     dependencies:
       esbuild: 0.14.31
-      postcss: 8.4.14
+      postcss: 8.4.23
       resolve: 1.22.0
       rollup: 2.66.1
     optionalDependencies:
@@ -7893,7 +7884,6 @@ packages:
       rollup: 3.21.6
     optionalDependencies:
       fsevents: 2.3.2
-    dev: false
 
   /vitefu@0.2.4(vite@4.3.5):
     resolution: {integrity: sha512-fanAXjSaf9xXtOOeno8wZXIhgia+CZury481LsDaV++lSvcU2R9Ch2bPh3PYFyoHW+w9LqAeYRISVQjUIew14g==}

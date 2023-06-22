@@ -8,6 +8,6 @@
 		"preview": "vite preview  --port 3001"
 	},
 	"devDependencies": {
-		"vite": "^2.9.9"
+		"vite": "^4.0.0"
 	}
 }
