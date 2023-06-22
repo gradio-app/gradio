@@ -3,7 +3,6 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"scripts": {
-		"workbench": "pnpm --filter @gradio/workbench dev",
 		"dev": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app dev",
 		"css": "pnpm --filter @gradio/theme generate",
 		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:local --emptyOutDir",
