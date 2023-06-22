@@ -17,6 +17,7 @@
 		"lazy-brush",
 		"babylonjs",
 		"babylonjs-loaders",
-		"postcss-load-config"
+		"postcss-load-config",
+		"postcss-nested"
 	]
 }
