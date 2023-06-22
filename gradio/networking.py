@@ -130,7 +130,6 @@ def start_server(
 
     app = App.create_app(blocks, app_kwargs=app_kwargs)
 
-    # if port is not specified, search for an open port in the range of 7860 to 7959
     server_ports = (
         [server_port]
         if server_port is not None
