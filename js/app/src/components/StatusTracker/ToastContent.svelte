@@ -2,13 +2,10 @@
 	import { Alert, Information, Warning } from "@gradio/icons";
 	import { createEventDispatcher, onMount, afterUpdate } from "svelte";
 	import { fade } from "svelte/transition";
-	import type { ThemeMode } from "../types";
+	import type { ToastMessage } from "./types";
 
 	export let message: string = "";
-	export let description: string = "";
-	export let type: string = "";
-	export let theme_color: string = "";
-	export let theme_mode: ThemeMode;
+	export let type: ToastMessage["type"];
 	export let id: number;
 
 	const dispatch = createEventDispatcher();
@@ -17,51 +14,22 @@
 		dispatch("close", id);
 	}
 
-	let lightStyles = {
-		"toast-bg-color": `var(--color-${theme_color}-50)`,
-		"toast-text-color": `var(--color-${theme_color}-700)`,
-		"toast-border-color": `var(--color-${theme_color}-700)`,
-		"toast-icon-color": `var(--color-${theme_color}-700)`
-	};
-
-	let darkStyles = {
-		"toast-bg-color": `var(--color-grey-950)`,
-		"toast-text-color": `var(--color-${theme_color}-50)`,
-		"toast-border-color": `var(--color-${theme_color}-500)`,
-		"toast-icon-color": `var(--color-${theme_color}-500)`
-	};
-
-	let cssVarStyles = "";
-
-	function updateCssVarStyles() {
-		cssVarStyles = Object.entries(
-			theme_mode === "light" ? lightStyles : darkStyles
-		)
-			.map(([key, value]) => `--${key}:${value}`)
-			.join(";");
-	}
-
-	afterUpdate(updateCssVarStyles);
-
 	onMount(() => {
-		setTimeout(() => {
-			close_message();
-		}, 10000);
+		// setTimeout(() => {
+		// 	close_message();
+		// }, 10000);
 	});
-
-	$: updateCssVarStyles();
 </script>
 
 <div
-	style={cssVarStyles}
-	class="toast-body"
+	class="toast-body {type}"
 	role="alert"
 	on:click|stopPropagation
 	on:keydown|stopPropagation
 	in:fade={{ duration: 200, delay: 100 }}
 	out:fade={{ duration: 200 }}
 >
-	<div class="toast-icon">
+	<div class="toast-icon {type}">
 		{#if type === "warning"}
 			<Warning />
 		{:else if type === "info"}
@@ -71,23 +39,23 @@
 		{/if}
 	</div>
 
-	<div class="toast-details">
-		<div class="toast-title">{description}</div>
-		<div class="toast-text">
+	<div class="toast-details {type}">
+		<div class="toast-title {type}">{type}</div>
+		<div class="toast-text {type}">
 			{message}
 		</div>
 	</div>
 
 	<button
 		on:click={close_message}
-		class="toast-close"
+		class="toast-close {type}"
 		type="button"
 		aria-label="Close"
 	>
-		<span aria-hidden="true">×</span>
+		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer" />
+	<div class="timer {type}" />
 </div>
 
 <style>
@@ -105,31 +73,119 @@
 		max-width: 610px;
 		overflow: hidden;
 		pointer-events: auto;
-		background: var(--toast-bg-color);
-		border: 1px solid var(--toast-border-color);
+	}
+
+	.toast-body.error {
+		background: var(--color-red-50);
+		border: 1px solid var(--color-red-600);
+	}
+	:global(.dark) .toast-body.error {
+		background-color: var(--color-grey-950);
+		border: 1px solid var(--color-red-600);
+	}
+
+	.toast-body.warning {
+		background: var(--color-yellow-50);
+		border: 1px solid var(--color-yellow-700);
+	}
+	:global(.dark) .toast-body.warning {
+		background-color: var(--color-grey-950);
+		border: 1px solid var(--color-yellow-500);
+	}
+
+	.toast-body.info {
+		background: var(--color-grey-50);
+		border: 1px solid var(--color-grey-700);
+	}
+	:global(.dark) .toast-body.info {
+		background-color: var(--color-grey-950);
+		border: 1px solid var(--color-grey-500);
 	}
 
 	.toast-title {
 		display: flex;
 		align-items: center;
-		color: var(--toast-text-color);
 		font-weight: var(--weight-bold);
 		font-size: var(--text-md);
 		line-height: var(--line-xs);
+		text-transform: capitalize;
+	}
+
+	.toast-title.error {
+		color: var(--color-red-600);
+	}
+	:global(.dark) .toast-title.error {
+		color: var(--color-red-50);
+	}
+
+	.toast-title.warning {
+		color: var(--color-yellow-700);
+	}
+	:global(.dark) .toast-title.warning {
+		color: var(--color-yellow-50);
+	}
+
+	.toast-title.info {
+		color: var(--color-grey-700);
+	}
+	:global(.dark) .toast-title.info {
+		color: var(--color-grey-50);
 	}
 
 	.toast-close {
 		margin: 0 var(--size-3);
 		border-radius: var(--size-3);
 		padding: 0px var(--size-1-5);
-		color: var(--toast-icon-color);
 		font-size: var(--size-5);
 		line-height: var(--size-5);
 	}
 
+	.toast-close.error {
+		color: var(--color-red-600);
+	}
+	:global(.dark) .toast-close.error {
+		color: var(--color-red-600);
+	}
+
+	.toast-close.warning {
+		color: var(--color-yellow-700);
+	}
+	:global(.dark) .toast-close.warning {
+		color: var(--color-yellow-500);
+	}
+
+	.toast-close.info {
+		color: var(--color-grey-700);
+	}
+	:global(.dark) .toast-close.info {
+		color: var(--color-grey-500);
+	}
+
 	.toast-text {
-		color: var(--toast-text-color);
 		font-size: var(--text-sm);
+	}
+
+	.toast-text.error {
+		color: var(--color-red-600);
+	}
+	:global(.dark) .toast-text.error {
+		color: var(--color-red-50);
+	}
+
+	.toast-text.warning {
+		color: var(--color-yellow-700);
+	}
+
+	:global(.dark) .toast-text.warning {
+		color: var(--color-yellow-50);
+	}
+
+	.toast-text.info {
+		color: var(--color-grey-700);
+	}
+
+	:global(.dark) .toast-text.info {
+		color: var(--color-grey-50);
 	}
 
 	.toast-details {
@@ -148,7 +204,30 @@
 		border-radius: var(--radius-full);
 		padding: var(--size-1);
 		padding-left: calc(var(--size-1) - 1px);
-		color: var(--toast-icon-color);
+	}
+
+	.toast-icon.error {
+		color: var(--color-red-600);
+	}
+
+	:global(.dark) .toast-icon.error {
+		color: var(--color-red-600);
+	}
+
+	.toast-icon.warning {
+		color: var(--color-yellow-700);
+	}
+
+	:global(.dark) .toast-icon.warning {
+		color: var(--color-yellow-500);
+	}
+
+	.toast-icon.info {
+		color: var(--color-grey-700);
+	}
+
+	:global(.dark) .toast-icon.info {
+		color: var(--color-grey-500);
 	}
 
 	@keyframes countdown {
@@ -166,8 +245,31 @@
 		left: 0;
 		transform-origin: 0 0;
 		animation: countdown 10s linear forwards;
-		background: var(--toast-icon-color);
 		width: 100%;
 		height: var(--size-1);
+	}
+
+	.timer.error {
+		background: var(--color-red-600);
+	}
+
+	:global(.dark) .timer.error {
+		background: var(--color-red-600);
+	}
+
+	.timer.warning {
+		background: var(--color-yellow-700);
+	}
+
+	:global(.dark) .timer.warning {
+		background: var(--color-yellow-500);
+	}
+
+	.timer.info {
+		background: var(--color-grey-700);
+	}
+
+	:global(.dark) .timer.info {
+		background: var(--color-grey-500);
 	}
 </style>
