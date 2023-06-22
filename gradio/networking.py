@@ -43,9 +43,7 @@ class Server(uvicorn.Server):
         self.thread.join()
 
 
-def get_first_available_port(
-    initial: int, final: int, server_name=LOCALHOST_NAME
-) -> int:
+def get_first_available_port(initial: int, final: int) -> int:
     """
     Gets the first open port in a specified range of port numbers
     Parameters:
@@ -58,7 +56,7 @@ def get_first_available_port(
         try:
             s = socket.socket()  # create a socket object
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((server_name, port))  # Bind to the port
+            s.bind((LOCALHOST_NAME, port))  # Bind to the port
             s.close()
             return port
         except OSError:
@@ -126,13 +124,16 @@ def start_server(
     # if port is not specified, search for first available port
     if server_port is None:
         port = get_first_available_port(
-            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS, host
+            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
         )
     else:
         try:
-            s = socket.socket(socket.AF_INET6 if ":" in host else socket.AF_INET)
+            s = socket.socket()
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((host, server_port))
+            # Really, we should be checking if (server_name, server_port) is available, but 
+            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
+            # Instead, we just check if the port is available on localhost.
+            s.bind((LOCALHOST_NAME, server_port))
             s.close()
         except OSError as err:
             raise OSError(
