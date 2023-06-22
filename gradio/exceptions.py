@@ -19,6 +19,10 @@ class InvalidApiNameError(ValueError):
     pass
 
 
+class ServerFailedToStart(Exception):
+    pass
+
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 
