@@ -526,7 +526,7 @@
 {/if}
 
 {#if messages}
-	<Toast {messages} {theme_mode} on:close={handle_error_close} />
+	<Toast {messages} on:close={handle_error_close} />
 {/if}
 
 <style>
