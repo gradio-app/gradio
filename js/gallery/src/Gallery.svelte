@@ -9,17 +9,17 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 
-	export let container: boolean = true;
-	export let show_label: boolean = true;
+	export let container = true;
+	export let show_label = true;
 	export let label: string;
-	export let root: string = "";
+	export let root = "";
 	export let root_url: null | string = null;
-	export let value: Array<string> | Array<FileData> | null = null;
-	export let grid_cols: number | Array<number> | undefined = [2];
-	export let grid_rows: number | Array<number> | undefined = undefined;
+	export let value: string[] | FileData[] | null = null;
+	export let grid_cols: number | number[] | undefined = [2];
+	export let grid_rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
-	export let allow_preview: boolean = true;
+	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 
@@ -28,7 +28,7 @@
 	}>();
 
 	// tracks whether the value of the gallery was reset
-	let was_reset: boolean = true;
+	let was_reset = true;
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
@@ -103,7 +103,7 @@
 		scroll_to_img(selected_image);
 	}
 
-	let el: Array<HTMLButtonElement> = [];
+	let el: HTMLButtonElement[] = [];
 	let container_element: HTMLDivElement;
 
 	async function scroll_to_img(index: number | null) {
@@ -124,7 +124,7 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		container_element.scrollTo({
+		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
 			behavior: "smooth"
 		});
@@ -196,7 +196,11 @@
 					{_value[selected_image][1]}
 				</div>
 			{/if}
-			<div bind:this={container_element} class="thumbnails scroll-hide">
+			<div
+				bind:this={container_element}
+				class="thumbnails scroll-hide"
+				data-testid="container_el"
+			>
 				{#each _value as image, i}
 					<button
 						bind:this={el[i]}
