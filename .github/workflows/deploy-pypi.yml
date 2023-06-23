@@ -45,7 +45,7 @@ jobs:
         export AWS_DEFAULT_REGION=us-west-2
         scripts/gh_action_pypi.sh
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
