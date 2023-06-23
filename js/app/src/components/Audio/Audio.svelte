@@ -102,6 +102,7 @@
 			value={_value}
 			name={_value?.name || "audio_file"}
 			{label}
+			on:share
 		/>
 	{/if}
 </Block>

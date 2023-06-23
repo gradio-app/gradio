@@ -269,8 +269,8 @@
 					dispatch("share", {
 						title_from_inputs: true,
 						description: `<div style="display: flex; gap: 16px">${urls.map(
-							(url) => `<img src="${url}" height="400"/>`
-						)}></div>`
+							(url) => `<img src="${url}" style="height: 400px" />`
+						).join("")}</div>`
 					});
 				}}
 			/>

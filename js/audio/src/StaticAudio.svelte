@@ -68,7 +68,7 @@
 				let url = await uploadToHuggingFace(value.data, "url");
 				dispatch("share", {
 					title_from_inputs: true,
-					description: `<audio><source src="${url}"></audio>`
+					description: `<audio controls src="${url}"></audio>`
 				});
 			}}
 		/>

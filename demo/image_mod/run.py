@@ -9,7 +9,7 @@ def image_mod(image):
 demo = gr.Interface(
     image_mod,
     gr.Image(type="pil"),
-    gr.Image(shareable=True),
+    "image",
     flagging_options=["blurry", "incorrect", "other"],
     examples=[
         os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),

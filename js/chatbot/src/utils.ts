@@ -193,8 +193,8 @@ export { marked };
 export const format_chat_for_sharing = async (chat: Array<
 	[string | FileData | null, string | FileData | null]
 >) => {
-	return chat.map((message_pair) => {
-		return message_pair
+	let messages = await Promise.all(chat.map(async (message_pair) => {
+		return await Promise.all(message_pair
 			.map(async (message, i) => {
 				if (message === null) return "";
 				let speaker_emoji = i === 0 ? "👤" : "🤖";
@@ -206,15 +206,17 @@ export const format_chat_for_sharing = async (chat: Array<
 					if (message.mime_type?.includes("audio")) {
 						html_content = `<audio controls src="${file_url}"></audio>`;
 					} else if (message.mime_type?.includes("video")) {
-						html_content = `<video controls src="${file_url}"></video>`;
+						html_content = file_url;
 					} else if (message.mime_type?.includes("image")) {
-						html_content = `<img src="${file_url}"">`;
+						html_content = `<img src="${file_url}" />`;
 					}
 				}
 				return `${speaker_emoji}: ${html_content}`;
-			})
-			.join(message_pair[0] === null || message_pair[1] === null ? "" : "\n");
-	})
-		.join("\n");
+			}))
+	}));
+	return messages.map(
+		(message_pair) => message_pair.join(
+			message_pair[0] !== "" && message_pair[1] !== "" ? "\n" : "")
+	).join("\n");
 }
 
