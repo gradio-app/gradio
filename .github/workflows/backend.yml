@@ -109,8 +109,7 @@ jobs:
         venv\Scripts\activate
         python -m pytest -m "${{ matrix.test-type }}"
   test:
-    needs: [changes]
-    if: needs.changes.outputs.gradio == 'true' || needs.changes.outputs.python-client == 'true' || needs.changes.outputs.workflows == 'true' || needs.changes.outputs.scripts == 'true' || needs.changes.outputs.test == 'true'
+    needs: [lint]
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]

@@ -29,7 +29,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         value: str | Callable = "Run",
         *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         visible: bool = True,
         interactive: bool = True,
         elem_id: str | None = None,
@@ -82,7 +82,7 @@ class Button(Clickable, IOComponent, StringSerializable):
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         variant: Literal["primary", "secondary", "stop"] | None = None,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
         scale: int | None = None,

@@ -52,8 +52,8 @@ class Audio(
         self,
         value: str | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        source: str = "upload",
-        type: str = "numpy",
+        source: Literal["upload", "microphone"] = "upload",
+        type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
@@ -141,7 +141,7 @@ class Audio(
     @staticmethod
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        source: str | None = None,
+        source: Literal["upload", "microphone"] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,

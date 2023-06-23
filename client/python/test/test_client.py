@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
+import huggingface_hub
 import pytest
 import uvicorn
 from fastapi import FastAPI
@@ -860,9 +861,12 @@ class TestEndpoints:
         ]
 
 
+cpu = huggingface_hub.SpaceHardware.CPU_BASIC
+
+
 class TestDuplication:
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_new_space_id(self, mock_init, mock_runtime):
         Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
@@ -879,7 +883,39 @@ class TestDuplication:
         )
 
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.utils.set_space_timeout")
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_dont_set_timeout_if_default_hardware(
+        self, mock_init, mock_runtime, mock_set_timeout
+    ):
+        Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
+        mock_set_timeout.assert_not_called()
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.request_space_hardware")
+    @patch("gradio_client.utils.set_space_timeout")
+    @patch(
+        "huggingface_hub.get_space_runtime",
+        return_value=MagicMock(hardware=huggingface_hub.SpaceHardware.CPU_UPGRADE),
+    )
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_set_timeout_if_not_default_hardware(
+        self, mock_init, mock_runtime, mock_set_timeout, mock_request_hardware
+    ):
+        Client.duplicate(
+            "gradio/calculator",
+            "test",
+            hf_token=HF_TOKEN,
+            hardware="cpu-upgrade",
+            sleep_timeout=15,
+        )
+        mock_set_timeout.assert_called_once_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, timeout_in_seconds=15 * 60
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_default_space_id(self, mock_init, mock_runtime):
         Client.duplicate("gradio/calculator", hf_token=HF_TOKEN)

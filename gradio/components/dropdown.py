@@ -22,13 +22,13 @@ set_documentation_group("component")
 
 @document()
 class Dropdown(
+    FormComponent,
     Changeable,
     Inputable,
     Selectable,
     Blurrable,
     IOComponent,
     SimpleSerializable,
-    FormComponent,
 ):
     """
     Creates a dropdown of choices from which entries can be selected.
@@ -43,7 +43,7 @@ class Dropdown(
         choices: list[str] | None = None,
         *,
         value: str | list[str] | Callable | None = None,
-        type: str = "value",
+        type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         max_choices: int | None = None,
         label: str | None = None,

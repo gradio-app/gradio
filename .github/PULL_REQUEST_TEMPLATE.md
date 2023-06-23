@@ -1,33 +1,22 @@
-# Description
+## Description
 
-Please include: 
-* relevant motivation
-* a summary of the change 
-* which issue is fixed. 
-* any additional dependencies that are required for this change.
+Please include a concise summary, in clear English, of the changes in this pull request. If it closes an issue, please mention it here.
 
-Closes: # (issue)
+Closes: #(issue)
 
-# Checklist:
+## 🎯 PRs Should Target Issues
 
-- [ ] I have performed a self-review of my own code
-- [ ] I have added a short summary of my change to the CHANGELOG.md
-- [ ] My code follows the style guidelines of this project
-- [ ] I have commented my code in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
+Before your create a PR, please check to see if there is [an existing issue](https://github.com/gradio-app/gradio/issues) for this change. If not, please create an issue before you create this PR, unless the fix is very small. 
 
+Not adhering to this guideline will result in the PR being closed. 
 
-# A note about the CHANGELOG
+## Tests & Changelog
 
-Hello 👋 and thank you for contributing to Gradio!
+1. PRs will only be merged if tests pass on CI. To run the tests locally, please set up [your Gradio environment locally](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) and run the tests: `bash scripts/run_all_tests.sh`
 
-All pull requests must update the change log located in CHANGELOG.md, unless the pull request is labeled with the "no-changelog-update" label.
+1. You may need to run the linters: `bash scripts/format_backend.sh` and `bash scripts/format_frontend.sh`
+  
+1. Unless the pull request is labeled with the "no-changelog-update" label by a maintainer of the repo, all pull requests must update the changelog located in `CHANGELOG.md`:
 
-Please add a brief summary of the change to the Upcoming Release > Full Changelog section of the CHANGELOG.md file and include
+Please add a brief summary of the change to the Upcoming Release section of the `CHANGELOG.md` file and include
 a link to the PR (formatted in markdown) and a link to your github profile (if you like). For example, "* Added a cool new feature by `[@myusername](link-to-your-github-profile)` in `[PR 11111](https://github.com/gradio-app/gradio/pull/11111)`".
-
-If you would like to elaborate on your change further, feel free to include a longer explanation in the other sections.
-If you would like an image/gif/video showcasing your feature, it may be best to edit the CHANGELOG file using the 
-GitHub web UI since that lets you upload files directly via drag-and-drop.

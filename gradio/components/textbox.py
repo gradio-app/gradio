@@ -67,7 +67,7 @@ class Textbox(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        type: str = "text",
+        type: Literal["text", "password", "email"] = "text",
         show_copy_button: bool = False,
         **kwargs,
     ):
@@ -151,7 +151,7 @@ class Textbox(
         min_width: int | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
-        type: str | None = None,
+        type: Literal["text", "password", "email"] | None = None,
         show_copy_button: bool | None = None,
     ):
         return {

@@ -145,7 +145,16 @@ class Client:
         to_id: str | None = None,
         hf_token: str | None = None,
         private: bool = True,
-        hardware: str | None = None,
+        hardware: Literal[
+            "cpu-basic",
+            "cpu-upgrade",
+            "t4-small",
+            "t4-medium",
+            "a10g-small",
+            "a10g-large",
+            "a100-large",
+        ]
+        | None = None,
         secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
         max_workers: int = 40,
@@ -220,9 +229,6 @@ class Client:
                     huggingface_hub.add_space_secret(
                         space_id, key, value, token=hf_token
                     )
-            utils.set_space_timeout(
-                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
-            )
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
@@ -234,6 +240,12 @@ class Client:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
+            )
+        # Setting a timeout only works if the hardware is not basic
+        # so set it here after the hardware has been requested
+        if hardware != huggingface_hub.SpaceHardware.CPU_BASIC:
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
             )
         if verbose:
             print("")
@@ -937,7 +949,7 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def result(self, timeout=None) -> Any:
+    def result(self, timeout: float | None = None) -> Any:
         """
         Return the result of the call that the future represents. Raises CancelledError: If the future was cancelled, TimeoutError: If the future didn't finish executing before the given timeout, and Exception: If the call raised then that exception will be raised.
 
