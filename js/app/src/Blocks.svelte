@@ -373,7 +373,7 @@
 			return;
 		}
 		const discussion_url = new URL(
-			"https://huggingface.co/spaces/aliabid94/crossword/discussions/new"
+			`https://huggingface.co/spaces/${space_id}/discussions/new`
 		);
 		if (title.length > 0) {
 			discussion_url.searchParams.set("title", title);
