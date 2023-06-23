@@ -27,7 +27,7 @@ export const uploadToHuggingFace = async (data: string, type: "base64" | "url") 
 	const file = new File([blob], filename, { type: contentType });
 
 	// Send file to endpoint
-	const uploadResponse = await fetch("https://radames-temp-proxy.hf.space/https://huggingface.co/uploads", {
+	const uploadResponse = await fetch("https://huggingface.co/uploads", {
 		method: 'POST',
 		body: file,
 		headers: {

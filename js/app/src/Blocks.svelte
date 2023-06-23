@@ -45,7 +45,6 @@
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
-	space_id = "aliabid94/crossword"
 
 	let loading_status = create_loading_status_store();
 
