@@ -1,12 +1,12 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { join, basename } from "path";
 import { fileURLToPath } from "url";
 import { readdirSync, writeFileSync } from "fs";
+import kl from "kleur";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const TEST_APP_PATH = join(__dirname, "./test.py");
 const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
-const DEMO_MODULE_PATH = join(__dirname, "..", "demo", "__init__.py");
 const ROOT = join(__dirname, "..");
 
 const test_files = readdirSync(TEST_FILES_PATH)
@@ -15,21 +15,34 @@ const test_files = readdirSync(TEST_FILES_PATH)
 
 export default async function global_setup() {
 	const verbose = process.env.GRADIO_TEST_VERBOSE;
-	console.info("\nCreating test gradio app and starting server.\n");
+	process.stdout.write(kl.yellow("\nCreating test gradio app.\n\n"));
 
 	const test_app = make_app(test_files);
+	process.stdout.write(kl.yellow("App created. Starting test server.\n\n"));
+
+	process.stdout.write(kl.bgBlue(" =========================== \n"));
+	process.stdout.write(kl.bgBlue(" === PYTHON STARTUP LOGS === \n"));
+	process.stdout.write(kl.bgBlue(" =========================== \n\n"));
+
 	writeFileSync(TEST_APP_PATH, test_app);
+
 	const app = await spawn_gradio_app(TEST_APP_PATH, verbose);
-	console.info("Server started. Running tests.\n");
+
+	process.stdout.write(
+		kl.green(`\n\nServer started. Running tests on port ${"7879"}.\n`)
+	);
 
 	return () => {
-		console.log("\nTests complete, cleaning up server.\n");
+		process.stdout.write(kl.green(`\nTests complete, cleaning up!\n`));
+
 		kill_process(app);
 	};
 }
 const PORT_RE = new RegExp(`:7879`);
+const INFO_RE = /^INFO:/;
 
 function spawn_gradio_app(app, verbose) {
+	let launched = false;
 	return new Promise((res, rej) => {
 		const _process = spawn(`python`, [app], {
 			shell: true,
@@ -46,32 +59,47 @@ function spawn_gradio_app(app, verbose) {
 		_process.stdout.on("data", (data) => {
 			const _data = data.toString();
 
-			if (verbose) {
-				console.log("\n");
-				console.log("OUT: ", _data);
-				console.log("\n");
+			const is_info = INFO_RE.test(_data);
+
+			if (is_info) {
+				process.stdout.write(kl.yellow(_data));
+			}
+
+			if (!is_info) {
+				process.stdout.write(`${_data}\n`);
 			}
 
 			if (PORT_RE.test(_data)) {
+				process.stdout.write(kl.bgBlue("\n =========== END =========== "));
+
 				res(_process);
+
+				if (!verbose) {
+					_process.stdout.destroy();
+					_process.stderr.destroy();
+				}
 			}
 		});
 
 		_process.stderr.on("data", (data) => {
 			const _data = data.toString();
+			const is_info = INFO_RE.test(_data);
 
+			if (is_info) {
+				process.stdout.write(kl.yellow(_data));
+			}
+
+			if (!is_info) {
+				process.stdout.write(`${_data}\n`);
+			}
 			if (PORT_RE.test(_data)) {
+				process.stderr.write(kl.bgBlue("\n =========== END =========== "));
 				res(_process);
-			}
-			if (verbose) {
-				console.warn("ERR: ", _data);
-			}
-			if (_data.includes("Traceback")) {
-				kill_process(_process);
-				throw new Error(
-					"Something went wrong in the python process. Enable verbose mode to see the stdout/err or the python child process."
-				);
-				rej();
+
+				if (!verbose) {
+					_process.stdout.destroy();
+					_process.stderr.destroy();
+				}
 			}
 		});
 	});
