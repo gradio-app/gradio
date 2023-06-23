@@ -18,6 +18,12 @@ const loading_status = {
 	show_progress: "full" as LoadingStatus["show_progress"]
 };
 
+async function wait_for_event(component, event) {
+	return new Promise((r) => {
+		component.$on(event, r);
+	});
+}
+
 describe("Audio", () => {
 	afterEach(() => cleanup());
 
@@ -42,7 +48,7 @@ describe("Audio", () => {
 
 		assert.equal(
 			getByTestId("Audio Component-dynamic-audio").src,
-			"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			"http://localhost:3000/foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 		);
 		assert(queryAllByText("Audio Component").length, 1);
 	});
@@ -84,67 +90,70 @@ describe("Audio", () => {
 			source: "upload"
 		});
 
-		const mock = spy();
-		component.$on("change", mock);
-
 		const item = container.querySelectorAll("input")[0];
-		console.log(item);
 		const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
+		const mock = spy();
 		event.upload(item, file);
+		await wait_for_event(component, "change");
 		assert.equal(mock.callCount, 1);
 	});
 
-	// test("stop recording sets data", async () => {
+	test("stop recording sets data", async () => {
+		let data_event;
+		let stop_event;
 
-	//     // const mediaDevicesMock = vi.fn()
-	//     // mediaDevicesMock.mediaDevices = vi.fn();
+		const media_recorder_mock = vi.fn((s, x) => {
+			return {
+				start: vi.fn(() => {
+					data_event({ data: "hello" });
+					data_event({ data: "hello" });
+					data_event({ data: "hello" });
+					data_event({ data: "hello" });
+				}),
+				stop: vi.fn(async () => {
+					await stop_event();
+				}),
+				addEventListener: vi.fn((evt, cb) => {
+					if (evt === "dataavailable") {
+						data_event = cb;
+					}
 
-	//     const mediaMock = vi.fn(() => ({
-	//         mediaDevices: vi.fn(() => ({
-	//             getUserMedia: vi.fn()
-	//         }))(),
-	//     }))
-	//     vi.stubGlobal("navigator", mediaMock());
-	//     vi.mock('extendable-media-recorder', async (importOriginal) => {
-	//         const mod = await importOriginal();
-	//         return {
-	//             ...mod,
-	//             // replace some exports
-	//             MediaRecorder: vi.fn(),
-	//         }
-	//     });
-	//     vi.mock('extendable-media-recorder-wav-encoder', async (importOriginal) => {
-	//         const mod = await importOriginal();
-	//         return {
-	//             ...mod,
-	//             // replace some exports
-	//             connect: vi.fn(),
-	//         }
-	//     })
+					if (evt === "stop") {
+						stop_event = cb;
+					}
+				})
+			};
+		});
 
-	//     const { component, getByText } = render(Audio, {
-	//         show_label: true,
-	//         loading_status,
-	//         mode: "dynamic",
-	//         value: null,
-	//         label: "Audio Component",
-	//         root: "foo",
-	//         root_url: null,
-	//         streaming: false,
-	//         pending: false,
-	//         source: "microphone"
-	//     });
+		const media_mock = {
+			mediaDevices: {
+				getUserMedia: vi.fn(() => Promise.resolve(true))
+			}
+		};
 
-	//     const mock = spy();
-	//     component.$on("stop_recording", mock);
+		vi.stubGlobal("navigator", media_mock);
+		vi.stubGlobal("MediaRecorder", media_recorder_mock);
 
-	//     const startButton = getByText("Record from microphone");
+		const { component, getByText } = render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "dynamic",
+			value: null,
+			label: "Audio Component",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "microphone"
+		});
 
-	//     await event.click(startButton);
-	//     const stopButton = getByText("Stop recording");
-	//     await event.click(stopButton)
+		const mock = spy();
 
-	//     assert.equal(mock.callCount, 1);
-	//     //assert.equal(mock.calls[8][0].detail, "hi some text");
-	// });
+		const startButton = getByText("Record from microphone");
+		await event.click(startButton);
+		const stopButton = getByText("Stop recording");
+		await event.click(stopButton);
+		await wait_for_event(component, "stop_recording");
+		assert.equal(mock.callCount, 1);
+	});
 });
