@@ -1,7 +1,8 @@
 import gradio as gr
 import os
-os.environ['SYSTEM'] = "spaces"
-os.environ['SPACE_ID'] = "aliabid94/golfy"
+
+os.environ["SYSTEM"] = "spaces"
+os.environ["SPACE_ID"] = "aliabid94/golfy"
 
 
 def welcome(name):
@@ -23,14 +24,24 @@ with gr.Blocks() as demo:
             gallery = gr.Gallery()
             chatbot = gr.Chatbot()
 
-    btn.click(
-        lambda *args: [
+    def click(*args):
+        import time
+        time.sleep(4)
+        return [
             "files/lion.jpg",
             "files/cantina.wav",
             "files/world.mp4",
             ["files/lion.jpg", "files/tower.jpg"],
-            [["Hey", "I'm bot"], ["I'm human", "Ok"]],
-        ],
+            [
+                ["Hey", "I'm a **bot**"],
+                ["I'm human", "Ok"],
+                [None, "What should I do?"],
+                ["Draw a lion", ("files/lion.jpg",)],
+            ],
+        ]
+
+    btn.click(
+        click,
         [text, num, radio, file],
         [img, audio, video, gallery, chatbot],
     )

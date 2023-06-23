@@ -57,7 +57,7 @@
 </script>
 
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
-{#if shareable}
+{#if shareable && value !== null}
 	<div class="icon-button">
 		<IconButton
 			Icon={Community}

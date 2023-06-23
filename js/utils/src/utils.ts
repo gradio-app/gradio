@@ -12,25 +12,26 @@ export interface ShareData {
 export const uploadToHuggingFace = async (data: string, type: "base64" | "url") => {
 	let blob: Blob;
 	let contentType: string;
+	let filename: string;
 	if (type === "url") {
 		const response = await fetch(data);
 		blob = await response.blob();
 		contentType = response.headers.get("content-type") || "";
+		filename = response.headers.get("content-disposition") || "";
 	} else {
 		blob = dataURLtoBlob(data);
 		contentType = data.split(";")[0].split(":")[1];
+		filename = "file" + contentType.split("/")[1];
 	}
 
-	// Create form data
-	const formData = new FormData();
-	formData.append('file', blob);
+	const file = new File([blob], filename, { type: contentType });
 
 	// Send file to endpoint
 	const uploadResponse = await fetch("https://huggingface.co/uploads", {
 		method: 'POST',
-		body: formData,
+		body: file,
 		headers: {
-			'Content-Type': contentType,
+			'Content-Type': file.type,
 			'X-Requested-With': 'XMLHttpRequest',
 		}		
 	});

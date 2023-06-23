@@ -3,6 +3,8 @@ import { markedHighlight } from "marked-highlight";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-latex";
+import type { FileData } from "@gradio/upload";
+import { uploadToHuggingFace } from "@gradio/utils";
 
 const copy_icon = `<svg
 xmlns="http://www.w3.org/2000/svg"
@@ -187,3 +189,32 @@ async function copy_to_clipboard(value: string) {
 }
 
 export { marked };
+
+export const format_chat_for_sharing = async (chat: Array<
+	[string | FileData | null, string | FileData | null]
+>) => {
+	return chat.map((message_pair) => {
+		return message_pair
+			.map(async (message, i) => {
+				if (message === null) return "";
+				let speaker_emoji = i === 0 ? "👤" : "🤖";
+				let html_content = "";
+				if (typeof message === "string") {
+					html_content = message;
+				} else {
+					const file_url = await uploadToHuggingFace(message.data, "url");
+					if (message.mime_type?.includes("audio")) {
+						html_content = `<audio controls src="${file_url}"></audio>`;
+					} else if (message.mime_type?.includes("video")) {
+						html_content = `<video controls src="${file_url}"></video>`;
+					} else if (message.mime_type?.includes("image")) {
+						html_content = `<img src="${file_url}"">`;
+					}
+				}
+				return `${speaker_emoji}: ${html_content}`;
+			})
+			.join(message_pair[0] === null || message_pair[1] === null ? "" : "\n");
+	})
+		.join("\n");
+}
+

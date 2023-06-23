@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copy } from "./utils";
+	import { copy, format_chat_for_sharing } from "./utils";
 	import "katex/dist/katex.min.css";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
@@ -92,8 +92,13 @@
 			Icon={Community}
 			label="Post"
 			show_label={true}
-			on:click={() => {
-				dispatch("share", { title_from_inputs: false, description: "img" });
+			on:click={async () => {
+				if (value === null) return;
+				const formatted_chat = await format_chat_for_sharing(value);
+				dispatch("share", {
+					title_from_inputs: false,
+					description: formatted_chat
+				});
 			}}
 		/>
 	</div>
