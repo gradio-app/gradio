@@ -17,16 +17,6 @@ const loading_status = {
 	show_progress: "full" as LoadingStatus["show_progress"]
 };
 
-// async function wait_for_event(component, event) {
-//     const mock = spy();
-//     return new Promise((res) => {
-//         component.$on(event, () => {
-//             mock();
-//             res(mock);
-//         });
-//     });
-// }
-
 describe("Audio", () => {
 	afterEach(() => cleanup());
 
