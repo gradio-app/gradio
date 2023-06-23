@@ -27,7 +27,7 @@ describe("Audio", () => {
     afterEach(() => cleanup());
 
     test("renders provided value and label", async () => {
-        const { getByTestId, container, queryAllByText } = render(Audio, {
+        const { getByTestId, queryAllByText } = render(Audio, {
             show_label: true,
             loading_status,
             mode: "dynamic",
