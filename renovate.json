@@ -18,6 +18,7 @@
 		"babylonjs",
 		"babylonjs-loaders",
 		"postcss-load-config",
-		"postcss-nested"
+		"postcss-nested",
+		"svelte"
 	]
 }
