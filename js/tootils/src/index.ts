@@ -1,21 +1,22 @@
 import { test as base } from "@playwright/test";
 import { basename } from "path";
 
-export function get_text<T extends HTMLElement>(el: T) {
+export function get_text<T extends HTMLElement>(el: T): string {
 	return el.innerText.trim();
 }
 
-export function wait(n: number) {
+export function wait(n: number): Promise<void> {
 	return new Promise((r) => setTimeout(r, n));
 }
 
 export const test = base.extend<{ setup: void }>({
 	setup: [
-		async ({ page }, use, testInfo) => {
+		async ({ page }, use, testInfo): Promise<void> => {
+			const port = process.env.GRADIO_E2E_TEST_PORT;
 			const { file } = testInfo;
-			const test = basename(file, ".spec.ts");
+			const test_name = basename(file, ".spec.ts");
 
-			await page.goto(`localhost:7879/${test}`);
+			await page.goto(`localhost:${port}/${test_name}`);
 
 			await use();
 		},

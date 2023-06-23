@@ -71,6 +71,9 @@ importers:
       happy-dom:
         specifier: ^9.20.3
         version: 9.20.3
+      kleur:
+        specifier: ^4.1.5
+        version: 4.1.5
       msw:
         specifier: ^1.0.0
         version: 1.0.0(typescript@5.1.3)
@@ -4635,11 +4638,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /kleur@4.1.4:
-    resolution: {integrity: sha512-8QADVssbrFjivHWQU7KkMgptGTl6WAcSdlbBPY4uNF+mWr6DGcKrvY2w4FQJoXch7+fKMjj0dRrL75vk3k23OA==}
-    engines: {node: '>=6'}
-    dev: false
-
   /kleur@4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
@@ -6043,7 +6041,7 @@ packages:
     dependencies:
       console-clear: 1.1.1
       get-port: 3.2.0
-      kleur: 4.1.4
+      kleur: 4.1.5
       local-access: 1.1.0
       sade: 1.8.1
       semiver: 1.1.0
