@@ -1,5 +1,4 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../../i18n";
