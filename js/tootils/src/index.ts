@@ -1,5 +1,7 @@
 import { test as base } from "@playwright/test";
 import { basename } from "path";
+import type { SvelteComponentTyped } from "svelte";
+import { spy } from "tinyspy";
 
 export function get_text<T extends HTMLElement>(el: T): string {
 	return el.innerText.trim();
@@ -23,6 +25,19 @@ export const test = base.extend<{ setup: void }>({
 		{ auto: true }
 	]
 });
+
+export async function wait_for_event(
+	component: SvelteComponentTyped,
+	event: string
+) {
+	const mock = spy();
+	return new Promise((res) => {
+		component.$on(event, () => {
+			mock();
+			res(mock);
+		});
+	});
+}
 
 export { expect } from "@playwright/test";
 export * from "./render";
