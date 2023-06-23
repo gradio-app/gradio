@@ -28,7 +28,7 @@ const TEST_CDN = !!process.env.TEST_CDN;
 const CDN = TEST_CDN
 	? "http://localhost:4321/"
 	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
-const TEST_MODE = process.env.TEST_MODE || "happy-dom";
+const TEST_MODE = process.env.TEST_MODE || "jsdom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
