@@ -40,7 +40,7 @@ const rules = {
 	"@typescript-eslint/no-inferrable-types": "error"
 };
 
-const { browser, es2021 } = globals;
+const { browser, es2021, node } = globals;
 
 export default [
 	{
@@ -66,7 +66,8 @@ export default [
 			},
 			globals: {
 				...browser,
-				...es2021
+				...es2021,
+				...node
 			}
 		},
 
