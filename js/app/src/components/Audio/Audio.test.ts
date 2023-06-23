@@ -19,8 +19,8 @@ const loading_status = {
 };
 
 async function wait_for_event(component, event) {
-	return new Promise((r) => {
-		component.$on(event, r);
+	return new Promise((mock) => {
+		component.$on(event, mock);
 	});
 }
 
@@ -46,9 +46,10 @@ describe("Audio", () => {
 			source: "upload"
 		});
 
-		assert.equal(
-			getByTestId("Audio Component-dynamic-audio").src,
-			"http://localhost:3000/foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+		assert.isTrue(
+			getByTestId("Audio Component-dynamic-audio").src.endsWith(
+				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			)
 		);
 		assert(queryAllByText("Audio Component").length, 1);
 	});
@@ -92,10 +93,39 @@ describe("Audio", () => {
 
 		const item = container.querySelectorAll("input")[0];
 		const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
-		const mock = spy();
 		event.upload(item, file);
 		await wait_for_event(component, "change");
-		assert.equal(mock.callCount, 1);
+		assert.equal(
+			component.$capture_state().value.data,
+			"data:audio/wav;base64,aGVsbG8="
+		);
+		assert.equal(component.$capture_state().value.name, "my-audio.wav");
+	});
+
+	test("static audio sets value", async () => {
+		const { getByTestId, component } = render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "static",
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			},
+			label: "Audio Component",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			name: "bar",
+			source: "upload"
+		});
+
+		assert.isTrue(
+			getByTestId("Audio Component-static-audio").src.endsWith(
+				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			)
+		);
 	});
 
 	test("stop recording sets data", async () => {
@@ -147,13 +177,16 @@ describe("Audio", () => {
 			source: "microphone"
 		});
 
-		const mock = spy();
-
 		const startButton = getByText("Record from microphone");
 		await event.click(startButton);
 		const stopButton = getByText("Stop recording");
 		await event.click(stopButton);
 		await wait_for_event(component, "stop_recording");
-		assert.equal(mock.callCount, 1);
+
+		assert.equal(
+			component.$capture_state().value.data,
+			"data:audio/wav;base64,aGVsbG9oZWxsb2hlbGxvaGVsbG8="
+		);
+		assert.equal(component.$capture_state().value.name, "audio.wav");
 	});
 });
