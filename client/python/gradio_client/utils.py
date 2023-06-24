@@ -383,8 +383,8 @@ def decode_base64_to_file(
     dir: str | Path | None = None,
     prefix: str | None = None,
 ):
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
     data, extension = decode_base64_to_binary(encoding)
     if file_path is not None and prefix is None:
         filename = Path(file_path).name
@@ -397,13 +397,15 @@ def decode_base64_to_file(
         prefix = strip_invalid_filename_characters(prefix)
 
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
+        file_obj = tempfile.NamedTemporaryFile(
+            delete=False, prefix=prefix, dir=directory
+        )
     else:
         file_obj = tempfile.NamedTemporaryFile(
             delete=False,
             prefix=prefix,
             suffix="." + extension,
-            dir=dir,
+            dir=directory,
         )
     file_obj.write(data)
     file_obj.flush()
@@ -442,13 +444,13 @@ def set_space_timeout(
         library_name="gradio_client",
         library_version=__version__,
     )
-    r = requests.post(
+    req = requests.post(
         f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
         json={"seconds": timeout_in_seconds},
         headers=headers,
     )
     try:
-        huggingface_hub.utils.hf_raise_for_status(r)
+        huggingface_hub.utils.hf_raise_for_status(req)
     except huggingface_hub.utils.HfHubHTTPError as err:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "

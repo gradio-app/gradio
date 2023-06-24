@@ -260,7 +260,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
-                    "is_space": app.get_blocks().is_space,
+                    "space_id": app.get_blocks().space_id,
                     "root": root_path,
                 }
 
@@ -789,6 +789,7 @@ def mount_gradio_app(
     blocks: gradio.Blocks,
     path: str,
     gradio_api_url: str | None = None,
+    app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -797,6 +798,7 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
+        app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -811,7 +813,7 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
-    gradio_app = App.create_app(blocks)
+    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
 
     @app.on_event("startup")
     async def start_queue():

@@ -40,7 +40,6 @@ demo/*/config.json
 
 # Etc
 .idea/*
-.vscode/*
 .DS_Store
 *.bak
 workspace.code-workspace
@@ -63,3 +62,4 @@ node_modules
 public/build/
 test-results
 client/js/test.js
+.config/test.py

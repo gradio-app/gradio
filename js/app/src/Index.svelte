@@ -23,7 +23,7 @@
 		theme: string;
 		title: string;
 		version: string;
-		is_space: boolean;
+		space_id: string | null;
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
@@ -251,18 +251,20 @@
 		| "NO_APP_FILE"
 		| "CONFIG_ERROR"
 		| "BUILD_ERROR"
-		| "RUNTIME_ERROR";
+		| "RUNTIME_ERROR"
+		| "PAUSED";
 
 	const discussion_message = {
 		readable_error: {
-			NO_APP_FILE: "no app file",
-			CONFIG_ERROR: "a config error",
-			BUILD_ERROR: "a build error",
-			RUNTIME_ERROR: "a runtime error"
+			NO_APP_FILE: "there is no app file",
+			CONFIG_ERROR: "there is a config error",
+			BUILD_ERROR: "there is a build error",
+			RUNTIME_ERROR: "there is a runtime error",
+			PAUSED: "the space is paused"
 		} as const,
 		title(error: error_types) {
 			return encodeURIComponent(
-				`Space isn't working because there is ${
+				`Space isn't working because ${
 					this.readable_error[error] || "an error"
 				}`
 			);
@@ -303,7 +305,7 @@
 		>
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
-				{#if status.status === "space_error" && status.discussions_enabled}
+				{#if (status.status === "space_error" || status.status === "paused") && status.discussions_enabled}
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
@@ -326,7 +328,7 @@
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
-			is_space={config.is_space}
+			space_id={space}
 			{app_mode}
 		/>
 	{:else if config && Blocks && css_ready}

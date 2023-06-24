@@ -15,12 +15,13 @@
 	export let visible: boolean = true;
 	export let value: Array<string> | Array<FileData> | null = null;
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let grid_cols: number | Array<number> | undefined = [2];
 	export let grid_rows: number | Array<number> | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
+	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 </script>
@@ -49,5 +50,6 @@
 		{height}
 		{preview}
 		{object_fit}
+		{allow_preview}
 	/>
 </Block>

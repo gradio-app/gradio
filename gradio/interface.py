@@ -18,6 +18,8 @@ from gradio import Examples, analytics, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
+    ClearButton,
+    DuplicateButton,
     Interpretation,
     IOComponent,
     Markdown,
@@ -140,6 +142,7 @@ class Interface(Blocks):
         batch: bool = False,
         max_batch_size: int = 4,
         _api_mode: bool = False,
+        allow_duplication: bool = False,
         **kwargs,
     ):
         """
@@ -166,6 +169,7 @@ class Interface(Blocks):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            allow_duplication: If True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -201,7 +205,7 @@ class Interface(Blocks):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        if self.is_space and cache_examples is None:
+        if self.space_id and cache_examples is None:
             self.cache_examples = True
         else:
             self.cache_examples = cache_examples or False
@@ -357,8 +361,8 @@ class Interface(Blocks):
         self.flagging_dir = flagging_dir
         self.batch = batch
         self.max_batch_size = max_batch_size
+        self.allow_duplication = allow_duplication
 
-        self.save_to = None  # Used for selenium tests
         self.share = None
         self.share_url = None
         self.local_url = None
@@ -399,7 +403,13 @@ class Interface(Blocks):
         with self:
             self.render_title_description()
 
-            submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
+            submit_btn, clear_btn, stop_btn, flag_btns, duplicate_btn = (
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
             interpretation_btn, interpretation_set = None, None
             input_component_column, interpret_component_column = None, None
 
@@ -425,6 +435,7 @@ class Interface(Blocks):
                     (
                         submit_btn_out,
                         clear_btn_2_out,
+                        duplicate_btn,
                         stop_btn_2_out,
                         flag_btns_out,
                         interpretation_btn,
@@ -440,6 +451,8 @@ class Interface(Blocks):
             self.attach_clear_events(
                 clear_btn, input_component_column, interpret_component_column
             )
+            if duplicate_btn is not None:
+                duplicate_btn.activate()
             self.attach_interpretation_events(
                 interpretation_btn,
                 interpretation_set,
@@ -468,7 +481,7 @@ class Interface(Blocks):
         self,
     ) -> tuple[
         Button | None,
-        Button | None,
+        ClearButton | None,
         Button | None,
         list[Button] | None,
         Column,
@@ -494,7 +507,7 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
                 ]:
-                    clear_btn = Button("Clear")
+                    clear_btn = ClearButton()
                     if not self.live:
                         submit_btn = Button("Submit", variant="primary")
                         # Stopping jobs only works if the queue is enabled
@@ -507,7 +520,7 @@ class Interface(Blocks):
                         ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop", visible=False)
                 elif self.interface_type == InterfaceTypes.UNIFIED:
-                    clear_btn = Button("Clear")
+                    clear_btn = ClearButton()
                     submit_btn = Button("Submit", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
@@ -531,9 +544,22 @@ class Interface(Blocks):
     def render_output_column(
         self,
         submit_btn_in: Button | None,
-    ) -> tuple[Button | None, Button | None, Button | None, list | None, Button | None]:
+    ) -> tuple[
+        Button | None,
+        ClearButton | None,
+        DuplicateButton,
+        Button | None,
+        list | None,
+        Button | None,
+    ]:
         submit_btn = submit_btn_in
-        interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
+        interpretation_btn, clear_btn, duplicate_btn, flag_btns, stop_btn = (
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
 
         with Column(variant="panel"):
             for component in self.output_components:
@@ -541,7 +567,7 @@ class Interface(Blocks):
                     component.render()
             with Row():
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                    clear_btn = Button("Clear")
+                    clear_btn = ClearButton()
                     submit_btn = Button("Generate", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
@@ -558,10 +584,21 @@ class Interface(Blocks):
                 elif self.allow_flagging == "auto":
                     assert submit_btn is not None, "Submit button not rendered"
                     flag_btns = [submit_btn]
+
                 if self.interpretation:
                     interpretation_btn = Button("Interpret")
 
-        return submit_btn, clear_btn, stop_btn, flag_btns, interpretation_btn
+                if self.allow_duplication:
+                    duplicate_btn = DuplicateButton(scale=1, size="lg", _activate=False)
+
+        return (
+            submit_btn,
+            clear_btn,
+            duplicate_btn,
+            stop_btn,
+            flag_btns,
+            interpretation_btn,
+        )
 
     def render_article(self):
         if self.article:
@@ -692,22 +729,20 @@ class Interface(Blocks):
 
     def attach_clear_events(
         self,
-        clear_btn: Button,
+        clear_btn: ClearButton,
         input_component_column: Column | None,
         interpret_component_column: Column | None,
     ):
+        clear_btn.add(self.input_components + self.output_components)
         clear_btn.click(
             None,
             [],
             (
-                self.input_components
-                + self.output_components
-                + ([input_component_column] if input_component_column else [])
+                ([input_component_column] if input_component_column else [])
                 + ([interpret_component_column] if self.interpretation else [])
             ),  # type: ignore
             _js=f"""() => {json.dumps(
-                [getattr(component, "cleared_value", None)
-                    for component in self.input_components + self.output_components] + (
+                (
                     [Column.update(visible=True)]
                     if self.interface_type
                         in [
@@ -737,7 +772,9 @@ class Interface(Blocks):
                 preprocess=False,
             )
 
-    def attach_flagging_events(self, flag_btns: list[Button] | None, clear_btn: Button):
+    def attach_flagging_events(
+        self, flag_btns: list[Button] | None, clear_btn: ClearButton
+    ):
         if not (
             flag_btns
             and self.interface_type

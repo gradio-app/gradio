@@ -24,6 +24,7 @@
 	export let source: "microphone" | "upload" | "none";
 	export let pending: boolean = false;
 	export let streaming: boolean = false;
+	export let autoplay: boolean;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -34,7 +35,7 @@
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Array<Uint8Array> = [];
 	let submit_pending_stream_on_pending_end: boolean = false;
-	let player;
+	let player: HTMLAudioElement;
 	let inited = false;
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
@@ -85,7 +86,7 @@
 
 	const dispatch_blob = async (
 		blobs: Array<Uint8Array> | Blob[],
-		event: "stream" | "change"
+		event: "stream" | "change" | "stop_recording"
 	) => {
 		let audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
@@ -149,6 +150,7 @@
 			recorder.addEventListener("stop", async () => {
 				recording = false;
 				await dispatch_blob(audio_chunks, "change");
+				await dispatch_blob(audio_chunks, "stop_recording");
 				audio_chunks = [];
 			});
 		}
@@ -184,7 +186,6 @@
 	});
 
 	const stop = async () => {
-		dispatch("stop_recording");
 		recorder.stop();
 		if (streaming) {
 			recording = false;
@@ -259,8 +260,18 @@
 		dispatch("end");
 	}
 
+	let old_val: any;
+	function value_has_changed(val: any) {
+		if (val === old_val) return false;
+		else {
+			old_val = val;
+			return true;
+		}
+	}
+
 	export let dragging = false;
 	$: dispatch("drag", dragging);
+	$: autoplay && player && value_has_changed(value?.data) && player.play();
 </script>
 
 <BlockLabel

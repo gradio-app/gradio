@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import os
 import re
+import tempfile
 import threading
 import time
 import urllib.parse
@@ -13,7 +15,7 @@ from concurrent.futures import Future, TimeoutError
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import huggingface_hub
 import requests
@@ -25,7 +27,6 @@ from huggingface_hub.utils import (
     send_telemetry,
 )
 from packaging import version
-from typing_extensions import Literal
 
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
@@ -38,6 +39,11 @@ from gradio_client.utils import (
 )
 
 set_documentation_group("py-client")
+
+
+DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
+    Path(tempfile.gettempdir()) / "gradio"
+)
 
 
 @document("predict", "submit", "view_api", "duplicate")
@@ -64,6 +70,7 @@ class Client:
         hf_token: str | None = None,
         max_workers: int = 40,
         serialize: bool = True,
+        output_dir: str | Path | None = DEFAULT_TEMP_DIR,
         verbose: bool = True,
     ):
         """
@@ -72,6 +79,7 @@ class Client:
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             serialize: Whether the client should serialize the inputs and deserialize the outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing/deserializing them. E.g. you if you set this to False, you'd submit an image in base64 format instead of a filepath, and you'd get back an image in base64 format from the remote API instead of a filepath.
+            output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
         """
         self.verbose = verbose
@@ -83,6 +91,7 @@ class Client:
             library_version=utils.__version__,
         )
         self.space_id = None
+        self.output_dir = output_dir
 
         if src.startswith("http://") or src.startswith("https://"):
             _src = src if src.endswith("/") else src + "/"
@@ -136,7 +145,16 @@ class Client:
         to_id: str | None = None,
         hf_token: str | None = None,
         private: bool = True,
-        hardware: str | None = None,
+        hardware: Literal[
+            "cpu-basic",
+            "cpu-upgrade",
+            "t4-small",
+            "t4-medium",
+            "a10g-small",
+            "a10g-large",
+            "a100-large",
+        ]
+        | None = None,
         secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
         max_workers: int = 40,
@@ -211,9 +229,6 @@ class Client:
                     huggingface_hub.add_space_secret(
                         space_id, key, value, token=hf_token
                     )
-            utils.set_space_timeout(
-                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
-            )
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
@@ -225,6 +240,12 @@ class Client:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
+            )
+        # Setting a timeout only works if the hardware is not basic
+        # so set it here after the hardware has been requested
+        if hardware != huggingface_hub.SpaceHardware.CPU_BASIC:
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
             )
         if verbose:
             print("")
@@ -796,7 +817,12 @@ class Endpoint:
         ), f"Expected {len(self.deserializers)} outputs, got {len(data)}"
         outputs = tuple(
             [
-                s.deserialize(d, hf_token=self.client.hf_token, root_url=self.root_url)
+                s.deserialize(
+                    d,
+                    save_dir=self.client.output_dir,
+                    hf_token=self.client.hf_token,
+                    root_url=self.root_url,
+                )
                 for s, d in zip(self.deserializers, data)
             ]
         )
@@ -923,7 +949,7 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def result(self, timeout=None) -> Any:
+    def result(self, timeout: float | None = None) -> Any:
         """
         Return the result of the call that the future represents. Raises CancelledError: If the future was cancelled, TimeoutError: If the future didn't finish executing before the given timeout, and Exception: If the call raised then that exception will be raised.
 

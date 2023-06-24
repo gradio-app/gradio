@@ -13,7 +13,7 @@ export interface Config {
 	theme: string;
 	title: string;
 	version: string;
-	is_space: boolean;
+	space_id: string | null;
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];
@@ -67,8 +67,13 @@ export interface SpaceStatusNormal {
 	message: string;
 }
 export interface SpaceStatusError {
-	status: "space_error";
-	detail: "NO_APP_FILE" | "CONFIG_ERROR" | "BUILD_ERROR" | "RUNTIME_ERROR";
+	status: "space_error" | "paused";
+	detail:
+		| "NO_APP_FILE"
+		| "CONFIG_ERROR"
+		| "BUILD_ERROR"
+		| "RUNTIME_ERROR"
+		| "PAUSED";
 	load_status: "error";
 	message: string;
 	discussions_enabled: boolean;

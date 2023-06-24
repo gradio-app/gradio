@@ -145,6 +145,12 @@ dracula = gr.themes.Base(
 ).set(
     body_background_fill=dracula_gray.c500,
     color_accent_soft=dracula_gray.c100,
+    error_border_color="#fecaca",
+    error_background_fill="#fee2e2",
+    error_icon_color="#b91c1c",
+    error_icon_color_dark="#ef4444",
+    error_text_color="#ef4444",
+    error_text_color_dark="#ef4444",
     background_fill_primary=dracula_gray.c500,
     background_fill_secondary=dracula_gray.c500,
     block_background_fill=dracula_gray.c300,
@@ -285,11 +291,11 @@ class TestThemeUploadDownload:
     @pytest.mark.flaky
     def test_theme_download(self):
         assert (
-            gr.themes.Base.from_hub("gradio/dracula_test@0.0.1").to_dict()
+            gr.themes.Base.from_hub("gradio/dracula_test@0.0.2").to_dict()
             == dracula.to_dict()
         )
 
-        with gr.Blocks(theme="gradio/dracula_test@0.0.1") as demo:
+        with gr.Blocks(theme="gradio/dracula_test@0.0.2") as demo:
             pass
 
         assert demo.theme.to_dict() == dracula.to_dict()

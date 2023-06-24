@@ -16,7 +16,7 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let samples_per_page: number = 10;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
@@ -88,6 +88,7 @@
 	{scale}
 	{min_width}
 	allow_overflow={false}
+	container={false}
 >
 	<div class="label">
 		<svg
