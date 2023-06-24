@@ -75,7 +75,7 @@ export default defineConfig(({ mode }) => {
 					// To use it as a library, we don't add the hash to the file name.
 					entryFileNames: "lite.js",
 					assetFileNames: (file) => {
-						if (file.name.endsWith(".whl")) {
+						if (file.name?.endsWith(".whl")) {
 							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
 							return `assets/[name].[ext]`;
 						}

@@ -158,6 +158,9 @@ function create_custom_element() {
 						autoscroll: this.autoscroll === "true" ? true : false,
 						control_page_title:
 							this.control_page_title === "true" ? true : false,
+						// injectables
+						client,
+						upload_files,
 						// for gradio docs
 						// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 						app_mode: window.__gradio_mode__ === "app"
