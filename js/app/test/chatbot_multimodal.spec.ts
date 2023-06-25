@@ -47,3 +47,46 @@ test("test inputs", async ({ page }) => {
     await expect(user_message_4).toBeVisible();
     await expect(bot_message_4).toBeTruthy();
 });
+
+
+test("test markdown", async ({ page }) => {
+    // Basic Markdown Input (Bold, Italics, Link)
+    const textbox = await page.getByTestId('textbox');
+    await textbox.fill("This is **bold text**. This is *italic text*. This is a [link](https://gradio.app).");
+    await page.keyboard.press('Enter');
+    const user_message_1 = await page.getByTestId('user').first().getByRole('paragraph').innerHTML();
+    const bot_message_1 = await page.getByTestId('bot').first().getByRole('paragraph').textContent();
+    await expect(user_message_1).toEqual('This is <strong>bold text</strong>. This is <em>italic text</em>. This is a <a href=\"https://gradio.app\" target=\"_blank\" rel=\"noopener noreferrer\">link</a>.');
+    await expect(bot_message_1).toBeTruthy();
+
+
+    // Code Inline Markdown Input
+    await textbox.fill("This is `code`.");
+    await page.keyboard.press('Enter');
+    const user_message_2 = await page.getByTestId('user').nth(1).getByRole('paragraph').innerHTML();
+    const bot_message_2 = await page.getByTestId('bot').nth(1).getByRole('paragraph').textContent();
+    await expect(user_message_2).toEqual("This is <code>code</code>.");
+    await expect(bot_message_2).toBeTruthy();
+
+    // Code Block Markdown Input
+    await textbox.fill("```python\nprint('Hello')\nprint('World!')\n```");
+    await page.keyboard.press('Enter');
+    const user_message_3 = await page.getByTestId('user').nth(2).locator('pre').innerHTML();
+    const bot_message_3 = await page.getByTestId('bot').nth(2).getByRole('paragraph').textContent();
+    await expect(user_message_3.replace(/\s/g, "")).toEqual(`<code class=\"language-python\"><button class=\"copy_code_button\" title=\"copy\"><span class=\"copy-text\"><svg viewBox=\"0 0 32 32\" height=\"100%\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M28 10v18H10V10h18m0-2H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2Z\" fill=\"currentColor\"></path><path d=\"M4 18H2V4a2 2 0 0 1 2-2h14v2H4Z\" fill=\"currentColor\"></path></svg></span>
+    <span class=\"check\"><svg stroke-linejoin=\"round\" stroke-linecap=\"round\" stroke-width=\"3\" stroke=\"currentColor\" fill=\"none\" viewBox=\"0 0 24 24\" height=\"100%\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg></span>
+    </button><span class=\"token keyword\">print</span><span class=\"token punctuation\">(</span><span class=\"token string\">'Hello'</span><span class=\"token punctuation\">)</span>
+    <span class=\"token keyword\">print</span><span class=\"token punctuation\">(</span><span class=\"token string\">'World!'</span><span class=\"token punctuation\">)</span>
+    </code>`.replace(/\s/g, ""));
+    await expect(bot_message_3).toBeTruthy();
+
+    // LaTeX Markdown Input
+    await textbox.fill("This is LaTeX $$x^2$$");
+    await page.keyboard.press('Enter');
+    const user_message_4 = await page.getByTestId('user').nth(3).getByRole('paragraph').innerHTML();
+    const bot_message_4 = await page.getByTestId('bot').nth(3).getByRole('paragraph');
+    await expect(bot_message_4).toBeVisible();
+    const bot_message_4_text = bot_message_4.textContent();
+    await expect(user_message_4.replace(/\s/g, "")).toEqual(`This is LaTeX <span><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow><annotation encoding=\"application/x-tex\">x^2</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height: 0.8641em;\"></span><span class=\"mord\"><span class=\"mord mathnormal\">x</span><span class=\"msupsub\"><span class=\"vlist-t\"><span class=\"vlist-r\"><span class=\"vlist\" style=\"height: 0.8641em;\"><span class=\"\" style=\"top: -3.113em; margin-right: 0.05em;\"><span class=\"pstrut\" style=\"height: 2.7em;\"></span><span class=\"sizing reset-size6 size3 mtight\"><span class=\"mord mtight\">2</span></span></span></span></span></span></span></span></span></span></span></span></span>`.replace(/\s/g, ""));
+    await expect(bot_message_4_text).toBeTruthy();
+});
