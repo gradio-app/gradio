@@ -1,10 +1,10 @@
 import { getQueriesForElement, prettyDOM } from "@testing-library/dom";
-import type { SvelteComponentTyped } from "svelte";
+import type { SvelteComponent } from "svelte";
 
 const containerCache = new Map();
 const componentCache = new Set();
 
-type Component<T extends SvelteComponentTyped, Props> = new (args: {
+type Component<T extends SvelteComponent, Props> = new (args: {
 	target: any;
 	props?: Props;
 }) => T;
@@ -12,7 +12,7 @@ type Component<T extends SvelteComponentTyped, Props> = new (args: {
 function render<
 	Events extends Record<string, any>,
 	Props extends Record<string, any>,
-	T extends SvelteComponentTyped<Props, Events>
+	T extends SvelteComponent<Props, Events>
 >(
 	Component: Component<T, Props> | { default: Component<T, Props> },
 	props?: Props
@@ -39,15 +39,15 @@ function render<
 	return {
 		container,
 		component,
-		debug: (el = container) => console.log(prettyDOM(el)),
-		unmount: () => {
+		debug: (el = container): void => console.warn(prettyDOM(el)),
+		unmount: (): void => {
 			if (componentCache.has(component)) component.$destroy();
 		},
 		...getQueriesForElement(container)
 	};
 }
 
-const cleanupAtContainer = (container: HTMLElement) => {
+const cleanupAtContainer = (container: HTMLElement): void => {
 	const { target, component } = containerCache.get(container);
 
 	if (componentCache.has(component)) component.$destroy();
@@ -59,7 +59,7 @@ const cleanupAtContainer = (container: HTMLElement) => {
 	containerCache.delete(container);
 };
 
-const cleanup = () => {
+const cleanup = (): void => {
 	Array.from(containerCache.keys()).forEach(cleanupAtContainer);
 };
 
