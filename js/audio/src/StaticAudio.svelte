@@ -66,6 +66,7 @@
 		on:play
 		on:pause
 		on:ended={handle_ended}
+		data-testid={`${label}-static-audio`}
 	/>
 {/if}
 
