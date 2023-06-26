@@ -8,6 +8,7 @@ test("Success event", async ({ page }) => {
 		page.click("text=Trigger Failure"),
 		page.waitForResponse("**/run/predict")
 	]);
+	// Since the event is not triggered, the value should not change
 	expect(textbox).toHaveValue("");
 
 	await Promise.all([
@@ -15,5 +16,5 @@ test("Success event", async ({ page }) => {
 		page.waitForResponse("**/run/predict")
 	]);
 
-	expect(textbox).toHaveValue("");
+	expect(textbox).toHaveValue("Success event triggered");
 });
