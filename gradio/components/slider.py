@@ -105,7 +105,6 @@ class Slider(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
