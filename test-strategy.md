@@ -43,7 +43,7 @@ While they offer little in terms of testing functionality they align very closel
 
 ### Dynamic code tests
 
-These tests gebnerally test either isolated pieces of code or test the relationship between parts of the code base. They sometimes test functionality or give indications of working functionality but never offer enough confidence to rely on them solely.
+These tests generally test either isolated pieces of code or test the relationship between parts of the code base. They sometimes test functionality or give indications of working functionality but never offer enough confidence to rely on them solely.
 
 These test are usually either unit or integration tests. They are generally pretty quick to write (especially unit tests) and run and offer a moderate amount of confidence. They align closely with Objectives 2 and 3 and a little bit of 1.
 
