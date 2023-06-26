@@ -12,7 +12,7 @@ const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
 const ROOT = join(__dirname, "..");
 
 const test_files = readdirSync(TEST_FILES_PATH)
-	.filter((f) => f.endsWith("spec.ts") && !f.endsWith(".skip.spec.ts"))
+	.filter((f) => f.endsWith("spec.ts") && !f.endsWith(".skip.spec.ts") && !f.endsWith(".component.spec.ts"))
 	.map((f) => basename(f, ".spec.ts"));
 
 export default async function global_setup() {
@@ -127,8 +127,8 @@ ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
 ${demos
-	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
-	.join("\n")}
+			.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+			.join("\n")}
 
 config = uvicorn.Config(app, port=${port}, log_level="info")
 server = uvicorn.Server(config=config)

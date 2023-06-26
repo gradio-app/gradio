@@ -29,6 +29,7 @@ tmp.zip
 coverage.xml
 test.txt
 **/snapshots/**/*.png
+playwright-report/
 
 # Demos
 demo/tmp.zip

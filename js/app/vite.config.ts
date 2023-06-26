@@ -8,7 +8,9 @@ import global_data from "@csstools/postcss-global-data";
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
 const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
 
