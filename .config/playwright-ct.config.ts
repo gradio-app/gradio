@@ -1,11 +1,11 @@
 import { defineConfig, devices } from '@playwright/experimental-ct-svelte';
-import config from "./js/app/vite.config.ts";
+import config from "./basevite.config";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './',
+  testDir: '../',
   /* The base directory, relative to the config file, for snapshot files created with toMatchSnapshot and toHaveScreenshot. */
   snapshotDir: './__snapshots__',
   /* Maximum time one test can run for. */

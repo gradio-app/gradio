@@ -25,7 +25,7 @@
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
 		"ci:version": "changeset version && pnpm i --lockfile-only",
-		"test:ct": "playwright test -c playwright-ct.config.ts"
+		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts"
 	},
 	"type": "module",
 	"author": "",
