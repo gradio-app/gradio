@@ -53,7 +53,7 @@ This kind of tests should probably make up the bulk of our handwritten tests.
 
 These tests give by far the most confidence as they are testing only the functionality of the software and do so by running the entire software itself, exactly as a user would.
 
-This aligns very closely with objective 1 but significantly impacts objective 5, as these code are cosly to both write and run. Despite the value, due to the downside we should try to get as much out of other tests types as we can, reserving functional testing for complex use cases and end-to-end journey.
+This aligns very closely with objective 1 but significantly impacts objective 5, as these tests are costly to both write and run. Despite the value, due to the downside we should try to get as much out of other tests types as we can, reserving functional testing for complex use cases and end-to-end journey.
 
 Tests in this category could be browser-based end-to-end tests, accessibility tests, or performance tests. They are sometimes called acceptance tests.
 
