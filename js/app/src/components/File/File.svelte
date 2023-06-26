@@ -71,6 +71,7 @@
 						(Array.isArray(_value) ? _value : [_value]).forEach(
 							async (file_data, i) => {
 								file_data.data = await blobToBase64(file_data.blob!);
+								file_data.blob = undefined;
 							}
 						);
 					} else {
@@ -80,10 +81,11 @@
 									file_data.orig_name = file_data.name;
 									file_data.name = response.files[i];
 									file_data.is_file = true;
+									file_data.blob = undefined;
 								}
 							}
 						);
-						_value = normalise_file(value, root, root_url);
+						old_value = _value = normalise_file(value, root, root_url);
 					}
 					dispatch("change");
 					dispatch("upload");
