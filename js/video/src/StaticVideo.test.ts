@@ -11,7 +11,7 @@ describe("StaticVideo", () => {
 		name: "a.mp4"
 	};
 
-	test("renders video and download button", async () => {
+	test("renders video and download button", () => {
 		const results = render(StaticVideo, {
 			label: "video",
 			show_label: true,
