@@ -235,7 +235,8 @@ class Client:
         current_hardware = (
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
         )
-        hardware = hardware or original_info.hardware
+        if hardware is None and original_info.hardware is not None:
+            hardware = original_info.hardware.value
         if current_hardware != hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(

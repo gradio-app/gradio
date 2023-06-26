@@ -604,7 +604,11 @@ def get_api_info(config: dict, serialize: bool = True):
             continue
         if dependency["api_name"] is not None and dependency["api_name"] is not False:
             api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
-        elif dependency["api_name"] is False or mode == "interface" or mode == "tabbed_interface":
+        elif (
+            dependency["api_name"] is False
+            or mode == "interface"
+            or mode == "tabbed_interface"
+        ):
             pass  # Skip unnamed endpoints in interface mode
         else:
             api_info["unnamed_endpoints"][str(d)] = dependency_info

@@ -366,7 +366,10 @@ with gr.Blocks(  # noqa: SIM117
                             return "https://i.ibb.co/6BgKdSj/groot.jpg"
 
                         go_btn.click(
-                            go, [radio, drop, drop_2, check, name], img, api_name=False,
+                            go,
+                            [radio, drop, drop_2, check, name],
+                            img,
+                            api_name=False,
                         )
 
                         def clear():
@@ -429,7 +432,8 @@ with gr.Blocks(  # noqa: SIM117
                             "tower",
                         ),
                     ],
-                    height="200px", columns=2
+                    height="200px",
+                    columns=2,
                 )
 
             with gr.Row():
@@ -478,7 +482,7 @@ with gr.Blocks(  # noqa: SIM117
                     100
                 );
             }""",
-            api_name=False,            
+            api_name=False,
         )
 
         theme_inputs = (
@@ -858,18 +862,28 @@ with gr.Blocks(theme=theme) as demo:
                         document.head.appendChild(link);
                     });
                 }""",
-                api_name=False,                
+                api_name=False,
             )
 
         def load_color(color_name):
             color = [color for color in colors if color.name == color_name][0]
             return [getattr(color, f"c{i}") for i in palette_range]
 
-        attach_rerender(primary_hue.select(load_color, primary_hue, primary_hues, api_name=False).then)
         attach_rerender(
-            secondary_hue.select(load_color, secondary_hue, secondary_hue, api_name=False).then
+            primary_hue.select(
+                load_color, primary_hue, primary_hues, api_name=False
+            ).then
         )
-        attach_rerender(neutral_hue.select(load_color, neutral_hue, neutral_hues, api_name=False).then)
+        attach_rerender(
+            secondary_hue.select(
+                load_color, secondary_hue, secondary_hue, api_name=False
+            ).then
+        )
+        attach_rerender(
+            neutral_hue.select(
+                load_color, neutral_hue, neutral_hues, api_name=False
+            ).then
+        )
         for hue_set in (primary_hues, secondary_hues, neutral_hues):
             for hue in hue_set:
                 attach_rerender(hue.blur)
@@ -878,14 +892,24 @@ with gr.Blocks(theme=theme) as demo:
             size = [size for size in sizes if size.name == size_name][0]
             return [getattr(size, i) for i in size_range]
 
-        attach_rerender(text_size.change(load_size, text_size, text_sizes, api_name=False).then)
         attach_rerender(
-            spacing_size.change(load_size, spacing_size, spacing_sizes, api_name=False).then
+            text_size.change(load_size, text_size, text_sizes, api_name=False).then
         )
-        attach_rerender(radius_size.change(load_size, radius_size, radius_sizes, api_name=False).then)
+        attach_rerender(
+            spacing_size.change(
+                load_size, spacing_size, spacing_sizes, api_name=False
+            ).then
+        )
+        attach_rerender(
+            radius_size.change(
+                load_size, radius_size, radius_sizes, api_name=False
+            ).then
+        )
 
         attach_rerender(
-            load_theme_btn.click(load_theme, base_theme_dropdown, theme_inputs, api_name=False).then
+            load_theme_btn.click(
+                load_theme, base_theme_dropdown, theme_inputs, api_name=False
+            ).then
         )
 
         for theme_box in (
@@ -923,7 +947,9 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             undo_btn.click(
-                undo, [history], [history, base_theme_dropdown] + theme_inputs,
+                undo,
+                [history],
+                [history, base_theme_dropdown] + theme_inputs,
                 api_name=False,
             ).then
         )
@@ -953,9 +979,12 @@ with gr.Blocks(theme=theme) as demo:
                     "Upload to Hub",
                 )
 
-        upload_to_hub_btn.click(lambda: "Uploading...", None, upload_to_hub_btn,
-                        api_name=False,                                
-                                ).then(
+        upload_to_hub_btn.click(
+            lambda: "Uploading...",
+            None,
+            upload_to_hub_btn,
+            api_name=False,
+        ).then(
             upload_to_hub,
             {
                 current_theme,
