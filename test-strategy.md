@@ -2,6 +2,8 @@
 
 Very brief, mildly aspirational test strategy document. This isn't where we are but it is where we want to get to.
 
+This does not detail how to setup an environment or how to run the tests locally nor does it contain any best practices that we try to follow when writing tests, that information exists in an as yet unwritten contributing guide (ye, i know).
+
 ## Objectives
 
 The purposes of all testing activities on Gradio fit one of the following objectives:
@@ -55,40 +57,52 @@ This aligns very closely with objective 1 but significantly impacts objective 5,
 
 Tests in this category could be browser-based end-to-end tests, accessibility tests, or performance tests. They are sometimes call acceptance tests.
 
-
 ## Testing tools
 
 We currently use the following tools:
 
 ### Static quality checks
 
-- Python types-checking (python) ???
+- Python type-checking (python)
 - Black linting (python)
 - ruff formatting (python)
 - prettier formatting (javascript/svelte)
 - TypeScript type-checking (javascript/svelte)
-- eslint linting (javascript/svelte)
+- eslint linting (javascript/svelte) [in progress]
 
 ### Dynamic code tests
 
-- pytest (python) ???
-- vitest
-- playwright
+- pytest (python unit and integration tests)
+- vitest (node-based unit and integration tests)
+- playwright (browser-based unit and integration tests)
 
-### function/acceptance tests
+### Functional/acceptance tests
 
-- playwright
-- chromatic
-- ???
+- playwright (full end to end testing)
+- chromatic (visual testing) [in progress]
+- Accessibility testing [to do]
 
-## execution
+## Supported environments and versions
 
-- ci
-- fast feedback
+All operating systems refer to the current runner variants supported by GitHub actions.
 
-## managing defects
+All unspecified version segments (`x`) refer to latest.
 
-- every bugfix should have a test (where possible)
+| Software | Version(s)            | Operating System(s)               |
+| -------- | --------------------- | --------------------------------- |
+| Python   | `3.8.x`               | `ubuntu-latest`, `windows-latest` |
+| Node     | `18.x.x`              | `ubuntu-latest`                   |
+| Browser  | `playwright-chrome-x` | `ubuntu-latest`                   |
 
+## Test execution
 
+Tests need to be executed in a number of environments and at different stages on the development cycle in orsder to be useful. The requirements for tests are as follows:
 
+- **Locally**: it is important that developers can easily run most tests locally to ensure a passing suite before making a PR. There are some exceptions to this, certain tests may require access to secret values which we cannot make available to all possible contributors for practical security reasons. It is reasonable that it isn't possible to run these tests but they should be disabled by default when running locally.
+- **CI** - It is _critical_ that all tests run successfully in CI with no exceptions. Not every tests is required to pass to satisfy CI checks for practical reasons but it is required that all tests should run in CI and notify us if something unexpected happens in order for the development team to take appropriate action.
+
+## Managing defects
+
+As we formalise our testing strategy and bring / keep our test up to standard, it is important that we have some principles on managing defects as they ocurr/ are reported. For now we can have one very simple rule:
+
+- Every bug fix should be accompanied by a test that failed before the fix and passes afterwards. This test should _typically_ be a dynamic code test but it could be a linting rule or new type if that is appropriate. There are always exceptions but we should think very carefully before ignoring this rule.

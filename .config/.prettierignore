@@ -14,6 +14,7 @@
 **/guides/**
 **/.mypy_cache/**
 **/*.md
+!test-strategy.md
 **/js/_space-test/**
 js/app/test/gradio_cached_examples/**
 
