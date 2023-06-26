@@ -57,5 +57,5 @@ with gr.Blocks() as demo:
 
     img_output.select(select_section, None, selected_section)
 
-
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
