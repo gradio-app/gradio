@@ -124,7 +124,6 @@ class Textbox(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        self.cleared_value = ""
         self.type = type
 
     def get_config(self):
