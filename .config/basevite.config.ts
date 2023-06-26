@@ -12,7 +12,14 @@ import { fileURLToPath } from "url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const version_path = join(__dirname, "..", "gradio", "version.txt");
-const theme_token_path = join(__dirname, "..", "js", "theme", "src", "tokens.css");
+const theme_token_path = join(
+	__dirname,
+	"..",
+	"js",
+	"theme",
+	"src",
+	"tokens.css"
+);
 
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
@@ -33,7 +40,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: false,
 			target: "esnext",
-			minify: production,
+			minify: production
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
@@ -80,7 +87,7 @@ export default defineConfig(({ mode }) => {
 						]
 					}
 				})
-			}),
-		],
+			})
+		]
 	};
 });
