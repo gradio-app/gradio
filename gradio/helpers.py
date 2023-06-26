@@ -548,7 +548,9 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if not hasattr(root_blocks, "_progress_tracker_per_thread"):
         root_blocks._progress_tracker_per_thread = {}
 
-    def init_tqdm(self, iterable=None, desc=None, total=None, unit='steps', *args, **kwargs):
+    def init_tqdm(
+        self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
+    ):
         self._progress = root_blocks._progress_tracker_per_thread.get(
             threading.get_ident()
         )
