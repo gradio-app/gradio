@@ -124,8 +124,6 @@ class Dropdown(
             **kwargs,
         )
 
-        self.cleared_value = self.value or ([] if multiselect else "")
-
     def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
             type = {
