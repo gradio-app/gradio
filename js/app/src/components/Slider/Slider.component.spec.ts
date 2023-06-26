@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/experimental-ct-svelte";
-import { Page, Locator } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 import Slider from "./Slider.svelte";
 
 import type { LoadingStatus } from "../StatusTracker/types";
