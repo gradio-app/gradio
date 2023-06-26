@@ -2,7 +2,7 @@
 
 Very brief, mildly aspirational test strategy document. This isn't where we are but it is where we want to get to.
 
-This does not detail how to setup an environment or how to run the tests locally nor does it contain any best practices that we try to follow when writing tests, that information exists in an as yet unwritten contributing guide (ye, i know).
+This document does not detail how to setup an environment or how to run the tests locally nor does it contain any best practices that we try to follow when writing tests, that information exists in the [contributing guide]( https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
 
 ## Objectives
 
@@ -100,6 +100,8 @@ Tests need to be executed in a number of environments and at different stages on
 
 - **Locally**: it is important that developers can easily run most tests locally to ensure a passing suite before making a PR. There are some exceptions to this, certain tests may require access to secret values which we cannot make available to all possible contributors for practical security reasons. It is reasonable that it isn't possible to run these tests but they should be disabled by default when running locally.
 - **CI** - It is _critical_ that all tests run successfully in CI with no exceptions. Not every tests is required to pass to satisfy CI checks for practical reasons but it is required that all tests should run in CI and notify us if something unexpected happens in order for the development team to take appropriate action.
+
+For instructions on how to write and run tests see the [contributing guide]( https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
 
 ## Managing defects
 
