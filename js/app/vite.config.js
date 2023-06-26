@@ -9,7 +9,8 @@ import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
+const ROOT = join(__dirname, "..", "..");
+const version_path = join(ROOT, "gradio", "version.txt");
 const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
 
 const version = readFileSync(version_path, { encoding: "utf-8" })
@@ -108,12 +109,12 @@ export default defineConfig(({ mode }) => {
 			handle_ce_css()
 		],
 		test: {
+			setupFiles: join(ROOT, ".config", "setup_vite_tests.ts"),
 			environment: TEST_MODE,
 			include:
 				TEST_MODE === "node"
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
-					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-			globals: true
+					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 		}
 	};
 });

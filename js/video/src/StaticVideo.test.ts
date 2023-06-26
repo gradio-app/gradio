@@ -1,6 +1,4 @@
-import "@testing-library/jest-dom";
-
-import { test, describe, afterEach } from "vitest";
+import { test, describe, afterEach, expect } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 
 import StaticVideo from "./StaticVideo.svelte";
@@ -13,14 +11,12 @@ describe("StaticVideo", () => {
 		name: "a.mp4"
 	};
 
-	test("renders video and download button", () => {
+	test("renders video and download button", async () => {
 		const results = render(StaticVideo, {
 			label: "video",
 			show_label: true,
 			value: data
 		});
-
-		//expect(results.getAllByLabelText("video")).not.toThrow();
 
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
