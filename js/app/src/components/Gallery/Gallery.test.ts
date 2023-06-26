@@ -21,7 +21,7 @@ describe("Gallery", () => {
 	});
 
 	test("preview shows detailed image by default", async () => {
-		const { component, getAllByTestId } = render(Gallery, {
+		const { getAllByTestId, getByTestId } = render(Gallery, {
 			loading_status,
 			label: "gallery",
 			// @ts-ignore
@@ -51,12 +51,14 @@ describe("Gallery", () => {
 		});
 
 		const details = getAllByTestId("detailed-image");
+		const container = getByTestId("container_el");
+		container.scrollTo = () => {};
 
 		assert.equal(details.length, 1);
 	});
 
 	test("detailed view does not show larger image", async () => {
-		const { component, queryAllByTestId } = render(Gallery, {
+		const { queryAllByTestId, getByTestId } = render(Gallery, {
 			loading_status,
 			label: "gallery",
 			// @ts-ignore

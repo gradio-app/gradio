@@ -327,6 +327,7 @@
 		on:play
 		on:pause
 		on:ended={handle_ended}
+		data-testid={`${label}-dynamic-audio`}
 	/>
 
 	{#if mode === "edit" && player?.duration}
