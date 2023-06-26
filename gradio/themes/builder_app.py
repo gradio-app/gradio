@@ -448,6 +448,7 @@ with gr.Blocks(  # noqa: SIM117
                         + (time.sleep(2) or []),
                         chatbot,
                         chatbot,
+                        api_name=False,
                     )
                 with gr.Column(scale=1):
                     with gr.Accordion("Advanced Settings"):
@@ -919,7 +920,8 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             undo_btn.click(
-                undo, [history], [history, base_theme_dropdown] + theme_inputs
+                undo, [history], [history, base_theme_dropdown] + theme_inputs,
+                api_name=False,
             ).then
         )
 
@@ -948,7 +950,9 @@ with gr.Blocks(theme=theme) as demo:
                     "Upload to Hub",
                 )
 
-        upload_to_hub_btn.click(lambda: "Uploading...", None, upload_to_hub_btn).then(
+        upload_to_hub_btn.click(lambda: "Uploading...", None, upload_to_hub_btn,
+                        api_name=False,                                
+                                ).then(
             upload_to_hub,
             {
                 current_theme,
@@ -957,6 +961,7 @@ with gr.Blocks(theme=theme) as demo:
                 theme_version,
             },
             [theme_upload_status, upload_to_hub_btn],
+            api_name=False,
         )
 
 
