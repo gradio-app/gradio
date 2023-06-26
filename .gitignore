@@ -37,10 +37,10 @@ demo/files/*.mp4
 demo/all_demos/demos/*
 demo/all_demos/requirements.txt
 demo/*/config.json
+demo/annotatedimage_component/*.png
 
 # Etc
 .idea/*
-.vscode/*
 .DS_Store
 *.bak
 workspace.code-workspace
