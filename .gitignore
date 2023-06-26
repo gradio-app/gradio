@@ -65,5 +65,3 @@ public/build/
 test-results
 client/js/test.js
 .config/test.py
-
-.config/test.py

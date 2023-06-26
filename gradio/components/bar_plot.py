@@ -22,11 +22,7 @@ class BarPlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-<<<<<<< HEAD
-    Demos: native_plots, chicago-bikeshare-dashboard
-=======
     Demos: bar_plot, chicago-bikeshare-dashboard
->>>>>>> origin/main
     """
 
     def __init__(
@@ -44,9 +40,6 @@ class BarPlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         group_title: str | None = None,
-<<<<<<< HEAD
-        color_legend_position: str | None = None,
-=======
         color_legend_position: Literal[
             "left",
             "right",
@@ -59,7 +52,6 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
->>>>>>> origin/main
         height: int | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,
@@ -155,9 +147,6 @@ class BarPlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         group_title: str | None = None,
-<<<<<<< HEAD
-        color_legend_position: str | None = None,
-=======
         color_legend_position: Literal[
             "left",
             "right",
@@ -170,7 +159,6 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
->>>>>>> origin/main
         height: int | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,
@@ -271,9 +259,6 @@ class BarPlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         group_title: str | None = None,
-<<<<<<< HEAD
-        color_legend_position: str | None = None,
-=======
         color_legend_position: Literal[
             "left",
             "right",
@@ -287,7 +272,6 @@ class BarPlot(Plot):
         ]
         | None
         | None = None,
->>>>>>> origin/main
         height: int | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,
