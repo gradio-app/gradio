@@ -126,6 +126,6 @@ test("Slider Change event", async ({ mount, page }) => {
 	await expect(component.getByLabel("My Slider")).toHaveValue("7");
 
 	// More than one change event and one release event.
-	await expect(change).toBeGreaterThan(0);
+	await expect(change).toBeGreaterThan(1);
 	await expect(release).toEqual(1);
 });
