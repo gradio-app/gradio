@@ -21,9 +21,9 @@ Testing is always a tradeoff. We can't cover everything unless we want to spend 
 We should not focus on code coverage but on test coverage following the below criteria:
 
 - The documented Gradio API (that's the bit that users interact with via python) should be tested thoroughly. (1)
-- Additional gradio components that are both publicly available and used internally (such as the Python and JS client libraries) should be tested thoroughly. (1)
-- Additional gradio components that are publicly available should be tested as throughly as is reasonable (this could be things like demos/the gradio CLI/ other tooling). The importance of each individual component. and the appropriate investment of effort, needs to assessed on a case-by-case basis. (1)
-- Component boundaries should be tested where there is reasonable cause to do so (e.g. config generation) (1)
+- Additional gradio elements that are both publicly available and used internally (such as the Python and JS client libraries) should be tested thoroughly. (1)
+- Additional gradio elements that are publicly available should be tested as throughly as is reasonable (this could be things like demos/the gradio CLI/ other tooling). The importance of each individual component. and the appropriate investment of effort, needs to assessed on a case-by-case basis. (1)
+- Element boundaries should be tested where there is reasonable cause to do so (e.g. config generation) (1)
 - Implementation details should only be tested where there is sufficient complexity to warrant it. (1)
 - Bug fixes should be accompanied by tests wherever is reasonably possible. (3)
 
