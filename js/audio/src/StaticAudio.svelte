@@ -8,7 +8,8 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
+	import type { ActionReturn } from "svelte/action";
 	import { BlockLabel } from "@gradio/atoms";
 
 	import { Music } from "@gradio/icons";
@@ -16,7 +17,7 @@
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let name: string;
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let autoplay: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -33,20 +34,38 @@
 			data: value?.data
 		});
 
-	let el: HTMLAudioElement;
+	let player: HTMLAudioElement;
 
-	let old_val: any;
-	function value_has_changed(val: any) {
-		if (val === old_val) return false;
-		else {
-			old_val = val;
-			return true;
+	let _value: typeof value;
+
+	$: handle_value_change(value);
+
+	async function handle_value_change(media_value: typeof value): Promise<void> {
+		if (value && value.data) {
+			if (player) {
+				player.pause();
+				player.currentTime = 0;
+			}
+			await tick();
+			_value = media_value;
 		}
 	}
 
-	$: autoplay && el && value_has_changed(value) && el.play();
+	function loaded(node: HTMLAudioElement): ActionReturn {
+		async function handle_playback(): Promise<void> {
+			if (autoplay) {
+				await node.play();
+			}
+		}
 
-	function handle_ended() {
+		node.addEventListener("loadeddata", handle_playback);
+
+		return {
+			destroy: () => node.removeEventListener("loadeddata", handle_playback)
+		};
+	}
+
+	function handle_ended(): void {
 		dispatch("stop");
 		dispatch("end");
 	}
@@ -59,10 +78,11 @@
 	</Empty>
 {:else}
 	<audio
-		bind:this={el}
+		use:loaded
+		bind:this={player}
 		controls
 		preload="metadata"
-		src={value.data}
+		src={_value?.data}
 		on:play
 		on:pause
 		on:ended={handle_ended}

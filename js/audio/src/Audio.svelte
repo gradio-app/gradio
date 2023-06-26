@@ -9,6 +9,7 @@
 
 <script lang="ts">
 	import { onDestroy, createEventDispatcher, tick } from "svelte";
+	import type { ActionReturn } from "svelte/action";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
@@ -16,14 +17,15 @@
 	import Range from "svelte-range-slider-pips";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
+	import type { Action } from "babylonjs";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
-	export let show_label: boolean = true;
-	export let name: string = "";
+	export let show_label = true;
+	export let name = "";
 	export let source: "microphone" | "upload" | "none";
-	export let pending: boolean = false;
-	export let streaming: boolean = false;
+	export let pending = false;
+	export let streaming = false;
 	export let autoplay: boolean;
 
 	// TODO: make use of this
@@ -33,14 +35,14 @@
 	let recorder: IMediaRecorder;
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
-	let pending_stream: Array<Uint8Array> = [];
-	let submit_pending_stream_on_pending_end: boolean = false;
+	let pending_stream: Uint8Array[] = [];
+	let submit_pending_stream_on_pending_end = false;
 	let player: HTMLAudioElement;
 	let inited = false;
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
-	let audio_chunks: Array<Blob> = [];
+	let audio_chunks: Blob[] = [];
 	let audio_blob;
 	let module_promises:
 		| [
@@ -48,7 +50,7 @@
 				Promise<typeof import("extendable-media-recorder-wav-encoder")>
 		  ];
 
-	function get_modules() {
+	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
 			import("extendable-media-recorder-wav-encoder")
@@ -85,18 +87,18 @@
 	}
 
 	const dispatch_blob = async (
-		blobs: Array<Uint8Array> | Blob[],
+		blobs: Uint8Array[] | Blob[],
 		event: "stream" | "change" | "stop_recording"
-	) => {
-		let audio_blob = new Blob(blobs, { type: "audio/wav" });
+	): Promise<void> => {
+		let _audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
-			data: await blob_to_data_url(audio_blob),
+			data: await blob_to_data_url(_audio_blob),
 			name: "audio.wav"
 		};
 		dispatch(event, value);
 	};
 
-	async function prepare_audio() {
+	async function prepare_audio(): Promise<void> {
 		let stream: MediaStream | null;
 
 		try {
@@ -108,9 +110,8 @@
 					"Please allow access to the microphone for recording."
 				);
 				return;
-			} else {
-				throw err;
 			}
+			throw err;
 		}
 
 		if (stream == null) return;
@@ -124,7 +125,7 @@
 
 			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 
-			async function handle_chunk(event: IBlobEvent) {
+			async function handle_chunk(event: IBlobEvent): Promise<void> {
 				let buffer = await event.data.arrayBuffer();
 				let payload = new Uint8Array(buffer);
 				if (!header) {
@@ -161,13 +162,13 @@
 	$: if (submit_pending_stream_on_pending_end && pending === false) {
 		submit_pending_stream_on_pending_end = false;
 		if (header && pending_stream) {
-			let blobParts: Array<Uint8Array> = [header].concat(pending_stream);
+			let blobParts: Uint8Array[] = [header].concat(pending_stream);
 			pending_stream = [];
 			dispatch_blob(blobParts, "stream");
 		}
 	}
 
-	async function record() {
+	async function record(): Promise<void> {
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
@@ -185,7 +186,7 @@
 		}
 	});
 
-	const stop = async () => {
+	function stop(): void {
 		recorder.stop();
 		if (streaming) {
 			recording = false;
@@ -193,7 +194,7 @@
 				submit_pending_stream_on_pending_end = true;
 			}
 		}
-	};
+	}
 
 	function clear() {
 		dispatch("change");
@@ -202,8 +203,8 @@
 		value = null;
 	}
 
-	function loaded(node: HTMLAudioElement) {
-		function clamp_playback() {
+	function loaded(node: HTMLAudioElement): ActionReturn {
+		function clamp_playback(): void {
 			const start_time = (crop_values[0] / 100) * node.duration;
 			const end_time = (crop_values[1] / 100) * node.duration;
 			if (node.currentTime < start_time) {
@@ -216,10 +217,21 @@
 			}
 		}
 
+		async function handle_playback(): Promise<void> {
+			if (autoplay) {
+				node.pause();
+				await node.play();
+			}
+		}
+
+		node.addEventListener("loadeddata", handle_playback);
 		node.addEventListener("timeupdate", clamp_playback);
 
 		return {
-			destroy: () => node.removeEventListener("timeupdate", clamp_playback)
+			destroy(): void {
+				node.removeEventListener("loadeddata", handle_playback);
+				node.removeEventListener("timeupdate", clamp_playback);
+			}
 		};
 	}
 
@@ -240,7 +252,7 @@
 		dispatch("edit");
 	}
 
-	function handle_load({
+	async function handle_load({
 		detail
 	}: {
 		detail: {
@@ -249,7 +261,7 @@
 			size: number;
 			is_example: boolean;
 		};
-	}) {
+	}): Promise<void> {
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
 		dispatch("upload", detail);
@@ -260,18 +272,23 @@
 		dispatch("end");
 	}
 
-	let old_val: any;
-	function value_has_changed(val: any) {
-		if (val === old_val) return false;
-		else {
-			old_val = val;
-			return true;
-		}
-	}
-
 	export let dragging = false;
 	$: dispatch("drag", dragging);
-	$: autoplay && player && value_has_changed(value?.data) && player.play();
+
+	let _value: typeof value;
+
+	$: handle_value_change(value);
+
+	async function handle_value_change(media_value: typeof value): Promise<void> {
+		if (value && value.data) {
+			if (player) {
+				player.pause();
+				player.currentTime = 0;
+			}
+			await tick();
+			_value = media_value;
+		}
+	}
 </script>
 
 <BlockLabel
@@ -323,7 +340,7 @@
 		controls
 		bind:this={player}
 		preload="metadata"
-		src={value.data}
+		src={_value?.data}
 		on:play
 		on:pause
 		on:ended={handle_ended}
