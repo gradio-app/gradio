@@ -17,7 +17,7 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();

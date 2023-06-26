@@ -4,10 +4,9 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
-from typing_extensions import Literal
 
 from gradio.blocks import Block
 from gradio.helpers import EventData
@@ -77,9 +76,7 @@ class EventListenerMethod:
         self,
         trigger: Block,
         event_name: str,
-        show_progress: Literal["full"]
-        | Literal["minimal"]
-        | Literal["hidden"] = "full",
+        show_progress: Literal["full", "minimal", "hidden"] = "full",
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -99,9 +96,7 @@ class EventListenerMethod:
         api_name: str | None = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
-        show_progress: Literal["full"]
-        | Literal["minimal"]
-        | Literal["hidden"] = "full",
+        show_progress: Literal["full", "minimal", "hidden"] = "full",
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,

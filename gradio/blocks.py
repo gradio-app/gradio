@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal
 
 import anyio
 import requests
@@ -21,7 +21,6 @@ from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from packaging import version
-from typing_extensions import Literal
 
 from gradio import (
     analytics,
@@ -400,7 +399,7 @@ class BlockFunction:
     def spaces_auto_wrap(self):
         if spaces is None:
             return
-        if not utils.is_space():
+        if utils.get_space() is None:
             return
         self.fn = spaces.gradio_auto_wrap(self.fn)
 
@@ -666,9 +665,7 @@ class Blocks(BlockContext):
             title: The tab title to display when this is opened in a browser window.
             css: custom css or path to custom css file to apply to entire Blocks
         """
-        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
-        self.save_to = None
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
@@ -719,7 +716,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = utils.is_space()
+        self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
@@ -1135,7 +1132,10 @@ class Blocks(BlockContext):
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(
-                outputs[o], root_url=block.root_url, hf_token=Context.hf_token
+                outputs[o],
+                save_dir=block.DEFAULT_TEMP_DIR,
+                root_url=block.root_url,
+                hf_token=Context.hf_token,
             )
             predictions.append(deserialized)
 
@@ -1382,7 +1382,7 @@ Received outputs:
             "components": [],
             "css": self.css,
             "title": self.title or "Gradio",
-            "is_space": self.is_space,
+            "space_id": self.space_id,
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
@@ -1733,7 +1733,7 @@ Received outputs:
                 DeprecationWarning,
             )
 
-        if self.is_space:
+        if self.space_id:
             self.enable_queue = self.enable_queue is not False
         else:
             self.enable_queue = self.enable_queue is True
@@ -1857,7 +1857,7 @@ Received outputs:
             )
 
         if self.share:
-            if self.is_space:
+            if self.space_id:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
@@ -1956,7 +1956,7 @@ Received outputs:
                 "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
-                "is_spaces": self.is_space,
+                "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)

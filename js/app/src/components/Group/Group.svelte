@@ -4,7 +4,7 @@
 	export let visible: boolean = true;
 </script>
 
-<div id={elem_id} class={elem_classes.join(" ")} class:hidden={!visible}>
+<div id={elem_id} class={elem_classes.join(" ")} class:hide={!visible}>
 	<slot />
 </div>
 
@@ -25,5 +25,9 @@
 
 	div > :global(* + *:not(.absolute)) {
 		border-top: none !important;
+	}
+
+	.hide {
+		display: none;
 	}
 </style>

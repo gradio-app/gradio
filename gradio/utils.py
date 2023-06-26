@@ -107,8 +107,10 @@ def ipython_check() -> bool:
     return is_ipython
 
 
-def is_space() -> bool:
-    return os.getenv("SYSTEM") == "spaces"
+def get_space() -> str | None:
+    if os.getenv("SYSTEM") == "spaces":
+        return os.getenv("SPACE_ID")
+    return None
 
 
 def readme_to_html(article: str) -> str:

@@ -1,22 +1,26 @@
 {
-	"python.formatting.provider": "black",
-	"cssvar.files": [
-		// Or your custom Pollen bundle
-		"./js/node_modules/pollen-css/pollen.css"
-	],
-	// Do not ignore css files in node_modules, which is ignored by default
+	"python.formatting.provider": "none",
+	"cssvar.files": ["./js/node_modules/pollen-css/pollen.css"],
 	"cssvar.ignore": [],
-	// Use Pollen's inbuilt variable ordering
 	"cssvar.disableSort": true,
-	// Add support for autocomplete in other file types
 	"cssvar.extensions": ["js", "css", "html", "jsx", "tsx", "svelte"],
 	"python.analysis.extraPaths": ["./gradio/themes/utils"],
 	"prettier.useTabs": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll": true
+	},
 	"editor.formatOnSave": true,
 	"svelte.plugin.svelte.format.enable": true,
+	"svelte.plugin.svelte.diagnostics.enable": false,
 	"prettier.configPath": ".config/.prettierrc.json",
 	"prettier.ignorePath": ".config/.prettierignore",
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
-	"python.testing.pytestEnabled": true
+	"python.testing.pytestEnabled": true,
+	"eslint.packageManager": "pnpm",
+	"eslint.validate": ["javascript", "typescript", "html", "markdown", "svelte"],
+	"eslint.experimental.useFlatConfig": true,
+	"eslint.options": {
+		"overrideConfigFile": "./.config/eslint.config.js"
+	}
 }

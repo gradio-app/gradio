@@ -854,6 +854,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        # Confirm Audio can be instantiated with a numpy array
+        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
@@ -1409,8 +1412,17 @@ class TestVideo:
             full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
+    def test_convert_video_to_playable_format(self, monkeypatch, tmp_path):
+        test_file_dir = Path(Path(__file__).parent, "test_files")
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+        video = gr.Video(format="mp4")
+        output = video.postprocess(
+            str(test_file_dir / "playable_but_bad_container.mkv")
+        )
+        assert Path(output[0]["name"]).suffix == ".mp4"
+
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
-    @patch("gradio.components.FFmpeg")
+    @patch("gradio.components.video.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = deepcopy(media_data.BASE64_VIDEO)
@@ -1579,7 +1591,7 @@ class TestLabel:
             "name": "label",
             "show_label": True,
             "num_top_classes": 2,
-            "value": None,
+            "value": {},
             "label": None,
             "container": True,
             "min_width": 160,
@@ -1913,6 +1925,7 @@ class TestChatbot:
             "height": None,
             "root_url": None,
             "selectable": False,
+            "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
         }
 
 
@@ -2616,6 +2629,12 @@ class TestBarPlot:
             "visible": True,
             "bokeh_version": "3.0.3",
         }
+
+    def test_update_defaults_none(self):
+        output = gr.BarPlot.update(simple, x="a", y="b", height=100, width=200)
+        assert all(
+            v is None for k, v in output.items() if k not in ["value", "__type__"]
+        )
 
     def test_no_color(self):
         plot = gr.BarPlot(
