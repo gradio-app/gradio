@@ -22,7 +22,7 @@ with gr.Blocks() as demo:
         failure_btn = gr.Button(value="Trigger Failure")
         failure_exception = gr.Button(value="Trigger Failure With ValueError")
 
-        success_btn_2.click(success, None, None).then(success, None, None).success(lambda: "Consecutive Event Triggered", None, result_2)
+        success_btn_2.click(success, None, None).success(lambda: "First Event Trigered", None, result).success(lambda: "Consecutive Event Triggered", None, result_2)
         success_btn.click(success, None, None).success(lambda: "Success event triggered", inputs=None, outputs=result)
         failure_btn.click(failure, None, None).success(lambda: "Should not be triggered", inputs=None, outputs=result)
         failure_exception.click(exception, None, None)
