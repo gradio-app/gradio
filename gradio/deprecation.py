@@ -42,7 +42,9 @@ DEPRECATION_MESSAGE = {
 }
 
 
-def check_deprecated_parameters(cls: str, *, stacklevel: int | None = None, kwargs) -> None:
+def check_deprecated_parameters(
+    cls: str, *, stacklevel: int | None = None, kwargs
+) -> None:
     if stacklevel is None:
         stacklevel = utils.find_user_stack_level()
 
@@ -68,4 +70,6 @@ def warn_deprecation(text: str) -> None:
 
 
 def warn_style_method_deprecation() -> None:
-    warn_deprecation("The `style` method is deprecated. Please set these arguments in the constructor instead.")
+    warn_deprecation(
+        "The `style` method is deprecated. Please set these arguments in the constructor instead."
+    )

@@ -93,7 +93,9 @@ class Interface(Blocks):
         Returns:
             a Gradio Interface object for the given model
         """
-        warn_deprecation("gr.Interface.load() will be deprecated. Use gr.load() instead.")
+        warn_deprecation(
+            "gr.Interface.load() will be deprecated. Use gr.load() instead."
+        )
         return external.load(
             name=name, src=src, hf_token=api_key, alias=alias, **kwargs
         )

@@ -1499,7 +1499,9 @@ Received outputs:
             demo.launch()
         """
         if isinstance(self_or_cls, type):
-            warn_deprecation("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
+            warn_deprecation(
+                "gr.Blocks.load() will be deprecated. Use gr.load() instead."
+            )
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
@@ -1575,7 +1577,9 @@ Received outputs:
         self.enable_queue = True
         self.api_open = api_open
         if client_position_to_load_data is not None:
-            warn_deprecation("The client_position_to_load_data parameter is deprecated.")
+            warn_deprecation(
+                "The client_position_to_load_data parameter is deprecated."
+            )
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
