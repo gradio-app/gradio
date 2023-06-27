@@ -12,7 +12,12 @@ const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
 const ROOT = join(__dirname, "..");
 
 const test_files = readdirSync(TEST_FILES_PATH)
-	.filter((f) => f.endsWith("spec.ts") && !f.endsWith(".skip.spec.ts"))
+	.filter(
+		(f) =>
+			f.endsWith("spec.ts") &&
+			!f.endsWith(".skip.spec.ts") &&
+			!f.endsWith(".component.spec.ts")
+	)
 	.map((f) => basename(f, ".spec.ts"));
 
 export default async function global_setup() {

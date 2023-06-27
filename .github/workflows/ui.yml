@@ -53,3 +53,7 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm test:browser
+      - name: run browser component tests
+        run: |
+          . venv/bin/activate
+          pnpm run test:ct
