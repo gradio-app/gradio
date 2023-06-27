@@ -64,3 +64,6 @@ public/build/
 test-results
 client/js/test.js
 .config/test.py
+
+# generated css
+.storybook/theme.css

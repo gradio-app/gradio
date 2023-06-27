@@ -16,7 +16,7 @@ const config = {
 		}
 	},
 	docs: {
-		autodocs: "tag"
+		autodocs: true
 	},
 	staticDirs: ["public"]
 };
