@@ -67,7 +67,15 @@ from gradio.flagging import (
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
-from gradio.helpers import EventData, Progress, make_waveform, skip, update, Warning, Info
+from gradio.helpers import (
+    EventData,
+    Info,
+    Progress,
+    Warning,
+    make_waveform,
+    skip,
+    update,
+)
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension

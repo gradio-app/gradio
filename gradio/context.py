@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import threading
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
@@ -15,5 +15,6 @@ class Context:
     id: int = 0  # Running id to uniquely refer to any block that gets defined
     ip_address: str | None = None  # The IP address of the user.
     hf_token: str | None = None  # The token provided when loading private HF repos
+
 
 thread_data = threading.local()

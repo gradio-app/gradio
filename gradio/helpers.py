@@ -13,7 +13,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,9 +21,6 @@ import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-import warnings
-from typing import Literal
-
 
 from gradio import components, processing_utils, routes, utils
 from gradio.context import Context

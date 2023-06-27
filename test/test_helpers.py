@@ -626,7 +626,7 @@ class TestProgressBar:
         ]
 
     @pytest.mark.asyncio
-    async def test_progress_bar_track_tqdm_without_iterable(self):
+    async def test_info_and_warning_alerts(self):
         def greet(s):
             for _c in s:
                 gr.Info(f"Letter {_c}")
