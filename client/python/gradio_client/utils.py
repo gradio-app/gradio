@@ -356,7 +356,9 @@ def encode_file_to_base64(f: str | Path):
 
 
 def encode_url_to_base64(url: str):
-    encoded_string = base64.b64encode(requests.get(url).content)
+    resp = requests.get(url)
+    resp.raise_for_status()
+    encoded_string = base64.b64encode(resp.content)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (

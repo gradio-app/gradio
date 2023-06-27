@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from requests.exceptions import HTTPError
+import requests
 
 from gradio_client import media_data, utils
 
@@ -38,6 +38,14 @@ def test_encode_url_to_base64():
         "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
     )
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
+
+
+def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
+    error_response = requests.Response()
+    error_response.status_code = 404
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(requests.RequestException):
+        utils.encode_url_to_base64("https://example.com/foo")
 
 
 def test_decode_base64_to_binary():
@@ -123,7 +131,7 @@ def test_sleep_successful(mock_post):
 
 @patch(
     "requests.post",
-    return_value=MagicMock(raise_for_status=MagicMock(side_effect=HTTPError)),
+    return_value=MagicMock(raise_for_status=MagicMock(side_effect=requests.HTTPError)),
 )
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):
