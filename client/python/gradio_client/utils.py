@@ -196,10 +196,11 @@ class Communicator:
 def is_valid_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        head_request = requests.head(possible_url, headers=headers)
-        if head_request.status_code == 405:
-            return requests.get(possible_url, headers=headers).ok
-        return head_request.ok
+        with requests.session() as sess:
+            head_request = sess.head(possible_url, headers=headers)
+            if head_request.status_code == 405:
+                return sess.get(possible_url, headers=headers).ok
+            return head_request.ok
     except Exception:
         return False
 
