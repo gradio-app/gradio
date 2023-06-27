@@ -4,6 +4,7 @@ Defines helper methods useful for loading and caching Interface examples.
 from __future__ import annotations
 
 import ast
+import asyncio
 import csv
 import inspect
 import os
@@ -599,12 +600,23 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
 
-    def tracked_fn(*args):
-        thread_id = threading.get_ident()
-        root_blocks._progress_tracker_per_thread[thread_id] = progress
-        response = fn(*args)
-        del root_blocks._progress_tracker_per_thread[thread_id]
-        return response
+    if asyncio.iscoroutinefunction(fn):
+
+        async def tracked_fn(*args, **kwargs):
+            thread_id = threading.get_ident()
+            root_blocks._progress_tracker_per_thread[thread_id] = progress
+            response = await fn(*args, **kwargs)
+            del root_blocks._progress_tracker_per_thread[thread_id]
+            return response
+
+    else:
+
+        def tracked_fn(*args, **kwargs):
+            thread_id = threading.get_ident()
+            root_blocks._progress_tracker_per_thread[thread_id] = progress
+            response = fn(*args, **kwargs)
+            del root_blocks._progress_tracker_per_thread[thread_id]
+            return response
 
     return progress, tracked_fn
 

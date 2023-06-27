@@ -1061,16 +1061,14 @@ class Blocks(BlockContext):
 
         start = time.time()
 
+        fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
+
         if iterator is None:  # If not a generator function that has already run
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
-                    self, event_id, block_fn.fn, progress_tracker.track_tqdm
+                    self, event_id, fn, progress_tracker.track_tqdm
                 )
                 processed_input[progress_index] = progress_tracker
-            else:
-                fn = block_fn.fn
-
-            fn = utils.get_function_with_locals(fn, self, event_id)
 
             if inspect.iscoroutinefunction(fn):
                 prediction = await fn(*processed_input)
