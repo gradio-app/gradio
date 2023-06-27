@@ -2,7 +2,9 @@ name: 'Chromatic'
 
 on:
   workflow_run:
-    workflows: ["gradio-ui"]
+    workflows: [gradio-ui]
+    types: [completed]
+
 
 jobs:
   chromatic-deployment:
