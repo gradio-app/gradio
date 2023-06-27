@@ -1,4 +1,5 @@
 import "@gradio/theme";
+import { client, upload_files } from "@gradio/client";
 import { mount_css } from "./css";
 import Index from "./Index.svelte";
 import type { ThemeMode } from "./components/types";
@@ -93,6 +94,9 @@ function create_custom_element() {
 					// misc global behaviour
 					autoscroll: this.autoscroll === "true" ? true : false,
 					control_page_title: this.control_page_title === "true" ? true : false,
+					// injectables
+					client,
+					upload_files,
 					// for gradio docs
 					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 					app_mode: window.__gradio_mode__ === "app"
@@ -154,6 +158,9 @@ function create_custom_element() {
 						autoscroll: this.autoscroll === "true" ? true : false,
 						control_page_title:
 							this.control_page_title === "true" ? true : false,
+						// injectables
+						client,
+						upload_files,
 						// for gradio docs
 						// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
 						app_mode: window.__gradio_mode__ === "app"
