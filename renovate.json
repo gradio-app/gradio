@@ -7,5 +7,18 @@
 		"group:allNonMajor",
 		":semanticCommitTypeAll(chore)"
 	],
-	"ignorePaths": ["**/demo/**", "**/requirements.txt", "**/Dockerfile"]
+	"ignorePaths": [
+		"**/demo/**",
+		"**/requirements.txt",
+		"**/Dockerfile",
+		"**/website/**"
+	],
+	"ignoreDeps": [
+		"lazy-brush",
+		"babylonjs",
+		"babylonjs-loaders",
+		"postcss-load-config",
+		"postcss-nested",
+		"svelte"
+	]
 }

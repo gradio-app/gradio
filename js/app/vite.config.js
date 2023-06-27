@@ -3,12 +3,15 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
+import global_data from "@csstools/postcss-global-data";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { join } from "path";
 
 const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
+const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
+
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
 	.replace(/\./g, "-");
@@ -25,7 +28,7 @@ const TEST_CDN = !!process.env.TEST_CDN;
 const CDN = TEST_CDN
 	? "http://localhost:4321/"
 	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
-const TEST_MODE = process.env.TEST_MODE || "happy-dom";
+const TEST_MODE = process.env.TEST_MODE || "jsdom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
@@ -71,39 +74,27 @@ export default defineConfig(({ mode }) => {
 								fileName.indexOf(".svelte") > -1
 							) {
 								return selector;
-							} else {
-								return prefixedSelector;
 							}
+							return prefixedSelector;
 						}
 					}),
-					custom_media({
-						importFrom: [
-							{
-								customMedia: {
-									"--screen-sm": "(min-width: 640px)",
-									"--screen-md": "(min-width: 768px)",
-									"--screen-lg": "(min-width: 1024px)",
-									"--screen-xl": "(min-width: 1280px)",
-									"--screen-xxl": "(min-width: 1536px)"
-								}
-							}
-						]
-					})
+					custom_media()
 				]
 			}
 		},
 		plugins: [
 			svelte({
-				experimental: {
-					inspector: true
-				},
+				inspector: true,
 				compilerOptions: {
 					dev: !production
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
 					postcss: {
-						plugins: [custom_media()]
+						plugins: [
+							global_data({ files: [theme_token_path] }),
+							custom_media()
+						]
 					}
 				})
 			}),

@@ -105,7 +105,6 @@ marked.use(
 		gfm: true,
 		breaks: true,
 		pedantic: false,
-		smartLists: true,
 		headerIds: false,
 		mangle: false
 	},
