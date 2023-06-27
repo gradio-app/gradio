@@ -40,7 +40,7 @@
 		"@tailwindcss/forms": "^0.5.0",
 		"@testing-library/dom": "^9.0.0",
 		"@testing-library/jest-dom": "^5.16.5",
-		"@testing-library/svelte": "^4.0.0",
+		"@testing-library/svelte": "^4.0.1",
 		"@testing-library/user-event": "^14.0.0",
 		"@types/node": "^20.3.1",
 		"@types/testing-library__jest-dom": "^5.14.6",

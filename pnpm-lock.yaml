@@ -36,8 +36,8 @@ importers:
         specifier: ^5.16.5
         version: 5.16.5
       '@testing-library/svelte':
-        specifier: ^4.0.0
-        version: 4.0.0(svelte@4.0.0)
+        specifier: ^4.0.1
+        version: 4.0.1(svelte@4.0.0)
       '@testing-library/user-event':
         specifier: ^14.0.0
         version: 14.0.0(@testing-library/dom@9.0.0)
@@ -1995,8 +1995,8 @@ packages:
       redent: 3.0.0
     dev: false
 
-  /@testing-library/svelte@4.0.0(svelte@4.0.0):
-    resolution: {integrity: sha512-LRsrUm0FPn/PSdiyFGpix7i3VwgvF65Uw6eLboTM84SWGvRnBlE0VkawrhGl49Phh2nyZ7mS7M0gtVl3OM1eKQ==}
+  /@testing-library/svelte@4.0.1(svelte@4.0.0):
+    resolution: {integrity: sha512-rvqkMlkXPtbtMbYQsWTb666yBAJVrTJcek2TlDogBKhxwYKqbWgvtTftMNclPi5aLgy+QGndTyIf4gtdFKaiXA==}
     engines: {node: '>= 10'}
     peerDependencies:
       svelte: ^3 || ^4
