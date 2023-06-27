@@ -8,8 +8,8 @@ test(".success event runs after function successfully completes. .success should
 	await expect(textbox).toHaveValue("");
 
 	await Promise.all([
-		page.click("text=Trigger Failure"),
-		page.waitForResponse("**/run/predict")
+		page.waitForResponse("**/run/predict"),
+		page.click("text=Trigger Failure")
 	]);
 	expect(textbox).toHaveValue("");
 
@@ -47,8 +47,8 @@ test("Consecutive .success event is triggered successfully", async ({
 
 test("gr.Error makes the toast show up", async ({ page }) => {
 	await Promise.all([
-		page.click("text=Trigger Failure"),
-		page.waitForResponse("**/run/predict")
+		page.waitForResponse("**/run/predict"),
+		page.click("text=Trigger Failure")
 	]);
 
 	const toast = page.getByTestId("error-toast");
@@ -62,8 +62,8 @@ test("ValueError makes the toast show up when show_error=True", async ({
 	page
 }) => {
 	await Promise.all([
-		page.click("text=Trigger Failure With ValueError"),
-		page.waitForResponse("**/run/predict")
+		page.waitForResponse("**/run/predict"),
+		page.click("text=Trigger Failure With ValueError")
 	]);
 
 	const toast = page.getByTestId("error-toast");
