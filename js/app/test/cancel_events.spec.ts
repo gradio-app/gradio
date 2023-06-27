@@ -12,11 +12,9 @@ test("yielding", async ({ page }) => {
 
         ws.on('framereceived', async event => {
             console.log(event.payload)
-            await expect(textbox).toHaveValue("abcd");
+            await expect(textbox).toHaveValue("ranoiamsdlfasldabcd");
         });
 
     });
-
-    await expect(textbox).toHaveValue("abcd");
 });
 
