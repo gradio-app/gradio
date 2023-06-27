@@ -17,9 +17,9 @@
 	let innerHeight: number;
 
 	const calculate_window_distance = () => {
-		distance_from_top = refElement.getBoundingClientRect().top;
-		distance_from_bottom =
-			innerHeight - refElement.getBoundingClientRect().bottom;
+    const {top, bottom} = refElement.getBoundingClientRect(); 
+		distance_from_top = innerHeight - top;
+		distance_from_bottom = innerHeight - bottom;
 	};
 
 	let scroll_timeout: NodeJS.Timeout | null = null;
