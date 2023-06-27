@@ -602,12 +602,14 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
 
     if asyncio.iscoroutinefunction(fn):
 
-        async def tracked_fn(*args, **kwargs):
+        async def async_tracked_fn(*args, **kwargs):
             thread_id = threading.get_ident()
             root_blocks._progress_tracker_per_thread[thread_id] = progress
             response = await fn(*args, **kwargs)
             del root_blocks._progress_tracker_per_thread[thread_id]
             return response
+
+        return progress, async_tracked_fn
 
     else:
 
@@ -618,7 +620,7 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
             del root_blocks._progress_tracker_per_thread[thread_id]
             return response
 
-    return progress, tracked_fn
+        return progress, tracked_fn
 
 
 def special_args(
