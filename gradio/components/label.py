@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import operator
-import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -13,6 +12,7 @@ from gradio_client.serializing import (
 )
 
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -176,9 +176,7 @@ class Label(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         return self

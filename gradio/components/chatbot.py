@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import inspect
-import warnings
 from typing import Callable, Literal
 
 from gradio_client import utils as client_utils
@@ -12,6 +11,7 @@ from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -68,9 +68,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
         """
         if color_map is not None:
-            warnings.warn(
-                "The 'color_map' parameter has been deprecated.",
-            )
+            warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.
@@ -225,9 +223,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         return self

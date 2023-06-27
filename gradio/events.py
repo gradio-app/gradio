@@ -3,12 +3,12 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import Block
+from gradio.deprecation import warn_deprecation
 from gradio.helpers import EventData
 from gradio.utils import get_cancel_function
 
@@ -123,11 +123,11 @@ class EventListenerMethod:
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         if status_tracker:
-            warnings.warn(
+            warn_deprecation(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
         if self.event_name == "stop":
-            warnings.warn(
+            warn_deprecation(
                 "The `stop` event on Video and Audio has been deprecated and will be remove in a future version. Use `ended` instead."
             )
 

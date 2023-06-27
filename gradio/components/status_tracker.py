@@ -1,10 +1,8 @@
 """gr.StatusTracker() component."""
-
-import warnings
-
 from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import Component
+from gradio.deprecation import warn_deprecation
 
 
 class StatusTracker(Component, SimpleSerializable):
@@ -12,4 +10,4 @@ class StatusTracker(Component, SimpleSerializable):
         self,
         **kwargs,
     ):
-        warnings.warn("The StatusTracker component is deprecated.")
+        warn_deprecation("The StatusTracker component is deprecated.")

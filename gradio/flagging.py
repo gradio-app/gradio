@@ -6,7 +6,6 @@ import json
 import os
 import time
 import uuid
-import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from distutils.version import StrictVersion
@@ -21,6 +20,7 @@ from gradio_client.documentation import document, set_documentation_group
 
 import gradio as gr
 from gradio import utils
+from gradio.deprecation import warn_deprecation
 
 if TYPE_CHECKING:
     from gradio.components import IOComponent
@@ -227,7 +227,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             separate_dirs: If True, each flagged item will be saved in a separate directory. This makes the flagging more robust to concurrent editing, but may be less convenient to use.
         """
         if organization is not None:
-            warnings.warn(
+            warn_deprecation(
                 "Parameter `organization` is not used anymore. Please pass a full dataset id (e.g. 'username/dataset_name') to `dataset_name` instead."
             )
         self.hf_token = hf_token
@@ -467,7 +467,7 @@ class HuggingFaceDatasetJSONSaver(HuggingFaceDatasetSaver):
         info_filename: str = "dataset_info.json",
         verbose: bool = True,  # silently ignored. TODO: remove it?
     ):
-        warnings.warn(
+        warn_deprecation(
             "Callback `HuggingFaceDatasetJSONSaver` is deprecated in favor of using"
             " `HuggingFaceDatasetSaver` and passing `separate_dirs=True` as parameter."
         )

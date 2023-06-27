@@ -16,6 +16,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     Clearable,
@@ -389,9 +390,7 @@ class Image(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         if width is not None:

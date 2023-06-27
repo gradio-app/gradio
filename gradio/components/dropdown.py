@@ -9,6 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -233,9 +234,7 @@ class Dropdown(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         return self

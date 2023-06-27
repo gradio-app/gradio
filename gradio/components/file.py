@@ -13,6 +13,7 @@ from gradio_client.serializing import FileSerializable
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation
 from gradio.events import (
     Changeable,
     Clearable,
@@ -93,7 +94,7 @@ class File(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         if type == "bytes":
-            warnings.warn(
+            warn_deprecation(
                 "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
         if file_count == "directory" and file_types is not None:
