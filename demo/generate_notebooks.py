@@ -26,7 +26,7 @@ for demo in demos:
         """
 
     files = os.listdir(os.path.join(GRADIO_DEMO_DIR, demo))
-    skip = ["run.py", "run.ipynb", "setup.sh", ".gitignore", "requirements.txt", "DESCRIPTION.md", "screenshot.png", "screenshot.gif"]
+    skip = ["run.py", "run.ipynb", "setup.sh", ".gitignore", "requirements.txt", "DESCRIPTION.md", "screenshot.png", "screenshot.gif", "README.json"]
     files = [file for file in files if file not in skip if git_tracked(demo, file)]
     files.sort()
     if files: 
