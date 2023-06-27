@@ -44,7 +44,7 @@ with gr.Blocks() as demo:
     image.edit(None, None, None, cancels=[click_event, pred_event])
     video.play(None, None, None, cancels=[click_event, pred_event])
 
-    demo.queue(concurrency_count=2, max_size=20).
+    demo.queue(concurrency_count=2, max_size=20)
 
 if __name__ == "__main__":
     demo.launch()

@@ -7,9 +7,14 @@ test("iterator", async ({ page }) => {
 
     page.on('websocket', ws => {
         console.log(`WebSocket opened: ${ws.url()}>`);
-        ws.on('framesent', event => console.log(event.payload));
+        ws.on('framesent', async event => {
+            console.log(event.payload)
+            const textbox = await page.getByLabel("Textbox").nth(0);
+            await expect(textbox).toHaveValue(event.payload.toString());
+        });
         ws.on('framereceived', event => console.log(event.payload));
         ws.on('close', () => console.log('WebSocket closed'));
+
     });
 
     // page.waitForResponse("**/*")
