@@ -3,10 +3,8 @@ name: 'Chromatic'
 on:
   push:
     branches:
-      - main
+      - "main"
   pull_request:
-    branches:
-      - main
 
 jobs:
   chromatic-deployment:
