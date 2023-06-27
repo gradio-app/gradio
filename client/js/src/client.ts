@@ -58,61 +58,7 @@ type SubmitReturn = {
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
-export async function post_data(
-	url: string,
-	body: unknown,
-	token?: `hf_${string}`
-): Promise<[PostResponse, number]> {
-	const headers: {
-		Authorization?: string;
-		"Content-Type": "application/json";
-	} = { "Content-Type": "application/json" };
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
-	}
-	try {
-		var response = await fetch(url, {
-			method: "POST",
-			body: JSON.stringify(body),
-			headers
-		});
-	} catch (e) {
-		return [{ error: BROKEN_CONNECTION_MSG }, 500];
-	}
-	const output: PostResponse = await response.json();
-	return [output, response.status];
-}
-
 export let NodeBlob;
-
-export async function upload_files(
-	root: string,
-	files: Array<File>,
-	token?: `hf_${string}`
-): Promise<UploadResponse> {
-	const headers: {
-		Authorization?: string;
-	} = {};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
-	}
-
-	const formData = new FormData();
-	files.forEach((file) => {
-		formData.append("files", file);
-	});
-	try {
-		var response = await fetch(`${root}/upload`, {
-			method: "POST",
-			body: formData,
-			headers
-		});
-	} catch (e) {
-		return { error: BROKEN_CONNECTION_MSG };
-	}
-	const output: UploadResponse["files"] = await response.json();
-	return { files: output };
-}
 
 export async function duplicate(
 	app_reference: string,
@@ -197,488 +143,614 @@ export async function duplicate(
 	}
 }
 
-export async function client(
-	app_reference: string,
-	options: {
-		hf_token?: `hf_${string}`;
-		status_callback?: SpaceStatusCallback;
-		normalise_files?: boolean;
-	} = { normalise_files: true }
-): Promise<client_return> {
-	return new Promise(async (res) => {
-		const { status_callback, hf_token, normalise_files } = options;
-		const return_obj = {
-			predict,
-			submit,
-			view_api
-			// duplicate
-		};
+/**
+ * We need to inject a customized fetch implementation for the Wasm version.
+ */
+export function api_factory(fetch_implementation: typeof fetch) {
+	return { post_data, upload_files, client, handle_blob };
 
-		const transform_files = normalise_files ?? true;
-		if (typeof window === "undefined" || !("WebSocket" in window)) {
-			const ws = await import("ws");
-			NodeBlob = (await import("node:buffer")).Blob;
-			//@ts-ignore
-			global.WebSocket = ws.WebSocket;
+	async function post_data(
+		url: string,
+		body: unknown,
+		token?: `hf_${string}`
+	): Promise<[PostResponse, number]> {
+		const headers: {
+			Authorization?: string;
+			"Content-Type": "application/json";
+		} = { "Content-Type": "application/json" };
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
+		}
+		try {
+			var response = await fetch_implementation(url, {
+				method: "POST",
+				body: JSON.stringify(body),
+				headers
+			});
+		} catch (e) {
+			return [{ error: BROKEN_CONNECTION_MSG }, 500];
+		}
+		const output: PostResponse = await response.json();
+		return [output, response.status];
+	}
+
+	async function upload_files(
+		root: string,
+		files: Array<File>,
+		token?: `hf_${string}`
+	): Promise<UploadResponse> {
+		const headers: {
+			Authorization?: string;
+		} = {};
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
 		}
 
-		const { ws_protocol, http_protocol, host, space_id } =
-			await process_endpoint(app_reference, hf_token);
-
-		const session_hash = Math.random().toString(36).substring(2);
-		const last_status: Record<string, Status["stage"]> = {};
-		let config: Config;
-		let api_map: Record<string, number> = {};
-
-		let jwt: false | string = false;
-
-		if (hf_token && space_id) {
-			jwt = await get_jwt(space_id, hf_token);
+		const formData = new FormData();
+		files.forEach((file) => {
+			formData.append("files", file);
+		});
+		try {
+			var response = await fetch_implementation(`${root}/upload`, {
+				method: "POST",
+				body: formData,
+				headers
+			});
+		} catch (e) {
+			return { error: BROKEN_CONNECTION_MSG };
 		}
+		const output: UploadResponse["files"] = await response.json();
+		return { files: output };
+	}
 
-		async function config_success(_config: Config) {
-			config = _config;
-			api_map = map_names_to_ids(_config?.dependencies || []);
-			try {
-				api = await view_api(config);
-			} catch (e) {
-				console.error(`Could not get api details: ${e.message}`);
+	async function client(
+		app_reference: string,
+		options: {
+			hf_token?: `hf_${string}`;
+			status_callback?: SpaceStatusCallback;
+			normalise_files?: boolean;
+		} = { normalise_files: true }
+	): Promise<client_return> {
+		return new Promise(async (res) => {
+			const { status_callback, hf_token, normalise_files } = options;
+			const return_obj = {
+				predict,
+				submit,
+				view_api
+				// duplicate
+			};
+
+			const transform_files = normalise_files ?? true;
+			if (typeof window === "undefined" || !("WebSocket" in window)) {
+				const ws = await import("ws");
+				NodeBlob = (await import("node:buffer")).Blob;
+				//@ts-ignore
+				global.WebSocket = ws.WebSocket;
 			}
 
-			return {
-				config,
-				...return_obj
-			};
-		}
-		let api: ApiInfo<JsApiData>;
-		async function handle_space_sucess(status: SpaceStatus) {
-			if (status_callback) status_callback(status);
-			if (status.status === "running")
-				try {
-					config = await resolve_config(`${http_protocol}//${host}`, hf_token);
+			const { ws_protocol, http_protocol, host, space_id } =
+				await process_endpoint(app_reference, hf_token);
 
-					const _config = await config_success(config);
-					res(_config);
+			const session_hash = Math.random().toString(36).substring(2);
+			const last_status: Record<string, Status["stage"]> = {};
+			let config: Config;
+			let api_map: Record<string, number> = {};
+
+			let jwt: false | string = false;
+
+			if (hf_token && space_id) {
+				jwt = await get_jwt(space_id, hf_token);
+			}
+
+			async function config_success(_config: Config) {
+				config = _config;
+				api_map = map_names_to_ids(_config?.dependencies || []);
+				try {
+					api = await view_api(config);
 				} catch (e) {
-					if (status_callback) {
+					console.error(`Could not get api details: ${e.message}`);
+				}
+
+				return {
+					config,
+					...return_obj
+				};
+			}
+			let api: ApiInfo<JsApiData>;
+			async function handle_space_sucess(status: SpaceStatus) {
+				if (status_callback) status_callback(status);
+				if (status.status === "running")
+					try {
+						config = await resolve_config(
+							fetch_implementation,
+							`${http_protocol}//${host}`,
+							hf_token
+						);
+
+						const _config = await config_success(config);
+						res(_config);
+					} catch (e) {
+						console.error(e);
+						if (status_callback) {
+							status_callback({
+								status: "error",
+								message: "Could not load this space.",
+								load_status: "error",
+								detail: "NOT_FOUND"
+							});
+						}
+					}
+			}
+
+			try {
+				config = await resolve_config(
+					fetch_implementation,
+					`${http_protocol}//${host}`,
+					hf_token
+				);
+
+				const _config = await config_success(config);
+				res(_config);
+			} catch (e) {
+				console.error(e);
+				if (space_id) {
+					check_space_status(
+						space_id,
+						RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
+						handle_space_sucess
+					);
+				} else {
+					if (status_callback)
 						status_callback({
 							status: "error",
 							message: "Could not load this space.",
 							load_status: "error",
 							detail: "NOT_FOUND"
 						});
-					}
 				}
-		}
-
-		try {
-			config = await resolve_config(`${http_protocol}//${host}`, hf_token);
-
-			const _config = await config_success(config);
-			res(_config);
-		} catch (e) {
-			if (space_id) {
-				check_space_status(
-					space_id,
-					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
-					handle_space_sucess
-				);
-			} else {
-				if (status_callback)
-					status_callback({
-						status: "error",
-						message: "Could not load this space.",
-						load_status: "error",
-						detail: "NOT_FOUND"
-					});
-			}
-		}
-
-		/**
-		 * Run a prediction.
-		 * @param endpoint - The prediction endpoint to use.
-		 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
-		 * @return Returns the data for the prediction or an error message.
-		 */
-		function predict(endpoint: string, data: unknown[], event_data?: unknown) {
-			let data_returned = false;
-			let status_complete = false;
-			return new Promise((res, rej) => {
-				const app = submit(endpoint, data, event_data);
-
-				app
-					.on("data", (d) => {
-						data_returned = true;
-						if (status_complete) {
-							app.destroy();
-						}
-						res(d);
-					})
-					.on("status", (status) => {
-						if (status.stage === "error") rej(status);
-						if (status.stage === "complete" && data_returned) {
-							app.destroy();
-						}
-						if (status.stage === "complete") {
-							status_complete = true;
-						}
-					});
-			});
-		}
-
-		function submit(
-			endpoint: string | number,
-			data: unknown[],
-			event_data?: unknown
-		): SubmitReturn {
-			let fn_index: number;
-			let api_info;
-
-			if (typeof endpoint === "number") {
-				fn_index = endpoint;
-				api_info = api.unnamed_endpoints[fn_index];
-			} else {
-				const trimmed_endpoint = endpoint.replace(/^\//, "");
-
-				fn_index = api_map[trimmed_endpoint];
-				api_info = api.named_endpoints[endpoint.trim()];
 			}
 
-			if (typeof fn_index !== "number") {
-				throw new Error(
-					"There is no endpoint matching that name of fn_index matching that number."
-				);
-			}
+			/**
+			 * Run a prediction.
+			 * @param endpoint - The prediction endpoint to use.
+			 * @param status_callback - A function that is called with the current status of the prediction immediately and every time it updates.
+			 * @return Returns the data for the prediction or an error message.
+			 */
+			function predict(
+				endpoint: string,
+				data: unknown[],
+				event_data?: unknown
+			) {
+				let data_returned = false;
+				let status_complete = false;
+				return new Promise((res, rej) => {
+					const app = submit(endpoint, data, event_data);
 
-			let websocket: WebSocket;
-
-			const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
-			let payload: Payload;
-			let complete: false | Record<string, any> = false;
-			const listener_map: ListenerMap<EventType> = {};
-
-			handle_blob(
-				`${http_protocol}//${host + config.path}`,
-				data,
-				api_info,
-				hf_token
-			).then((_payload) => {
-				payload = { data: _payload || [], event_data, fn_index };
-				if (skip_queue(fn_index, config)) {
-					fire_event({
-						type: "status",
-						endpoint: _endpoint,
-						stage: "pending",
-						queue: false,
-						fn_index,
-						time: new Date()
-					});
-
-					post_data(
-						`${http_protocol}//${host + config.path}/run${
-							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-						}`,
-						{
-							...payload,
-							session_hash
-						},
-						hf_token
-					)
-						.then(([output, status_code]) => {
-							const data = transform_files
-								? transform_output(
-										output.data,
-										api_info,
-										config.root,
-										config.root_url
-								  )
-								: output.data;
-							if (status_code == 200) {
-								fire_event({
-									type: "data",
-									endpoint: _endpoint,
-									fn_index,
-									data: data,
-									time: new Date()
-								});
-
-								fire_event({
-									type: "status",
-									endpoint: _endpoint,
-									fn_index,
-									stage: "complete",
-									eta: output.average_duration,
-									queue: false,
-									time: new Date()
-								});
-							} else {
-								fire_event({
-									type: "status",
-									stage: "error",
-									endpoint: _endpoint,
-									fn_index,
-									message: output.error,
-									queue: false,
-									time: new Date()
-								});
+					app
+						.on("data", (d) => {
+							data_returned = true;
+							if (status_complete) {
+								app.destroy();
 							}
+							res(d);
 						})
-						.catch((e) => {
-							fire_event({
-								type: "status",
-								stage: "error",
-								message: e.message,
-								endpoint: _endpoint,
-								fn_index,
-								queue: false,
-								time: new Date()
-							});
-						});
-				} else {
-					fire_event({
-						type: "status",
-						stage: "pending",
-						queue: true,
-						endpoint: _endpoint,
-						fn_index,
-						time: new Date()
-					});
-
-					let url = new URL(`${ws_protocol}://${host}${config.path}
-						/queue/join`);
-
-					if (jwt) {
-						url.searchParams.set("__sign", jwt);
-					}
-
-					websocket = new WebSocket(url);
-
-					websocket.onclose = (evt) => {
-						if (!evt.wasClean) {
-							fire_event({
-								type: "status",
-								stage: "error",
-								message: BROKEN_CONNECTION_MSG,
-								queue: true,
-								endpoint: _endpoint,
-								fn_index,
-								time: new Date()
-							});
-						}
-					};
-
-					websocket.onmessage = function (event) {
-						const _data = JSON.parse(event.data);
-						const { type, status, data } = handle_message(
-							_data,
-							last_status[fn_index]
-						);
-
-						if (type === "update" && status && !complete) {
-							// call 'status' listeners
-							fire_event({
-								type: "status",
-								endpoint: _endpoint,
-								fn_index,
-								time: new Date(),
-								...status
-							});
-							if (status.stage === "error") {
-								websocket.close();
+						.on("status", (status) => {
+							if (status.stage === "error") rej(status);
+							if (status.stage === "complete" && data_returned) {
+								app.destroy();
 							}
-						} else if (type === "hash") {
-							websocket.send(JSON.stringify({ fn_index, session_hash }));
-							return;
-						} else if (type === "data") {
-							websocket.send(JSON.stringify({ ...payload, session_hash }));
-						} else if (type === "complete") {
-							complete = status;
-						} else if (type === "generating") {
-							fire_event({
-								type: "status",
-								time: new Date(),
-								...status,
-								stage: status?.stage!,
-								queue: true,
-								endpoint: _endpoint,
-								fn_index
-							});
-						}
-						if (data) {
-							fire_event({
-								type: "data",
-								time: new Date(),
-								data: transform_files
+							if (status.stage === "complete") {
+								status_complete = true;
+							}
+						});
+				});
+			}
+
+			function submit(
+				endpoint: string | number,
+				data: unknown[],
+				event_data?: unknown
+			): SubmitReturn {
+				let fn_index: number;
+				let api_info;
+
+				if (typeof endpoint === "number") {
+					fn_index = endpoint;
+					api_info = api.unnamed_endpoints[fn_index];
+				} else {
+					const trimmed_endpoint = endpoint.replace(/^\//, "");
+
+					fn_index = api_map[trimmed_endpoint];
+					api_info = api.named_endpoints[endpoint.trim()];
+				}
+
+				if (typeof fn_index !== "number") {
+					throw new Error(
+						"There is no endpoint matching that name of fn_index matching that number."
+					);
+				}
+
+				let websocket: WebSocket;
+
+				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
+				let payload: Payload;
+				let complete: false | Record<string, any> = false;
+				const listener_map: ListenerMap<EventType> = {};
+
+				handle_blob(
+					`${http_protocol}//${host + config.path}`,
+					data,
+					api_info,
+					hf_token
+				).then((_payload) => {
+					payload = { data: _payload || [], event_data, fn_index };
+					if (skip_queue(fn_index, config)) {
+						fire_event({
+							type: "status",
+							endpoint: _endpoint,
+							stage: "pending",
+							queue: false,
+							fn_index,
+							time: new Date()
+						});
+
+						post_data(
+							`${http_protocol}//${host + config.path}/run${
+								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+							}`,
+							{
+								...payload,
+								session_hash
+							},
+							hf_token
+						)
+							.then(([output, status_code]) => {
+								const data = transform_files
 									? transform_output(
-											data.data,
+											output.data,
 											api_info,
 											config.root,
 											config.root_url
 									  )
-									: data.data,
-								endpoint: _endpoint,
-								fn_index
-							});
+									: output.data;
+								if (status_code == 200) {
+									fire_event({
+										type: "data",
+										endpoint: _endpoint,
+										fn_index,
+										data: data,
+										time: new Date()
+									});
 
-							if (complete) {
+									fire_event({
+										type: "status",
+										endpoint: _endpoint,
+										fn_index,
+										stage: "complete",
+										eta: output.average_duration,
+										queue: false,
+										time: new Date()
+									});
+								} else {
+									fire_event({
+										type: "status",
+										stage: "error",
+										endpoint: _endpoint,
+										fn_index,
+										message: output.error,
+										queue: false,
+										time: new Date()
+									});
+								}
+							})
+							.catch((e) => {
+								fire_event({
+									type: "status",
+									stage: "error",
+									message: e.message,
+									endpoint: _endpoint,
+									fn_index,
+									queue: false,
+									time: new Date()
+								});
+							});
+					} else {
+						fire_event({
+							type: "status",
+							stage: "pending",
+							queue: true,
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date()
+						});
+
+						let url = new URL(`${ws_protocol}://${host}${config.path}
+							/queue/join`);
+
+						if (jwt) {
+							url.searchParams.set("__sign", jwt);
+						}
+
+						websocket = new WebSocket(url);
+
+						websocket.onclose = (evt) => {
+							if (!evt.wasClean) {
+								fire_event({
+									type: "status",
+									stage: "error",
+									message: BROKEN_CONNECTION_MSG,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date()
+								});
+							}
+						};
+
+						websocket.onmessage = function (event) {
+							const _data = JSON.parse(event.data);
+							const { type, status, data } = handle_message(
+								_data,
+								last_status[fn_index]
+							);
+
+							if (type === "update" && status && !complete) {
+								// call 'status' listeners
+								fire_event({
+									type: "status",
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date(),
+									...status
+								});
+								if (status.stage === "error") {
+									websocket.close();
+								}
+							} else if (type === "hash") {
+								websocket.send(JSON.stringify({ fn_index, session_hash }));
+								return;
+							} else if (type === "data") {
+								websocket.send(JSON.stringify({ ...payload, session_hash }));
+							} else if (type === "complete") {
+								complete = status;
+							} else if (type === "generating") {
 								fire_event({
 									type: "status",
 									time: new Date(),
-									...complete,
+									...status,
 									stage: status?.stage!,
 									queue: true,
 									endpoint: _endpoint,
 									fn_index
 								});
-								websocket.close();
 							}
-						}
-					};
+							if (data) {
+								fire_event({
+									type: "data",
+									time: new Date(),
+									data: transform_files
+										? transform_output(
+												data.data,
+												api_info,
+												config.root,
+												config.root_url
+										  )
+										: data.data,
+									endpoint: _endpoint,
+									fn_index
+								});
 
-					// different ws contract for gradio versions older than 3.6.0
-					//@ts-ignore
-					if (semiver(config.version || "2.0.0", "3.6") < 0) {
-						addEventListener("open", () =>
-							websocket.send(JSON.stringify({ hash: session_hash }))
+								if (complete) {
+									fire_event({
+										type: "status",
+										time: new Date(),
+										...complete,
+										stage: status?.stage!,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index
+									});
+									websocket.close();
+								}
+							}
+						};
+
+						// different ws contract for gradio versions older than 3.6.0
+						//@ts-ignore
+						if (semiver(config.version || "2.0.0", "3.6") < 0) {
+							addEventListener("open", () =>
+								websocket.send(JSON.stringify({ hash: session_hash }))
+							);
+						}
+					}
+				});
+
+				function fire_event<K extends EventType>(event: Event<K>) {
+					const narrowed_listener_map: ListenerMap<K> = listener_map;
+					const listeners = narrowed_listener_map[event.type] || [];
+					listeners?.forEach((l) => l(event));
+				}
+
+				function on<K extends EventType>(
+					eventType: K,
+					listener: EventListener<K>
+				) {
+					const narrowed_listener_map: ListenerMap<K> = listener_map;
+					const listeners = narrowed_listener_map[eventType] || [];
+					narrowed_listener_map[eventType] = listeners;
+					listeners?.push(listener);
+
+					return { on, off, cancel, destroy };
+				}
+
+				function off<K extends EventType>(
+					eventType: K,
+					listener: EventListener<K>
+				) {
+					const narrowed_listener_map: ListenerMap<K> = listener_map;
+					let listeners = narrowed_listener_map[eventType] || [];
+					listeners = listeners?.filter((l) => l !== listener);
+					narrowed_listener_map[eventType] = listeners;
+
+					return { on, off, cancel, destroy };
+				}
+
+				async function cancel() {
+					const _status: Status = {
+						stage: "complete",
+						queue: false,
+						time: new Date()
+					};
+					complete = _status;
+					fire_event({
+						..._status,
+						type: "status",
+						endpoint: _endpoint,
+						fn_index: fn_index
+					});
+
+					if (websocket && websocket.readyState === 0) {
+						websocket.addEventListener("open", () => {
+							websocket.close();
+						});
+					} else {
+						websocket.close();
+					}
+
+					try {
+						await fetch_implementation(
+							`${http_protocol}//${host + config.path}/reset`,
+							{
+								headers: { "Content-Type": "application/json" },
+								method: "POST",
+								body: JSON.stringify({ fn_index, session_hash })
+							}
+						);
+					} catch (e) {
+						console.warn(
+							"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
 						);
 					}
 				}
+
+				function destroy() {
+					for (const event_type in listener_map) {
+						listener_map[event_type as "data" | "status"].forEach((fn) => {
+							off(event_type as "data" | "status", fn);
+						});
+					}
+				}
+
+				return {
+					on,
+					off,
+					cancel,
+					destroy
+				};
+			}
+
+			async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
+				if (api) return api;
+
+				const headers: {
+					Authorization?: string;
+					"Content-Type": "application/json";
+				} = { "Content-Type": "application/json" };
+				if (hf_token) {
+					headers.Authorization = `Bearer ${hf_token}`;
+				}
+				let response: Response;
+				// @ts-ignore
+				if (semiver(config.version || "2.0.0", "3.30") < 0) {
+					response = await fetch_implementation(
+						"https://gradio-space-api-fetcher-v2.hf.space/api",
+						{
+							method: "POST",
+							body: JSON.stringify({
+								serialize: false,
+								config: JSON.stringify(config)
+							}),
+							headers
+						}
+					);
+				} else {
+					response = await fetch_implementation(`${config.root}/info`, {
+						headers
+					});
+				}
+
+				if (!response.ok) {
+					throw new Error(BROKEN_CONNECTION_MSG);
+				}
+
+				let api_info = (await response.json()) as
+					| ApiInfo<ApiData>
+					| { api: ApiInfo<ApiData> };
+				if ("api" in api_info) {
+					api_info = api_info.api;
+				}
+
+				if (
+					api_info.named_endpoints["/predict"] &&
+					!api_info.unnamed_endpoints["0"]
+				) {
+					api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+				}
+
+				const x = transform_api_info(api_info, config, api_map);
+				return x;
+			}
+		});
+	}
+
+	async function handle_blob(
+		endpoint: string,
+		data: unknown[],
+		api_info,
+		token?: `hf_${string}`
+	): Promise<unknown[]> {
+		const blob_refs = await walk_and_store_blobs(
+			data,
+			undefined,
+			[],
+			true,
+			api_info
+		);
+
+		return Promise.all(
+			blob_refs.map(async ({ path, blob, data, type }) => {
+				if (blob) {
+					const file_url = (await upload_files(endpoint, [blob], token))
+						.files[0];
+					return { path, file_url, type };
+				} else {
+					return { path, base64: data, type };
+				}
+			})
+		).then((r) => {
+			r.forEach(({ path, file_url, base64, type }) => {
+				if (base64) {
+					update_object(data, base64, path);
+				} else if (type === "Gallery") {
+					update_object(data, file_url, path);
+				} else if (file_url) {
+					const o = {
+						is_file: true,
+						name: `${file_url}`,
+						data: null
+						// orig_name: "file.csv"
+					};
+					update_object(data, o, path);
+				}
 			});
 
-			function fire_event<K extends EventType>(event: Event<K>) {
-				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				const listeners = narrowed_listener_map[event.type] || [];
-				listeners?.forEach((l) => l(event));
-			}
-
-			function on<K extends EventType>(
-				eventType: K,
-				listener: EventListener<K>
-			) {
-				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				const listeners = narrowed_listener_map[eventType] || [];
-				narrowed_listener_map[eventType] = listeners;
-				listeners?.push(listener);
-
-				return { on, off, cancel, destroy };
-			}
-
-			function off<K extends EventType>(
-				eventType: K,
-				listener: EventListener<K>
-			) {
-				const narrowed_listener_map: ListenerMap<K> = listener_map;
-				let listeners = narrowed_listener_map[eventType] || [];
-				listeners = listeners?.filter((l) => l !== listener);
-				narrowed_listener_map[eventType] = listeners;
-
-				return { on, off, cancel, destroy };
-			}
-
-			async function cancel() {
-				const _status: Status = {
-					stage: "complete",
-					queue: false,
-					time: new Date()
-				};
-				complete = _status;
-				fire_event({
-					..._status,
-					type: "status",
-					endpoint: _endpoint,
-					fn_index: fn_index
-				});
-
-				if (websocket && websocket.readyState === 0) {
-					websocket.addEventListener("open", () => {
-						websocket.close();
-					});
-				} else {
-					websocket.close();
-				}
-
-				try {
-					await fetch(`${http_protocol}//${host + config.path}/reset`, {
-						headers: { "Content-Type": "application/json" },
-						method: "POST",
-						body: JSON.stringify({ fn_index, session_hash })
-					});
-				} catch (e) {
-					console.warn(
-						"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
-					);
-				}
-			}
-
-			function destroy() {
-				for (const event_type in listener_map) {
-					listener_map[event_type as "data" | "status"].forEach((fn) => {
-						off(event_type as "data" | "status", fn);
-					});
-				}
-			}
-
-			return {
-				on,
-				off,
-				cancel,
-				destroy
-			};
-		}
-
-		async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {
-			if (api) return api;
-
-			const headers: {
-				Authorization?: string;
-				"Content-Type": "application/json";
-			} = { "Content-Type": "application/json" };
-			if (hf_token) {
-				headers.Authorization = `Bearer ${hf_token}`;
-			}
-			let response: Response;
-			// @ts-ignore
-			if (semiver(config.version || "2.0.0", "3.30") < 0) {
-				response = await fetch(
-					"https://gradio-space-api-fetcher-v2.hf.space/api",
-					{
-						method: "POST",
-						body: JSON.stringify({
-							serialize: false,
-							config: JSON.stringify(config)
-						}),
-						headers
-					}
-				);
-			} else {
-				response = await fetch(`${config.root}/info`, {
-					headers
-				});
-			}
-
-			if (!response.ok) {
-				throw new Error(BROKEN_CONNECTION_MSG);
-			}
-
-			let api_info = (await response.json()) as
-				| ApiInfo<ApiData>
-				| { api: ApiInfo<ApiData> };
-			if ("api" in api_info) {
-				api_info = api_info.api;
-			}
-
-			if (
-				api_info.named_endpoints["/predict"] &&
-				!api_info.unnamed_endpoints["0"]
-			) {
-				api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
-			}
-
-			const x = transform_api_info(api_info, config, api_map);
-			return x;
-		}
-	});
+			return data;
+		});
+	}
 }
+
+export const { post_data, upload_files, client, handle_blob } =
+	api_factory(fetch);
 
 function transform_output(
 	data: any[],
@@ -902,50 +974,6 @@ async function get_jwt(
 	}
 }
 
-export async function handle_blob(
-	endpoint: string,
-	data: unknown[],
-	api_info,
-	token?: `hf_${string}`
-): Promise<unknown[]> {
-	const blob_refs = await walk_and_store_blobs(
-		data,
-		undefined,
-		[],
-		true,
-		api_info
-	);
-
-	return Promise.all(
-		blob_refs.map(async ({ path, blob, data, type }) => {
-			if (blob) {
-				const file_url = (await upload_files(endpoint, [blob], token)).files[0];
-				return { path, file_url, type };
-			} else {
-				return { path, base64: data, type };
-			}
-		})
-	).then((r) => {
-		r.forEach(({ path, file_url, base64, type }) => {
-			if (base64) {
-				update_object(data, base64, path);
-			} else if (type === "Gallery") {
-				update_object(data, file_url, path);
-			} else if (file_url) {
-				const o = {
-					is_file: true,
-					name: `${file_url}`,
-					data: null
-					// orig_name: "file.csv"
-				};
-				update_object(data, o, path);
-			}
-		});
-
-		return data;
-	});
-}
-
 function update_object(object, newValue, stack) {
 	while (stack.length > 1) {
 		object = object[stack.shift()];
@@ -1051,6 +1079,7 @@ function skip_queue(id: number, config: Config) {
 }
 
 async function resolve_config(
+	fetch_implementation: typeof fetch,
 	endpoint?: string,
 	token?: `hf_${string}`
 ): Promise<Config> {
@@ -1068,7 +1097,9 @@ async function resolve_config(
 		config.root = endpoint + config.root;
 		return { ...config, path: path };
 	} else if (endpoint) {
-		let response = await fetch(`${endpoint}/config`, { headers });
+		let response = await fetch_implementation(`${endpoint}/config`, {
+			headers
+		});
 
 		if (response.status === 200) {
 			const config = await response.json();
