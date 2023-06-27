@@ -70,7 +70,6 @@ class CheckboxGroup(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
-        self.cleared_value = []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(

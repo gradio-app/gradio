@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!-- A demo HTML file to test the bundled JS and CSS files -->
+<html
+	lang="en"
+	style="
+		margin: 0;
+		padding: 0;
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+	"
+>
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
+		/>
+
+		<script type="module" crossorigin src="./dist/lite.js"></script>
+		<link rel="stylesheet" href="./dist/lite.css" />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script>
+	</head>
+
+	<body
+		style="
+			width: 100%;
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+		"
+	>
+		<div id="gradio-app"></div>
+	</body>
+
+	<script>
+		window.addEventListener("DOMContentLoaded", function () {
+			// <script type="module" /> is loaded asynchronously, so we need to wait for it to load before we can use it.
+			createGradioApp({
+				target: document.getElementById("gradio-app"),
+				pyCode: `
+import gradio as gr
+
+def greet(name):
+		return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+
+demo.launch()
+`,
+				info: true,
+				container: true,
+				isEmbed: false,
+				initialHeight: "300px",
+				eager: false,
+				themeMode: null,
+				autoScroll: false,
+				controlPageTitle: false,
+				appMode: true
+			});
+		});
+	</script>
+</html>
