@@ -45,10 +45,9 @@
 				}
 			}
 			calculate_window_distance();
-			input_height =
-				refElement.parentElement?.getBoundingClientRect().height || 0;
-			input_width =
-				refElement.parentElement?.getBoundingClientRect().width || 0;
+      const rect = refElement.parentElement?.getBoundingClientRect();
+			input_height = rect?.height || 0;
+			input_width = rect?.width || 0;
 		}
 		if (distance_from_bottom > distance_from_top) {
 			top = `${distance_from_top}px`;
