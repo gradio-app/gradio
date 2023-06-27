@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate theme.css
-        run: python scripts/generate_theme.py
+        run: python ./scripts/generate_theme.py
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: pmpm
