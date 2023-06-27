@@ -1084,7 +1084,7 @@ class Blocks(BlockContext):
                 raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
-                    iterator = cast(AsyncIterator[Any], prediction)
+                    iterator = prediction
                 if inspect.isgenerator(iterator):
                     iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
                 prediction = await utils.async_iteration(iterator)

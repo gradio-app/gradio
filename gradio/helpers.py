@@ -600,27 +600,18 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
 
-    if asyncio.iscoroutinefunction(fn):
+    
+    def before_fn():
+        thread_id = threading.get_ident()
+        root_blocks._progress_tracker_per_thread[thread_id] = progress
 
-        async def async_tracked_fn(*args, **kwargs):
-            thread_id = threading.get_ident()
-            root_blocks._progress_tracker_per_thread[thread_id] = progress
-            response = await fn(*args, **kwargs)
-            del root_blocks._progress_tracker_per_thread[thread_id]
-            return response
+    def after_fn():
+        thread_id = threading.get_ident()
+        del root_blocks._progress_tracker_per_thread[thread_id]
 
-        return progress, async_tracked_fn
+    tracked_fn = utils.function_wrapper(fn, before_fn=before_fn, after_fn=after_fn)
 
-    else:
-
-        def tracked_fn(*args, **kwargs):
-            thread_id = threading.get_ident()
-            root_blocks._progress_tracker_per_thread[thread_id] = progress
-            response = fn(*args, **kwargs)
-            del root_blocks._progress_tracker_per_thread[thread_id]
-            return response
-
-        return progress, tracked_fn
+    return progress, tracked_fn
 
 
 def special_args(

@@ -1,9 +1,15 @@
 import gradio as gr
+import time
 
-def greet(name):
-    return "Hello " + name + "!"
+def test(x):
+    gr.Warning("step 1")
+    yield "step 1"
+    time.sleep(1)
+    gr.Warning("step 2")
+    yield "step 2"
+    time.sleep(1)
+    gr.Warning("done")
+    # time.sleep(1) # If you uncomment this line, it works 
+    yield "done"
 
-demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-    
-if __name__ == "__main__":
-    demo.launch()   
+gr.Interface(test, "textbox", "textbox").queue().launch()
