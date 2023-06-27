@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import BlockContext
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
 
 if TYPE_CHECKING:
@@ -77,9 +77,7 @@ class Row(BlockContext):
         Parameters:
             equal_height: If True, makes every child element have equal height
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if equal_height is not None:
             self.equal_height = equal_height
         return self
@@ -312,7 +310,7 @@ class Box(BlockContext):
         }
 
     def style(self, **kwargs):
-        warnings.warn("The `style` method is deprecated.")
+        warn_style_method_deprecation()
         return self
 
 

@@ -65,3 +65,7 @@ def warn_deprecation(text: str) -> None:
         GradioDeprecationWarning,
         stacklevel=utils.find_user_stack_level(),
     )
+
+
+def warn_style_method_deprecation() -> None:
+    warn_deprecation("The `style` method is deprecated. Please set these arguments in the constructor instead.")

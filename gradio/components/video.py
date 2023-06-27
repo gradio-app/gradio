@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
+from gradio.deprecation import warn_style_method_deprecation
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
@@ -385,9 +386,7 @@ class Video(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         if width is not None:

@@ -10,7 +10,6 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
-import warnings
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
@@ -28,6 +27,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     EventListener,
 )
@@ -90,9 +90,7 @@ class Component(Block, Serializable):
         """
         This method is deprecated. Please set these arguments in the Components constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the Components constructor instead."
-        )
+        warn_style_method_deprecation()
         put_deprecated_params_in_box = False
         if "rounded" in kwargs:
             warnings.warn(

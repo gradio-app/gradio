@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Callable, Literal
 
 import numpy as np
+
+from gradio.deprecation import warn_style_method_deprecation
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
@@ -255,9 +256,7 @@ class Textbox(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if show_copy_button is not None:
             self.show_copy_button = show_copy_button
         if container is not None:
