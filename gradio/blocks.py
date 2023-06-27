@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from abc import abstractmethod
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
@@ -1084,7 +1084,7 @@ class Blocks(BlockContext):
                 raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
-                    iterator = prediction
+                    iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
                     iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
                 prediction = await utils.async_iteration(iterator)
