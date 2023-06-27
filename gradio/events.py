@@ -93,7 +93,7 @@ class EventListenerMethod:
         fn: Callable | None,
         inputs: Component | list[Component] | set[Component] | None = None,
         outputs: Component | list[Component] | None = None,
-        api_name: str | None | False = None,
+        api_name: str | None | Literal[False] = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
