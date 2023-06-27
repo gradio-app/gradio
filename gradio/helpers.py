@@ -267,7 +267,7 @@ class Examples:
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
-                api_name=self.api_name,
+                api_name=self.api_name,  # type: ignore
             )
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
