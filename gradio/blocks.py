@@ -1081,9 +1081,7 @@ class Blocks(BlockContext):
         else:
             prediction = None
 
-        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(
-            block_fn.fn
-        ):
+        if inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:

@@ -648,7 +648,7 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     return continuous_fn
 
 
-def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str):
+def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None):
     from gradio.context import thread_data
 
     if asyncio.iscoroutinefunction(fn):
