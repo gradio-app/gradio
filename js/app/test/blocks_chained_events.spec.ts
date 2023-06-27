@@ -28,9 +28,13 @@ test("Consecutive .success event is triggered successfully", async ({
 
 	await page.click("text=Trigger Consecutive Success");
 	await page.waitForResponse(async (url) => {
+		console.log(await url.headerValue("content-type"));
+
 		const is_json =
 			(await url.headerValue("content-type")) === "application/json";
 		if (!is_json) return false;
+
+		console.log((await url.json()).data);
 
 		const data = (await url.json()).data[0];
 		return data === "Consecutive Event Triggered";
