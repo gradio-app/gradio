@@ -29,8 +29,9 @@ test("Consecutive .success event is triggered successfully", async ({
 	await page.click("text=Trigger Consecutive Success");
 	let count = 0;
 	await page.waitForResponse((url) => {
-		if (url.url().endsWith("/run/predict")) {
-			return count++ == 2;
+		if (url.url().endsWith("run/predict")) {
+			count += 1;
+			return count == 3;
 		}
 		return false;
 	});
