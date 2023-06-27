@@ -168,7 +168,7 @@ class TestInterface:
         Interface(lambda x: x, "textbox", output_textbox)
         assert output_textbox.get_config()["interactive"]
 
-    def test_endpoints(self):
+    def test_get_api_info(self):
         io = Interface(lambda x: x, Image(type="filepath"), "textbox")
         api_info = get_api_info(io.get_config_file())
         assert len(api_info["named_endpoints"]) == 1
