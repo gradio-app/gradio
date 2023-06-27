@@ -9,6 +9,7 @@ import pkgutil
 import secrets
 import shutil
 import tempfile
+import warnings
 from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -193,7 +194,17 @@ class Communicator:
 ########################
 
 
-def is_valid_url(possible_url: str) -> bool:
+def is_http_url_like(possible_url: str) -> bool:
+    """
+    Check if the given string looks like an HTTP(S) URL.
+    """
+    return possible_url.startswith(("http://", "https://"))
+
+
+def probe_url(possible_url: str) -> bool:
+    """
+    Probe the given URL to see if it responds with a 200 status code (to HEAD, then to GET).
+    """
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
         with requests.session() as sess:
@@ -203,6 +214,17 @@ def is_valid_url(possible_url: str) -> bool:
             return head_request.ok
     except Exception:
         return False
+
+
+def is_valid_url(possible_url: str) -> bool:
+    """
+    Check if the given string is a valid URL.
+    """
+    warnings.warn(
+        "is_valid_url should not be used. "
+        "Use is_http_url_like() and probe_url(), as suitable, instead.",
+    )
+    return is_http_url_like(possible_url) and probe_url(possible_url)
 
 
 async def get_pred_from_ws(
@@ -344,10 +366,9 @@ def encode_url_to_base64(url: str):
 
 def encode_url_or_file_to_base64(path: str | Path):
     path = str(path)
-    if is_valid_url(path):
+    if is_http_url_like(path):
         return encode_url_to_base64(path)
-    else:
-        return encode_file_to_base64(path)
+    return encode_file_to_base64(path)
 
 
 def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
