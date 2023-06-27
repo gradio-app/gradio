@@ -8,49 +8,39 @@ import global_data from "@csstools/postcss-global-data";
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 
-const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
-const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const version_path = join(__dirname, "..", "gradio", "version.txt");
+const theme_token_path = join(
+	__dirname,
+	"..",
+	"js",
+	"theme",
+	"src",
+	"tokens.css"
+);
 
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
 	.replace(/\./g, "-");
 
-import {
-	inject_ejs,
-	patch_dynamic_import,
-	generate_cdn_entry,
-	handle_ce_css
-} from "./build_plugins";
-
-const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
-const TEST_CDN = !!process.env.TEST_CDN;
-const CDN = TEST_CDN
-	? "http://localhost:4321/"
-	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
-const TEST_MODE = process.env.TEST_MODE || "jsdom";
-
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const CDN_URL = mode === "production:cdn" ? CDN : "/";
 	const production =
 		mode === "production:cdn" ||
 		mode === "production:local" ||
 		mode === "production:website";
-	const is_cdn = mode === "production:cdn" || mode === "production:website";
 
 	return {
-		base: is_cdn ? CDN_URL : "./",
-
 		server: {
 			port: 9876
 		},
 
 		build: {
-			sourcemap: true,
+			sourcemap: false,
 			target: "esnext",
-			minify: production,
-			outDir: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
+			minify: production
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
@@ -97,23 +87,7 @@ export default defineConfig(({ mode }) => {
 						]
 					}
 				})
-			}),
-			inject_ejs(),
-			patch_dynamic_import({
-				mode: is_cdn ? "cdn" : "local",
-				gradio_version: GRADIO_VERSION,
-				cdn_url: CDN_URL
-			}),
-			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			handle_ce_css()
-		],
-		test: {
-			environment: TEST_MODE,
-			include:
-				TEST_MODE === "node"
-					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
-					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-			globals: true
-		}
+			})
+		]
 	};
 });
