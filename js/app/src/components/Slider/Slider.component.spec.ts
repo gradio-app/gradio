@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/experimental-ct-svelte";
 import type { Page, Locator } from "@playwright/test";
 import Slider from "./Slider.svelte";
+import { spy } from "tinyspy";
 
 import type { LoadingStatus } from "../StatusTracker/types";
 
@@ -101,8 +102,8 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 });
 
 test("Slider Change event", async ({ mount, page }) => {
-	let change = 0;
-	let release = 0;
+	let change = spy();
+	let release = spy();
 	const component = await mount(Slider, {
 		props: {
 			value: 3,
@@ -115,8 +116,8 @@ test("Slider Change event", async ({ mount, page }) => {
 			loading_status: loading_status
 		},
 		on: {
-			change: () => ++change,
-			release: () => ++release
+			change: change,
+			release: release
 		}
 	});
 
@@ -126,6 +127,6 @@ test("Slider Change event", async ({ mount, page }) => {
 	await expect(component.getByLabel("My Slider")).toHaveValue("7");
 
 	// More than one change event and one release event.
-	await expect(change).toBeGreaterThan(1);
-	await expect(release).toEqual(1);
+	await expect(change.callCount).toBeGreaterThan(1);
+	await expect(release.callCount).toEqual(1);
 });
