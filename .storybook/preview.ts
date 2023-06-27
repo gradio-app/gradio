@@ -1,4 +1,5 @@
 import type { Preview } from "@storybook/svelte";
+import "../js/theme/src/pollen.css";
 
 const preview: Preview = {
 	parameters: {
