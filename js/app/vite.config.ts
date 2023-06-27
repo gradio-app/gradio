@@ -7,16 +7,21 @@ import global_data from "@csstools/postcss-global-data";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
-import { join } from "path";
-import { fileURLToPath } from "url";
+import { resolve } from "path";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const version_path = join(__dirname, "..", "..", "gradio", "version.txt");
-const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
+const version_path = resolve(__dirname, "../../gradio/version.txt");
+const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
+const version_raw = readFileSync(version_path, { encoding: "utf-8" }).trim();
+const version = version_raw.replace(/\./g, "-");
 
-const version = readFileSync(version_path, { encoding: "utf-8" })
-	.trim()
-	.replace(/\./g, "-");
+const client_version_path = resolve(
+	__dirname,
+	"../../client/python/gradio_client/version.txt"
+);
+const client_version_raw = readFileSync(client_version_path, {
+	encoding: "utf-8"
+}).trim();
+const client_version = client_version_raw.replace(/\./g, "-");
 
 import {
 	inject_ejs,
@@ -38,21 +43,51 @@ export default defineConfig(({ mode }) => {
 	const production =
 		mode === "production:cdn" ||
 		mode === "production:local" ||
-		mode === "production:website";
+		mode === "production:website" ||
+		mode === "production:lite";
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
+	const is_lite = mode.endsWith(":lite");
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
 
 		server: {
-			port: 9876
+			port: 9876,
+			open: is_lite ? "/lite.html" : "/"
 		},
 
 		build: {
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
-			outDir: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
+			outDir: is_lite
+				? resolve(__dirname, "../lite/dist")
+				: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
+			// To build Gradio-lite as a library, we can't use the library mode
+			// like `lib: is_lite && {}`
+			// because it inevitably enables inlining of all the static file assets,
+			// while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
+			// So we build it as an app and only use the bundled JS and CSS files as library assets, ignoring the HTML file.
+			// See also `lite.ts` about it.
+			rollupOptions: is_lite && {
+				input: "./lite.html",
+				output: {
+					// To use it as a library, we don't add the hash to the file name.
+					entryFileNames: "lite.js",
+					assetFileNames: (file) => {
+						if (file.name?.endsWith(".whl")) {
+							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
+							return `assets/[name].[ext]`;
+						}
+						if (file.name === "lite.css") {
+							// To use it as a library, we don't add the hash to the file name.
+							return `[name].[ext]`;
+						} else {
+							return `assets/[name]-[hash].[ext]`;
+						}
+					}
+				}
+			}
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
@@ -116,6 +151,20 @@ export default defineConfig(({ mode }) => {
 					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 			globals: true
-		}
+		},
+		resolve: {
+			alias: {
+				// For the Wasm app to import the wheel file URLs.
+				"gradio.whl": resolve(
+					__dirname,
+					`../../dist/gradio-${version_raw}-py3-none-any.whl`
+				),
+				"gradio_client.whl": resolve(
+					__dirname,
+					`../../client/python/dist/gradio_client-${client_version_raw}-py3-none-any.whl`
+				)
+			}
+		},
+		assetsInclude: ["**/*.whl"] // To pass URLs of built wheel files to the Wasm worker.
 	};
 });
