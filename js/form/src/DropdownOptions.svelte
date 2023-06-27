@@ -14,11 +14,12 @@
 	let refElement: HTMLDivElement;
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
+	let innerHeight: number;
 
 	const calculate_window_distance = () => {
 		distance_from_top = refElement.getBoundingClientRect().top;
 		distance_from_bottom =
-			window.innerHeight - refElement.getBoundingClientRect().bottom;
+			innerHeight - refElement.getBoundingClientRect().bottom;
 	};
 
 	let scroll_timeout: NodeJS.Timeout | null = null;
@@ -32,14 +33,6 @@
 			scroll_timeout = null;
 		}, 200);
 	};
-
-	$: {
-		if (showOptions) {
-			window.addEventListener("scroll", scroll_listener);
-		} else {
-			window.removeEventListener("scroll", scroll_listener);
-		}
-	}
 
 	$: {
 		if (showOptions && refElement) {
@@ -71,6 +64,8 @@
 	const dispatch = createEventDispatcher();
 	$: _value = Array.isArray(value) ? value : [value];
 </script>
+
+<svelte:window on:scroll={scroll_listener} bind:innerHeight />
 
 <div class="reference" bind:this={refElement} />
 {#if showOptions && !disabled}
