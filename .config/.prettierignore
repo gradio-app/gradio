@@ -2,6 +2,7 @@
 **/pnpm-workspace.yaml
 **/js/app/dist/**
 **/client/js/dist/**
+**/js/lite/dist/**
 **/pnpm-lock.yaml
 **/js/plot/src/Plot.svelte
 **/.svelte-kit/**
@@ -14,6 +15,7 @@
 **/guides/**
 **/.mypy_cache/**
 **/*.md
+!test-strategy.md
 **/js/_space-test/**
 js/app/test/gradio_cached_examples/**
 
