@@ -29,6 +29,7 @@ tmp.zip
 coverage.xml
 test.txt
 **/snapshots/**/*.png
+playwright-report/
 
 # Demos
 demo/tmp.zip
@@ -68,3 +69,8 @@ client/js/test.js
 # storybook
 storybook-static
 build-storybook.log
+
+# playwright
+.config/playwright
+!.config/playwright/index.html
+!.config/playwright/index.ts
