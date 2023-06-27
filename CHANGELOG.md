@@ -21,6 +21,7 @@
 - Fix double upload bug that caused lag in file uploads by [@aliabid94](https://github.com/aliabid94) in [PR 4661](https://github.com/gradio-app/gradio/pull/4661)
 - `Progress` component now appears even when no `iterable` is specified in `tqdm` constructor by [@itrushkin](https://github.com/itrushkin) in [PR 4475](https://github.com/gradio-app/gradio/pull/4475)
 - Deprecation warnings now point at the user code using those deprecated features, instead of Gradio internals, by (https://github.com/akx) in [PR 4694](https://github.com/gradio-app/gradio/pull/4694)
+- Ensure `Form` nestled in a `Row` does not crash when a subcomponent hasn't set `min_width`, by [@akx](https://github.com/akx) in [PR 4693](https://github.com/gradio-app/gradio/pull/4693)
 
 ## Other Changes:
 
