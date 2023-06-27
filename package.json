@@ -82,6 +82,7 @@
     "vitest": "^0.32.0"
   },
   "devDependencies": {
+    "@storybook/addon-a11y": "^7.0.24",
 	"@storybook/addon-essentials": "^7.0.23",
 	"@storybook/addon-interactions": "^7.0.23",
 	"@storybook/addon-links": "^7.0.23",
