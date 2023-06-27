@@ -100,7 +100,6 @@ class Radio(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
 
     def get_config(self):
         return {
