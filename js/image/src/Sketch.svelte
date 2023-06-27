@@ -241,8 +241,13 @@
 		draw_lines({ lines: _lines });
 		line_count = _lines.length;
 
-		if (lines.length) {
-			lines = _lines;
+		// if (lines.length) {
+		// 	lines = _lines;
+		// }
+		lines = _lines;
+		ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+		if(mode === "mask"){
+			ctx.mask.drawImage(canvas.temp_fake, 0, 0, width, height); 
 		}
 
 		if (lines.length == 0) {
@@ -289,7 +294,7 @@
 				});
 			}
 
-			points = _points;
+			// points = _points;
 
 			return;
 		});
