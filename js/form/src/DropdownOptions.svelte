@@ -10,6 +10,7 @@
 	let distance_from_top: number;
 	let distance_from_bottom: number;
 	let input_height: number;
+	let input_width: number;
 	let refElement: HTMLDivElement;
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
@@ -28,13 +29,15 @@
 				window.innerHeight - refElement.getBoundingClientRect().bottom;
 			input_height =
 				refElement.parentElement?.getBoundingClientRect().height || 0;
+			input_width =
+				refElement.parentElement?.getBoundingClientRect().width || 0;
 		}
 		if (distance_from_bottom > distance_from_top) {
-			top = `${input_height}px`;
+			top = `${distance_from_top}px`;
 			max_height = distance_from_bottom;
 			bottom = null;
 		} else {
-			bottom = `${input_height}px`;
+			bottom = `${distance_from_bottom + input_height}px`;
 			max_height = distance_from_top - input_height;
 			top = null;
 		}
@@ -54,6 +57,7 @@
 		style:top
 		style:bottom
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
+		style:width={input_width + "px"}
 		bind:this={listElement}
 	>
 		{#each filtered as choice}
@@ -79,13 +83,12 @@
 <style>
 	.options {
 		--window-padding: var(--size-8);
-		position: absolute;
+		position: fixed;
 		z-index: var(--layer-top);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--container-radius);
 		background: var(--background-fill-primary);
-		width: var(--size-full);
 		min-width: fit-content;
 		max-width: inherit;
 		overflow: auto;
