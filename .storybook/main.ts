@@ -1,9 +1,8 @@
-import type { StorybookConfig } from "@storybook/svelte-vite";
-const config: StorybookConfig = {
+/** @type { import('@storybook/svelte-vite').StorybookConfig } */
+const config = {
 	stories: [
-		"../**/*.mdx",
-		"../**/*.stories.mdx",
-		"../**/*.stories.@(js|jsx|ts|tsx|svelte)"
+		"../stories/**/*.mdx",
+		"../stories/**/*.stories.@(js|jsx|ts|tsx|svelte)"
 	],
 	addons: [
 		"@storybook/addon-links",
@@ -13,7 +12,11 @@ const config: StorybookConfig = {
 	],
 	framework: {
 		name: "@storybook/svelte-vite",
-		options: {}
+		options: {
+			builder: {
+				viteConfigPath: ".storybook/vite.config.js"
+			}
+		}
 	},
 	docs: {
 		autodocs: "tag"

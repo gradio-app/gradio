@@ -84,7 +84,6 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			svelte({
-				inspector: true,
 				compilerOptions: {
 					dev: !production
 				},
