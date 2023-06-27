@@ -1496,7 +1496,7 @@ class TestGetAPIInfo:
             t2.change(lambda x: x, t2, t3, api_name="change2")
             t3.change(lambda x: x, t3, t4)
             t4.change(lambda x: x, t4, t5, api_name=False)
-        
+
         api_info = get_api_info(demo.get_config_file())
         assert len(api_info["named_endpoints"]) == 2
         assert len(api_info["unnamed_endpoints"]) == 1
@@ -1506,7 +1506,7 @@ class TestGetAPIInfo:
             t1 = gr.Textbox()
             t2 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name=False)
-        
+
         api_info = get_api_info(demo.get_config_file())
         assert len(api_info["named_endpoints"]) == 0
         assert len(api_info["unnamed_endpoints"]) == 0

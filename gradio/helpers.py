@@ -49,6 +49,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
+    api_name: str | None | Literal[False] = False,
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -65,6 +66,7 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
+        api_name=api_name,
         batch=batch,
         _initiated_directly=False,
     )
