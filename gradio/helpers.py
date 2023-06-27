@@ -13,7 +13,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -98,7 +98,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
-        api_name: str | None | False = False,
+        api_name: str | None | Literal[False] = False,
         batch: bool = False,
         _initiated_directly: bool = True,
     ):
