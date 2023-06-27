@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/upload";
 	import { UploadButton } from "@gradio/upload-button";
-	import { upload_files } from "@gradio/client";
+	import { upload_files as default_upload_files } from "@gradio/client";
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
@@ -19,6 +19,10 @@
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
+
+	const upload_files =
+		getContext<typeof default_upload_files>("upload_files") ??
+		default_upload_files;
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
