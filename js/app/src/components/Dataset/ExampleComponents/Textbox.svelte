@@ -18,4 +18,10 @@
 	.gallery {
 		padding: var(--size-1) var(--size-2);
 	}
+
+	div {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 </style>
