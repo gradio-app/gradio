@@ -7,6 +7,7 @@ import ast
 import csv
 import inspect
 import os
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -547,15 +548,17 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if not hasattr(root_blocks, "_progress_tracker_per_thread"):
         root_blocks._progress_tracker_per_thread = {}
 
-    def init_tqdm(self, iterable=None, desc=None, *args, **kwargs):
+    def init_tqdm(
+        self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
+    ):
         self._progress = root_blocks._progress_tracker_per_thread.get(
             threading.get_ident()
         )
         if self._progress is not None:
             self._progress.event_id = event_id
-            self._progress.tqdm(iterable, desc, _tqdm=self)
+            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
-        self.__init__orig__(iterable, desc, *args, **kwargs)
+        self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
         if self._progress is not None:
@@ -722,7 +725,7 @@ def make_waveform(
     bars_color: str | tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
     bar_width: float = 0.6,
-):
+) -> str:
     """
     Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
     Parameters:
@@ -734,7 +737,7 @@ def make_waveform(
         bar_count: Number of bars in waveform
         bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
     Returns:
-        A filepath to the output video.
+        A filepath to the output video in mp4 format.
     """
     if isinstance(audio, str):
         audio_file = audio
@@ -743,6 +746,14 @@ def make_waveform(
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
+
+    if not os.path.isfile(audio_file):
+        raise ValueError("Audio file not found.")
+
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("ffmpeg not found.")
+
     duration = round(len(audio[1]) / audio[0], 4)
 
     # Helper methods to create waveform
@@ -828,9 +839,23 @@ def make_waveform(
     # Convert waveform to video with ffmpeg
     output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
 
-    ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1" -t {duration} -y {output_mp4.name}"""
+    ffmpeg_cmd = [
+        ffmpeg,
+        "-loop",
+        "1",
+        "-i",
+        tmp_img.name,
+        "-i",
+        audio_file,
+        "-vf",
+        f"color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1",
+        "-t",
+        str(duration),
+        "-y",
+        output_mp4.name,
+    ]
 
-    subprocess.call(ffmpeg_cmd, shell=True)
+    subprocess.check_call(ffmpeg_cmd)
     return output_mp4.name
 
 

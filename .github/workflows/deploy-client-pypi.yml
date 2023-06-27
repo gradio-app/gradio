@@ -24,7 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Check new pypi version
@@ -33,7 +33,7 @@ jobs:
       run: |
         client/python/scripts/build_pypi.sh
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      uses: pypa/gh-action-pypi-publish@3be882c473b35162143effc2be2455999c59fc06
       with:
         user: __token__
         password: ${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}

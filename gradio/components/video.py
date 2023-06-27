@@ -47,7 +47,7 @@ class Video(
         value: str | Path | tuple[str | Path, str | Path | None] | Callable | None = None,
         *,
         format: str | None = None,
-        source: str = "upload",
+        source: Literal["upload", "webcam"] = "upload",
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
@@ -133,7 +133,7 @@ class Video(
         | tuple[str, str | None]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
-        source: str | None = None,
+        source: Literal["upload", "webcam"] | None = None,
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
