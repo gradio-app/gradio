@@ -58,7 +58,7 @@ from gradio.components import (
 )
 from gradio.deploy_space import deploy
 from gradio.events import SelectData
-from gradio.exceptions import Error, Info, Warning
+from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (
     CSVLogger,
@@ -67,7 +67,7 @@ from gradio.flagging import (
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
-from gradio.helpers import EventData, Progress, make_waveform, skip, update
+from gradio.helpers import EventData, Progress, make_waveform, skip, update, Warning, Info
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension

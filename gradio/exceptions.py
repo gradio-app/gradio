@@ -1,7 +1,4 @@
-import warnings
-
 from gradio_client.documentation import document, set_documentation_group
-from typing_extensions import Literal
 
 set_documentation_group("helpers")
 
@@ -47,51 +44,3 @@ class Error(Exception):
 
     def __str__(self):
         return repr(self.message)
-
-
-def log_message(message: str, level: Literal["info", "warning"] = "info"):
-    from gradio import queueing
-
-    if not hasattr(queueing.thread_data, "blocks"):  # Function called outside of Gradio
-        if level == "info":
-            print(message)
-        elif level == "warning":
-            warnings.warn(message)
-        return
-    if not queueing.thread_data.blocks.enable_queue:
-        warnings.warn(
-            f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
-        )
-        return
-    print("here")
-    queueing.thread_data.blocks._queue.log_message(
-        event_id=queueing.thread_data.event_id, log=message, level=level
-    )
-
-
-@document()
-class Warning:
-    """
-    This class allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
-    """
-
-    def __init__(self, message: str = "Warning issued."):
-        """
-        Parameters:
-            message: The warning message to be displayed to the user.
-        """
-        log_message(message, level="warning")
-
-
-@document()
-class Info:
-    """
-    This class allows you to pass custom info messages to the user. You can do so simply with `gr.Info('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
-    """
-
-    def __init__(self, message: str = "Info issued."):
-        """
-        Parameters:
-            message: The info message to be displayed to the user.
-        """
-        log_message(message, level="info")

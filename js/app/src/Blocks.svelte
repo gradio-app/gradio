@@ -235,21 +235,16 @@
 	let handled_dependencies: Array<number[]> = [];
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
-	const add_message = (
+	const new_message = (
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"]
-	) => {
-		messages = [
-			{
-				message,
-				fn_index,
-				type,
-				id: ++_error_id
-			},
-			...messages
-		];
-	};
+	) => ({
+		message,
+		fn_index,
+		type,
+		id: ++_error_id
+	});
 	let _error_id = -1;
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
@@ -355,7 +350,10 @@
 								MESSAGE_QUOTE_RE,
 								(_, b) => b
 							);
-							add_message(_message, fn_index, "error");
+							messages = [
+								new_message(_message, fn_index, "error"),
+								...messages
+							];
 						}
 						dependencies.map(async (dep, i) => {
 							if (
@@ -370,7 +368,7 @@
 					}
 				})
 				.on("log", ({ log, fn_index, level }) => {
-					add_message(log, fn_index, level);
+					messages = [new_message(log, fn_index, level), ...messages];
 				});
 
 			submit_map.set(dep_index, submission);

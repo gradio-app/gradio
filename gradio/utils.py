@@ -16,6 +16,7 @@ import sys
 import time
 import typing
 import warnings
+import asyncio
 from contextlib import contextmanager
 from enum import Enum
 from io import BytesIO
@@ -648,12 +649,19 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     return continuous_fn
 
 def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str):
-    from gradio.queueing import thread_data
-    def fn_wrap(*args, **kwargs):
-        thread_data.blocks = blocks
-        thread_data.event_id = event_id
-        return fn(*args, **kwargs)
-    return fn_wrap
+    from gradio.context import thread_data
+    if asyncio.iscoroutinefunction(fn):
+        async def async_inner(*args, **kwargs):
+            thread_data.blocks = blocks
+            thread_data.event_id = event_id
+            return await fn(*args, **kwargs)
+        return async_inner
+    else:
+        def sync_inner(*args, **kwargs):
+            thread_data.blocks = blocks
+            thread_data.event_id = event_id
+            return fn(*args, **kwargs)
+        return sync_inner
 
 
 async def cancel_tasks(task_ids: set[str]):

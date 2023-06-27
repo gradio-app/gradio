@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import threading
 import time
 from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
@@ -22,8 +21,6 @@ from gradio.data_classes import (
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
-thread_data = threading.local()
-
 
 class Event:
     def __init__(
@@ -41,7 +38,7 @@ class Event:
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
-        self.log_messages: list[LogMessage] = []
+        self.log_messages: deque[LogMessage] = deque()
 
     async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
@@ -147,20 +144,18 @@ class Queue:
 
     async def start_log_and_progress_updates(self) -> None:
         while not self.stopped:
-            if not any(self.active_jobs):
-                await asyncio.sleep(self.progress_update_sleep_when_free)
-                continue
-
             events = [
                 evt for job in self.active_jobs if job is not None for evt in job
             ] + self.continuous_tasks
 
+            if len(events) == 0:
+                await asyncio.sleep(self.progress_update_sleep_when_free)
+                continue
+
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    client_awake = await self.send_message(
-                        event, event.progress.dict()
-                    )
+                    client_awake = await self.send_message(event, event.progress.dict())
                     if not client_awake:
                         await self.clean_event(event)
                 await self.send_log_updates_for_event(event)
@@ -168,8 +163,11 @@ class Queue:
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
     async def send_log_updates_for_event(self, event: Event) -> None:
-        while len(event.log_messages) > 0:
-            message = event.log_messages.pop(0)
+        while True:
+            try:
+                message = event.log_messages.popleft()
+            except IndexError:
+                break
             client_awake = await self.send_message(event, message.dict())
             if not client_awake:
                 await self.clean_event(event)
@@ -205,16 +203,16 @@ class Queue:
         log: str,
         level: Literal["info", "warning"],
     ):
-        for job in self.active_jobs:
-            if job is None:
-                continue
-            for evt in job:
-                if evt._id == event_id:
-                    log_message = LogMessage(
-                        log=log,
-                        level=level,
-                    )
-                    evt.log_messages.append(log_message)
+        events = [
+            evt for job in self.active_jobs if job is not None for evt in job
+        ] + self.continuous_tasks
+        for event in events:
+            if event._id == event_id:
+                log_message = LogMessage(
+                    log=log,
+                    level=level,
+                )
+                event.log_messages.append(log_message)
 
     def push(self, event: Event) -> int | None:
         """
@@ -427,7 +425,7 @@ class Queue:
                         relevant_response = response
                     else:
                         relevant_response = old_response
-
+                    await self.send_log_updates_for_event(event)
                     await self.send_message(
                         event,
                         {
@@ -455,7 +453,10 @@ class Queue:
             end_time = time.time()
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
+        except Exception as e:
+            print(e)
         finally:
+            print("f")
             for event in awake_events:
                 try:
                     await event.disconnect()

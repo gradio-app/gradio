@@ -62,7 +62,6 @@
 	.toast-body {
 		display: flex;
 		position: relative;
-		top: var(--size-8);
 		right: 0;
 		left: 0;
 		align-items: center;
@@ -104,8 +103,8 @@
 		display: flex;
 		align-items: center;
 		font-weight: var(--weight-bold);
-		font-size: var(--text-md);
-		line-height: var(--line-xs);
+		font-size: var(--text-lg);
+		line-height: var(--line-sm);
 		text-transform: capitalize;
 	}
 
@@ -160,7 +159,7 @@
 	}
 
 	.toast-text {
-		font-size: var(--text-sm);
+		font-size: var(--text-lg);
 	}
 
 	.toast-text.error {
