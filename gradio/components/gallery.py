@@ -10,12 +10,8 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-<<<<<<< HEAD
 from gradio.components.base import Component, IOComponent, _Keywords
-=======
-from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
->>>>>>> main
 from gradio.events import (
     EventListenerMethod,
     Selectable,

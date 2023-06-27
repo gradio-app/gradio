@@ -10,12 +10,8 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-<<<<<<< HEAD
 from gradio.components.base import Component, IOComponent, _Keywords
-=======
-from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
->>>>>>> main
 from gradio.events import (
     Changeable,
     EventListenerMethod,
