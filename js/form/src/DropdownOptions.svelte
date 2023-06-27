@@ -14,6 +14,33 @@
 	let refElement: HTMLDivElement;
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
+
+	const calculate_window_distance = () => {
+		distance_from_top = refElement.getBoundingClientRect().top;
+		distance_from_bottom =
+			window.innerHeight - refElement.getBoundingClientRect().bottom;
+	};
+
+	let scroll_timeout: NodeJS.Timeout | null = null;
+	const scroll_listener = () => {
+		if (scroll_timeout !== null) {
+			clearTimeout(scroll_timeout);
+		}
+
+		scroll_timeout = setTimeout(() => {
+			calculate_window_distance();
+			scroll_timeout = null;
+		}, 200);
+	};
+
+	$: {
+		if (showOptions) {
+			window.addEventListener("scroll", scroll_listener);
+		} else {
+			window.removeEventListener("scroll", scroll_listener);
+		}
+	}
+
 	$: {
 		if (showOptions && refElement) {
 			if (listElement && typeof value === "string") {
@@ -24,9 +51,7 @@
 					listElement.scrollTo(0, el.offsetTop);
 				}
 			}
-			distance_from_top = refElement.getBoundingClientRect().top;
-			distance_from_bottom =
-				window.innerHeight - refElement.getBoundingClientRect().bottom;
+			calculate_window_distance();
 			input_height =
 				refElement.parentElement?.getBoundingClientRect().height || 0;
 			input_width =
