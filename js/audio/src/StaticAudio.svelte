@@ -20,7 +20,7 @@
 	export let name: string;
 	export let show_label: boolean = true;
 	export let autoplay: boolean;
-	export let shareable: boolean = false;
+	export let shareable: boolean | Array<string | number> = false;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -61,13 +61,13 @@
 	<div class="icon-button">
 		<IconButton
 			Icon={Community}
-			label="Post"
+			label="Share"
 			show_label={true}
 			on:click={async () => {
 				if (!value) return;
 				let url = await uploadToHuggingFace(value.data, "url");
 				dispatch("share", {
-					title_from_inputs: true,
+					title: shareable,
 					description: `<audio controls src="${url}"></audio>`
 				});
 			}}

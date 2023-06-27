@@ -28,7 +28,7 @@
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
-	export let shareable: boolean = false;
+	export let shareable: boolean | Array<string | number> = false;
 	export let theme_mode: ThemeMode;
 
 	$: if (theme_mode == "dark") {
@@ -90,13 +90,13 @@
 	<div class="icon-button">
 		<IconButton
 			Icon={Community}
-			label="Post"
+			label="Share"
 			show_label={true}
 			on:click={async () => {
 				if (value === null) return;
 				const formatted_chat = await format_chat_for_sharing(value);
 				dispatch("share", {
-					title_from_inputs: false,
+					title: shareable,
 					description: formatted_chat
 				});
 			}}

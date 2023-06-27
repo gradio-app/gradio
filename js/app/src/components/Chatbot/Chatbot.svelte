@@ -29,7 +29,7 @@
 	export let root_url: null | string;
 	export let selectable: boolean = false;
 	export let theme_mode: ThemeMode;
-	export let shareable: boolean = false;
+	export let shareable: boolean | Array<string | number> = false;
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);

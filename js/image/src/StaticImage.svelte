@@ -12,7 +12,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let selectable: boolean = false;
-	export let shareable: boolean = false;
+	export let shareable: boolean | Array<string | number> = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -45,12 +45,15 @@
 		{#if shareable}
 			<IconButton
 				Icon={Community}
-				label="Post"
+				label="Share"
 				show_label={true}
 				on:click={async () => {
 					if (!value) return;
 					let url = await uploadToHuggingFace(value, "base64");
-					dispatch("share", { title_from_inputs: true, description: `<img src="${url}" />` });
+					dispatch("share", {
+						title: shareable,
+						description: `<img src="${url}" />`
+					});
 				}}
 			/>
 		{/if}
@@ -72,9 +75,9 @@
 
 	.icon-buttons {
 		display: flex;
-		gap: var(--size-1);
 		position: absolute;
 		top: 6px;
 		right: 6px;
+		gap: var(--size-1);
 	}
 </style>

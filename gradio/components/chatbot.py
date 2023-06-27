@@ -11,7 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
+from gradio.components.base import Component, IOComponent, _Keywords
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -50,7 +50,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         elem_classes: list[str] | str | None = None,
         height: int | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        shareable: bool | None = None,
+        shareable: bool | str | Component | list[Component | str] | None = None,
         **kwargs,
     ):
         """
@@ -67,7 +67,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             height: height of the component in pixels.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions. Can also provide a list of strings and Components that will be concatenated into the title post.
         """
         if color_map is not None:
             warnings.warn(
@@ -83,9 +83,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        if shareable is None:
-            shareable = utils.get_space() is not None
-        self.shareable = shareable
+        shareable = utils.format_shareable_title(shareable)
+        self.shareable = (
+            [""] if shareable is True else shareable
+        )  # Chatbot should not use inputs to autogenerate title
 
         IOComponent.__init__(
             self,

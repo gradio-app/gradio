@@ -20,25 +20,25 @@
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-sm);
 		background: var(--background-fill-primary);
-		color: var(--block-label-text-color);
 		padding: 2px;
+		color: var(--block-label-text-color);
 	}
 
 	button:hover {
 		cursor: pointer;
-		padding: 1px;
 		border: 2px solid var(--button-secondary-border-color-hover);
+		padding: 1px;
 		color: var(--block-label-text-color);
 	}
 
 	span {
-		font-size: 10px;
 		padding: 0px 1px;
+		font-size: 10px;
 	}
 
 	div {
+		padding: 2px;
 		width: 14px;
 		height: 14px;
-		padding: 2px;
 	}
 </style>

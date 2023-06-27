@@ -439,22 +439,48 @@
 				});
 
 			// share events
-			const FORM_INPUTS = ["checkbox", "dropdown", "number", "textbox", "radio", "slider"];
+			const FORM_INPUTS = [
+				"checkbox",
+				"dropdown",
+				"number",
+				"textbox",
+				"radio",
+				"slider"
+			];
 			outputs.forEach((output_id: number) => {
 				const output_component = instance_map[output_id];
-				if (output_component.props.shareable && !shareable_components.includes(output_id)) {
+				if (
+					output_component.props.shareable &&
+					!shareable_components.includes(output_id) // only one share listener per component
+				) {
 					shareable_components.push(output_id);
 					output_component.instance.$on("share", (event_data) => {
-						const { description, title_from_inputs } =
-							event_data.detail as ShareData;
-						let title = "";
-						if (title_from_inputs) {
-							title = inputs
-								.filter((input_id) => FORM_INPUTS.includes(instance_map[input_id].type))
+						const { description, title } = event_data.detail as ShareData;
+						let post_title = "";
+						if (title === true) {
+							post_title = inputs
+								.filter((input_id) =>
+									FORM_INPUTS.includes(instance_map[input_id].type)
+								)
 								.map((input_id) => instance_map[input_id].props.value)
+								.filter((v) => v != null)
 								.join(", ");
+						} else if (Array.isArray(title)) {
+							post_title = title
+								.map((val) => {
+									if (typeof val === "string") {
+										return val;
+									} else if (typeof val === "number") {
+										if (instance_map[val]) {
+											return instance_map[val].props.value;
+										} else {
+											return "";
+										}
+									}
+								})
+								.join("");
 						}
-						trigger_share(title, description);
+						trigger_share(post_title, description);
 					});
 				}
 			});

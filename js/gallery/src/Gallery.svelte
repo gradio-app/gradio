@@ -26,7 +26,7 @@
 	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let shareable: boolean = false;
+	export let shareable: boolean | Array<string | number> = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -258,7 +258,7 @@
 		<div class="icon-button">
 			<IconButton
 				Icon={Community}
-				label="Post"
+				label="Share"
 				show_label={true}
 				on:click={async () => {
 					if (!value) return;
@@ -271,10 +271,10 @@
 					);
 
 					dispatch("share", {
-						title_from_inputs: true,
-						description: `<div style="display: flex; gap: 16px">${urls.map(
-							(url) => `<img src="${url}" style="height: 400px" />`
-						).join("")}</div>`
+						title: shareable,
+						description: `<div style="display: flex; gap: 16px">${urls
+							.map((url) => `<img src="${url}" style="height: 400px" />`)
+							.join("")}</div>`
 					});
 				}}
 			/>
@@ -382,10 +382,10 @@
 	}
 
 	.grid-wrap {
+		position: relative;
 		padding: var(--size-2);
 		height: var(--size-full);
 		overflow-y: auto;
-		position: relative;
 	}
 
 	.grid-container {

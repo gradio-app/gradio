@@ -6,10 +6,13 @@ export interface SelectData {
 
 export interface ShareData {
 	description: string;
-	title_from_inputs: boolean;
+	title: boolean | Array<string | number>;
 }
 
-export const uploadToHuggingFace = async (data: string, type: "base64" | "url") => {
+export const uploadToHuggingFace = async (
+	data: string,
+	type: "base64" | "url"
+) => {
 	let blob: Blob;
 	let contentType: string;
 	let filename: string;
@@ -28,13 +31,14 @@ export const uploadToHuggingFace = async (data: string, type: "base64" | "url") 
 
 	// Send file to endpoint
 	const uploadResponse = await fetch("https://huggingface.co/uploads", {
-		method: 'POST',
+		method: "POST",
 		body: file,
 		headers: {
-			'Content-Type': file.type,
-			'X-Requested-With': 'XMLHttpRequest',
-		}		
-	});
+			"Content-Type": file.type,
+			"X-Requested-With": "XMLHttpRequest"
+		}
+	}
+	);
 
 	// Check status of response
 	if (!uploadResponse.ok) {
@@ -44,12 +48,14 @@ export const uploadToHuggingFace = async (data: string, type: "base64" | "url") 
 	// Return response if needed
 	const result = await uploadResponse.text();
 	return result;
-
-}
+};
 
 function dataURLtoBlob(dataurl: string) {
-	var arr = dataurl.split(','), mime = (arr[0].match(/:(.*?);/) as RegExpMatchArray)[1],
-		bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+	var arr = dataurl.split(","),
+		mime = (arr[0].match(/:(.*?);/) as RegExpMatchArray)[1],
+		bstr = atob(arr[1]),
+		n = bstr.length,
+		u8arr = new Uint8Array(n);
 	while (n--) {
 		u8arr[n] = bstr.charCodeAt(n);
 	}

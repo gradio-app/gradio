@@ -113,6 +113,20 @@ def get_space() -> str | None:
     return None
 
 
+def format_shareable_title(
+    shareable: bool | str | Component | list[Component | str] | None,
+) -> bool | list[str | int]:
+    from gradio.components import Component
+
+    if isinstance(shareable, bool):
+        return shareable
+    if shareable is None:
+        return get_space() is not None
+    if isinstance(shareable, (Component, str)):
+        shareable = [shareable]
+    return [item._id if isinstance(item, Component) else item for item in shareable]
+
+
 def readme_to_html(article: str) -> str:
     try:
         response = requests.get(article, timeout=3)

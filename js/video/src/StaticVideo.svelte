@@ -73,17 +73,17 @@
 		{#if shareable}
 			<IconButton
 				Icon={Community}
-				label="Post"
+				label="Share"
 				show_label={true}
 				on:click={async () => {
 					if (!value) return;
 					let url = await uploadToHuggingFace(value.data, "url");
 					dispatch("share", {
-						title_from_inputs: true,
+						title: shareable,
 						description: url
 					});
 				}}
-				/>
+			/>
 		{/if}
 	</div>
 {/if}
@@ -91,9 +91,9 @@
 <style>
 	.icon-buttons {
 		display: flex;
-		gap: var(--size-1);
 		position: absolute;
 		top: 6px;
 		right: 6px;
+		gap: var(--size-1);
 	}
 </style>
