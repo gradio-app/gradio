@@ -6,13 +6,13 @@ import tempfile
 import warnings
 from typing import Any, Callable, Literal
 
-from gradio.deprecation import warn_style_method_deprecation
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import utils
 from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
 set_documentation_group("component")
@@ -201,8 +201,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         """
         warn_style_method_deprecation()
         if full_width is not None:
-            warnings.warn(
-                "Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not."
+            warn_deprecation(
+                "Use `scale` in place of full_width in the constructor. "
+                "scale=1 will make the button expand, whereas 0 will not."
             )
             self.scale = 1 if full_width else None
         if size is not None:

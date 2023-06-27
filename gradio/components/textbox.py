@@ -5,8 +5,6 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 import numpy as np
-
-from gradio.deprecation import warn_style_method_deprecation
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
@@ -15,6 +13,7 @@ from gradio.components.base import (
     IOComponent,
     _Keywords,
 )
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Blurrable,
     Changeable,

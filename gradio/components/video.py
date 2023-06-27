@@ -7,7 +7,6 @@ import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
-from gradio.deprecation import warn_style_method_deprecation
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
@@ -15,6 +14,7 @@ from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
 if not wasm_utils.IS_WASM:

@@ -35,7 +35,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
-from gradio.deprecation import check_deprecated_parameters
+from gradio.deprecation import check_deprecated_parameters, warn_deprecation
 from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
@@ -1499,7 +1499,7 @@ Received outputs:
             demo.launch()
         """
         if isinstance(self_or_cls, type):
-            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
+            warn_deprecation("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
@@ -1568,14 +1568,14 @@ Received outputs:
             demo.launch()
         """
         if default_enabled is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The default_enabled parameter of queue has no effect and will be removed "
                 "in a future version of gradio."
             )
         self.enable_queue = True
         self.api_open = api_open
         if client_position_to_load_data is not None:
-            warnings.warn("The client_position_to_load_data parameter is deprecated.")
+            warn_deprecation("The client_position_to_load_data parameter is deprecated.")
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
@@ -1722,14 +1722,13 @@ Received outputs:
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
-            warnings.warn(
-                "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
-                DeprecationWarning,
+            warn_deprecation(
+                "The `enable_queue` parameter has been deprecated. "
+                "Please use the `.queue()` method instead.",
             )
         if encrypt is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The `encrypt` parameter has been deprecated and has no effect.",
-                DeprecationWarning,
             )
 
         if self.space_id:
@@ -1741,9 +1740,9 @@ Received outputs:
         self.show_api = self.api_open if self.enable_queue else show_api
 
         if file_directories is not None:
-            warnings.warn(
-                "The `file_directories` parameter has been renamed to `allowed_paths`. Please use that instead.",
-                DeprecationWarning,
+            warn_deprecation(
+                "The `file_directories` parameter has been renamed to `allowed_paths`. "
+                "Please use that instead.",
             )
             if allowed_paths is None:
                 allowed_paths = file_directories

@@ -15,6 +15,7 @@ from gradio_client.documentation import document, set_documentation_group
 import gradio
 from gradio import components, utils
 from gradio.context import Context
+from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
@@ -61,8 +62,9 @@ def load(
         demo.launch()
     """
     if hf_token is None and api_key:
-        warnings.warn(
-            "The `api_key` parameter will be deprecated. Please use the `hf_token` parameter going forward."
+        warn_deprecation(
+            "The `api_key` parameter will be deprecated. "
+            "Please use the `hf_token` parameter going forward."
         )
         hf_token = api_key
     return load_blocks_from_repo(

@@ -27,6 +27,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
+from gradio.deprecation import warn_deprecation
 from gradio.events import Changeable, Streamable, Submittable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
@@ -92,7 +93,7 @@ class Interface(Blocks):
         Returns:
             a Gradio Interface object for the given model
         """
-        warnings.warn("gr.Interface.load() will be deprecated. Use gr.load() instead.")
+        warn_deprecation("gr.Interface.load() will be deprecated. Use gr.load() instead.")
         return external.load(
             name=name, src=src, hf_token=api_key, alias=alias, **kwargs
         )
@@ -878,7 +879,7 @@ class Interface(Blocks):
         """
         Deprecated.
         """
-        warnings.warn("The Interface.test_launch() function is deprecated.")
+        warn_deprecation("The Interface.test_launch() function is deprecated.")
 
 
 @document()

@@ -27,7 +27,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
-from gradio.deprecation import warn_style_method_deprecation
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
 )
@@ -93,27 +93,26 @@ class Component(Block, Serializable):
         warn_style_method_deprecation()
         put_deprecated_params_in_box = False
         if "rounded" in kwargs:
-            warnings.warn(
+            warn_deprecation(
                 "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
             )
             if isinstance(kwargs["rounded"], (list, tuple)):
                 put_deprecated_params_in_box = True
             kwargs.pop("rounded")
         if "margin" in kwargs:
-            warnings.warn(
+            warn_deprecation(
                 "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
             )
             if isinstance(kwargs["margin"], (list, tuple)):
                 put_deprecated_params_in_box = True
             kwargs.pop("margin")
         if "border" in kwargs:
-            warnings.warn(
+            warn_deprecation(
                 "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
             )
             kwargs.pop("border")
-        if len(kwargs):
-            for key in kwargs:
-                warnings.warn(f"Unknown style parameter: {key}")
+        for key in kwargs:
+            warn_deprecation(f"Unknown style parameter: {key}")
         if (
             put_deprecated_params_in_box
             and isinstance(self.parent, (Row, Column))
@@ -160,7 +159,7 @@ class IOComponent(Component):
         self.show_label = show_label
         self.container = container
         if scale is not None and scale != round(scale):
-            warnings.warn(
+            warn_deprecation(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )
         self.scale = scale
