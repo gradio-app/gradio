@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import warnings
+
+from gradio import utils
 
 
 class GradioDeprecationWarning(UserWarning):
@@ -38,7 +42,10 @@ DEPRECATION_MESSAGE = {
 }
 
 
-def check_deprecated_parameters(cls: str, *, stacklevel: int = 2, kwargs) -> None:
+def check_deprecated_parameters(cls: str, *, stacklevel: int | None = None, kwargs) -> None:
+    if stacklevel is None:
+        stacklevel = utils.find_user_stack_level()
+
     for key, value in DEPRECATION_MESSAGE.items():
         if key in kwargs:
             kwargs.pop(key)
@@ -50,3 +57,11 @@ def check_deprecated_parameters(cls: str, *, stacklevel: int = 2, kwargs) -> Non
             GradioDeprecationWarning,
             stacklevel=stacklevel,
         )
+
+
+def warn_deprecation(text: str) -> None:
+    warnings.warn(
+        text,
+        GradioDeprecationWarning,
+        stacklevel=utils.find_user_stack_level(),
+    )
