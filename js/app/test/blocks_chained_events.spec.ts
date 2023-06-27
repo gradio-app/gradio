@@ -27,9 +27,14 @@ test("Consecutive .success event is triggered successfully", async ({
 	const first = page.getByLabel("Result");
 
 	await page.click("text=Trigger Consecutive Success");
-	await page.waitForResponse(
-		async (url) => (await url.json()).data[0] === "Consecutive Event Triggered"
-	);
+	await page.waitForResponse(async (url) => {
+		const is_json =
+			(await url.headerValue("content-type")) === "application/json";
+		if (!is_json) return false;
+
+		const data = (await url.json()).data[0];
+		return data === "Consecutive Event Triggered";
+	});
 	expect(textbox).toHaveValue("Consecutive Event Triggered");
 	expect(first).toHaveValue("First Event Trigered");
 });
