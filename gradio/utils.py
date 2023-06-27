@@ -932,3 +932,18 @@ HTML_TAG_RE = re.compile("<.*?>")
 
 def remove_html_tags(raw_html: str | None) -> str:
     return re.sub(HTML_TAG_RE, "", raw_html or "")
+
+
+def find_user_stack_level() -> int:
+    """
+    Find the first stack frame not inside Gradio.
+    """
+    frame = inspect.currentframe()
+    n = 0
+    while frame:
+        fname = inspect.getfile(frame)
+        if "/gradio/" not in fname.replace(os.sep, "/"):
+            break
+        frame = frame.f_back
+        n += 1
+    return n
