@@ -1,9 +1,6 @@
 /** @type { import('@storybook/svelte-vite').StorybookConfig } */
 const config = {
-	stories: [
-		"../stories/**/*.mdx",
-		"../stories/**/*.stories.@(js|jsx|ts|tsx|svelte)"
-	],
+	stories: ["../**/*.mdx", "../**/*.stories.@(js|jsx|ts|tsx|svelte)"],
 	addons: [
 		"@storybook/addon-links",
 		"@storybook/addon-essentials",
@@ -20,6 +17,7 @@ const config = {
 	},
 	docs: {
 		autodocs: "tag"
-	}
+	},
+	staticDirs: ["public"]
 };
 export default config;
