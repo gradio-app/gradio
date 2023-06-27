@@ -1,4 +1,5 @@
 import { test, expect } from "@gradio/tootils";
+import type { Response } from "@playwright/test";
 
 test(".success event runs after function successfully completes. .success should not run if function fails", async ({
 	page
@@ -7,8 +8,8 @@ test(".success event runs after function successfully completes. .success should
 	await expect(textbox).toHaveValue("");
 
 	await Promise.all([
-		page.click("text=Trigger Failure"),
-		page.waitForResponse("**/run/predict")
+		page.waitForResponse("**/run/predict"),
+		page.click("text=Trigger Failure")
 	]);
 	expect(textbox).toHaveValue("");
 
@@ -26,23 +27,28 @@ test("Consecutive .success event is triggered successfully", async ({
 	const textbox = page.getByLabel("Consecutive Event");
 	const first = page.getByLabel("Result");
 
-	await page.click("text=Trigger Consecutive Success");
-	let count = 0;
-	await page.waitForResponse((url) => {
-		if (url.url().endsWith("run/predict")) {
-			count += 1;
-			return count == 3;
-		}
-		return false;
-	});
-	expect(textbox).toHaveValue("Consecutive Event Triggered");
+	async function predicate(url: Response) {
+		const is_json =
+			(await url.headerValue("content-type")) === "application/json";
+		if (!is_json) return false;
+
+		const data = (await url.json()).data[0];
+		return data === "Consecutive Event Triggered";
+	}
+
+	await Promise.all([
+		page.waitForResponse(predicate),
+		page.click("text=Trigger Consecutive Success")
+	]);
+
+	await expect(textbox).toHaveValue("Consecutive Event Triggered");
 	expect(first).toHaveValue("First Event Trigered");
 });
 
 test("gr.Error makes the toast show up", async ({ page }) => {
 	await Promise.all([
-		page.click("text=Trigger Failure"),
-		page.waitForResponse("**/run/predict")
+		page.waitForResponse("**/run/predict"),
+		page.click("text=Trigger Failure")
 	]);
 
 	const toast = page.getByTestId("error-toast");
@@ -56,8 +62,8 @@ test("ValueError makes the toast show up when show_error=True", async ({
 	page
 }) => {
 	await Promise.all([
-		page.click("text=Trigger Failure With ValueError"),
-		page.waitForResponse("**/run/predict")
+		page.waitForResponse("**/run/predict"),
+		page.click("text=Trigger Failure With ValueError")
 	]);
 
 	const toast = page.getByTestId("error-toast");
