@@ -305,10 +305,10 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with requests.get(url_path, headers=headers, stream=True) as r, open(
-        file_path, "wb"
-    ) as f:
-        shutil.copyfileobj(r.raw, f)
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        r.raise_for_status()
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
     return str(file_path.resolve())
 
 

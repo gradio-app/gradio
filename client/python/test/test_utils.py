@@ -73,6 +73,15 @@ def test_download_private_file():
     assert Path(file).name.endswith(".jpg")
 
 
+def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch):
+    error_response = requests.Response()
+    error_response.status_code = 404
+    error_response.close = lambda: 0  # Mock close method to avoid unrelated exception
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(requests.RequestException):
+        utils.download_tmp_copy_of_file("https://example.com/foo")
+
+
 @pytest.mark.parametrize(
     "orig_filename, new_filename",
     [
