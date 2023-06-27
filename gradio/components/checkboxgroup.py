@@ -38,7 +38,7 @@ class CheckboxGroup(
         choices: list[str] | None = None,
         *,
         value: list[str] | str | Callable | None = None,
-        type: str = "value",
+        type: Literal["value", "index"] = "value",
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
@@ -70,7 +70,6 @@ class CheckboxGroup(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
-        self.cleared_value = []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(

@@ -39,32 +39,9 @@ jobs:
             - '.github/**'
           scripts:
             - 'scripts/**'
-  client-lint:
-    needs: changes
-    if: needs.changes.outputs.python-client == 'true' ||  needs.changes.outputs.workflows == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client/python
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.8"
-        cache: pip
-        cache-dependency-path: |
-          client/python/requirements.txt
-          requirements.txt
-          test/requirements.txt
-    - name: Install Client
-      run: |
-        pip install -e .
-        pip install -r test/requirements.txt
-    - name: Lint
-      run: bash scripts/lint.sh
   client-test:
-    needs: [client-lint]
+    needs: [changes]
+    if: needs.changes.outputs.python-client == 'true' || needs.changes.outputs.workflows == 'true'
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -86,37 +63,54 @@ jobs:
           client/python/requirements.txt
           requirements.txt
           test/requirements.txt
-    - name: Install Client
+    - name: Create env
       run: |
-        pip install -e .
-        pip install -r test/requirements.txt
-    - name: Tests
-      shell: bash
+        python -m pip install --upgrade virtualenv
+        python -m virtualenv venv
+    - uses: actions/cache@master
+      id: cache
+      with:
+        path: |
+          client/python/venv/*
+        key: python-client-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
+    - name: Install Test Requirements (Linux)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
+        . venv/bin/activate
+        python -m pip install -r test/requirements.txt
+    - name: Install Client Library (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        python -m pip install -e .
+    - name: Lint (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        bash scripts/lint.sh
+    - name: Tests (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
         python -m pytest -m "${{ matrix.test-type }}"
-  lint:
-    runs-on: ubuntu-latest
-    needs: changes
-    if: needs.changes.outputs.gradio == 'true'  || needs.changes.outputs.python-client == 'true' || needs.changes.outputs.workflows == 'true' ||  needs.changes.outputs.scripts == 'true' || needs.changes.outputs.test == 'true'
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-          cache: pip
-          cache-dependency-path: |
-            client/python/requirements.txt
-            requirements.txt
-            test/requirements.txt
-      - name: Install Test Dependencies
-        run: pip install -e . -r test/requirements.txt
-      - name: Lint
-        run: bash scripts/lint_backend.sh
-      - name: Typecheck
-        run: bash scripts/type_check_backend.sh
+    - name: Install Test Requirements (Windows)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        pip install -r test/requirements.txt
+    - name: Install Client Library (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        pip install -e .
+    - name: Tests (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        python -m pytest -m "${{ matrix.test-type }}"
   test:
-    needs: [lint]
+    needs: [changes]
+    if: needs.changes.outputs.gradio == 'true' || needs.changes.outputs.workflows == 'true' || needs.changes.outputs.scripts == 'true' || needs.changes.outputs.test == 'true'
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -135,34 +129,79 @@ jobs:
           client/python/requirements.txt
           requirements.txt
           test/requirements.txt
+    - name: Create env
+      run: |
+        python -m pip install --upgrade virtualenv
+        python -m virtualenv venv
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          venv/*
+        key: gradio-lib-${{ runner.os }}-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+    - uses: actions/cache@v3
+      id: frontend-cache
+      with:
+        path: |
+          gradio/templates/*
+        key: gradio-lib-front-end-${{ hashFiles('js/**')}}
     - name: Install pnpm
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
       with:
         version: 8
     - uses: actions/setup-node@v3
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
       with:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-    - name: Install Gradio
-      shell: bash
-      run: |
-        pip install -e .
-        python -m pip install --upgrade pip
-    - name: Install 3.8 Test Dependencies
-      shell: bash
-      run: |
-        pip install -r test/requirements.txt
     - name: Build frontend
-      shell: bash
+      if: steps.frontend-cache.outputs.cache-hit != 'true'
       run: |
         pnpm i --frozen-lockfile
         pnpm build
+    - name: Install Gradio (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        python -m pip install .
+    - name: Install Test Dependencies (Linux)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        python -m pip install -e . -r test/requirements.txt
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
-    - name: Run tests
-      shell: bash
+    - name: Lint (Linux)
+      if: runner.os == 'Linux'
       run: |
-        mkdir -p test-reports
-        coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
-        coverage xml
+        . venv/bin/activate
+        bash scripts/lint_backend.sh
+    - name: Typecheck (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        bash scripts/type_check_backend.sh
+    - name: Run tests (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        . venv/bin/activate
+        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
+        python -m coverage xml
+    - name: Install Gradio (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        python -m pip install .
+    - name: Install Test Dependencies (Windows)
+      if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        python -m pip install -e . -r test/requirements.txt
+    - name: Run tests (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
+        python -m coverage xml

@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
+import huggingface_hub
 import pytest
 import uvicorn
 from fastapi import FastAPI
@@ -94,7 +95,7 @@ class TestClientPredictions:
     def test_job_status(self, calculator_demo):
         with connect(calculator_demo) as client:
             statuses = []
-            job = client.submit(5, "add", 4)
+            job = client.submit(5, "add", 4, api_name="/predict")
             while not job.done():
                 time.sleep(0.1)
                 statuses.append(job.status())
@@ -441,7 +442,7 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6)
+        job = client.submit(5, "add", 6, api_name="/predict")
 
         statuses = []
         while not job.done():
@@ -516,8 +517,8 @@ class TestStatusUpdates:
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
         client = Client(src="gradio/calculator")
-        job_1 = client.submit(5, "add", 6)
-        job_2 = client.submit(11, "subtract", 1)
+        job_1 = client.submit(5, "add", 6, api_name="/predict")
+        job_2 = client.submit(11, "subtract", 1, api_name="/predict")
 
         statuses_1 = []
         statuses_2 = []
@@ -860,9 +861,12 @@ class TestEndpoints:
         ]
 
 
+cpu = huggingface_hub.SpaceHardware.CPU_BASIC
+
+
 class TestDuplication:
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_new_space_id(self, mock_init, mock_runtime):
         Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
@@ -879,7 +883,39 @@ class TestDuplication:
         )
 
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.utils.set_space_timeout")
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_dont_set_timeout_if_default_hardware(
+        self, mock_init, mock_runtime, mock_set_timeout
+    ):
+        Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
+        mock_set_timeout.assert_not_called()
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.request_space_hardware")
+    @patch("gradio_client.utils.set_space_timeout")
+    @patch(
+        "huggingface_hub.get_space_runtime",
+        return_value=MagicMock(hardware=huggingface_hub.SpaceHardware.CPU_UPGRADE),
+    )
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_set_timeout_if_not_default_hardware(
+        self, mock_init, mock_runtime, mock_set_timeout, mock_request_hardware
+    ):
+        Client.duplicate(
+            "gradio/calculator",
+            "test",
+            hf_token=HF_TOKEN,
+            hardware="cpu-upgrade",
+            sleep_timeout=15,
+        )
+        mock_set_timeout.assert_called_once_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, timeout_in_seconds=15 * 60
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_default_space_id(self, mock_init, mock_runtime):
         Client.duplicate("gradio/calculator", hf_token=HF_TOKEN)

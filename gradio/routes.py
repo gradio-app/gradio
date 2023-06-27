@@ -258,7 +258,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
-                    "is_space": app.get_blocks().is_space,
+                    "space_id": app.get_blocks().space_id,
                     "root": root_path,
                 }
 

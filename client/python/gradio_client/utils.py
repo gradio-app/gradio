@@ -444,13 +444,13 @@ def set_space_timeout(
         library_name="gradio_client",
         library_version=__version__,
     )
-    r = requests.post(
+    req = requests.post(
         f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
         json={"seconds": timeout_in_seconds},
         headers=headers,
     )
     try:
-        huggingface_hub.utils.hf_raise_for_status(r)
+        huggingface_hub.utils.hf_raise_for_status(req)
     except huggingface_hub.utils.HfHubHTTPError as err:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "

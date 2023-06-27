@@ -47,7 +47,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
-        object_fit: str | None = None,
+        object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
+        | None = None,
         allow_preview: bool = True,
         **kwargs,
     ):
@@ -110,7 +111,8 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         rows: int | tuple | None = None,
         height: str | None = None,
         preview: bool | None = None,
-        object_fit: str | None = None,
+        object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
+        | None = None,
         allow_preview: bool | None = None,
     ):
         updated_config = {

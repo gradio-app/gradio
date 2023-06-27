@@ -43,6 +43,7 @@
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
+	export let space_id: string | null;
 
 	let loading_status = create_loading_status_store();
 
@@ -252,6 +253,11 @@
 	let _error_id = -1;
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
+	const DUPLICATE_MESSAGE =
+		"There is a long queue of requests pending. Duplicate this Space to skip.";
+	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
+	let showed_duplicate_message = false;
+
 	const trigger_api_call = async (
 		dep_index: number,
 		event_data: unknown = null
@@ -313,6 +319,25 @@
 						progress: status.progress_data,
 						fn_index
 					});
+					if (
+						!showed_duplicate_message &&
+						space_id !== null &&
+						status.position !== undefined &&
+						status.position >= 2 &&
+						status.eta !== undefined &&
+						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+					) {
+						showed_duplicate_message = true;
+						messages = [
+							{
+								type: "warning",
+								message: DUPLICATE_MESSAGE,
+								id: ++_error_id,
+								fn_index
+							},
+							...messages
+						];
+					}
 
 					if (status.stage === "complete") {
 						dependencies.map(async (dep, i) => {

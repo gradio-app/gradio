@@ -86,7 +86,7 @@
 
 	const dispatch_blob = async (
 		blobs: Array<Uint8Array> | Blob[],
-		event: "stream" | "change"
+		event: "stream" | "change" | "stop_recording"
 	) => {
 		let audio_blob = new Blob(blobs, { type: "audio/wav" });
 		value = {
@@ -150,6 +150,7 @@
 			recorder.addEventListener("stop", async () => {
 				recording = false;
 				await dispatch_blob(audio_chunks, "change");
+				await dispatch_blob(audio_chunks, "stop_recording");
 				audio_chunks = [];
 			});
 		}
@@ -185,7 +186,6 @@
 	});
 
 	const stop = async () => {
-		dispatch("stop_recording");
 		recorder.stop();
 		if (streaming) {
 			recording = false;
@@ -327,6 +327,7 @@
 		on:play
 		on:pause
 		on:ended={handle_ended}
+		data-testid={`${label}-dynamic-audio`}
 	/>
 
 	{#if mode === "edit" && player?.duration}
