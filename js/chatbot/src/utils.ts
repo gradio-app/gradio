@@ -197,7 +197,7 @@ export const format_chat_for_sharing = async (
 			return await Promise.all(
 				message_pair.map(async (message, i) => {
 					if (message === null) return "";
-					let speaker_emoji = i === 0 ? "👤" : "🤖";
+					let speaker_emoji = i === 0 ? "😃" : "🤖";
 					let html_content = "";
 					if (typeof message === "string") {
 						html_content = message;

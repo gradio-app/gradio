@@ -95,8 +95,17 @@
 			on:click={async () => {
 				if (value === null) return;
 				const formatted_chat = await format_chat_for_sharing(value);
+				let title = shareable;
+				if (shareable === true) {
+					for (let msg of value[0]) {
+						if (msg !== null && typeof msg === "string") {
+							title = [msg];
+							break;
+						}
+					}
+				}
 				dispatch("share", {
-					title: shareable,
+					title: title,
 					description: formatted_chat
 				});
 			}}

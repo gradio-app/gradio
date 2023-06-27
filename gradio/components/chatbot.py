@@ -83,10 +83,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        shareable = utils.format_shareable_title(shareable)
-        self.shareable = (
-            ["Chat"] if shareable is True else shareable
-        )  # Chatbot should not use inputs to autogenerate title
+        self.shareable = utils.format_shareable_title(shareable)
 
         IOComponent.__init__(
             self,
