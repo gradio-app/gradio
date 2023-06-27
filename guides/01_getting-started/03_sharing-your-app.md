@@ -122,7 +122,7 @@ Note: if you use IFrames, you'll probably want to add a fixed `height` attribute
 
 You can use almost any Gradio app as an API! In the footer of a Gradio app [like this one](https://huggingface.co/spaces/gradio/hello_world), you'll see a "Use via API" link.  
 
-![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api.gif)
+![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api3.gif)
 
 This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](), or [the JavaScript client](). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
 
