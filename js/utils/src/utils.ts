@@ -37,8 +37,7 @@ export const uploadToHuggingFace = async (
 			"Content-Type": file.type,
 			"X-Requested-With": "XMLHttpRequest"
 		}
-	}
-	);
+	});
 
 	// Check status of response
 	if (!uploadResponse.ok) {
