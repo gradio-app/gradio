@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import inspect
-import warnings
 from typing import Callable, Literal
 
 from gradio_client import utils as client_utils
@@ -11,7 +10,12 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
+<<<<<<< HEAD
 from gradio.components.base import Component, IOComponent, _Keywords
+=======
+from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
+>>>>>>> main
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -70,9 +74,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions. Can also provide a list of strings and Components that will be concatenated into the title post.
         """
         if color_map is not None:
-            warnings.warn(
-                "The 'color_map' parameter has been deprecated.",
-            )
+            warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.
@@ -229,9 +231,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         return self
