@@ -321,8 +321,8 @@ class Form(BlockContext):
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
         """
-        self.scale = scale
-        self.min_width = min_width
+        self.scale = int(scale)
+        self.min_width = int(min_width)
         super().__init__(**kwargs)
 
     def add_child(self, child: Block):
