@@ -1,4 +1,5 @@
 import { test, expect } from "@gradio/tootils";
+import type { Response } from "@playwright/test";
 
 test(".success event runs after function successfully completes. .success should not run if function fails", async ({
 	page
@@ -26,23 +27,21 @@ test("Consecutive .success event is triggered successfully", async ({
 	const textbox = page.getByLabel("Consecutive Event");
 	const first = page.getByLabel("Result");
 
-	const final_response = page.waitForResponse(async (url) => {
-		console.log(await url.headerValue("content-type"));
-
+	async function predicate(url: Response) {
 		const is_json =
 			(await url.headerValue("content-type")) === "application/json";
 		if (!is_json) return false;
 
-		console.log((await url.json()).data);
-
 		const data = (await url.json()).data[0];
 		return data === "Consecutive Event Triggered";
-	});
+	}
 
-	await page.click("text=Trigger Consecutive Success");
+	await Promise.all([
+		page.waitForResponse(predicate),
+		page.click("text=Trigger Consecutive Success")
+	]);
 
-	await final_response;
-	expect(textbox).toHaveValue("Consecutive Event Triggered");
+	await expect(textbox).toHaveValue("Consecutive Event Triggered");
 	expect(first).toHaveValue("First Event Trigered");
 });
 
