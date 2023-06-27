@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install dependencies
-        run: pnpm
+        run: pnpm install --frozen-lockfile
       - name: Generate theme.css
         run: python scripts/generate_theme.py
       - name: Publish to Chromatic
