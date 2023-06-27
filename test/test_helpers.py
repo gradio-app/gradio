@@ -624,3 +624,41 @@ class TestProgressBar:
                 }
             ],
         ]
+
+    @pytest.mark.asyncio
+    async def test_progress_bar_track_tqdm_without_iterable(self):
+        def greet(s):
+            for _c in s:
+                gr.Info(f"Letter {_c}")
+                time.sleep(0.15)
+            if len(s) < 5:
+                gr.Warning("Too short!")
+            return f"Hello, {s}!"
+
+        demo = gr.Interface(greet, "text", "text")
+        demo.queue().launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            log_messages = []
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["abc"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if (
+                    msg["msg"] == "log"
+                ):  # Ignore empty lists which sometimes appear on Windows
+                    log_messages.append([msg["log"], msg["level"]])
+                if msg["msg"] == "process_completed":
+                    completed = True
+                    break
+        assert log_messages == [
+            ["Letter a", "info"],
+            ["Letter b", "info"],
+            ["Letter c", "info"],
+            ["Too short!", "warning"],
+        ]
