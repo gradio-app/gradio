@@ -44,7 +44,7 @@ class Video(
 
     def __init__(
         self,
-        value: str | tuple[str, str | None] | Callable | None = None,
+        value: str | Path | tuple[str | Path, str | Path | None] | Callable | None = None,
         *,
         format: str | None = None,
         source: str = "upload",
