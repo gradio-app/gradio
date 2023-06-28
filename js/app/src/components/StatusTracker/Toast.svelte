@@ -12,12 +12,7 @@
 		if (_messages.length > 0) {
 			if ("parentIFrame" in window) {
 				let is_large = window.matchMedia("(min-width: 640px)").matches;
-				console.log(parentIFrame.getPageInfo(false));
-
-				parentIFrame.scrollTo(
-					0,
-					is_large ? 0 : parentIFrame.getPageInfo(false).documentHeight
-				);
+				parentIFrame.scrollTo(0, is_large ? 0 : 999999);
 			}
 		}
 	}
