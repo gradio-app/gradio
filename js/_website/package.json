@@ -8,7 +8,7 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"prepack": "svelte-kit sync"
+		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
