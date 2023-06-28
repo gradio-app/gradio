@@ -10,11 +10,6 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 
-<<<<<<< HEAD:js/app/vite.config.js
-const ROOT = join(__dirname, "..", "..");
-const version_path = join(ROOT, "gradio", "version.txt");
-const theme_token_path = join(__dirname, "..", "theme", "src", "tokens.css");
-=======
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const version_path = join(__dirname, "..", "gradio", "version.txt");
 const theme_token_path = join(
@@ -25,7 +20,6 @@ const theme_token_path = join(
 	"src",
 	"tokens.css"
 );
->>>>>>> main:.config/basevite.config.ts
 
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
@@ -93,28 +87,7 @@ export default defineConfig(({ mode }) => {
 						]
 					}
 				})
-<<<<<<< HEAD:js/app/vite.config.js
-			}),
-			inject_ejs(),
-			patch_dynamic_import({
-				mode: is_cdn ? "cdn" : "local",
-				gradio_version: GRADIO_VERSION,
-				cdn_url: CDN_URL
-			}),
-			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			handle_ce_css()
-		],
-		test: {
-			setupFiles: join(ROOT, ".config", "setup_vite_tests.ts"),
-			environment: TEST_MODE,
-			include:
-				TEST_MODE === "node"
-					? ["**/*.node-test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
-					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
-		}
-=======
 			})
 		]
->>>>>>> main:.config/basevite.config.ts
 	};
 });
