@@ -6,11 +6,15 @@
 
 	export let messages: ToastMessage[] = [];
 
-	onMount(() => {
-		if ("parentIFrame" in window) {
-			parentIFrame.scrollTo(0, 0);
+	$: scroll_to_top(messages);
+
+	function scroll_to_top(_messages: ToastMessage[]): void {
+		if (_messages.length > 0) {
+			if ("parentIFrame" in window) {
+				parentIFrame.scrollTo(0, 0);
+			}
 		}
-	});
+	}
 </script>
 
 <div class="toast-wrap">
