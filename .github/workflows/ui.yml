@@ -61,10 +61,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: install dependencies
-        uses: "./.github/actions/install-all-deps"
-        with:
-          always-install-pnpm: true
       - name: install gradio
         run: python -m pip install gradio==$(cat gradio/version.txt)
       - name: generate theme.css
