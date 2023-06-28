@@ -161,6 +161,8 @@
 			)
 			.join(" ");
 	}
+
+	$: console.log(container_element?.tagName);
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
