@@ -16,6 +16,7 @@
 		"@sveltejs/kit": "^1.5.0",
 		"@tailwindcss/forms": "^0.5.0",
 		"@tailwindcss/typography": "^0.5.4",
+		"@types/node": "^20.3.2",
 		"@types/prismjs": "^1.26.0",
 		"prismjs": "1.29.0",
 		"svelte": "^3.59.2",
