@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { FileData } from "./types";
-
 	import { IconButton } from "@gradio/atoms";
 	import { Edit, Clear } from "@gradio/icons";
 
@@ -9,7 +7,7 @@
 	export let editable: boolean = false;
 	export let absolute: boolean = true;
 
-	const dispatch = createEventDispatcher<{ edit: FileData; clear: null }>();
+	const dispatch = createEventDispatcher<{ edit: never; clear: never }>();
 </script>
 
 <div
