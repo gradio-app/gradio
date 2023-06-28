@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable, Literal
 
 import numpy as np
@@ -12,6 +11,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
     Selectable,
@@ -204,11 +204,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if grid is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
             )
             self.grid_cols = grid
