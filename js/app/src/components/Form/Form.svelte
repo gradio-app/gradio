@@ -23,7 +23,7 @@
 		border: var(--block-border-width) solid var(--border-color-primary);
 		border-radius: var(--block-radius);
 		background: var(--border-color-primary);
-		overflow: hidden;
+		overflow-y: hidden;
 	}
 
 	div :global(.block) {
