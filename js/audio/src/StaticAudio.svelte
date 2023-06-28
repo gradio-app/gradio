@@ -9,10 +9,10 @@
 
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import type { ActionReturn } from "svelte/action";
 	import { BlockLabel } from "@gradio/atoms";
-
 	import { Music } from "@gradio/icons";
+
+	import { loaded } from "./utils";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -34,37 +34,6 @@
 			data: value?.data
 		});
 
-	let player: HTMLAudioElement;
-
-	let _value: typeof value;
-
-	$: handle_value_change(value);
-
-	async function handle_value_change(media_value: typeof value): Promise<void> {
-		if (value && value.data) {
-			if (player) {
-				player.pause();
-				player.currentTime = 0;
-			}
-			await tick();
-			_value = media_value;
-		}
-	}
-
-	function loaded(node: HTMLAudioElement): ActionReturn {
-		async function handle_playback(): Promise<void> {
-			if (autoplay) {
-				await node.play();
-			}
-		}
-
-		node.addEventListener("loadeddata", handle_playback);
-
-		return {
-			destroy: () => node.removeEventListener("loadeddata", handle_playback)
-		};
-	}
-
 	function handle_ended(): void {
 		dispatch("stop");
 		dispatch("end");
@@ -78,11 +47,10 @@
 	</Empty>
 {:else}
 	<audio
-		use:loaded
-		bind:this={player}
+		use:loaded={{ autoplay }}
 		controls
 		preload="metadata"
-		src={_value?.data}
+		src={value?.data}
 		on:play
 		on:pause
 		on:ended={handle_ended}

@@ -9,15 +9,14 @@
 
 <script lang="ts">
 	import { onDestroy, createEventDispatcher, tick } from "svelte";
-	import type { ActionReturn } from "svelte/action";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
+	import { loaded } from "./utils";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
-	import type { Action } from "babylonjs";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -26,7 +25,7 @@
 	export let source: "microphone" | "upload" | "none";
 	export let pending = false;
 	export let streaming = false;
-	export let autoplay: boolean;
+	export let autoplay = false;
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -39,11 +38,10 @@
 	let submit_pending_stream_on_pending_end = false;
 	let player: HTMLAudioElement;
 	let inited = false;
-	let crop_values = [0, 100];
+	let crop_values: [number, number] = [0, 100];
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
-	let audio_blob;
 	let module_promises:
 		| [
 				Promise<typeof import("extendable-media-recorder")>,
@@ -196,50 +194,18 @@
 		}
 	}
 
-	function clear() {
+	function clear(): void {
 		dispatch("change");
 		dispatch("clear");
 		mode = "";
 		value = null;
 	}
 
-	function loaded(node: HTMLAudioElement): ActionReturn {
-		function clamp_playback(): void {
-			const start_time = (crop_values[0] / 100) * node.duration;
-			const end_time = (crop_values[1] / 100) * node.duration;
-			if (node.currentTime < start_time) {
-				node.currentTime = start_time;
-			}
-
-			if (node.currentTime > end_time) {
-				node.currentTime = start_time;
-				node.pause();
-			}
-		}
-
-		async function handle_playback(): Promise<void> {
-			if (autoplay) {
-				node.pause();
-				await node.play();
-			}
-		}
-
-		node.addEventListener("loadeddata", handle_playback);
-		node.addEventListener("timeupdate", clamp_playback);
-
-		return {
-			destroy(): void {
-				node.removeEventListener("loadeddata", handle_playback);
-				node.removeEventListener("timeupdate", clamp_playback);
-			}
-		};
-	}
-
 	function handle_change({
 		detail: { values }
 	}: {
 		detail: { values: [number, number] };
-	}) {
+	}): void {
 		if (!value) return;
 
 		dispatch("change", {
@@ -252,7 +218,7 @@
 		dispatch("edit");
 	}
 
-	async function handle_load({
+	function handle_load({
 		detail
 	}: {
 		detail: {
@@ -261,34 +227,19 @@
 			size: number;
 			is_example: boolean;
 		};
-	}): Promise<void> {
+	}): void {
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
 		dispatch("upload", detail);
 	}
 
-	function handle_ended() {
+	function handle_ended(): void {
 		dispatch("stop");
 		dispatch("end");
 	}
 
 	export let dragging = false;
 	$: dispatch("drag", dragging);
-
-	let _value: typeof value;
-
-	$: handle_value_change(value);
-
-	async function handle_value_change(media_value: typeof value): Promise<void> {
-		if (value && value.data) {
-			if (player) {
-				player.pause();
-				player.currentTime = 0;
-			}
-			await tick();
-			_value = media_value;
-		}
-	}
 </script>
 
 <BlockLabel
@@ -336,11 +287,11 @@
 	/>
 
 	<audio
-		use:loaded
+		use:loaded={{ autoplay, crop_values }}
 		controls
 		bind:this={player}
 		preload="metadata"
-		src={_value?.data}
+		src={value?.data}
 		on:play
 		on:pause
 		on:ended={handle_ended}
