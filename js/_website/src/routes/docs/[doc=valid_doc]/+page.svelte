@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import Demos from "../../../components/Demos.svelte";
 	import DocsNav from "../../../components/DocsNav.svelte";
@@ -7,9 +7,9 @@
 	import anchor from "../../../assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
 
-	export let data;
+	export let data: any = {};
 
-	let name = data.name;
+	let name: string = data.name;
 	let obj = data.obj;
 	let mode = data.mode;
 	let components = data.components;
@@ -17,35 +17,35 @@
 	let routes = data.routes;
 	let py_client = data.py_client;
 
-	let headers;
-	let method_headers;
+	let headers: [string, string][];
+	let method_headers: [string, string][];
 	$: headers = data.headers;
 	$: method_headers = data.method_headers;
 
 	let current_selection = 0;
 
-	function handleAnchorClick(event) {
+	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
-		const link = event.currentTarget;
+		const link = event.currentTarget as HTMLAnchorElement;
 		console.log(link);
-		const anchorId = new URL(link.href).hash.replace("#", "");
+		const anchorId = new URL(link?.href).hash.replace("#", "");
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
-			top: anchor.offsetTop,
+			top: anchor?.offsetTop,
 			behavior: "smooth"
 		});
 	}
 
-	let y;
-	let header_targets = {};
-	let target_elem;
+	let y: number;
+	let header_targets: { [key: string]: HTMLElement } = {};
+	let target_elem: HTMLElement;
 
 	onDestroy(() => {
 		header_targets = {};
 	});
 
 	$: for (const target in header_targets) {
-		target_elem = document.querySelector(`#${target}`);
+		target_elem = document.querySelector(`#${target}`) as HTMLElement;
 		if (
 			y > target_elem?.offsetTop - 50 &&
 			y < target_elem?.offsetTop + target_elem?.offsetHeight
@@ -372,7 +372,6 @@
 													class:hidden={current_selection !== i}
 													class:selected-demo-window={current_selection == i}
 													class="demo-content px-4"
-													name={demo[0]}
 												>
 													<Demos
 														name={demo[0]}

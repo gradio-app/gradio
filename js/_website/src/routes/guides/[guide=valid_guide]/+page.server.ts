@@ -1,4 +1,4 @@
-import guide_names_json from "../../guides/json/guide_names.json";
+import guide_names_json from "../json/guide_names.json";
 import fs from "fs";
 import path from "path";
 import { compile } from "mdsvex";
@@ -18,8 +18,8 @@ import "prismjs/components/prism-markup";
 
 
 function plugin() {
-	return function transform(tree) {
-		tree.children.forEach((n) => {
+	return function transform(tree: any) {
+		tree.children.forEach((n: any) => {
 			if (n.type === "heading") {
 				// console.log(n);
 			}
@@ -40,29 +40,29 @@ const langs = {
 	directory: "json",
 };
 
-function highlight(code, lang) {
-	const _lang = langs[lang] || "";
+function highlight(code: string, lang: string | undefined) {
+	const _lang = langs[lang as keyof typeof langs] || "";
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre>`
+			code,
+			Prism.languages[_lang],
+			_lang
+		)}</code></pre>`
 		: code;
 
 	return highlighted;
 }
 
-export async function load({params}) {
+export async function load({ params }) {
 	let guide_json = await import(`../../guides/json/${params.guide}.json`);
 	let guide = guide_json.guide;
-	const guide_slug = [];
+	const guide_slug: object[] = [];
 
 	const get_slug = make_slug_processor();
 	function plugin() {
-		return function transform(tree) {
-			tree.children.forEach((n) => {
+		return function transform(tree: any) {
+			tree.children.forEach((n: any) => {
 				if (
 					n.type === "element" &&
 					["h2", "h3", "h4", "h5", "h6"].includes(n.tagName)
@@ -103,13 +103,13 @@ export async function load({params}) {
 		};
 	}
 
-		const compiled = await compile(guide.content, {
-			rehypePlugins: [plugin],
-			highlight: {
-				highlighter: highlight
-			}
-		});
-		guide.new_html = await compiled.code;
+	const compiled = await compile(guide.content, {
+		rehypePlugins: [plugin],
+		highlight: {
+			highlighter: highlight
+		}
+	});
+	guide.new_html = await compiled?.code;
 
 	return {
 		guide,

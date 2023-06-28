@@ -1,4 +1,9 @@
 <script context="module" lang="ts">
+	declare global {
+		interface Window {
+			__gradio_mode__: "app" | "website";
+		}
+	}
 	import type { media_query as MQ } from "../utils";
 	export let store: ReturnType<typeof MQ>;
 </script>

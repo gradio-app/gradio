@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import DocsNav from "../../../components/DocsNav.svelte";
 	import MetaTags from "../../../components/MetaTags.svelte";
 	import dataflow_svg from "../../../assets/img/dataflow.svg";

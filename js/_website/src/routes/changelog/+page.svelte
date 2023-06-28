@@ -1,17 +1,10 @@
-<script>
+<script lang="ts">
 	import MetaTags from "../../components/MetaTags.svelte";
 
 	export let data;
 
 	let content = data.content;
 	let versions = data.versions;
-
-	// $: if (sidebar) {
-	//     if (target_link?.previousElementSibling.classList.contains("category-link")) {
-	//         target_link = target_link.previousElementSibling;
-	//     }
-	//     sidebar.scrollTop = target_link?.offsetTop;
-	// }
 </script>
 
 <MetaTags

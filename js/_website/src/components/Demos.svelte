@@ -1,12 +1,12 @@
-<script>
+<script lang="ts">
 	import { svgCopy, svgCheck } from "../assets/copy.js";
 
-	export let name;
-	export let code;
-	export let highlighted_code;
+	export let name: string;
+	export let code: string;
+	export let highlighted_code: string;
 
 	let copied = false;
-	function copy(code) {
+	function copy(code: string) {
 		navigator.clipboard.writeText(code);
 		copied = true;
 		setTimeout(() => (copied = false), 2000);

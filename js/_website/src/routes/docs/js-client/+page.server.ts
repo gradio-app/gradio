@@ -25,8 +25,8 @@ let ordered_events = docs_json.docs.ordered_events;
 
 
 function plugin() {
-    return function transform(tree) {
-        tree.children.forEach((n) => {
+    return function transform(tree: any) {
+        tree.children.forEach((n: any) => {
             if (n.type === "heading") {
                 // console.log(n);
             }
@@ -47,8 +47,8 @@ const langs = {
     directory: "json",
 };
 
-function highlight(code, lang) {
-    const _lang = langs[lang] || "";
+function highlight(code: string, lang: string | undefined) {
+    const _lang = langs[lang as keyof typeof langs] || ""
 
     const highlighted = _lang
         ? `<pre class="language-${lang}"><code>${Prism.highlight(
@@ -66,8 +66,8 @@ export async function load({ params }) {
 
     const get_slug = make_slug_processor();
     function plugin() {
-        return function transform(tree) {
-            tree.children.forEach((n) => {
+        return function transform(tree: any) {
+            tree.children.forEach((n: any) => {
                 if (
                     n.type === "element" &&
                     ["h2", "h3", "h4", "h5", "h6"].includes(n.tagName)
@@ -114,7 +114,7 @@ export async function load({ params }) {
             highlighter: highlight
         }
     });
-    let readme_html = await compiled.code;
+    let readme_html = await compiled?.code;
 
     return {
         readme_html,

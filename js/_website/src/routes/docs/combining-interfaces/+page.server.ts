@@ -9,7 +9,7 @@ import { make_slug_processor } from "../../../utils";
 
 let language = 'python';
 
-let docs = docs_json.docs;
+let docs: { [key: string]: any } = docs_json.docs;
 let components = docs_json.docs.components;
 let helpers = docs_json.docs.helpers;
 let routes = docs_json.docs.routes;
@@ -35,7 +35,7 @@ export async function load() {
         ["Parallel", "parallel"],
         ["Series", "series"],
     ];
-    let method_headers = [];
+    let method_headers: string[][] = [];
     const get_slug = make_slug_processor();
 
     for (let obj of objs) {
@@ -44,25 +44,25 @@ export async function load() {
         }
 
         if (obj.fns && obj.fns.length) {
-            obj.fns.forEach((fn) => {
+            obj.fns.forEach((fn: any) => {
                 if (fn.name) fn.slug = get_slug(`${obj.name} ${fn.name}`);
             });
         }
 
 
         if ("demos" in obj) {
-            obj.demos.forEach(demo => {
-                demo.push(Prism.highlight(demo[1], Prism.languages[language]));
+            obj.demos.forEach((demo: string[]) => {
+                demo.push(Prism.highlight(demo[1], Prism.languages[language], "python"));
             })
         }
         if (obj.example) {
-            obj.highlighted_example = Prism.highlight(obj.example, Prism.languages[language]);
+            obj.highlighted_example = Prism.highlight(obj.example, Prism.languages[language], "python");
         }
 
         if ("fns" in obj && obj.fns.length > 0) {
             for (const fn of obj.fns) {
                 if (fn.example) {
-                    fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language]);
+                    fn.highlighted_example = Prism.highlight(fn.example, Prism.languages[language], "python");
                 }
             }
         }

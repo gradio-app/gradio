@@ -1,7 +1,9 @@
-<script>
+<script lang="ts">
     import MetaTags from "../../components/MetaTags.svelte";
 
-    export let data;
+    export let data: {
+        [key: string]: any;
+    };
 
     let search_query = "";
 
@@ -13,6 +15,15 @@
             }
         }
     }
+
+    function isNotHidden(guide: any) {
+        return !guide.hidden;
+    }
+
+    function categoryNotHidden(category: any) {
+        return category.guides.filter(isNotHidden).length !== 0;
+    }
+
 </script>
 
     <MetaTags title="Gradio Guides"
@@ -40,14 +51,13 @@
     {#each data.guides_by_category as {category, guides}, i (category)}
     <div class="category mb-8">
     <h2 
-    class:hidden={guides.filter(guide => !guide.hidden).length === 0}
+    class:hidden={guides.filter(isNotHidden).length === 0}
     class="mb-4 text-2xl font-thin block">{ category }</h2>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {#each guides as guide (guide.name)}
         <a 
         class:hidden={guide.hidden}
         class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
-            name="{ guide.name }"
             href="{ guide.url }">
             <div class="flex flex-col p-4 h-min">
             <h2 class="group-hover:underline text-lg">{ guide.pretty_name }</h2>
@@ -68,7 +78,7 @@
     {/each}
 
     <div 
-    class:hidden={data.guides_by_category.filter(category => category.guides.filter(guide => !guide.hidden).length !== 0).length !== 0}
+    class:hidden={data.guides_by_category.filter(categoryNotHidden).length !== 0}
     class="no-guides hidden text-center text-xl text-gray-500">
         <p class="mb-4">Sorry, we couldn't find a guide with this query...</p>
         <p>

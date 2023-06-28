@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
     import { page } from '$app/stores';
     import space_logo from "../../../assets/img/spaces-logo.svg";
     import MetaTags from "../../../components/MetaTags.svelte";
 
     export let data;
-    let guide_page = "quickstart";
+    let guide_page = data.guide;
     let guide_names = data.guide_names;
     let guide_slug = data.guide_slug;
 
@@ -12,26 +12,25 @@
 
     let show_all = false;
 
-    let sidebar;
-    let target_link;
+    let sidebar: HTMLElement;
+    let target_link: HTMLElement;
     let navigation;
-    let y;
+    let y: number;
 
-    function handleAnchorClick (event) {
+    function handleAnchorClick (event: MouseEvent) {
       event.preventDefault()
-      const link = event.currentTarget
-      console.log(link)
+      const link = event.currentTarget as HTMLAnchorElement
       const anchorId = new URL(link.href).hash.replace('#', '')
       const anchor = document.getElementById(anchorId)
       window.scrollTo({
-        top: anchor.offsetTop,
+        top: anchor?.offsetTop,
         behavior: 'smooth'
       })
     }
 
     $: if (sidebar) {
-        if (target_link?.previousElementSibling.classList.contains("category-link")) {
-            target_link = target_link.previousElementSibling;
+        if (target_link?.previousElementSibling?.classList.contains("category-link")) {
+            target_link = target_link.previousElementSibling as HTMLElement;
         }
         sidebar.scrollTop = target_link?.offsetTop;
     }

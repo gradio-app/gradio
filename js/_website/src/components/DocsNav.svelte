@@ -1,20 +1,23 @@
-<script>
+<script lang="ts">
+	// @ts-nocheck
 	import { clickOutside } from "./clickOutside.js";
 
-	export let components;
-	export let helpers;
-	export let routes;
-	export let py_client;
+	export let components: any;
+	export let helpers: any;
+	export let routes: any;
+	export let py_client: any;
 
 	export let current_nav_link = "";
 
 	let show_nav = false;
 	let searchTerm = "";
-	let searchBar;
+	let searchBar: HTMLInputElement;
 
 	const search = () => {
 		console.log(searchTerm);
-		let links = document.querySelectorAll(".navigation a");
+		let links = document.querySelectorAll(
+			".navigation a"
+		) as NodeListOf<HTMLAnchorElement>;
 		links.forEach((link) => {
 			let linkText = link.innerText.toLowerCase();
 			if (linkText.includes(searchTerm.toLowerCase())) {
@@ -25,7 +28,7 @@
 		});
 	};
 
-	function onKeyDown(e) {
+	function onKeyDown(e: KeyboardEvent) {
 		if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			searchBar.focus();

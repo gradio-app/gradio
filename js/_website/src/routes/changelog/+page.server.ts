@@ -22,30 +22,30 @@ const langs = {
 	directory: "json",
 };
 
-function highlight(code, lang) {
-	const _lang = langs[lang] || "";
+function highlight(code: string, lang: string | undefined) {
+	const _lang = langs[lang as keyof typeof langs] || "";
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre>`
+			code,
+			Prism.languages[_lang],
+			_lang
+		)}</code></pre>`
 		: code;
 
 	return highlighted;
 }
 
 export async function load() {
-    const compiled = await compile(content, {
-        highlight: {
-            highlighter: highlight
-        }
-    });
-    content = await compiled.code;
+	const compiled = await compile(content, {
+		highlight: {
+			highlighter: highlight
+		}
+	});
+	content = await compiled?.code || "";
 
-    return {
-        content, 
-        versions
-    }
+	return {
+		content,
+		versions
+	}
 }
