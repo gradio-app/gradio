@@ -4,12 +4,12 @@
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: string | null;
-	export let value_is_output: boolean = false;
-	export let choices: Array<string>;
-	export let disabled: boolean = false;
+	export let value_is_output = false;
+	export let choices: string[];
+	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let elem_id: string;
 
 	const dispatch = createEventDispatcher<{
@@ -18,7 +18,7 @@
 		select: SelectData;
 	}>();
 
-	function handle_change() {
+	function handle_change(): void {
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");
@@ -34,7 +34,11 @@
 
 <div class="wrap">
 	{#each choices as choice, i (i)}
-		<label class:disabled class:selected={value === choice}>
+		<label
+			class:disabled
+			class:selected={value === choice}
+			data-testid={`${choice}-radio-label`}
+		>
 			<input
 				{disabled}
 				bind:group={value}
