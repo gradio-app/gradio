@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
@@ -67,7 +67,7 @@ class Video(
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         autoplay: bool = False,
-        shareable: bool | str | Component | list[Component | str] | None = None,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -89,7 +89,7 @@ class Video(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions. Can also provide a list of strings and Components that will be concatenated into the title post.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         self.format = format
         self.autoplay = autoplay
@@ -105,7 +105,9 @@ class Video(
         self.include_audio = (
             include_audio if include_audio is not None else source == "upload"
         )
-        self.shareable = utils.format_shareable_title(shareable)
+        self.shareable = (
+            (utils.get_space() is not None) if shareable is None else shareable
+        )
         IOComponent.__init__(
             self,
             label=label,

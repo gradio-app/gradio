@@ -26,7 +26,7 @@
 	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let shareable: boolean | Array<string | number> = false;
+	export let shareable: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -259,7 +259,6 @@
 			<IconButton
 				Icon={Community}
 				label="Share"
-				show_label={true}
 				on:click={async () => {
 					if (!value) return;
 					let urls = await Promise.all(
@@ -271,7 +270,7 @@
 					);
 
 					dispatch("share", {
-						title: shareable,
+						title: "",
 						description: `<div style="display: flex; gap: 16px">${urls
 							.map((url) => `<img src="${url}" style="height: 400px" />`)
 							.join("")}</div>`

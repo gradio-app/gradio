@@ -13,7 +13,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import FileSerializable
 
 from gradio import processing_utils, utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
     Changeable,
     Clearable,
@@ -67,7 +67,7 @@ class Audio(
         elem_classes: list[str] | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        shareable: bool | str | Component | list[Component | str] | None = None,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -87,7 +87,7 @@ class Audio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions. Can also provide a list of strings and Components that will be concatenated into the title post.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
@@ -108,7 +108,9 @@ class Audio(
             )
         self.format = format
         self.autoplay = autoplay
-        self.shareable = utils.format_shareable_title(shareable)
+        self.shareable = (
+            (utils.get_space() is not None) if shareable is None else shareable
+        )
         IOComponent.__init__(
             self,
             label=label,

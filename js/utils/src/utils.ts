@@ -6,7 +6,7 @@ export interface SelectData {
 
 export interface ShareData {
 	description: string;
-	title: boolean | Array<string | number>;
+	title: string;
 }
 
 export const uploadToHuggingFace = async (
@@ -30,14 +30,17 @@ export const uploadToHuggingFace = async (
 	const file = new File([blob], filename, { type: contentType });
 
 	// Send file to endpoint
-	const uploadResponse = await fetch("https://huggingface.co/uploads", {
-		method: "POST",
-		body: file,
-		headers: {
-			"Content-Type": file.type,
-			"X-Requested-With": "XMLHttpRequest"
+	const uploadResponse = await fetch(
+		"https://radames-temp-proxy.hf.space/https://huggingface.co/uploads",
+		{
+			method: "POST",
+			body: file,
+			headers: {
+				"Content-Type": file.type,
+				"X-Requested-With": "XMLHttpRequest"
+			}
 		}
-	});
+	);
 
 	// Check status of response
 	if (!uploadResponse.ok) {

@@ -24,7 +24,7 @@
 	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let shareable: boolean | Array<string | number> = false;
+	export let shareable: boolean = false;
 </script>
 
 <Block

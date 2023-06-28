@@ -10,7 +10,7 @@ from gradio_client.serializing import GallerySerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
@@ -50,7 +50,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
         allow_preview: bool = True,
-        shareable: bool | str | Component | list[Component | str] | None = None,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -71,7 +71,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions. Can also provide a list of strings and Components that will be concatenated into the title post.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         self.grid_cols = columns
         self.grid_rows = rows
@@ -85,7 +85,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
-        self.shareable = utils.format_shareable_title(shareable)
+        self.shareable = (
+            (utils.get_space() is not None) if shareable is None else shareable
+        )
         IOComponent.__init__(
             self,
             label=label,

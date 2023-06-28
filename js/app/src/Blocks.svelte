@@ -439,14 +439,6 @@
 				});
 
 			// share events
-			const FORM_INPUTS = [
-				"checkbox",
-				"dropdown",
-				"number",
-				"textbox",
-				"radio",
-				"slider"
-			];
 			outputs.forEach((output_id: number) => {
 				const output_component = instance_map[output_id];
 				if (
@@ -455,32 +447,8 @@
 				) {
 					shareable_components.push(output_id);
 					output_component.instance.$on("share", (event_data) => {
-						const { description, title } = event_data.detail as ShareData;
-						let post_title = "";
-						if (title === true) {
-							post_title = inputs
-								.filter((input_id) =>
-									FORM_INPUTS.includes(instance_map[input_id].type)
-								)
-								.map((input_id) => instance_map[input_id].props.value)
-								.filter((v) => v != null)
-								.join(", ");
-						} else if (Array.isArray(title)) {
-							post_title = title
-								.map((val) => {
-									if (typeof val === "string") {
-										return val;
-									} else if (typeof val === "number") {
-										if (instance_map[val]) {
-											return instance_map[val].props.value;
-										} else {
-											return "";
-										}
-									}
-								})
-								.join("");
-						}
-						trigger_share(post_title, description);
+						const { title, description } = event_data.detail as ShareData;
+						trigger_share(title, description);
 					});
 				}
 			});

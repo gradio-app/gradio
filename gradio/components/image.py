@@ -15,7 +15,7 @@ from gradio_client.serializing import ImgSerializable
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
-from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.components.base import IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
@@ -80,7 +80,7 @@ class Image(
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
-        shareable: bool | str | Component | list[Component | str] | None = None,
+        shareable: bool | None = None,
         **kwargs,
     ):
         """
@@ -107,7 +107,7 @@ class Image(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions. Can also provide a list of strings and Components that will be concatenated into the title post.
+            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
         """
         self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
@@ -141,7 +141,9 @@ class Image(
         Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
         See EventData documentation on how to use this event data.
         """
-        self.shareable = utils.format_shareable_title(shareable)
+        self.shareable = (
+            (utils.get_space() is not None) if shareable is None else shareable
+        )
         IOComponent.__init__(
             self,
             label=label,

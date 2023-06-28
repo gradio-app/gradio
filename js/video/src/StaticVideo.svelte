@@ -75,12 +75,11 @@
 			<IconButton
 				Icon={Community}
 				label="Share"
-				show_label={true}
 				on:click={async () => {
 					if (!value) return;
 					let url = await uploadToHuggingFace(value.data, "url");
 					dispatch("share", {
-						title: shareable,
+						title: "",
 						description: url
 					});
 				}}

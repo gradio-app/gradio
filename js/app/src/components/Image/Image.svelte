@@ -28,7 +28,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
-	export let shareable: boolean | Array<string | number> = false;
+	export let shareable: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;

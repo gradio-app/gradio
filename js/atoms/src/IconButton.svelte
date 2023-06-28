@@ -4,7 +4,7 @@
 	export let show_label: boolean = false;
 </script>
 
-<button on:click aria-label={label}>
+<button on:click aria-label={label} title={label}>
 	{#if show_label}<span>{label}</span>{/if}
 	<div><Icon /></div>
 </button>

@@ -36,7 +36,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
-	export let shareable: boolean | Array<string | number> = false;
+	export let shareable: boolean = false;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
