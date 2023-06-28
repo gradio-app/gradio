@@ -74,7 +74,7 @@ test("inline code markdown input by the user should be correctly formatted", asy
     await expect(bot_message).toBeTruthy();
 });
 
-test("test code block markdown", async ({ page }) => {
+test("markdown code blocks input by a user should be rendered correctly with the correct language tag", async ({ page }) => {
     const textbox = await page.getByTestId('textbox');
     await textbox.fill("```python\nprint('Hello')\nprint('World!')\n```");
     await page.keyboard.press('Enter');
