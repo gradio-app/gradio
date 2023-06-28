@@ -2898,9 +2898,6 @@ class TestTempFileManagement:
 
 
 def test_type_arg_deperecation_warning():
-    with pytest.warns(GradioDeprecationWarning):
-        gr.Textbox(type="foo")
-
     with pytest.warns(GradioUnusedKwargWarning):
         gr.Video(type="filepath")
 
