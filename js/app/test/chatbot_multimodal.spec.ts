@@ -24,7 +24,7 @@ test("images uploaded by a user should be shown in the chat", async ({ page }) =
     await expect(bot_message).toBeTruthy();
 });
 
-test("test audio input", async ({ page }) => {
+test("audio uploaded by a user should be shown in the chatbot", async ({ page }) => {
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.getByRole('button', { name: '📁' }).click();
     const fileChooser = await fileChooserPromise;
