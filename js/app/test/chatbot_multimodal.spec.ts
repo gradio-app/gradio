@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test("test text input", async ({ page }) => {
+test("text input by a user should be shown in the chatbot as a paragraph", async ({ page }) => {
     const textbox = await page.getByTestId('textbox');
     await textbox.fill("Lorem ipsum");
     await page.keyboard.press('Enter');
