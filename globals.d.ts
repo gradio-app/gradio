@@ -7,7 +7,7 @@ declare global {
 		scoped_css_attach: (link: HTMLLinkElement) => void;
 		__is_colab__: boolean;
 		parentIFrame?: {
-			scrollToOffset: (x: number, y: number) => void;
+			scrollTo: (x: number, y: number) => void;
 		};
 	}
 }
