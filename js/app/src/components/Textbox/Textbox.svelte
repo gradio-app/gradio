@@ -15,7 +15,7 @@
 	export let lines: number;
 	export let placeholder: string = "";
 	export let show_label: boolean;
-	export let max_lines: number | false;
+	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
 	export let container: boolean = false;
 	export let scale: number | null = null;

@@ -60,19 +60,19 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: AudioData;
+		change: AudioData | null;
 		stream: AudioData;
-		edit: AudioData;
-		play: undefined;
-		pause: undefined;
-		stop: undefined;
-		end: undefined;
+		edit: never;
+		play: never;
+		pause: never;
+		stop: never;
+		end: never;
 		drag: boolean;
 		error: string;
 		upload: FileData;
-		clear: undefined;
-		start_recording: undefined;
-		stop_recording: undefined;
+		clear: never;
+		start_recording: never;
+		stop_recording: never;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -195,7 +195,7 @@
 	}
 
 	function clear(): void {
-		dispatch("change");
+		dispatch("change", null);
 		dispatch("clear");
 		mode = "";
 		value = null;

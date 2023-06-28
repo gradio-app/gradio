@@ -1,5 +1,4 @@
 import { test, expect } from "@gradio/tootils";
-import { BASE64_PLOT_IMG } from "./media_data";
 
 test("matplotlib", async ({ page }) => {
 	await page.getByLabel("Plot Type").click();

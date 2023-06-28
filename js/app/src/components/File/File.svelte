@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, getContext } from "svelte";
 	import { File as FileComponent, FileUpload } from "@gradio/file";
-	import { blobToBase64, FileData } from "@gradio/upload";
+	import { blobToBase64 } from "@gradio/upload";
+	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";

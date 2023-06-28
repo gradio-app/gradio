@@ -156,7 +156,8 @@
 			</div>
 		{/if}
 		<div class="textfield" data-testid="highlighted-text:textfield">
-			{#each value as [text, score]}
+			{#each value as [text, _score]}
+				{@const score = typeof _score === "string" ? parseInt(_score) : _score}
 				<span
 					class="textspan score-text"
 					style={"background-color: rgba(" +

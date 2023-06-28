@@ -60,7 +60,6 @@
 <script lang="ts">
 	import { onMount, setContext } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
-
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
 	import { Component as Loader } from "./components/StatusTracker";
