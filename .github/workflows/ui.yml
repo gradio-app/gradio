@@ -57,3 +57,12 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
+  chromatic-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: generate theme.css
+        run: python scripts/generate_theme.py
+      - name: publish to chromatic
+        uses: chromaui/action@v1
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
