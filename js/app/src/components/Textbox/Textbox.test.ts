@@ -19,8 +19,8 @@ const loading_status = {
 describe("Textbox", () => {
 	afterEach(() => cleanup());
 
-	test("renders provided value", () => {
-		const { getByDisplayValue } = render(Textbox, {
+	test("renders provided value", async () => {
+		const { getByDisplayValue } = await render(Textbox, {
 			show_label: true,
 			max_lines: 1,
 			loading_status,
@@ -35,7 +35,7 @@ describe("Textbox", () => {
 	});
 
 	test("changing the text should update the value", async () => {
-		const { component, getByDisplayValue } = render(Textbox, {
+		const { component, getByDisplayValue } = await render(Textbox, {
 			show_label: true,
 			max_lines: 10,
 			loading_status,

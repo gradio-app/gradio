@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { tick, createEventDispatcher } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
+	import { loaded } from "./utils";
 
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
 	export let autoplay: boolean;
+	export let label = "test";
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -14,12 +16,12 @@
 		end: undefined;
 	}>();
 
-	let time: number = 0;
+	let time = 0;
 	let duration: number;
-	let paused: boolean = true;
+	let paused = true;
 	let video: HTMLVideoElement;
 
-	function handleMove(e: TouchEvent | MouseEvent) {
+	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;
 
 		if (e.type === "click") {
@@ -39,7 +41,7 @@
 		time = (duration * (clientX - left)) / (right - left);
 	}
 
-	async function play_pause() {
+	async function play_pause(): Promise<void> {
 		if (document.fullscreenElement != video) {
 			const isPlaying =
 				video.currentTime > 0 &&
@@ -53,14 +55,14 @@
 		}
 	}
 
-	function handle_click(e: MouseEvent) {
+	function handle_click(e: MouseEvent): void {
 		const { left, right } = (
 			e.currentTarget as HTMLProgressElement
 		).getBoundingClientRect();
 		time = (duration * (e.clientX - left)) / (right - left);
 	}
 
-	function format(seconds: number) {
+	function format(seconds: number): string {
 		if (isNaN(seconds) || !isFinite(seconds)) return "...";
 
 		const minutes = Math.floor(seconds / 60);
@@ -70,36 +72,10 @@
 		return `${minutes}:${_seconds}`;
 	}
 
-	async function checkforVideo() {
-		await tick();
-
-		await tick();
-
-		var b = setInterval(async () => {
-			if (video.readyState >= 3) {
-				video.currentTime = 9999;
-				paused = true;
-
-				setTimeout(async () => {
-					video.currentTime = 0.0;
-				}, 50);
-				clearInterval(b);
-			}
-		}, 15);
-	}
-
-	async function _load() {
-		checkforVideo();
-	}
-
-	$: src && _load();
-
-	function handle_end() {
+	function handle_end(): void {
 		dispatch("stop");
 		dispatch("end");
 	}
-
-	$: autoplay && video && src && video.play();
 </script>
 
 <div class="wrap">
@@ -115,6 +91,8 @@
 		bind:paused
 		bind:this={video}
 		class:mirror
+		use:loaded={{ autoplay }}
+		data-testid={`${label}-player`}
 	>
 		<track kind="captions" src={subtitle} default />
 	</video>

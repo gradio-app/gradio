@@ -9,7 +9,7 @@
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
 	export let label: string | undefined = undefined;
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let autoplay: boolean;
 
 	let old_value: FileData | null = null;
@@ -56,6 +56,7 @@
 			on:pause
 			on:ended
 			mirror={false}
+			{label}
 		/>
 	{/key}
 	<div class="download" data-testid="download-div">

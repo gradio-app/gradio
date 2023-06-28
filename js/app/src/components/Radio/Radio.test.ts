@@ -21,8 +21,8 @@ describe("Radio", () => {
 	afterEach(() => cleanup());
 	const choices = ["dog", "cat", "turtle"];
 
-	test("renders provided value", () => {
-		const { getAllByRole, getByTestId } = render(Radio, {
+	test("renders provided value", async () => {
+		const { getAllByRole, getByTestId } = await render(Radio, {
 			show_label: true,
 			loading_status,
 			choices: choices,
@@ -46,7 +46,7 @@ describe("Radio", () => {
 	});
 
 	test("should update the value when a radio is clicked", async () => {
-		const { getByDisplayValue, getByTestId } = render(Radio, {
+		const { getByDisplayValue, getByTestId } = await render(Radio, {
 			show_label: true,
 			loading_status,
 			choices: choices,
