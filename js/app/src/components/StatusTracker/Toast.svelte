@@ -1,9 +1,16 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import { flip } from "svelte/animate";
 	import Error from "./Error.svelte";
 	import type { ToastMessage } from "./types";
 
 	export let messages: ToastMessage[] = [];
+
+	onMount(() => {
+		if ("parentIFrame" in window) {
+			parentIFrame.scrollTo(0, 0);
+		}
+	});
 </script>
 
 <div class="toast-wrap">
