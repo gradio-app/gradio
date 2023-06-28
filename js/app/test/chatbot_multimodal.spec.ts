@@ -64,7 +64,7 @@ test("markdown input by a user should be correctly formatted: bold, italics, lin
     await expect(bot_message).toBeTruthy();
 });
 
-test("test inline code markdown", async ({ page }) => {
+test("inline code markdown input by the user should be correctly formatted", async ({ page }) => {
     const textbox = await page.getByTestId('textbox');
     await textbox.fill("This is `code`.");
     await page.keyboard.press('Enter');
