@@ -17,13 +17,15 @@
 	let innerHeight: number;
 
 	const calculate_window_distance = () => {
-    const {top, bottom} = refElement.getBoundingClientRect(); 
-		distance_from_top = innerHeight - top;
-		distance_from_bottom = innerHeight - bottom;
+		const { top: ref_top, bottom: ref_bottom } =
+			refElement.getBoundingClientRect();
+		distance_from_top = ref_top;
+		distance_from_bottom = innerHeight - ref_bottom;
 	};
 
 	let scroll_timeout: NodeJS.Timeout | null = null;
 	const scroll_listener = () => {
+		if (!showOptions) return;
 		if (scroll_timeout !== null) {
 			clearTimeout(scroll_timeout);
 		}
@@ -31,7 +33,7 @@
 		scroll_timeout = setTimeout(() => {
 			calculate_window_distance();
 			scroll_timeout = null;
-		}, 200);
+		}, 10);
 	};
 
 	$: {
@@ -45,7 +47,7 @@
 				}
 			}
 			calculate_window_distance();
-      const rect = refElement.parentElement?.getBoundingClientRect();
+			const rect = refElement.parentElement?.getBoundingClientRect();
 			input_height = rect?.height || 0;
 			input_width = rect?.width || 0;
 		}
