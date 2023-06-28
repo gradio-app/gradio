@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "./css";
+	import { mount_css as default_mount_css } from "./css";
 
 	import type {
 		ComponentMeta,
@@ -58,9 +58,8 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { client, type SpaceStatus } from "@gradio/client";
-
+	import { onMount, setContext } from "svelte";
+	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
 	import { Component as Loader } from "./components/StatusTracker";
@@ -75,6 +74,11 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
+
+	// These utilities are exported to be injectable for the Wasm version.
+	export let mount_css: typeof default_mount_css = default_mount_css;
+	export let client: ReturnType<typeof api_factory>["client"];
+	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
 
 	export let space: string | null;
 	export let host: string | null;
@@ -215,6 +219,8 @@
 			reload_check(config.root);
 		}
 	});
+
+	setContext("upload_files", upload_files);
 
 	$: loader_status =
 		!ready && status.load_status !== "error"

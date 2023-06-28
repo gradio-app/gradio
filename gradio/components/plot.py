@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import warnings
 from types import ModuleType
 from typing import Any, Callable, Literal
 
@@ -14,6 +13,7 @@ from gradio_client.serializing import JSONSerializable
 
 from gradio import processing_utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable
 
 set_documentation_group("component")
@@ -137,9 +137,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         return self

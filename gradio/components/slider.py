@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 import random
-import warnings
 from typing import Any, Callable, Literal
 
 import numpy as np
@@ -12,6 +11,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import NumberSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Inputable, Releaseable
 from gradio.interpretation import NeighborInterpretable
 
@@ -105,7 +105,6 @@ class Slider(
             **kwargs,
         )
         NeighborInterpretable.__init__(self)
-        self.cleared_value = self.value
 
     def api_info(self) -> dict[str, dict | bool]:
         return {
@@ -203,9 +202,7 @@ class Slider(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         return self
