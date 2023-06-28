@@ -60,6 +60,7 @@ jobs:
   chromatic-deployment:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: generate theme.css
         run: python scripts/generate_theme.py
       - name: publish to chromatic
