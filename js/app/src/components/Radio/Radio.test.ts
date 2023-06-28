@@ -1,6 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
 
-import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
