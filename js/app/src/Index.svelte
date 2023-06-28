@@ -59,7 +59,7 @@
 
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { client, SpaceStatus } from "@gradio/client";
+	import { client, type SpaceStatus } from "@gradio/client";
 
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
