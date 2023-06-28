@@ -34,6 +34,11 @@ describe("Radio", () => {
 
 		const radioButtons: HTMLOptionElement[] = getAllByRole("radio");
 
+		assert.equal(
+			getByTestId("cat-radio-label").className.includes("selected"),
+			true
+		);
+
 		assert.equal(radioButtons.length, 3);
 
 		radioButtons.forEach((radioButton: HTMLOptionElement, index) => {
