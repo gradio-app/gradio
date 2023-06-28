@@ -54,8 +54,7 @@ test("videos uploaded by a user should be shown in the chatbot", async ({ page }
 });
 
 
-test("test basic markdown", async ({ page }) => {
-    // Basic Markdown Input (Bold, Italics, Link)
+test("markdown input by a user should be correctly formatted: bold, italics, links", async ({ page }) => {
     const textbox = await page.getByTestId('textbox');
     await textbox.fill("This is **bold text**. This is *italic text*. This is a [link](https://gradio.app).");
     await page.keyboard.press('Enter');
