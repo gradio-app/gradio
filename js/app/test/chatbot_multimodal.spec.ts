@@ -96,7 +96,7 @@ test("LaTeX input by a user should be rendered correctly", async ({ page }) => {
 });
 
 
-test("test autoscroll", async ({ page }) => {
+test("when a new message is sent the chatbot should scroll to the latest message", async ({ page }) => {
     const textbox = await page.getByTestId('textbox');
     const line_break = "<br>"
     await textbox.fill(line_break.repeat(30));
