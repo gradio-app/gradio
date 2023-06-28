@@ -6,7 +6,6 @@ import pathlib
 import shutil
 import tempfile
 import textwrap
-import json
 
 import huggingface_hub
 from utils import get_latest_stable
@@ -43,25 +42,23 @@ def upload_demo_to_space(
         gradio_wheel_url: If not None, will install the version of gradio using the wheel url in the created Space.
     """
 
-    readme_defaults = {"emoji": '🔥', "colorFrom": "indigo", "colorTo": "indigo",
-                   "sdk": "gradio", "app_file": "run.py", "pinned": "false",
-                   "sdk_version": gradio_version, "title": space_id.split("/")[-1]}
-
     with tempfile.TemporaryDirectory() as tmpdir:
         demo_path = pathlib.Path(GRADIO_DEMO_DIR, demo_name)
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
-        readme_json = pathlib.Path(tmpdir, "README.json")
-        if readme_json.exists():
-            readme_json = json.loads(readme_json.read_text())
-            readme_defaults.update(readme_json)
         readme = pathlib.Path(tmpdir, "README.md")
-        values = "\n".join(f'{k}: {v}' for k,v in readme_defaults.items())
         readme_content = f"""
----
-{values}
----
-                        """
-        readme.open("w").write(readme_content)
+                            ---
+                            title: {space_id.split("/")[-1]} 
+                            emoji: 🔥
+                            colorFrom: indigo
+                            colorTo: indigo
+                            sdk: gradio
+                            sdk_version: {gradio_version}
+                            app_file: run.py
+                            pinned: false
+                            ---
+                            """
+        readme.open("w").write(textwrap.dedent(readme_content))
         
         if gradio_wheel_url:
             with open(os.path.join(tmpdir, "requirements.txt"), "a+") as r:
