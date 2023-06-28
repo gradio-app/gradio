@@ -11,7 +11,13 @@
 	function scroll_to_top(_messages: ToastMessage[]): void {
 		if (_messages.length > 0) {
 			if ("parentIFrame" in window) {
-				parentIFrame.scrollTo(0, 0);
+				let is_large = window.matchMedia("(min-width: 640px)").matches;
+				console.log(parentIFrame.getPageInfo(false));
+
+				parentIFrame.scrollTo(
+					0,
+					is_large ? 0 : parentIFrame.getPageInfo(false).documentHeight
+				);
 			}
 		}
 	}
@@ -20,9 +26,7 @@
 <div class="toast-wrap">
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
-			<!-- {#if type === "error"} -->
 			<Error {message} on:close {id} />
-			<!-- {/if} -->
 		</div>
 	{/each}
 </div>

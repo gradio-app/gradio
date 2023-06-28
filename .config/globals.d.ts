@@ -6,6 +6,9 @@ declare global {
 		gradio_config: Config;
 		scoped_css_attach: (link: HTMLLinkElement) => void;
 		__is_colab__: boolean;
+		parentIFrame?: {
+			scrollToOffset: (x: number, y: number) => void;
+		};
 	}
 }
 
