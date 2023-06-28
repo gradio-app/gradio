@@ -33,7 +33,6 @@ export async function wait_for_event(
 	const mock = spy();
 	return new Promise((res) => {
 		component.$on(event, () => {
-			console.log("EVENT: ", event);
 			mock();
 			res(mock);
 		});

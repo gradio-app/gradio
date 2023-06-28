@@ -237,9 +237,8 @@ describe("Video", () => {
 			value: data,
 			root: "foo"
 		});
-		//expect(results.getAllByLabelText("video")).not.toThrow();
+
 		const downloadButton = results.getAllByTestId("download-div")[0];
-		console.log(downloadButton.innerHTML);
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
 		).toBe(`foo/file=${data[0].name}`);

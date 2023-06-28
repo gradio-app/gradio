@@ -24,10 +24,8 @@ export function loaded(
 ): ActionReturn {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
-		console.log("autoplaying");
 		// node.pause();
 		await node.play();
-		console.log("played");
 	}
 
 	node.addEventListener("loadeddata", handle_playback);

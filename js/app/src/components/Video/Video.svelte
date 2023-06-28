@@ -34,7 +34,6 @@
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
-	console.log(value);
 
 	$: {
 		if (value != null) {
