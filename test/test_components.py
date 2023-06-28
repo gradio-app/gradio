@@ -26,6 +26,10 @@ from scipy.io import wavfile
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.deprecation import (
+    GradioDeprecationWarning,
+    GradioUnusedKwargWarning,
+)
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -2896,3 +2900,16 @@ class TestTempFileManagement:
 
         f = temp_file_manager.download_temp_copy_if_needed(url2)
         assert len(temp_file_manager.temp_files) == 2
+
+
+def test_type_arg_deperecation_warning():
+    with pytest.warns(GradioUnusedKwargWarning):
+        gr.Video(type="filepath")
+
+
+def test_plot_arg_deprecation_warning():
+    with pytest.warns(GradioDeprecationWarning):
+        gr.Image(plot=True)
+
+    with pytest.warns(GradioUnusedKwargWarning):
+        gr.File(plot=True)

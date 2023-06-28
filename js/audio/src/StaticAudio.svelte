@@ -8,17 +8,18 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import type { ShareData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
-
 	import { Music, Community } from "@gradio/icons";
+
+	import { loaded } from "./utils";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let name: string;
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let autoplay: boolean;
 	export let shareable: boolean | Array<string | number> = false;
 
@@ -37,20 +38,7 @@
 			data: value?.data
 		});
 
-	let el: HTMLAudioElement;
-
-	let old_val: any;
-	function value_has_changed(val: any) {
-		if (val === old_val) return false;
-		else {
-			old_val = val;
-			return true;
-		}
-	}
-
-	$: autoplay && el && value_has_changed(value) && el.play();
-
-	function handle_ended() {
+	function handle_ended(): void {
 		dispatch("stop");
 		dispatch("end");
 	}
@@ -81,14 +69,14 @@
 	</Empty>
 {:else}
 	<audio
-		bind:this={el}
+		use:loaded={{ autoplay }}
 		controls
 		preload="metadata"
-		src={value.data}
+		src={value?.data}
 		on:play
 		on:pause
 		on:ended={handle_ended}
-		data-testid={`${label}-static-audio`}
+		data-testid={`${label}-audio`}
 	/>
 {/if}
 

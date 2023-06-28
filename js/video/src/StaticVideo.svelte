@@ -11,7 +11,7 @@
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
 	export let label: string | undefined = undefined;
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let autoplay: boolean;
 	export let shareable: boolean = true;
 
@@ -60,6 +60,7 @@
 			on:pause
 			on:ended
 			mirror={false}
+			{label}
 		/>
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">

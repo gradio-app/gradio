@@ -18,9 +18,9 @@
 		error: string;
 	}>();
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let name: string;
@@ -31,11 +31,11 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let root_url: null | string;
-	export let container: boolean = false;
+	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let autoplay: boolean = false;
+	export let autoplay = false;
 	export let shareable: boolean | Array<string | number> = false;
 
 	let _value: null | FileData;

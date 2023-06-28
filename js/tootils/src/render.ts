@@ -1,4 +1,5 @@
 import { getQueriesForElement, prettyDOM } from "@testing-library/dom";
+import { tick } from "svelte";
 import type { SvelteComponentTyped } from "svelte";
 
 const containerCache = new Map();
@@ -9,7 +10,7 @@ type Component<T extends SvelteComponentTyped, Props> = new (args: {
 	props?: Props;
 }) => T;
 
-function render<
+async function render<
 	Events extends Record<string, any>,
 	Props extends Record<string, any>,
 	T extends SvelteComponentTyped<Props, Events>
@@ -35,6 +36,8 @@ function render<
 	component.$$.on_destroy.push(() => {
 		componentCache.delete(component);
 	});
+
+	await tick();
 
 	return {
 		container,
