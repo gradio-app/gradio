@@ -7,7 +7,7 @@
 	import { onDestroy } from "svelte";
 	import Header from "../../../components/Header.svelte";
 
-	export let data;
+	export let data: any;
 
 	let objs = data.objs;
 	let mode = data.mode;

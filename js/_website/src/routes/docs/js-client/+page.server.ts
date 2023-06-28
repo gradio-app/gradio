@@ -61,7 +61,7 @@ function highlight(code: string, lang: string | undefined) {
     return highlighted;
 }
 
-export async function load({ params }) {
+export async function load({ params }: any) {
     const guide_slug = [];
 
     const get_slug = make_slug_processor();

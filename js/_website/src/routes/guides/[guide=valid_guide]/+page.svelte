@@ -3,7 +3,21 @@
     import space_logo from "../../../assets/img/spaces-logo.svg";
     import MetaTags from "../../../components/MetaTags.svelte";
 
-    export let data;
+    export let data: {
+    guide: any;
+    guide_slug: {
+        text: string;
+        href: string;
+    }[];
+    guide_names: {
+        category: string;
+        guides: {
+            name: string;
+            pretty_name: string;
+            url: string;
+        }[];
+    }[];
+}
     let guide_page = data.guide;
     let guide_names = data.guide_names;
     let guide_slug = data.guide_slug;

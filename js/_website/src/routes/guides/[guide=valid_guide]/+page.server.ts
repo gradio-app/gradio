@@ -54,7 +54,7 @@ function highlight(code: string, lang: string | undefined) {
 	return highlighted;
 }
 
-export async function load({ params }) {
+export async function load({ params }: any) {
 	let guide_json = await import(`../../guides/json/${params.guide}.json`);
 	let guide = guide_json.guide;
 	const guide_slug: object[] = [];

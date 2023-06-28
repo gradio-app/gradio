@@ -2,7 +2,23 @@
 	import DemosLanding from "../components/DemosLanding.svelte";
 	import MetaTags from "../components/MetaTags.svelte";
 	import gradio_banner from "../assets/img/header-image.jpg";
-	export let data;
+	export let data: {
+		logos: {
+			img: string;
+			contrast: boolean;
+			description: string;
+		}[];
+		tweets: {
+			profile_pic: string;
+			name: string;
+			handle: string;
+			link: string;
+			content: string;
+			likes: number;
+			timestamp: string;
+		}[];
+		star_count: any;
+	};
 </script>
 
 <MetaTags url={"https://gradio.app"} canonical={"https://gradio.app"} />

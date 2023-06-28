@@ -6,7 +6,7 @@
 	import anchor from "../../../assets/img/anchor.svg";
 	import { onDestroy } from "svelte";
 
-	export let data;
+	export let data: any;
 
 	let objs = data.objs;
 	let mode = data.mode;

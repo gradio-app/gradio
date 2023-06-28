@@ -24,7 +24,7 @@ const COLOR_SETS = [
     ["from-purple-100", "to-purple-50"],
 ]
 
-export async function load({ params }) {
+export async function load({ params }: any) {
     let name = params.doc;
     let obj;
     let mode;
