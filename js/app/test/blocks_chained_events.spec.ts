@@ -33,7 +33,7 @@ test("Consecutive .success event is triggered successfully", async ({
 		if (!is_json) return false;
 
 		const data = await url.json();
-		return data?.data[0] === "Consecutive Event Triggered";
+		return data?.data?.[0] === "Consecutive Event Triggered";
 	}
 
 	await Promise.all([
