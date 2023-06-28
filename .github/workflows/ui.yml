@@ -61,6 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: install dependencies
+        uses: "./.github/actions/install-all-deps"
       - name: generate theme.css
         run: python scripts/generate_theme.py
       - name: publish to chromatic
