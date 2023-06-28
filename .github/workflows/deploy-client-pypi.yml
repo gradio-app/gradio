@@ -33,7 +33,7 @@ jobs:
       run: |
         client/python/scripts/build_pypi.sh
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@3be882c473b35162143effc2be2455999c59fc06
+      uses: pypa/gh-action-pypi-publish@f5622bde02b04381239da3573277701ceca8f6a0
       with:
         user: __token__
         password: ${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}
