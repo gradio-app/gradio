@@ -218,7 +218,7 @@ describe("Audio", () => {
 		assert.equal(fn.callCount, 1);
 	});
 
-	test("when autoplay is true `media.play` should be called in static mode", async () => {
+	test("when autoplay is true `media.play` should be called in dynamic mode", async () => {
 		const { getByTestId } = await render(Audio, {
 			show_label: true,
 			loading_status,

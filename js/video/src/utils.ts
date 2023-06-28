@@ -24,7 +24,6 @@ export function loaded(
 ): ActionReturn {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
-		// node.pause();
 		await node.play();
 	}
 

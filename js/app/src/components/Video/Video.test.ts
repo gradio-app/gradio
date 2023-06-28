@@ -9,8 +9,7 @@ import {
 	expect
 } from "vitest";
 import { spyOn } from "tinyspy";
-import { cleanup, render, wait_for_event, wait } from "@gradio/tootils";
-import event from "@testing-library/user-event";
+import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../../i18n";
 
 import Video from "./Video.svelte";
@@ -134,7 +133,8 @@ describe("Video", () => {
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 1);
 	});
-	test("when autoplay is true `media.play` should be called in static mode", async () => {
+
+	test("when autoplay is true `media.play` should be called in dynamic mode", async () => {
 		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
@@ -158,6 +158,7 @@ describe("Video", () => {
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 1);
 	});
+
 	test("when autoplay is true `media.play` should be called in static mode when the Video data is updated", async () => {
 		const { component, getByTestId } = await render(Video, {
 			show_label: true,
@@ -190,6 +191,7 @@ describe("Video", () => {
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
 	});
+
 	test("when autoplay is true `media.play` should be called in dynamic mode when the Video data is updated", async () => {
 		const { component, getByTestId } = await render(Video, {
 			show_label: true,
