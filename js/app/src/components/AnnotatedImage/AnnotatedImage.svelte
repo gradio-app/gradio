@@ -4,7 +4,7 @@
 	import { Image } from "@gradio/icons";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
-	import { FileData, normalise_file } from "@gradio/upload";
+	import { type FileData, normalise_file } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 
 	export let elem_id: string = "";
