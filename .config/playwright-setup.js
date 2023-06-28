@@ -132,8 +132,8 @@ ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
 ${demos
-	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
-	.join("\n")}
+			.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+			.join("\n")}
 
 config = uvicorn.Config(app, port=${port}, log_level="info")
 server = uvicorn.Server(config=config)
