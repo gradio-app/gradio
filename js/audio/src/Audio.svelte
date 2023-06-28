@@ -60,9 +60,9 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: AudioData;
+		change: AudioData | null;
 		stream: AudioData;
-		edit: AudioData;
+		edit: never;
 		play: never;
 		pause: never;
 		stop: never;
@@ -195,7 +195,7 @@
 	}
 
 	function clear(): void {
-		dispatch("change");
+		dispatch("change", null);
 		dispatch("clear");
 		mode = "";
 		value = null;
