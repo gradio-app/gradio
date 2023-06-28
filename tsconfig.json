@@ -2,7 +2,10 @@
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",
-		"lib": ["es2020", "DOM"],
+		"lib": [
+			"es2020",
+			"DOM"
+		],
 		"target": "es2020",
 		/**
 			svelte-preprocess cannot figure out whether you have a value or a type, so tell TypeScript
@@ -24,7 +27,7 @@
 	"exclude": [
 		"**/dist/**/*",
 		"**/public/**/*",
-		"**/.config/*",
+		"**/.config/**/*",
 		"**/*.test.ts",
 		"**/dist",
 		".github/**/*",
