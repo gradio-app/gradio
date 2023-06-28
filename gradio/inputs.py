@@ -7,10 +7,16 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Optional
 
 from gradio import components
+from gradio.deprecation import warn_deprecation
+
+
+def warn_inputs_deprecation():
+    warn_deprecation(
+        "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+    )
 
 
 class Textbox(components.Textbox):
@@ -24,9 +30,7 @@ class Textbox(components.Textbox):
         label: Optional[str] = None,
         optional: bool = False,
     ):
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             value=default,
             lines=lines,
@@ -56,9 +60,7 @@ class Number(components.Number):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no value for this component.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(value=default, label=label, optional=optional)
 
 
@@ -86,9 +88,7 @@ class Slider(components.Slider):
         label (str): component name in interface.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
 
         super().__init__(
             value=default,
@@ -118,9 +118,7 @@ class Checkbox(components.Checkbox):
         default (bool): if True, checked by default.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(value=default, label=label, optional=optional)
 
 
@@ -148,9 +146,7 @@ class CheckboxGroup(components.CheckboxGroup):
         """
         if default is None:
             default = []
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             value=default,
             choices=choices,
@@ -182,9 +178,7 @@ class Radio(components.Radio):
         label (str): component name in interface.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             choices=choices,
             type=type,
@@ -216,9 +210,7 @@ class Dropdown(components.Dropdown):
         label (str): component name in interface.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             choices=choices,
             type=type,
@@ -256,9 +248,7 @@ class Image(components.Image):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             shape=shape,
             image_mode=image_mode,
@@ -292,9 +282,7 @@ class Video(components.Video):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(format=type, source=source, label=label, optional=optional)
 
 
@@ -318,9 +306,7 @@ class Audio(components.Audio):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded audio, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(source=source, type=type, label=label, optional=optional)
 
 
@@ -346,9 +332,7 @@ class File(components.File):
         keep_filename (bool): DEPRECATED. Original filename always kept.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             file_count=file_count,
             type=type,
@@ -388,9 +372,7 @@ class Dataframe(components.Dataframe):
         label (str): component name in interface.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(
             value=default,
             headers=headers,
@@ -424,9 +406,7 @@ class Timeseries(components.Timeseries):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded csv file, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(x=x, y=y, label=label, optional=optional)
 
 
@@ -447,9 +427,7 @@ class State(components.State):
         default (Any): the initial value of the state.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.State() from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(value=default, label=label)
 
 
@@ -469,7 +447,5 @@ class Image3D(components.Model3D):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_inputs_deprecation()
         super().__init__(label=label, optional=optional)

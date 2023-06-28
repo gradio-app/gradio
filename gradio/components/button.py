@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable
 
 set_documentation_group("component")
@@ -62,7 +62,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             **kwargs,
         )
         if variant == "plain":
-            warnings.warn("'plain' variant deprecated, using 'secondary' instead.")
+            warn_deprecation("'plain' variant deprecated, using 'secondary' instead.")
             variant = "secondary"
         self.variant = variant
         self.size = size
@@ -109,12 +109,11 @@ class Button(Clickable, IOComponent, StringSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if full_width is not None:
-            warnings.warn(
-                "Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not."
+            warn_deprecation(
+                "Use `scale` in place of full_width in the constructor. "
+                "scale=1 will make the button expand, whereas 0 will not."
             )
             self.scale = 1 if full_width else None
         if size is not None:

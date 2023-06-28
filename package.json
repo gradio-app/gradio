@@ -24,7 +24,8 @@
 		"test:browser:verbose": "GRADIO_TEST_VERBOSE=true pnpm test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
-		"ci:version": "changeset version && pnpm i --lockfile-only"
+		"ci:version": "changeset version && pnpm i --lockfile-only",
+		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts"
 	},
 	"type": "module",
 	"author": "",
@@ -35,7 +36,7 @@
 		"@changesets/cli": "^2.26.1",
 		"@csstools/postcss-global-data": "^1.0.3",
 		"@gradio/tootils": "workspace:^0.0.1",
-		"@playwright/test": "^1.35.1",
+		"@playwright/experimental-ct-svelte": "^1.35.1",
 		"@sveltejs/vite-plugin-svelte": "^2.0.0",
 		"@tailwindcss/forms": "^0.5.0",
 		"@testing-library/dom": "^9.0.0",
@@ -56,7 +57,6 @@
 		"msw": "^1.0.0",
 		"node-html-parser": "^6.0.0",
 		"npm-run-all": "^4.1.5",
-		"playwright": "^1.35.1",
 		"plotly.js-dist-min": "^2.10.1",
 		"polka": "^1.0.0-next.22",
 		"pollen-css": "^4.6.1",
@@ -80,6 +80,7 @@
 		"vitest": "^0.32.0"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.35.1",
 		"@types/three": "^0.152.0"
 	},
 	"prettier": {

@@ -20,6 +20,7 @@
 <div
 	class="toast-body"
 	role="alert"
+	data-testid="error-toast"
 	on:click|stopPropagation
 	on:keydown|stopPropagation
 	in:fade={{ duration: 200, delay: 100 }}
@@ -57,6 +58,7 @@
 		class="toast-close"
 		type="button"
 		aria-label="Close"
+		data-testid="error-close"
 	>
 		<span aria-hidden="true">×</span>
 	</button>

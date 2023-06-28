@@ -29,6 +29,7 @@ tmp.zip
 coverage.xml
 test.txt
 **/snapshots/**/*.png
+playwright-report/
 
 # Demos
 demo/tmp.zip
@@ -65,3 +66,6 @@ public/build/
 test-results
 client/js/test.js
 .config/test.py
+.config/playwright
+!.config/playwright/index.html
+!.config/playwright/index.ts
