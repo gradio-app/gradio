@@ -54,7 +54,7 @@
 		on:play
 		on:pause
 		on:ended={handle_ended}
-		data-testid={`${label}-static-audio`}
+		data-testid={`${label}-audio`}
 	/>
 {/if}
 

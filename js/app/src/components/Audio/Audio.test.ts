@@ -46,7 +46,7 @@ describe("Audio", () => {
 		});
 
 		assert.isTrue(
-			getByTestId("Audio Component-dynamic-audio").src.endsWith(
+			getByTestId("Audio Component-audio").src.endsWith(
 				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 			)
 		);
@@ -122,7 +122,7 @@ describe("Audio", () => {
 		});
 
 		assert.isTrue(
-			getByTestId("Audio Component-static-audio").src.endsWith(
+			getByTestId("Audio Component-audio").src.endsWith(
 				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 			)
 		);
@@ -211,7 +211,7 @@ describe("Audio", () => {
 			autoplay: true
 		});
 
-		const startButton = getByTestId<HTMLAudioElement>("static-static-audio");
+		const startButton = getByTestId<HTMLAudioElement>("static-audio");
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
 
@@ -237,7 +237,7 @@ describe("Audio", () => {
 			autoplay: true
 		});
 
-		const startButton = getByTestId<HTMLAudioElement>("dynamic-dynamic-audio");
+		const startButton = getByTestId<HTMLAudioElement>("dynamic-audio");
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
 
@@ -263,7 +263,7 @@ describe("Audio", () => {
 			autoplay: true
 		});
 
-		const startButton = getByTestId<HTMLAudioElement>("static-static-audio");
+		const startButton = getByTestId<HTMLAudioElement>("static-audio");
 		const fn = spyOn(startButton, "play");
 
 		startButton.dispatchEvent(new Event("loadeddata"));
@@ -300,7 +300,7 @@ describe("Audio", () => {
 			autoplay: true
 		});
 
-		const startButton = getByTestId<HTMLAudioElement>("dynamic-dynamic-audio");
+		const startButton = getByTestId<HTMLAudioElement>("dynamic-audio");
 		const fn = spyOn(startButton, "play");
 
 		startButton.dispatchEvent(new Event("loadeddata"));

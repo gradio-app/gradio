@@ -10,9 +10,9 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: [FileData, FileData | null] | null = null;
 	let old_value: [FileData, FileData | null] | null = null;
 
@@ -26,14 +26,15 @@
 	export let width: number | undefined;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
-	export let container: boolean = false;
+	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
-	export let autoplay: boolean = false;
+	export let autoplay = false;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
+	console.log(value);
 
 	$: {
 		if (value != null) {
