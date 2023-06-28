@@ -39,7 +39,7 @@ test("audio uploaded by a user should be shown in the chatbot", async ({ page })
 
 });
 
-test("test video input", async ({ page }) => {
+test("videos uploaded by a user should be shown in the chatbot", async ({ page }) => {
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.getByRole('button', { name: '📁' }).click();
     const fileChooser = await fileChooserPromise;
