@@ -6357,6 +6357,14 @@ packages:
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.2
+    dev: true
+
+  /rollup@3.25.3:
+    resolution: {integrity: sha512-ZT279hx8gszBj9uy5FfhoG4bZx8c+0A1sbqtr7Q3KNWIizpTdDEPZbV2xcbvHsnFp4MavCQYZyzApJ+virB8Yw==}
+    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.3.2
 
   /rrweb-cssom@0.6.0:
     resolution: {integrity: sha512-APM0Gt1KoXBz0iIkkdB/kfvGOwC4UuJFeG/c+yV7wSc7q96cG/kJ0HiYCnzivD9SB53cLV1MlHFNfOuPaadYSw==}
@@ -7959,7 +7967,7 @@ packages:
       '@types/node': 20.3.1
       esbuild: 0.17.14
       postcss: 8.4.23
-      rollup: 3.21.7
+      rollup: 3.25.3
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -7991,7 +7999,7 @@ packages:
       '@types/node': 20.3.2
       esbuild: 0.17.14
       postcss: 8.4.23
-      rollup: 3.21.7
+      rollup: 3.25.3
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
