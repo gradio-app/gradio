@@ -85,7 +85,7 @@ test("markdown code blocks input by a user should be rendered correctly with the
 
 });
 
-test("test LaTeX", async ({ page }) => {
+test("LaTeX input by a user should be rendered correctly", async ({ page }) => {
     const textbox = await page.getByTestId('textbox');
     await textbox.fill("This is LaTeX $$x^2$$");
     await page.keyboard.press('Enter');
