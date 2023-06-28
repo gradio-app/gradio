@@ -35,7 +35,9 @@ If you'd like to have a permanent link to your Gradio demo on the internet, use 
 After you have [created a free Hugging Face account](https://huggingface.co/join), you have three methods to deploy your Gradio app to Hugging Face Spaces:
 
 1. From terminal: run `gradio deploy` in your app directory. The CLI will gather some basic metadata and then launch your app. To update your space, you can re-run this command or enable the Github Actions option to automatically update the Spaces on `git push`.
+
 2. From your browser: Drag and drop a folder containing your Gradio model and all related files [here](https://huggingface.co/new-space).
+
 3. Connect Spaces with your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
 
 <video autoplay muted loop>
