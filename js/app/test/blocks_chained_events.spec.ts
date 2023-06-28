@@ -32,8 +32,9 @@ test("Consecutive .success event is triggered successfully", async ({
 			(await url.headerValue("content-type")) === "application/json";
 		if (!is_json) return false;
 
-		const data = (await url.json()).data[0];
-		return data === "Consecutive Event Triggered";
+		const data = await url.json();
+		console.log(data);
+		return data?.data[0] === "Consecutive Event Triggered";
 	}
 
 	await Promise.all([
