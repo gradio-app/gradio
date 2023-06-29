@@ -9,7 +9,9 @@ Chatbots are widely used in natural language processing (NLP) research and indus
 
 Using `gradio`, you can easily build a demo of your chatbot model and share that with your users, or try it yourself using an intuitive chatbot GUI.
 
-This tutorial will show how to make two kinds of chatbot UIs with Gradio: first a simple one to display text, and then a chatbot that can handle media files as well. 
+This tutorial will show how to make several kinds of chatbot UIs with Gradio: first a simple one to display text, second one to stream text responses, and finally a chatbot that can handle media files as well. The chatbot interface that we create will look something like this:
+
+$demo_chatbot_streaming
 
 **Prerequisite**: We'll be using the `gradio.Blocks` class to build our Chatbot demo.
 You can [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) if you are not already familiar with it. Also please make sure you are using the **latest version** version of Gradio: `pip install --upgrade gradio`. 
@@ -32,6 +34,25 @@ Of course, in practice, you would replace `respond()` with your own more complex
 
 $demo_chatbot_simple
 
+
+## Add Streaming to your Chatbot
+
+There are several ways we can improve the user experience of the chatbot above. First, we can stream responses so the user doesn't have to wait as long for a message to be generated. Second, we can have the user message appear immediately in the chat history, while the chatbot's response is being generated. Here's the code to achieve that: 
+
+$code_chatbot_streaming
+
+
+You'll notice that when a user submits their message, we now *chain* three event events with `.then()`:
+
+1. The first method `user()` updates the chatbot with the user message and clears the input field. This method also makes the input field non interactive so that the user can't send another message while the chatbot is responding. Because we want this to happen instantly, we set `queue=False`, which would skip any queue had it been enabled. The chatbot's history is appended with `(user_message, None)`, the `None` signifying that the bot has not responded.
+
+2. The second method, `bot()` updates the chatbot history with the bot's response. Instead of creating a new message, we just replace the previously-created `None` message with the bot's response. Finally, we construct the message character by character and `yield` the intermediate outputs as they are being constructed. Gradio automatically turns any function with the `yield` keyword [into a streaming output interface](/key-features/#iterative-outputs).
+
+3. The third method makes the input field interactive again so that users can send another message to the bot.
+
+Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
+
+Finally, we enable queuing by running `demo.queue()`, which is required for streaming intermediate outputs. You can try the improved chatbot by scrolling to the demo at the top of this page.
 
 ## Adding Markdown, Images, Audio, or Videos
 
