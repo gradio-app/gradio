@@ -31,7 +31,7 @@ jobs:
       - name: install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build packages
-        run: pnpm --filter @gradio/client build
+        run: pnpm --filter @gradio/client --filter @gradio/lite build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1
