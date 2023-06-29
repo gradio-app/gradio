@@ -20,7 +20,7 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub import SpaceStage
+from huggingface_hub import SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -154,6 +154,7 @@ class Client:
             "a10g-large",
             "a100-large",
         ]
+        | SpaceHardware
         | None = None,
         secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
@@ -235,8 +236,7 @@ class Client:
         current_hardware = (
             current_info.hardware or huggingface_hub.SpaceHardware.CPU_BASIC
         )
-        if hardware is None and original_info.hardware is not None:
-            hardware = original_info.hardware.value
+        hardware = hardware or original_info.hardware
         if current_hardware != hardware:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
