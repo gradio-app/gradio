@@ -99,6 +99,7 @@ class Checkbox(
     def update(
         value: bool | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -108,6 +109,7 @@ class Checkbox(
     ):
         return {
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,

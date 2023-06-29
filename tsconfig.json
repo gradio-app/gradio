@@ -8,7 +8,7 @@
 			svelte-preprocess cannot figure out whether you have a value or a type, so tell TypeScript
 			to enforce using \`import type\` instead of \`import\` for Types.
 			*/
-		"importsNotUsedAsValues": "error",
+		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		"strict": true,
@@ -19,7 +19,10 @@
 		"allowJs": true,
 		"checkJs": true,
 		"outDir": "dist",
-		"baseUrl": "."
+		"baseUrl": ".",
+		"paths": {
+			"./pure": ["./pure.js"]
+		}
 	},
 	"exclude": [
 		"**/dist/**/*",

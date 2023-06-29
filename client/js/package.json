@@ -1,7 +1,7 @@
 {
 	"name": "@gradio/client",
 	"version": "0.1.3",
-	"description": "Gradio UI packages",
+	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/index.js",
 	"author": "",
