@@ -739,10 +739,7 @@ class TestAPIInfo:
                         {
                             "label": "num1",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -752,16 +749,13 @@ class TestAPIInfo:
                             "type": {"type": "string"},
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
-                            "example_input": "Howdy!",
+                            "example_input": "add",
                             "serializer": "StringSerializable",
                         },
                         {
                             "label": "num2",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -771,10 +765,7 @@ class TestAPIInfo:
                         {
                             "label": "output",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "serializer": "NumberSerializable",
                         }
