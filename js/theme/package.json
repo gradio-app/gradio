@@ -6,8 +6,5 @@
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true,
-	"scripts": {
-		"generate": "pollen -c src/pollen.config.cjs"
-	}
+	"private": true
 }
