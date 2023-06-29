@@ -3,9 +3,8 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"scripts": {
-		"dev": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app dev",
-		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:local --emptyOutDir",
+		"dev": "pnpm --filter @gradio/client build && pnpm --filter @gradio/app dev",
+		"build": "pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:local --emptyOutDir",
 		"build:cdn": "pnpm --filter @gradio/client build && pnpm --filter @gradio/app build:cdn --emptyOutDir",
 		"build:website": "pnpm --filter @gradio/app build:website --emptyOutDir",
 		"build:cdn-local": "TEST_CDN=TRUE pnpm build:cdn",
