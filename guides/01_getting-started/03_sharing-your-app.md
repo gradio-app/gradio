@@ -125,21 +125,21 @@ Note: if you use IFrames, you'll probably want to add a fixed `height` attribute
 
 ## API Page
 
-$demo_hello_world
+You can use almost any Gradio app as an API! In the footer of a Gradio app [like this one](https://huggingface.co/spaces/gradio/hello_world), you'll see a "Use via API" link.  
 
-If you click and open the space above, you'll see a "Use via API" link in the footer of the app. 
+![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api3.gif)
 
-![Use via API](/assets/guides/use_via_api.png)
+This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](/getting-started-with-the-python-client/), or [the JavaScript client](/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
 
-This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
+The endpoints are automatically created when you launch a Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
 
 ```python
 btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
-This will document the endpoint `/api/addition/` to the automatically generated API page. 
+This will add and document the endpoint `/api/addition/` to the automatically generated API page. Otherwise, your API endpoints will appear as "unnamed" endpoints. 
 
-*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method.
+*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method. To disable the API page altogether, set `show_api=False` in `.launch()`.
 
 ## Authentication
 

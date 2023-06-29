@@ -84,10 +84,8 @@ with gr.Blocks(  # noqa: SIM117
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls", min_width=400):
             with gr.Row():
-                undo_btn = gr.Button("Undo").style(size="sm")
-                dark_mode_btn = gr.Button("Dark Mode", variant="primary").style(
-                    size="sm"
-                )
+                undo_btn = gr.Button("Undo", size="sm")
+                dark_mode_btn = gr.Button("Dark Mode", variant="primary", size="sm")
             with gr.Tabs():
                 with gr.TabItem("Source Theme"):
                     gr.Markdown(
@@ -353,8 +351,8 @@ with gr.Blocks(  # noqa: SIM117
                     check = gr.Checkbox(label="Go")
                 with gr.Column(variant="panel", scale=2):
                     img = gr.Image(
-                        "https://i.ibb.co/6BgKdSj/groot.jpg", label="Image"
-                    ).style(height=320)
+                        "https://i.ibb.co/6BgKdSj/groot.jpg", label="Image", height=320
+                    )
                     with gr.Row():
                         go_btn = gr.Button(
                             "Go", label="Primary Button", variant="primary"
@@ -368,7 +366,10 @@ with gr.Blocks(  # noqa: SIM117
                             return "https://i.ibb.co/6BgKdSj/groot.jpg"
 
                         go_btn.click(
-                            go, [radio, drop, drop_2, check, name], img, api_name="go"
+                            go,
+                            [radio, drop, drop_2, check, name],
+                            img,
+                            api_name=False,
                         )
 
                         def clear():
@@ -378,11 +379,11 @@ with gr.Blocks(  # noqa: SIM117
                         clear_btn.click(clear, None, img)
 
                     with gr.Row():
-                        btn1 = gr.Button("Button 1").style(size="sm")
-                        btn2 = gr.UploadButton().style(size="sm")
+                        btn1 = gr.Button("Button 1", size="sm")
+                        btn2 = gr.UploadButton(size="sm")
                         stop_btn = gr.Button(
-                            "Stop", label="Stop Button", variant="stop"
-                        ).style(size="sm")
+                            "Stop", label="Stop Button", variant="stop", size="sm"
+                        )
 
             gr.Examples(
                 examples=[
@@ -430,8 +431,10 @@ with gr.Blocks(  # noqa: SIM117
                             "https://gradio-static-files.s3.us-west-2.amazonaws.com/tower.jpg",
                             "tower",
                         ),
-                    ]
-                ).style(height="200px", columns=2)
+                    ],
+                    height="200px",
+                    columns=2,
+                )
 
             with gr.Row():
                 with gr.Column(scale=2):
@@ -448,6 +451,7 @@ with gr.Blocks(  # noqa: SIM117
                         + (time.sleep(2) or []),
                         chatbot,
                         chatbot,
+                        api_name=False,
                     )
                 with gr.Column(scale=1):
                     with gr.Accordion("Advanced Settings"):
@@ -478,6 +482,7 @@ with gr.Blocks(  # noqa: SIM117
                     100
                 );
             }""",
+            api_name=False,
         )
 
         theme_inputs = (
@@ -835,6 +840,7 @@ with gr.Blocks(theme=theme) as demo:
                 render_variables,
                 [history, base_theme_dropdown] + theme_inputs,
                 [history, secret_css, secret_font, output_code, current_theme],
+                api_name=False,
             ).then(
                 None,
                 [secret_css, secret_font],
@@ -856,17 +862,28 @@ with gr.Blocks(theme=theme) as demo:
                         document.head.appendChild(link);
                     });
                 }""",
+                api_name=False,
             )
 
         def load_color(color_name):
             color = [color for color in colors if color.name == color_name][0]
             return [getattr(color, f"c{i}") for i in palette_range]
 
-        attach_rerender(primary_hue.select(load_color, primary_hue, primary_hues).then)
         attach_rerender(
-            secondary_hue.select(load_color, secondary_hue, secondary_hues).then
+            primary_hue.select(
+                load_color, primary_hue, primary_hues, api_name=False
+            ).then
         )
-        attach_rerender(neutral_hue.select(load_color, neutral_hue, neutral_hues).then)
+        attach_rerender(
+            secondary_hue.select(
+                load_color, secondary_hue, secondary_hue, api_name=False
+            ).then
+        )
+        attach_rerender(
+            neutral_hue.select(
+                load_color, neutral_hue, neutral_hues, api_name=False
+            ).then
+        )
         for hue_set in (primary_hues, secondary_hues, neutral_hues):
             for hue in hue_set:
                 attach_rerender(hue.blur)
@@ -875,14 +892,24 @@ with gr.Blocks(theme=theme) as demo:
             size = [size for size in sizes if size.name == size_name][0]
             return [getattr(size, i) for i in size_range]
 
-        attach_rerender(text_size.change(load_size, text_size, text_sizes).then)
         attach_rerender(
-            spacing_size.change(load_size, spacing_size, spacing_sizes).then
+            text_size.change(load_size, text_size, text_sizes, api_name=False).then
         )
-        attach_rerender(radius_size.change(load_size, radius_size, radius_sizes).then)
+        attach_rerender(
+            spacing_size.change(
+                load_size, spacing_size, spacing_sizes, api_name=False
+            ).then
+        )
+        attach_rerender(
+            radius_size.change(
+                load_size, radius_size, radius_sizes, api_name=False
+            ).then
+        )
 
         attach_rerender(
-            load_theme_btn.click(load_theme, base_theme_dropdown, theme_inputs).then
+            load_theme_btn.click(
+                load_theme, base_theme_dropdown, theme_inputs, api_name=False
+            ).then
         )
 
         for theme_box in (
@@ -907,6 +934,7 @@ with gr.Blocks(theme=theme) as demo:
                 document.querySelector('body').classList.add('dark');
             }
         }""",
+            api_name=False,
         )
 
         def undo(history_var):
@@ -919,7 +947,10 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             undo_btn.click(
-                undo, [history], [history, base_theme_dropdown] + theme_inputs
+                undo,
+                [history],
+                [history, base_theme_dropdown] + theme_inputs,
+                api_name=False,
             ).then
         )
 
@@ -948,7 +979,12 @@ with gr.Blocks(theme=theme) as demo:
                     "Upload to Hub",
                 )
 
-        upload_to_hub_btn.click(lambda: "Uploading...", None, upload_to_hub_btn).then(
+        upload_to_hub_btn.click(
+            lambda: "Uploading...",
+            None,
+            upload_to_hub_btn,
+            api_name=False,
+        ).then(
             upload_to_hub,
             {
                 current_theme,
@@ -957,6 +993,7 @@ with gr.Blocks(theme=theme) as demo:
                 theme_version,
             },
             [theme_upload_status, upload_to_hub_btn],
+            api_name=False,
         )
 
 

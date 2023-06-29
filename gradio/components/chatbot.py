@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from pathlib import Path
 from typing import Callable, Literal
 
 from gradio_client import utils as client_utils
@@ -26,7 +27,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
+    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
@@ -34,7 +35,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None]]
+        value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
         | None = None,
         color_map: dict[str, str] | None = None,
@@ -177,7 +178,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            file_uri = chat_message[0]
+            file_uri = str(chat_message[0])
             if utils.validate_url(file_uri):
                 filepath = file_uri
             else:
@@ -203,7 +204,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     ) -> list[list[str | dict | None]]:
         """
         Parameters:
-            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
+            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
         Returns:
             List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
