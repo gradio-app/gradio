@@ -26,8 +26,8 @@ class Model3D(
 ):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
-    Preprocessing: This component passes the uploaded file as a {str} filepath.
-    Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
+    Preprocessing: This component passes the uploaded file as a {str}filepath.
+    Postprocessing: expects function to return a {str} or {pathlib.Path} filepath of type (.obj, glb, or .gltf)
 
     Demos: model3D
     Guides: how-to-use-3D-model-component
@@ -135,7 +135,7 @@ class Model3D(
 
         return temp_file_path
 
-    def postprocess(self, y: str | None) -> dict[str, str] | None:
+    def postprocess(self, y: str | Path | None) -> dict[str, str] | None:
         """
         Parameters:
             y: path to the model

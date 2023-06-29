@@ -42,7 +42,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} filepath or URL to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
@@ -50,7 +50,7 @@ class Audio(
 
     def __init__(
         self,
-        value: str | tuple[int, np.ndarray] | Callable | None = None,
+        value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
         source: Literal["upload", "microphone"] = "upload",
         type: Literal["numpy", "filepath"] = "numpy",
@@ -300,7 +300,9 @@ class Audio(
             masked_inputs.append(masked_data)
         return masked_inputs
 
-    def postprocess(self, y: tuple[int, np.ndarray] | str | None) -> str | dict | None:
+    def postprocess(
+        self, y: tuple[int, np.ndarray] | str | Path | None
+    ) -> str | dict | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
