@@ -776,14 +776,12 @@ class TestAPIInfo:
         }
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
-        # This demo has no api_name
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="str")
             assert "fn_index=0" in info
             assert "api_name" not in info
 
     def test_api_false_endpoints_do_not_appear(self, count_generator_demo):
-        # This demo has no api_name
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="dict")
             assert len(info["named_endpoints"]) == 0
