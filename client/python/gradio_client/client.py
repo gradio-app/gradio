@@ -612,16 +612,18 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | None = None if api_name is None else "/" + api_name
+        self.api_name: str | None = None if (api_name is None or api_name is False) else "/" + api_name
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         try:
+            # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
+            # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
             self.serializers, self.deserializers = self._setup_serializers()
             self.is_valid = self.dependency[
                 "backend_fn"
-            ]  # Only a real API endpoint if backend_fn is True and serializers are valid
+            ]  and self.api_name is not False 
         except AssertionError:
             self.is_valid = False
 
