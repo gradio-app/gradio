@@ -893,7 +893,7 @@ class TestAudio:
         ).endswith(".wav")
 
         output1 = audio_output.postprocess(y_audio.name)
-        output2 = audio_output.postprocess(y_audio.name)
+        output2 = audio_output.postprocess(Path(y_audio.name))
         assert output1 == output2
 
     def test_serialize(self):
@@ -2108,7 +2108,7 @@ class TestModel3D:
 
         file = "test/test_files/Box.gltf"
         output1 = component.postprocess(file)
-        output2 = component.postprocess(file)
+        output2 = component.postprocess(Path(file))
         assert output1 == output2
 
     def test_in_interface(self):
