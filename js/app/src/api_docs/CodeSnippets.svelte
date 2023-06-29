@@ -90,18 +90,14 @@ print(result)</pre>
 				</div>
 				<div bind:this={js_code}>
 					<pre>import &lbrace; client &rbrace; from "@gradio/client";
-<!--
--->
-
-async function run() &lbrace;
 {#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
-	const response_{i} = await fetch("{example_input}");
-	const example{component} = await response_{i}.blob();
+const response_{i} = await fetch("{example_input}");
+const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
-	const app = await client(<span class="token string">"{root}"</span>);
-	const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
+const app = await client(<span class="token string">"{root}"</span>);
+const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
@@ -137,10 +133,7 @@ async function run() &lbrace;
 						{/each}
 	]);
 
-	console.log(result?.data);
-&rbrace;
-
-run();
+console.log(result.data);
 </pre>
 				</div>
 			{/if}
