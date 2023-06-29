@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - main
+
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
+  NODE_OPTIONS: "--max-old-space-size=4096"
 jobs:
   version:
     runs-on: ubuntu-latest
@@ -15,23 +17,19 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - name: setup node.js
-        uses: actions/setup-node@v3
-        with:
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-          node-version: 18
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: "./.github/actions/install-all-deps"
+        with:
+          always-install-pnpm: true
+          node_auth_token: ${{ secrets.NPM_TOKEN }}
+          npm_token: ${{ secrets.NPM_TOKEN }}
+          skip_build: 'true'
       - name: Build packages
-        run: pnpm --filter @gradio/client build
+        run: |
+          . venv/bin/activate
+          pip install build
+          pnpm css
+          pnpm --filter @gradio/client --filter @gradio/lite build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1

@@ -14,6 +14,7 @@ from gradio_client.serializing import VideoSerializable
 
 from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
 
 if not wasm_utils.IS_WASM:
@@ -386,9 +387,7 @@ class Video(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         if width is not None:
