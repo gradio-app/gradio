@@ -37,6 +37,7 @@
 
 	const loadFiles = (files: FileList) => {
 		let _files: Array<File> = Array.from(files);
+		console.log({ _files });
 		if (!files.length) {
 			return;
 		}
@@ -56,6 +57,7 @@
 			if (
 				all_file_data.filter((x) => x !== undefined).length === files.length
 			) {
+				console.log({ all_file_data });
 				dispatch(
 					"load",
 					file_count == "single" ? all_file_data[0] : all_file_data
@@ -65,8 +67,10 @@
 	};
 
 	const loadFilesFromUpload = (e: Event) => {
+		console.log("loadFilesFromUpload");
 		const target = e.target as HTMLInputElement;
 		if (!target.files) {
+			console.log("!target.files");
 			return;
 		}
 		loadFiles(target.files);

@@ -31,8 +31,11 @@
 			(file_data) => file_data.blob!
 		);
 
+		console.log("Calling this branch");
+
 		upload_files(root, files).then(async (response) => {
 			if (response.error) {
+				console.log("Failure");
 				(Array.isArray(detail) ? detail : [detail]).forEach(
 					async (file_data, i) => {
 						file_data.data = await blobToBase64(file_data.blob!);
@@ -40,6 +43,7 @@
 					}
 				);
 			} else {
+				console.log("Success");
 				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
 					if (response.files) {
 						file_data.orig_name = file_data.name;
