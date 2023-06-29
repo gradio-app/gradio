@@ -20,7 +20,7 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub import SpaceStage
+from huggingface_hub import SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -154,6 +154,7 @@ class Client:
             "a10g-large",
             "a100-large",
         ]
+        | SpaceHardware
         | None = None,
         secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
@@ -354,7 +355,7 @@ class Client:
         Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
 
         Parameters:
-            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
+            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will print info about named endpoints, unless there aren't any -- in which it will print info about unnamed endpoints.
             print_info: If True, prints the usage info to the console. If False, does not print the usage info.
             return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Example:
@@ -611,16 +612,18 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | None = None if api_name is None else "/" + api_name
+        self.api_name: str | None = (
+            None if (api_name is None or api_name is False) else "/" + api_name
+        )
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         try:
+            # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
+            # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
             self.serializers, self.deserializers = self._setup_serializers()
-            self.is_valid = self.dependency[
-                "backend_fn"
-            ]  # Only a real API endpoint if backend_fn is True and serializers are valid
+            self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except AssertionError:
             self.is_valid = False
 
