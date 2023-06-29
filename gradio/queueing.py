@@ -456,7 +456,6 @@ class Queue:
         except Exception as e:
             print(e)
         finally:
-            print("f")
             for event in awake_events:
                 try:
                     await event.disconnect()

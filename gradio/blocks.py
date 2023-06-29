@@ -1061,7 +1061,8 @@ class Blocks(BlockContext):
 
         start = time.time()
 
-        fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
+        # fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
+        fn = block_fn.fn
 
         if iterator is None:  # If not a generator function that has already run
             if progress_tracker is not None and progress_index is not None:

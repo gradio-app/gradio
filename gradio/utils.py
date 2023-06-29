@@ -648,7 +648,20 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     return continuous_fn
 
 def function_wrapper(f, before_fn=None, before_args=None, after_fn=None, after_args=None):
-    if asyncio.iscoroutinefunction(f):
+    before_args = [] if before_args is None else before_args
+    after_args = [] if after_args is None else after_args
+    if inspect.isasyncgenfunction(f):
+        print(1)
+        @functools.wraps(f)
+        async def wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
+            async for response in f(*args, **kwargs):
+                yield response
+            if after_fn:
+                after_fn(*after_args)
+    elif asyncio.iscoroutinefunction(f):
+        print(2)
         @functools.wraps(f)
         async def wrapper(*args, **kwargs):
             if before_fn:
@@ -658,14 +671,17 @@ def function_wrapper(f, before_fn=None, before_args=None, after_fn=None, after_a
                 after_fn(*after_args)
             return response
     elif inspect.isgeneratorfunction(f):
+        print(3)
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             if before_fn:
                 before_fn(*before_args)
-            yield from f(*args, **kwargs)
+            result = yield from f(*args, **kwargs)
             if after_fn:
                 after_fn(*after_args)
+            return result
     else:
+        print(4)
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             if before_fn:
