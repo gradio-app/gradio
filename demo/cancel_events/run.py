@@ -4,8 +4,8 @@ import gradio as gr
 
 def fake_diffusion(steps):
     for i in range(steps):
-        print(f"Current step: {i}")
-        time.sleep(1)
+        # print(f"Current step: {i}")
+        time.sleep(0.2)
         yield str(i)
 
 
