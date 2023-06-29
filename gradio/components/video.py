@@ -266,7 +266,9 @@ class Video(
             assert (
                 len(y) == 2
             ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
-            assert isinstance(y[0], (str, Path)) and  isinstance(y[1], (str, Path)), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+            assert isinstance(y[0], (str, Path)) and isinstance(
+                y[1], (str, Path)
+            ), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
             video = y[0]
             subtitle = y[1]
             processed_files = (
