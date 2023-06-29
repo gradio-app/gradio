@@ -36,7 +36,11 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters, warn_deprecation
-from gradio.exceptions import DuplicateBlockError, InvalidApiNameError, InvalidBlockError
+from gradio.exceptions import (
+    DuplicateBlockError,
+    InvalidApiNameError,
+    InvalidBlockError,
+)
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -1284,7 +1288,7 @@ Received outputs:
                     "Number of output components does not match number "
                     f"of values returned from from function {block_fn.name}"
                 ) from err
-            
+
             try:
                 block = self.blocks[output_id]
             except KeyError as e:

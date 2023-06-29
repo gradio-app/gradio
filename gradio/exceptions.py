@@ -28,6 +28,7 @@ class InvalidBlockError(ValueError):
 
     pass
 
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 
