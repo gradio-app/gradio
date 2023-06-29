@@ -2208,7 +2208,6 @@ class TestGallery:
             data_restored = [d[0]["data"] for d in data_restored]
             assert sorted(data) == sorted(data_restored)
 
-        # test if the Gallery component supports pathlib.Path objects
         postprocessed_gallery = gallery.postprocess([Path("test/test_files/bus.png")])
         processed_gallery = [{"name": "bus.png", "data": None, "is_file": True}]
         postprocessed_gallery[0]["name"] = os.path.basename(
