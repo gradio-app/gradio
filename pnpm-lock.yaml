@@ -601,6 +601,8 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../utils
 
+  js/lite: {}
+
   js/markdown: {}
 
   js/model3D:
