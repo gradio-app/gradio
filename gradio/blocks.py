@@ -914,7 +914,7 @@ class Blocks(BlockContext):
             dependency_offset = len(Context.root_block.dependencies)
             for i, dependency in enumerate(self.dependencies):
                 api_name = dependency["api_name"]
-                if api_name is not None and not False:
+                if api_name is not None and api_name is not False:
                     api_name_ = utils.append_unique_suffix(
                         api_name,
                         [dep["api_name"] for dep in Context.root_block.dependencies],

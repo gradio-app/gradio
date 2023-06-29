@@ -124,9 +124,9 @@ You can use almost any Gradio app as an API! In the footer of a Gradio app [like
 
 ![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api3.gif)
 
-This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](), or [the JavaScript client](). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
+This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](/getting-started-with-the-python-client/), or [the JavaScript client](/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
 
-The endpoints are created when you launch your Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
+The endpoints are automatically created when you launch a Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
 
 ```python
 btn.click(add, [num1, num2], output, api_name="addition")

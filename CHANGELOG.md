@@ -44,7 +44,7 @@
 
 ## Breaking Changes:
 
-No changes to highlight.
+[PR 4683](https://github.com/gradio-app/gradio/pull/4683) removes the explict named endpoint "load_examples" from gr.Interface that was introduced in [PR 4456]((https://github.com/gradio-app/gradio/pull/4683)).
 
 # 3.35.2
 
