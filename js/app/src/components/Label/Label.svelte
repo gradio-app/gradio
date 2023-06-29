@@ -43,7 +43,7 @@
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}
 	{#if _label !== undefined && _label !== null}
-		<Label on:select {selectable} {value} {show_label} {color} />
+		<Label on:select {selectable} {value} {color} />
 	{:else}
 		<Empty unpadded_box={true}><LabelIcon /></Empty>
 	{/if}

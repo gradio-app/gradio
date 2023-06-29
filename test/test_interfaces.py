@@ -10,7 +10,7 @@ import requests
 from fastapi.testclient import TestClient
 
 import gradio
-from gradio.blocks import Blocks
+from gradio.blocks import Blocks, get_api_info
 from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
@@ -167,6 +167,12 @@ class TestInterface:
         output_textbox = Textbox(interactive=True)
         Interface(lambda x: x, "textbox", output_textbox)
         assert output_textbox.get_config()["interactive"]
+
+    def test_get_api_info(self):
+        io = Interface(lambda x: x, Image(type="filepath"), "textbox")
+        api_info = get_api_info(io.get_config_file())
+        assert len(api_info["named_endpoints"]) == 1
+        assert len(api_info["unnamed_endpoints"]) == 0
 
 
 class TestTabbedInterface:
