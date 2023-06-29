@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - main
+
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
+  NODE_OPTIONS: "--max-old-space-size=4096"
 jobs:
   version:
     runs-on: ubuntu-latest
@@ -26,6 +28,7 @@ jobs:
         run: |
           . venv/bin/activate
           pip install build
+          pnpm css
           pnpm --filter @gradio/client --filter @gradio/lite build
       - name: create and publish versions
         id: changesets
