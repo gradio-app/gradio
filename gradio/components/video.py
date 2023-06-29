@@ -41,7 +41,7 @@ class Video(
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} filepath to a video which is displayed, or a {Tuple[str, str]} where the first element is a filepath to a video and the second element is a filepath to a subtitle file.
+    Postprocessing: expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str]} where the first element is a filepath to a video and the second element is a filepath to a subtitle file.
     Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
     Demos: video_identity, video_subtitle
     """
@@ -238,13 +238,12 @@ class Video(
             return str(file_name)
 
     def postprocess(
-        self, y: str | tuple[str, str | None] | None
+        self, y: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> tuple[FileData | None, FileData | None] | None:
         """
-        Processes a video to ensure that it is in the correct format before
-        returning it to the front end.
+        Processes a video to ensure that it is in the correct format before returning it to the front end.
         Parameters:
-            y: video data in either of the following formats: a tuple of (str video filepath, str subtitle filepath), or a string filepath or URL to an video file, or None.
+            y: video data in either of the following formats: a tuple of (video filepath, optional subtitle filepath), or just a filepath or URL to an video file, or None.
         Returns:
             a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
             - The first dictionary represents the video file and contains the following keys:
@@ -267,6 +266,7 @@ class Video(
             assert (
                 len(y) == 2
             ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+            assert isinstance(y[0], (str, Path)) and  isinstance(y[1], (str, Path)), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
             video = y[0]
             subtitle = y[1]
             processed_files = (
@@ -278,7 +278,7 @@ class Video(
 
         return processed_files
 
-    def _format_video(self, video: str | None) -> FileData | None:
+    def _format_video(self, video: str | Path | None) -> FileData | None:
         """
         Processes a video to ensure that it is in the correct format.
         Parameters:
