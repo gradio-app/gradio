@@ -133,7 +133,7 @@ const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{depe
 						{/each}
 	]);
 
-console.log(result.data);
+console.log(result?.data);
 </pre>
 				</div>
 			{/if}
