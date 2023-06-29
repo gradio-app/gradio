@@ -1,3 +1,4 @@
+import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 import type {
 	HttpRequest,
 	HttpResponse,
@@ -12,13 +13,16 @@ export interface WorkerProxyOptions {
 }
 
 export class WorkerProxy {
-	private worker: Worker;
+	private worker: globalThis.Worker;
 
 	constructor(options: WorkerProxyOptions) {
 		console.debug("WorkerProxy.constructor(): Create a new worker.");
 		// Loading a worker here relies on Vite's support for WebWorkers (https://vitejs.dev/guide/features.html#web-workers),
 		// assuming that this module is imported from the Gradio frontend (`@gradio/app`), which is bundled with Vite.
-		this.worker = new Worker(new URL("./webworker.js", import.meta.url));
+		// HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
+		// Read the comment in `cross-origin-worker.ts` for the detail.
+		const workerMaker = new Worker(new URL("./webworker.js", import.meta.url));
+		this.worker = workerMaker.worker;
 
 		this.postMessageAsync({
 			type: "init",
