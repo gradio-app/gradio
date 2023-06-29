@@ -121,6 +121,7 @@ class CheckboxGroup(
         | None = _Keywords.NO_VALUE,
         choices: list[str] | None = None,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -131,6 +132,7 @@ class CheckboxGroup(
         return {
             "choices": choices,
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,

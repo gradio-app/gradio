@@ -95,6 +95,7 @@ class ColorPicker(
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -105,6 +106,7 @@ class ColorPicker(
         return {
             "value": value,
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,
