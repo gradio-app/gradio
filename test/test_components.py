@@ -1899,7 +1899,7 @@ class TestChatbot:
             [("test/test_files/video_sample.mp4",), "cool video"],
             [("test/test_files/audio_sample.wav",), "cool audio"],
             [("test/test_files/bus.png", "A bus"), "cool pic"],
-            [(Path("test_files/video_sample.mp4"),), "cool video"],
+            [(Path("test/test_files/video_sample.mp4"),), "cool video"],
             [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
             [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
         ]
