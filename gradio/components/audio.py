@@ -300,7 +300,9 @@ class Audio(
             masked_inputs.append(masked_data)
         return masked_inputs
 
-    def postprocess(self, y: tuple[int, np.ndarray] | str | Path | None) -> str | dict | None:
+    def postprocess(
+        self, y: tuple[int, np.ndarray] | str | Path | None
+    ) -> str | dict | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
