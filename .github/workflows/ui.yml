@@ -59,6 +59,7 @@ jobs:
           pnpm run test:ct
   chromatic-deployment:
     runs-on: ubuntu-latest
+    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-visual-update') }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -88,5 +89,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "${{steps.publish-chromatic.outputs.storybookUrl}}"
+              body: `Build successful :tada:
+              * [Storybook](${{steps.publish-chromatic.outputs.storybookUrl}})
+              * [Build](${{steps.publish-chromatic.outputs.buildUrl}})`
             })
