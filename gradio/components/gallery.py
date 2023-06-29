@@ -26,7 +26,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | Path]}, or a {List} of (image, {str} caption) tuples and displays them.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | pathlib.Path]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
     """
