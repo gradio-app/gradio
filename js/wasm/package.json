@@ -4,6 +4,12 @@
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/index.js",
+	"exports": {
+		".": {
+			"import": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
 	"private": true,
 	"keywords": [],
 	"author": "",
