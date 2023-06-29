@@ -2,7 +2,7 @@ import "@gradio/theme";
 import { WorkerProxy } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
-import { wasm_proxied_mount_css } from "./css";
+import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
 import type { ThemeMode } from "../components/types";
@@ -41,7 +41,7 @@ interface Options {
 	controlPageTitle: boolean;
 	appMode: boolean;
 }
-export async function create(options: Options) {
+export async function create(options: Options): Promise<void> {
 	// TODO: Runtime type validation for options.
 
 	const observer = new MutationObserver(() => {
@@ -61,6 +61,8 @@ export async function create(options: Options) {
 	// (see the await in the `onmessage` callback in the webworker code)
 	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
 	worker_proxy.runPythonAsync(options.pyCode);
+
+	mount_prebuilt_css(document.head);
 
 	const overridden_fetch: typeof fetch = (input, init?) => {
 		return wasm_proxied_fetch(worker_proxy, input, init);
@@ -135,7 +137,7 @@ def upload_file(files):
     file_paths = [file.name for file in files]
     return file_paths
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     name = gr.Textbox(label="Name")
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
