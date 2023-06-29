@@ -9,7 +9,6 @@
 			to enforce using \`import type\` instead of \`import\` for Types.
 			*/
 		"verbatimModuleSyntax": true,
-		"isolatedModules": true,
 		"resolveJsonModule": true,
 		"strict": true,
 		"sourceMap": true,
