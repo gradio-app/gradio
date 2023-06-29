@@ -68,13 +68,25 @@ jobs:
       - name: generate theme.css
         run: python scripts/generate_theme.py
       - name: install dependencies
-        uses: "./.github/actions/install-frontend-deps"
+        uses: "./.github/actions/install-all-deps"
         with:
           always-install-pnpm: true
+          skip_build: 'true'
       - name: build storybook
         run: pnpm build-storybook --quiet 
       - name: publish to chromatic
+        id: publish-chromatic
         uses: chromaui/action@v1
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: post deployment link to PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "${{steps.publish-chromatic.outputs.storybookUrl}}"
+            })

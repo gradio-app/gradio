@@ -69,6 +69,7 @@ client/js/test.js
 # storybook
 storybook-static
 build-storybook.log
+.storybook/theme.css
 
 # playwright
 .config/playwright
