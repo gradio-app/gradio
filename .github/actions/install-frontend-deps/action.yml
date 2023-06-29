@@ -5,6 +5,15 @@ inputs:
   always-install-pnpm:
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: false
+  node_auth_token:
+    description: 'Node auth token'
+    default: ""
+  npm_token:
+    description: 'npm token'
+    default: ""
+  skip_build:
+    description: 'Skip build'
+    default: false
 
 runs:
   using: "composite"
@@ -25,11 +34,14 @@ runs:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
+      env:
+          NODE_AUTH_TOKEN: ${{ inputs.always-install-pnpm }}
+          NPM_TOKEN: ${{ inputs.always-install-pnpm }}
     - name: Install deps
       if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       shell: bash
       run: pnpm i --frozen-lockfile
     - name: Build frontend
-      if: steps.frontend-cache.outputs.cache-hit != 'true'
+      if: inputs.skip_build === 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
