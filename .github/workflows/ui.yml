@@ -71,3 +71,6 @@ jobs:
         uses: chromaui/action@v1
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          storybookBuildDir: storybook-static
+          token: ${{ secrets.GITHUB_TOKEN }}
+          workingDir: ./
