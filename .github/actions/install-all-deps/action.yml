@@ -5,6 +5,15 @@ inputs:
   always-install-pnpm: 
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: false
+  node_auth_token:
+    description: 'Node auth token'
+    default: ""
+  npm_token:
+    description: 'npm token'
+    default: ""
+  skip_build:
+    description: 'Skip build'
+    default: false
 
 runs:
   using: "composite"
@@ -40,3 +49,6 @@ runs:
       uses: "./.github/actions/install-frontend-deps"
       with:
         always-install-pnpm: ${{ inputs.always-install-pnpm }}
+        node_auth_token: ${{ inputs.node_auth_token }}
+        npm_token: ${{ inputs.npm_token }}
+        skip_build: ${{ inputs.skip_build }}
