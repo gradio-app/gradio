@@ -182,7 +182,7 @@ importers:
   js/_spaces-test:
     dependencies:
       '@gradio/client':
-        specifier: workspace:^0.1.3
+        specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/form':
         specifier: workspace:^0.0.1
@@ -239,7 +239,7 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../chatbot
       '@gradio/client':
-        specifier: workspace:^0.1.3
+        specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/code':
         specifier: workspace:^0.0.1
