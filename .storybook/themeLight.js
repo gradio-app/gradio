@@ -29,10 +29,4 @@ export default create({
 	barTextColor: "#101827",
 	barSelectedColor: "#FF7C01",
 	barBg: "#ffffff"
-
-	// form colors
-	// inputBg: "#ffffff",
-	// inputBorder: "#10162F",
-	// inputTextColor: "#10162F",
-	// inputBorderRadius: 2
 });
