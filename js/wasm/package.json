@@ -5,9 +5,7 @@
 	"type": "module",
 	"main": "./dist/index.js",
 	"exports": {
-		".": {
-			"import": "./dist/index.js"
-		},
+		".": "./dist/index.js",
 		"./package.json": "./package.json"
 	},
 	"private": true,
