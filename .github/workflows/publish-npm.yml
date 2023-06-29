@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - main
+
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
+  NODE_OPTIONS: "--max-old-space-size=4096"
 jobs:
   version:
     runs-on: ubuntu-latest
