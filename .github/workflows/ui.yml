@@ -67,9 +67,10 @@ jobs:
         run: python -m pip install gradio==$(cat gradio/version.txt)
       - name: generate theme.css
         run: python scripts/generate_theme.py
+      - name: build storybook
+        run: pnpm build-storybook --quiet 
       - name: publish to chromatic
         uses: chromaui/action@v1
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          workingDir: ./
