@@ -731,8 +731,8 @@ class TestAPIInfo:
         }
 
     @pytest.mark.flaky
-    def test_fetch_old_version_space(self):
-        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+    def test_fetch_fixed_version_space(self):
+        assert Client("gradio-tests/calculator").view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
                     "parameters": [
