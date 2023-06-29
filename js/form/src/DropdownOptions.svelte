@@ -10,9 +10,32 @@
 	let distance_from_top: number;
 	let distance_from_bottom: number;
 	let input_height: number;
+	let input_width: number;
 	let refElement: HTMLDivElement;
 	let listElement: HTMLUListElement;
 	let top: string | null, bottom: string | null, max_height: number;
+	let innerHeight: number;
+
+	const calculate_window_distance = () => {
+		const { top: ref_top, bottom: ref_bottom } =
+			refElement.getBoundingClientRect();
+		distance_from_top = ref_top;
+		distance_from_bottom = innerHeight - ref_bottom;
+	};
+
+	let scroll_timeout: NodeJS.Timeout | null = null;
+	const scroll_listener = () => {
+		if (!showOptions) return;
+		if (scroll_timeout !== null) {
+			clearTimeout(scroll_timeout);
+		}
+
+		scroll_timeout = setTimeout(() => {
+			calculate_window_distance();
+			scroll_timeout = null;
+		}, 10);
+	};
+
 	$: {
 		if (showOptions && refElement) {
 			if (listElement && typeof value === "string") {
@@ -23,18 +46,17 @@
 					listElement.scrollTo(0, el.offsetTop);
 				}
 			}
-			distance_from_top = refElement.getBoundingClientRect().top;
-			distance_from_bottom =
-				window.innerHeight - refElement.getBoundingClientRect().bottom;
-			input_height =
-				refElement.parentElement?.getBoundingClientRect().height || 0;
+			calculate_window_distance();
+			const rect = refElement.parentElement?.getBoundingClientRect();
+			input_height = rect?.height || 0;
+			input_width = rect?.width || 0;
 		}
 		if (distance_from_bottom > distance_from_top) {
-			top = `${input_height}px`;
+			top = `${distance_from_top}px`;
 			max_height = distance_from_bottom;
 			bottom = null;
 		} else {
-			bottom = `${input_height}px`;
+			bottom = `${distance_from_bottom + input_height}px`;
 			max_height = distance_from_top - input_height;
 			top = null;
 		}
@@ -43,6 +65,8 @@
 	const dispatch = createEventDispatcher();
 	$: _value = Array.isArray(value) ? value : [value];
 </script>
+
+<svelte:window on:scroll={scroll_listener} bind:innerHeight />
 
 <div class="reference" bind:this={refElement} />
 {#if showOptions && !disabled}
@@ -54,6 +78,7 @@
 		style:top
 		style:bottom
 		style:max-height={`calc(${max_height}px - var(--window-padding))`}
+		style:width={input_width + "px"}
 		bind:this={listElement}
 	>
 		{#each filtered as choice}
@@ -79,13 +104,12 @@
 <style>
 	.options {
 		--window-padding: var(--size-8);
-		position: absolute;
+		position: fixed;
 		z-index: var(--layer-top);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--container-radius);
 		background: var(--background-fill-primary);
-		width: var(--size-full);
 		min-width: fit-content;
 		max-width: inherit;
 		overflow: auto;

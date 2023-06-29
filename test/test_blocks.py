@@ -1109,6 +1109,7 @@ class TestSpecificUpdate:
         )
         assert specific_update == {
             "lines": 4,
+            "info": None,
             "max_lines": None,
             "placeholder": None,
             "label": None,
@@ -1130,6 +1131,7 @@ class TestSpecificUpdate:
         assert specific_update == {
             "lines": 4,
             "max_lines": None,
+            "info": None,
             "placeholder": None,
             "label": None,
             "show_label": None,

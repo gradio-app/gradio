@@ -13,7 +13,7 @@
 	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
-	export let max_lines: number | false;
+	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
 
@@ -96,7 +96,7 @@
 		if (lines === max_lines) return;
 
 		let max =
-			max_lines === false
+			max_lines === undefined
 				? false
 				: max_lines === undefined // default
 				? 21 * 11

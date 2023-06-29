@@ -17,8 +17,8 @@ const loading_status = {
 describe("ColorPicker", () => {
 	afterEach(() => cleanup());
 
-	test("renders provided value", () => {
-		const { getByDisplayValue } = render(ColorPicker, {
+	test("renders provided value", async () => {
+		const { getByDisplayValue } = await render(ColorPicker, {
 			loading_status,
 			show_label: true,
 			mode: "dynamic",
@@ -31,7 +31,7 @@ describe("ColorPicker", () => {
 	});
 
 	test("changing the color should update the value", async () => {
-		const { component, getByDisplayValue } = render(ColorPicker, {
+		const { component, getByDisplayValue } = await render(ColorPicker, {
 			loading_status,
 			show_label: true,
 			mode: "dynamic",
