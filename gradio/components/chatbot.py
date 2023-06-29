@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from pathlib import Path
 from typing import Callable, Literal
 
 from gradio_client import utils as client_utils
@@ -17,7 +18,6 @@ from gradio.events import (
     EventListenerMethod,
     Selectable,
 )
-from pathlib import Path
 
 set_documentation_group("component")
 

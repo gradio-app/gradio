@@ -1375,29 +1375,42 @@ class TestVideo:
             )
         ).endswith(".mp4")
 
-        #test if the video component supports pathlib.Path objects
+        # test if the video component supports pathlib.Path objects
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
         postprocessed_video = p_video.postprocess(Path(y_vid_path))
-        postprocessed_video_with_subtitle = video_with_subtitle.postprocess((Path(y_vid_path), Path(subtitles_path)))
+        postprocessed_video_with_subtitle = video_with_subtitle.postprocess(
+            (Path(y_vid_path), Path(subtitles_path))
+        )
 
-        processed_video = ({'name':'video_sample.mp4',
-               'data':None,
-               'is_file': True,
-               'orig_name': 'video_sample.mp4'}, None)
-    
-        processed_video_with_subtitle = ({'name':'video_sample.mp4',
-               'data':None,
-               'is_file': True,
-               'orig_name': 'video_sample.mp4'},
-               {'name': None,
-               'data': True,
-               'is_file': False})
-        postprocessed_video[0]['name'] = os.path.basename(postprocessed_video[0]['name'])
+        processed_video = (
+            {
+                "name": "video_sample.mp4",
+                "data": None,
+                "is_file": True,
+                "orig_name": "video_sample.mp4",
+            },
+            None,
+        )
+
+        processed_video_with_subtitle = (
+            {
+                "name": "video_sample.mp4",
+                "data": None,
+                "is_file": True,
+                "orig_name": "video_sample.mp4",
+            },
+            {"name": None, "data": True, "is_file": False},
+        )
+        postprocessed_video[0]["name"] = os.path.basename(
+            postprocessed_video[0]["name"]
+        )
         assert processed_video == postprocessed_video
-        postprocessed_video_with_subtitle[0]['name'] = os.path.basename(postprocessed_video_with_subtitle[0]['name'])
-        if postprocessed_video_with_subtitle[1]['data']:
-            postprocessed_video_with_subtitle[1]['data'] = True
+        postprocessed_video_with_subtitle[0]["name"] = os.path.basename(
+            postprocessed_video_with_subtitle[0]["name"]
+        )
+        if postprocessed_video_with_subtitle[1]["data"]:
+            postprocessed_video_with_subtitle[1]["data"] = True
         assert processed_video_with_subtitle == postprocessed_video_with_subtitle
 
     def test_in_interface(self):
@@ -1922,7 +1935,7 @@ class TestChatbot:
                 },
                 "cool pic",
             ],
-        ]*2
+        ] * 2
         postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg)
         postprocessed_multimodal_msg_base_names = []
         for x, y in postprocessed_multimodal_msg:
@@ -2195,14 +2208,15 @@ class TestGallery:
             data_restored = [d[0]["data"] for d in data_restored]
             assert sorted(data) == sorted(data_restored)
 
-        #test if the Gallery component supports pathlib.Path objects
-        postprocessed_gallery = gallery.postprocess([Path('test/test_files/bus.png')])
-        processed_gallery = [{'name':'bus.png',
-                          'data': None,
-                          'is_file': True}]
-        postprocessed_gallery[0]['name'] = os.path.basename(postprocessed_gallery[0]['name'])
+        # test if the Gallery component supports pathlib.Path objects
+        postprocessed_gallery = gallery.postprocess([Path("test/test_files/bus.png")])
+        processed_gallery = [{"name": "bus.png", "data": None, "is_file": True}]
+        postprocessed_gallery[0]["name"] = os.path.basename(
+            postprocessed_gallery[0]["name"]
+        )
         assert processed_gallery == postprocessed_gallery
-        
+
+
 class TestState:
     def test_as_component(self):
         state = gr.State(value=5)

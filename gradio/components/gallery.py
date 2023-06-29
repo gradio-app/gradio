@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
 from pathlib import Path
+from typing import Any, Callable, Literal
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -33,7 +33,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
 
     def __init__(
         self,
-        value: list[np.ndarray | _Image.Image | str | Path | tuple] | Callable | None = None,
+        value: list[np.ndarray | _Image.Image | str | Path | tuple]
+        | Callable
+        | None = None,
         *,
         label: str | None = None,
         every: float | None = None,

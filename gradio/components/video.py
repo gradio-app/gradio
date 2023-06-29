@@ -48,7 +48,11 @@ class Video(
 
     def __init__(
         self,
-        value: str | Path | tuple[str | Path, str | Path | None] | Callable | None = None,
+        value: str
+        | Path
+        | tuple[str | Path, str | Path | None]
+        | Callable
+        | None = None,
         *,
         format: str | None = None,
         source: Literal["upload", "webcam"] = "upload",
