@@ -1,12 +1,33 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import type { Value } from "../../Audio/types";
 
 	export let value: Value;
 	export let type: "gallery" | "table";
-	export let selected: boolean = false;
+	export let selected = false;
+
+	let size;
+	let el;
+
+	// $: el && size && set_styles(el, size);
+
+	function set_styles(element: HTMLElement, el_width: number): void {
+		if (!element || !el_width) return;
+		el.style.setProperty(
+			"--local-text-width",
+			`${el_width < 150 ? el_width : 200}px`
+		);
+		el.style.whiteSpace = "unset";
+	}
+
+	onMount(() => {
+		set_styles(el, size);
+	});
 </script>
 
 <div
+	bind:clientWidth={size}
+	bind:this={el}
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
@@ -21,7 +42,8 @@
 
 	div {
 		overflow: hidden;
-		text-overflow: ellipsis;
+		min-width: var(--local-text-width);
+
 		white-space: nowrap;
 	}
 </style>
