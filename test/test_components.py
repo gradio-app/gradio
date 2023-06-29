@@ -1375,7 +1375,6 @@ class TestVideo:
             )
         ).endswith(".mp4")
 
-        # test if the video component supports pathlib.Path objects
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
         postprocessed_video = p_video.postprocess(Path(y_vid_path))
