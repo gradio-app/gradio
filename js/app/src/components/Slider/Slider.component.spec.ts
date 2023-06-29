@@ -66,7 +66,7 @@ test("Slider Default Value And Label rendered", async ({ mount }) => {
 });
 
 test("Slider respects show_label", async ({ mount, page }) => {
-	const _ = await mount(Slider, {
+	const component = await mount(Slider, {
 		props: {
 			value: 3,
 			minimum: 0,
@@ -78,7 +78,7 @@ test("Slider respects show_label", async ({ mount, page }) => {
 			loading_status: loading_status
 		}
 	});
-	await expect(page.getByTestId("label")).toBeHidden();
+	await expect(component.getByTestId("block-title")).toBeHidden();
 });
 
 test("Slider Maximum/Minimum values", async ({ mount, page }) => {
