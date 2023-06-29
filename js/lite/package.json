@@ -8,5 +8,8 @@
 	"license": "Apache-2.0",
 	"files": [
 		"dist"
-	]
+	],
+	"scripts": {
+		"build": "pnpm --filter @gradio/app build:lite"
+	}
 }
