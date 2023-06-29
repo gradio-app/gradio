@@ -8,6 +8,7 @@
 	height="100%"
 	preserveAspectRatio="xMidYMid meet"
 	viewBox="0 0 32 32"
+	data-testid="plot-icon"
 >
 	<circle cx="20" cy="4" r="2" fill="currentColor" />
 	<circle cx="8" cy="16" r="2" fill="currentColor" />

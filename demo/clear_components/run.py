@@ -5,21 +5,81 @@ import random
 import string
 import pandas as pd
 
-from demos.kitchen_sink_random.constants import (
-    file_dir,
-    img_dir,
-    highlighted_text,
-    highlighted_text_output_2,
-    highlighted_text_output_1,
-    random_plot,
-    random_model3d,
-)
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import os
+
+
+def random_plot():
+    start_year = 2020
+    x = np.arange(start_year, start_year + random.randint(0, 10))
+    year_count = x.shape[0]
+    plt_format = "-"
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    series = np.arange(0, year_count, dtype=float)
+    series = series**2
+    series += np.random.rand(year_count)
+    ax.plot(x, series, plt_format)
+    return fig
+
+
+img_dir = os.path.join(os.path.dirname(__file__), "..", "kitchen_sink", "files")
+file_dir = os.path.join(os.path.dirname(__file__), "..", "kitchen_sink", "files")
+model3d_dir = os.path.join(os.path.dirname(__file__), "..", "model3D", "files")
+highlighted_text_output_1 = [
+    {
+        "entity": "I-LOC",
+        "score": 0.9988978,
+        "index": 2,
+        "word": "Chicago",
+        "start": 5,
+        "end": 12,
+    },
+    {
+        "entity": "I-MISC",
+        "score": 0.9958592,
+        "index": 5,
+        "word": "Pakistani",
+        "start": 22,
+        "end": 31,
+    },
+]
+highlighted_text_output_2 = [
+    {
+        "entity": "I-LOC",
+        "score": 0.9988978,
+        "index": 2,
+        "word": "Chicago",
+        "start": 5,
+        "end": 12,
+    },
+    {
+        "entity": "I-LOC",
+        "score": 0.9958592,
+        "index": 5,
+        "word": "Pakistan",
+        "start": 22,
+        "end": 30,
+    },
+]
+
+highlighted_text = "Does Chicago have any Pakistani restaurants"
+
+
+def random_model3d():
+    model_3d = random.choice(
+        [os.path.join(model3d_dir, model) for model in os.listdir(model3d_dir) if model != "source.txt"]
+    )
+    return model_3d
+
 
 
 components = [
     gr.Textbox(value=lambda: datetime.now(), label="Current Time"),
     gr.Number(value=lambda: random.random(), label="Random Percentage"),
-    gr.Slider(minimum=-1, maximum=1, randomize=True, label="Slider with randomize"),
+    gr.Slider(minimum=0, maximum=100, randomize=True, label="Slider with randomize"),
     gr.Slider(
         minimum=0,
         maximum=1,
@@ -85,16 +145,12 @@ components = [
 
 
 with gr.Blocks() as demo:
-    for component in components:
+    for i, component in enumerate(components):
+        component.label = f"component_{str(i).zfill(2)}"
         component.render()
-    reset = gr.Button(value="Reset")
+    clear = gr.ClearButton(value="Clear", components=components)
     hide = gr.Button(value="Hide")
     reveal = gr.Button(value="Reveal")
-    reset.click(
-        lambda: [c.update(value=None) for c in components],
-        inputs=[],
-        outputs=components,
-    )
     hide.click(
         lambda: [c.update(visible=False) for c in components],
         inputs=[],

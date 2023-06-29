@@ -41,7 +41,13 @@
 		</a>
 	</div>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<img src={value} alt="" class:selectable on:click={handle_click} />
+	<img
+		src={value}
+		alt=""
+		class:selectable
+		on:click={handle_click}
+		data-testid={`${label}-static-image`}
+	/>
 {/if}
 
 <style>

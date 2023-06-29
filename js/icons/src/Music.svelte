@@ -9,6 +9,7 @@
 	stroke-linecap="round"
 	stroke-linejoin="round"
 	class="feather feather-music"
+	data-testid="music-icon"
 >
 	<path d="M9 18V5l12-2v13" />
 	<circle cx="6" cy="18" r="3" />
