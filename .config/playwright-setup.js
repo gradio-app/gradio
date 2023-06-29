@@ -67,9 +67,8 @@ function spawn_gradio_app(app, port, verbose) {
 		});
 		_process.stdout.setEncoding("utf8");
 
-		_process.stdout.on("data", (data) => {
+		function std_out(data) {
 			const _data = data.toString();
-
 			const is_info = INFO_RE.test(_data);
 
 			if (is_info) {
@@ -86,33 +85,14 @@ function spawn_gradio_app(app, port, verbose) {
 				res(_process);
 
 				if (!verbose) {
-					_process.stdout.destroy();
-					_process.stderr.destroy();
+					_process.stdout.off("data", std_out);
+					_process.stderr.off("data", std_out);
 				}
 			}
-		});
+		}
 
-		_process.stderr.on("data", (data) => {
-			const _data = data.toString();
-			const is_info = INFO_RE.test(_data);
-
-			if (is_info) {
-				process.stdout.write(kl.yellow(_data));
-			}
-
-			if (!is_info) {
-				process.stdout.write(`${_data}\n`);
-			}
-			if (PORT_RE.test(_data)) {
-				process.stderr.write(kl.bgBlue("\n =========== END =========== "));
-				res(_process);
-
-				if (!verbose) {
-					_process.stdout.destroy();
-					_process.stderr.destroy();
-				}
-			}
-		});
+		_process.stdout.on("data", std_out);
+		_process.stderr.on("data", std_out);
 	});
 }
 
