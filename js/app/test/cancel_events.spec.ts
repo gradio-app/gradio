@@ -40,7 +40,7 @@ test("when using an iterative function the UI should update over time as iterati
 	await expect(textbox).toHaveValue("8");
 });
 
-test("cancel", async ({ page }) => {
+test("when using an iterative function it should be possible to cancel the function, after which the UI should stop updating", async ({ page }) => {
 	let first_iteration;
 	const start_button = await page.locator("button", {
 		hasText: /Start Iterating/
