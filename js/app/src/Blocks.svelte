@@ -317,12 +317,7 @@
 					) {
 						showed_duplicate_message = true;
 						messages = [
-							{
-								type: "warning",
-								message: DUPLICATE_MESSAGE,
-								id: ++_error_id,
-								fn_index
-							},
+							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
 							...messages
 						];
 					}
