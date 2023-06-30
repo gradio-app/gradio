@@ -88,6 +88,6 @@ jobs:
               Chromatic build successful :tada:
               * [Storybook Preview](${{steps.publish-chromatic.outputs.storybookUrl}})
               * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})
-          comment_tag: Chromatic build successful :tada:
+          comment_tag: chromatic-build
           pr_number: ${{ env.pr_number }}
             
