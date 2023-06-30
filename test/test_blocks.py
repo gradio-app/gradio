@@ -217,7 +217,9 @@ class TestBlocksMethods:
         mock_post.assert_called_once()
 
     @mock.patch("requests.post")
-    def test_launch_analytics_does_not_error_with_invalid_blocks(self, mock_post, monkeypatch):
+    def test_launch_analytics_does_not_error_with_invalid_blocks(
+        self, mock_post, monkeypatch
+    ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             t1 = gr.Textbox()
