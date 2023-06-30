@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from requests.exceptions import HTTPError
+import requests
 
 from gradio_client import media_data, utils
 
@@ -40,6 +40,14 @@ def test_encode_url_to_base64():
     assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
 
+def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
+    error_response = requests.Response()
+    error_response.status_code = 404
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(requests.RequestException):
+        utils.encode_url_to_base64("https://example.com/foo")
+
+
 def test_decode_base64_to_binary():
     binary = utils.decode_base64_to_binary(deepcopy(media_data.BASE64_IMAGE))
     assert deepcopy(media_data.BINARY_IMAGE) == binary
@@ -63,6 +71,15 @@ def test_download_private_file():
     hf_token = "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"  # Intentionally revealing this key for testing purposes
     file = utils.download_tmp_copy_of_file(url_path=url_path, hf_token=hf_token)
     assert Path(file).name.endswith(".jpg")
+
+
+def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch):
+    error_response = requests.Response()
+    error_response.status_code = 404
+    error_response.close = lambda: 0  # Mock close method to avoid unrelated exception
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(requests.RequestException):
+        utils.download_tmp_copy_of_file("https://example.com/foo")
 
 
 @pytest.mark.parametrize(
@@ -123,7 +140,7 @@ def test_sleep_successful(mock_post):
 
 @patch(
     "requests.post",
-    return_value=MagicMock(raise_for_status=MagicMock(side_effect=HTTPError)),
+    return_value=MagicMock(raise_for_status=MagicMock(side_effect=requests.HTTPError)),
 )
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):

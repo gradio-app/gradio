@@ -93,14 +93,14 @@ function spawn_gradio_app(app, port, verbose) {
 
 		_process.stdout.on("data", std_out);
 		_process.stderr.on("data", std_out);
+		_process.on("exit", () => kill_process(_process));
+		_process.on("close", () => kill_process(_process));
+		_process.on("disconnect", () => kill_process(_process));
 	});
 }
 
 function kill_process(process) {
-	return new Promise((res, rej) => {
-		process.on("close", res);
-		process.kill("SIGTERM");
-	});
+	process.kill("SIGKILL");
 }
 
 function make_app(demos, port) {
