@@ -11,10 +11,12 @@
 
 <h2>
 	<img src={api_logo} alt="" />
-	API documentation for&nbsp;
-	<span class="url">
-		{root}&nbsp;&nbsp;&nbsp;
-	</span>
+	<span
+		>API documentation for&nbsp;
+		<span class="url">
+			{root}&nbsp;&nbsp;&nbsp;
+		</span></span
+	>
 	<span class="counts">
 		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
 	</span>
@@ -36,7 +38,7 @@
 		width: var(--size-4);
 	}
 
-	span {
+	.url {
 		color: var(--color-accent);
 	}
 
