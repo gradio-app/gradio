@@ -15,7 +15,7 @@ describe("UploadButton", () => {
 	test("Uploads with blob", async () => {
 		vi.mock("@gradio/client", async () => {
 			return {
-				upload_files: vi.fn((f) => new Promise((res) => res({}))) //(f) => new Promise((res) => res({})) //vi.fn((f) => new Promise((res) => res({})))
+				upload_files: vi.fn((f) => new Promise((res) => res({})))
 			};
 		});
 
@@ -42,7 +42,7 @@ describe("UploadButton", () => {
 	test("upload sets change event", async () => {
 		vi.mock("@gradio/client", async () => {
 			return {
-				upload_files: vi.fn((f) => new Promise((res) => res({}))) //(f) => new Promise((res) => res({})) //vi.fn((f) => new Promise((res) => res({})))
+				upload_files: vi.fn((f) => new Promise((res) => res({})))
 			};
 		});
 
