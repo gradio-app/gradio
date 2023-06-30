@@ -179,7 +179,7 @@ class IOComponent(Component):
             self.attach_load_event(load_fn, every)
 
     @staticmethod
-    def hash_file(file_path: str, chunk_num_blocks: int = 128) -> str:
+    def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
@@ -214,7 +214,7 @@ class IOComponent(Component):
             sha1.update(data.encode("utf-8"))
         return sha1.hexdigest()
 
-    def make_temp_copy_if_needed(self, file_path: str) -> str:
+    def make_temp_copy_if_needed(self, file_path: str | Path) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
         temp_dir = self.hash_file(file_path)

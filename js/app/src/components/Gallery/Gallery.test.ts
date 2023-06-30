@@ -4,14 +4,15 @@ import { cleanup, render } from "@gradio/tootils";
 import Gallery from "./Gallery.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
 
-const loading_status = {
+const loading_status: LoadingStatus = {
 	eta: 0,
 	queue_position: 1,
 	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
+	status: "complete",
 	scroll_to_output: false,
 	visible: true,
-	fn_index: 0
+	fn_index: 0,
+	show_progress: "full"
 };
 
 describe("Gallery", () => {
@@ -21,7 +22,9 @@ describe("Gallery", () => {
 	});
 
 	test("preview shows detailed image by default", async () => {
-		const { getAllByTestId, getByTestId } = render(Gallery, {
+		window.Element.prototype.scrollTo = vi.fn(() => {});
+
+		const { getAllByTestId, getByTestId } = await render(Gallery, {
 			loading_status,
 			label: "gallery",
 			// @ts-ignore
@@ -51,14 +54,12 @@ describe("Gallery", () => {
 		});
 
 		const details = getAllByTestId("detailed-image");
-		const container = getByTestId("container_el");
-		container.scrollTo = () => {};
 
 		assert.equal(details.length, 1);
 	});
 
 	test("detailed view does not show larger image", async () => {
-		const { queryAllByTestId, getByTestId } = render(Gallery, {
+		const { queryAllByTestId, getByTestId } = await render(Gallery, {
 			loading_status,
 			label: "gallery",
 			// @ts-ignore
