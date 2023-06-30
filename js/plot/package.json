@@ -16,6 +16,6 @@
 		"plotly.js-dist-min": "^2.10.1",
 		"svelte-vega": "^2.0.0",
 		"vega": "^5.22.1",
-		"vega-lite": "*"
+		"vega-lite": "^5.6.0"
 	}
 }
