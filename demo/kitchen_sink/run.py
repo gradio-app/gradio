@@ -45,7 +45,7 @@ def fn(
         else os.path.join(os.path.dirname(__file__), "files/cantina.wav"),  # Audio
         np.flipud(im1)
         if im1 is not None
-        else os.path.join(os.path.dirname(__file__), "files/cheetah11.jpg"),  # Image
+        else os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),  # Image
         video
         if video is not None
         else os.path.join(os.path.dirname(__file__), "files/world.mp4"),  # Video
@@ -138,10 +138,10 @@ demo = gr.Interface(
             "baz",
             "bar",
             ["foo", "bar"],
-            os.path.join(os.path.dirname(__file__), "files/cheetah11.jpg"),
-            os.path.join(os.path.dirname(__file__), "files/cheetah11.jpg"),
-            os.path.join(os.path.dirname(__file__), "files/cheetah11.jpg"),
-            os.path.join(os.path.dirname(__file__), "files/cheetah11.jpg"),
+            os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
             os.path.join(os.path.dirname(__file__), "files/world.mp4"),
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
