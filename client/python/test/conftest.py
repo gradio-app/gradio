@@ -55,6 +55,7 @@ def increment_demo():
     with gr.Blocks() as demo:
         btn1 = gr.Button("Increment")
         btn2 = gr.Button("Increment")
+        btn3 = gr.Button("Increment")
         numb = gr.Number()
 
         state = gr.State(0)
@@ -72,6 +73,13 @@ def increment_demo():
             queue=False,
             api_name="increment_without_queue",
         )
+        btn3.click(
+            lambda x: (x + 1, x + 1),
+            state,
+            [state, numb],
+            api_name=False,
+        )
+
     return demo.queue()
 
 
