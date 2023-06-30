@@ -20,7 +20,7 @@ export class CrossOriginWorkerMaker {
 				`Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`
 			);
 			const workerBlob = new Blob([`importScripts("${url.toString()}");`], {
-				type: "text/javascript"
+				type: "text/javascript",
 			});
 			const workerBlobUrl = URL.createObjectURL(workerBlob);
 			this.worker = new Worker(workerBlobUrl);

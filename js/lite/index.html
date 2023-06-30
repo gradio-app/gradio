@@ -22,8 +22,7 @@
 	<body style="margin: 0; padding: 0; height: 100%">
 		<div id="gradio-app"></div>
 
-		<script type="module">
-			// type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
+		<script type="module">  // type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
 			createGradioApp({
 				target: document.getElementById("gradio-app"),
 				pyCode: `
