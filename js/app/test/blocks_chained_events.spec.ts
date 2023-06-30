@@ -51,11 +51,11 @@ test("gr.Error makes the toast show up", async ({ page }) => {
 		page.click("text=Trigger Failure")
 	]);
 
-	const toast = page.getByTestId("error-toast");
-	expect(toast).toContainText("Something went wrong");
-	const close = page.getByTestId("error-close");
+	const toast = page.getByTestId("toast-body");
+	expect(toast).toContainText("Error");
+	const close = page.getByTestId("toast-close");
 	await close.click();
-	await expect(page.getByTestId("error-toast")).toHaveCount(0);
+	await expect(page.getByTestId("toast-body")).toHaveCount(0);
 });
 
 test("ValueError makes the toast show up when show_error=True", async ({
