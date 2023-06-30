@@ -7,7 +7,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let file_count: string;
-	export let file_types: string[] = ["file"];
+	export let file_types: string[] = [];
 	export let include_file_metadata = true;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
