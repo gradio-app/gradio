@@ -88,6 +88,7 @@ jobs:
               Chromatic build successful :tada:
               * [Storybook Preview](${{steps.publish-chromatic.outputs.storybookUrl}})
               * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           comment_tag: chromatic-build
           pr_number: ${{ env.pr_number }}
             
