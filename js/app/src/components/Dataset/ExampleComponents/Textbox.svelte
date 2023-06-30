@@ -6,10 +6,8 @@
 	export let type: "gallery" | "table";
 	export let selected = false;
 
-	let size;
-	let el;
-
-	// $: el && size && set_styles(el, size);
+	let size: number;
+	let el: HTMLDivElement;
 
 	function set_styles(element: HTMLElement, el_width: number): void {
 		if (!element || !el_width) return;
