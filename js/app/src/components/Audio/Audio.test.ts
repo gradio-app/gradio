@@ -1,7 +1,9 @@
-import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, render, wait_for_event } from "@gradio/tootils";
+import { test, describe, assert, afterEach, vi, beforeAll } from "vitest";
+import { spy, spyOn } from "tinyspy";
+import { cleanup, render, wait_for_event, wait } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 import { setupi18n } from "../../i18n";
+import { tick } from "svelte";
 
 import Audio from "./Audio.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
@@ -18,10 +20,14 @@ const loading_status = {
 };
 
 describe("Audio", () => {
+	beforeAll(() => {
+		window.HTMLMediaElement.prototype.play = vi.fn();
+		window.HTMLMediaElement.prototype.pause = vi.fn();
+	});
 	afterEach(() => cleanup());
 
 	test("renders provided value and label", async () => {
-		const { getByTestId, queryAllByText } = render(Audio, {
+		const { getByTestId, queryAllByText } = await render(Audio, {
 			show_label: true,
 			loading_status,
 			mode: "dynamic",
@@ -40,7 +46,7 @@ describe("Audio", () => {
 		});
 
 		assert.isTrue(
-			getByTestId("Audio Component-dynamic-audio").src.endsWith(
+			getByTestId("Audio Component-audio").src.endsWith(
 				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 			)
 		);
@@ -48,7 +54,7 @@ describe("Audio", () => {
 	});
 
 	test("hides label", async () => {
-		const { queryAllByText } = render(Audio, {
+		const { queryAllByText } = await render(Audio, {
 			show_label: false,
 			loading_status,
 			mode: "dynamic",
@@ -71,7 +77,7 @@ describe("Audio", () => {
 
 	test("upload sets change event", async () => {
 		setupi18n();
-		const { container, component } = render(Audio, {
+		const { container, component } = await render(Audio, {
 			show_label: false,
 			loading_status,
 			value: null,
@@ -97,7 +103,7 @@ describe("Audio", () => {
 	});
 
 	test("static audio sets value", async () => {
-		const { getByTestId } = render(Audio, {
+		const { getByTestId } = await render(Audio, {
 			show_label: true,
 			loading_status,
 			mode: "static",
@@ -116,7 +122,7 @@ describe("Audio", () => {
 		});
 
 		assert.isTrue(
-			getByTestId("Audio Component-static-audio").src.endsWith(
+			getByTestId("Audio Component-audio").src.endsWith(
 				"foo/file=https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 			)
 		);
@@ -158,7 +164,7 @@ describe("Audio", () => {
 		vi.stubGlobal("navigator", media_mock);
 		vi.stubGlobal("MediaRecorder", media_recorder_mock);
 
-		const { component, getByText } = render(Audio, {
+		const { component, getByText } = await render(Audio, {
 			show_label: true,
 			loading_status,
 			mode: "dynamic",
@@ -168,7 +174,8 @@ describe("Audio", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "microphone"
+			source: "microphone",
+			name: "bar"
 		});
 
 		const startButton = getByText("Record from microphone");
@@ -183,5 +190,131 @@ describe("Audio", () => {
 		);
 		assert.equal(component.$capture_state().value.name, "audio.wav");
 		assert.equal(mock.callCount, 1);
+	});
+
+	test("when autoplay is true `media.play` should be called in static mode", async () => {
+		const { getByTestId } = await render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "static",
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			},
+			label: "static",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "microphone",
+			autoplay: true
+		});
+
+		const startButton = getByTestId<HTMLAudioElement>("static-audio");
+		const fn = spyOn(startButton, "play");
+		startButton.dispatchEvent(new Event("loadeddata"));
+
+		assert.equal(fn.callCount, 1);
+	});
+
+	test("when autoplay is true `media.play` should be called in dynamic mode", async () => {
+		const { getByTestId } = await render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "dynamic",
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			},
+			label: "dynamic",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "microphone",
+			autoplay: true
+		});
+
+		const startButton = getByTestId<HTMLAudioElement>("dynamic-audio");
+		const fn = spyOn(startButton, "play");
+		startButton.dispatchEvent(new Event("loadeddata"));
+
+		assert.equal(fn.callCount, 1);
+	});
+
+	test("when autoplay is true `media.play` should be called in static mode when the audio data is updated", async () => {
+		const { component, getByTestId } = await render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "static",
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			},
+			label: "static",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "microphone",
+			autoplay: true
+		});
+
+		const startButton = getByTestId<HTMLAudioElement>("static-audio");
+		const fn = spyOn(startButton, "play");
+
+		startButton.dispatchEvent(new Event("loadeddata"));
+
+		component.$set({
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			}
+		});
+
+		startButton.dispatchEvent(new Event("loadeddata"));
+
+		assert.equal(fn.callCount, 2);
+	});
+
+	test("when autoplay is true `media.play` should be called in dynamic mode when the audio data is updated", async () => {
+		const { component, getByTestId } = await render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "dynamic",
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			},
+			label: "dynamic",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "microphone",
+			autoplay: true
+		});
+
+		const startButton = getByTestId<HTMLAudioElement>("dynamic-audio");
+		const fn = spyOn(startButton, "play");
+
+		startButton.dispatchEvent(new Event("loadeddata"));
+
+		component.$set({
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			}
+		});
+
+		startButton.dispatchEvent(new Event("loadeddata"));
+
+		assert.equal(fn.callCount, 2);
 	});
 });

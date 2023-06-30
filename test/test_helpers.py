@@ -324,14 +324,18 @@ class TestProcessExamples:
         def concatenate(str1, str2):
             return str1 + str2
 
-        io = gr.Interface(
-            concatenate,
-            inputs=[gr.Textbox(), gr.Textbox()],
-            outputs=gr.Textbox(),
-            examples=[["Hello,", None], ["Michael", None]],
-        )
+        with gr.Blocks() as demo:
+            t1 = gr.Textbox()
+            t2 = gr.Textbox()
+            t1.submit(concatenate, [t1, t2], t2)
 
-        app, _, _ = io.launch(prevent_thread_lock=True)
+            gr.Examples(
+                [["Hello,", None], ["Michael", None]],
+                inputs=[t1, t2],
+                api_name="load_example",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
         response = client.post("/api/load_example/", json={"data": [0]})
@@ -344,15 +348,21 @@ class TestProcessExamples:
         def concatenate(str1, str2):
             return f"{str1} {str2}"
 
-        io = gr.Interface(
-            concatenate,
-            inputs=[gr.Textbox(), gr.Textbox()],
-            outputs=gr.Textbox(),
-            examples=[["Hello,", "World"], ["Michael", "Jordan"]],
-            cache_examples=True,
-        )
+        with gr.Blocks() as demo:
+            t1 = gr.Textbox()
+            t2 = gr.Textbox()
+            t1.submit(concatenate, [t1, t2], t2)
 
-        app, _, _ = io.launch(prevent_thread_lock=True)
+            gr.Examples(
+                examples=[["Hello,", "World"], ["Michael", "Jordan"]],
+                inputs=[t1, t2],
+                outputs=[t2],
+                fn=concatenate,
+                cache_examples=True,
+                api_name="load_example",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
         response = client.post("/api/load_example/", json={"data": [0]})

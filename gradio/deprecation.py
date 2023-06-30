@@ -1,4 +1,18 @@
+from __future__ import annotations
+
 import warnings
+
+from gradio import utils
+
+
+class GradioDeprecationWarning(UserWarning):
+    # This does not subclass DeprecationWarning
+    # because we want to show the warning by default.
+    pass
+
+
+class GradioUnusedKwargWarning(UserWarning):
+    pass
 
 
 def simple_deprecated_notice(term: str) -> str:
@@ -28,19 +42,39 @@ DEPRECATION_MESSAGE = {
     "width": use_in_launch("width"),
     "height": use_in_launch("height"),
     "plot": "The 'plot' parameter has been deprecated. Use the new Plot component instead",
-    "type": "The 'type' parameter has been deprecated. Use the Number component instead.",
 }
 
 
-def check_deprecated_parameters(cls: str, *, stacklevel: int = 2, kwargs) -> None:
+def check_deprecated_parameters(
+    cls: str, *, stacklevel: int | None = None, kwargs
+) -> None:
+    if stacklevel is None:
+        stacklevel = utils.find_user_stack_level()
+
     for key, value in DEPRECATION_MESSAGE.items():
         if key in kwargs:
+            if key == "plot" and cls != "Image":
+                continue
             kwargs.pop(key)
-            # Interestingly, using DeprecationWarning causes warning to not appear.
-            warnings.warn(value, stacklevel=stacklevel)
+            warnings.warn(value, GradioDeprecationWarning, stacklevel=stacklevel)
 
     if kwargs:
         warnings.warn(
             f"You have unused kwarg parameters in {cls}, please remove them: {kwargs}",
+            GradioUnusedKwargWarning,
             stacklevel=stacklevel,
         )
+
+
+def warn_deprecation(text: str) -> None:
+    warnings.warn(
+        text,
+        GradioDeprecationWarning,
+        stacklevel=utils.find_user_stack_level(),
+    )
+
+
+def warn_style_method_deprecation() -> None:
+    warn_deprecation(
+        "The `style` method is deprecated. Please set these arguments in the constructor instead."
+    )

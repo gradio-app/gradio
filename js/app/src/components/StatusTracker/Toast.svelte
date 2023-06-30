@@ -1,15 +1,31 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import { flip } from "svelte/animate";
 	import type { ToastMessage } from "./types";
 	import ToastContent from "./ToastContent.svelte";
 
 	export let messages: ToastMessage[] = [];
+
+	$: scroll_to_top(messages);
+
+	function scroll_to_top(_messages: ToastMessage[]): void {
+		if (_messages.length > 0) {
+			if ("parentIFrame" in window) {
+				let is_large = window.matchMedia("(min-width: 640px)").matches;
+				window.parentIFrame?.scrollTo(0, is_large ? 0 : 999999);
+			}
+		}
+	}
 </script>
 
 <div class="toast-wrap">
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
+<<<<<<< HEAD
 			<ToastContent {type} {message} on:close {id} />
+=======
+			<Error {message} on:close {id} />
+>>>>>>> origin/main
 		</div>
 	{/each}
 </div>

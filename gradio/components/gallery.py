@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import warnings
+from pathlib import Path
 from typing import Any, Callable, Literal
 
 import numpy as np
@@ -12,6 +12,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListenerMethod,
     Selectable,
@@ -25,14 +26,16 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, or a {List} of (image, {str} caption) tuples and displays them.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | pathlib.Path]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
     """
 
     def __init__(
         self,
-        value: list[np.ndarray | _Image.Image | str | tuple] | Callable | None = None,
+        value: list[np.ndarray | _Image.Image | str | Path | tuple]
+        | Callable
+        | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -172,7 +175,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
                 file = self.pil_to_temp_file(img, dir=self.DEFAULT_TEMP_DIR)
                 file_path = str(utils.abspath(file))
                 self.temp_files.add(file_path)
-            elif isinstance(img, str):
+            elif isinstance(img, (str, Path)):
                 if utils.validate_url(img):
                     file_path = img
                 else:
@@ -204,11 +207,9 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if grid is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The 'grid' parameter will be deprecated. Please use 'grid_cols' in the constructor instead.",
             )
             self.grid_cols = grid

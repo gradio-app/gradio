@@ -35,7 +35,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.context import Context
-from gradio.deprecation import check_deprecated_parameters
+from gradio.deprecation import check_deprecated_parameters, warn_deprecation
 from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
@@ -101,9 +101,7 @@ class Block:
 
         if render:
             self.render()
-        check_deprecated_parameters(
-            self.__class__.__name__, stacklevel=6, kwargs=kwargs
-        )
+        check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
 
     def render(self):
         """
@@ -165,7 +163,7 @@ class Block:
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: str = "full",
-        api_name: str | None = None,
+        api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
         queue: bool | None = None,
@@ -188,7 +186,7 @@ class Block:
             postprocess: whether to run the postprocess methods of components
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
-            api_name: Defining this parameter exposes the endpoint in the api docs
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
             js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -254,7 +252,7 @@ class Block:
                 progress_index is not None,
             )
         )
-        if api_name is not None:
+        if api_name is not None and api_name is not False:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
@@ -603,9 +601,13 @@ def get_api_info(config: dict, serialize: bool = True):
 
         if skip_endpoint:
             continue
-        if dependency["api_name"]:
+        if dependency["api_name"] is not None and dependency["api_name"] is not False:
             api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
-        elif mode == "interface" or mode == "tabbed_interface":
+        elif (
+            dependency["api_name"] is False
+            or mode == "interface"
+            or mode == "tabbed_interface"
+        ):
             pass  # Skip unnamed endpoints in interface mode
         else:
             api_info["unnamed_endpoints"][str(d)] = dependency_info
@@ -912,7 +914,7 @@ class Blocks(BlockContext):
             dependency_offset = len(Context.root_block.dependencies)
             for i, dependency in enumerate(self.dependencies):
                 api_name = dependency["api_name"]
-                if api_name is not None:
+                if api_name is not None and api_name is not False:
                     api_name_ = utils.append_unique_suffix(
                         api_name,
                         [dep["api_name"] for dep in Context.root_block.dependencies],
@@ -1445,7 +1447,7 @@ Received outputs:
         fn: Callable | None = None,
         inputs: list[Component] | None = None,
         outputs: list[Component] | None = None,
-        api_name: str | None = None,
+        api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
         show_progress: str = "full",
         queue=None,
@@ -1479,7 +1481,7 @@ Received outputs:
             fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: Instance Method - List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
-            api_name: Instance Method - Defining this parameter exposes the endpoint in the api docs
+            api_name: Instance Method - Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
             scroll_to_output: Instance Method - If True, will scroll to output component on completion
             show_progress: Instance Method - If True, will show progress animation while pending
             queue: Instance Method - If True, will place the request on the queue, if the queue exists
@@ -1499,7 +1501,9 @@ Received outputs:
             demo.launch()
         """
         if isinstance(self_or_cls, type):
-            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
+            warn_deprecation(
+                "gr.Blocks.load() will be deprecated. Use gr.load() instead."
+            )
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
@@ -1568,14 +1572,16 @@ Received outputs:
             demo.launch()
         """
         if default_enabled is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The default_enabled parameter of queue has no effect and will be removed "
                 "in a future version of gradio."
             )
         self.enable_queue = True
         self.api_open = api_open
         if client_position_to_load_data is not None:
-            warnings.warn("The client_position_to_load_data parameter is deprecated.")
+            warn_deprecation(
+                "The client_position_to_load_data parameter is deprecated."
+            )
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
@@ -1722,14 +1728,13 @@ Received outputs:
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
-            warnings.warn(
-                "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
-                DeprecationWarning,
+            warn_deprecation(
+                "The `enable_queue` parameter has been deprecated. "
+                "Please use the `.queue()` method instead.",
             )
         if encrypt is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The `encrypt` parameter has been deprecated and has no effect.",
-                DeprecationWarning,
             )
 
         if self.space_id:
@@ -1741,9 +1746,9 @@ Received outputs:
         self.show_api = self.api_open if self.enable_queue else show_api
 
         if file_directories is not None:
-            warnings.warn(
-                "The `file_directories` parameter has been renamed to `allowed_paths`. Please use that instead.",
-                DeprecationWarning,
+            warn_deprecation(
+                "The `file_directories` parameter has been renamed to `allowed_paths`. "
+                "Please use that instead.",
             )
             if allowed_paths is None:
                 allowed_paths = file_directories

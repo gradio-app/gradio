@@ -1,3 +1,5 @@
+import type { ActionReturn } from "svelte/action";
+
 export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
 	let i = 0;
@@ -15,3 +17,21 @@ export const playable = (): boolean => {
 	// return video_element.canPlayType(mime_type) != "";
 	return true; // FIX BEFORE COMMIT - mime import causing issues
 };
+
+export function loaded(
+	node: HTMLVideoElement,
+	{ autoplay }: { autoplay: boolean }
+): ActionReturn {
+	async function handle_playback(): Promise<void> {
+		if (!autoplay) return;
+		await node.play();
+	}
+
+	node.addEventListener("loadeddata", handle_playback);
+
+	return {
+		destroy(): void {
+			node.removeEventListener("loadeddata", handle_playback);
+		}
+	};
+}

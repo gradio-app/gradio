@@ -8,6 +8,7 @@
 	class:sr-only={!show_label}
 	class:hide={!show_label}
 	class:has-info={info != null}
+	data-testid="block-info"
 >
 	<slot />
 </span>

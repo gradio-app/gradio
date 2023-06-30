@@ -9,6 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -162,6 +163,7 @@ class Dropdown(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         choices: str | list[str] | None = None,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -173,6 +175,7 @@ class Dropdown(
         return {
             "choices": choices,
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,
@@ -233,9 +236,7 @@ class Dropdown(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         return self

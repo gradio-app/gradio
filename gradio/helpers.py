@@ -50,6 +50,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
+    api_name: str | None | Literal[False] = False,
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -66,6 +67,7 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
+        api_name=api_name,
         batch=batch,
         _initiated_directly=False,
     )
@@ -99,6 +101,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
+        api_name: str | None | Literal[False] = False,
         batch: bool = False,
         _initiated_directly: bool = True,
     ):
@@ -115,6 +118,7 @@ class Examples:
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string, None, or False. If False (default), the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
         """
         if _initiated_directly:
@@ -197,6 +201,7 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
+        self.api_name = api_name
         self.batch = batch
 
         with utils.set_directory(working_directory):
@@ -265,7 +270,7 @@ class Examples:
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
-                api_name="load_example",
+                api_name=self.api_name,  # type: ignore
             )
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
