@@ -708,7 +708,7 @@ importers:
         specifier: ^5.22.1
         version: 5.22.1
       vega-lite:
-        specifier: '*'
+        specifier: ^5.6.0
         version: 5.6.0(vega@5.22.1)
 
   js/table:
