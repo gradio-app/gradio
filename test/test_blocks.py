@@ -223,7 +223,7 @@ class TestBlocksMethods:
 
         with gr.Blocks() as demo:
             t2 = gr.Textbox()
-            t2.change(lambda x:x, t2, t1)
+            t2.change(lambda x: x, t2, t1)
 
         demo.launch(prevent_thread_lock=True)
 
