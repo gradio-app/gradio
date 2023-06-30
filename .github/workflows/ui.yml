@@ -89,7 +89,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `Build successful :tada:
-              * [Storybook](${{steps.publish-chromatic.outputs.storybookUrl}})
-              * [Build](${{steps.publish-chromatic.outputs.buildUrl}})`
+              body: `Chromatic build successful :tada:
+              * [Storybook Preview](${{steps.publish-chromatic.outputs.storybookUrl}})
+              * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})`
             })
