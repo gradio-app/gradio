@@ -29,7 +29,7 @@ declare let GRADIO_VERSION: string;
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
 interface GradioAppController {
-	runPython: (code: string) => Promise<void>;
+	rerun: (code: string) => Promise<void>;
 }
 
 interface Options {
@@ -113,7 +113,7 @@ export function create(options: Options): GradioAppController {
 	launchNewApp();
 
 	return {
-		runPython: async (code: string): Promise<void> => {
+		rerun: async (code: string): Promise<void> => {
 			await worker_proxy.runPythonAsync(code);
 			launchNewApp();
 		}
@@ -164,6 +164,6 @@ if (BUILD_MODE === "dev") {
 
 	exec_button.onclick = (): void => {
 		console.debug("exec_button.onclick");
-		controller.runPython(code_input.value);
+		controller.rerun(code_input.value);
 	}
 }
