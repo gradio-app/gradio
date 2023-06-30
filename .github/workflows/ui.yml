@@ -82,14 +82,12 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: post deployment link to PR
-        uses: actions/github-script@v6
+        uses: thollander/actions-comment-pull-request@v2
         with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Chromatic build successful :tada:
+          message: |
+              Chromatic build successful :tada:
               * [Storybook Preview](${{steps.publish-chromatic.outputs.storybookUrl}})
-              * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})`
-            })
+              * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})
+          comment_tag: Chromatic build successful :tada:
+          pr_number: ${{ env.pr_number }}
+            
