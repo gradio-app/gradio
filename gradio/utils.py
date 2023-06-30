@@ -656,7 +656,7 @@ def function_wrapper(
     if inspect.isasyncgenfunction(f):
 
         @functools.wraps(f)
-        async def wrapper(*args, **kwargs):
+        async def asyncgen_wrapper(*args, **kwargs):
             if before_fn:
                 before_fn(*before_args)
             async for response in f(*args, **kwargs):
@@ -664,10 +664,12 @@ def function_wrapper(
             if after_fn:
                 after_fn(*after_args)
 
+        return asyncgen_wrapper
+
     elif asyncio.iscoroutinefunction(f):
 
         @functools.wraps(f)
-        async def wrapper(*args, **kwargs):
+        async def async_wrapper(*args, **kwargs):
             if before_fn:
                 before_fn(*before_args)
             response = await f(*args, **kwargs)
@@ -675,16 +677,19 @@ def function_wrapper(
                 after_fn(*after_args)
             return response
 
+        return async_wrapper
+
     elif inspect.isgeneratorfunction(f):
 
         @functools.wraps(f)
-        def wrapper(*args, **kwargs):
+        def gen_wrapper(*args, **kwargs):
             if before_fn:
                 before_fn(*before_args)
-            result = yield from f(*args, **kwargs)
+            yield from f(*args, **kwargs)
             if after_fn:
                 after_fn(*after_args)
-            return result
+
+        return gen_wrapper
 
     else:
 
@@ -697,7 +702,7 @@ def function_wrapper(
                 after_fn(*after_args)
             return response
 
-    return wrapper
+        return wrapper
 
 
 def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None):
