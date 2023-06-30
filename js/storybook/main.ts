@@ -1,6 +1,6 @@
 /** @type { import('@storybook/svelte-vite').StorybookConfig } */
 const config = {
-	stories: ["../**/*.mdx", "../**/*.stories.@(js|jsx|ts|tsx|svelte)"],
+	stories: ["../../**/*.mdx", "../../**/*.stories.@(js|jsx|ts|tsx|svelte)"],
 	addons: [
 		"@storybook/addon-links",
 		"@storybook/addon-essentials",
@@ -12,13 +12,13 @@ const config = {
 		name: "@storybook/svelte-vite",
 		options: {
 			builder: {
-				viteConfigPath: ".storybook/vite.config.js"
+				viteConfigPath: "js/storybook/vite.config.js"
 			}
 		}
 	},
 	docs: {
 		autodocs: true
 	},
-	staticDirs: ["public"]
+	staticDirs: ["./public"]
 };
 export default config;

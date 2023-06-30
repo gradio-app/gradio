@@ -25,8 +25,8 @@
 		"test:browser:dev": "pnpm --filter @gradio/app test:browser:dev",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
 		"ci:version": "changeset version && pnpm i --lockfile-only",
-		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build",
+		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
+		"build-storybook": "storybook build --config-dir js/storybook",
 		"chromatic": "chromatic --exit-zero-on-changes",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts"
 	},
