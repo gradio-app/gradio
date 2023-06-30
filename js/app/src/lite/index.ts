@@ -55,8 +55,8 @@ export function create(options: Options): GradioAppController {
 	observer.observe(options.target, { childList: true });
 
 	const worker_proxy = new WorkerProxy({
-		gradioWheelUrl: gradioWheel,
-		gradioClientWheelUrl: gradioClientWheel,
+		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
+		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		requirements: []
 	});
 
