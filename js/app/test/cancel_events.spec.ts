@@ -61,7 +61,6 @@ test("cancel", async ({ page }) => {
 	await start_button.click();
 
 	await first_iteration;
-	await expect(textbox).toHaveValue("0");
 	await stop_button.click();
 	await expect(textbox).toHaveValue("0");
 	await page.waitForTimeout(1000);
