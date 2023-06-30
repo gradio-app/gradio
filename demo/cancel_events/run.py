@@ -5,7 +5,7 @@ import gradio as gr
 def fake_diffusion(steps):
     for i in range(steps):
         print(f"Current step: {i}")
-        time.sleep(1)
+        time.sleep(0.2)
         yield str(i)
 
 
@@ -18,7 +18,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             n = gr.Slider(1, 10, value=9, step=1, label="Number Steps")
-            run = gr.Button()
+            run = gr.Button(value="Start Iterating")
             output = gr.Textbox(label="Iterative Output")
             stop = gr.Button(value="Stop Iterating")
         with gr.Column():
@@ -44,6 +44,7 @@ with gr.Blocks() as demo:
     image.edit(None, None, None, cancels=[click_event, pred_event])
     video.play(None, None, None, cancels=[click_event, pred_event])
 
+    demo.queue(concurrency_count=2, max_size=20)
 
 if __name__ == "__main__":
-    demo.queue(concurrency_count=2, max_size=20).launch()
+    demo.launch()
