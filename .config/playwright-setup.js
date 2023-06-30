@@ -92,6 +92,10 @@ function spawn_gradio_app(app, port, verbose) {
 			}
 		});
 
+		_process.on("exit", () => kill_process(_process));
+		_process.on("close", () => kill_process(_process));
+		_process.on("disconnect", () => kill_process(_process));
+
 		_process.stderr.on("data", (data) => {
 			const _data = data.toString();
 			const is_info = INFO_RE.test(_data);
@@ -117,10 +121,7 @@ function spawn_gradio_app(app, port, verbose) {
 }
 
 function kill_process(process) {
-	return new Promise((res, rej) => {
-		process.on("close", res);
-		process.kill("SIGTERM");
-	});
+	process.kill("SIGKILL");
 }
 
 function make_app(demos, port) {

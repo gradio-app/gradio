@@ -1,7 +1,8 @@
 import { test as base } from "@playwright/test";
 import { basename } from "path";
-import type { SvelteComponent } from "svelte";
 import { spy } from "tinyspy";
+
+import type { SvelteComponent } from "svelte";
 import type { SpyFn } from "tinyspy";
 
 export function get_text<T extends HTMLElement>(el: T): string {

@@ -10,7 +10,7 @@
 <div class="wrap prose">
 	<h1>API Docs</h1>
 	<p class="attention">
-		No named API Routes found for
+		No API Routes found for
 		<code>
 			{root}
 		</code>

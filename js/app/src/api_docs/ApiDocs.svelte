@@ -132,6 +132,9 @@
 
 	onMount(() => {
 		document.body.style.overflow = "hidden";
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.scrollTo(0, 0);
+		}
 		return () => {
 			document.body.style.overflow = "auto";
 		};
