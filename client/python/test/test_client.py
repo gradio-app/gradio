@@ -731,18 +731,15 @@ class TestAPIInfo:
         }
 
     @pytest.mark.flaky
-    def test_fetch_old_version_space(self):
-        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+    def test_fetch_fixed_version_space(self):
+        assert Client("gradio-tests/calculator").view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
                     "parameters": [
                         {
                             "label": "num1",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -752,16 +749,13 @@ class TestAPIInfo:
                             "type": {"type": "string"},
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
-                            "example_input": "Howdy!",
+                            "example_input": "add",
                             "serializer": "StringSerializable",
                         },
                         {
                             "label": "num2",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -771,10 +765,7 @@ class TestAPIInfo:
                         {
                             "label": "output",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "serializer": "NumberSerializable",
                         }
@@ -785,11 +776,16 @@ class TestAPIInfo:
         }
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
-        # This demo has no api_name
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="str")
             assert "fn_index=0" in info
             assert "api_name" not in info
+
+    def test_api_false_endpoints_do_not_appear(self, count_generator_demo):
+        with connect(count_generator_demo) as client:
+            info = client.view_api(return_format="dict")
+            assert len(info["named_endpoints"]) == 0
+            assert len(info["unnamed_endpoints"]) == 2
 
     def test_file_io(self, file_io_demo):
         with connect(file_io_demo) as client:

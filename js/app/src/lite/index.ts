@@ -28,6 +28,10 @@ declare let GRADIO_VERSION: string;
 // As a result, the users of the Wasm app will have to load the CSS file manually.
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
+interface GradioAppController {
+	rerun: (code: string) => Promise<void>;
+}
+
 interface Options {
 	target: HTMLElement;
 	pyCode: string;
@@ -41,7 +45,7 @@ interface Options {
 	controlPageTitle: boolean;
 	appMode: boolean;
 }
-export async function create(options: Options) {
+export function create(options: Options): GradioAppController {
 	// TODO: Runtime type validation for options.
 
 	const observer = new MutationObserver(() => {
@@ -51,8 +55,8 @@ export async function create(options: Options) {
 	observer.observe(options.target, { childList: true });
 
 	const worker_proxy = new WorkerProxy({
-		gradioWheelUrl: gradioWheel,
-		gradioClientWheelUrl: gradioClientWheel,
+		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
+		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		requirements: []
 	});
 
@@ -70,34 +74,50 @@ export async function create(options: Options) {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
 
-	const app = new Index({
-		target: options.target,
-		props: {
-			// embed source
-			space: null,
-			src: null,
-			host: null,
-			// embed info
-			info: options.info,
-			container: options.container,
-			is_embed: options.isEmbed,
-			initial_height: options.initialHeight ?? "300px", // default: 300px
-			eager: options.eager,
-			// gradio meta info
-			version: GRADIO_VERSION,
-			theme_mode: options.themeMode,
-			// misc global behaviour
-			autoscroll: options.autoScroll,
-			control_page_title: options.controlPageTitle,
-			// for gradio docs
-			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-			app_mode: options.appMode,
-			// For Wasm mode
-			client,
-			upload_files,
-			mount_css: overridden_mount_css
+	let app: Index;
+	function launchNewApp(): void {
+		if (app != null) {
+			app.$destroy();
 		}
-	});
+
+		app = new Index({
+			target: options.target,
+			props: {
+				// embed source
+				space: null,
+				src: null,
+				host: null,
+				// embed info
+				info: options.info,
+				container: options.container,
+				is_embed: options.isEmbed,
+				initial_height: options.initialHeight ?? "300px", // default: 300px
+				eager: options.eager,
+				// gradio meta info
+				version: GRADIO_VERSION,
+				theme_mode: options.themeMode,
+				// misc global behaviour
+				autoscroll: options.autoScroll,
+				control_page_title: options.controlPageTitle,
+				// for gradio docs
+				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
+				app_mode: options.appMode,
+				// For Wasm mode
+				client,
+				upload_files,
+				mount_css: overridden_mount_css
+			}
+		});
+	}
+
+	launchNewApp();
+
+	return {
+		rerun: async (code: string): Promise<void> => {
+			await worker_proxy.runPythonAsync(code);
+			launchNewApp();
+		}
+	};
 }
 
 /**
@@ -120,43 +140,3 @@ export async function create(options: Options) {
  */
 // @ts-ignore
 globalThis.createGradioApp = create;
-
-declare let BUILD_MODE: string;
-if (BUILD_MODE === "dev") {
-	create({
-		target: document.getElementById("gradio-app")!,
-		pyCode: `
-import gradio as gr
-
-def greet(name):
-    return "Hello " + name + "!"
-
-def upload_file(files):
-    file_paths = [file.name for file in files]
-    return file_paths
-
-with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-
-    gr.File()
-
-    file_output = gr.File()
-    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
-    upload_button.upload(upload_file, upload_button, file_output)
-
-demo.launch()
-		`,
-		info: true,
-		container: true,
-		isEmbed: false,
-		initialHeight: "300px",
-		eager: false,
-		themeMode: null,
-		autoScroll: false,
-		controlPageTitle: false,
-		appMode: true
-	});
-}
