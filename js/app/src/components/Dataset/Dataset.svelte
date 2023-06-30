@@ -158,12 +158,13 @@
 							on:mouseleave={() => handle_mouseleave()}
 						>
 							{#each sample_row as { value, component }, j}
-								{#if components[j] !== undefined && component_map[components[j]] !== undefined}
+								{@const component_name = components[j]}
+								{#if component_name !== undefined && component_map[component_name] !== undefined}
 									<td
-										style="max-width: {components[j] === 'textbox'
+										style="max-width: {component_name === 'textbox'
 											? '35ch'
 											: 'auto'}"
-										class={components[j]}
+										class={component_name}
 									>
 										<svelte:component
 											this={component}
