@@ -698,7 +698,7 @@ importers:
         specifier: ^5.22.1
         version: 5.22.1
       vega-lite:
-        specifier: ^5.12.0
+        specifier: '*'
         version: 5.12.0(vega@5.22.1)
 
   js/table:
@@ -13756,7 +13756,7 @@ packages:
     resolution: {integrity: sha512-PREcya3nXT9Tk7xU0IhEpOLVTlqizNtKXV55NhI6ApBjJtqVYbJL7IBh2ckKxGBy3YeUQ37BQZl56UqqiYVWBw==}
     dependencies:
       vega-event-selector: 3.0.1
-      vega-expression: 5.0.1
+      vega-expression: 5.1.0
       vega-util: 1.17.2
     dev: false
 
