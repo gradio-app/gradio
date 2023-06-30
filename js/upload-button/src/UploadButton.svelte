@@ -3,11 +3,11 @@
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let file_count: string;
-	export let file_types: Array<string> = ["file"];
+	export let file_types: string[] = ["file"];
 	export let include_file_metadata = true;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
@@ -24,9 +24,8 @@
 		file_types = file_types.map((x) => {
 			if (x.startsWith(".")) {
 				return x;
-			} else {
-				return x + "/*";
 			}
+			return x + "/*";
 		});
 		accept_file_types = file_types.join(", ");
 	}
@@ -36,15 +35,14 @@
 	};
 
 	const loadFiles = (files: FileList) => {
-		let _files: Array<File> = Array.from(files);
-		console.log({ _files });
+		let _files: File[] = Array.from(files);
 		if (!files.length) {
 			return;
 		}
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: Array<FileData | File> = [];
+		var all_file_data: (FileData | File)[] = [];
 		_files.forEach((f, i) => {
 			all_file_data[i] = include_file_metadata
 				? {
@@ -57,7 +55,6 @@
 			if (
 				all_file_data.filter((x) => x !== undefined).length === files.length
 			) {
-				console.log({ all_file_data });
 				dispatch(
 					"load",
 					file_count == "single" ? all_file_data[0] : all_file_data
@@ -67,10 +64,8 @@
 	};
 
 	const loadFilesFromUpload = (e: Event) => {
-		console.log("loadFilesFromUpload");
 		const target = e.target as HTMLInputElement;
 		if (!target.files) {
-			console.log("!target.files");
 			return;
 		}
 		loadFiles(target.files);

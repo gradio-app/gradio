@@ -6,13 +6,13 @@
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let label: string;
 	export let value: null | FileData;
 	export let file_count: string;
-	export let file_types: Array<string> = ["file"];
+	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
@@ -31,11 +31,8 @@
 			(file_data) => file_data.blob!
 		);
 
-		console.log("Calling this branch");
-
 		upload_files(root, files).then(async (response) => {
 			if (response.error) {
-				console.log("Failure");
 				(Array.isArray(detail) ? detail : [detail]).forEach(
 					async (file_data, i) => {
 						file_data.data = await blobToBase64(file_data.blob!);
@@ -43,7 +40,6 @@
 					}
 				);
 			} else {
-				console.log("Success");
 				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
 					if (response.files) {
 						file_data.orig_name = file_data.name;
