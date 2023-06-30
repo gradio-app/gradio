@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test("yielding", async ({ page }) => {
+test("when using an iterative function the UI should update over time as iteration results are received", async ({ page }) => {
 	let first_iteration;
 	let fourth_iteration;
 	let last_iteration;
