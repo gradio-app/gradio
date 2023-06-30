@@ -21,11 +21,7 @@
 <div class="toast-wrap">
 	{#each messages as { type, message, id } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
-<<<<<<< HEAD
 			<ToastContent {type} {message} on:close {id} />
-=======
-			<Error {message} on:close {id} />
->>>>>>> origin/main
 		</div>
 	{/each}
 </div>

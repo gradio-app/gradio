@@ -4,13 +4,8 @@
 	import type { client } from "@gradio/client";
 
 	import { component_map } from "./components/directory";
-	import {
-		create_loading_status_store,
-		app_state,
-	} from "./stores";
-	import type {		
-		LoadingStatusCollection
-	} from "./stores";
+	import { create_loading_status_store, app_state } from "./stores";
+	import type { LoadingStatusCollection } from "./stores";
 
 	import type {
 		ComponentMeta,
@@ -94,11 +89,7 @@
 		history.replaceState(null, "", "?" + params.toString());
 	};
 
-	function is_dep(
-		id: number,
-		type: "inputs" | "outputs",
-		deps: Dependency[]
-	) {
+	function is_dep(id: number, type: "inputs" | "outputs", deps: Dependency[]) {
 		for (const dep of deps) {
 			for (const dep_item of dep[type]) {
 				if (dep_item === id) return true;
