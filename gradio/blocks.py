@@ -1124,7 +1124,7 @@ class Blocks(BlockContext):
                 block = self.blocks[input_id]
             except KeyError as e:
                 raise InvalidBlockError(
-                    f"Input component with id {input_id} used in {dependency['trigger']} event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                    f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
             assert isinstance(
                 block, components.IOComponent
@@ -1209,7 +1209,7 @@ Received inputs:
                     block = self.blocks[input_id]
                 except KeyError as e:
                     raise InvalidBlockError(
-                        f"Input component with id {input_id} used in {dependency['trigger']} event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                        f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                     ) from e
                 assert isinstance(
                     block, components.Component

@@ -212,11 +212,12 @@ class TestBlocksMethods:
     @mock.patch("requests.post")
     def test_initiated_analytics(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        with gr.Blocks(analytics_enabled=True):
+        with gr.Blocks():
             pass
         mock_post.assert_called_once()
 
-    def test_launch_analytics_does_not_error_with_invalid_blocks(self, monkeypatch):
+    @mock.patch("requests.post")
+    def test_launch_analytics_does_not_error_with_invalid_blocks(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             t1 = gr.Textbox()
@@ -226,6 +227,7 @@ class TestBlocksMethods:
             t2.change(lambda x: x, t2, t1)
 
         demo.launch(prevent_thread_lock=True)
+        mock_post.assert_called()
 
     def test_show_error(self):
         with gr.Blocks() as demo:
