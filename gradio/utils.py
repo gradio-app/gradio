@@ -651,7 +651,6 @@ def function_wrapper(f, before_fn=None, before_args=None, after_fn=None, after_a
     before_args = [] if before_args is None else before_args
     after_args = [] if after_args is None else after_args
     if inspect.isasyncgenfunction(f):
-        print(1)
         @functools.wraps(f)
         async def wrapper(*args, **kwargs):
             if before_fn:
@@ -661,7 +660,6 @@ def function_wrapper(f, before_fn=None, before_args=None, after_fn=None, after_a
             if after_fn:
                 after_fn(*after_args)
     elif asyncio.iscoroutinefunction(f):
-        print(2)
         @functools.wraps(f)
         async def wrapper(*args, **kwargs):
             if before_fn:
@@ -671,7 +669,6 @@ def function_wrapper(f, before_fn=None, before_args=None, after_fn=None, after_a
                 after_fn(*after_args)
             return response
     elif inspect.isgeneratorfunction(f):
-        print(3)
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             if before_fn:
@@ -681,7 +678,6 @@ def function_wrapper(f, before_fn=None, before_args=None, after_fn=None, after_a
                 after_fn(*after_args)
             return result
     else:
-        print(4)
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             if before_fn:
