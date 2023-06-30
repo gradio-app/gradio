@@ -144,10 +144,23 @@ components = [
 ]
 
 
+def evaluate_values(*args):
+    are_false = []
+    for a in args:
+        if isinstance(a, pd.DataFrame):
+            are_false.append(not a.any().any())
+        elif isinstance(a, str) and a.startswith("#"):
+            are_false.append(a == "#000000")
+        else:
+            are_false.append(not a)
+    return all(are_false)
+
+
 with gr.Blocks() as demo:
     for i, component in enumerate(components):
         component.label = f"component_{str(i).zfill(2)}"
         component.render()
+    result = gr.Textbox(label="Are all cleared?")
     clear = gr.ClearButton(value="Clear", components=components)
     hide = gr.Button(value="Hide")
     reveal = gr.Button(value="Reveal")
@@ -161,6 +174,8 @@ with gr.Blocks() as demo:
         inputs=[],
         outputs=components
     )
+    get_value = gr.Button(value="Get Values")
+    get_value.click(evaluate_values, components, result)
 
 
 if __name__ == "__main__":
