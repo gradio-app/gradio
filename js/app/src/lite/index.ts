@@ -140,30 +140,3 @@ export function create(options: Options): GradioAppController {
  */
 // @ts-ignore
 globalThis.createGradioApp = create;
-
-declare let BUILD_MODE: string;
-if (BUILD_MODE === "dev") {
-	const code_input = document.getElementById("code-input") as HTMLTextAreaElement;
-	const exec_button = document.getElementById("exec-button") as HTMLButtonElement;
-
-	const initial_code = code_input.value;
-
-	const controller = create({
-		target: document.getElementById("gradio-app")!,
-		pyCode: initial_code,
-		info: true,
-		container: true,
-		isEmbed: false,
-		initialHeight: "300px",
-		eager: false,
-		themeMode: null,
-		autoScroll: false,
-		controlPageTitle: false,
-		appMode: true
-	});
-
-	exec_button.onclick = (): void => {
-		console.debug("exec_button.onclick");
-		controller.rerun(code_input.value);
-	}
-}
