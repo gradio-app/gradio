@@ -372,8 +372,7 @@
 	}
 
 	.header {
-		margin-top: var(--size-3);
-		margin-bottom: var(--size-3);
+		margin-top: var(--size-6);
 		font-size: var(--text-xl);
 	}
 

@@ -10,13 +10,13 @@
 </script>
 
 <h2>
-	<img src={api_logo} alt="" />
-	<span
-		>API documentation for&nbsp;
+	<div>
+		<img src={api_logo} alt="" />
+		API documentation for
 		<span class="url">
-			{root}&nbsp;&nbsp;&nbsp;
-		</span></span
-	>
+			{root}
+		</span>
+	</div>
 	<span class="counts">
 		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
 	</span>
@@ -31,11 +31,13 @@
 		display: flex;
 		color: var(--body-text-color);
 		font-weight: var(--weight-semibold);
+		gap: var(--size-4);
 	}
 
 	h2 img {
 		margin-right: var(--size-2);
 		width: var(--size-4);
+		display: inline-block;
 	}
 
 	.url {
