@@ -28,6 +28,10 @@ declare let GRADIO_VERSION: string;
 // As a result, the users of the Wasm app will have to load the CSS file manually.
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
+interface GradioAppController {
+	rerun: (code: string) => Promise<void>;
+}
+
 interface Options {
 	target: HTMLElement;
 	pyCode: string;
@@ -41,7 +45,7 @@ interface Options {
 	controlPageTitle: boolean;
 	appMode: boolean;
 }
-export async function create(options: Options) {
+export function create(options: Options): GradioAppController {
 	// TODO: Runtime type validation for options.
 
 	const observer = new MutationObserver(() => {
@@ -70,34 +74,50 @@ export async function create(options: Options) {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
 
-	const app = new Index({
-		target: options.target,
-		props: {
-			// embed source
-			space: null,
-			src: null,
-			host: null,
-			// embed info
-			info: options.info,
-			container: options.container,
-			is_embed: options.isEmbed,
-			initial_height: options.initialHeight ?? "300px", // default: 300px
-			eager: options.eager,
-			// gradio meta info
-			version: GRADIO_VERSION,
-			theme_mode: options.themeMode,
-			// misc global behaviour
-			autoscroll: options.autoScroll,
-			control_page_title: options.controlPageTitle,
-			// for gradio docs
-			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-			app_mode: options.appMode,
-			// For Wasm mode
-			client,
-			upload_files,
-			mount_css: overridden_mount_css
+	let app: Index;
+	function launchNewApp(): void {
+		if (app != null) {
+			app.$destroy();
 		}
-	});
+
+		app = new Index({
+			target: options.target,
+			props: {
+				// embed source
+				space: null,
+				src: null,
+				host: null,
+				// embed info
+				info: options.info,
+				container: options.container,
+				is_embed: options.isEmbed,
+				initial_height: options.initialHeight ?? "300px", // default: 300px
+				eager: options.eager,
+				// gradio meta info
+				version: GRADIO_VERSION,
+				theme_mode: options.themeMode,
+				// misc global behaviour
+				autoscroll: options.autoScroll,
+				control_page_title: options.controlPageTitle,
+				// for gradio docs
+				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
+				app_mode: options.appMode,
+				// For Wasm mode
+				client,
+				upload_files,
+				mount_css: overridden_mount_css
+			}
+		});
+	}
+
+	launchNewApp();
+
+	return {
+		rerun: async (code: string): Promise<void> => {
+			await worker_proxy.runPythonAsync(code);
+			launchNewApp();
+		}
+	};
 }
 
 /**
