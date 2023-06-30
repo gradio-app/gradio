@@ -43,10 +43,10 @@ export default async function global_setup() {
 		kl.green(`\n\nServer started. Running tests on port ${port}.\n`)
 	);
 
-	return () => {
+	return async () => {
 		process.stdout.write(kl.green(`\nTests complete, cleaning up!\n`));
 
-		kill_process(app);
+		await kill_process(app);
 	};
 }
 const INFO_RE = /^INFO:/;
@@ -132,8 +132,8 @@ ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
 ${demos
-			.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
-			.join("\n")}
+	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+	.join("\n")}
 
 config = uvicorn.Config(app, port=${port}, log_level="info")
 server = uvicorn.Server(config=config)
