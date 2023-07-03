@@ -1,30 +1,29 @@
-# Create a Dashboard from Supabase Data
-
+# 从 Supabase 数据创建仪表盘
 Tags: TABULAR, DASHBOARD, PLOTS 
 
-[Supabase](https://supabase.com/) is a cloud-based open-source backend that provides a PostgreSQL database, authentication, and other useful features for building web and mobile applications. In this tutorial, you will learn how to read data from Supabase and plot it in **real-time** on a Gradio Dashboard.
+[Supabase](https://supabase.com/) 是一个基于云的开源后端，提供了 PostgreSQL 数据库、身份验证和其他有用的功能，用于构建 Web 和移动应用程序。在本教程中，您将学习如何从 Supabase 读取数据，并在 Gradio 仪表盘上以**实时**方式绘制数据。
 
-**Prerequisites:** To start, you will need a free Supabase account, which you can sign up for here: [https://app.supabase.com/](https://app.supabase.com/)
+**先决条件 :** 要开始，您需要一个免费的 Supabase 账户，您可以在此处注册：[https://app.supabase.com/](https://app.supabase.com/)
 
-In this end-to-end guide, you will learn how to:
+在这个端到端指南中，您将学习如何：
 
-* Create tables in Supabase
-* Write data to Supabase using the Supabase Python Client
-* Visualize the data in a real-time dashboard using Gradio
+* 在 Supabase 中创建表
+* 使用 Supabase Python 客户端向 Supabase 写入数据
+* 使用 Gradio 在实时仪表盘中可视化数据
 
-If you already have data on Supabase that you'd like to visualize in a dashboard, you can skip the first two sections and go directly to [visualizing the data](#visualize-the-data-in-a-real-time-gradio-dashboard)!
+如果您已经在 Supabase 上有数据想要在仪表盘中可视化，您可以跳过前两个部分，直接到[可视化数据](#visualize-the-data-in-a-real-time-gradio-dashboard)！
 
-## Create a table in Supabase
+## 在 Supabase 中创建表
 
-First of all, we need some data to visualize. Following this [excellent guide](https://supabase.com/blog/loading-data-supabase-python), we'll create fake commerce data and put it in Supabase. 
+首先，我们需要一些要可视化的数据。根据这个[出色的指南](https://supabase.com/blog/loading-data-supabase-python)，我们将创建一些虚假的商务数据，并将其放入 Supabase 中。
 
-1\. Start by creating a new project in Supabase. Once you're logged in, click the "New Project" button
+1\. 在 Supabase 中创建一个新项目。一旦您登录，点击 "New Project" 按钮
 
-2\. Give your project a name and database password. You can also choose a pricing plan (for our purposes, the Free Tier is sufficient!)
+2\. 给您的项目命名并设置数据库密码。您还可以选择定价计划（对于我们来说，免费计划已足够！）
 
-3\. You'll be presented with your API keys while the database spins up (can take up to 2 minutes). 
+3\. 在数据库启动时（可能需要多达 2 分钟），您将看到您的 API 密钥。
 
-4\. Click on "Table Editor" (the table icon) in the left pane to create a new table. We'll create a single table called `Product`, with the following schema:
+4\. 在左侧窗格中单击 "Table Editor"（表图标）以创建一个新表。我们将创建一个名为 `Product` 的单表，具有以下模式：
 
 <center>
 <table>
@@ -35,33 +34,31 @@ First of all, we need some data to visualize. Following this [excellent guide](h
 </table>
 </center>
 
-5\. Click Save to save the table schema. 
+5\. 点击保存以保存表结构。
 
+我们的表已经准备好了！
 
-Our table is now ready!
+## 将数据写入 Supabase
 
+下一步是向 Supabase 数据集中写入数据。我们将使用 Supabase Python 库来完成这个任务。
 
-## Write data to Supabase
-
-The next step is to write data to a Supabase dataset. We will use the Supabase Python library to do this. 
-
-6\. Install `supabase` by running the following command in your terminal:
+6\. 通过在终端中运行以下命令来安装 `supabase` 库：
 
 ```bash
 pip install supabase
 ```
 
-7\. Get your project URL and API key. Click the Settings (gear icon) on the left pane and click 'API'. The URL is listed in the Project URL box, while the API key is listed in Project API keys (with the tags `service_role`, `secret`)
+7\. 获取项目 URL 和 API 密钥。点击左侧窗格上的设置（齿轮图标），然后点击 'API'。URL 列在项目 URL 框中，API 密钥列在项目 API 密钥（带有 `service_role`、`secret` 标签）中
 
-8\. Now, run the following Python script to write some fake data to the table (note you have to put the values of `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from step 7): 
+8\. 现在，运行以下 Python 脚本将一些虚假数据写入表中（注意您需要在步骤 7 中放入 `SUPABASE_URL` 和 `SUPABASE_SECRET_KEY` 的值）：
 
 ```python
 import supabase
 
-# Initialize the Supabase client
+# 初始化Supabase客户端
 client = supabase.create_client('SUPABASE_URL', 'SUPABASE_SECRET_KEY')
 
-# Define the data to write
+# 定义要写入的数据
 import random
 
 main_list = []
@@ -73,21 +70,21 @@ for i in range(10):
             }
     main_list.append(value)
 
-# Write the data to the table
+# 将数据写入表中
 data = client.table('Product').insert(main_list).execute()
 ```
 
-Return to your Supabase dashboard and refresh the page, you should now see 10 rows populated in the `Product` table!
+返回 Supabase 仪表板并刷新页面，您将看到 10 行数据填充到 `Product` 表中！
 
-## Visualize the Data in a Real-Time Gradio Dashboard
+## 在实时 Gradio 仪表盘中可视化数据
 
-Finally, we will read the data from the Supabase dataset using the same `supabase` Python library and create a realtime dashboard using `gradio`. 
+最后，我们将使用相同的 `supabase` Python 库从 Supabase 数据集中读取数据，并使用 `gradio` 创建一个实时仪表盘。
 
-Note: We repeat certain steps in this section (like creating the Supabase client) in case you did not go through the previous sections. As described in Step 7, you will need the project URL and API Key for your database.
+注意：我们在本节中重复了某些步骤（比如创建 Supabase 客户端），以防您没有完成之前的部分。如第 7 步所述，您将需要数据库的项目 URL 和 API 密钥。
 
-9\. Write a function that loads the data from the `Product` table and returns it as a pandas Dataframe:
+9\. 编写一个函数，从 `Product` 表加载数据并将其作为 pandas DataFrame 返回：
 
-
+import supabase
 ```python
 import supabase
 import pandas as pd
@@ -100,26 +97,25 @@ def read_data():
     return df
 ```
 
-10\. Create a small Gradio Dashboard with 2 Barplots that plots the prices and inventories of all of the items every minute and updates in real-time:
+10\. 使用两个条形图创建一个小的 Gradio 仪表盘，每分钟绘制所有项目的价格和库存量，并实时更新：
 
 ```python
 import gradio as gr
 
 with gr.Blocks() as dashboard:
     with gr.Row():
-        gr.BarPlot(read_data, x="product_id", y="price", title="Prices", every=60)
-        gr.BarPlot(read_data, x="product_id", y="inventory_count", title="Inventory", every=60)
+        gr.BarPlot(read_data, x="product_id", y="price", title="价格", every=60)
+        gr.BarPlot(read_data, x="product_id", y="inventory_count", title="库存", every=60)
 
 dashboard.queue().launch()
 ```
 
-Notice that by passing in a function to `gr.BarPlot()`, we have the BarPlot query the database as soon as the web app loads (and then again every 60 seconds because of the `every` parameter). Your final dashboard should look something like this:
+请注意，通过将函数传递给 `gr.BarPlot()`，我们可以在网络应用加载时查询数据库（然后每 60 秒查询一次，因为有 `every` 参数）。您的最终仪表盘应如下所示：
 
 <gradio-app space="abidlabs/supabase"></gradio-app>
 
+## 结论
 
-## Conclusion
+就是这样！在本教程中，您学习了如何将数据写入 Supabase 数据集，然后读取该数据并将结果绘制为条形图。如果您更新 Supabase 数据库中的数据，您会注意到 Gradio 仪表盘将在一分钟内更新。
 
-That's it! In this tutorial, you learned how to write data to a Supabase dataset, and then read that data and plot the results as bar plots. If you update the data in the Supabase database, you'll notice that the Gradio dashboard will update within a minute. 
-
-Try adding more plots and visualizations to this example (or with a different dataset) to build a more complex dashboard! 
+尝试在此示例中添加更多绘图和可视化（或使用不同的数据集），以构建一个更复杂的仪表盘！

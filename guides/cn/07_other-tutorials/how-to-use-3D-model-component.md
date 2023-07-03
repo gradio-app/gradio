@@ -1,24 +1,23 @@
-# How to Use the 3D Model Component
+# 如何使用 3D 模型组件
 
-Related spaces: https://huggingface.co/spaces/dawood/Model3D, https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization, https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
-Tags: VISION, IMAGE
+相关空间：https://huggingface.co/spaces/dawood/Model3D, https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization, https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
+标签：VISION, IMAGE
 
-## Introduction
+## 介绍
 
-3D models are becoming more popular in machine learning and make for some of the most fun demos to experiment with. Using `gradio`, you can easily build a demo of your 3D image model and share it with anyone. The Gradio 3D Model component accepts 3 file types including: *.obj*, *.glb*, & *.gltf*.
+机器学习中的 3D 模型越来越受欢迎，并且是一些最有趣的演示实验。使用 `gradio`，您可以轻松构建您的 3D 图像模型的演示，并与任何人分享。Gradio 3D 模型组件接受 3 种文件类型，包括：*.obj*，*.glb* 和 *.gltf*。
 
-This guide will show you how to build a demo for your 3D image model in a few lines of code; like the one below. Play around with 3D object by clicking around, dragging and zooming:
+本指南将向您展示如何使用几行代码构建您的 3D 图像模型的演示；像下面这个示例一样。点击、拖拽和缩放来玩转 3D 对象：
 
 <gradio-app space="dawood/Model3D"> </gradio-app>
 
-### Prerequisites
+### 先决条件
 
-Make sure you have the `gradio` Python package already [installed](https://gradio.app/quickstart).
+确保已经[安装](https://gradio.app/quickstart)了 `gradio` Python 包。
 
+## 查看代码
 
-## Taking a Look at the Code
-
-Let's take a look at how to create the minimal interface above. The prediction function in this case will just return the original 3D model mesh, but you can change this function to run inference on your machine learning model. We'll take a look at more complex examples below.
+让我们来看看如何创建上面的最简界面。在这种情况下，预测函数将只返回原始的 3D 模型网格，但您可以更改此函数以在您的机器学习模型上运行推理。我们将在下面看更复杂的示例。
 
 ```python
 import gradio as gr
@@ -42,33 +41,32 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-Let's break down the code above:
+让我们来解析上面的代码：
 
-`load_mesh`: This is our 'prediction' function and for simplicity, this function will take in the 3D model mesh and return it.
+`load_mesh`：这是我们的“预测”函数，为简单起见，该函数将接收 3D 模型网格并返回它。
 
-Creating the Interface:
+创建界面：
 
-* `fn`: the prediction function that is used when the user clicks submit. In our case this is the `load_mesh` function.
-* `inputs`: create a model3D input component. The input expects an uploaded file as a {str} filepath.
-* `outputs`: create a model3D output component. The output component also expects a file as a {str} filepath.
-  * `clear_color`: this is the background color of the 3D model canvas. Expects RGBa values.
-  * `label`: the label that appears on the top left of the component.
-* `examples`: list of 3D model files. The 3D model component can accept *.obj*, *.glb*, & *.gltf* file types.
-* `cache_examples`: saves the predicted output for the examples, to save time on inference.
+* `fn`：当用户点击提交时使用的预测函数。在我们的例子中，它是 `load_mesh` 函数。
+* `inputs`：创建一个 model3D 输入组件。输入是一个上传的文件，作为{str}文件路径。
+* `outputs`：创建一个 model3D 输出组件。输出组件也期望一个文件作为{str}文件路径。
+  * `clear_color`：这是 3D 模型画布的背景颜色。期望 RGBa 值。
+  * `label`：出现在组件左上角的标签。
+* `examples`：3D 模型文件的列表。3D 模型组件可以接受*.obj*，*.glb*和*.gltf*文件类型。
+* `cache_examples`：保存示例的预测输出，以节省推理时间。
 
+## 探索更复杂的 Model3D 演示
 
-## Exploring mode complex Model3D Demos:
-
-Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
+下面是一个使用 DPT 模型预测图像深度，然后使用 3D 点云创建 3D 对象的演示。查看[code.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py)文件，了解代码和模型预测函数。
 <gradio-app space="radames/dpt-depth-estimation-3d-obj"> </gradio-app>
 
-Below is a demo that uses the PIFu model to convert an image of a clothed human into a 3D digitized model. Take a look at the [spaces.py](https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization/blob/main/PIFu/spaces.py) file for a peek into the code and the model prediction function.
+下面是一个使用 PIFu 模型将穿着衣物的人的图像转换为 3D 数字化模型的演示。查看[spaces.py](https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization/blob/main/PIFu/spaces.py)文件，了解代码和模型预测函数。
 
 <gradio-app space="radames/PIFu-Clothed-Human-Digitization"> </gradio-app>
 
 ----------
 
-And you're done! That's all the code you need to build an interface for your Model3D model. Here are some references that you may find useful:
+搞定！这就是构建 Model3D 模型界面所需的所有代码。以下是一些您可能会发现有用的参考资料：
 
-* Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
-* The first [3D Model Demo](https://huggingface.co/spaces/dawood/Model3D) and [complete code](https://huggingface.co/spaces/dawood/Model3D/tree/main) (on Hugging Face Spaces)
+* Gradio 的[“入门指南”](https://gradio.app/getting_started/)
+* 第一个[3D 模型演示](https://huggingface.co/spaces/dawood/Model3D)和[完整代码](https://huggingface.co/spaces/dawood/Model3D/tree/main)（在 Hugging Face Spaces 上）

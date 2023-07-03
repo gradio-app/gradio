@@ -1,19 +1,18 @@
-## Using Gradio for Tabular Data Science Workflows
+## 使用 Gradio 进行表格数据科学工作流
 
-Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integration, https://huggingface.co/spaces/scikit-learn/tabular-playground, https://huggingface.co/spaces/merve/gradio-analysis-dashboard
+Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integration，https://huggingface.co/spaces/scikit-learn/tabular-playground，https://huggingface.co/spaces/merve/gradio-analysis-dashboard
 
+## 介绍
 
-## Introduction
+表格数据科学是机器学习中应用最广泛的领域，涉及的问题从客户分割到流失预测不等。在表格数据科学工作流的各个阶段中，将工作内容传达给利益相关者或客户可能很麻烦，这会阻碍数据科学家专注于重要事项，如数据分析和模型构建。数据科学家可能会花费数小时构建一个接受 DataFrame 并返回图表、预测或数据集中的聚类图的仪表板。在本指南中，我们将介绍如何使用 `gradio` 改进您的数据科学工作流程。我们还将讨论如何使用 `gradio` 和[skops](https://skops.readthedocs.io/en/stable/)一行代码即可构建界面！
 
-Tabular data science is the most widely used domain of machine learning, with problems ranging from customer segmentation to churn prediction. Throughout various stages of the tabular data science workflow, communicating your work to stakeholders or clients can be cumbersome; which prevents data scientists from focusing on what matters, such as data analysis and model building. Data scientists can end up spending hours building a dashboard that takes in dataframe and returning plots, or returning a prediction or plot of clusters in a dataset. In this guide, we'll go through how to use `gradio` to improve your data science workflows. We will also talk about how to use `gradio` and [skops](https://skops.readthedocs.io/en/stable/) to build interfaces with only one line of code!
+### 先决条件
 
-### Prerequisites
+确保您已经[安装](/getting_started)了 `gradio` Python 软件包。
 
-Make sure you have the `gradio` Python package already [installed](/getting_started).
+## 让我们创建一个简单的界面！
 
-## Let's Create a Simple Interface!
-
-We will take a look at how we can create a simple UI that predicts failures based on product information. 
+我们将看一下如何创建一个简单的界面，该界面根据产品信息预测故障。
 
 ```python
 import gradio as gr
@@ -38,14 +37,14 @@ def infer(input_dataframe):
 gr.Interface(fn = infer, inputs = inputs, outputs = outputs, examples = [[df.head(2)]]).launch()
 ```
 
-Let's break down above code.
+让我们来解析上述代码。
 
-* `fn`: the inference function that takes input dataframe and returns predictions.
-* `inputs`: the component we take our input with. We define our input as dataframe with 2 rows and 4 columns, which initially will look like an empty dataframe with the aforementioned shape. When the `row_count` is set to `dynamic`, you don't have to rely on the dataset you're inputting to pre-defined component.
-* `outputs`: The dataframe component that stores outputs. This UI can take single or multiple samples to infer, and returns 0 or 1 for each sample in one column, so we give `row_count` as 2 and `col_count` as 1 above. `headers` is a list made of header names for dataframe.
-* `examples`: You can either pass the input by dragging and dropping a CSV file, or a pandas DataFrame through examples, which headers will be automatically taken by the interface.
+* `fn`：推理函数，接受输入数据帧并返回预测结果。
+* `inputs`：我们使用 `Dataframe` 组件作为输入。我们将输入定义为具有 2 行 4 列的数据帧，最初的数据帧将呈现出上述形状的空数据帧。当将 `row_count` 设置为 `dynamic` 时，不必依赖于正在输入的数据集来预定义组件。
+* `outputs`：用于存储输出的数据帧组件。该界面可以接受单个或多个样本进行推断，并在一列中为每个样本返回 0 或 1，因此我们将 `row_count` 设置为 2，`col_count` 设置为 1。`headers` 是由数据帧的列名组成的列表。
+* `examples`：您可以通过拖放 CSV 文件或通过示例传递 pandas DataFrame，界面会自动获取其标题。
 
-We will now create an example for a minimal data visualization dashboard. You can find a more comprehensive version in the related Spaces.
+现在我们将为简化版数据可视化仪表板创建一个示例。您可以在相关空间中找到更全面的版本。
 
 <gradio-app space="gradio/tabular-playground"></gradio-app>
 
@@ -78,27 +77,27 @@ gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df.head(100)], titl
 
 <gradio-app space="gradio/gradio-analysis-dashboard-minimal"></gradio-app>
 
-We will use the same dataset we used to train our model, but we will make a dashboard to visualize it this time. 
+我们将使用与训练模型相同的数据集，但这次我们将创建一个可视化仪表板以展示它。
 
-* `fn`: The function that will create plots based on data.
-* `inputs`: We use the same `Dataframe` component we used above.
-* `outputs`: The `Gallery` component is used to keep our visualizations.
-* `examples`: We will have the dataset itself as the example.
+* `fn`：根据数据创建图表的函数。
+* `inputs`：我们使用了与上述相同的 `Dataframe` 组件。
+* `outputs`：我们使用 `Gallery` 组件来存放我们的可视化结果。
+* `examples`：我们将数据集本身作为示例。
 
-## Easily load tabular data interfaces with one line of code using skops
+## 使用 skops 一行代码轻松加载表格数据界面
 
-`skops` is a library built on top of `huggingface_hub` and `sklearn`. With the recent `gradio` integration of `skops`, you can build tabular data interfaces with one line of code!
+`skops` 是一个构建在 `huggingface_hub` 和 `sklearn` 之上的库。通过最新的 `gradio` 集成，您可以使用一行代码构建表格数据界面！
 
 ```python
 import gradio as gr
 
-# title and description are optional
-title = "Supersoaker Defective Product Prediction"
-description = "This model predicts Supersoaker production line failures. Drag and drop any slice from dataset or edit values as you wish in below dataframe component."
+# 标题和描述是可选的
+title = "Supersoaker产品缺陷预测"
+description = "该模型预测Supersoaker生产线故障。在下面的数据帧组件中，您可以拖放数据集的任意切片或自行编辑值。"
 
 gr.Interface.load("huggingface/scikit-learn/tabular-playground", title=title, description=description).launch()
 ```
 
 <gradio-app space="gradio/gradio-skops-integration"></gradio-app>
 
-`sklearn` models pushed to Hugging Face Hub using `skops` include a `config.json` file that contains an example input  with column names, the task being solved (that can either be `tabular-classification` or `tabular-regression`). From the task type, `gradio` constructs the `Interface` and consumes column names and the example input to build it. You can [refer to skops documentation on hosting models on Hub](https://skops.readthedocs.io/en/latest/auto_examples/plot_hf_hub.html#sphx-glr-auto-examples-plot-hf-hub-py) to learn how to push your models to Hub using `skops`.
+使用 `skops` 将 `sklearn` 模型推送到 Hugging Face Hub 时，会包含一个包含示例输入和列名的 `config.json` 文件，解决的任务类型是 `tabular-classification` 或 `tabular-regression`。根据任务类型，`gradio` 构建界面并使用列名和示例输入来构建它。您可以[参考 skops 在 Hub 上托管模型的文档](https://skops.readthedocs.io/en/latest/auto_examples/plot_hf_hub.html#sphx-glr-auto-examples-plot-hf-hub-py)来了解如何使用 `skops` 将模型推送到 Hub。

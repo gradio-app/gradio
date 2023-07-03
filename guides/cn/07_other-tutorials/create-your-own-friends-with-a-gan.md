@@ -1,42 +1,41 @@
-# Create Your Own Friends with a GAN
+# 使用 GAN 创建您自己的朋友
 
-Related spaces: https://huggingface.co/spaces/NimaBoscarino/cryptopunks, https://huggingface.co/spaces/nateraw/cryptopunks-generator
+spaces/NimaBoscarino/cryptopunks, https://huggingface.co/spaces/nateraw/cryptopunks-generator
 Tags: GAN, IMAGE, HUB
 
-Contributed by <a href="https://huggingface.co/NimaBoscarino">Nima Boscarino</a> and <a href="https://huggingface.co/nateraw">Nate Raw</a>
+由 <a href="https://huggingface.co/NimaBoscarino">Nima Boscarino</a> 和 <a href="https://huggingface.co/nateraw">Nate Raw</a> 贡献
 
+## 简介
 
-## Introduction
+最近，加密货币、NFTs 和 Web3 运动似乎都非常流行！数字资产以惊人的金额在市场上上市，几乎每个名人都推出了自己的 NFT 收藏。虽然您的加密资产可能是应税的，例如在加拿大（https://www.canada.ca/en/revenue-agency/programs/about-canada-revenue-agency-cra/compliance/digital-currency/cryptocurrency-guide.html），但今天我们将探索一些有趣且无税的方法来生成自己的一系列过程生成的 CryptoPunks（https://www.larvalabs.com/cryptopunks）。
 
-It seems that cryptocurrencies, [NFTs](https://www.nytimes.com/interactive/2022/03/18/technology/nft-guide.html), and the web3 movement are all the rage these days! Digital assets are being listed on marketplaces for astounding amounts of money, and just about every celebrity is debuting their own NFT collection. While your crypto assets [may be taxable, such as in Canada](https://www.canada.ca/en/revenue-agency/programs/about-canada-revenue-agency-cra/compliance/digital-currency/cryptocurrency-guide.html), today we'll explore some fun and tax-free ways to generate your own assortment of procedurally generated [CryptoPunks](https://www.larvalabs.com/cryptopunks).
+生成对抗网络（GANs），通常称为 GANs，是一类特定的深度学习模型，旨在通过学习输入数据集来创建（生成！）与原始训练集中的元素具有令人信服的相似性的新材料。众所周知，网站[thispersondoesnotexist.com](https://thispersondoesnotexist.com/)通过名为 StyleGAN2 的模型生成了栩栩如生但是合成的人物图像而迅速走红。GANs 在机器学习领域获得了人们的关注，现在被用于生成各种图像、文本甚至音乐！
 
-Generative Adversarial Networks, often known just as *GANs*, are a specific class of deep-learning models that are designed to learn from an input dataset to create (*generate!*) new material that is convincingly similar to elements of the original training set. Famously, the website [thispersondoesnotexist.com](https://thispersondoesnotexist.com/) went viral with lifelike, yet synthetic, images of people generated with a model called StyleGAN2. GANs have gained traction in the machine learning world, and are now being used to generate all sorts of images, text, and even [music](https://salu133445.github.io/musegan/)!
-
-Today we'll briefly look at the high-level intuition behind GANs, and then we'll build a small demo around a pre-trained GAN to see what all the fuss is about. Here's a peek at what we're going to be putting together:
+今天我们将简要介绍 GAN 的高级直觉，然后我们将围绕一个预训练的 GAN 构建一个小型演示，看看这一切都是怎么回事。下面是我们将要组合的东西的一瞥：
 
 <iframe src="https://nimaboscarino-cryptopunks.hf.space" frameBorder="0" height="855" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-### Prerequisites
+### 先决条件
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). To use the pretrained model, also install `torch` and `torchvision`.
+确保已经[安装](/getting_started)了 `gradio` Python 包。要使用预训练模型，请还安装 `torch` 和 `torchvision`。
 
-## GANs: a very brief introduction
+## GANs：简介
 
-Originally proposed in [Goodfellow et al. 2014](https://arxiv.org/abs/1406.2661), GANs are made up of neural networks which compete with the intention of outsmarting each other. One network, known as the *generator*, is responsible for generating images. The other network, the *discriminator*, receives an image at a time from the generator along with a **real** image from the training data set. The discriminator then has to guess: which image is the fake?
+最初在[Goodfellow 等人 2014 年的论文](https://arxiv.org/abs/1406.2661)中提出，GANs 由互相竞争的神经网络组成，旨在相互智能地欺骗对方。一种网络，称为“生成器”，负责生成图像。另一个网络，称为“鉴别器”，从生成器一次接收一张图像，以及来自训练数据集的 **real 真实**图像。然后，鉴别器必须猜测：哪张图像是假的？
 
-The generator is constantly training to create images which are trickier for the discriminator to identify, while the discriminator raises the bar for the generator every time it correctly detects a fake. As the networks engage in this competitive (*adversarial!*) relationship, the images that get generated improve to the point where they become indistinguishable to human eyes!
+生成器不断训练以创建对鉴别器更难以识别的图像，而鉴别器每次正确检测到伪造图像时，都会为生成器设置更高的门槛。随着网络之间的这种竞争（**adversarial 对抗性！**），生成的图像改善到了对人眼来说无法区分的地步！
 
-For a more in-depth look at GANs, you can take a look at [this excellent post on Analytics Vidhya](https://www.analyticsvidhya.com/blog/2021/06/a-detailed-explanation-of-gan-with-implementation-using-tensorflow-and-keras/) or this [PyTorch tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html). For now, though, we'll dive into a demo!
+如果您想更深入地了解 GANs，可以参考[Analytics Vidhya 上的这篇优秀文章](https://www.analyticsvidhya.com/blog/2021/06/a-detailed-explanation-of-gan-with-implementation-using-tensorflow-and-keras/)或这个[PyTorch 教程](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html)。不过，现在我们将深入看一下演示！
 
-## Step 1 — Create the Generator model
+## 步骤 1 - 创建生成器模型
 
-To generate new images with a GAN, you only need the generator model. There are many different architectures that the generator could use, but for this demo we'll use a pretrained GAN generator model with the following architecture:
+要使用 GAN 生成新图像，只需要生成器模型。生成器可以使用许多不同的架构，但是对于这个演示，我们将使用一个预训练的 GAN 生成器模型，其架构如下：
 
 ```python
 from torch import nn
 
 class Generator(nn.Module):
-    # Refer to the link below for explanations about nc, nz, and ngf
+    # 有关nc，nz和ngf的解释，请参见下面的链接
     # https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html#inputs
     def __init__(self, nc=4, nz=100, ngf=64):
         super(Generator, self).__init__()
@@ -59,9 +58,9 @@ class Generator(nn.Module):
         return output
 ```
 
-We're taking the generator from [this repo by @teddykoker](https://github.com/teddykoker/cryptopunks-gan/blob/main/train.py#L90), where you can also see the original discriminator model structure.
+我们正在使用来自[此 repo 的 @teddykoker](https://github.com/teddykoker/cryptopunks-gan/blob/main/train.py#L90)的生成器模型，您还可以在那里看到原始的鉴别器模型结构。
 
-After instantiating the model, we'll load in the weights from the Hugging Face Hub, stored at [nateraw/cryptopunks-gan](https://huggingface.co/nateraw/cryptopunks-gan):
+在实例化模型之后，我们将加载来自 Hugging Face Hub 的权重，存储在[nateraw/cryptopunks-gan](https://huggingface.co/nateraw/cryptopunks-gan)中：
 
 ```python
 from huggingface_hub import hf_hub_download
@@ -69,12 +68,12 @@ import torch
 
 model = Generator()
 weights_path = hf_hub_download('nateraw/cryptopunks-gan', 'generator.pth')
-model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu'))) # Use 'cuda' if you have a GPU available
+model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu'))) # 如果有可用的GPU，请使用'cuda'
 ```
 
-## Step 2 — Defining a `predict` function
+## 步骤 2 - 定义“predict”函数
 
-The `predict` function is the key to making Gradio work! Whatever inputs we choose through the Gradio interface will get passed through our `predict` function, which should operate on the inputs and generate outputs that we can display with Gradio output components. For GANs it's common to pass random noise into our model as the input, so we'll generate a tensor of random numbers and pass that through the model. We can then use `torchvision`'s `save_image` function to save the output of the model as a `png` file, and return the file name:
+`predict` 函数是使 Gradio 工作的关键！我们通过 Gradio 界面选择的任何输入都将通过我们的 `predict` 函数传递，该函数应对输入进行操作并生成我们可以通过 Gradio 输出组件显示的输出。对于 GANs，常见的做法是将随机噪声传入我们的模型作为输入，因此我们将生成一张随机数的张量并将其传递给模型。然后，我们可以使用 `torchvision` 的 `save_image` 函数将模型的输出保存为 `png` 文件，并返回文件名：
 
 ```python
 from torchvision.utils import save_image
@@ -88,19 +87,19 @@ def predict(seed):
     return 'punks.png'
 ```
 
-We're giving our `predict` function a `seed` parameter, so that we can fix the random tensor generation with a seed. We'll then be able to reproduce punks if we want to see them again by passing in the same seed.
+我们给 `predict` 函数一个 `seed` 参数，这样我们就可以使用一个种子固定随机张量生成。然后，我们可以通过传入相同的种子再次查看生成的 punks。
 
-*Note!* Our model needs an input tensor of dimensions 100x1x1 to do a single inference, or (BatchSize)x100x1x1 for generating a batch of images. In this demo we'll start by generating 4 punks at a time.
+*注意！* 我们的模型需要一个 100x1x1 的输入张量进行单次推理，或者 (BatchSize)x100x1x1 来生成一批图像。在这个演示中，我们每次生成 4 个 punk。
 
-## Step 3 — Creating a Gradio interface
+## 第三步—创建一个 Gradio 接口
 
-At this point you can even run the code you have with `predict(<SOME_NUMBER>)`, and you'll find your freshly generated punks in your file system at `./punks.png`. To make a truly interactive demo, though, we'll build out a simple interface with Gradio. Our goals here are to:
+此时，您甚至可以运行您拥有的代码 `predict(<SOME_NUMBER>)`，并在您的文件系统中找到新生成的 punk 在 `./punks.png`。然而，为了制作一个真正的交互演示，我们将用 Gradio 构建一个简单的界面。我们的目标是：
 
-* Set a slider input so users can choose the "seed" value
-* Use an image component for our output to showcase the generated punks
-* Use our `predict()` to take the seed and generate the images
+* 设置一个滑块输入，以便用户可以选择“seed”值
+* 使用图像组件作为输出，展示生成的 punk
+* 使用我们的 `predict()` 函数来接受种子并生成图像
 
-With `gr.Interface()`, we can define all of that with a single function call:
+通过使用 `gr.Interface()`，我们可以使用一个函数调用来定义所有这些 :
 
 ```python
 import gradio as gr
@@ -114,26 +113,26 @@ gr.Interface(
 ).launch()
 ```
 
-Launching the interface should present you with something like this:
+启动界面后，您应该会看到像这样的东西 :
 
 <iframe src="https://nimaboscarino-cryptopunks-1.hf.space" frameBorder="0" height="365" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-## Step 4 — Even more punks!
+## 第四步—更多 punk！
 
-Generating 4 punks at a time is a good start, but maybe we'd like to control how many we want to make each time. Adding more inputs to our Gradio interface is as simple as adding another item to the `inputs` list that we pass to `gr.Interface`:
+每次生成 4 个 punk 是一个好的开始，但是也许我们想控制每次想生成多少。通过简单地向我们传递给 `gr.Interface` 的 `inputs` 列表添加另一项即可向我们的 Gradio 界面添加更多输入 :
 
 ```python
 gr.Interface(
     predict,
     inputs=[
         gr.Slider(0, 1000, label='Seed', default=42),
-        gr.Slider(4, 64, label='Number of Punks', step=1, default=10), # Adding another slider!
+        gr.Slider(4, 64, label='Number of Punks', step=1, default=10), # 添加另一个滑块!
     ],
     outputs="image",
 ).launch()
 ```
 
-The new input will be passed to our `predict()` function, so we have to make some changes to that function to accept a new parameter:
+新的输入将传递给我们的 `predict()` 函数，所以我们必须对该函数进行一些更改，以接受一个新的参数 :
 
 ```python
 def predict(seed, num_punks):
@@ -144,31 +143,31 @@ def predict(seed, num_punks):
     return 'punks.png'
 ```
 
-When you relaunch your interface, you should see a second slider that'll let you control the number of punks!
+当您重新启动界面时，您应该会看到一个第二个滑块，它可以让您控制 punk 的数量！
 
-## Step 5 - Polishing it up
+## 第五步-完善它
 
-Your Gradio app is pretty much good to go, but you can add a few extra things to really make it ready for the spotlight ✨
+您的 Gradio 应用已经准备好运行了，但是您可以添加一些额外的功能来使其真正准备好发光 ✨
 
-We can add some examples that users can easily try out by adding this to the `gr.Interface`:
+我们可以添加一些用户可以轻松尝试的示例，通过将其添加到 `gr.Interface` 中实现 :
 
 ```python
 gr.Interface(
     # ...
-    # keep everything as it is, and then add
+    # 将所有内容保持不变，然后添加
     examples=[[123, 15], [42, 29], [456, 8], [1337, 35]],
-).launch(cache_examples=True) # cache_examples is optional
+).launch(cache_examples=True) # cache_examples是可选的
 ```
 
-The `examples` parameter takes a list of lists, where each item in the sublists is ordered in the same order that we've listed the `inputs`. So in our case, `[seed, num_punks]`. Give it a try!
+`examples` 参数接受一个列表的列表，其中子列表中的每个项目的顺序与我们列出的 `inputs` 的顺序相同。所以在我们的例子中，`[seed, num_punks]`。试一试吧！
 
-You can also try adding a `title`, `description`, and `article` to the `gr.Interface`. Each of those parameters accepts a string, so try it out and see what happens 👀 `article` will also accept HTML, as [explored in a previous guide](./key_features/#descriptive-content)!
+您还可以尝试在 `gr.Interface` 中添加 `title`、`description` 和 `article`。每个参数都接受一个字符串，所以试试看发生了什么👀 `article` 也接受 HTML，如[前面的指南](./key_features/#descriptive-content)所述！
 
-When you're all done, you may end up with something like this:
+当您完成所有操作后，您可能会得到类似于这样的结果 :
 
 <iframe src="https://nimaboscarino-cryptopunks.hf.space" frameBorder="0" height="855" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-For reference, here is our full code:
+供参考，这是我们的完整代码 :
 
 ```python
 import torch
@@ -178,7 +177,7 @@ from torchvision.utils import save_image
 import gradio as gr
 
 class Generator(nn.Module):
-    # Refer to the link below for explanations about nc, nz, and ngf
+    # 关于nc、nz和ngf的解释，请参见下面的链接
     # https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html#inputs
     def __init__(self, nc=4, nz=100, ngf=64):
         super(Generator, self).__init__()
@@ -202,7 +201,7 @@ class Generator(nn.Module):
 
 model = Generator()
 weights_path = hf_hub_download('nateraw/cryptopunks-gan', 'generator.pth')
-model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu'))) # Use 'cuda' if you have a GPU available
+model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu'))) # 如果您有可用的GPU，使用'cuda'
 
 def predict(seed, num_punks):
     torch.manual_seed(seed)
@@ -223,4 +222,4 @@ gr.Interface(
 ```
 ----------
 
-Congratulations! You've built out your very own GAN-powered CryptoPunks generator, with a fancy Gradio interface that makes it easy for anyone to use. Now you can [scour the Hub for more GANs](https://huggingface.co/models?other=gan) (or train your own) and continue making even more awesome demos 🤗
+恭喜！你已经成功构建了自己的基于 GAN 的 CryptoPunks 生成器，配备了一个时尚的 Gradio 界面，使任何人都能轻松使用。现在你可以在 Hub 上[寻找更多的 GANs](https://huggingface.co/models?other=gan)（或者自己训练）并继续制作更多令人赞叹的演示项目。🤗

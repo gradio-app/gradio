@@ -1,40 +1,40 @@
-# Using Flagging
+# 使用标记
 
-Related spaces: https://huggingface.co/spaces/gradio/calculator-flagging-crowdsourced, https://huggingface.co/spaces/gradio/calculator-flagging-options, https://huggingface.co/spaces/gradio/calculator-flag-basic
-Tags: FLAGGING, DATA
+相关空间：https://huggingface.co/spaces/gradio/calculator-flagging-crowdsourced, https://huggingface.co/spaces/gradio/calculator-flagging-options, https://huggingface.co/spaces/gradio/calculator-flag-basic
+标签：标记，数据
 
-## Introduction
+## 简介
 
-When you demo a machine learning model, you might want to collect data from users who try the model, particularly data points in which the model is not behaving as expected. Capturing these "hard" data points is valuable because it allows you to improve your machine learning model and make it more reliable and robust.
+当您演示一个机器学习模型时，您可能希望收集试用模型的用户的数据，特别是模型行为不如预期的数据点。捕获这些“困难”数据点是有价值的，因为它允许您改进机器学习模型并使其更可靠和稳健。
 
-Gradio simplifies the collection of this data by including a **Flag** button with every `Interface`. This allows a user or tester to easily send data back to the machine where the demo is running. In this Guide, we discuss more about how to use the flagging feature, both with `gradio.Interface` as well as with `gradio.Blocks`.
+Gradio 通过在每个“界面”中包含一个**标记**按钮来简化这些数据的收集。这使得用户或测试人员可以轻松地将数据发送回运行演示的机器。样本会保存在一个 CSV 日志文件中（默认情况下）。如果演示涉及图像、音频、视频或其他类型的文件，则这些文件会单独保存在一个并行目录中，并且这些文件的路径会保存在 CSV 文件中。
 
-## The **Flag** button in `gradio.Interface`
+## 在 `gradio.Interface` 中使用**标记**按钮
 
-Flagging with Gradio's `Interface` is especially easy. By default, underneath the output components, there is a button marked **Flag**. When a user testing your model sees input with interesting output, they can click the flag button to send the input and output data back to the machine where the demo is running. The sample is saved to a CSV log file (by default). If the demo involves images, audio, video, or other types of files, these are saved separately in a parallel directory and the paths to these files are saved in the CSV file.
+使用 Gradio 的 `Interface` 进行标记特别简单。默认情况下，在输出组件下方有一个标记为**标记**的按钮。当用户测试您的模型时，如果看到有趣的输出，他们可以点击标记按钮将输入和输出数据发送回运行演示的机器。样本会保存在一个 CSV 日志文件中（默认情况下）。如果演示涉及图像、音频、视频或其他类型的文件，则这些文件会单独保存在一个并行目录中，并且这些文件的路径会保存在 CSV 文件中。
 
-There are [four parameters](https://gradio.app/docs/#interface-header) in `gradio.Interface` that control how flagging works. We will go over them in greater detail.
+在 `gradio.Interface` 中有[四个参数](https://gradio.app/docs/#interface-header)控制标记的工作方式。我们将详细介绍它们。
 
-* `allow_flagging`: this parameter can be set to either `"manual"` (default), `"auto"`, or `"never"`.                 
-    * `manual`: users will see a button to flag, and samples are only flagged when the button is clicked.
-    * `auto`: users will not see a button to flag, but every sample will be flagged automatically. 
-    * `never`: users will not see a button to flag, and no sample will be flagged. 
-* `flagging_options`: this parameter can be either `None` (default) or a list of strings.
-    * If `None`, then the user simply clicks on the **Flag** button and no additional options are shown.
-    * If a list of strings are provided, then the user sees several buttons, corresponding to each of the strings that are provided. For example, if the value of this parameter is `["Incorrect", "Ambiguous"]`, then buttons labeled **Flag as Incorrect** and **Flag as Ambiguous** appear. This only applies if `allow_flagging` is `"manual"`.
-    * The chosen option is then logged along with the input and output.
-* `flagging_dir`: this parameter takes a string.
-    * It represents what to name the directory where flagged data is stored.
-* `flagging_callback`: this parameter takes an instance of a subclass of the `FlaggingCallback` class
-    * Using this parameter allows you to write custom code that gets run when the flag button is clicked
-    * By default, this is set to an instance of `gr.CSVLogger`
-    * One example is setting it to an instance of `gr.HuggingFaceDatasetSaver` which can allow you to pipe any flagged data into a HuggingFace Dataset. (See more below.)
+* `allow_flagging`：此参数可以设置为 `"manual"`（默认值），`"auto"` 或 `"never"`。                 
+    * `manual`：用户将看到一个标记按钮，只有在点击按钮时样本才会被标记。
+    * `auto`：用户将不会看到一个标记按钮，但每个样本都会自动被标记。 
+    * `never`：用户将不会看到一个标记按钮，并且不会标记任何样本。 
+* `flagging_options`：此参数可以是 `None`（默认值）或字符串列表。
+    * 如果是 `None`，则用户只需点击**标记**按钮，不会显示其他选项。
+    * 如果提供了一个字符串列表，则用户会看到多个按钮，对应于提供的每个字符串。例如，如果此参数的值为`[" 错误 ", " 模糊 "]`，则会显示标记为**标记为错误**和**标记为模糊**的按钮。这仅适用于 `allow_flagging` 为 `"manual"` 的情况。
+    * 所选选项将与输入和输出一起记录。
+* `flagging_dir`：此参数接受一个字符串。
+    * 它表示标记数据存储的目录名称。
+* `flagging_callback`：此参数接受 `FlaggingCallback` 类的子类的实例
+    * 使用此参数允许您编写在点击标记按钮时运行的自定义代码
+    * 默认情况下，它设置为 `gr.CSVLogger` 的一个实例
+    * 一个示例是将其设置为 `gr.HuggingFaceDatasetSaver` 的一个实例，这样您可以将任何标记的数据导入到 HuggingFace 数据集中（参见下文）。
 
-## What happens to flagged data?
+## 标记的数据会发生什么？
 
-Within the directory provided by the `flagging_dir` argument, a CSV file will log the flagged data. 
+在 `flagging_dir` 参数提供的目录中，将记录标记的数据的 CSV 文件。 
 
-Here's an example: The code below creates the calculator interface embedded below it:
+以下是一个示例：下面的代码创建了嵌入其中的计算器界面：
 
 ```python
 import gradio as gr
@@ -63,7 +63,7 @@ iface.launch()
 
 <gradio-app space="gradio/calculator-flag-basic/"></gradio-app>
 
-When you click the flag button above, the directory where the interface was launched will include a new flagged subfolder, with a csv file inside it. This csv file includes all the data that was flagged. 
+当您点击上面的标记按钮时，启动界面的目录将包括一个新的标记子文件夹，其中包含一个 CSV 文件。该 CSV 文件包括所有被标记的数据。
 
 ```directory
 +-- flagged/
@@ -76,7 +76,7 @@ num1,operation,num2,Output,timestamp
 6,subtract,1.5,4.5,2022-01-31 03:25:32.023542
 ```
 
-If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well. For example an `image` input to `image` output interface will create the following structure.
+如果界面涉及文件数据，例如图像和音频组件，还将创建文件夹来存储这些标记的数据。例如，将 `image` 输入到 `image` 输出界面将创建以下结构。
 
 ```directory
 +-- flagged/
@@ -95,9 +95,9 @@ im/0.png,Output/0.png,2022-02-04 19:49:58.026963
 im/1.png,Output/1.png,2022-02-02 10:40:51.093412
 ```
 
-If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of these choices when flagging, and the option will be saved as an additional column to the CSV.
+如果您希望用户为标记提供一个原因，您可以将字符串列表传递给 Interface 的 `flagging_options` 参数。用户在标记时必须选择其中一项，选项将作为附加列保存在 CSV 文件中。
 
-If we go back to the calculator example, the following code will create the interface embedded below it.  
+如果我们回到计算器示例，下面的代码将创建嵌入其中的界面。  
 ```python
 iface = gr.Interface(
     calculator,
@@ -111,7 +111,7 @@ iface.launch()
 ```
 <gradio-app space="gradio/calculator-flagging-options/"></gradio-app>
 
-When users click the flag button, the csv file will now include a column indicating the selected option.
+当用户点击标记按钮时，CSV 文件现在将包括指示所选选项的列。
 
 _flagged/logs.csv_
 ```csv
@@ -120,17 +120,16 @@ num1,operation,num2,Output,flag,timestamp
 6,subtract,1.5,3.5,off by one,2022-02-04 11:42:32.062512
 ```
 
-## The HuggingFaceDatasetSaver Callback
+## HuggingFaceDatasetSaver 回调
 
-Sometimes, saving the data to a local CSV file doesn't make sense. For example, on Hugging Face
-Spaces, developers typically don't have access to the underlying ephemeral machine hosting the Gradio
-demo. That's why, by default, flagging is turned off in Hugging Face Space. However,
+有时，将数据保存到本地 CSV 文件是不合理的。例如，在 Hugging Face Spaces 上
+，开发者通常无法访问托管 Gradio 演示的底层临时机器。这就是为什么，默认情况下，在 Hugging Face Space 中关闭标记的原因。然而，
+您可能希望对标记的数据做其他处理。
 you may want to do something else with the flagged data.
 
-We've made this super easy with the `flagging_callback` parameter.
+通过 `flagging_callback` 参数，我们使这变得非常简单。
 
-For example, below we're going to pipe flagged data from our calculator example into a Hugging Face Dataset, e.g. so that we can build a "crowd-sourced" dataset:
-
+例如，下面我们将会将标记的数据从我们的计算器示例导入到 Hugging Face 数据集中，以便我们可以构建一个“众包”数据集：
 
 ```python
 import os
@@ -151,41 +150,41 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-Notice that we define our own 
-instance of  `gradio.HuggingFaceDatasetSaver` using our Hugging Face token and
-the name of a dataset we'd like to save samples to. In addition, we also set `allow_flagging="manual"`
-because on Hugging Face Spaces, `allow_flagging` is set to `"never"` by default. Here's our demo:
+注意，我们使用我们的 Hugging Face 令牌和
+要保存样本的数据集的名称，定义了我们自己的
+`gradio.HuggingFaceDatasetSaver` 的实例。此外，我们还将 `allow_flagging="manual"` 设置为了
+，因为在 Hugging Face Spaces 中，`allow_flagging` 默认设置为 `"never"`。这是我们的演示：
 
 <gradio-app space="gradio/calculator-flagging-crowdsourced/"></gradio-app>
 
-You can now see all the examples flagged above in this [public Hugging Face dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo).
+您现在可以在这个[公共的 Hugging Face 数据集](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo)中看到上面标记的所有示例。
 
 ![flagging callback hf](/assets/guides/flagging-callback-hf.png)
 
-We created the `gradio.HuggingFaceDatasetSaver` class, but you can pass your own custom class as long as it inherits from `FLaggingCallback` defined in [this file](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py). If you create a cool callback, contribute it to the repo! 
+我们创建了 `gradio.HuggingFaceDatasetSaver` 类，但只要它继承自[此文件](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py)中定义的 `FlaggingCallback`，您可以传递自己的自定义类。如果您创建了一个很棒的回调，请将其贡献给该存储库！ 
 
-## Flagging with Blocks
+## 使用 Blocks 进行标记
 
-What about if you are using `gradio.Blocks`? On one hand, you have even more flexibility
-with Blocks -- you can write whatever Python code you want to run when a button is clicked,
-and assign that using the built-in events in Blocks.
+如果您正在使用 `gradio.Blocks`，又该怎么办呢？一方面，使用 Blocks 您拥有更多的灵活性
+--您可以编写任何您想在按钮被点击时运行的 Python 代码，
+并使用 Blocks 中的内置事件分配它。
 
-At the same time, you might want to use an existing `FlaggingCallback` to avoid writing extra code.
-This requires two steps:
+同时，您可能希望使用现有的 `FlaggingCallback` 来避免编写额外的代码。
+这需要两个步骤：
 
-1. You have to run your callback's `.setup()` somewhere in the code prior to the 
-first time you flag data
-2. When the flagging button is clicked, then you trigger the callback's `.flag()` method,
-making sure to collect the arguments correctly and disabling the typical preprocessing. 
+1. 您必须在代码中的某个位置运行您的回调的 `.setup()` 方法
+在第一次标记数据之前
+2. 当点击标记按钮时，您触发回调的 `.flag()` 方法，
+确保正确收集参数并禁用通常的预处理。 
 
-Here is an example with an image sepia filter Blocks demo that lets you flag
+下面是一个使用默认的 `CSVLogger` 标记图像怀旧滤镜 Blocks 演示的示例：
 data using the default `CSVLogger`:
 
 $code_blocks_flag
 $demo_blocks_flag
 
-## Privacy
+## 隐私
 
-Important Note: please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `allow_flagging=auto` (when all of the data submitted through the demo is being flagged)
+重要提示：请确保用户了解他们提交的数据何时被保存以及您计划如何处理它。当您使用 `allow_flagging=auto`（当通过演示提交的所有数据都被标记时），这一点尤为重要
 
-### That's all! Happy building :) 
+### 这就是全部！祝您建设愉快 :) 

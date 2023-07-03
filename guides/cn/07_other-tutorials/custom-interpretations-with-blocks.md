@@ -1,32 +1,25 @@
-# Custom Machine Learning Interpretations with Blocks
+# 使用 Blocks 进行自定义机器学习解释
+
 Tags: INTERPRETATION, SENTIMENT ANALYSIS
 
-**Prerequisite**: This Guide requires you to know about Blocks and the interpretation feature of Interfaces.
-Make sure to [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) as well as the
-interpretation section of the [Advanced Interface Features Guide](/advanced-interface-features#interpreting-your-predictions).
+**前提条件**: 此指南要求您了解 Blocks 和界面的解释功能。请确保[首先阅读 Blocks 指南](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)以及[高级界面功能指南](/advanced-interface-features#interpreting-your-predictions)的解释部分。
 
-## Introduction
+## 简介
 
-If you have experience working with the Interface class, then you know that interpreting the prediction of your machine learning model
-is as easy as setting the `interpretation` parameter to either "default" or "shap".
+如果您有使用界面类的经验，那么您就知道解释机器学习模型的预测有多么容易，只需要将 `interpretation` 参数设置为 "default" 或 "shap" 即可。
 
-You may be wondering if it is possible to add the same interpretation functionality to an app built with the Blocks API.
-Not only is it possible, but the flexibility of Blocks lets you display the interpretation output in ways that are
-impossible to do with Interfaces!
+您可能想知道是否可以将同样的解释功能添加到使用 Blocks API 构建的应用程序中。不仅可以做到，而且 Blocks 的灵活性还可以以不可能使用界面来显示解释的方式！
 
-This guide will show how to:
+本指南将展示如何：
 
-1. Recreate the behavior of Interfaces's interpretation feature in a Blocks app.
-2. Customize how interpretations are displayed in a Blocks app.
+1. 在 Blocks 应用程序中重新创建界面的解释功能的行为。
+2. 自定义 Blocks 应用程序中的解释显示方式。
 
-Let's get started!
+让我们开始吧！
 
-## Setting up the Blocks app
+## 设置 Blocks 应用程序
 
-Let's build a sentiment classification app with the Blocks API.
-This app will take text as input and output the probability that this text expresses either negative or positive sentiment.
-We'll have a single input `Textbox` and a single output `Label` component.
-Below is the code for the app as well as the app itself.
+让我们使用 Blocks API 构建一款情感分类应用程序。该应用程序将以文本作为输入，并输出此文本表达负面或正面情感的概率。我们会有一个单独的输入 `Textbox` 和一个单独的输出 `Label` 组件。以下是应用程序的代码以及应用程序本身。
 
 ```python
 import gradio as gr 
@@ -52,20 +45,18 @@ demo.launch()
 ```
 
 <gradio-app space="freddyaboulton/sentiment-classification"> </gradio-app>
+## 向应用程序添加解释
 
-## Adding interpretations to the app
+我们的目标是向用户呈现输入中的单词如何 contributed 到模型的预测。
+这将帮助用户理解模型的工作方式，并评估其有效性。
+例如，我们应该期望我们的模型能够将“happy”和“love”这些词与积极的情感联系起来；如果模型没有联系起来，那么这意味着我们在训练过程中出现了错误！
 
-Our goal is to present to our users how the words in the input contribute to the model's prediction.
-This will help our users understand how the model works and also evaluate its effectiveness.
-For example, we should expect our model to identify the words "happy" and "love" with positive sentiment - if not it's a sign we made a mistake in training it!
+对于输入中的每个单词，我们将计算模型预测的积极情感如何受该单词的影响。
+一旦我们有了这些 `(word, score)` 对，我们就可以使用 Gradio 将其可视化给用户。
 
-For each word in the input, we will compute a score of how much the model's prediction of positive sentiment is changed by that word.
-Once we have those `(word, score)` pairs we can use gradio to visualize them for the user.
+[shap](https://shap.readthedocs.io/en/stable/index.html) 库将帮助我们计算 `(word, score)` 对，而 Gradio 将负责将输出显示给用户。
 
-The [shap](https://shap.readthedocs.io/en/stable/index.html) library will help us compute the `(word, score)` pairs and
-gradio will take care of displaying the output to the user.
-
-The following code computes the `(word, score)` pairs:
+以下代码计算 `(word, score)` 对：
 
 ```python
 def interpretation_function(text):
@@ -82,12 +73,11 @@ def interpretation_function(text):
     return {"original": text, "interpretation": scores}
 ```
 
-Now, all we have to do is add a button that runs this function when clicked.
-To display the interpretation, we will use `gr.components.Interpretation`.
-This will color each word in the input either red or blue.
-Red if it contributes to positive sentiment and blue if it contributes to negative sentiment.
-This is how `Interface` displays the interpretation output for text.
-
+现在，我们所要做的就是添加一个按钮，在单击后运行此函数。
+为了显示解释，我们将使用 `gr.components.Interpretation`。
+这将使输入中的每个单词变成红色或蓝色。
+如果它有助于积极情感，则为红色，如果它有助于负面情感，则为蓝色。
+这就是界面如何显示文本的解释输出。
 ```python
 with gr.Blocks() as demo:
     with gr.Row():
@@ -108,19 +98,15 @@ demo.launch()
 
 <gradio-app space="freddyaboulton/sentiment-classification-interpretation"> </gradio-app>
 
+## 自定义解释的显示方式
 
-## Customizing how the interpretation is displayed
+`gr.components.Interpretation` 组件以很好的方式显示单个单词如何 contributed 到情感预测，但是如果我们还想显示分数本身，怎么办呢？
 
-The `gr.components.Interpretation` component does a good job of showing how individual words contribute to the sentiment prediction,
-but what if we also wanted to display the score themselves along with the words?
+一种方法是生成一个条形图，其中单词在水平轴上，条形高度对应 shap 得分。
 
-One way to do this would be to generate a bar plot where the words are on the horizontal axis and the bar height corresponds
-to the shap score.
+我们可以通过修改我们的 `interpretation_function` 来执行此操作，以同时返回一个 matplotlib 条形图。我们将在单独的选项卡中使用 'gr.Plot' 组件显示它。
 
-We can do this by modifying our `interpretation_function` to additionally return a matplotlib bar plot.
-We will display it with the `gr.Plot` component in a separate tab.
-
-This is how the interpretation function will look:
+这是解释函数的外观：
 ```python
 def interpretation_function(text):
     explainer = shap.Explainer(sentiment_classifier)
@@ -145,7 +131,8 @@ def interpretation_function(text):
     return {"original": text, "interpretation": scores}, fig_m
 ```
 
-And this is how the app code will look:
+以下是应用程序代码：
+
 ```python
 with gr.Blocks() as demo:
     with gr.Row():
@@ -169,24 +156,23 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-You can see the demo below!
+demo 在这里 !
 
 <gradio-app space="freddyaboulton/sentiment-classification-interpretation-tabs"> </gradio-app>
 
-## Beyond Sentiment Classification
-Although we have focused on sentiment classification so far, you can add interpretations to almost any machine learning model.
-The output must be an `gr.Image` or `gr.Label` but the input can be almost anything (`gr.Number`, `gr.Slider`, `gr.Radio`, `gr.Image`).
+## Beyond Sentiment Classification （超越情感分类）
 
-Here is a demo built with blocks of interpretations for an image classification model:
+尽管到目前为止我们已经集中讨论了情感分类，但几乎可以为任何机器学习模型添加解释。
+输出必须是 `gr.Image` 或 `gr.Label`，但输入几乎可以是任何内容 (`gr.Number`, `gr.Slider`, `gr.Radio`, `gr.Image`)。
+
+这是一个使用 Blocks 构建的图像分类模型解释演示：
 
 <gradio-app space="freddyaboulton/image-classification-interpretation-blocks"> </gradio-app>
 
+## 结语
 
-## Closing remarks
+我们深入地探讨了解释的工作原理以及如何将其添加到您的 Blocks 应用程序中。
 
-We did a deep dive 🤿 into how interpretations work and how you can add them to your Blocks app.
+我们还展示了 Blocks API 如何让您控制解释在应用程序中的可视化方式。
 
-We also showed how the Blocks API gives you the power to control how the interpretation is visualized in your app.
-
-Adding interpretations is a helpful way to make your users understand and gain trust in your model.
-Now you have all the tools you need to add them to all of your apps!
+添加解释是使您的用户了解和信任您的模型的有用方式。现在，您拥有了将其添加到所有应用程序所需的所有工具！

@@ -1,9 +1,9 @@
-# Theming
+# 主题 Theming
 Tags: THEMES
 
-## Introduction
+## 介绍
 
-Gradio features a built-in theming engine that lets you customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` or `Interface` constructor. For example:
+Gradio 具有内置的主题引擎，可让您自定义应用的外观和感觉。您可以选择各种主题，或者创建自己的主题。要这样做，请将 `theme=` kwarg 传递给 `Blocks` 或 `Interface` 构造函数。例如：
 
 ```python
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
@@ -17,7 +17,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 ></iframe>
 </div>
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. These are:
+Gradio 带有一组预构建的主题，您可以从 `gr.themes.*` 中加载这些主题。这些主题包括：
 
 * `gr.themes.Base()`
 * `gr.themes.Default()`
@@ -25,11 +25,11 @@ Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`
 * `gr.themes.Monochrome()`
 * `gr.themes.Soft()`
 
-Each of these themes set values for hundreds of CSS variables. You can use prebuilt themes as a starting point for your own custom themes, or you can create your own themes from scratch. Let's take a look at each approach.
+这些主题为数百个 CSS 变量设置了值。您可以使用预构建的主题作为自定义主题的起点，也可以从头开始创建自己的主题。让我们看看每种方法。
 
-## Using the Theme Builder
+## 使用主题构建器
 
-The easiest way to build a theme is using the Theme Builder. To launch the Theme Builder locally, run the following code:
+使用主题构建器构建主题最简单。要在本地启动主题构建器，请运行以下代码：
 
 ```python
 import gradio as gr
@@ -39,34 +39,34 @@ gr.themes.builder()
 
 $demo_theme_builder
 
-You can use the Theme Builder running on Spaces above, though it runs much faster when you launch it locally via `gr.themes.builder()`. 
+您可以使用上面的 Spaces 上运行的 Theme Builder，但通过 `gr.themes.builder()` 在本地启动时运行速度更快。
 
-As you edit the values in the Theme Builder, the app will preview updates in real time. You can download the code to generate the theme you've created so you can use it in any Gradio app.
+在 Theme Builder 中编辑值时，应用程序将实时预览更新。您可以下载生成的主题代码，以便在任何 Gradio 应用程序中使用它。
 
-In the rest of the guide, we will cover building themes programmatically.
+在本指南的其余部分，我们将介绍如何以编程方式构建主题。
 
-## Extending Themes via the Constructor
+## 通过构造函数扩展主题
 
-Although each theme has hundreds of CSS variables, the values for most these variables are drawn from 8 core variables which can be set through the constructor of each prebuilt theme. Modifying these 8 arguments allows you to quickly change the look and feel of your app.
+尽管每个主题都有数百个 CSS 变量，但大多数这些变量的值都是从 8 个核心变量中获取的，可以通过每个预构建主题的构造函数设置这些变量。通过修改这 8 个参数的值，您可以快速更改应用程序的外观和感觉。
 
-### Core Colors
+### 核心颜色
 
-The first 3 constructor arguments set the colors of the theme and are `gradio.themes.Color` objects. Internally, these Color objects hold brightness values for the palette of a single hue, ranging from 50, 100, 200..., 800, 900, 950. Other CSS variables are derived from these 3 colors.
+前 3 个构造函数参数设置主题的颜色，并且是 `gradio.themes.Color` 对象。在内部，这些 Color 对象包含单个色调的调色板的亮度值，范围从 50，100，200...，800，900，950。其他 CSS 变量是从这 3 种颜色派生的。
 
-The 3 color constructor arguments are:
+3 个颜色构造函数参数是：
 
-- `primary_hue`: This is the color draws attention in your theme. In the default theme, this is set to `gradio.themes.colors.orange`.
-- `secondary_hue`: This is the color that is used for secondary elements in your theme. In the default theme, this is set to `gradio.themes.colors.blue`.
-- `neutral_hue`: This is the color that is used for text and other neutral elements in your theme. In the default theme, this is set to `gradio.themes.colors.gray`.
+- `primary_hue`：这是主题中的主色。在默认主题中，此值设置为 `gradio.themes.colors.orange`。
+- `secondary_hue`：这是主题中用于辅助元素的颜色。在默认主题中，此值设置为 `gradio.themes.colors.blue`。
+- `neutral_hue`：这是主题中用于文本和其他中性元素的颜色。在默认主题中，此值设置为 `gradio.themes.colors.gray`。
 
-You could modify these values using their string shortcuts, such as
+您可以使用字符串快捷方式修改这些值，例如
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(primary_hue="red", secondary_hue="pink")) as demo:
     ...
 ```
 
-or you could use the `Color` objects directly, like this:
+或者直接使用 `Color` 对象，如下所示：
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, secondary_hue=gr.themes.colors.pink)) as demo:
@@ -79,7 +79,7 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue=gr.themes.colors.red, seconda
 ></iframe>
 </div>
 
-Predefined colors are:
+预定义的颜色包括：
 
 * `slate`
 * `gray`
@@ -104,24 +104,24 @@ Predefined colors are:
 * `pink`
 * `rose`
 
-You could also create your own custom `Color` objects and pass them in.
+您还可以创建自己的自定义 `Color` 对象并传递它们。
 
-### Core Sizing
+### 核心大小 （Core Sizing）
 
-The next 3 constructor arguments set the sizing of the theme and are `gradio.themes.Size` objects. Internally, these Size objects hold pixel size values that range from `xxs` to `xxl`. Other CSS variables are derived from these 3 sizes.
+接下来的 3 个构造函数参数设置主题的大小，并且是 `gradio.themes.Size` 对象。在内部，这些 Size 对象包含从 `xxs` 到 `xxl` 的像素大小值。其他 CSS 变量是从这 3 个大小派生的。
 
-- `spacing_size`: This sets the padding within and spacing between elements. In the default theme, this is set to `gradio.themes.sizes.spacing_md`.
-- `radius_size`: This sets the roundedness of corners of elements. In the default theme, this is set to `gradio.themes.sizes.radius_md`.
-- `text_size`: This sets the font size of text. In the default theme, this is set to `gradio.themes.sizes.text_md`.
+- `spacing_size`：此设置了元素内部的填充和元素之间的间距。在默认主题中，此值设置为 `gradio.themes.sizes.spacing_md`。
+- `radius_size`：此设置了元素的圆角弧度。在默认主题中，此值设置为 `gradio.themes.sizes.radius_md`。
+- `text_size`：此设置了文本的字体大小。在默认主题中，此值设置为 `gradio.themes.sizes.text_md`。
 
-You could modify these values using their string shortcuts, such as
+您可以使用字符串快捷方式修改这些值，例如
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")) as demo:
     ...
 ```
 
-or you could use the `Size` objects directly, like this:
+或者直接使用 `Size` 对象，如下所示：
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, radius_size=gr.themes.sizes.radius_none)) as demo:
@@ -134,7 +134,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size=gr.themes.sizes.spacing_sm, 
 ></iframe>
 </div>
 
-The predefined size objects are:
+预定义的大小对象包括：
 
 * `radius_none`
 * `radius_sm`
@@ -147,16 +147,16 @@ The predefined size objects are:
 * `text_md`
 * `text_lg`
 
-You could also create your own custom `Size` objects and pass them in.
+您还可以创建自己的自定义 `Size` 对象并传递它们。
 
-### Core Fonts
+### 核心字体（Core Fonts）
 
-The final 2 constructor arguments set the fonts of the theme. You can pass a list of fonts to each of these arguments to specify fallbacks. If you provide a string, it will be loaded as a system font. If you provide a `gradio.themes.GoogleFont`, the font will be loaded from Google Fonts.
+最后的 2 个构造函数参数设置主题的字体。您可以将一系列字体传递给这些参数，以指定回退字体。如果提供了字符串，它将被加载为系统字体。如果提供了 `gradio.themes.GoogleFont`，则将从 Google Fonts 加载该字体。
 
-- `font`: This sets the primary font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("Source Sans Pro")`.
-- `font_mono`: This sets the monospace font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("IBM Plex Mono")`.
+- `font`：此设置主题的主要字体。在默认主题中，此值设置为 `gradio.themes.GoogleFont("Source Sans Pro")`。
+- `font_mono`：此设置主题的等宽字体。在默认主题中，此值设置为 `gradio.themes.GoogleFont("IBM Plex Mono")`。
 
-You could modify these values such as the following:
+您可以修改这些值，例如以下方式：
 
 ```python
 with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata"), "Arial", "sans-serif"])) as demo:
@@ -170,45 +170,30 @@ with gr.Blocks(theme=gr.themes.Default(font=[gr.themes.GoogleFont("Inconsolata")
 ></iframe>
 </div>
 
+## 通过 `.set()` 扩展主题
 
-## Extending Themes via `.set()`
-
-You can also modify the values of CSS variables after the theme has been loaded. To do so, use the `.set()` method of the theme object to get access to the CSS variables. For example:
-
+主题加载后，您还可以修改 CSS 变量的值。为此，请使用主题对象的 `.set()` 方法来访问 CSS 变量。例如：
 ```python
-theme = gr.themes.Default(primary_hue="blue").set(
-    loader_color="#FF0000",
-    slider_color="#FF0000",
-)
-
-with gr.Blocks(theme=theme) as demo:
-    ...
+theme = gr.themes.Default(primary_hue="blue").set(    loader_color="#FF0000",    slider_color="#FF0000",)
+使用`gr.Blocks(theme=theme)`创建演示块    ...
 ```
 
-In the example above, we've set the `loader_color` and `slider_color` variables to `#FF0000`, despite the overall `primary_color` using the blue color palette. You can set any CSS variable that is defined in the theme in this manner. 
+在上面的示例中，我们将 `loader_color` 和 `slider_color` 变量设置为`#FF0000`，尽管整体 `primary_color` 使用蓝色调色板。您可以以这种方式设置主题中定义的任何 CSS 变量。
+您的 IDE 类型提示应该帮助您导航这些变量。由于有很多 CSS 变量，让我们看一下这些变量的命名和组织方式。
 
-Your IDE type hinting should help you navigate these variables. Since there are so many CSS variables, let's take a look at how these variables are named and organized.
+### CSS 变量命名规范
 
-### CSS Variable Naming Conventions
+CSS 变量名可能会变得很长，例如 `button_primary_background_fill_hover_dark`！但是它们遵循一种常见的命名约定，使得理解变量功能和查找您要查找的变量变得容易。变量名由下划线分隔，由以下组成：
+1. 目标元素，例如 `button`、`slider` 或 `block`。2. 目标元素类型或子元素，例如 `button_primary` 或 `block_label`。3. 属性，例如 `button_primary_background_fill` 或 `block_label_border_width`。4. 任何相关状态，例如 `button_primary_background_fill_hover`。5. 如果在暗模式中值不同，则使用后缀 `_dark`。例如，`input_border_color_focus_dark`。
+当然，许多 CSS 变量名都比这个短，例如 `table_border_color` 或 `input_shadow`。
 
-CSS variable names can get quite long, like `button_primary_background_fill_hover_dark`! However they follow a common naming convention that makes it easy to understand what they do and to find the variable you're looking for. Separated by underscores, the variable name is made up of:
+### CSS 变量组织
 
-1. The target element, such as `button`, `slider`, or `block`.
-2. The target element type or sub-element, such as `button_primary`, or `block_label`.
-3. The property, such as `button_primary_background_fill`, or `block_label_border_width`.
-4. Any relevant state, such as `button_primary_background_fill_hover`.
-5. If the value is different in dark mode, the suffix `_dark`. For example, `input_border_color_focus_dark`.
+虽然有数百个 CSS 变量，但并不需要为每个变量都指定单独的值。它们通过引用一组核心变量和彼此引用来获取值。这样做可以仅修改少量变量以改变整个主题的外观和感觉，同时也可以更精细地控制我们可能想要修改的个别元素。
 
-Of course, many CSS variable names are shorter than this, such as `table_border_color`, or `input_shadow`. 
+#### 引用核心变量
 
-### CSS Variable Organization
-
-Though there are hundreds of CSS variables, they do not all have to have individual values. They draw their values by referencing a set of core variables and referencing each other. This allows us to only have to modify a few variables to change the look and feel of the entire theme, while also getting finer control of individual elements that we may want to modify.
-
-#### Referencing Core Variables
-
-To reference one of the core constructor variables, precede the variable name with an asterisk. To reference a core color, use the `*primary_`, `*secondary_`, or `*neutral_` prefix, followed by the brightness value. For example:
-
+要引用其中一个核心构造函数变量，请在变量名前加上星号。要引用核心颜色，请使用`*primary_`、`*secondary_` 或`*neutral_` 前缀，后跟亮度值。例如：
 ```python
 theme = gr.themes.Default(primary_hue="blue").set(
     button_primary_background_fill="*primary_200",
@@ -216,22 +201,17 @@ theme = gr.themes.Default(primary_hue="blue").set(
 )
 ```
 
-In the example above, we've set the `button_primary_background_fill` and `button_primary_background_fill_hover` variables to `*primary_200` and `*primary_300`. These variables will be set to the 200 and 300 brightness values of the blue primary color palette, respectively.
-
-Similarly, to reference a core size, use the `*spacing_`, `*radius_`, or `*text_` prefix, followed by the size value. For example:
-
+在上面的示例中，我们将 `button_primary_background_fill` 和 `button_primary_background_fill_hover` 变量分别设置为`*primary_200` 和`*primary_300`。这些变量将分别设置为蓝色主色调调色板的 200 和 300 亮度值。
+同样地，要引用核心大小，请使用`*spacing_`、`*radius_` 或`*text_` 前缀，后跟大小值。例如：
 ```python
 theme = gr.themes.Default(radius_size="md").set(
     button_primary_border_radius="*radius_xl",
 )
 ```
+在上面的示例中，我们将 `button_primary_border_radius` 变量设置为`*radius_xl`。此变量将设置为中等半径大小范围的 `xl` 设置。
 
-In the example above, we've set the `button_primary_border_radius` variable to `*radius_xl`. This variable will be set to the `xl` setting of the medium radius size range.
-
-#### Referencing Other Variables
-
-Variables can also reference each other. For example, look at the example below:
-
+#### 引用其他变量
+变量也可以引用彼此。例如，请看下面的示例：
 ```python
 theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
@@ -240,8 +220,7 @@ theme = gr.themes.Default().set(
 )
 ```
 
-Having to set these values to a common color is a bit tedious. Instead, we can reference the `button_primary_background_fill` variable in the `button_primary_background_fill_hover` and `button_primary_border` variables, using a `*` prefix. 
-
+将这些值设置为相同的颜色有点繁琐。相反，我们可以在 `button_primary_background_fill_hover` 和 `button_primary_border` 变量中使用`*` 前缀引用 `button_primary_background_fill` 变量。
 ```python
 theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
@@ -250,12 +229,9 @@ theme = gr.themes.Default().set(
 )
 ```
 
-Now, if we change the `button_primary_background_fill` variable, the `button_primary_background_fill_hover` and `button_primary_border` variables will automatically update as well.
-
-This is particularly useful if you intend to share your theme - it makes it easy to modify the theme without having to change every variable.
-
-Note that dark mode variables automatically reference each other. For example:
-
+现在，如果我们更改 `button_primary_background_fill` 变量，`button_primary_background_fill_hover` 和 `button_primary_border` 变量将自动更新。
+如果您打算共享主题，这将非常有用- 它使得修改主题变得容易，而无需更改每个变量。
+请注意，暗模式变量自动相互引用。例如：
 ```python
 theme = gr.themes.Default().set(
     button_primary_background_fill="#FF0000",
@@ -265,14 +241,10 @@ theme = gr.themes.Default().set(
 )
 ```
 
-`button_primary_border_dark` will draw its value from `button_primary_background_fill_dark`, because dark mode always draw from the dark version of the variable.
-
-## Creating a Full Theme
-
-Let's say you want to create a theme from scratch! We'll go through it step by step - you can also see the source of prebuilt themes in the gradio source repo for reference - [here's the source](https://github.com/gradio-app/gradio/blob/main/gradio/themes/monochrome.py) for the Monochrome theme.
-
-Our new theme class will inherit from `gradio.themes.Base`, a theme that sets a lot of convenient defaults. Let's make a simple demo that creates a dummy theme called Seafoam, and make a simple app that uses it.
-
+`button_primary_border_dark` 将从 `button_primary_background_fill_dark` 获取其值，因为暗模式总是使用变量的暗版本。
+## 创建一个完整的主题
+假设您想从头开始创建一个主题！我们将逐步进行 - 您还可以参考 gradio 源代码库中预构建主题的源代码，请看这里的示例：[Monochrome theme 的源代码](https://github.com/gradio-app/gradio/blob/main/gradio/themes/monochrome.py)
+我们的新主题类将继承自 `gradio.themes.Base`，这是一个设置了许多方便默认值的主题。让我们创建一个名为 Seafoam 的简单演示，以及使用它的简单应用程序。
 $code_theme_new_step_1
 
 <div class="wrapper">
@@ -282,11 +254,8 @@ $code_theme_new_step_1
 ></iframe>
 </div>
 
-
-The Base theme is very barebones, and uses `gr.themes.Blue` as it primary color - you'll note the primary button and the loading animation are both blue as a result. Let's change the defaults core arguments of our app. We'll overwrite the constructor and pass new defaults for the core constructor arguments.
-
-We'll use `gr.themes.Emerald` as our primary color, and set secondary and neutral hues to `gr.themes.Blue`. We'll make our text larger using `text_lg`. We'll use `Quicksand` as our default font, loaded from Google Fonts. 
-
+Base 主题非常简洁，使用 `gr.themes.Blue` 作为其主要颜色-由于此原因，主按钮和加载动画都是蓝色的。让我们改变应用程序的默认核心参数。我们将覆盖构造函数并传递新的默认值给核心构造函数参数。
+我们将使用 `gr.themes.Emerald` 作为我们的主要颜色，并将次要和中性色调设置为 `gr.themes.Blue`。我们将使用 `text_lg` 使文本更大。我们将使用 `Quicksand` 作为我们的默认字体，从 Google Fonts 加载。
 $code_theme_new_step_2
 
 <div class="wrapper">
@@ -296,9 +265,8 @@ $code_theme_new_step_2
 ></iframe>
 </div>
 
-See how the primary button and the loading animation are now green? These CSS variables are tied to the `primary_hue` variable. 
-
-Let's modify the theme a bit more directly. We'll call the `set()` method to overwrite CSS variable values explicitly. We can use any CSS logic, and reference our core constructor arguments using the `*` prefix.
+注意到主按钮和加载动画现在是绿色的了吗？这些 CSS 变量与 `primary_hue` 相关联。
+我们来直接修改主题。我们将调用 `set()` 方法来明确覆盖 CSS 变量值。我们可以使用任何 CSS 逻辑，并使用`*` 前缀引用我们的核心构造函数的参数。
 
 $code_theme_new_step_3
 <div class="wrapper">
@@ -308,21 +276,20 @@ $code_theme_new_step_3
 ></iframe>
 </div>
 
+看看我们的主题现在多么有趣！仅通过几个变量的更改，我们的主题完全改变了。
 
-Look how fun our theme looks now! With just a few variable changes, our theme looks completely different.
+您可能会发现探索[其他预建主题的源代码](https://github.com/gradio-app/gradio/blob/main/gradio/themes)会很有帮助，以了解他们如何修改基本主题。您还可以使用浏览器的检查工具，选择 UI 中的元素并查看在样式面板中使用的 CSS 变量。
 
-You may find it helpful to explore the [source code of the other prebuilt themes](https://github.com/gradio-app/gradio/blob/main/gradio/themes) to see how they modified the base theme. You can also find your browser's Inspector useful to select elements from the UI and see what CSS variables are being used in the styles panel. 
+## 分享主题
 
-## Sharing Themes
+在创建主题后，您可以将其上传到 HuggingFace Hub，让其他人查看、使用和构建主题！
 
-Once you have created a theme, you can upload it to the HuggingFace Hub to let others view it, use it, and build off of it!
+### 上传主题
+有两种上传主题的方式，通过主题类实例或命令行。我们将使用之前创建的“seafoam”主题来介绍这两种方式。
 
-### Uploading a Theme
-There are two ways to upload a theme, via the theme class instance or the command line. We will cover both of them with the previously created `seafoam` theme.
+* 通过类实例
 
-* Via the class instance
-
-Each theme instance has a method called `push_to_hub` we can use to upload a theme to the HuggingFace hub.
+每个主题实例都有一个名为“push_to_hub”的方法，我们可以使用它来将主题上传到 HuggingFace Hub。
 
 ```python
 seafoam.push_to_hub(repo_name="seafoam",
@@ -330,14 +297,14 @@ seafoam.push_to_hub(repo_name="seafoam",
 					hf_token="<token>")
 ```
 
-* Via the command line
+* 通过命令行
 
-First save the theme to disk
+首先将主题保存到磁盘
 ```python
 seafoam.dump(filename="seafoam.json")
 ```
 
-Then use the `upload_theme` command:
+然后使用“upload_theme”命令：
 
 ```bash
 upload_theme\
@@ -347,19 +314,19 @@ upload_theme\
 --hf_token "<token>"
 ```
 
-In order to upload a theme, you must have a HuggingFace account and pass your [Access Token](https://huggingface.co/docs/huggingface_hub/quick-start#login)
-as the `hf_token` argument. However, if you log in via the [HuggingFace command line](https://huggingface.co/docs/huggingface_hub/quick-start#login) (which comes installed with `gradio`),
-you can omit the `hf_token` argument.
+要上传主题，您必须拥有一个 HuggingFace 账户，并通过 `hf_token` 参数传递您的[访问令牌](https://huggingface.co/docs/huggingface_hub/quick-start#login)。
+但是，如果您通过[HuggingFace 命令行](https://huggingface.co/docs/huggingface_hub/quick-start#login)登录（与 `gradio` 一起安装），
+那么您可以省略 `hf_token` 参数。
 
-The `version` argument lets you specify a valid [semantic version](https://www.geeksforgeeks.org/introduction-semantic-versioning/) string for your theme.
-That way your users are able to specify which version of your theme they want to use in their apps. This also lets you publish updates to your theme without worrying
-about changing how previously created apps look. The `version` argument is optional. If omitted, the next patch version is automatically applied.
+`version` 参数允许您为主题指定一个有效的[语义版本](https://www.geeksforgeeks.org/introduction-semantic-versioning/)字符串。
+这样，您的用户就可以在他们的应用程序中指定要使用的主题版本。这还允许您发布主题更新而不必担心
+以前创建的应用程序的外观如何更改。`version` 参数是可选的。如果省略，下一个修订版本将自动应用。
 
-### Theme Previews
+### 主题预览
 
-By calling `push_to_hub` or `upload_theme`, the theme assets will be stored in a [HuggingFace space](https://huggingface.co/docs/hub/spaces-overview).
+通过调用 `push_to_hub` 或 `upload_theme`，主题资源将存储在[HuggingFace 空间](https://huggingface.co/docs/hub/spaces-overview)中。
 
-The theme preview for our seafoam theme is here: [seafoam preview](https://huggingface.co/spaces/gradio/seafoam).
+我们的 seafoam 主题的预览在这里：[seafoam 预览](https://huggingface.co/spaces/gradio/seafoam)。
 
 <div class="wrapper">
 <iframe
@@ -368,12 +335,12 @@ The theme preview for our seafoam theme is here: [seafoam preview](https://huggi
 ></iframe>
 </div>
 
-### Discovering Themes
+### 发现主题
 
-The [Theme Gallery](https://huggingface.co/spaces/gradio/theme-gallery) shows all the public gradio themes. After publishing your theme,
-it will automatically show up in the theme gallery after a couple of minutes. 
+[主题库](https://huggingface.co/spaces/gradio/theme-gallery)显示了所有公开的 gradio 主题。在发布主题之后，
+它将在几分钟后自动显示在主题库中。
 
-You can sort the themes by the number of likes on the space and from most to least recently created as well as toggling themes between light and dark mode.
+您可以按照空间上点赞的数量以及按创建时间从最近到最近对主题进行排序，也可以在浅色和深色模式之间切换主题。
 
 <div class="wrapper">
 <iframe
@@ -382,8 +349,8 @@ You can sort the themes by the number of likes on the space and from most to lea
 ></iframe>
 </div>
 
-### Downloading
-To use a theme from the hub, use the `from_hub` method on the `ThemeClass` and pass it to your app:
+### 下载
+要使用 Hub 中的主题，请在 `ThemeClass` 上使用 `from_hub` 方法，然后将其传递给您的应用程序：
 
 ```python
 my_theme = gr.Theme.from_hub("gradio/seafoam")
@@ -392,19 +359,19 @@ with gr.Blocks(theme=my_theme) as demo:
     ....
 ```
 
-You can also pass the theme string directly to `Blocks` or `Interface` (`gr.Blocks(theme="gradio/seafoam")`)
+您也可以直接将主题字符串传递给 `Blocks` 或 `Interface`（`gr.Blocks(theme="gradio/seafoam")`）
 
-You can pin your app to an upstream theme version by using semantic versioning expressions.
+您可以通过使用语义版本表达式将您的应用程序固定到上游主题版本。
 
-For example, the following would ensure the theme we load from the `seafoam` repo was between versions `0.0.1` and `0.1.0`:
+例如，以下内容将确保我们从“seafoam”仓库中加载的主题位于 `0.0.1` 和 `0.1.0` 版本之间：
 
 ```python
 with gr.Blocks(theme="gradio/seafoam@>=0.0.1,<0.1.0") as demo:
     ....
 ```
 
-Enjoy creating your own themes! If you make one you're proud of, please share it with the world by uploading it to the hub! 
-If you tag us on [Twitter](https://twitter.com/gradio) we can give your theme a shout out! 
+享受创建自己的主题吧！如果您制作了一个自豪的主题，请将其上传到 Hub 与世界分享！
+如果在[Twitter](https://twitter.com/gradio)上标记我们，我们可以给您的主题一个宣传！
 
 <style>
 .wrapper {

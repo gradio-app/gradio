@@ -1,52 +1,49 @@
-# Connecting to a Database
+# 连接到数据库
 
-Related spaces: https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard
-Tags: TABULAR, PLOTS 
+相关空间：https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard
+标签：TABULAR, PLOTS 
 
-## Introduction
+## 介绍
 
-This guide explains how you can use Gradio to connect your app to a database. We will be
-connecting to a PostgreSQL database hosted on AWS but gradio is completely agnostic to the type of
-database you are connecting to and where it's hosted. So as long as you can write python code to connect
-to your data, you can display it in a web UI with gradio 💪
+本指南介绍如何使用 Gradio 连接您的应用程序到数据库。我们将会
+连接到在 AWS 上托管的 PostgreSQL 数据库，但 Gradio 对于您连接的数据库类型和托管位置没有任何限制。因此，只要您能编写 Python 代码来连接
+您的数据，您就可以使用 Gradio 在 Web 界面中显示它 💪
 
-## Overview 
-    
-We will be analyzing bike share data from Chicago. The data is hosted on kaggle [here](https://www.kaggle.com/datasets/evangower/cyclistic-bike-share?select=202203-divvy-tripdata.csv).
-Our goal is to create a dashboard that will enable our business stakeholders to answer the following questions:
+## 概述
 
-1. Are electric bikes more popular than regular bikes?
-2. What are the top 5 most popular departure bike stations?
+我们将分析来自芝加哥的自行车共享数据。数据托管在 kaggle [这里](https://www.kaggle.com/datasets/evangower/cyclistic-bike-share?select=202203-divvy-tripdata.csv)。
+我们的目标是创建一个仪表盘，让我们的业务利益相关者能够回答以下问题：
 
-At the end of this guide, we will have a functioning application that looks like this:
+1. 电动自行车是否比普通自行车更受欢迎？
+2. 哪些出发自行车站点最受欢迎？
+
+在本指南结束时，我们将拥有一个如下所示的功能齐全的应用程序：
 
 <gradio-app space="gradio/chicago-bike-share-dashboard"> </gradio-app>
 
+## 步骤 1 - 创建数据库
 
-## Step 1 - Creating your database
+我们将在 Amazon 的 RDS 服务上托管我们的数据。如果还没有 AWS 账号，请创建一个
+并在免费层级上创建一个 PostgreSQL 数据库。 
 
-We will be storing our data on a PostgreSQL hosted on Amazon's RDS service. Create an AWS account if you don't already have one
-and create a PostgreSQL database on the free tier. 
+**重要提示**：如果您计划在 HuggingFace Spaces 上托管此演示，请确保数据库在 **8080** 端口上。Spaces
+将阻止除端口 80、443 或 8080 之外的所有外部连接，如此[处所示](https://huggingface.co/docs/hub/spaces-overview#networking)。
+RDS 不允许您在 80 或 443 端口上创建 postgreSQL 实例。
 
-**Important**: If you plan to host this demo on HuggingFace Spaces, make sure database is on port **8080**. Spaces will
-block all outgoing connections unless they are made to port 80, 443, or 8080 as noted [here](https://huggingface.co/docs/hub/spaces-overview#networking).
-RDS will not let you create a postgreSQL instance on ports 80 or 443.
+创建完数据库后，从 Kaggle 下载数据集并将其上传到数据库中。
+为了演示的目的，我们只会上传 2022 年 3 月的数据。
 
-Once your database is created, download the dataset from Kaggle and upload it to your database.
-For the sake of this demo, we will only upload March 2022 data.
+## 步骤 2.a - 编写 ETL 代码
+我们将查询数据库，按自行车类型（电动、标准或有码）进行分组，并获取总骑行次数。
+我们还将查询每个站点的出发骑行次数，并获取前 5 个。 
 
+然后，我们将使用 matplotlib 将查询结果可视化。
 
-## Step 2.a - Write your ETL code
-We will be querying our database for the total count of rides split by the type of bicycle (electric, standard, or docked).
-We will also query for the total count of rides that depart from each station and take the top 5. 
+我们将使用 pandas 的[read_sql](https://pandas.pydata.org/docs/reference/api/pandas.read_sql.html)
+方法来连接数据库。这需要安装 `psycopg2` 库。 
 
-We will then take the result of our queries and visualize them in with matplotlib.
-
-We will use the pandas [read_sql](https://pandas.pydata.org/docs/reference/api/pandas.read_sql.html)
-method to connect to the database. This requires the `psycopg2` library to be installed. 
-
-In order to connect to our database, we will specify the database username, password, and host as environment variables.
-This will make our app more secure by avoiding storing sensitive information as plain text in our application files.
+为了连接到数据库，我们将指定数据库的用户名、密码和主机作为环境变量。
+这样可以通过避免将敏感信息以明文形式存储在应用程序文件中，使我们的应用程序更安全。
 
 ```python
 import os
@@ -105,17 +102,16 @@ def get_most_popular_stations():
     return fig_m
 ```
 
-If you were to run our script locally, you could pass in your credentials as environment variables like so
+如果您在本地运行我们的脚本，可以像下面这样将凭据作为环境变量传递：
 
 ```bash
 DB_USER='username' DB_PASSWORD='password' DB_HOST='host' python app.py
 ```
 
-
-## Step 2.c - Write your gradio app
-We will display or matplotlib plots in two separate `gr.Plot` components displayed side by side using `gr.Row()`.
-Because we have wrapped our function to fetch the data in a `demo.load()` event trigger,
-our demo will fetch the latest data **dynamically** from the database each time the web page loads. 🪄
+## 步骤 2.c - 编写您的 gradio 应用程序
+我们将使用两个单独的 `gr.Plot` 组件将我们的 matplotlib 图表并排显示在一起，使用 `gr.Row()`。
+因为我们已经在 `demo.load()` 事件触发器中封装了获取数据的函数，
+我们的演示将在每次网页加载时从数据库**动态**获取最新数据。🪄
 
 ```python
 import gradio as gr
@@ -131,22 +127,22 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-## Step 3 - Deployment
-If you run the code above, your app will start running locally.
-You can even get a temporary shareable link by passing the `share=True` parameter to `launch`.
+## 步骤 3 - 部署
+如果您运行上述代码，您的应用程序将在本地运行。
+您甚至可以通过将 `share=True` 参数传递给 `launch` 来获得一个临时共享链接。
 
-But what if you want to a permanent deployment solution?
-Let's deploy our Gradio app to the free HuggingFace Spaces platform.
+但是如果您想要一个永久的部署解决方案呢？
+让我们将我们的 Gradio 应用程序部署到免费的 HuggingFace Spaces 平台上。
 
-If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
-You will have to add the `DB_USER`, `DB_PASSWORD`, and `DB_HOST` variables as "Repo Secrets". You can do this in the "Settings" tab.
+如果您之前没有使用过 Spaces，请按照之前的指南[这里](/using_hugging_face_integrations)进行操作。
+您将需要将 `DB_USER`、`DB_PASSWORD` 和 `DB_HOST` 变量添加为 "Repo Secrets"。您可以在 " 设置 " 选项卡中进行此操作。
 
 ![secrets](/assets/guides/secrets.png)
 
-## Conclusion
-Congratulations! You know how to connect your gradio app to a database hosted on the cloud! ☁️
+## 结论
+恭喜你！您知道如何将您的 Gradio 应用程序连接到云端托管的数据库！☁️
 
-Our dashboard is now running on [Spaces](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard).
-The complete code is [here](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard/blob/main/app.py)
- 
-As you can see, gradio gives you the power to connect to your data wherever it lives and display however you want! 🔥
+我们的仪表板现在正在[Spaces](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard)上运行。
+完整代码在[这里](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard/blob/main/app.py)
+
+正如您所见，Gradio 使您可以连接到您的数据并以您想要的方式显示！🔥

@@ -1,36 +1,30 @@
-# Running Background Tasks 
+# 运行后台任务
 
 Related spaces: https://huggingface.co/spaces/freddyaboulton/gradio-google-forms
 Tags: TASKS, SCHEDULED, TABULAR, DATA 
 
-## Introduction
+## 简介
 
-This guide explains how you can run background tasks from your gradio app.
-Background tasks are operations that you'd like to perform outside the request-response
-lifecycle of your app either once or on a periodic schedule.
-Examples of background tasks include periodically synchronizing data to an external database or 
-sending a report of model predictions via email.
+本指南介绍了如何从 gradio 应用程序中运行后台任务。
+后台任务是在您的应用程序的请求-响应生命周期之外执行的操作，可以是一次性的或定期的。
+后台任务的示例包括定期将数据与外部数据库同步或通过电子邮件发送模型预测报告。
 
-## Overview 
-    
-We will be creating a simple "Google-forms-style" application to gather feedback from users of the gradio library.
-We will use a local sqlite database to store our data, but we will periodically synchronize the state of the database
-with a [HuggingFace Dataset](https://huggingface.co/datasets) so that our user reviews are always backed up.
-The synchronization will happen in a background task running every 60 seconds.
+## 概述
 
-At the end of the demo, you'll have a fully working application like this one:
+我们将创建一个简单的“Google Forms”风格的应用程序，用于收集 gradio 库的用户反馈。
+我们将使用一个本地 sqlite 数据库来存储数据，但我们将定期将数据库的状态与[HuggingFace Dataset](https://huggingface.co/datasets)同步，以便始终备份我们的用户评论。
+同步将在每 60 秒运行的后台任务中进行。
+
+在演示结束时，您将拥有一个完全可工作的应用程序，类似于以下应用程序 :
 
 <gradio-app space="freddyaboulton/gradio-google-forms"> </gradio-app>
 
+## 第一步 - 编写数据库逻辑 💾
+我们的应用程序将存储评论者的姓名，他们对 gradio 给出的评分（1 到 5 的范围），以及他们想要分享的关于该库的任何评论。让我们编写一些代码，创建一个数据库表来存储这些数据。我们还将编写一些函数，以将评论插入该表中并获取最新的 10 条评论。
 
-## Step 1 - Write your database logic 💾
-Our application will store the name of the reviewer, their rating of gradio on a scale of 1 to 5, as well as
-any comments they want to share about the library. Let's write some code that creates a database table to
-store this data. We'll also write some functions to insert a review into that table and fetch the latest 10 reviews.
+我们将使用 `sqlite3` 库来连接我们的 sqlite 数据库，但 gradio 可以与任何库一起使用。
 
-We're going to use the `sqlite3` library to connect to our sqlite database but gradio will work with any library.
-
-The code will look like this:
+代码如下 :
 
 ```python
 DB_FILE = "./reviews.db"
@@ -65,19 +59,22 @@ def add_review(name: str, review: int, comments: str):
     reviews, total_reviews = get_latest_reviews(db)
     db.close()
     return reviews, total_reviews
-```
+```    
 
-Let's also write a function to load the latest reviews when the gradio application loads:
+让我们还写一个函数，在 gradio 应用程序加载时加载最新的评论 :
+
 ```python
 def load_data():
     db = sqlite3.connect(DB_FILE)
     reviews, total_reviews = get_latest_reviews(db)
     db.close()
     return reviews, total_reviews
-```
+```    
 
-## Step 2 - Create a gradio app ⚡
-Now that we have our database logic defined, we can use gradio create a dynamic web page to ask our users for feedback! 
+## 第二步 - 创建 gradio 应用 ⚡
+现在我们已经定义了数据库逻辑，我们可以使用 gradio 创建一个动态的网页来询问用户的反馈意见！
+
+使用以下代码段 :
 
 ```python
 with gr.Blocks() as demo:
@@ -94,17 +91,13 @@ with gr.Blocks() as demo:
     demo.load(load_data, None, [data, count])
 ```
 
-## Step 3 - Synchronize with HuggingFace Datasets 🤗
+## 第三步 - 与 HuggingFace 数据集同步 🤗
 
-We could call `demo.launch()` after step 2 and have a fully functioning application. However,
-our data would be stored locally on our machine. If the sqlite file were accidentally deleted, we'd lose all of our reviews!
-Let's back up our data to a dataset on the HuggingFace hub.
+在第 2 步后我们可以调用 `demo.launch()` 来运行一个完整功能的应用程序。然而，我们的数据将存储在本地机器上。如果 sqlite 文件意外删除，我们将丢失所有评论！让我们将我们的数据备份到 HuggingFace hub 的数据集中。
 
-Create a dataset [here](https://huggingface.co/datasets) before proceeding.
+在继续之前，请在[此处](https://huggingface.co/datasets)创建一个数据集。
 
-Now at the **top** of our script, we'll use the [huggingface hub client library](https://huggingface.co/docs/huggingface_hub/index)
-to connect to our dataset and pull the latest backup.
-
+现在，在我们脚本的**顶部**，我们将使用[huggingface hub 客户端库](https://huggingface.co/docs/huggingface_hub/index)连接到我们的数据集并获取最新的备份。
 ```python
 TOKEN = os.environ.get('HUB_TOKEN')
 repo = huggingface_hub.Repository(
@@ -118,17 +111,15 @@ repo.git_pull()
 shutil.copyfile("./data/reviews.db", DB_FILE)
 ```
 
-Note that you'll have to get an access token from the "Settings" tab of your HuggingFace for the above code to work.
-In the script, the token is securely accessed via an environment variable.
+请注意，您需要从 HuggingFace 的“设置”选项卡中获取访问令牌，以上代码才能正常工作。在脚本中，通过环境变量安全访问令牌。
 
 ![access_token](/assets/guides/access_token.png)
 
-Now we will create a background task to synch our local database to the dataset hub every 60 seconds.
-We will use the [AdvancedPythonScheduler](https://apscheduler.readthedocs.io/en/3.x/) to handle the scheduling.
-However, this is not the only task scheduling library available. Feel free to use whatever you are comfortable with.
+现在，我们将创建一个后台任务，每 60 秒将我们的本地数据库与数据集中的数据同步一次。
+我们将使用[AdvancedPythonScheduler](https://apscheduler.readthedocs.io/en/3.x/)来处理调度。
+然而，这并不是唯一可用的任务调度库。请随意使用您熟悉的任何库。
 
-The function to back up our data will look like this:
-
+备份数据的函数如下 :
 ```python
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -146,15 +137,15 @@ scheduler.add_job(func=backup_db, trigger="interval", seconds=60)
 scheduler.start()
 ```
 
+## 第四步（附加）- 部署到 HuggingFace Spaces
 
-## Step 4 (Bonus) - Deployment to HuggingFace Spaces
-You can use the HuggingFace [Spaces](https://huggingface.co/spaces) platform to deploy this application for free ✨
+您可以使用 HuggingFace [Spaces](https://huggingface.co/spaces) 平台免费部署这个应用程序 ✨
 
-If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
-You will have to use the `HUB_TOKEN` environment variable as a secret in the Guides.
+如果您之前没有使用过 Spaces，请查看[此处](/using_hugging_face_integrations)的先前指南。
+您将需要将 `HUB_TOKEN` 环境变量作为指南中的一个秘密使用。
 
-## Conclusion
-Congratulations! You know how to run background tasks from your gradio app on a schedule ⏲️.  
+## 结论
+恭喜！您知道如何在您的 gradio 应用程序中按计划运行后台任务⏲️。
 
-Checkout the application running on Spaces [here](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms).
-The complete code is [here](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms/blob/main/app.py)
+在 Spaces 上运行的应用程序可在[此处](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms)查看。
+完整的代码在[此处](https://huggingface.co/spaces/freddyaboulton/gradio-google-forms/blob/main/app.py)。

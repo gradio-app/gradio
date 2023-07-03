@@ -1,21 +1,21 @@
-# Using Hugging Face Integrations
+# 使用 Hugging Face 集成
 
-Related spaces: https://huggingface.co/spaces/gradio/helsinki_translation_en_es
-Tags: HUB, SPACES, EMBED
+相关空间：https://huggingface.co/spaces/gradio/helsinki_translation_en_es
+标签：HUB，SPACES，EMBED
 
-Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙 
+由 <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 贡献🦙
 
-## Introduction
+## 介绍
 
-The Hugging Face Hub is a central platform that has over 190,000 [models](https://huggingface.co/models), 32,000 [datasets](https://huggingface.co/datasets) and 40,000 [demos](https://huggingface.co/spaces), also known as Spaces. Although Hugging Face is famous for its 🤗 transformers and diffusers libraries, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others across a variety of domains, from computer vision to reinforcement learning.
+Hugging Face Hub 是一个集成平台，拥有超过 190,000 个[模型](https://huggingface.co/models)，32,000 个[数据集](https://huggingface.co/datasets)和 40,000 个[演示](https://huggingface.co/spaces)，也被称为 Spaces。虽然 Hugging Face 以其🤗 transformers 和 diffusers 库而闻名，但 Hub 还支持许多机器学习库，如 PyTorch，TensorFlow，spaCy 等，涵盖了从计算机视觉到强化学习等各个领域。
 
-Gradio has multiple features that make it extremely easy to leverage existing models and Spaces on the Hub. This guide walks through these features.
+Gradio 拥有多个功能，使其非常容易利用 Hub 上的现有模型和 Spaces。本指南将介绍这些功能。
 
-## Using regular inference with `pipeline`
+## 使用 `pipeline` 进行常规推理
 
-First, let's build a simple interface that translates text from English to Spanish. Between the over a thousand models shared by the University of Helsinki, there is an [existing model](https://huggingface.co/Helsinki-NLP/opus-mt-en-es), `opus-mt-en-es`, that does precisely this!
+首先，让我们构建一个简单的界面，将英文翻译成西班牙文。在赫尔辛基大学共享的一千多个模型中，有一个[现有模型](https://huggingface.co/Helsinki-NLP/opus-mt-en-es)，名为 `opus-mt-en-es`，可以正好做到这一点！
 
-The 🤗 transformers library has a very easy-to-use abstraction, [`pipeline()`](https://huggingface.co/docs/transformers/v4.16.2/en/main_classes/pipelines#transformers.pipeline) that handles most of the complex code to offer a simple API for common tasks. By specifying the task and an (optional) model, you can use an existing model with few lines:
+🤗 transformers 库有一个非常易于使用的抽象层，[`pipeline()`](https://huggingface.co/docs/transformers/v4.16.2/en/main_classes/pipelines#transformers.pipeline)处理大部分复杂代码，为常见任务提供简单的 API。通过指定任务和（可选）模型，您可以使用几行代码使用现有模型：
 
 ```python
 import gradio as gr
@@ -36,7 +36,7 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-But `gradio` actually makes it even easier to convert a `pipeline` to a demo, simply by using the `gradio.Interface.from_pipeline` methods, which skips the need to specify the input and output components:
+但是，`gradio` 实际上使将 `pipeline` 转换为演示更加容易，只需使用 `gradio.Interface.from_pipeline` 方法，无需指定输入和输出组件：
 
 ```python
 from transformers import pipeline
@@ -48,17 +48,15 @@ demo = gr.Interface.from_pipeline(pipe)
 demo.launch()
 ```
 
-The previous code produces the following interface, which you can try right here in your browser: 
-
+上述代码生成了以下界面，您可以在浏览器中直接尝试：
 
 <gradio-app space="Helsinki-NLP/opus-mt-en-es"></gradio-app>
 
-
 ## Using Hugging Face Inference API
 
-Hugging Face has a free service called the [Inference API](https://huggingface.co/inference-api), which allows you to send HTTP requests to models in the Hub. For transformers or diffusers-based models, the API can be 2 to 10 times faster than running the inference yourself. The API is free (rate limited), and you can switch to dedicated [Inference Endpoints](https://huggingface.co/pricing) when you want to use it in production.
+Hugging Face 提供了一个名为[Inference API](https://huggingface.co/inference-api)的免费服务，允许您向 Hub 中的模型发送 HTTP 请求。对于基于 transformers 或 diffusers 的模型，API 的速度可以比自己运行推理快 2 到 10 倍。该 API 是免费的（受速率限制），您可以在想要在生产中使用时切换到专用的[推理端点](https://huggingface.co/pricing)。
 
-Let's try the same demo as above but using the Inference API instead of loading the model yourself. Given a Hugging Face model supported in the Inference API, Gradio can automatically infer the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function. Here is what the code would look like!
+让我们尝试使用推理 API 而不是自己加载模型的方式进行相同的演示。鉴于 Inference API 支持的 Hugging Face 模型，Gradio 可以自动推断出预期的输入和输出，并进行底层服务器调用，因此您不必担心定义预测函数。以下是代码示例！
 
 ```python
 import gradio as gr
@@ -68,20 +66,19 @@ demo = gr.load("Helsinki-NLP/opus-mt-en-es", src="models")
 demo.launch()
 ```
 
-Notice that we just put specify the model name and state that the `src` should be `models` (Hugging Face's Model Hub). There is no need to install any dependencies (except `gradio`) since you are not loading the model on your computer.
+请注意，我们只需指定模型名称并说明 `src` 应为 `models`（Hugging Face 的 Model Hub）。由于您不会在计算机上加载模型，因此无需安装任何依赖项（除了 `gradio`）。
 
-You might notice that the first inference takes about 20 seconds. This happens since the Inference API is loading the model in the server. You get some benefits afterward:
+您可能会注意到，第一次推理大约需要 20 秒。这是因为推理 API 正在服务器中加载模型。之后您会获得一些好处：
 
-* The inference will be much faster.
-* The server caches your requests.
-* You get built-in automatic scaling.
+* 推理速度更快。
+* 服务器缓存您的请求。
+* 您获得内置的自动缩放功能。
 
-## Hosting your Gradio demos
+## 托管您的 Gradio 演示
 
-[Hugging Face Spaces](https://hf.co/spaces) allows anyone to host their Gradio demos freely, and uploading your Gradio demos take a couple of minutes. You can head to [hf.co/new-space](https://huggingface.co/new-space), select the Gradio SDK, create an `app.py` file, and voila! You have a demo you can share with anyone else. To learn more, read [this guide how to host on Hugging Face Spaces using the website](https://huggingface.co/blog/gradio-spaces).
+[Hugging Face Spaces](https://hf.co/spaces)允许任何人免费托管其 Gradio 演示，上传 Gradio 演示只需几分钟。您可以前往[hf.co/new-space](https://huggingface.co/new-space)，选择 Gradio SDK，创建一个 `app.py` 文件，完成！您将拥有一个可以与任何人共享的演示。要了解更多信息，请阅读[此指南以使用网站在 Hugging Face Spaces 上托管](https://huggingface.co/blog/gradio-spaces)。
 
-
-Alternatively, you can create a Space programmatically, making use of the [huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index) library. Here's an example:
+或者，您可以通过使用[huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index)库来以编程方式创建一个 Space。这是一个示例：
 
 ```python
 from huggingface_hub import (
@@ -99,20 +96,17 @@ file_url = upload_file(
     token=hf_token,
 )
 ```
-Here, `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
+在这里，`create_repo` 使用特定帐户的 Write Token 在特定帐户下创建一个带有目标名称的 gradio repo。`repo_name` 获取相关存储库的完整存储库名称。最后，`upload_file` 将文件上传到存储库中，并将其命名为 `app.py`。
 
+## 在其他网站上嵌入您的 Space 演示
 
+在本指南中，您已经看到了许多嵌入的 Gradio 演示。您也可以在自己的网站上这样做！第一步是创建一个包含您想展示的演示的 Hugging Face Space。然后，[按照此处的步骤将 Space 嵌入到您的网站上](/sharing-your-app/#embedding-hosted-spaces)。
 
-## Embedding your Space demo on other websites
+## 从 Spaces 加载演示
 
-Throughout this guide, you've seen many embedded Gradio demos. You can also do this on own website! The first step is to create a Hugging Face Space with the demo you want to showcase. Then, [follow the steps here to embed the Space on your website](/sharing-your-app/#embedding-hosted-spaces).
+您还可以在 Hugging Face Spaces 上使用和混合现有的 Gradio 演示。例如，您可以将两个现有的 Gradio 演示放在单独的选项卡中并创建一个新的演示。您可以在本地运行此新演示，或将其上传到 Spaces，为混合和创建新的演示提供无限可能性！
 
-
-## Loading demos from Spaces
-
-You can also use and remix existing Gradio demos on Hugging Face Spaces. For example, you could take two existing Gradio demos and put them as separate tabs and create a new demo. You can run this new demo locally, or upload it to Spaces, allowing endless possibilities to remix and create new demos!
-
-Here's an example that does exactly that:
+以下是一个完全实现此目标的示例：
 
 ```python
 import gradio as gr
@@ -126,17 +120,16 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-Notice that we use `gr.load()`, the same method we used to load models using the Inference API. However, here we specify that the `src` is `spaces` (Hugging Face Spaces).
+请注意，我们使用了 `gr.load()`，这与使用推理 API 加载模型所使用的方法相同。但是，在这里，我们指定 `src` 为 `spaces`（Hugging Face Spaces）。
 
-## Recap
+## 小结
 
-That's it! Let's recap the various ways Gradio and Hugging Face work together:
+就是这样！让我们回顾一下 Gradio 和 Hugging Face 共同工作的各种方式：
 
-1. You can convert a `transformers` pipeline into a Gradio demo using `from_pipeline()`
-2. You can build a demo around the Inference API without having to load the model easily using `gr.load()`
-3. You host your Gradio demo on Hugging Face Spaces, either using the GUI or entirely in Python.
-4. You can embed Gradio demos that are hosted on Hugging Face Spaces onto your own website.
-5. You can load demos from Hugging Face Spaces to remix and create new Gradio demos using `gr.load()`.
-
+1. 您可以使用 `from_pipeline()` 将 `transformers` pipeline 转换为 Gradio 演示
+2. 您可以使用 `gr.load()` 轻松地围绕推理 API 构建演示，而无需加载模型
+3. 您可以在 Hugging Face Spaces 上托管您的 Gradio 演示，可以使用 GUI 或完全使用 Python。
+4. 您可以将托管在 Hugging Face Spaces 上的 Gradio 演示嵌入到自己的网站上。
+5. 您可以使用 `gr.load()` 从 Hugging Face Spaces 加载演示，以重新混合和创建新的 Gradio 演示。
 
 🤗

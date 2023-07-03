@@ -1,61 +1,61 @@
-# Sharing Your App
+# 分享您的应用
 
-How to share your Gradio app: 
+如何分享您的 Gradio 应用：
 
-1. [Sharing demos with the share parameter](#sharing-demos)
-2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
-3. [Embedding hosted spaces](#embedding-hosted-spaces)
-4. [Embedding with web components](#embedding-with-web-components)
-5. [Using the API page](#api-page)
-6. [Adding authentication to the page](#authentication)
-7. [Accessing Network Requests](#accessing-the-network-request-directly)
-8. [Mounting within FastAPI](#mounting-within-another-fastapi-app)
-9. [Security](#security-and-file-access)
+1. [使用 share 参数分享演示](#sharing-demos)
+2. [在 HF Spaces 上托管](#hosting-on-hf-spaces)
+3. [嵌入托管的空间](#embedding-hosted-spaces)
+4. [使用 Web 组件嵌入](#embedding-with-web-components)
+5. [使用 API 页面](#api-page)
+6. [在页面上添加身份验证](#authentication)
+7. [访问网络请求](#accessing-the-network-request-directly)
+8. [在 FastAPI 中挂载](#mounting-within-another-fastapi-app)
+9. [安全性](#security-and-file-access)
 
-## Sharing Demos
+## 分享演示
 
-Gradio demos can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
+通过在 `launch()` 方法中设置 `share=True`，可以轻松公开分享 Gradio 演示。就像这样：
 
 ```python
 demo.launch(share=True)
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. A share link usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a Gradio URL, we are only a proxy for your local server, and do not store any data sent through your app.
+这将生成一个公开的可分享链接，您可以将其发送给任何人！当您发送此链接时，对方用户可以在其浏览器中尝试模型。因为处理过程发生在您的设备上（只要您的设备保持开启！），您不必担心任何打包依赖项的问题。一个分享链接通常看起来像这样：**XXXXX.gradio.app**。尽管链接是通过 Gradio URL 提供的，但我们只是您本地服务器的代理，并不会存储通过您的应用发送的任何数据。
 
-Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
+但请记住，这些链接可以被公开访问，这意味着任何人都可以使用您的模型进行预测！因此，请确保不要通过您编写的函数公开任何敏感信息，也不要允许在您的设备上进行任何关键更改。如果您设置 `share=False`（默认值，在 colab 笔记本中除外），则只创建一个本地链接，可以通过[端口转发](https://www.ssh.com/ssh/tunneling/example)与特定用户共享。
 
 <img style="width: 40%" src="/assets/guides/sharing.svg">
 
-Share links expire after 72 hours.
+分享链接在 72 小时后过期。
 
-## Hosting on HF Spaces
+## 在 HF Spaces 上托管
 
-If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. [Hugging Face Spaces](http://huggingface.co/spaces/) provides the infrastructure to permanently host your machine learning model for free! 
+如果您想在互联网上获得您的 Gradio 演示的永久链接，请使用 Hugging Face Spaces。 [Hugging Face Spaces](http://huggingface.co/spaces/) 提供了免费托管您的机器学习模型的基础设施！
 
-After you have [created a free Hugging Face account](https://huggingface.co/join), you have three methods to deploy your Gradio app to Hugging Face Spaces:
-1. From terminal: run `gradio deploy` in your app directory. The CLI will gather some basic metadata and then launch your app. To update your space, you can re-run this command or enable the Github Actions option to automatically update the Spaces on `git push`.
-2. From your browser: Drag and drop a folder containing your Gradio model and all related files [here](https://huggingface.co/new-space).
-3. Connect Spaces with your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
+在您创建了一个免费的 Hugging Face 账户后，有三种方法可以将您的 Gradio 应用部署到 Hugging Face Spaces：
+1. 从终端：在应用目录中运行 `gradio deploy`。CLI 将收集一些基本元数据，然后启动您的应用。要更新您的空间，可以重新运行此命令或启用 Github Actions 选项，在 `git push` 时自动更新 Spaces。
+2. 从浏览器：将包含 Gradio 模型和所有相关文件的文件夹拖放到 [此处](https://huggingface.co/new-space)。
+3. 将 Spaces 与您的 Git 存储库连接，Spaces 将从那里拉取 Gradio 应用。有关更多信息，请参阅 [此指南如何在 Hugging Face Spaces 上托管](https://huggingface.co/blog/gradio-spaces)。
 
 <video autoplay muted loop>
   <source src="/assets/guides/hf_demo.mp4" type="video/mp4" />
 </video>
 
-## Embedding Hosted Spaces
+## 嵌入托管的空间
 
-Once you have hosted your app on Hugging Face Spaces (or on your own server), you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interactive demos even in static websites, such as GitHub pages.
+一旦您将应用托管在 Hugging Face Spaces（或您自己的服务器上），您可能希望将演示嵌入到不同的网站上，例如您的博客或个人作品集。嵌入交互式演示使人们可以在他们的浏览器中尝试您构建的机器学习模型，而无需下载或安装任何内容！最好的部分是，您甚至可以将交互式演示嵌入到静态网站中，例如 GitHub 页面。
 
-There are two ways to embed your Gradio demos. You can find quick links to both options directly on the Hugging Face Space page, in the "Embed this Space" dropdown option:
+有两种方法可以嵌入您的 Gradio 演示。您可以在 Hugging Face Space 页面的“嵌入此空间”下拉选项中直接找到这两个选项的快速链接：
 
-![Embed this Space dropdown option](/assets/guides/embed_this_space.png)
+![嵌入此空间下拉选项](/assets/guides/embed_this_space.png)
 
-### Embedding with Web Components
+### 使用 Web 组件嵌入
 
-Web components typically offer a better experience to users than IFrames. Web components load lazily, meaning that they won't slow down the loading time of your website, and they automatically adjust their height based on the size of the Gradio app. 
+与 IFrames 相比，Web 组件通常为用户提供更好的体验。Web 组件进行延迟加载，这意味着它们不会减慢您网站的加载时间，并且它们会根据 Gradio 应用的大小自动调整其高度。
 
-To embed with Web Components:
+要使用 Web 组件嵌入：
 
-1. Import the gradio JS library into into your site by adding the script below in your site (replace {GRADIO_VERSION} in the URL with the library version of Gradio you are using). 
+1. 通过在您的网站中添加以下脚本来导入 gradio JS 库（在 URL 中替换{GRADIO_VERSION}为您使用的 Gradio 库的版本）。
 
     ```html
 &lt;script type="module"
@@ -63,11 +63,11 @@ src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
 &lt;/script>
     ```
 
-2. Add 
+2. 在您想放置应用的位置添加
     ```html
 &lt;gradio-app src="https://$your_space_host.hf.space">&lt;/gradio-app>
     ```
-element where you want to place the app. Set the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button. For example:
+元素。将 `src=` 属性设置为您的 Space 的嵌入 URL，您可以在“嵌入此空间”按钮中找到。例如：
 
     ```html
 &lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
@@ -83,70 +83,70 @@ fetch("https://pypi.org/pypi/gradio/json"
 });
 </script>
 
-You can see examples of how web components look <a href="https://www.gradio.app">on the Gradio landing page</a>.
+您可以在 <a href="https://www.gradio.app">Gradio 首页 </a> 上查看 Web 组件的示例。
 
-You can also customize the appearance and behavior of your web component with attributes that you pass into the `<gradio-app>` tag:
+您还可以使用传递给 `<gradio-app>` 标签的属性来自定义 Web 组件的外观和行为：
 
-* `src`: as we've seen, the `src` attributes links to the URL of the hosted Gradio demo that you would like to embed
-* `space`: an optional shorthand if your Gradio demo is hosted on Hugging Face Space. Accepts a `username/space_name` instead of a full URL. Example: `gradio/Echocardiogram-Segmentation`. If this attribute attribute is provided, then `src` does not need to be provided.
-* `control_page_title`: a boolean designating whether the html title of the page should be set to the title of the Gradio app (by default `"false"`)
-* `initial_height`: the initial height of the web component while it is loading the Gradio app, (by default `"300px"`). Note that the final height is set based on the size of the Gradio app.
-* `container`: whether to show the border frame and information about where the Space is hosted (by default `"true"`)
-* `info`: whether to show just the information about where the Space is hosted underneath the embedded app (by default `"true"`)
-* `autoscroll`: whether to autoscroll to the output when prediction has finished (by default `"false"`)
-* `eager`: whether to load the Gradio app as soon as the page loads (by default `"false"`)
-* `theme_mode`: whether to use the `dark`, `light`, or default `system` theme mode (by default `"system"`)
+* `src`：如前所述，`src` 属性链接到您想要嵌入的托管 Gradio 演示的 URL
+* `space`：一个可选的缩写，如果您的 Gradio 演示托管在 Hugging Face Space 上。接受 `username/space_name` 而不是完整的 URL。示例：`gradio/Echocardiogram-Segmentation`。如果提供了此属性，则不需要提供 `src`。
+* `control_page_title`：一个布尔值，指定是否将 html 标题设置为 Gradio 应用的标题（默认为 `"false"`）
+* `initial_height`：加载 Gradio 应用时 Web 组件的初始高度（默认为 `"300px"`）。请注意，最终高度是根据 Gradio 应用的大小设置的。
+* `container`：是否显示边框框架和有关 Space 托管位置的信息（默认为 `"true"`）
+* `info`：是否仅显示有关 Space 托管位置的信息在嵌入的应用程序下方（默认为 `"true"`）
+* `autoscroll`：在预测完成后是否自动滚动到输出（默认为 `"false"`）
+* `eager`：在页面加载时是否立即加载 Gradio 应用（默认为 `"false"`）
+* `theme_mode`：是否使用 `dark`，`light` 或默认的 `system` 主题模式（默认为 `"system"`）
 
-Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
+以下是使用这些属性创建一个懒加载且初始高度为 0px 的 Gradio 应用的示例。
 
 ```html
 &lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
 initial_height="0px">&lt;/gradio-app>
 ```
 
-_Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
+_ 注意：Gradio 的 CSS 永远不会影响嵌入页面，但嵌入页面可以影响嵌入的 Gradio 应用的样式。请确保父页面中的任何 CSS 不是如此通用，以至于它也可能适用于嵌入的 Gradio 应用并导致样式破裂。例如，元素选择器如 `header { ... }` 和 `footer { ... }` 最可能引起问题。_
 
-### Embedding with IFrames
+### 使用 IFrames 嵌入
 
-To embed with IFrames instead (if you cannot add javascript to your website, for example), add this element:
+如果您无法向网站添加 javascript（例如），则可以改为使用 IFrames 进行嵌入，请添加以下元素：
 
 ```html
 &lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
 ```
 
-Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
+同样，您可以在“嵌入此空间”按钮中找到您的 Space 的嵌入 URL 的 `src=` 属性。
 
-Note: if you use IFrames, you'll probably want to add a fixed `height` attribute and set `style="border:0;"` to remove the boreder. In addition, if your app requires permissions such as access to the webcam or the microphone, you'll need to provide that as well using the `allow` attribute.
+注意：如果您使用 IFrames，您可能希望添加一个固定的 `height` 属性，并设置 `style="border:0;"` 以去除边框。此外，如果您的应用程序需要诸如访问摄像头或麦克风之类的权限，您还需要使用 `allow` 属性提供它们。
 
-## API Page
+## API 页面
 
 $demo_hello_world
 
-If you click and open the space above, you'll see a "Use via API" link in the footer of the app. 
+如果您点击并打开上面的空间，您会在应用的页脚看到一个“通过 API 使用”链接。
 
-![Use via API](/assets/guides/use_via_api.png)
+![通过 API 使用](/assets/guides/use_via_api.png)
 
-This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
+这是一个文档页面，记录了用户可以使用的 REST API 来查询“Interface”函数。`Blocks` 应用程序也可以生成 API 页面，但必须为每个事件监听器显式命名 API，例如：
 
 ```python
 btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
-This will document the endpoint `/api/addition/` to the automatically generated API page. 
+这将记录自动生成的 API 页面的端点 `/api/addition/`。
 
-*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method.
+*注意*：对于启用了[队列功能](https://gradio.app/key-features#queuing)的 Gradio 应用程序，如果用户向您的 API 端点发出 POST 请求，他们可以绕过队列。要禁用此行为，请在 `queue()` 方法中设置 `api_open=False`。
 
-## Authentication
+## 鉴权
 
-You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a  list of acceptable username/password tuples;  Here's an example that provides password-based authentication for a single user named "admin":
+您可能希望在您的应用程序前面放置一个鉴权页面，以限制谁可以打开您的应用程序。使用 `launch()` 方法中的 `auth=` 关键字参数，您可以提供一个包含用户名和密码的元组，或者一个可接受的用户名 / 密码元组列表；以下是一个为单个名为“admin”的用户提供基于密码的身份验证的示例：
 
 ```python
 demo.launch(auth=("admin", "pass1234"))
 ```
 
-For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. This can be used for, among other things, making requests to 3rd-party authentication services.
+对于更复杂的身份验证处理，您甚至可以传递一个以用户名和密码作为参数的函数，并返回 True 以允许身份验证，否则返回 False。这可用于访问第三方身份验证服务等其他功能。
 
-Here's an example of a function that accepts any login where the username and password are the same:
+以下是一个接受任何用户名和密码相同的登录的函数示例：
 
 ```python
 def same_auth(username, password):
@@ -154,12 +154,12 @@ def same_auth(username, password):
 demo.launch(auth=same_auth)
 ```
 
-For authentication to work properly, third party cookies must be enabled in your browser.
-This is not the case by default for Safari, Chrome Incognito Mode.
+为了使身份验证正常工作，必须在浏览器中启用第三方 Cookie。
+默认情况下，Safari、Chrome 隐私模式不会启用此功能。
 
-## Accessing the Network Request Directly
+## 直接访问网络请求
 
-When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
+当用户向您的应用程序进行预测时，您可能需要底层的网络请求，以获取请求标头（例如用于高级身份验证）、记录客户端的 IP 地址或其他原因。Gradio 支持与 FastAPI 类似的方式：只需添加一个类型提示为 `gr.Request` 的函数参数，Gradio 将将网络请求作为该参数传递进来。以下是一个示例：
 
 ```python
 import gradio as gr
@@ -173,40 +173,37 @@ def echo(name, request: gr.Request):
 io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
 
-Note: if your function is called directly instead of through the UI (this happens, for 
-example, when examples are cached), then `request` will be `None`. You should handle
-this case explicitly to ensure that your app does not throw any errors. That is why
-we have the explicit check `if request`.
+注意：如果直接调用函数而不是通过 UI（例如在缓存示例时），则 `request` 将为 `None`。您应该明确处理此情况，以确保您的应用程序不会抛出任何错误。这就是为什么我们有显式检查 `if request`。
 
-## Mounting Within Another FastAPI App
+## 嵌入到另一个 FastAPI 应用程序中
 
-In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo.
-You can easily do this with `gradio.mount_gradio_app()`.
+在某些情况下，您可能已经有一个现有的 FastAPI 应用程序，并且您想要为 Gradio 演示添加一个路径。
+您可以使用 `gradio.mount_gradio_app()` 来轻松实现此目的。
 
-Here's a complete example:
+以下是一个完整的示例：
 
 $code_custom_path
 
-Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
+请注意，此方法还允许您在自定义路径上运行 Gradio 应用程序（例如上面的 `http://localhost:8000/gradio`）。
 
-## Security and File Access
+## 安全性和文件访问
 
-Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app. 
+与他人共享 Gradio 应用程序（通过 Spaces、您自己的服务器或临时共享链接进行托管）将主机机器上的某些文件**暴露**给您的 Gradio 应用程序的用户。
 
-In particular, Gradio apps ALLOW users to access to three kinds of files:
+特别是，Gradio 应用程序允许用户访问以下三类文件：
 
-* **Files in the same directory (or a subdirectory) of where the Gradio script is launched from.** For example, if the path to your gradio scripts is `/home/usr/scripts/project/app.py` and you launch it from `/home/usr/scripts/project/`, then users of your shared Gradio app will be able to access any files inside `/home/usr/scripts/project/`. This is done so that you can easily reference these files in your Gradio app (e.g. for your app's `examples`).
+* **与 Gradio 脚本所在目录（或子目录）中的文件相同。** 例如，如果您的 Gradio 脚本的路径是 `/home/usr/scripts/project/app.py`，并且您从 `/home/usr/scripts/project/` 启动它，则共享 Gradio 应用程序的用户将能够访问 `/home/usr/scripts/project/` 中的任何文件。这样做是为了您可以在 Gradio 应用程序中轻松引用这些文件（例如应用程序的“示例”）。
 
-* **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary file and then send the path to the temporary file to the front end. You can customize the location of temporary files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
+* **Gradio 创建的临时文件。** 这些是由 Gradio 作为运行您的预测函数的一部分创建的文件。例如，如果您的预测函数返回一个视频文件，则 Gradio 将该视频保存到临时文件中，然后将临时文件的路径发送到前端。您可以通过设置环境变量 `GRADIO_TEMP_DIR` 为绝对路径（例如 `/home/usr/scripts/project/temp/`）来自定义 Gradio 创建的临时文件的位置。
 
-* **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter  allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
+* **通过 `launch()` 中的 `allowed_paths` 参数允许的文件。** 此参数允许您传递一个包含其他目录或确切文件路径的列表，以允许用户访问它们。（默认情况下，此参数为空列表）。
 
-Gradio DOES NOT ALLOW access to:
+Gradio**不允许**访问以下内容：
 
-* **Dotfiles** (any files whose name begins with `'.'`) or any files that are contained in any directory whose name begins with `'.'`
+* **点文件**（其名称以 '.' 开头的任何文件）或其名称以 '.' 开头的任何目录中的任何文件。
 
-* **Files that you explicitly allow via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
+* **通过 `launch()` 中的 `blocked_paths` 参数允许的文件。** 您可以将其他目录或确切文件路径的列表传递给 `launch()` 中的 `blocked_paths` 参数。此参数优先于 Gradio 默认或 `allowed_paths` 允许的文件。
 
-* **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host. 
+* **主机机器上的任何其他路径**。用户不应能够访问主机上的其他任意路径。
 
-Please make sure you are running the latest version of `gradio` for these security settings to apply. 
+请确保您正在运行最新版本的 `gradio`，以使这些安全设置生效。

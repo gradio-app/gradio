@@ -1,33 +1,30 @@
-# State in Blocks
+# 分块状态 (State in Blocks)
 
-We covered [State in Interfaces](https://gradio.app/interface-state), this guide takes a look at state in Blocks, which works mostly the same. 
+我们已经介绍了[接口状态](https://gradio.app/interface-state)，这篇指南将介绍分块状态，它的工作原理大致相同。
 
-## Global State
+## 全局状态 (Global State)
 
-Global state in Blocks works the same as in Interface. Any variable created outside a function call is a reference shared between all users.
+分块中的全局状态与接口中的全局状态相同。在函数调用外创建的任何变量都是在所有用户之间共享的引用。
 
-## Session State
+## 会话状态 (Session State)
 
-Gradio supports session **state**, where data persists across multiple submits within a page session, in Blocks apps as well. To reiterate, session data is *not* shared between different users of your model. To store data in a session state, you need to do three things:
+Gradio 在分块应用程序中同样支持会话**状态**，即在页面会话中跨多次提交保持的数据。需要再次强调，会话数据*不会*在模型的不同用户之间共享。要在会话状态中存储数据，需要完成以下三个步骤：
 
-1. Create a `gr.State()` object. If there is a default value to this stateful object, pass that into the constructor.
-2. In the event listener, put the `State` object as an input and output.
-3. In the event listener function, add the variable to the input parameters and the return value.
+1. 创建一个 `gr.State()` 对象。如果此可状态对象有一个默认值，请将其传递给构造函数。
+2. 在事件监听器中，将 `State` 对象作为输入和输出。
+3. 在事件监听器函数中，将变量添加到输入参数和返回值中。
 
-Let's take a look at a game of hangman. 
+让我们来看一个猜词游戏的例子。
 
 $code_hangman
 $demo_hangman
 
-Let's see how we do each of the 3 steps listed above in this game:
+让我们看看在这个游戏中如何完成上述的 3 个步骤：
 
-1. We store the used letters in `used_letters_var`. In the constructor of `State`, we set the initial value of this to `[]`, an empty list. 
-2. In `btn.click()`, we have a reference to `used_letters_var` in both the inputs and outputs.
-3. In `guess_letter`, we pass the value of this `State` to `used_letters`, and then return an updated value of this `State` in the return statement.
+1. 我们将已使用的字母存储在 `used_letters_var` 中。在 `State` 的构造函数中，将其初始值设置为空列表`[]`。
+2. 在 `btn.click()` 中，我们在输入和输出中都引用了 `used_letters_var`。
+3. 在 `guess_letter` 中，我们将此 `State` 的值传递给 `used_letters`，然后在返回语句中返回更新后的该 `State` 的值。
 
-With more complex apps, you will likely have many State variables storing session state in a single Blocks app.
+对于更复杂的应用程序，您可能会在一个单独的分块应用程序中使用许多存储会话状态的 `State` 变量。
 
-Learn more about `State` in the [docs](https://gradio.app/docs#state).
-
-
-
+在[文档](https://gradio.app/docs#state)中了解更多关于 `State` 的信息。

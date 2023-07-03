@@ -1,39 +1,38 @@
-# Creating a Real-Time Dashboard from BigQuery Data
+# 从 BigQuery 数据创建实时仪表盘
 
-Tags: TABULAR, DASHBOARD, PLOTS 
+Tags: 表格 , 仪表盘 , 绘图 
 
+[Google BigQuery](https://cloud.google.com/bigquery) 是一个基于云的用于处理大规模数据集的服务。它是一个无服务器且高度可扩展的数据仓库解决方案，使用户能够使用类似 SQL 的查询分析数据。
 
-[Google BigQuery](https://cloud.google.com/bigquery) is a cloud-based service for processing very large data sets. It is a serverless and highly scalable data warehousing solution that enables users to analyze data [using SQL-like queries](https://www.oreilly.com/library/view/google-bigquery-the/9781492044451/ch01.html).
-
-In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data in a dashboard that updates in real time using `gradio`. The dashboard will look like this:
+在本教程中，我们将向您展示如何使用 `gradio` 在 Python 中查询 BigQuery 数据集并在实时仪表盘中显示数据。仪表板将如下所示：
 
 <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/bigquery-dashboard.gif">
 
-We'll cover the following steps in this Guide:
+在本指南中，我们将介绍以下步骤：
 
-1. Setting up your BigQuery credentials
-2. Using the BigQuery client
-3. Building the real-time dashboard (in just *7 lines of Python*)
+1. 设置 BigQuery 凭据
+2. 使用 BigQuery 客户端
+3. 构建实时仪表盘（仅需 *7 行 Python 代码*）
 
-We'll be working with the [New York Times' COVID dataset](https://www.nytimes.com/interactive/2021/us/covid-cases.html) that is available as a public dataset on BigQuery. The dataset, named `covid19_nyt.us_counties` contains the latest information about the number of confirmed cases and deaths from COVID across US counties. 
+我们将使用[纽约时报的 COVID 数据集](https://www.nytimes.com/interactive/2021/us/covid-cases.html)，该数据集作为一个公共数据集可在 BigQuery 上使用。数据集名为 `covid19_nyt.us_counties`，其中包含有关美国各县 COVID 确诊病例和死亡人数的最新信息。
 
-**Prerequisites**: This Guide uses [Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control), so make your are familiar with the Blocks class. 
+**先决条件**：本指南使用 [Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control)，因此请确保您熟悉 Blocks 类。
 
-## Setting up your BigQuery Credentials
+## 设置 BigQuery 凭据
 
-To use Gradio with BigQuery, you will need to obtain your BigQuery credentials and use them with the [BigQuery Python client](https://pypi.org/project/google-cloud-bigquery/). If you already have BigQuery credentials (as a `.json` file), you can skip this section. If not, you can do this for free in just a couple of minutes.
+要使用 Gradio 和 BigQuery，您需要获取您的 BigQuery 凭据，并将其与 [BigQuery Python 客户端](https://pypi.org/project/google-cloud-bigquery/) 一起使用。如果您已经拥有 BigQuery 凭据（作为 `.json` 文件），则可以跳过此部分。否则，您可以在几分钟内免费完成此操作。
 
-1. First, log in to your Google Cloud account and go to the Google Cloud Console (https://console.cloud.google.com/)
+1. 首先，登录到您的 Google Cloud 帐户，并转到 Google Cloud 控制台 (https://console.cloud.google.com/)
 
-2. In the Cloud Console, click on the hamburger menu in the top-left corner and select "APIs & Services" from the menu. If you do not have an existing project, you will need to create one.
+2. 在 Cloud 控制台中，单击左上角的汉堡菜单，然后从菜单中选择“API 与服务”。如果您没有现有项目，则需要创建一个项目。
 
-3. Then, click the "+ Enabled APIs & services" button, which allows you to enable specific services for your project. Search for "BigQuery API", click on it, and click the "Enable" button. If you see the "Manage" button, then the BigQuery is already enabled, and you're all set. 
+3. 然后，单击“+ 启用的 API 与服务”按钮，该按钮允许您为项目启用特定服务。搜索“BigQuery API”，单击它，然后单击“启用”按钮。如果您看到“管理”按钮，则表示 BigQuery 已启用，您已准备就绪。
 
-4. In the APIs & Services menu, click on the "Credentials" tab and then click on the "Create credentials" button.
+4. 在“API 与服务”菜单中，单击“凭据”选项卡，然后单击“创建凭据”按钮。
 
-5. In the "Create credentials" dialog, select "Service account key" as the type of credentials to create, and give it a name. Also grant the service account permissions by giving it a role such as "BigQuery User", which will allow you to run queries.
+5. 在“创建凭据”对话框中，选择“服务帐号密钥”作为要创建的凭据类型，并为其命名。还可以通过为其授予角色（例如“BigQuery 用户”）为服务帐号授予权限，从而允许您运行查询。
 
-6. After selecting the service account, select the "JSON" key type and then click on the "Create" button. This will download the JSON key file containing your credentials to your computer. It will look something like this:
+6. 在选择服务帐号后，选择“JSON”密钥类型，然后单击“创建”按钮。这将下载包含您凭据的 JSON 密钥文件到您的计算机。它的外观类似于以下内容：
 
 ```json
 {
@@ -50,15 +49,15 @@ To use Gradio with BigQuery, you will need to obtain your BigQuery credentials a
 }
 ```
 
-## Using the BigQuery Client
+## 使用 BigQuery 客户端
 
-Once you have the credentials, you will need to use the BigQuery Python client to authenticate using your credentials. To do this, you will need to install the BigQuery Python client by running the following command in the terminal:
+获得凭据后，您需要使用 BigQuery Python 客户端使用您的凭据进行身份验证。为此，您需要在终端中运行以下命令安装 BigQuery Python 客户端：
 
 ```bash
 pip install google-cloud-bigquery[pandas]
 ```
 
-You'll notice that we've installed the pandas add-on, which will be helpful for processing the BigQuery dataset as a pandas dataframe. Once the client is installed, you can authenticate using your credentials by running the following code:
+您会注意到我们已安装了 pandas 插件，这对于将 BigQuery 数据集处理为 pandas 数据帧将非常有用。安装了客户端之后，您可以通过运行以下代码使用您的凭据进行身份验证：
 
 ```py
 from google.cloud import bigquery
@@ -66,9 +65,9 @@ from google.cloud import bigquery
 client = bigquery.Client.from_service_account_json("path/to/key.json")
 ```
 
-With your credentials authenticated, you can now use the BigQuery Python client to interact with your BigQuery datasets. 
+完成凭据身份验证后，您现在可以使用 BigQuery Python 客户端与您的 BigQuery 数据集进行交互。
 
-Here is an example of a function which queries the `covid19_nyt.us_counties` dataset in BigQuery to show the top 20 counties with the most confirmed cases as of the current day:
+以下是一个示例函数，该函数在 BigQuery 中查询 `covid19_nyt.us_counties` 数据集，以显示截至当前日期的确诊人数最多的前 20 个县：
 
 ```py
 import numpy as np
@@ -89,11 +88,11 @@ def run_query():
     return df
 ```
 
-## Building the Real-Time Dashboard
+## 构建实时仪表盘
 
-Once you have a function to query the data, you can use the `gr.DataFrame` component from the Gradio library to display the results in a tabular format. This is a useful way to inspect the data and make sure that it has been queried correctly.
+一旦您有了查询数据的函数，您可以使用 Gradio 库的 `gr.DataFrame` 组件以表格形式显示结果。这是一种检查数据并确保查询正确的有用方式。
 
-Here is an example of how to use the `gr.DataFrame` component to display the results. By passing in the `run_query` function to `gr.DataFrame`, we instruct Gradio to run the function as soon as the page loads and show the results. In addition, you also pass in the keyword `every` to tell the dashboard to refresh every hour (60*60 seconds).
+以下是如何使用 `gr.DataFrame` 组件显示结果的示例。通过将 `run_query` 函数传递给 `gr.DataFrame`，我们指示 Gradio 在页面加载时立即运行该函数并显示结果。此外，您还可以传递关键字 `every`，以告知仪表板每小时刷新一次（60*60 秒）。
 
 ```py
 import gradio as gr
@@ -104,10 +103,10 @@ with gr.Blocks() as demo:
 demo.queue().launch()  # Run the demo using queuing
 ```
 
-Perhaps you'd like to add a visualization to our dashboard. You can use the `gr.ScatterPlot()` component to visualize the data in a scatter plot. This allows you to see the relationship between different variables such as case count and case deaths in the dataset and can be useful for exploring the data and gaining insights. Again, we can do this in real-time
-by passing in the `every` parameter. 
+也许您想在我们的仪表盘中添加一个可视化效果。您可以使用 `gr.ScatterPlot()` 组件将数据可视化为散点图。这可以让您查看数据中不同变量（例如病例数和死亡数）之间的关系，并可用于探索数据和获取见解。同样，我们可以实时完成这一操作
+通过传递 `every` 参数。
 
-Here is a complete example showing how to use the `gr.ScatterPlot` to visualize in addition to displaying data with the `gr.DataFrame`
+以下是一个完整示例，展示了如何在显示数据时使用 `gr.ScatterPlot` 来进行可视化。
 
 ```py
 import gradio as gr
