@@ -1,6 +1,6 @@
 import gradio as gr
 
-api = gr.load("huggingface/EleutherAI/gpt-j-6B")
+api = gr.load("huggingface/gpt2-xl")
 
 def complete_with_gpt(text):
     # Use the last 50 characters of the text as context

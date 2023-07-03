@@ -1,6 +1,6 @@
 import gradio as gr
 
-title = "GPT-J-6B"
+title = "gpt2-xl"
 
 examples = [
     ["The tower is 324 metres (1,063 ft) tall,"],
@@ -9,7 +9,7 @@ examples = [
 ]
 
 demo = gr.load(
-    "huggingface/EleutherAI/gpt-j-6B",
+    "huggingface/gpt2-xl",
     inputs=gr.Textbox(lines=5, max_lines=6, label="Input Text"),
     title=title,
     examples=examples,
