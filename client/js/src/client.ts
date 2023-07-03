@@ -513,6 +513,14 @@ export function api_factory(fetch_implementation: typeof fetch) {
 								websocket.send(JSON.stringify({ ...payload, session_hash }));
 							} else if (type === "complete") {
 								complete = status;
+							} else if (type === "log") {
+								fire_event({
+									type: "log",
+									log: data.log,
+									level: data.level,
+									endpoint: _endpoint,
+									fn_index
+								});
 							} else if (type === "generating") {
 								fire_event({
 									type: "status",
@@ -1211,7 +1219,7 @@ function handle_message(
 	data: any,
 	last_status: Status["stage"]
 ): {
-	type: "hash" | "data" | "update" | "complete" | "generating" | "none";
+	type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none";
 	data?: any;
 	status?: Status;
 } {
@@ -1256,6 +1264,8 @@ function handle_message(
 					success: data.success
 				}
 			};
+		case "log":
+			return { type: "log", data: data };
 		case "process_generating":
 			return {
 				type: "generating",

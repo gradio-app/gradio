@@ -563,6 +563,7 @@ class App(FastAPI):
             if blocks.dependencies[event.fn_index].get("every", 0):
                 await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
                 await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
+                blocks._queue.continuous_tasks.append(event)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False
                 )

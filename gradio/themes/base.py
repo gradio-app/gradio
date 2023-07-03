@@ -1420,7 +1420,7 @@ class Base(ThemeClass):
             self, "error_background_fill_dark", "*background_fill_primary"
         )
         self.error_border_color = error_border_color or getattr(
-            self, "error_border_color", colors.red.c100
+            self, "error_border_color", colors.red.c700
         )
         self.error_border_color_dark = error_border_color_dark or getattr(
             self, "error_border_color_dark", colors.red.c500

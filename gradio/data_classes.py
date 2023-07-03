@@ -4,6 +4,7 @@ from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
+from typing_extensions import Literal
 
 
 class PredictBody(BaseModel):
@@ -53,3 +54,9 @@ class ProgressUnit(BaseModel):
 class Progress(BaseModel):
     msg: str = "progress"
     progress_data: List[ProgressUnit] = []
+
+
+class LogMessage(BaseModel):
+    msg: str = "log"
+    log: str
+    level: Literal["info", "warning"]

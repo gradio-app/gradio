@@ -4,13 +4,8 @@
 	import type { client } from "@gradio/client";
 
 	import { component_map } from "./components/directory";
-	import {
-		create_loading_status_store,
-		app_state,
-	} from "./stores";
-	import type {		
-		LoadingStatusCollection
-	} from "./stores";
+	import { create_loading_status_store, app_state } from "./stores";
+	import type { LoadingStatusCollection } from "./stores";
 
 	import type {
 		ComponentMeta,
@@ -94,11 +89,7 @@
 		history.replaceState(null, "", "?" + params.toString());
 	};
 
-	function is_dep(
-		id: number,
-		type: "inputs" | "outputs",
-		deps: Dependency[]
-	) {
+	function is_dep(id: number, type: "inputs" | "outputs", deps: Dependency[]) {
 		for (const dep of deps) {
 			for (const dep_item of dep[type]) {
 				if (dep_item === id) return true;
@@ -237,6 +228,16 @@
 	let handled_dependencies: number[][] = [];
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
+	const new_message = (
+		message: string,
+		fn_index: number,
+		type: ToastMessage["type"]
+	) => ({
+		message,
+		fn_index,
+		type,
+		id: ++_error_id
+	});
 	let _error_id = -1;
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
@@ -316,12 +317,7 @@
 					) {
 						showed_duplicate_message = true;
 						messages = [
-							{
-								type: "warning",
-								message: DUPLICATE_MESSAGE,
-								id: ++_error_id,
-								fn_index
-							},
+							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
 							...messages
 						];
 					}
@@ -343,12 +339,7 @@
 								(_, b) => b
 							);
 							messages = [
-								{
-									type: "error",
-									message: _message,
-									id: ++_error_id,
-									fn_index
-								},
+								new_message(_message, fn_index, "error"),
 								...messages
 							];
 						}
@@ -363,6 +354,9 @@
 
 						submission.destroy();
 					}
+				})
+				.on("log", ({ log, fn_index, level }) => {
+					messages = [new_message(log, fn_index, level), ...messages];
 				});
 
 			submit_map.set(dep_index, submission);
