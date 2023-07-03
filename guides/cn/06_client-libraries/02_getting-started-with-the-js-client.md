@@ -1,14 +1,14 @@
-# Getting Started with the Gradio JavaScript client
+# 使用Gradio JavaScript客户端快速入门
 
 Tags: CLIENT, API, SPACES
 
-The Gradio JavaScript client makes it very easy to use any Gradio app as an API. As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
+Gradio JavaScript客户端使得使用任何Gradio应用作为API非常简单。例如，考虑一下这个[从麦克风录音的Hugging Face Space，用于转录音频文件](https://huggingface.co/spaces/abidlabs/whisper)。
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/whisper-screenshot.jpg)
 
-Using the `@gradio/client` library, we can easily use the Gradio as an API to transcribe audio files programmatically.
+使用`@gradio/client`库，我们可以轻松地以编程方式使用Gradio作为API来转录音频文件。
 
-Here's the entire code to do it:
+以下是完成此操作的完整代码：
 
 ```js
 import { client } from "@gradio/client";
@@ -25,31 +25,31 @@ console.log(transcription.data);
 // [ "I said the same phrase 30 times." ]
 ```
 
-The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
+Gradio客户端适用于任何托管的Gradio应用，无论是图像生成器、文本摘要生成器、有状态的聊天机器人、税收计算器还是其他任何应用！Gradio客户端通常与托管在[Hugging Face Spaces](https://hf.space)上的应用一起使用，但您的应用可以托管在任何地方，比如您自己的服务器。
 
-**Prequisites**: To use the Gradio client, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
+**先决条件**：要使用Gradio客户端，您不需要深入了解`gradio`库的细节。但是，熟悉Gradio的输入和输出组件的概念会有所帮助。
 
-## Installation
+## 安装
 
-The lightweight `@gradio/client` package can be installed from the npm registry with a package manager of your choice and support node version 18 and above:
+可以使用您选择的软件包管理器从npm注册表安装轻量级的`@gradio/client`包，并支持18及以上的Node版本：
 
 ```bash
 npm i @gradio/client
 ```
 
-## Connecting to a running Gradio App
+## 连接到正在运行的Gradio应用
 
-Start by connecting instantiating a `client` instance and connecting it to a Gradio app that is running on Hugging Face Spaces or generally anywhere on the web.
+首先，通过实例化`client`对象并将其连接到在Hugging Face Spaces或任何其他位置运行的Gradio应用来建立连接。
 
-## Connecting to a Hugging Face Space
+## 连接到Hugging Face Space
 
 ```js
 import { client } from "@gradio/client";
 
-const app = client("abidlabs/en2fr"); // a Space that translates from English to French
+const app = client("abidlabs/en2fr"); // 一个从英语翻译为法语的 Space
 ```
 
-You can also connect to private Spaces by passing in your HF token with the `hf_token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
+您还可以通过在options参数的`hf_token`属性中传入您的HF token来连接到私有Spaces。您可以在此处获取您的HF token：https://huggingface.co/settings/tokens
 
 ```js
 import { client } from "@gradio/client";
@@ -57,13 +57,13 @@ import { client } from "@gradio/client";
 const app = client("abidlabs/my-private-space", { hf_token="hf_..." })
 ```
 
-## Duplicating a Space for private use
+## 为私人使用复制一个Space
 
-While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space, and then use it to make as many requests as you'd like!
+虽然您可以将任何公共Space用作API，但是如果您发出的请求过多，Hugging Face可能会对您进行速率限制。为了无限制使用Space，只需复制Space以创建私有Space，然后使用它来进行任意数量的请求！
 
-The `@gradio/client` exports another function, `duplicate`, to make this process simple (you'll need to pass in your [Hugging Face token](https://huggingface.co/settings/tokens)).
+`@gradio/client`还导出了另一个函数`duplicate`，以使此过程变得简单（您将需要传入您的[Hugging Face token](https://huggingface.co/settings/tokens)）。
 
-`duplicate` is almost identical to `client`, the only difference is under the hood:
+`duplicate`与`client`几乎相同，唯一的区别在于底层实现：
 
 ```js
 import { client } from "@gradio/client";
@@ -77,9 +77,9 @@ const app = await duplicate("abidlabs/whisper", { hf_token: "hf_..." });
 const transcription = app.predict("/predict", [audio_file]);
 ```
 
-If you have previously duplicated a Space, re-running `duplicate` will _not_ create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `duplicate` method multiple times with the same space.
+如果您之前复制过一个Space，则重新运行`duplicate`不会创建一个新的Space。而是客户端将连接到先前创建的Space。因此，可以安全地多次使用相同的Space重新运行`duplicate`方法。
 
-**Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 5 minutes of inactivity. You can also set the hardware using the `hardware` and `timeout` properties of `duplicate`'s options object like this:
+**注意：**如果原始Space使用了GPU，您的私有Space也将使用GPU，并且将根据GPU的价格向您的Hugging Face账户计费。为了最大程度地减少费用，在5分钟不活动后，您的Space将自动进入休眠状态。您还可以使用`duplicate`的options对象的`hardware`和`timeout`属性来设置硬件，例如：
 
 ```js
 import { client } from "@gradio/client";
@@ -91,9 +91,9 @@ const app = await duplicate("abidlabs/whisper", {
 });
 ```
 
-## Connecting a general Gradio app
+## 连接到通用的Gradio应用
 
-If your app is running somewhere else, just provide the full URL instead, including the "http://" or "https://". Here's an example of making predictions to a Gradio app that is running on a share URL:
+如果您的应用程序在其他地方运行，只需提供完整的URL，包括"http://"或"https://"。以下是向运行在共享URL上的Gradio应用进行预测的示例：
 
 ```js
 import { client } from "@gradio/client";
@@ -101,11 +101,11 @@ import { client } from "@gradio/client";
 const app = client("https://bec81a83-5b5c-471e.gradio.live");
 ```
 
-## Inspecting the API endpoints
+## 检查API端点
 
-Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `view_api` method.
+一旦连接到Gradio应用程序，可以通过调用`client`的`view_api`方法来查看可用的API端点。
 
-For the Whisper Space, we can do this:
+对于Whisper Space，我们可以这样做：
 
 ```js
 import { client } from "@gradio/client";
@@ -117,7 +117,7 @@ const app_info = await app.view_info();
 console.log(app_info);
 ```
 
-And we will see the following:
+然后我们会看到以下内容：
 
 ```json
 {
@@ -143,13 +143,13 @@ And we will see the following:
 }
 ```
 
-This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `string`, which is a url to a file.
+这告诉我们该Space中有1个API端点，并显示了如何使用API端点进行预测：我们应该调用`.predict()`方法（下面将进行更多探索），并提供类型为`string`的参数`input_audio`，它是指向文件的URL。
 
-We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
+我们还应该提供`api_name='/predict'`参数给`predict()`方法。虽然如果一个Gradio应用只有1个命名的端点，这不是必需的，但它可以允许我们在单个应用中调用不同的端点。如果应用有未命名的API端点，可以通过运行`.view_api(all_endpoints=True)`来显示它们。
 
-## Making a prediction
+## 进行预测
 
-The simplest way to make a prediction is simply to call the `.predict()` method with the appropriate arguments:
+进行预测的最简单方法就是使用适当的参数调用`.predict()`方法：
 
 ```js
 import { client } from "@gradio/client";
@@ -158,7 +158,7 @@ const app = await client("abidlabs/en2fr");
 const result = await app.predict("/predict", ["Hello"]);
 ```
 
-If there are multiple parameters, then you should pass them as an array to `.predict()`, like this:
+如果有多个参数，您应该将它们作为一个数组传递给`.predict()`，像这样：
 
 ```js
 import { client } from "@gradio/client";
@@ -167,7 +167,7 @@ const app = await client("gradio/calculator");
 const result = await app.predict("/predict", [4, "add", 5]);
 ```
 
-For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `File` depending on what is most convenient. In node, this would be a `Buffer` or `Blob`; in a browser environment, this would be a `Blob` or `File`.
+对于某些输入，例如图像，您应该根据所需要的方便程度传入`Buffer`、`Blob`或`File`。在Node.js中，可以使用`Buffer`或`Blob`；在浏览器环境中，可以使用`Blob`或`File`。
 
 ```js
 import { client } from "@gradio/client";
@@ -181,9 +181,9 @@ const app = await client("abidlabs/whisper");
 const result = await client.predict("/predict", [audio_file]);
 ```
 
-## Using events
+## 使用事件
 
-If the API you are working with can return results over time, or you wish to access information about the status of a job, you can use the event interface for more flexibility. This is especially useful for iterative endpoints or generator endpoints that will produce a series of values over time as discreet responses.
+如果您使用的API可以随时间返回结果，或者您希望访问有关作业状态的信息，您可以使用事件接口获取更大的灵活性。这对于迭代的或生成器的端点特别有用，因为它们会生成一系列离散的响应值。
 
 ```js
 import { client } from "@gradio/client";
@@ -193,7 +193,7 @@ function log_result(payload) {
     data: [translation],
   } = payload;
 
-  console.log(`The translated result is: ${translation}`);
+  console.log(`翻译结果为：${translation}`);
 }
 
 const app = await client("abidlabs/en2fr");
@@ -202,16 +202,16 @@ const job = app.submit("/predict", ["Hello"]);
 job.on("data", log_result);
 ```
 
-## Status
+## 状态
 
-The event interface also allows you to get the status of the running job by listening to the `"status"` event. This returns an object with the following attributes: `status` (a human readbale status of the current job, `"pending" | "generating" | "complete" | "error"`), `code` (the detailed gradio code for the job), `position` (the current position of this job in the queue), `queue_size` (the total queue size), `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` ( as `Date` object detailing the time that the status was generated).
+事件接口还可以通过监听`"status"`事件来获取运行作业的状态。这将返回一个对象，其中包含以下属性：`status`（当前作业的人类可读状态，`"pending" | "generating" | "complete" | "error"`），`code`（作业的详细gradio code），`position`（此作业在队列中的当前位置），`queue_size`（总队列大小），`eta`（作业完成的预计时间），`success`（表示作业是否成功完成的布尔值）和`time`（作业状态生成的时间，是一个`Date`对象）。
 
 ```js
 import { client } from "@gradio/client";
 
 function log_status(status) {
   console.log(
-    `The current status for this job is: ${JSON.stringify(status, null, 2)}.`
+    `此作业的当前状态为：${JSON.stringify(status, null, 2)}`
   );
 }
 
@@ -221,9 +221,9 @@ const job = app.submit("/predict", ["Hello"]);
 job.on("status", log_status);
 ```
 
-## Cancelling Jobs
+## 取消作业
 
-The job instance also has a `.cancel()` method that cancels jobs that have been queued but not started. For example, if you run:
+作业实例还具有`.cancel()`方法，用于取消已排队但尚未启动的作业。例如，如果您运行以下命令：
 
 ```js
 import { client } from "@gradio/client";
@@ -236,11 +236,11 @@ job_one.cancel();
 job_two.cancel();
 ```
 
-If the first job has started processing, then it will not be canceled but the client will no longer listen for updates (throwing away the job). If the second job has not yet started, it will be successfully canceled and removed from the queue.
+如果第一个作业已经开始处理，那么它将不会被取消，但客户端将不再监听更新（丢弃该作业）。如果第二个作业尚未启动，它将被成功取消并从队列中移除。
 
-## Generator Endpoints
+## 生成器端点
 
-Some Gradio API endpoints do not return a single value, rather they return a series of values. You can listen for these values in real time using the event interface:
+某些Gradio API端点不返回单个值，而是返回一系列值。您可以使用事件接口实时侦听这些值：
 
 ```js
 import { client } from "@gradio/client";
@@ -251,9 +251,9 @@ const job = app.submit(0, [9]);
 job.on("data", (data) => console.log(data));
 ```
 
-This will log out the values as they are generated by the endpoint.
+这将按生成端点生成的值进行日志记录。
 
-You can also cancel jobs that that have iterative outputs, in which case the job will finish immediately.
+您还可以取消具有迭代输出的作业，在这种情况下，作业将立即完成。
 
 ```js
 import { client } from "@gradio/client";

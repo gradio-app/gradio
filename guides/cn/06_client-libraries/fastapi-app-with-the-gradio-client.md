@@ -1,39 +1,39 @@
-# Building a FastAPI App with the Gradio Python Client
+# 使用Gradio Python客户端构建FastAPI应用
 
 Tags: CLIENT, API, WEB APP
 
-In this blog post, we will demonstrate how to use the `gradio_client` [Python library](getting-started-with-the-python-client/), which enables developers to make requests to a Gradio app programmatically, by creating an example FastAPI web app. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music. It will also display a gallery of generated videos.
+在本博客文章中，我们将演示如何使用 `gradio_client` [Python库](getting-started-with-the-python-client/) 来以编程方式创建Gradio应用的请求，通过创建一个示例FastAPI Web应用。我们将构建的 Web 应用名为“Acappellify”，它允许用户上传视频文件作为输入，并返回一个没有伴奏音乐的视频版本。它还会显示生成的视频库。
 
 
-**Prerequisites**
+**先决条件**
 
-Before we begin, make sure you are running Python 3.9 or later, and have the following libraries installed:
+在开始之前，请确保您正在运行Python 3.9或更高版本，并已安装以下库：
 
 * `gradio_client`
 * `fastapi`
 * `uvicorn`
 
-You can install these libraries from `pip`: 
+您可以使用`pip`安装这些库：
 
 ```bash
 $ pip install gradio_client fastapi uvicorn
 ```
 
-You will also need to have ffmpeg installed. You can check to see if you already have ffmpeg by running in your terminal:
+您还需要安装ffmpeg。您可以通过在终端中运行以下命令来检查您是否已安装ffmpeg：
 
 ```bash
 $ ffmpeg version
 ```
 
-Otherwise, install ffmpeg [by following these instructions](https://www.hostinger.com/tutorials/how-to-install-ffmpeg).
+否则，通过按照这些说明安装ffmpeg [链接](https://www.hostinger.com/tutorials/how-to-install-ffmpeg)。
 
-## Step 1: Write the Video Processing Function
+## 步骤1：编写视频处理函数
 
-Let's start with what seems like the most complex bit -- using machine learning to remove the music from a video. 
+让我们从似乎最复杂的部分开始--使用机器学习从视频中去除音乐。
 
-Luckily for us, there's an existing Space we can use to make this process easier: [https://huggingface.co/spaces/abidlabs/music-separation](https://huggingface.co/spaces/abidlabs/music-separation). This Space takes an audio file and produces two separate audio files: one with the instrumental music and one with all other sounds in the original clip. Perfect to use with our client! 
+幸运的是，我们有一个现有的Space可以简化这个过程：[https://huggingface.co/spaces/abidlabs/music-separation](https://huggingface.co/spaces/abidlabs/music-separation)。该空间接受一个音频文件，并生成两个独立的音频文件：一个带有伴奏音乐，一个带有原始剪辑中的其他所有声音。非常适合我们的客户端使用！
 
-Open a new Python file, say `main.py`, and start by importing the `Client` class from `gradio_client` and connecting it to this Space:
+打开一个新的Python文件，比如`main.py`，并通过从`gradio_client`导入 `Client` 类，并将其连接到该Space：
 
 ```py
 from gradio_client import Client
@@ -45,11 +45,11 @@ def acapellify(audio_path):
     return result[0]
 ```
 
-That's all the code that's needed -- notice that the API endpoints returns two audio files (one without the music, and one with just the music) in a list, and so we just return the first element of the list. 
+所需的代码仅如上所示--请注意，API端点返回一个包含两个音频文件（一个没有音乐，一个只有音乐）的列表，因此我们只返回列表的第一个元素。
 
 ---
 
-**Note**: since this is a public Space, there might be other users using this Space as well, which might result in a slow experience. You can duplicate this Space with your own [Hugging Face token](https://huggingface.co/settings/tokens) and create a private Space that only you have will have access to and bypass the queue. To do that, simply replace the first two lines above with: 
+**注意**：由于这是一个公共Space，可能会有其他用户同时使用该Space，这可能导致速度较慢。您可以使用自己的[Hugging Face token](https://huggingface.co/settings/tokens)复制此Space，创建一个只有您自己访问权限的私有Space，并绕过排队。要做到这一点，只需用下面的代码替换上面的前两行：
 
 ```py
 from gradio_client import Client
@@ -57,19 +57,19 @@ from gradio_client import Client
 client = Client.duplicate("abidlabs/music-separation", hf_token=YOUR_HF_TOKEN)
 ```
 
-Everything else remains the same!
+其他的代码保持不变！
 
 ---
 
-Now, of course, we are working with video files, so we first need to extract the audio from the video files. For this, we will be using the `ffmpeg` library, which does a lot of heavy lifting when it comes to working with audio and video files. The most common way to use `ffmpeg` is through the command line, which we'll call via Python's `subprocess` module:
+现在，当然，我们正在处理视频文件，所以我们首先需要从视频文件中提取音频。为此，我们将使用`ffmpeg`库，它在处理音频和视频文件时做了很多艰巨的工作。使用`ffmpeg`的最常见方法是通过命令行，在Python的`subprocess`模块中调用它：
 
-Our video processing workflow will consist of three steps: 
+我们的视频处理工作流包含三个步骤：
 
-1. First, we start by taking in a video filepath and extracting the audio using `ffmpeg`. 
-2. Then, we pass in the audio file through the `acapellify()` function above.
-3. Finally, we combine the new audio with the original video to produce a final acapellified video. 
+1. 首先，我们从视频文件路径开始，并使用`ffmpeg`提取音频。
+2. 然后，我们通过上面的`acapellify()`函数传入音频文件。
+3. 最后，我们将新音频与原始视频合并，生成最终的Acapellify视频。
 
-Here's the complete code in Python, which you can add to your `main.py` file:
+以下是Python中的完整代码，您可以将其添加到`main.py`文件中：
 
 ```python
 import subprocess
@@ -77,19 +77,19 @@ import subprocess
 def process_video(video_path):
     old_audio = os.path.basename(video_path).split(".")[0] + ".m4a"
     subprocess.run(['ffmpeg', '-y', '-i', video_path, '-vn', '-acodec', 'copy', old_audio])
-    
+
     new_audio = acapellify(old_audio)
-    
+
     new_video = f"acap_{video_path}"
     subprocess.call(['ffmpeg', '-y', '-i', video_path, '-i', new_audio, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', f"static/{new_video}"])
     return new_video
 ```
 
-You can read up on [ffmpeg documentation](https://ffmpeg.org/ffmpeg.html) if you'd like to understand all of the command line parameters, as they are beyond the scope of this tutorial.
+如果您想了解所有命令行参数的详细信息，请阅读[ffmpeg文档](https://ffmpeg.org/ffmpeg.html)，因为它们超出了本教程的范围。
 
-## Step 2: Create a FastAPI app (Backend Routes)
+## 步骤2: 创建一个FastAPI应用（后端路由）
 
-Next up, we'll create a simple FastAPI app. If you haven't used FastAPI before, check out [the great FastAPI docs](https://fastapi.tiangolo.com/). Otherwise, this basic template, which we add to `main.py`, will look pretty familiar:
+接下来，我们将创建一个简单的FastAPI应用程序。如果您以前没有使用过FastAPI，请查看[优秀的FastAPI文档](https://fastapi.tiangolo.com/)。否则，下面的基本模板将看起来很熟悉，我们将其添加到`main.py`中：
 
 ```python
 import os
@@ -117,17 +117,17 @@ async def upload_video(video: UploadFile = File(...)):
     return RedirectResponse(url='/', status_code=303)
 ```
 
-In this example, the FastAPI app has two routes: `/` and `/uploadvideo/`.
+在这个示例中，FastAPI应用程序有两个路由：`/` 和 `/uploadvideo/`。
 
-The `/` route returns an HTML template that displays a gallery of all uploaded videos. 
+`/` 路由返回一个显示所有上传视频的画廊的HTML模板。
 
-The `/uploadvideo/` route accepts a `POST` request with an `UploadFile` object, which represents the uploaded video file. The video file is "acapellified" via the `process_video()` method, and the output video is stored in a list which stores all of the uploaded videos in memory.
+`/uploadvideo/` 路由接受一个带有`UploadFile`对象的 `POST` 请求，表示上传的视频文件。视频文件通过`process_video()`方法进行 "acapellify"，并将输出视频存储在一个列表中，该列表在内存中存储了所有上传的视频。
 
-Note that this is a very basic example and if this were a production app, you will need to add more logic to handle file storage, user authentication, and security considerations. 
+请注意，这只是一个非常基本的示例，如果这是一个发布应用程序，则需要添加更多逻辑来处理文件存储、用户身份验证和安全性考虑等。
 
-## Step 3: Create a FastAPI app (Frontend Template)
+## 步骤3：创建一个FastAPI应用（前端模板）
 
-Finally, we create the frontend of our web application. First, we create a folder called `templates` in the same directory as `main.py`. We then create a template, `home.html` inside the `templates` folder. Here is the resulting file structure:
+最后，我们创建Web应用的前端。首先，在与`main.py`相同的目录下创建一个名为`templates`的文件夹。然后，在`templates`文件夹中创建一个名为`home.html`的模板。下面是最终的文件结构：
 
 ```csv
 ├── main.py
@@ -135,13 +135,13 @@ Finally, we create the frontend of our web application. First, we create a folde
 │   └── home.html
 ```
 
-Write the following as the contents of `home.html`:
+将以下内容写入`home.html`文件中：
 
 ```html
 &lt;!DOCTYPE html>
 &lt;html>
   &lt;head>
-    &lt;title>Video Gallery&lt;/title>
+    &lt;title> 视频库 &lt;/title>
     &lt;style>
       body {
         font-family: sans-serif;
@@ -203,30 +203,30 @@ Write the following as the contents of `home.html`:
     &lt;/style>
   &lt;/head>
   &lt;body>
-    &lt;h1>Video Gallery&lt;/h1>
+    &lt;h1> 视频库 &lt;/h1>
     {% if videos %}
       &lt;div class="gallery">
         {% for video in videos %}
           &lt;div class="video">
             &lt;video controls>
               &lt;source src="{{ url_for('static', path=video) }}" type="video/mp4">
-              Your browser does not support the video tag.
+              您的浏览器不支持视频标签。
             &lt;/video>
             &lt;p>{{ video }}&lt;/p>
           &lt;/div>
         {% endfor %}
       &lt;/div>
     {% else %}
-      &lt;p>No videos uploaded yet.&lt;/p>
+      &lt;p> 尚未上传任何视频。&lt;/p>
     {% endif %}
     &lt;form action="/uploadvideo/" method="post" enctype="multipart/form-data">
-      &lt;label for="video-upload" class="upload-btn">Choose video file&lt;/label>
+      &lt;label for="video-upload" class="upload-btn"> 选择视频文件 &lt;/label>
       &lt;input type="file" name="video" id="video-upload">
       &lt;span class="file-name">&lt;/span>
-      &lt;button type="submit" class="upload-btn">Upload&lt;/button>
+      &lt;button type="submit" class="upload-btn"> 上传 &lt;/button>
     &lt;/form>
     &lt;script>
-      // Display selected file name in the form
+      // 在表单中显示所选文件名
       const fileUpload = document.getElementById("video-upload");
       const fileName = document.querySelector(".file-name");
 
@@ -238,17 +238,17 @@ Write the following as the contents of `home.html`:
 &lt;/html>
 ```
 
-## Step 4: Run your FastAPI app
+## 第4步：运行 FastAPI 应用
 
-Finally, we are ready to run our FastAPI app, powered by the Gradio Python Client!
+最后，我们准备好运行由 Gradio Python 客户端提供支持的 FastAPI 应用程序。
 
-Open up a terminal and navigate to the directory containing `main.py`. Then run the following command in the terminal:
+打开终端并导航到包含 `main.py` 文件的目录，然后在终端中运行以下命令：
 
 ```bash
 $ uvicorn main:app
 ```
 
-You should see an output that looks like this:
+您应该会看到如下输出：
 
 ```csv
 Loaded as API: https://abidlabs-music-separation.hf.space ✔
@@ -258,9 +258,9 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-And that's it! Start uploading videos and you'll get some "acapellified" videos in response (might take seconds to minutes to process depending on the length of your videos). Here's how the UI looks after uploading two videos:
+就是这样！开始上传视频，您将在响应中得到一些“acapellified”视频（处理时间根据您的视频长度可能需要几秒钟到几分钟）。以下是上传两个视频后 UI 的外观：
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/acapellify.png)
 
- If you'd like to learn more about how to use the Gradio Python Client in your projects, [read the dedicated Guide](/getting-started-with-the-python-client/).
+如果您想了解如何在项目中使用 Gradio Python 客户端的更多信息，请[阅读专门的指南](/getting-started-with-the-python-client/)。
 

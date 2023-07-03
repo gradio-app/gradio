@@ -1,56 +1,49 @@
-# Real Time Speech Recognition 
+# 实时语音识别
 
 Related spaces: https://huggingface.co/spaces/abidlabs/streaming-asr-paused, https://huggingface.co/spaces/abidlabs/full-context-asr
 Tags: ASR, SPEECH, STREAMING
 
-## Introduction
+## 介绍
 
-Automatic speech recognition (ASR), the conversion of spoken speech to text, is a very important and thriving area of machine learning. ASR algorithms run on practically every smartphone, and are becoming increasingly embedded in professional workflows, such as digital assistants for nurses and doctors. Because ASR algorithms are designed to be used directly by customers and end users, it is important to validate that they are behaving as expected when confronted with a wide variety of speech patterns (different accents, pitches, and background audio conditions).
+自动语音识别（ASR）是机器学习中非常重要且蓬勃发展的领域，它将口语转换为文本。ASR 算法几乎在每部智能手机上都有运行，并越来越多地嵌入到专业工作流程中，例如护士和医生的数字助手。由于 ASR 算法是直接面向客户和最终用户设计的，因此在面对各种语音模式（不同的口音、音调和背景音频条件）时，验证它们的行为是否符合预期非常重要。
 
-Using `gradio`, you can easily build a demo of your ASR model and share that with a testing team, or test it yourself by speaking through the microphone on your device.
+使用 `gradio`，您可以轻松构建一个 ASR 模型的演示，并与测试团队共享，或通过设备上的麦克风进行自行测试。
 
-This tutorial will show how to take a pretrained speech-to-text model and deploy it with a Gradio interface. We will start with a ***full-context*** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it ***streaming***, meaning that the audio model will convert speech as you speak. The streaming demo that we create will look something like this (try it below or [in a new tab](https://huggingface.co/spaces/abidlabs/streaming-asr-paused)!):
+本教程将展示如何使用预训练的语音识别模型并在 Gradio 界面上部署。我们将从一个 **full-context 全文**模型开始，其中用户在进行预测之前要说完整段音频。然后，我们将调整演示以使其变为 **streaming 流式**，这意味着音频模型将在您说话时将语音转换为文本。我们创建的流式演示将如下所示（在下方尝试或[在新标签页中打开](https://huggingface.co/spaces/abidlabs/streaming-asr-paused)）：
 
 <iframe src="https://abidlabs-streaming-asr-paused.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+实时 ASR 本质上是*有状态的*，即模型的预测结果取决于用户先前说的单词。因此，在本教程中，我们还将介绍如何在 Gradio 演示中使用 **state**。
 
-Real-time ASR is inherently *stateful*, meaning that the model's predictions change depending on what words the user previously spoke. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
+### 先决条件
 
-### Prerequisites
+确保您已经[安装](/getting_started)了 `gradio` Python 包。您还需要一个预训练的语音识别模型。在本教程中，我们将从两个 ASR 库构建演示：
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained speech recognition model. In this tutorial, we will build demos from 2 ASR libraries:
+* Transformers（为此，`pip install transformers` 和 `pip install torch`）* DeepSpeech（`pip install deepspeech==0.8.2`）
 
-* Transformers (for this, `pip install transformers` and `pip install torch`) 
-* DeepSpeech (`pip install deepspeech==0.8.2`)
+确保您至少安装了其中之一，以便您可以跟随本教程操作。如果您尚未安装 `ffmpeg`，请在[系统上下载并安装](https://www.ffmpeg.org/download.html)，以便从麦克风处理文件。
 
-Make sure you have at least one of these installed so that you can follow along the tutorial. You will also need `ffmpeg` [installed on your system](https://www.ffmpeg.org/download.html), if you do not already have it, to process files from the microphone.
+下面是构建实时语音识别（ASR）应用程序的步骤：
+1. [设置 Transformers ASR 模型](#1-set-up-the-transformers-asr-model)
+2. [使用 Transformers 创建一个全文 ASR 演示]
+(#2-create-a-full-context-asr-demo-with-transformers)
+3. [使用 Transformers 创建一个流式 ASR 演示](#3-create-a-streaming-asr-demo-with-transformers)
+4. [使用 DeepSpeech 创建一个流式 ASR 演示](#4-create-a-streaming-asr-demo-with-deepspeech)
 
-Here's how to build a real time speech recognition (ASR) app: 
+## 1. 设置 Transformers ASR 模型
+首先，您需要拥有一个 ASR 模型，您可以自己训练，或者需要下载一个预训练模型。在本教程中，我们将使用 Hugging Face 模型的预训练 ASR 模型 `Wav2Vec2`。
 
-1. [Set up the Transformers ASR Model](#1-set-up-the-transformers-asr-model)
-2. [Create a Full-Context ASR Demo with Transformers](#2-create-a-full-context-asr-demo-with-transformers) 
-3. [Create a Streaming ASR Demo  with Transformers](#3-create-a-streaming-asr-demo-with-transformers)
-4. [Create a Streaming ASR Demo with DeepSpeech](#4-create-a-streaming-asr-demo-with-deepspeech)
-
-
-## 1. Set up the Transformers ASR Model
-
-First, you will need to have an ASR model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will start by using a pretrained ASR model from the Hugging Face model, `Wav2Vec2`. 
-
-Here is the code to load `Wav2Vec2` from Hugging Face `transformers`.
-
+以下是从 Hugging Face 的 `transformers` 加载 `Wav2Vec2` 的代码：
 ```python
 from transformers import pipeline
-
 p = pipeline("automatic-speech-recognition")
 ```
 
-That's it! By default, the automatic speech recognition model pipeline loads Facebook's `facebook/wav2vec2-base-960h` model.
+就是这样！默认情况下，自动语音识别模型管道会加载 Facebook 的 `facebook/wav2vec2-base-960h` 模型。
 
-## 2. Create a Full-Context ASR Demo with Transformers 
+## 2. 使用 Transformers 创建一个全文 ASR 演示
+我们将首先创建一个*全文*ASR 演示，其中用户在使用 ASR 模型进行预测之前说完整段音频。使用 Gradio 非常简单，我们只需在上面的 `pipeline` 对象周围创建一个函数。
 
-We will start by creating a *full-context* ASR demo, in which the user speaks the full audio before using the ASR model to run inference. This is very easy with Gradio -- we simply create a function around the `pipeline` object above.
-
-We will use `gradio`'s built in `Audio` component, configured to take input from the user's microphone and return a filepath for the recorded audio. The output component will be a plain `Textbox`.
+我们将使用 `gradio` 内置的 `Audio` 组件，配置从用户的麦克风接收输入并返回录制音频的文件路径。输出组件将是一个简单的 `Textbox`。
 
 ```python
 import gradio as gr
@@ -65,28 +58,21 @@ gr.Interface(
     outputs="text").launch()
 ```
 
-So what's happening here? The `transcribe` function takes a single parameter, `audio`, which is a filepath to the audio file that the user has recorded. The `pipeline` object expects a filepath and converts it to text, which is returned to the frontend and displayed in a textbox. 
+那么这里发生了什么？`transcribe` 函数接受一个参数 `audio`，它是用户录制的音频文件的文件路径。`pipeline` 对象期望一个文件路径，并将其转换为文本，然后返回到前端并在文本框中显示。
 
-Let's see it in action! (Record a short audio clip and then click submit, or [open in a new tab](https://huggingface.co/spaces/abidlabs/full-context-asr)):
-
+让我们看看它的效果吧！（录制一段短音频并点击提交，或[在新标签页打开](https://huggingface.co/spaces/abidlabs/full-context-asr)）：
 <iframe src="https://abidlabs-full-context-asr.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+## 3. 使用 Transformers 创建一个流式 ASR 演示
+太棒了！我们已经构建了一个对短音频剪辑效果良好的 ASR 模型。但是，如果您正在记录较长的音频剪辑，则可能需要一个*流式*界面，即在用户说话时逐句转录音频，而不仅仅在最后一次全部转录。
 
-## 3. Create a Streaming ASR Demo  with Transformers
+好消息是，我们可以很容易地调整刚刚创建的演示，使其成为流式的，使用相同的 `Wav2Vec2` 模型。
 
-Ok great! We've built an ASR model that works well for short audio clips. However, if you are recording longer audio clips, you probably want a *streaming* interface, one that transcribes audio as the user speaks instead of just all-at-once at the end.
+最大的变化是我们现在必须引入一个 `state` 参数，它保存到目前为止*转录的音频*。这样，我们只需处理最新的音频块，并将其简单地追加到先前转录的音频中。
 
-The good news is that it's not too difficult to adapt the demo we just made to make it streaming, using the same `Wav2Vec2` model. 
+在向 Gradio 演示添加状态时，您需要完成 3 件事：
+* 在函数中添加 `state` 参数* 在函数末尾返回更新后的 `state`* 在 `Interface` 的 `inputs` 和 `outputs` 中添加 `"state"` 组件
 
-The biggest change is that we must now introduce a `state` parameter, which holds the audio that has been *transcribed so far*. This allows us to only the latest chunk of audio and simply append it to the audio we previously transcribed. 
-
-When adding state to a Gradio demo, you need to do a total of 3 things:
-
-* Add a `state` parameter to the function
-* Return the updated `state` at the end of the function
-* Add the `"state"` components to the `inputs` and `outputs` in `Interface` 
-
-Here's what the code looks like:
-
+以下是代码示例：
 ```python
 def transcribe(audio, state=""):
     text = p(audio)["text"]
@@ -94,7 +80,6 @@ def transcribe(audio, state=""):
     return state, state
 
 # Set the starting state to an empty string
-
 gr.Interface(
     fn=transcribe, 
     inputs=[
@@ -108,14 +93,13 @@ gr.Interface(
     live=True).launch()
 ```
 
-Notice that we've also made one other change, which is that we've set `live=True`. This keeps the Gradio interface running constantly, so it automatically transcribes audio without the user having to repeatedly hit the submit button.
+请注意，我们还进行了另一个更改，即我们设置了 `live=True`。这使得 Gradio 接口保持持续运行，因此它可以自动转录音频，而无需用户反复点击提交按钮。
 
-Let's see how it does (try below or [in a new tab](https://huggingface.co/spaces/abidlabs/streaming-asr))!
+让我们看看它的效果（在下方尝试或[在新标签页中打开](https://huggingface.co/spaces/abidlabs/streaming-asr)）！
 
 <iframe src="https://abidlabs-streaming-asr.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-
-One thing that you may notice is that the transcription quality has dropped since the chunks of audio are so small, they lack the context to properly be transcribed. A "hacky" fix to this is to simply increase the runtime of the `transcribe()` function so that longer audio chunks are processed. We can do this by adding a `time.sleep()` inside the function, as shown below (we'll see a proper fix next) 
+你可能注意到的一件事是，由于音频块非常小，所以转录质量下降了，它们缺乏正确转录所需的上下文。此问题的“hacky”解决方法是简单地增加 `transcribe()` 函数的运行时间，以便处理更长的音频块。我们可以通过在函数中添加 `time.sleep()` 来实现这一点，如下所示（接下来我们将看到一个正确的解决方法）
 
 ```python
 from transformers import pipeline
@@ -143,20 +127,19 @@ gr.Interface(
     live=True).launch()
 ```
 
-Try the demo below to see the difference (or [open in a new tab](https://huggingface.co/spaces/abidlabs/streaming-asr-paused))!
+尝试下面的演示，查看差异（或[在新标签页中打开](https://huggingface.co/spaces/abidlabs/streaming-asr-paused)）！
 
 <iframe src="https://abidlabs-streaming-asr-paused.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
+## 4. 使用 DeepSpeech 创建流式 ASR 演示
 
-## 4. Create a Streaming ASR Demo with DeepSpeech
+您不仅限于使用 `transformers` 库中的 ASR 模型 - 您可以使用自己的模型或其他库中的模型。`DeepSpeech` 库包含专门用于处理流式音频数据的模型。这些模型在处理流式数据时表现非常好，因为它们能够考虑到先前的音频块在进行预测时产生的影响。
 
-You're not restricted to ASR models from the `transformers` library -- you can use your own models or models from other libraries. The `DeepSpeech` library contains models that are specifically designed to handle streaming audio data. These models perform really well with  streaming data as they are able to account for previous chunks of audio data when making predictions.
+深入研究 DeepSpeech 库超出了本指南的范围（可以在[此处查看其优秀的文档](https://deepspeech.readthedocs.io/en/r0.9/)），但是您可以像使用 Transformer ASR 模型一样，使用 DeepSpeech ASR 模型使用类似的方法使用 Gradio。
 
-Going through the DeepSpeech library is beyond the scope of this Guide (check out their [excellent documentation here](https://deepspeech.readthedocs.io/en/r0.9/)), but you can use Gradio very similarly with a DeepSpeech ASR model as with a Transformers ASR model. 
+下面是一个完整的示例（在 Linux 上）：
 
-Here's a complete example (on Linux):
-
-First install the DeepSpeech library and download the pretrained models from the terminal:
+首先通过终端安装 DeepSpeech 库并下载预训练模型：
 
 ```bash
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.2/deepspeech-0.8.2-models.pbmm
@@ -165,7 +148,7 @@ apt install libasound2-dev portaudio19-dev libportaudio2 libportaudiocpp0 ffmpeg
 pip install deepspeech==0.8.2
 ```
 
-Then, create a similar `transcribe()` function as before:
+然后，创建与之前相似的 `transcribe()` 函数：
 
 ```python
 from deepspeech import Model
@@ -210,7 +193,7 @@ def transcribe(speech, stream):
 
 ```
 
-Then, create a Gradio Interface as before (the only difference being that the return type should be `numpy` instead of a `filepath` to be compatible with the DeepSpeech models)
+然后，如前所述创建一个 Gradio 接口（唯一的区别是返回类型应该是 `numpy` 而不是 `filepath` 以与 DeepSpeech 模型兼容）
 
 ```python
 import gradio as gr
@@ -228,13 +211,10 @@ gr.Interface(
     live=True).launch()
 ```
 
-Running all of this should allow you to deploy your realtime ASR model with a nice GUI. Try it out and see how well it works for you.
+运行所有这些应该允许您使用一个漂亮的 GUI 部署实时 ASR 模型。尝试一下，看它在您那里运行得有多好。
 
 --------------------------------------------
 
+你已经完成了！这就是构建用于 ASR 模型的基于 Web 的 GUI 所需的所有代码。
 
-And you're done! That's all the code you need to build a web-based GUI for your ASR model. 
-
-Fun tip: you can share your ASR model instantly with others simply by setting `share=True` in `launch()`. 
-
-
+有趣的提示：您只需在 `launch()` 中设置 `share=True`，即可即时与他人共享 ASR 模型。

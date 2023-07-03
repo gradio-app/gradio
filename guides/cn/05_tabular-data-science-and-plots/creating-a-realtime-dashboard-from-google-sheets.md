@@ -1,41 +1,27 @@
-# Creating a Real-Time Dashboard from Google Sheets
-
+# 从 Google Sheets 创建实时仪表盘
 Tags: TABULAR, DASHBOARD, PLOTS 
-
-[Google Sheets](https://www.google.com/sheets/about/) are an easy way to store tabular data in the form of spreadsheets. With Gradio and pandas, it's easy to read data from public or private Google Sheets and then display the data or plot it. In this blog post, we'll build a small *real-time* dashboard, one that updates when the data in the Google Sheets updates. 
-
-Building the dashboard itself will just be 9 lines of Python code using Gradio, and our final dashboard will look like this:
-
+[Google Sheets](https://www.google.com/sheets/about/) 是一种以电子表格形式存储表格数据的简便方法。借助 Gradio 和 pandas，可以轻松从公共或私有 Google Sheets 读取数据，然后显示数据或绘制数据。在本博文中，我们将构建一个小型 *real-time* 仪表盘，该仪表盘在 Google Sheets 中的数据更新时进行更新。
+构建仪表盘本身只需要使用 Gradio 的 9 行 Python 代码，我们的最终仪表盘如下所示：
 <gradio-app space="gradio/line-plot"></gradio-app>
 
-**Prerequisites**: This Guide uses [Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control), so make you are familiar with the Blocks class. 
-
-The process is a little different depending on if you are working with a publicly accessible or a private Google Sheet. We'll cover both, so let's get started!
-
+**先决条件**：本指南使用[Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control)，因此请确保您熟悉 Blocks 类。
+具体步骤略有不同，具体取决于您是使用公开访问还是私有 Google Sheet。我们将分别介绍这两种情况，所以让我们开始吧！
 ## Public Google Sheets
-
-Building a dashboard from a public Google Sheet is very easy, thanks to the [`pandas` library](https://pandas.pydata.org/):
-
-1\. Get the URL of the Google Sheets that you want to use. To do this, simply go to the Google Sheets, click on the "Share" button in the top-right corner, and then click on the "Get shareable link" button. This will give you a URL that looks something like this:
-
+由于[`pandas` 库](https://pandas.pydata.org/)的存在，从公共 Google Sheet 构建仪表盘非常简单：
+1. 获取要使用的 Google Sheets 的网址。为此，只需进入 Google Sheets，单击右上角的“共享”按钮，然后单击“获取可共享链接”按钮。这将给您一个类似于以下示例的网址：
 ```html
 https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQwpU/edit#gid=0
 ```
 
-2\. Now, let's modify this URL and then use it to read the data from the Google Sheets into a Pandas DataFrame. (In the code below, replace the `URL` variable with the URL of your public Google Sheet):
-
+2. 现在，修改此网址并使用它从 Google Sheets 读取数据到 Pandas DataFrame 中。 (在下面的代码中，用您的公开 Google Sheet 的网址替换 `URL` 变量)：
 ```python
 import pandas as pd
-
-URL = "https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQwpU/edit#gid=0"
-csv_url = URL.replace('/edit#gid=', '/export?format=csv&gid=')
-
+URL = "https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQwpU/edit#gid=0"csv_url = URL.replace('/edit#gid=', '/export?format=csv&gid=')
 def get_data():
     return pd.read_csv(csv_url)
 ```
 
-3\. The data query is a function, which means that it's easy to display it real-time using the the `gr.DataFrame` component, or plot it real-time using the `gr.LinePlot` component (of course, depending on the data, a different plot may be appropriate). To do this, just pass the function into the respective components, and set the `every` parameter based on how frequently (in seconds) you would like the component to refresh. Here's the Gradio code:
-
+3. 数据查询是一个函数，这意味着可以使用 `gr.DataFrame` 组件实时显示或使用 `gr.LinePlot` 组件实时绘制数据（当然，根据数据的不同，可能需要不同的绘图方法）。只需将函数传递给相应的组件，并根据组件刷新的频率（以秒为单位）设置 `every` 参数。以下是 Gradio 代码：
 ```python
 import gradio as gr
 
@@ -49,29 +35,19 @@ with gr.Blocks() as demo:
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
- 
-And that's it! You have a dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
 
-## Private Google Sheets
+到此为止！您现在拥有一个仪表盘，每 5 秒刷新一次，从 Google Sheets 中获取数据。
+## 私有 Google Sheets
+对于私有 Google Sheets，流程需要更多的工作量，但并不多！关键区别在于，现在您必须经过身份验证，以授权访问私有 Google Sheets。
 
-For private Google Sheets, the process requires a little more work, but not that much! The key difference is that now, you must authenticate yourself to authorize access to the private Google Sheets.
-
-### Authentication
-
-To authenticate yourself, obtain credentials from Google Cloud. Here's [how to set up google cloud credentials](https://developers.google.com/workspace/guides/create-credentials):
-
-1\. First, log in to your Google Cloud account and go to the Google Cloud Console (https://console.cloud.google.com/)
-
-2\. In the Cloud Console, click on the hamburger menu in the top-left corner and select "APIs & Services" from the menu. If you do not have an existing project, you will need to create one.
-
-3\. Then, click the "+ Enabled APIs & services" button, which allows you to enable specific services for your project. Search for "Google Sheets API", click on it, and click the "Enable" button. If you see the "Manage" button, then Google Sheets is already enabled, and you're all set. 
-
-4\. In the APIs & Services menu, click on the "Credentials" tab and then click on the "Create credentials" button.
-
-5\. In the "Create credentials" dialog, select "Service account key" as the type of credentials to create, and give it a name. **Note down the email of the service account**
-
-6\. After selecting the service account, select the "JSON" key type and then click on the "Create" button. This will download the JSON key file containing your credentials to your computer. It will look something like this:
-
+### 身份验证
+要进行身份验证，需从 Google Cloud 获取凭据。以下是[如何设置 Google Cloud 凭据](https://developers.google.com/workspace/guides/create-credentials)：
+1. 首先，登录您的 Google Cloud 帐户并转到 Google Cloud 控制台（https://console.cloud.google.com/）
+2. 在 Cloud 控制台中，单击左上角的汉堡菜单，然后从菜单中选择“API 和服务”。如果您没有现有项目，则需要创建一个。
+3. 然后，点击“+ 启用的 API 和服务”按钮，允许您为项目启用特定的服务。搜索“Google Sheets API”，点击它，然后单击“启用”按钮。如果看到“管理”按钮，则表示 Google Sheets 已启用，并且您已准备就绪。
+4. 在 API 和服务菜单中，点击“凭据”选项卡，然后点击“创建凭据”按钮。
+5. 在“创建凭据”对话框中，选择“服务帐号密钥”作为要创建的凭据类型，并为其命名。**记下服务帐号的电子邮件地址**
+6. 在选择服务帐号之后，选择“JSON”密钥类型，然后点击“创建”按钮。这将下载包含您凭据的 JSON 密钥文件到您的计算机。文件类似于以下示例：
 ```json
 {
  "type": "service_account",
@@ -87,61 +63,43 @@ To authenticate yourself, obtain credentials from Google Cloud. Here's [how to s
 }
 ```
 
-### Querying
-
-Once you have the credentials `.json` file, you can use the following steps to query your Google Sheet:
-
-1\. Click on the "Share" button in the top-right corner of the Google Sheet. Share the Google Sheets with the email address of the service from Step 5 of authentication subsection (this step is important!). Then click on the "Get shareable link" button. This will give you a URL that looks something like this:
-
+### 查询
+在获得凭据的 `.json` 文件后，可以按照以下步骤查询您的 Google Sheet：
+1. 单击 Google Sheet 右上角的“共享”按钮。使用身份验证子部分第 5 步的服务的电子邮件地址共享 Google Sheets（此步骤很重要！）。然后单击“获取可共享链接”按钮。这将给您一个类似于以下示例的网址：
 ```html
 https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQwpU/edit#gid=0
 ```
 
-
-2\. Install the [`gspread` library](https://docs.gspread.org/en/v5.7.0/), which makes it easy to work with the [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts) in Python by running in the terminal: `pip install gspread`
-
-3\. Write a function to load the data from the Google Sheet, like this (replace the `URL` variable with the URL of your private Google Sheet):
-
+2. 安装 [`gspread` 库](https://docs.gspread.org/en/v5.7.0/)，通过在终端运行以下命令使 Python 中使用 [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts) 更加简单：`pip install gspread`
+3. 编写一个函数来从 Google Sheet 中加载数据，如下所示（用您的私有 Google Sheet 的 URL 替换 `URL` 变量）：
 ```python
-import gspread
-import pandas as pd
-
-# Authenticate with Google and get the sheet
-URL = 'https://docs.google.com/spreadsheets/d/1_91Vps76SKOdDQ8cFxZQdgjTJiz23375sAT7vPvaj4k/edit#gid=0'
-
-gc = gspread.service_account("path/to/key.json")
-sh = gc.open_by_url(URL)
-worksheet = sh.sheet1 
-
+import gspreadimport pandas as pd
+# 与 Google 进行身份验证并获取表格URL = 'https://docs.google.com/spreadsheets/d/1_91Vps76SKOdDQ8cFxZQdgjTJiz23375sAT7vPvaj4k/edit#gid=0'
+gc = gspread.service_account("path/to/key.json")sh = gc.open_by_url(URL)worksheet = sh.sheet1
 def get_data():
     values = worksheet.get_all_values()
     df = pd.DataFrame(values[1:], columns=values[0])
     return df
-
 ```
 
-4\. The data query is a function, which means that it's easy to display it real-time using the the `gr.DataFrame` component, or plot it real-time using the `gr.LinePlot` component (of course, depending on the data, a different plot may be appropriate). To do this, we just pass the function into the respective components, and set the `every` parameter based on how frequently (in seconds) we would like the component to refresh. Here's the Gradio code:
+4\. 数据查询是一个函数，这意味着可以使用 `gr.DataFrame` 组件实时显示数据，或使用 `gr.LinePlot` 组件实时绘制数据（当然，根据数据的不同，可能需要使用不同的图表）。要实现这一点，只需将函数传递给相应的组件，并根据需要设置 `every` 参数来确定组件刷新的频率（以秒为单位）。以下是 Gradio 代码：
 
 ```python
 import gradio as gr
 
 with gr.Blocks() as demo:
-    gr.Markdown("# 📈 Real-Time Line Plot")
+    gr.Markdown("# 📈 实时折线图")
     with gr.Row():
         with gr.Column():
             gr.DataFrame(get_data, every=5)
         with gr.Column():
-            gr.LinePlot(get_data, every=5, x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
+            gr.LinePlot(get_data, every=5, x="日期", y="销售额", y_title="销售额（百万美元）", overlay_point=True, width=500, height=500)
 
-demo.queue().launch()  # Run the demo with queuing enabled
+demo.queue().launch()  # 启动带有排队功能的演示
 ```
- 
-You now have a Dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
 
+现在你有一个每 5 秒刷新一次的仪表盘，可以从你的 Google 表格中获取数据。
 
-## Conclusion
+## 结论
 
-And that's all there is to it! With just a few lines of code, you can use `gradio` and other libraries to read data from a public or private Google Sheet and then display and plot the data in a real-time dashboard.
-
-
-
+就是这样！只需几行代码，你就可以使用 `gradio` 和其他库从公共或私有的 Google 表格中读取数据，然后在实时仪表盘中显示和绘制数据。

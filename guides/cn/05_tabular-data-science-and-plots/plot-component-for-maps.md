@@ -1,21 +1,20 @@
-# How to Use the Plot Component for Maps
-
+# 如何使用地图组件绘制图表
 Related spaces:
 Tags: PLOTS, MAPS
 
-## Introduction
+## 简介
 
-This guide explains how you can use Gradio to plot geographical data on a map using the `gradio.Plot` component. The Gradio `Plot` component works with Matplotlib, Bokeh and Plotly. Plotly is what we will be working with in this guide. Plotly allows developers to easily create all sorts of maps with their geographical data. Take a look [here](https://plotly.com/python/maps/) for some examples.
+本指南介绍如何使用 Gradio 的 `Plot` 组件在地图上绘制地理数据。Gradio 的 `Plot` 组件可以与 Matplotlib、Bokeh 和 Plotly 一起使用。在本指南中，我们将使用 Plotly 进行操作。Plotly 可以让开发人员轻松创建各种地图来展示他们的地理数据。点击[这里](https://plotly.com/python/maps/)查看一些示例。
 
-## Overview
+## 概述
 
-We will be using the New York City Airbnb dataset, which is hosted on kaggle [here](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data). I've uploaded it to the Hugging Face Hub as a dataset [here](https://huggingface.co/datasets/gradio/NYC-Airbnb-Open-Data) for easier use and download. Using this data we will plot Airbnb locations on a map output and allow filtering based on price and location. Below is the demo that we will be building. ⚡️
+我们将使用纽约市的 Airbnb 数据集，该数据集托管在 kaggle 上，点击[这里](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data)。我已经将其上传到 Hugging Face Hub 作为一个数据集，方便使用和下载，点击[这里](https://huggingface.co/datasets/gradio/NYC-Airbnb-Open-Data)。使用这些数据，我们将在地图上绘制 Airbnb 的位置，并允许基于价格和位置进行筛选。下面是我们将要构建的演示。 ⚡️
 
 $demo_map_airbnb
 
-## Step 1 - Loading CSV data 💾
+## 步骤 1-加载 CSV 数据 💾
 
-Let's start by loading the Airbnb NYC data from the Hugging Face Hub.
+让我们首先从 Hugging Face Hub 加载纽约市的 Airbnb 数据。
 
 ```python
 from datasets import load_dataset
@@ -31,11 +30,11 @@ def filter_map(min_price, max_price, boroughs):
     text_list = [(names[i], prices[i]) for i in range(0, len(names))]
 ```
 
-In the code above, we first load the csv data into a pandas dataframe. Let's begin by defining a function that we will use as the prediction function for the gradio app. This function will accept the minimum price and maximum price range as well as the list of boroughs to filter the resulting map. We can use the passed in values (`min_price`, `max_price`, and list of `boroughs`) to filter the dataframe and create `new_df`. Next we will create `text_list` of the names and prices of each Airbnb to use as labels on the map.
+在上面的代码中，我们先将 CSV 数据加载到一个 pandas dataframe 中。让我们首先定义一个函数，这将作为 gradio 应用程序的预测函数。该函数将接受最低价格、最高价格范围和筛选结果地区的列表作为参数。我们可以使用传入的值 (`min_price`、`max_price` 和地区列表) 来筛选数据框并创建 `new_df`。接下来，我们将创建包含每个 Airbnb 的名称和价格的 `text_list`，以便在地图上使用作为标签。
 
-## Step 2 - Map Figure 🌐
+## 步骤 2-地图图表 🌐
 
-Plotly makes it easy to work with maps. Let's take a look below how we can create a map figure.
+Plotly 使得处理地图变得很容易。让我们看一下下面的代码，了解如何创建地图图表。
 
 ```python
 import plotly.graph_objects as go
@@ -67,13 +66,13 @@ fig.update_layout(
 )
 ```
 
-Above, we create a scatter plot on mapbox by passing it our list of latitudes and longitudes to plot markers.  We also pass in our custom data of names and prices for additional info to appear on every marker we hover over. Next we use `update_layout` to specify other map settings such as zoom, and centering.
+上面的代码中，我们通过传入经纬度列表来创建一个散点图。我们还传入了名称和价格的自定义数据，以便在鼠标悬停在每个标记上时显示额外的信息。接下来，我们使用 `update_layout` 来指定其他地图设置，例如缩放和居中。
 
-More info [here](https://plotly.com/python/scattermapbox/) on scatter plots using Mapbox and Plotly.
+有关使用 Mapbox 和 Plotly 创建散点图的更多信息，请点击[这里](https://plotly.com/python/scattermapbox/)。
 
-## Step 3 - Gradio App ⚡️
+## 步骤 3-Gradio 应用程序 ⚡️
 
-We will use two `gr.Number` components and a `gr.CheckboxGroup` to allow users of our app to specify price ranges and borough locations. We will then use the `gr.Plot` component as an output for our Plotly + Mapbox map we created earlier.
+我们将使用两个 `gr.Number` 组件和一个 `gr.CheckboxGroup` 组件，允许用户指定价格范围和地区位置。然后，我们将使用 `gr.Plot` 组件作为我们之前创建的 Plotly + Mapbox 地图的输出。
 
 ```python
 with gr.Blocks() as demo:
@@ -88,24 +87,24 @@ with gr.Blocks() as demo:
     btn.click(filter_map, [min_price, max_price, boroughs], map)
 ```
 
-We layout these components using the `gr.Column` and `gr.Row` and we'll also add event triggers for when the demo first loads and when our "Update Filter" button is clicked in order to trigger the map to update with our new filters.
+我们使用 `gr.Column` 和 `gr.Row` 布局这些组件，并为演示加载时和点击 " 更新筛选 " 按钮时添加了事件触发器，以触发地图更新新的筛选条件。
 
-This is what the full demo code looks like:
+以下是完整演示代码：
 
 $code_map_airbnb
 
-## Step 4 - Deployment 🤗
+## 步骤 4-部署 Deployment 🤗
 
-If you run the code above, your app will start running locally.
-You can even get a temporary shareable link by passing the `share=True` parameter to `launch`.
+如果你运行上面的代码，你的应用程序将在本地运行。
+如果要获取临时共享链接，可以将 `share=True` 参数传递给 `launch`。
 
-But what if you want to a permanent deployment solution?
-Let's deploy our Gradio app to the free HuggingFace Spaces platform.
+但如果你想要一个永久的部署解决方案呢？
+让我们将我们的 Gradio 应用程序部署到免费的 HuggingFace Spaces 平台。
 
-If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
+如果你以前没有使用过 Spaces，请按照之前的指南[这里](/using_hugging_face_integrations)。
 
-## Conclusion 🎉
+## 结论 🎉
 
-And you're all done! That's all the code you need to build a map demo.
+你已经完成了！这是构建地图演示所需的所有代码。
 
-Here's a link to the demo [Map demo](https://huggingface.co/spaces/gradio/map_airbnb) and [complete code](https://huggingface.co/spaces/gradio/map_airbnb/blob/main/run.py) (on Hugging Face Spaces)
+链接到演示：[地图演示](https://huggingface.co/spaces/gradio/map_airbnb)和[完整代码](https://huggingface.co/spaces/gradio/map_airbnb/blob/main/run.py)（在 Hugging Face Spaces）

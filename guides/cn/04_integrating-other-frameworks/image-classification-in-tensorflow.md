@@ -1,26 +1,25 @@
-# Image Classification in TensorFlow and Keras
+# TensorFlow 和 Keras 中的图像分类
 
-Related spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
-Tags: VISION, MOBILENET, TENSORFLOW
+相关空间：https://huggingface.co/spaces/abidlabs/keras-image-classifier
+标签：VISION, MOBILENET, TENSORFLOW
 
-## Introduction
+## 简介
 
-Image classification is a central task in computer vision. Building better classifiers to classify what object is present in a picture is an active area of research, as it has applications stretching from traffic control systems to satellite imaging. 
+图像分类是计算机视觉中的一项核心任务。构建更好的分类器来识别图像中的物体是一个研究的热点领域，因为它在交通控制系统到卫星成像等应用中都有广泛的应用。
 
-Such models are perfect to use with Gradio's *image* input component, so in this tutorial we will build a web demo to classify images using Gradio. We will be able to build the whole web application in Python, and it will look like this (try one of the examples!):
+这样的模型非常适合与 Gradio 的 *image* 输入组件一起使用，因此在本教程中，我们将使用 Gradio 构建一个用于图像分类的 Web 演示。我们可以在 Python 中构建整个 Web 应用程序，它的界面将如下所示（试试其中一个例子！）：
 
 <iframe src="https://abidlabs-keras-image-classifier.hf.space" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
+让我们开始吧！
 
-Let's get started!
+### 先决条件
 
-### Prerequisites
+确保您已经[安装](/getting_started)了 `gradio` Python 包。我们将使用一个预训练的 Keras 图像分类模型，因此您还应该安装了 `tensorflow`。
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). We will be using a pretrained Keras image classification model, so you should also have `tensorflow` installed.
+## 第一步 —— 设置图像分类模型
 
-## Step 1 — Setting up the Image Classification Model
-
-First, we will need an image classification model. For this tutorial, we will use a pretrained Mobile Net model, as it is easily downloadable from [Keras](https://keras.io/api/applications/mobilenet/). You can use a different pretrained model or train your own. 
+首先，我们需要一个图像分类模型。在本教程中，我们将使用一个预训练的 Mobile Net 模型，因为它可以从[Keras](https://keras.io/api/applications/mobilenet/)轻松下载。您也可以使用其他预训练模型或训练自己的模型。
 
 ```python
 import tensorflow as tf
@@ -28,18 +27,18 @@ import tensorflow as tf
 inception_net = tf.keras.applications.MobileNetV2()
 ```
 
-This line automatically downloads the MobileNet model and weights using the Keras library.  
+此行代码将使用 Keras 库自动下载 MobileNet 模型和权重。
 
-## Step 2 — Defining a `predict` function
+## 第二步 —— 定义 `predict` 函数
 
-Next, we will need to define a function that takes in the *user input*, which in this case is an image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://git.io/JJkYN).
+接下来，我们需要定义一个函数，该函数接收*用户输入*作为参数（在本例中为图像），并返回预测结果。预测结果应以字典形式返回，其中键是类名，值是置信概率。我们将从这个[text 文件](https://git.io/JJkYN)中加载类名。
 
-In the case of our pretrained model, it will look like this:
+对于我们的预训练模型，函数将如下所示：
 
 ```python
 import requests
 
-# Download human-readable labels for ImageNet.
+# 从ImageNet下载可读性标签。
 response = requests.get("https://git.io/JJkYN")
 labels = response.text.split("\n")
 
@@ -51,23 +50,23 @@ def classify_image(inp):
   return confidences
 ```
 
-Let's break this down. The function takes one parameter:
+让我们来详细了解一下。该函数接受一个参数：
 
-* `inp`: the input image as a `numpy` array
+* `inp`：输入图像的 `numpy` 数组
 
-Then, the function adds a batch dimension, passes it through the model, and returns:
+然后，函数添加一个批次维度，通过模型进行处理，并返回：
 
-* `confidences`: the predictions, as a dictionary whose keys are class labels and whose values are confidence probabilities
+* `confidences`：预测结果，以字典形式表示，其中键是类标签，值是置信概率
 
-## Step 3 — Creating a Gradio Interface
+## 第三步 —— 创建 Gradio 界面
 
-Now that we have our predictive function set up, we can create a Gradio Interface around it. 
+现在我们已经设置好了预测函数，我们可以围绕它创建一个 Gradio 界面。
 
-In this case, the input component is a drag-and-drop image component. To create this input, we can use the `"gradio.inputs.Image"` class, which creates the component and handles the preprocessing to convert that to a numpy array. We will instantiate the class with a parameter that automatically preprocesses the input image to be 224 pixels by 224 pixels, which is the size that MobileNet expects.
+在这种情况下，输入组件是一个拖放图像组件。要创建此输入组件，我们可以使用 `"gradio.inputs.Image"` 类，该类创建该组件并处理预处理以将其转换为 numpy 数组。我们将使用一个参数来实例化该类，该参数会自动将输入图像预处理为 224 像素 x224 像素的大小，这是 MobileNet 所期望的尺寸。
 
-The output component will be a `"label"`, which displays the top labels in a nice form. Since we don't want to show all 1,000 class labels, we will customize it to show only the top 3 images.
+输出组件将是一个 `"label"`，它以美观的形式显示顶部标签。由于我们不想显示所有的 1,000 个类标签，所以我们将自定义它只显示前 3 个标签。
 
-Finally, we'll add one more parameter, the `examples`, which allows us to prepopulate our interfaces with a few predefined examples. The code for Gradio looks like this:
+最后，我们还将添加一个 `examples` 参数，它允许我们使用一些预定义的示例预填充我们的接口。Gradio 的代码如下所示：
 
 ```python
 import gradio as gr
@@ -78,11 +77,10 @@ gr.Interface(fn=classify_image,
              examples=["banana.jpg", "car.jpg"]).launch()
 ```
 
-This produces the following interface, which you can try right here in your browser (try uploading your own examples!):
+这将生成以下界面，您可以在浏览器中立即尝试（尝试上传您自己的示例！）：
 
 <iframe src="https://abidlabs-keras-image-classifier.hf.space" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ----------
 
-And you're done! That's all the code you need to build a web demo for an image classifier. If you'd like to share with others, try setting `share=True` when you `launch()` the Interface!
-
+完成！这就是构建图像分类器的 Web 演示所需的所有代码。如果您想与他人分享，请尝试在启动接口时设置 `share=True`！

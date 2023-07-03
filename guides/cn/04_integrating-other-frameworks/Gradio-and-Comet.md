@@ -1,66 +1,64 @@
-# Using Gradio and Comet
+# 使用 Gradio 和 Comet
 
 Tags: COMET, SPACES
-Contributed by the Comet team
+由 Comet 团队贡献
 
-## Introduction
+## 介绍
 
-In this guide we will demonstrate some of the ways you can use Gradio with Comet. We will cover the basics of using Comet with Gradio and show you some of the ways that you can leverage Gradio's advanced features such as [Embedding with iFrames](https://www.gradio.app/sharing-your-app/#embedding-with-iframes) and [State](https://www.gradio.app/docs/#state) to build some amazing model evaluation workflows.
+在这个指南中，我们将展示您可以如何使用 Gradio 和 Comet。我们将介绍使用 Comet 和 Gradio 的基本知识，并向您展示如何利用 Gradio 的高级功能，如 [使用 iFrames 进行嵌入](https://www.gradio.app/sharing-your-app/#embedding-with-iframes) 和 [状态](https://www.gradio.app/docs/#state) 来构建一些令人惊叹的模型评估工作流程。
 
-Here is a list of the topics covered in this guide.
+下面是本指南涵盖的主题列表。
 
-1. Logging Gradio UI's to your Comet Experiments
-2. Embedding Gradio Applications directly into your Comet Projects
-3. Embedding Hugging Face Spaces directly into your Comet Projects
-4. Logging Model Inferences from your Gradio Application to Comet
+1. 将 Gradio UI 记录到您的 Comet 实验中
+2. 直接将 Gradio 应用程序嵌入到您的 Comet 项目中
+3. 直接将 Hugging Face Spaces 嵌入到您的 Comet 项目中
+4. 将 Gradio 应用程序的模型推理记录到 Comet 中
 
+## 什么是 Comet？
 
-## What is Comet?
+[Comet](https://www.comet.com?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs) 是一个 MLOps 平台，旨在帮助数据科学家和团队更快地构建更好的模型！Comet 提供工具来跟踪、解释、管理和监控您的模型，集中在一个地方！它可以与 Jupyter 笔记本和脚本配合使用，最重要的是，它是 100% 免费的！
 
-[Comet](https://www.comet.com?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs) is an MLOps Platform that is designed to help Data Scientists and Teams build better models faster! Comet provides tooling to Track, Explain, Manage, and Monitor your models in a single place! It works with Jupyter Notebooks and Scripts and most importantly it's 100% free!
+## 设置
 
-
-## Setup
-
-First, install the dependencies needed to run these examples
+首先，安装运行这些示例所需的依赖项
 
 ```shell
 pip install comet_ml torch torchvision transformers gradio shap requests Pillow
 ```
 
-Next, you will need to [sign up for a Comet Account](https://www.comet.com/signup?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs). Once you have your account set up, [grab your API Key](https://www.comet.com/docs/v2/guides/getting-started/quickstart/#get-an-api-key?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs) and configure your Comet credentials
+接下来，您需要[注册一个 Comet 账户](https://www.comet.com/signup?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs)。一旦您设置了您的账户，[获取您的 API 密钥](https://www.comet.com/docs/v2/guides/getting-started/quickstart/#get-an-api-key?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs) 并配置您的 Comet 凭据
 
-If you're running these examples as a script, you can either export your credentials as environment variables
+如果您将这些示例作为脚本运行，您可以将您的凭据导出为环境变量
 
 ```shell
-export COMET_API_KEY="<Your API Key>"
-export COMET_WORKSPACE="<Your Workspace Name>"
-export COMET_PROJECT_NAME="<Your Project Name>"
+export COMET_API_KEY="<您的 API 密钥>"
+export COMET_WORKSPACE="<您的工作空间名称>"
+export COMET_PROJECT_NAME="<您的项目名称>"
 ```
 
-or set them in a `.comet.config` file in your working directory. You file should be formatted in the following way.
+或者将它们设置在您的工作目录中的 `.comet.config` 文件中。您的文件应按以下方式格式化。
 
 ```shell
 [comet]
-api_key=<Your API Key>
-workspace=<Your Workspace Name>
-project_name=<Your Project Name>
+api_key=<您的 API 密钥>
+workspace=<您的工作空间名称>
+project_name=<您的项目名称>
 ```
 
-If you are using the provided Colab Notebooks to run these examples, please run the cell with the following snippet before starting the Gradio UI. Running this cell allows you to interactively add your API key to the notebook.
+如果您使用提供的 Colab Notebooks 运行这些示例，请在开始 Gradio UI 之前运行带有以下片段的单元格。运行此单元格可以让您交互式地将 API 密钥添加到笔记本中。
 
 ```python
 import comet_ml
 comet_ml.init()
 ```
 
-## 1. Logging Gradio UI's to your Comet Experiments
+## 1. 将 Gradio UI 记录到您的 Comet 实验中
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Gradio_and_Comet.ipynb)
+[![在 Colab 中打开](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Gradio_and_Comet.ipynb)
 
-In this example, we will go over how to log your Gradio Applications to Comet and interact with them using the Gradio Custom Panel.
+在这个例子中，我们将介绍如何将您的 Gradio 应用程序记录到 Comet，并使用 Gradio 自定义面板与其进行交互。
 
-Let's start by building a simple Image Classification example using `resnet18`.
+我们先通过使用 `resnet18` 构建一个简单的图像分类示例。
 
 ```python
 import comet_ml
@@ -80,7 +78,7 @@ else:
 model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=True).eval()
 model = model.to(device)
 
-# Download human-readable labels for ImageNet.
+# 为 ImageNet 下载可读的标签。
 response = requests.get("https://git.io/JJkYN")
 labels = response.text.split("\n")
 
@@ -107,64 +105,61 @@ experiment.add_tag("image-classifier")
 io.integrate(comet_ml=experiment)
 ```
 
-The last line in this snippet will log the URL of the Gradio Application to your Comet Experiment. You can find the URL in the Text Tab of your Experiment.
+此片段中的最后一行将将 Gradio 应用程序的 URL 记录到您的 Comet 实验中。您可以在实验的文本选项卡中找到该 URL。
 
 <video width="560" height="315" controls>
     <source src="https://user-images.githubusercontent.com/7529846/214328034-09369d4d-8b94-4c4a-aa3c-25e3ed8394c4.mp4"></source>
 </video>
 
-Add the Gradio Panel to your Experiment to interact with your application.
+将 Gradio 面板添加到您的实验中，与应用程序进行交互。
 
 <video width="560" height="315" controls>
     <source src="https://user-images.githubusercontent.com/7529846/214328194-95987f83-c180-4929-9bed-c8a0d3563ed7.mp4"></source>
 </video>
 
-
-## 2. Embedding Gradio Applications directly into your Comet Projects
+## 2. 直接将 Gradio 应用程序嵌入到您的 Comet 项目中
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/KZnpH7msPq0?start=9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-If you are permanently hosting your Gradio application, you can embed the UI using the Gradio Panel Extended custom Panel.
+如果您要长期托管 Gradio 应用程序，可以使用 Gradio Panel Extended 自定义面板进行嵌入 UI。
 
-Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page.
+转到您的 Comet 项目页面，转到面板选项卡。单击“+ 添加”按钮以打开面板搜索页面。
 
 <img width="560" alt="adding-panels" src="https://user-images.githubusercontent.com/7529846/214329314-70a3ff3d-27fb-408c-a4d1-4b58892a3854.jpeg">
 
-Next, search for Gradio Panel Extended in the Public Panels section and click `Add`.
+接下来，在公共面板部分搜索 Gradio Panel Extended 并单击“添加”。
 
 <img width="560" alt="gradio-panel-extended" src="https://user-images.githubusercontent.com/7529846/214325577-43226119-0292-46be-a62a-0c7a80646ebb.png">
 
-Once you have added your Panel, click `Edit` to access to the Panel Options page and paste in the URL of your Gradio application.
+添加面板后，单击“编辑”以访问面板选项页面，并粘贴您的 Gradio 应用程序的 URL。
 
 ![Edit-Gradio-Panel-Options](https://user-images.githubusercontent.com/7529846/214573001-23814b5a-ca65-4ace-a8a5-b27cdda70f7a.gif)
 
 <img width="560" alt="Edit-Gradio-Panel-URL" src="https://user-images.githubusercontent.com/7529846/214334843-870fe726-0aa1-4b21-bbc6-0c48f56c48d8.png">
 
+## 3. 直接将 Hugging Face Spaces 嵌入到您的 Comet 项目中
 
-## 3. Embedding Hugging Face Spaces directly into your Comet Projects
+<iframe width="560" height="315" src="https://www.youtube.com/embed/KZnpH7msPq0?start=107" title="YouTube 视频播放器 " frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/KZnpH7msPq0?start=107" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+您还可以使用 Hugging Face Spaces 面板将托管在 Hugging Faces Spaces 中的 Gradio 应用程序嵌入到您的 Comet 项目中。
 
-You can also embed Gradio Applications that are hosted on Hugging Faces Spaces into your Comet Projects using the Hugging Face Spaces Panel.
-
-Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. Next, search for the Hugging Face Spaces Panel in the Public Panels section and click `Add`.
+转到 Comet 项目页面，转到面板选项卡。单击“+添加”按钮以打开面板搜索页面。然后，在公共面板部分搜索 Hugging Face Spaces 面板并单击“添加”。
 
 <img width="560" height="315" alt="huggingface-spaces-panel" src="https://user-images.githubusercontent.com/7529846/214325606-99aa3af3-b284-4026-b423-d3d238797e12.png">
 
-Once you have added your Panel, click Edit to access to the Panel Options page and paste in the path of your Hugging Face Space e.g. `pytorch/ResNet`
+添加面板后，单击“编辑”以访问面板选项页面，并粘贴您的 Hugging Face Space 路径，例如 `pytorch/ResNet`
 
 <img width="560" height="315" alt="Edit-HF-Space" src="https://user-images.githubusercontent.com/7529846/214335868-c6f25dee-13db-4388-bcf5-65194f850b02.png">
 
-## 4. Logging Model Inferences to Comet
+## 4. 记录模型推断结果到 Comet
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/KZnpH7msPq0?start=176" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/KZnpH7msPq0?start=176" title="YouTube 视频播放器 " frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Logging_Model_Inferences_with_Comet_and_Gradio.ipynb)
+[![在 Colab 中打开](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Logging_Model_Inferences_with_Comet_and_Gradio.ipynb)
 
+在前面的示例中，我们演示了通过 Comet UI 与 Gradio 应用程序交互的各种方法。此外，您还可以将 Gradio 应用程序的模型推断（例如 SHAP 图）记录到 Comet 中。
 
-In the previous examples, we demonstrated the various ways in which you can interact with a Gradio application through the Comet UI. Additionally,  you can also log model inferences, such as SHAP plots, from your Gradio application to Comet.
-
-In the following snippet, we're going to log inferences from a Text Generation model. We can persist an Experiment across multiple inference calls using Gradio's [State](https://www.gradio.app/docs/#state) object. This will allow you to log multiple inferences from a model to a single Experiment.
+在以下代码段中，我们将记录来自文本生成模型的推断。我们可以使用 Gradio 的[State](https://www.gradio.app/docs/#state)对象在多次推断调用之间保持实验的持久性。这将使您能够将多个模型推断记录到单个实验中。
 
 ```python
 import comet_ml
@@ -213,7 +208,6 @@ def start_experiment():
         experiment.log_other("Created from", "gradio-inference")
 
         message = f"Started Experiment: [{experiment.name}]({experiment.url})"
-
         return (experiment, message)
 
     except Exception as e:
@@ -254,22 +248,22 @@ with gr.Blocks() as demo:
     )
 ```
 
-Inferences from this snippet will be saved in the HTML tab of your experiment.
+该代码段中的推断结果将保存在实验的 HTML 选项卡中。
 
 <video width="560" height="315" controls>
     <source src="https://user-images.githubusercontent.com/7529846/214328610-466e5c81-4814-49b9-887c-065aca14dd30.mp4"></source>
 </video>
 
-## Conclusion
+## 结论
 
-We hope you found this guide useful and that it provides some inspiration to help you build awesome model evaluation workflows with Comet and Gradio.
+希望您对本指南有所裨益，并能为您构建出色的 Comet 和 Gradio 模型评估工作流程提供一些启示。
 
-## How to contribute Gradio demos on HF spaces on the Comet organization
+## 如何在 Comet 组织上贡献 Gradio 演示
 
-* Create an account on Hugging Face [here](https://huggingface.co/join).
-* Add Gradio Demo under your username, see this [course](https://huggingface.co/course/chapter9/4?fw=pt) for setting up Gradio Demo on Hugging Face.
-* Request to join the Comet organization [here](https://huggingface.co/Comet).
+* 在 Hugging Face 上创建帐号[此处](https://huggingface.co/join)。
+* 在用户名下添加 Gradio 演示，请参阅[此处](https://huggingface.co/course/chapter9/4?fw=pt)以设置 Gradio 演示。
+* 请求加入 Comet 组织[此处](https://huggingface.co/Comet)。
 
-## Additional Resources
+## 更多资源
 
-* [Comet Documentation](https://www.comet.com/docs/v2/?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs)
+* [Comet 文档](https://www.comet.com/docs/v2/?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs)

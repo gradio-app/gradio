@@ -1,47 +1,45 @@
-# Named-Entity Recognition 
+# 命名实体识别 （Named-Entity Recognition）
 
-Related spaces: https://huggingface.co/spaces/rajistics/biobert_ner_demo, https://huggingface.co/spaces/abidlabs/ner, https://huggingface.co/spaces/rajistics/Financial_Analyst_AI
-Tags: NER, TEXT, HIGHLIGHT
+相关空间：https://huggingface.co/spaces/rajistics/biobert_ner_demo，https://huggingface.co/spaces/abidlabs/ner，https://huggingface.co/spaces/rajistics/Financial_Analyst_AI
+标签：NER，TEXT，HIGHLIGHT
 
-## Introduction
+## 简介
 
-Named-entity recognition (NER), also known as token classification or text tagging, is the task of taking a sentence and classifying every word (or "token") into different categories, such as names of people or names of locations, or different parts of speech. 
+命名实体识别（NER）又称为标记分类或文本标记，它的任务是对一个句子进行分类，将每个单词（或 "token"）归为不同的类别，比如人名、地名或词性等。
 
-For example, given the sentence:
+例如，给定以下句子：
 
-> Does Chicago have any Pakistani restaurants?
+> 芝加哥有巴基斯坦餐厅吗？
 
-A named-entity recognition algorithm may  identify:
-
+命名实体识别算法可以识别出：
 * "Chicago" as a **location**
 * "Pakistani" as an **ethnicity**  
 
+等等。
 
-and so on. 
+使用 `gradio`（特别是 `HighlightedText` 组件），您可以轻松构建一个 NER 模型的 Web 演示并与团队分享。
 
-Using `gradio` (specifically the `HighlightedText` component), you can easily build a web demo of your NER model and share that with the rest of your team.
-
-Here is an example of a demo that you'll be able to build:
+这是您将能够构建的一个演示的示例：
 
 $demo_ner_pipeline
 
-This tutorial will show how to take a pretrained NER model and deploy it with a Gradio interface. We will show two different ways to use the `HighlightedText` component -- depending on your NER model, either of these two ways may be easier to learn! 
+本教程将展示如何使用预训练的 NER 模型并使用 Gradio 界面部署该模型。我们将展示两种不同的使用 `HighlightedText` 组件的方法--根据您的 NER 模型，可以选择其中任何一种更容易学习的方式！
 
-### Prerequisites
+### 环境要求
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained named-entity recognition model. You can use your own, while in this tutorial, we will use one from the `transformers` library.
+确保您已经[安装](/getting_started)了 `gradio` Python 包。您还需要一个预训练的命名实体识别模型。在本教程中，我们将使用 `transformers` 库中的一个模型。
 
-### Approach 1: List of Entity Dictionaries
+### 方法一：实体字典列表
 
-Many named-entity recognition models output a list of dictionaries. Each dictionary consists of an *entity*, a "start" index, and an "end" index. This is, for example, how NER models in the `transformers` library operate:
+许多命名实体识别模型输出的是一个字典列表。每个字典包含一个*实体*，一个 " 起始 " 索引和一个 " 结束 " 索引。这就是 `transformers` 库中的 NER 模型的操作方式。
 
 ```py
 from transformers import pipeline 
 ner_pipeline = pipeline("ner")
-ner_pipeline("Does Chicago have any Pakistani restaurants")
+ner_pipeline("芝加哥有巴基斯坦餐厅吗？")
 ```
 
-Output:
+输出结果：
 
 ```bash
 [{'entity': 'I-LOC',
@@ -58,28 +56,24 @@ Output:
   'end': 31}]
 ```
 
-If you have such a model, it is very easy to hook it up to Gradio's `HighlightedText` component. All you need to do is pass in this **list of entities**, along with the **original text** to the model, together as dictionary, with the keys being `"entities"` and `"text"` respectively.
+如果您有这样的模型，将其连接到 Gradio 的 `HighlightedText` 组件非常简单。您只需要将这个**实体列表**与**原始文本**以字典的形式传递给模型，其中键分别为 `"entities"` 和 `"text"`。
 
-Here is a complete example:
+下面是一个完整的示例：
 
 $code_ner_pipeline
 $demo_ner_pipeline
 
-### Approach 2: List of Tuples
+### 方法二：元组列表
 
-An alternative way to pass data into the `HighlightedText` component is a list of tuples. The first element of each tuple should be the word or words that are being classified into a particular entity. The second element should be the entity label (or `None` if they should be unlabeled). The `HighlightedText` component automatically strings together the words and labels to display the entities.
+将数据传递给 `HighlightedText` 组件的另一种方法是使用元组列表。每个元组的第一个元素应该是被归类为特定实体的单词或词组。第二个元素应该是实体标签（如果不需要标签，则为 `None`）。`HighlightedText` 组件会自动组合单词和标签来显示实体。
 
-In some cases, this can be easier than the first approach. Here is a demo showing this approach using Spacy's parts-of-speech tagger:
+在某些情况下，这比第一种方法更简单。下面是一个使用 Spacy 的词性标注器演示此方法的示例：
 
 $code_text_analysis
 $demo_text_analysis
 
-
 --------------------------------------------
 
+到此为止！您已经了解了为您的 NER 模型构建基于 Web 的图形用户界面所需的全部内容。
 
-And you're done! That's all you need to know to build a web-based GUI for your NER model. 
-
-Fun tip: you can share your NER demo instantly with others simply by setting `share=True` in `launch()`. 
-
-
+有趣的提示：只需在 `launch()` 中设置 `share=True`，即可立即与其他人分享您的 NER 演示。

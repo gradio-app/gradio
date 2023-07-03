@@ -1,42 +1,41 @@
-# Running a Gradio App on your Web Server with Nginx
+# 在 Web 服务器上使用 Nginx 运行 Gradio 应用
+标签：部署，Web 服务器，Nginx
 
-Tags: DEPLOYMENT, WEB SERVER, NGINX
+## 介绍
 
-## Introduction
+Gradio 是一个 Python 库，允许您快速创建可定制的 Web 应用程序，用于机器学习模型和数据处理流水线。Gradio 应用可以免费部署在[Hugging Face Spaces](https://hf.space)上。
 
-Gradio is a Python library that allows you to quickly create customizable web apps for your machine learning models and data processing pipelines. Gradio apps can be deployed on [Hugging Face Spaces](https://hf.space) for free. 
+然而，在某些情况下，您可能希望在自己的 Web 服务器上部署 Gradio 应用。您可能已经在使用[Nginx](https://www.nginx.com/)作为高性能的 Web 服务器来提供您的网站（例如 `https://www.example.com`），并且您希望将 Gradio 附加到网站的特定子路径上（例如 `https://www.example.com/gradio-demo`）。
 
-In some cases though, you might want to deploy a Gradio app on your own web server. You might already be using [Nginx](https://www.nginx.com/), a highly performant web server, to serve your website (say `https://www.example.com`), and you want to attach Gradio to a specific subpath on your website (e.g. `https://www.example.com/gradio-demo`). 
+在本指南中，我们将指导您在自己的 Web 服务器上的 Nginx 后面运行 Gradio 应用的过程，以实现此目的。
 
-In this Guide, we will guide you through the process of running a Gradio app behind Nginx on your own web server to achieve this.
+**先决条件**
 
-**Prerequisites**
+1. 安装了 [Nginx 的 Linux Web 服务器](https://www.nginx.com/blog/setting-up-nginx/) 和 [Gradio](/quickstart) 库
 
-1. A Linux web server with [Nginx installed](https://www.nginx.com/blog/setting-up-nginx/) and [Gradio installed](/quickstart)  
-    
-2. A working Gradio app saved as a python file on your web server
+2. 在 Web 服务器上将 Gradio 应用保存为 Python 文件
 
-## Editing your Nginx configuration file
+## 编辑 Nginx 配置文件
 
-1. Start by editing the Nginx configuration file on your web server. By default, this is located at: `/etc/nginx/nginx.conf`
+1. 首先编辑 Web 服务器上的 Nginx 配置文件。默认情况下，文件位于：`/etc/nginx/nginx.conf`
 
-In the `http` block, add the following line to include server block configurations from a separate file:
+在 `http` 块中，添加以下行以从单独的文件包含服务器块配置：
 
 ```bash
 include /etc/nginx/sites-enabled/*;
 ```
 
-2. Create a new file in the `/etc/nginx/sites-available` directory (create the directory if it does not already exist), using a filename that represents your app, for example: `sudo nano /etc/nginx/sites-available/my_gradio_app`
+2. 在 `/etc/nginx/sites-available` 目录中创建一个新文件（如果目录不存在则创建），文件名表示您的应用，例如：`sudo nano /etc/nginx/sites-available/my_gradio_app`
 
-3. Paste the following into your file editor:
+3. 将以下内容粘贴到文件编辑器中：
 
 ```bash
 server {
     listen 80;
-    server_name example.com www.example.com;  # Change this to your domain name 
+    server_name example.com www.example.com;  # 将此项更改为您的域名 
 
-    location /gradio-demo/ {  # Change this if you'd like to server your Gradio app on a different path
-        proxy_pass http://127.0.0.1:7860/; # Change this if your Gradio app will be running on a different port
+    location /gradio-demo/ {  # 如果要在不同路径上提供Gradio应用，请更改此项
+        proxy_pass http://127.0.0.1:7860/; # 如果您的Gradio应用将在不同端口上运行，请更改此项
         proxy_redirect off;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -46,34 +45,33 @@ server {
 }
 ```
 
-## Run your Gradio app on your web server
+## 在 Web 服务器上运行 Gradio 应用
 
-1. Before you launch your Gradio app, you'll need to set the `root_path` to be the same as the subpath that you specified in your nginx configuration. This is necessary for Gradio to run on any subpath besides the root of the domain.
+1. 在启动 Gradio 应用之前，您需要将 `root_path` 设置为与 Nginx 配置中指定的子路径相同。这对于 Gradio 在除域的根路径之外的任何子路径上运行是必要的。
 
-Here's a simple example of a Gradio app with a custom `root_path`:
+以下是一个具有自定义 `root_path` 的简单示例 Gradio 应用：
 
 ```python
 import gradio as gr
 import time
 
 def test(x):
-time.sleep(4)
-return x
+    time.sleep(4)
+    return x
 
 gr.Interface(test, "textbox", "textbox").queue().launch(root_path="/gradio-demo")
 ```
 
-2. Start a `tmux` session by typing `tmux` and pressing enter (optional) 
+2. 通过键入 `tmux` 并按回车键（可选）启动 `tmux` 会话
 
-It's recommended that you run your Gradio app in a `tmux` session so that you can keep it running in the background easily
+推荐在 `tmux` 会话中运行 Gradio 应用，以便可以轻松地在后台运行它
 
-3. Then, start your Gradio app. Simply type in `python` followed by the name of your Gradio python file. By default, your app will run on `localhost:7860`, but if it starts on a different port, you will need to update the nginx configuration file above.
+3. 然后，启动您的 Gradio 应用。只需输入 `python`，后跟您的 Gradio Python 文件的名称。默认情况下，应用将在 `localhost:7860` 上运行，但如果它在其他端口上启动，您需要更新上面的 Nginx 配置文件。
 
-## Restart Nginx
+## 重新启动 Nginx
 
-1. If you are in a tmux session, exit by typing CTRL+B (or CMD+B), followed by the "D" key.
+1. 如果您在 tmux 会话中，请通过键入 CTRL + B（或 CMD + B），然后按下 "D" 键来退出。
 
-2. Finally, restart nginx by running `sudo systemctl restart nginx`. 
+2. 最后，通过运行 `sudo systemctl restart nginx` 重新启动 nginx。
 
-And that's it! If you visit `https://example.com/gradio-demo` on your browser, you should see your Gradio app running there
-
+就是这样！如果您在浏览器中访问 `https://example.com/gradio-demo`，您应该能够看到您的 Gradio 应用在那里运行。

@@ -1,40 +1,40 @@
-# Custom JS and CSS
+# 自定义的 JS 和 CSS
 
-This guide covers how to style Blocks with more flexibility, as well as adding Javascript code to event listeners. 
+本指南介绍了如何更灵活地为 Blocks 添加样式，并添加 JavaScript 代码到事件监听器中。
 
-**Warning**: The use of query selectors in custom JS and CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
+**警告**：在自定义的 JS 和 CSS 中使用查询选择器不能保证能在所有 Gradio 版本中正常工作，因为 Gradio 的 HTML DOM 可能会发生变化。我们建议谨慎使用查询选择器。
 
-## Custom CSS
+## 自定义的 CSS
 
-Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` constructor. For example:
+Gradio 主题是自定义应用程序外观和感觉的最简单方式。您可以从各种主题中进行选择，或者创建自己的主题。要实现这一点，请将 `theme=` kwarg 传递给 `Blocks` 构造函数。例如：
 
 ```python
 with gr.Blocks(theme=gr.themes.Glass()):
     ...
 ```
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/theming-guide) for more details.
+Gradio 自带一套预构建的主题，您可以从 `gr.themes.*` 中加载这些主题。您可以扩展这些主题，或者从头开始创建自己的主题 - 有关更多详细信息，请参阅[主题指南](/theming-guide)。
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
+要增加附加的样式能力，您可以使用 `css=` kwarg 将任何 CSS 传递给您的应用程序。
 
-The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
+Gradio 应用程序的基类是 `gradio-container`，因此下面是一个示例，用于更改 Gradio 应用程序的背景颜色：
 ```python
 with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
-If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"file="`, for example:
+如果您想在您的 CSS 中引用外部文件，请使用 `"file="` 作为文件路径的前缀（可以是相对路径或绝对路径），例如：
 
 ```python
 with gr.Blocks(css=".gradio-container {background: url('file=clouds.jpg')}") as demo:
     ...
 ```
 
-You can also pass the filepath to a CSS file to the `css` argument. 
+您还可以将 CSS 文件的文件路径传递给 `css` 参数。
 
-## The `elem_id` and `elem_classes` Arguments
+## `elem_id` 和 `elem_classes` 参数
 
-You can `elem_id` to add an HTML element `id` to any component, and `elem_classes` to add a class or list of classes. This will allow you to select elements more easily with CSS. This approach is also more likely to be stable across Gradio versions as built-in class names or ids may change (however, as mentioned in the warning above, we cannot guarantee complete compatibility between Gradio versions if you use custom CSS as the DOM elements may themselves change).
+您可以使用 `elem_id` 来为任何组件添加 HTML 元素 `id`，并使用 `elem_classes` 添加一个类或类列表。这将使您能够更轻松地使用 CSS 选择元素。这种方法更有可能在 Gradio 版本之间保持稳定，因为内置的类名或 id 可能会发生变化（但正如上面的警告中所提到的，如果您使用自定义 CSS，我们不能保证在 Gradio 版本之间完全兼容，因为 DOM 元素本身可能会发生变化）。
 
 ```python
 css = """
@@ -47,11 +47,11 @@ with gr.Blocks(css=css) as demo:
     box2 = gr.Textbox(value="Failure", elem_id="warning", elem_classes="feedback")
 ```
 
-The CSS `#warning` ruleset will only target the second Textbox, while the `.feedback` ruleset will target both. Note that when targeting classes, you might need to put the `!important` selector to override the default Gradio styles.
+CSS `#warning` 规则集仅针对第二个文本框，而 `.feedback` 规则集将同时作用于两个文本框。请注意，在针对类时，您可能需要使用 `!important` 选择器来覆盖默认的 Gradio 样式。
 
-## Custom JS
+## 自定义的 JS
 
-Event listeners have a `_js` argument that can take a Javascript function as a string and treat it just like a Python event listener function. You can pass both a Javascript function and a Python function (in which case the Javascript function is run first) or only Javascript (and set the Python `fn` to `None`). Take a look at the code below:
+事件监听器具有 `_js` 参数，可以接受 JavaScript 函数作为字符串，并像 Python 事件监听器函数一样处理它。您可以传递 JavaScript 函数和 Python 函数（在这种情况下，先运行 JavaScript 函数），或者仅传递 JavaScript（并将 Python 的 `fn` 设置为 `None`）。请查看下面的代码：
 
 $code_blocks_js_methods
 $demo_blocks_js_methods

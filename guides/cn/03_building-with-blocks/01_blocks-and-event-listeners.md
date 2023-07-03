@@ -1,76 +1,76 @@
-# Blocks and Event Listeners
+# 区块和事件监听器 (Blocks and Event Listeners)
 
-We took a quick look at Blocks in the [Quickstart](https://gradio.app/quickstart/#blocks-more-flexibility-and-control). Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists. 
+我们在[快速入门](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)中简要介绍了区块。让我们深入探讨一下。本指南将涵盖区块的结构、事件监听器及其类型、连续运行事件、更新配置以及使用字典与列表。
 
-## Blocks Structure
+## 区块结构 (Blocks Structure)
 
-Take a look at the demo below.
+请查看下面的演示。
 
 $code_hello_blocks
 $demo_hello_blocks
 
-- First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.
-- Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
-- Finally, the `click()` event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.
+- 首先，注意 `with gr.Blocks() as demo:` 子句。区块应用程序代码将被包含在该子句中。
+- 接下来是组件。这些组件是在 `Interface` 中使用的相同组件。但是，与将组件传递给某个构造函数不同，组件在 `with` 子句内创建时会自动添加到区块中。
+- 最后，`click()` 事件监听器。事件监听器定义了应用程序内的数据流。在上面的示例中，监听器将两个文本框相互关联。文本框 `name` 作为输入，文本框 `output` 作为 `greet` 方法的输出。当单击按钮 `greet_btn` 时触发此数据流。与界面类似，事件监听器可以具有多个输入或输出。
 
-## Event Listeners and Interactivity
+## 事件监听器与交互性 (Event Listeners and Interactivity)
 
-In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, it is not interactive. You can directly configure the interactivity of a Component with the `interactive=` keyword argument. 
+在上面的示例中，您会注意到可以编辑文本框 `name`，但无法编辑文本框 `output`。这是因为作为事件监听器的任何组件都具有交互性。然而，由于文本框 `output` 仅作为输出，它没有交互性。您可以使用 `interactive=` 关键字参数直接配置组件的交互性。
 
 ```python
-output = gr.Textbox(label="Output", interactive=True)
+output = gr.Textbox(label="输出", interactive=True)
 ```
 
-## Types of Event Listeners
+## 事件监听器的类型 (Types of Event Listeners)
 
-Take a look at the demo below:
+请查看下面的演示：
 
 $code_blocks_hello
 $demo_blocks_hello
 
-Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
+`welcome` 函数不是由点击触发的，而是由在文本框 `inp` 中输入文字触发的。这是由于 `change()` 事件监听器。不同的组件支持不同的事件监听器。例如，`Video` 组件支持一个 `play()` 事件监听器，当用户按下播放按钮时触发。有关每个组件的事件监听器，请参见[文档](http://gradio.app/docs#components)。
 
-## Multiple Data Flows
+## 多个数据流 (Multiple Data Flows)
 
-A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:
+区块应用程序不像界面那样限制于单个数据流。请查看下面的演示：
 
 $code_reversible_flow
 $demo_reversible_flow
 
-Note that `num1` can act as input to `num2`, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components. 
+请注意，`num1` 可以充当 `num2` 的输入，反之亦然！随着应用程序变得更加复杂，您将能够连接各种组件的多个数据流。
 
-Here's an example of a "multi-step" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).
+下面是一个 " 多步骤 " 示例，其中一个模型的输出（语音到文本模型）被传递给下一个模型（情感分类器）。
 
 $code_blocks_speech_text_sentiment
 $demo_blocks_speech_text_sentiment
 
-## Function Input List vs Dict
+## 函数输入列表与字典 (Function Input List vs Dict)
 
-The event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:
+到目前为止，您看到的事件监听器都只有一个输入组件。如果您希望有多个输入组件将数据传递给函数，有两种选项可供函数接受输入组件值：
 
-1. as a list of arguments, or
-2. as a single dictionary of values, keyed by the component
+1. 作为参数列表，或
+2. 作为以组件为键的单个值字典
 
-Let's see an example of each:
+让我们分别看一个例子：
 $code_calculator_list_and_dict
 
-Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners. 
+`add()` 和 `sub()` 都将 `a` 和 `b` 作为输入。然而，这些监听器之间的语法不同。
 
-1. To the `add_btn` listener, we pass the inputs as a list. The function `add()` takes each of these inputs as arguments. The value of `a` maps to the argument `num1`, and the value of `b` maps to the argument `num2`.
-2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). The function `sub()` takes a single dictionary argument `data`, where the keys are the input components, and the values are the values of those components.
+1. 对于 `add_btn` 监听器，我们将输入作为列表传递。函数 `add()` 将每个输入作为参数。`a` 的值映射到参数 `num1`，`b` 的值映射到参数 `num2`。
+2. 对于 `sub_btn` 监听器，我们将输入作为集合传递（注意花括号！）。函数 `sub()` 接受一个名为 `data` 的单个字典参数，其中键是输入组件，值是这些组件的值。
 
-It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.
+使用哪种语法是个人偏好！对于具有许多输入组件的函数，选项 2 可能更容易管理。
 
 $demo_calculator_list_and_dict
 
-## Function Return List vs Dict
+## 函数返回列表与字典 (Function Return List vs Dict)
 
-Similarly, you may return values for multiple output components either as:
+类似地，您可以返回多个输出组件的值，可以是：
 
-1. a list of values, or
-2. a dictionary keyed by the component
+1. 值列表，或
+2. 以组件为键的字典
 
-Let's first see an example of (1), where we set the values of two output components by returning two values:
+首先让我们看一个（1）的示例，其中我们通过返回两个值来设置两个输出组件的值：
 
 ```python
 with gr.Blocks() as demo:
@@ -88,9 +88,9 @@ with gr.Blocks() as demo:
     )
 ```
 
-Above, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.
+上面的每个返回语句分别返回与 `food_box` 和 `status_box` 相对应的两个值。
 
-Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. 
+除了返回与每个输出组件顺序相对应的值列表外，您还可以返回一个字典，其中键对应于输出组件，值作为新值。这还允许您跳过更新某些输出组件。
 
 ```python
 with gr.Blocks() as demo:
@@ -108,51 +108,50 @@ with gr.Blocks() as demo:
     )
 ```
 
-Notice how when there is no food, we only update the `status_box` element. We skipped updating the `food_box` component.
+注意，在没有食物的情况下，我们只更新 `status_box` 元素。我们跳过更新 `food_box` 组件。
 
-Dictionary returns are helpful when an event listener affects many components on return, or conditionally affects outputs and not others.
+字典返回在事件监听器影响多个组件的返回值或有条件地影响输出时非常有用。
 
-Keep in mind that with dictionary returns, we still need to specify the possible outputs in the event listener.
+请记住，对于字典返回，我们仍然需要在事件监听器中指定可能的输出组件。
 
-## Updating Component Configurations
+## 更新组件配置 (Updating Component Configurations)
 
-The return value of an event listener function is usually the updated value of the corresponding output Component. Sometimes we want to update the configuration of the Component as well, such as the visibility. In this case, we return a `gr.update()` object instead of just the update Component value.
+事件监听器函数的返回值通常是相应输出组件的更新值。有时我们还希望更新组件的配置，例如可见性。在这种情况下，我们返回一个 `gr.update()` 对象，而不仅仅是更新组件的值。
 
 $code_blocks_essay_update
 $demo_blocks_essay_update
 
-See how we can configure the Textbox itself through the `gr.update()` method. The `value=` argument can still be used to update the value along with Component configuration.
+请注意，我们可以通过 `gr.update()` 方法自我配置文本框。`value=` 参数仍然可以用于更新值以及组件配置。
 
-## Running Events Consecutively
+## 连续运行事件 (Running Events Consecutively)
 
-You can also run events consecutively by using the `then` method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps. 
+你也可以使用事件监听器的 `then` 方法按顺序运行事件。在前一个事件运行完成后，这将运行下一个事件。这对于多步更新组件的事件非常有用。
 
-For example, in the chatbot example below, we first update the chatbot with the user message immediately, and then update the chatbot with the computer response after a simulated delay.
+例如，在下面的聊天机器人示例中，我们首先立即使用用户消息更新聊天机器人，然后在模拟延迟后使用计算机回复更新聊天机器人。
 
 $code_chatbot_simple
 $demo_chatbot_simple
 
-The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to  only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
+事件监听器的 `.then()` 方法会执行后续事件，无论前一个事件是否引发任何错误。如果只想在前一个事件成功执行后才运行后续事件，请使用 `.success()` 方法，该方法与 `.then()` 接受相同的参数。
 
-## Running Events Continuously
+## 连续运行事件 (Running Events Continuously)
 
-You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
-`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.
-Note that this does not take into account the runtime of the event itself. So a function
-with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
+您可以使用事件监听器的 `every` 参数按固定计划运行事件。这将在客户端连接打开的情况下，每隔一定秒数运行一次事件。如果连接关闭，事件将在下一次迭代后停止运行。
+请注意，这不考虑事件本身的运行时间。因此，使用 `every=5` 运行时间为 1 秒的函数实际上每 6 秒运行一次。
 
-Here is an example of a sine curve that updates every second!
+以下是每秒更新的正弦曲线示例！
 
 $code_sine_curve
 $demo_sine_curve
 
-## Gathering Event Data
+## 收集事件数据 (Gathering Event Data)
 
-You can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function. 
+您可以通过将相关的事件数据类作为类型提示添加到事件监听器函数的参数中，收集有关事件的特定数据。
 
-For example, event data for `.select()` can be type hinted by a `gradio.SelectData` argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a `Textbox`, a specific image in a `Gallery`, or a specific cell in a `DataFrame`, the event data argument would contain information about the specific selection.
+例如，使用 `gradio.SelectData` 参数可以为 `.select()` 的事件数据添加类型提示。当用户选择触发组件的一部分时，将触发此事件，并且事件数据包含有关用户的具体选择的信息。如果用户在 `Textbox` 中选择了特定单词，在 `Gallery` 中选择了特定图像或在 `DataFrame` 中选择了特定单元格，则事件数据参数将包含有关具体选择的信息。
 
-In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move. 
+在下面的双人井字游戏演示中，用户可以选择 `DataFrame` 中的一个单元格进行移动。事件数据参数包含有关所选单元格的信息。我们可以首先检查单元格是否为空，然后用用户的移动更新单元格。
 
 $code_tictactoe
+
 $demo_tictactoe

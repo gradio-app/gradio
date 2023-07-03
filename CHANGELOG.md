@@ -3369,3 +3369,5 @@ We've introduced a lot of new components in `3.0`, including `Model3D`, `Dataset
 - [@ronvoluted](https://github.com/ronvoluted) made their first contribution in [PR 1050](https://github.com/gradio-app/gradio/pull/1050)
 - [@radames](https://github.com/radames) made their first contribution in [PR 1074](https://github.com/gradio-app/gradio/pull/1074)
 - [@freddyaboulton](https://github.com/freddyaboulton) made their first contribution in [PR 1085](https://github.com/gradio-app/gradio/pull/1085)
+
+- [@liteli1987gmail](https://github.com/liteli1987gmail) made their first contribution in [PR 1](https://github.com/huggingface-cn/gradio-docs-cn/pull/1)

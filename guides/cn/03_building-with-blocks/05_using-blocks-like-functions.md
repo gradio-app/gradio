@@ -1,90 +1,89 @@
-# Using Gradio Blocks Like Functions
+# 使用 Gradio 块像函数一样
 Tags: TRANSLATION, HUB, SPACES
 
+**先决条件**: 本指南是在块介绍的基础上构建的。请确保[先阅读该指南](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)。
 
-**Prerequisite**: This Guide builds on the Blocks Introduction. Make sure to [read that guide first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control).
+## 介绍
 
-## Introduction
+你知道吗，除了作为一个全栈机器学习演示，Gradio 块应用其实也是一个普通的 Python 函数！？
 
-Did you know that apart from being a full-stack machine learning demo, a Gradio Blocks app is also a regular-old python function!?
+这意味着如果你有一个名为 `demo` 的 Gradio 块（或界面）应用，你可以像使用任何 Python 函数一样使用 `demo`。
 
-This means that if you have a gradio Blocks (or Interface) app called `demo`, you can use `demo` like you would any python function.
+所以，像 `output = demo("Hello", "friend")` 这样的操作会在输入为 "Hello" 和 "friend" 的情况下运行 `demo` 中定义的第一个事件，并将其存储在变量 `output` 中。
 
-So doing something like `output = demo("Hello", "friend")` will run the first event defined in `demo` on the inputs "Hello" and "friend" and store it
-in the variable `output`.
+如果以上内容让你打瞌睡 🥱，请忍耐一下！通过将应用程序像函数一样使用，你可以轻松地组合 Gradio 应用。
+接下来的部分将展示如何实现。
 
-If I put you to sleep 🥱, please bear with me! By using apps like functions, you can seamlessly compose Gradio apps.
-The following section will show how.
+## 将块视为函数
 
-## Treating Blocks like functions
-
-Let's say we have the following demo that translates english text to german text. 
+假设我们有一个将英文文本翻译为德文文本的演示块。
 
 $code_english_translator
 
-I already went ahead and hosted it in Hugging Face spaces at [gradio/english_translator](https://huggingface.co/spaces/gradio/english_translator).
+我已经将它托管在 Hugging Face Spaces 上的 [gradio/english_translator](https://huggingface.co/spaces/gradio/english_translator)。
 
-You can see the demo below as well:
+你也可以在下面看到演示：
 
 $demo_english_translator
 
-Now, let's say you have an app that generates english text, but you wanted to additionally generate german text.
+现在，假设你有一个生成英文文本的应用程序，但你还想额外生成德文文本。
 
-You could either:
+你可以选择：
 
-1. Copy the source code of my english-to-german translation and paste it in your app.
+1. 将我的英德翻译的源代码复制粘贴到你的应用程序中。
 
-2. Load my english-to-german translation in your app and treat it like a normal python function.
+2. 在你的应用程序中加载我的英德翻译，并将其当作普通的 Python 函数处理。
 
-Option 1 technically always works, but it often introduces unwanted complexity.
+选项 1 从技术上讲总是有效的，但它经常引入不必要的复杂性。
 
-Option 2 lets you borrow the functionality you want without tightly coupling our apps.
+选项 2 允许你借用所需的功能，而不会过于紧密地耦合我们的应用程序。
 
-All you have to do is call the `Blocks.load` class method in your source file.
-After that, you can use my translation app like a regular python function!
+你只需要在源文件中调用 `Blocks.load` 类方法即可。
+之后，你就可以像使用普通的 Python 函数一样使用我的翻译应用程序了！
 
-The following code snippet and demo shows how to use `Blocks.load`.
+下面的代码片段和演示展示了如何使用 `Blocks.load`。
 
-Note that the variable `english_translator` is my english to german app, but its used in `generate_text` like a regular function.
+请注意，变量 `english_translator` 是我的英德翻译应用程序，但它在 `generate_text` 中像普通函数一样使用。
 
 $code_generate_english_german
 
 $demo_generate_english_german
 
-## How to control which function in the app to use
+## 如何控制使用应用程序中的哪个函数
 
-If the app you are loading defines more than one function, you can specify which function to use
-with the `fn_index` and `api_name` parameters.
+如果你正在加载的应用程序定义了多个函数，你可以使用 `fn_index` 和 `api_name` 参数指定要使用的函数。
 
-In the code for our english to german demo, you'll see the following line:
+在英德演示的代码中，你会看到以下代码行：
 
-```python
 translate_btn.click(translate, inputs=english, outputs=german, api_name="translate-to-german")
-```
 
-The `api_name` gives this function a unique name in our app. You can use this name to tell gradio which
-function in the upstream space you want to use:
+这个 `api_name` 在我们的应用程序中给这个函数一个唯一的名称。你可以使用这个名称告诉 Gradio 你想使用
+上游空间中的哪个函数：
 
-```python
 english_generator(text, api_name="translate-to-german")[0]["generated_text"]
-```
 
-You can also use the `fn_index` parameter.
-Imagine my app also defined an english to spanish translation function.
-In order to use it in our text generation app, we would use the following code:
+你也可以使用 `fn_index` 参数。
+假设我的应用程序还定义了一个英语到西班牙语的翻译函数。
+为了在我们的文本生成应用程序中使用它，我们将使用以下代码：
 
-```python
 english_generator(text, fn_index=1)[0]["generated_text"]
-```
 
-Functions in gradio spaces are zero-indexed, so since the spanish translator would be the second function in my space,
-you would use index 1. 
+Gradio 空间中的函数是从零开始索引的，所以西班牙语翻译器将是我的空间中的第二个函数，
+因此你会使用索引 1。
+
+## 结语
+
+我们展示了将块应用视为普通 Python 函数的方法，这有助于在不同的应用程序之间组合功能。
+任何块应用程序都可以被视为一个函数，但一个强大的模式是在将其视为函数之前，
+在[自己的应用程序中加载](https://huggingface.co/spaces)托管在[Hugging Face Spaces](https://huggingface.co/spaces)上的应用程序。
+您也可以加载托管在[Hugging Face Model Hub](https://huggingface.co/models)上的模型——有关示例，请参阅[使用 Hugging Face 集成](/using_hugging_face_integrations)指南。
+
+### 开始构建！⚒️
 
 ## Parting Remarks
 
-We showed how treating a Blocks app like a regular python helps you compose functionality across different apps.
-Any Blocks app can be treated like a function, but a powerful pattern is to `load` an app hosted on 
-[Hugging Face Spaces](https://huggingface.co/spaces) prior to treating it like a function in your own app.
-You can also load models hosted on the [Hugging Face Model Hub](https://huggingface.co/models) - see the [Using Hugging Face Integrations](/using_hugging_face_integrations) guide for an example.
+我们展示了如何将 Blocks 应用程序视为常规 Python 函数，以便在不同的应用程序之间组合功能。
+任何 Blocks 应用程序都可以被视为函数，但是一种有效的模式是在将其视为自己应用程序的函数之前，先`加载`托管在[Hugging Face Spaces](https://huggingface.co/spaces)上的应用程序。
+您还可以加载托管在[Hugging Face Model Hub](https://huggingface.co/models)上的模型-请参见[使用 Hugging Face 集成指南](/using_hugging_face_integrations)中的示例。
 
 ### Happy building! ⚒️
