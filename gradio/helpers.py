@@ -929,7 +929,6 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
 
 @document()
 def Info(message: str = "Info issued."):  # noqa: N802
-
     """
     Parameters:
         message: The info message to be displayed to the user.
