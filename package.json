@@ -94,7 +94,7 @@
 		"@storybook/manager-api": "^7.0.23",
 		"@storybook/svelte": "^7.0.23",
 		"@storybook/svelte-vite": "^7.0.23",
-		"@storybook/testing-library": "^0.0.14-next.2",
+		"@storybook/testing-library": "^0.2.0",
 		"@storybook/theming": "^7.0.23",
 		"@playwright/test": "^1.35.1",
 		"@types/three": "^0.152.0",
