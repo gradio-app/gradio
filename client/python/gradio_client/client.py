@@ -20,7 +20,7 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub import SpaceStage
+from huggingface_hub import SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -145,7 +145,17 @@ class Client:
         to_id: str | None = None,
         hf_token: str | None = None,
         private: bool = True,
-        hardware: str | None = None,
+        hardware: Literal[
+            "cpu-basic",
+            "cpu-upgrade",
+            "t4-small",
+            "t4-medium",
+            "a10g-small",
+            "a10g-large",
+            "a100-large",
+        ]
+        | SpaceHardware
+        | None = None,
         secrets: dict[str, str] | None = None,
         sleep_timeout: int = 5,
         max_workers: int = 40,
@@ -220,9 +230,6 @@ class Client:
                     huggingface_hub.add_space_secret(
                         space_id, key, value, token=hf_token
                     )
-            utils.set_space_timeout(
-                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
-            )
             if verbose:
                 print(f"Created new Space: {utils.SPACE_URL.format(space_id)}")
         current_info = huggingface_hub.get_space_runtime(space_id, token=hf_token)
@@ -234,6 +241,12 @@ class Client:
             huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
+            )
+        # Setting a timeout only works if the hardware is not basic
+        # so set it here after the hardware has been requested
+        if hardware != huggingface_hub.SpaceHardware.CPU_BASIC:
+            utils.set_space_timeout(
+                space_id, hf_token=hf_token, timeout_in_seconds=sleep_timeout * 60
             )
         if verbose:
             print("")
@@ -342,7 +355,7 @@ class Client:
         Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
 
         Parameters:
-            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will only print info about unnamed endpoints if there are no named endpoints.
+            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will print info about named endpoints, unless there aren't any -- in which it will print info about unnamed endpoints.
             print_info: If True, prints the usage info to the console. If False, does not print the usage info.
             return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Example:
@@ -599,16 +612,18 @@ class Endpoint:
         self.fn_index = fn_index
         self.dependency = dependency
         api_name = dependency.get("api_name")
-        self.api_name: str | None = None if api_name is None else "/" + api_name
+        self.api_name: str | None = (
+            None if (api_name is None or api_name is False) else "/" + api_name
+        )
         self.use_ws = self._use_websocket(self.dependency)
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         try:
+            # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
+            # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
             self.serializers, self.deserializers = self._setup_serializers()
-            self.is_valid = self.dependency[
-                "backend_fn"
-            ]  # Only a real API endpoint if backend_fn is True and serializers are valid
+            self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except AssertionError:
             self.is_valid = False
 
@@ -937,7 +952,7 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def result(self, timeout=None) -> Any:
+    def result(self, timeout: float | None = None) -> Any:
         """
         Return the result of the call that the future represents. Raises CancelledError: If the future was cancelled, TimeoutError: If the future didn't finish executing before the given timeout, and Exception: If the call raised then that exception will be raised.
 

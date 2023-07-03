@@ -7,10 +7,17 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import warnings
 from typing import Optional
 
 from gradio import components
+from gradio.deprecation import warn_deprecation
+
+
+def warn_outputs_deprecation():
+    warn_deprecation(
+        "Usage of gradio.outputs is deprecated, and will not be supported in the future, "
+        "please import your components from gradio.components",
+    )
 
 
 class Textbox(components.Textbox):
@@ -19,9 +26,7 @@ class Textbox(components.Textbox):
         type: str = "text",
         label: Optional[str] = None,
     ):
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(label=label, type=type)
 
 
@@ -40,9 +45,7 @@ class Image(components.Image):
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         if plot:
             type = "plot"
         super().__init__(type=type, label=label)
@@ -60,9 +63,7 @@ class Video(components.Video):
         type (str): Type of video format to be passed to component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep returned format.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(format=type, label=label)
 
 
@@ -78,9 +79,7 @@ class Audio(components.Audio):
         type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data as 16-bit int numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(type=type, label=label)
 
 
@@ -95,9 +94,7 @@ class File(components.File):
         Parameters:
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(label=label)
 
 
@@ -125,9 +122,7 @@ class Dataframe(components.Dataframe):
         type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(
             headers=headers,
             type=type,
@@ -153,9 +148,7 @@ class Timeseries(components.Timeseries):
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(x=x, y=y, label=label)
 
 
@@ -170,9 +163,7 @@ class State(components.State):
         Parameters:
         label (str): component name in interface (not used).
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import this component as gr.State() from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(label=label)
 
 
@@ -194,9 +185,7 @@ class Label(components.Label):
         type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(num_top_classes=num_top_classes, type=type, label=label)
 
 
@@ -237,9 +226,7 @@ class HighlightedText(components.HighlightedText):
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(color_map=color_map, label=label, show_legend=show_legend)
 
 
@@ -254,9 +241,7 @@ class JSON(components.JSON):
         Parameters:
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(label=label)
 
 
@@ -289,9 +274,7 @@ class Carousel(components.Carousel):
         components (Union[List[Component], Component]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(components=components, label=label)
 
 
@@ -306,9 +289,7 @@ class Chatbot(components.Chatbot):
         Parameters:
         label (str): component name in interface (not used).
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(label=label)
 
 
@@ -328,7 +309,5 @@ class Image3D(components.Model3D):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-        )
+        warn_outputs_deprecation()
         super().__init__(clear_color=clear_color, label=label)

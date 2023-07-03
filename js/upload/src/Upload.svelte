@@ -6,10 +6,10 @@
 	export let filetype: string | null = null;
 	export let include_file_metadata = true;
 	export let dragging = false;
-	export let boundedheight: boolean = true;
-	export let center: boolean = true;
-	export let flex: boolean = true;
-	export let file_count: string = "single";
+	export let boundedheight = true;
+	export let center = true;
+	export let flex = true;
+	export let file_count = "single";
 	export let disable_click = false;
 	export let parse_to_data_url = true;
 
@@ -28,7 +28,7 @@
 	};
 
 	const loadFiles = async (files: FileList) => {
-		let _files: Array<File> = Array.from(files);
+		let _files: File[] = Array.from(files);
 		if (!files.length || !window.FileReader) {
 			return;
 		}
@@ -37,15 +37,13 @@
 		}
 
 		if (include_file_metadata) {
-			var file_metadata: Array<{ name: string; size: number }> = _files.map(
-				(f) => ({
-					name: f.name,
-					size: f.size
-				})
-			);
+			var file_metadata: { name: string; size: number }[] = _files.map((f) => ({
+				name: f.name,
+				size: f.size
+			}));
 		}
 		var load_file_data = [];
-		var file_data: Array<string> | Array<File> = [];
+		var file_data: string[] | File[] = [];
 		if (parse_to_data_url) {
 			file_data = await Promise.all(_files.map((f) => blobToBase64(f)));
 		} else {

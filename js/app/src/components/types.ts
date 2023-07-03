@@ -1,5 +1,5 @@
 import type { ComponentType } from "svelte";
-import type { SvelteComponentDev } from "svelte/internal";
+import type { SvelteComponent } from "svelte";
 
 import type { component_map } from "./directory";
 
@@ -10,8 +10,8 @@ export interface ComponentMeta {
 	id: number;
 	has_modes: boolean;
 	props: Record<string, unknown>;
-	instance: SvelteComponentDev;
-	component: ComponentType<SvelteComponentDev>;
+	instance: SvelteComponent;
+	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;
 	children?: Array<ComponentMeta>;
 	value?: any;

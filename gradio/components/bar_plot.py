@@ -22,7 +22,7 @@ class BarPlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots, chicago-bikeshare-dashboard
+    Demos: bar_plot, chicago-bikeshare-dashboard
     """
 
     def __init__(
@@ -40,7 +40,18 @@ class BarPlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         group_title: str | None = None,
-        color_legend_position: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
         height: int | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,
@@ -136,7 +147,18 @@ class BarPlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         group_title: str | None = None,
-        color_legend_position: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
         height: int | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,
@@ -237,7 +259,19 @@ class BarPlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         group_title: str | None = None,
-        color_legend_position: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None
+        | None = None,
         height: int | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,

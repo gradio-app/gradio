@@ -9,17 +9,17 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 
-	export let container: boolean = true;
-	export let show_label: boolean = true;
+	export let container = true;
+	export let show_label = true;
 	export let label: string;
-	export let root: string = "";
+	export let root = "";
 	export let root_url: null | string = null;
-	export let value: Array<string> | Array<FileData> | null = null;
-	export let grid_cols: number | Array<number> | undefined = [2];
-	export let grid_rows: number | Array<number> | undefined = undefined;
+	export let value: string[] | FileData[] | null = null;
+	export let grid_cols: number | number[] | undefined = [2];
+	export let grid_rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
-	export let allow_preview: boolean = true;
+	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 
@@ -28,7 +28,7 @@
 	}>();
 
 	// tracks whether the value of the gallery was reset
-	let was_reset: boolean = true;
+	let was_reset = true;
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
@@ -103,7 +103,7 @@
 		scroll_to_img(selected_image);
 	}
 
-	let el: Array<HTMLButtonElement> = [];
+	let el: HTMLButtonElement[] = [];
 	let container_element: HTMLDivElement;
 
 	async function scroll_to_img(index: number | null) {
@@ -124,13 +124,11 @@
 			container_width / 2 +
 			container_element.scrollLeft;
 
-		container_element.scrollTo({
+		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
 			behavior: "smooth"
 		});
 	}
-
-	$: can_zoom = window_height >= client_height;
 
 	let client_height = 0;
 	let window_height = 0;
@@ -179,11 +177,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
-		<div
-			on:keydown={on_keydown}
-			class="preview"
-			class:fixed-height={height !== "auto"}
-		>
+		<div on:keydown={on_keydown} class="preview">
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
 			<img
@@ -202,7 +196,11 @@
 					{_value[selected_image][1]}
 				</div>
 			{/if}
-			<div bind:this={container_element} class="thumbnails scroll-hide">
+			<div
+				bind:this={container_element}
+				class="thumbnails scroll-hide"
+				data-testid="container_el"
+			>
 				{#each _value as image, i}
 					<button
 						bind:this={el[i]}
@@ -228,15 +226,14 @@
 	>
 		<div
 			class="grid-container"
-			style="{grid_cols_style} {grid_rows_style}"
-			style:object_fit
+			style="{grid_cols_style} {grid_rows_style} --object-fit: {object_fit}; height: {height}"
 			class:pt-6={show_label}
 		>
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"
 					class:selected={selected_image === i}
-					on:click={() => (selected_image = can_zoom ? i : selected_image)}
+					on:click={() => (selected_image = i)}
 				>
 					<img
 						alt={caption || ""}

@@ -10,7 +10,6 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
-import warnings
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
@@ -28,6 +27,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.blocks import Block, BlockContext
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
 )
@@ -90,32 +90,29 @@ class Component(Block, Serializable):
         """
         This method is deprecated. Please set these arguments in the Components constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the Components constructor instead."
-        )
+        warn_style_method_deprecation()
         put_deprecated_params_in_box = False
         if "rounded" in kwargs:
-            warnings.warn(
+            warn_deprecation(
                 "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
             )
             if isinstance(kwargs["rounded"], (list, tuple)):
                 put_deprecated_params_in_box = True
             kwargs.pop("rounded")
         if "margin" in kwargs:
-            warnings.warn(
+            warn_deprecation(
                 "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
             )
             if isinstance(kwargs["margin"], (list, tuple)):
                 put_deprecated_params_in_box = True
             kwargs.pop("margin")
         if "border" in kwargs:
-            warnings.warn(
+            warn_deprecation(
                 "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
             )
             kwargs.pop("border")
-        if len(kwargs):
-            for key in kwargs:
-                warnings.warn(f"Unknown style parameter: {key}")
+        for key in kwargs:
+            warn_deprecation(f"Unknown style parameter: {key}")
         if (
             put_deprecated_params_in_box
             and isinstance(self.parent, (Row, Column))
@@ -162,7 +159,7 @@ class IOComponent(Component):
         self.show_label = show_label
         self.container = container
         if scale is not None and scale != round(scale):
-            warnings.warn(
+            warn_deprecation(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
             )
         self.scale = scale
@@ -182,7 +179,7 @@ class IOComponent(Component):
             self.attach_load_event(load_fn, every)
 
     @staticmethod
-    def hash_file(file_path: str, chunk_num_blocks: int = 128) -> str:
+    def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
@@ -217,7 +214,7 @@ class IOComponent(Component):
             sha1.update(data.encode("utf-8"))
         return sha1.hexdigest()
 
-    def make_temp_copy_if_needed(self, file_path: str) -> str:
+    def make_temp_copy_if_needed(self, file_path: str | Path) -> str:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
         temp_dir = self.hash_file(file_path)

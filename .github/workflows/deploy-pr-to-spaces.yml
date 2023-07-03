@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     - name: Install pip
@@ -52,10 +52,10 @@ jobs:
         --gradio-version ${{ env.gradio_version }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
     - name: Comment On Release PR
-      uses: thollander/actions-comment-pull-request@v1
+      uses: thollander/actions-comment-pull-request@v2
       with:
         message: |
           All the demos for this PR have been deployed at ${{ env.SPACE_URL }}
-        comment_includes: All the demos for this PR have been deployed at
+        comment_tag: All the demos for this PR have been deployed at
         GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
         pr_number: ${{ env.pr_number }}

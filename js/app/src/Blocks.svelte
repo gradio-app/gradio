@@ -7,6 +7,8 @@
 	import {
 		create_loading_status_store,
 		app_state,
+	} from "./stores";
+	import type {		
 		LoadingStatusCollection
 	} from "./stores";
 
@@ -29,20 +31,21 @@
 	setupi18n();
 
 	export let root: string;
-	export let components: Array<ComponentMeta>;
+	export let components: ComponentMeta[];
 	export let layout: LayoutNode;
-	export let dependencies: Array<Dependency>;
+	export let dependencies: Dependency[];
 
-	export let title: string = "Gradio";
-	export let analytics_enabled: boolean = false;
+	export let title = "Gradio";
+	export let analytics_enabled = false;
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
-	export let show_api: boolean = true;
-	export let show_footer: boolean = true;
+	export let show_api = true;
+	export let show_footer = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
 	export let app: Awaited<ReturnType<typeof client>>;
+	export let space_id: string | null;
 
 	let loading_status = create_loading_status_store();
 
@@ -94,7 +97,7 @@
 	function is_dep(
 		id: number,
 		type: "inputs" | "outputs",
-		deps: Array<Dependency>
+		deps: Dependency[]
 	) {
 		for (const dep of deps) {
 			for (const dep_item of dep[type]) {
@@ -133,7 +136,7 @@
 
 	type LoadedComponent = {
 		Component: ComponentMeta["component"];
-		modes?: Array<string>;
+		modes?: string[];
 		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
@@ -231,11 +234,16 @@
 		obj.props[prop] = val;
 		rootNode = rootNode;
 	}
-	let handled_dependencies: Array<number[]> = [];
+	let handled_dependencies: number[][] = [];
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	let _error_id = -1;
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
+
+	const DUPLICATE_MESSAGE =
+		"There is a long queue of requests pending. Duplicate this Space to skip.";
+	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
+	let showed_duplicate_message = false;
 
 	const trigger_api_call = async (
 		dep_index: number,
@@ -298,6 +306,25 @@
 						progress: status.progress_data,
 						fn_index
 					});
+					if (
+						!showed_duplicate_message &&
+						space_id !== null &&
+						status.position !== undefined &&
+						status.position >= 2 &&
+						status.eta !== undefined &&
+						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+					) {
+						showed_duplicate_message = true;
+						messages = [
+							{
+								type: "warning",
+								message: DUPLICATE_MESSAGE,
+								id: ++_error_id,
+								fn_index
+							},
+							...messages
+						];
+					}
 
 					if (status.stage === "complete") {
 						dependencies.map(async (dep, i) => {
@@ -388,7 +415,7 @@
 				.filter((v) => !!v && !!v[1])
 				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 					if (handled_dependencies[i]?.includes(id) || !instance) return;
-					instance?.$on(trigger, (event_data) => {
+					instance?.$on(trigger, (event_data: any) => {
 						trigger_api_call(i, event_data.detail);
 					});
 

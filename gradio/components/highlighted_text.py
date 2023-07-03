@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -11,6 +10,7 @@ from gradio_client.serializing import (
 )
 
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -197,9 +197,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         if color_map is not None:

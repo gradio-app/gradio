@@ -1,7 +1,7 @@
 {
 	"name": "@gradio/client",
-	"version": "0.1.2",
-	"description": "Gradio UI packages",
+	"version": "0.1.4",
+	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/index.js",
 	"author": "",
@@ -19,7 +19,7 @@
 	},
 	"devDependencies": {
 		"@types/ws": "^8.5.4",
-		"esbuild": "^0.17.14"
+		"esbuild": "^0.18.0"
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",

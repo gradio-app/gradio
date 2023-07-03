@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd "$(dirname ${0})/.."
-ruff gradio test client
-black --check gradio test client
+python -m ruff gradio test client
+python -m black --check gradio test client

@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
+import huggingface_hub
 import pytest
 import uvicorn
 from fastapi import FastAPI
@@ -730,18 +731,15 @@ class TestAPIInfo:
         }
 
     @pytest.mark.flaky
-    def test_fetch_old_version_space(self):
-        assert Client("freddyaboulton/calculator").view_api(return_format="dict") == {
+    def test_fetch_fixed_version_space(self):
+        assert Client("gradio-tests/calculator").view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
                     "parameters": [
                         {
                             "label": "num1",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -751,16 +749,13 @@ class TestAPIInfo:
                             "type": {"type": "string"},
                             "python_type": {"type": "str", "description": ""},
                             "component": "Radio",
-                            "example_input": "Howdy!",
+                            "example_input": "add",
                             "serializer": "StringSerializable",
                         },
                         {
                             "label": "num2",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -770,10 +765,7 @@ class TestAPIInfo:
                         {
                             "label": "output",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Number",
                             "serializer": "NumberSerializable",
                         }
@@ -784,11 +776,16 @@ class TestAPIInfo:
         }
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
-        # This demo has no api_name
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="str")
             assert "fn_index=0" in info
             assert "api_name" not in info
+
+    def test_api_false_endpoints_do_not_appear(self, count_generator_demo):
+        with connect(count_generator_demo) as client:
+            info = client.view_api(return_format="dict")
+            assert len(info["named_endpoints"]) == 0
+            assert len(info["unnamed_endpoints"]) == 2
 
     def test_file_io(self, file_io_demo):
         with connect(file_io_demo) as client:
@@ -860,9 +857,12 @@ class TestEndpoints:
         ]
 
 
+cpu = huggingface_hub.SpaceHardware.CPU_BASIC
+
+
 class TestDuplication:
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_new_space_id(self, mock_init, mock_runtime):
         Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
@@ -879,7 +879,39 @@ class TestDuplication:
         )
 
     @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware="cpu"))
+    @patch("gradio_client.utils.set_space_timeout")
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_dont_set_timeout_if_default_hardware(
+        self, mock_init, mock_runtime, mock_set_timeout
+    ):
+        Client.duplicate("gradio/calculator", "test", hf_token=HF_TOKEN)
+        mock_set_timeout.assert_not_called()
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.request_space_hardware")
+    @patch("gradio_client.utils.set_space_timeout")
+    @patch(
+        "huggingface_hub.get_space_runtime",
+        return_value=MagicMock(hardware=huggingface_hub.SpaceHardware.CPU_UPGRADE),
+    )
+    @patch("gradio_client.client.Client.__init__", return_value=None)
+    def test_set_timeout_if_not_default_hardware(
+        self, mock_init, mock_runtime, mock_set_timeout, mock_request_hardware
+    ):
+        Client.duplicate(
+            "gradio/calculator",
+            "test",
+            hf_token=HF_TOKEN,
+            hardware="cpu-upgrade",
+            sleep_timeout=15,
+        )
+        mock_set_timeout.assert_called_once_with(
+            "gradio-tests/test", hf_token=HF_TOKEN, timeout_in_seconds=15 * 60
+        )
+
+    @pytest.mark.flaky
+    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
     @patch("gradio_client.client.Client.__init__", return_value=None)
     def test_default_space_id(self, mock_init, mock_runtime):
         Client.duplicate("gradio/calculator", hf_token=HF_TOKEN)

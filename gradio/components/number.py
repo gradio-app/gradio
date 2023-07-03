@@ -136,6 +136,7 @@ class Number(
         minimum: float | None = None,
         maximum: float | None = None,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -145,6 +146,7 @@ class Number(
     ):
         return {
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,

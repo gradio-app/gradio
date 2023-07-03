@@ -22,7 +22,7 @@ class LinePlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots, live_dashboard
+    Demos: line_plot, live_dashboard
     """
 
     def __init__(
@@ -40,8 +40,30 @@ class LinePlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         stroke_dash_legend_title: str | None = None,
-        color_legend_position: str | None = None,
-        stroke_dash_legend_position: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
+        stroke_dash_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
         height: int | None = None,
         width: int | None = None,
         x_lim: list[int] | None = None,
@@ -141,8 +163,30 @@ class LinePlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         stroke_dash_legend_title: str | None = None,
-        color_legend_position: str | None = None,
-        stroke_dash_legend_position: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
+        stroke_dash_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
         height: int | None = None,
         width: int | None = None,
         x_lim: list[int] | None = None,
@@ -248,8 +292,30 @@ class LinePlot(Plot):
         y_title: str | None = None,
         color_legend_title: str | None = None,
         stroke_dash_legend_title: str | None = None,
-        color_legend_position: str | None = None,
-        stroke_dash_legend_position: str | None = None,
+        color_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
+        stroke_dash_legend_position: Literal[
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "none",
+        ]
+        | None = None,
         height: int | None = None,
         width: int | None = None,
         x_lim: list[int] | None = None,

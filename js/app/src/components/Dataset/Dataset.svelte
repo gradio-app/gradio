@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import { createEventDispatcher } from "svelte";
-	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
+	import type { SvelteComponent, ComponentType } from "svelte";
 	import { component_map } from "./directory";
 	import type { SelectData } from "@gradio/utils";
 
@@ -16,7 +16,7 @@
 	export let root: string;
 	export let root_url: null | string;
 	export let samples_per_page: number = 10;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
@@ -73,9 +73,7 @@
 	$: component_meta = selected_samples.map((sample_row) =>
 		sample_row.map((sample_cell, j) => ({
 			value: sample_cell,
-			component: component_map[
-				components[j]
-			] as ComponentType<SvelteComponentDev>
+			component: component_map[components[j]] as ComponentType<SvelteComponent>
 		}))
 	);
 </script>

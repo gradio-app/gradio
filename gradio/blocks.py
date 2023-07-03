@@ -32,10 +32,15 @@ from gradio import (
     strings,
     themes,
     utils,
+    wasm_utils,
 )
 from gradio.context import Context
-from gradio.deprecation import check_deprecated_parameters
-from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
+from gradio.deprecation import check_deprecated_parameters, warn_deprecation
+from gradio.exceptions import (
+    DuplicateBlockError,
+    InvalidApiNameError,
+    InvalidBlockError,
+)
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -100,9 +105,7 @@ class Block:
 
         if render:
             self.render()
-        check_deprecated_parameters(
-            self.__class__.__name__, stacklevel=6, kwargs=kwargs
-        )
+        check_deprecated_parameters(self.__class__.__name__, kwargs=kwargs)
 
     def render(self):
         """
@@ -164,7 +167,7 @@ class Block:
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: str = "full",
-        api_name: str | None = None,
+        api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
         queue: bool | None = None,
@@ -187,7 +190,7 @@ class Block:
             postprocess: whether to run the postprocess methods of components
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
-            api_name: Defining this parameter exposes the endpoint in the api docs
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
             js: Experimental parameter (API may change): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -253,7 +256,7 @@ class Block:
                 progress_index is not None,
             )
         )
-        if api_name is not None:
+        if api_name is not None and api_name is not False:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
@@ -399,7 +402,7 @@ class BlockFunction:
     def spaces_auto_wrap(self):
         if spaces is None:
             return
-        if not utils.is_space():
+        if utils.get_space() is None:
             return
         self.fn = spaces.gradio_auto_wrap(self.fn)
 
@@ -602,9 +605,13 @@ def get_api_info(config: dict, serialize: bool = True):
 
         if skip_endpoint:
             continue
-        if dependency["api_name"]:
+        if dependency["api_name"] is not None and dependency["api_name"] is not False:
             api_info["named_endpoints"][f"/{dependency['api_name']}"] = dependency_info
-        elif mode == "interface" or mode == "tabbed_interface":
+        elif (
+            dependency["api_name"] is False
+            or mode == "interface"
+            or mode == "tabbed_interface"
+        ):
             pass  # Skip unnamed endpoints in interface mode
         else:
             api_info["unnamed_endpoints"][str(d)] = dependency_info
@@ -665,9 +672,7 @@ class Blocks(BlockContext):
             title: The tab title to display when this is opened in a browser window.
             css: custom css or path to custom css file to apply to entire Blocks
         """
-        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
-        self.save_to = None
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
@@ -718,7 +723,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.is_space = utils.is_space()
+        self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
@@ -741,7 +746,7 @@ class Blocks(BlockContext):
         self.root_path = ""
         self.root_urls = set()
 
-        if self.analytics_enabled:
+        if not wasm_utils.IS_WASM and self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
@@ -913,7 +918,7 @@ class Blocks(BlockContext):
             dependency_offset = len(Context.root_block.dependencies)
             for i, dependency in enumerate(self.dependencies):
                 api_name = dependency["api_name"]
-                if api_name is not None:
+                if api_name is not None and api_name is not False:
                     api_name_ = utils.append_unique_suffix(
                         api_name,
                         [dep["api_name"] for dep in Context.root_block.dependencies],
@@ -1115,7 +1120,12 @@ class Blocks(BlockContext):
         processed_input = []
 
         for i, input_id in enumerate(dependency["inputs"]):
-            block = self.blocks[input_id]
+            try:
+                block = self.blocks[input_id]
+            except KeyError as e:
+                raise InvalidBlockError(
+                    f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                ) from e
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {input_id} not a valid input component."
@@ -1129,7 +1139,12 @@ class Blocks(BlockContext):
         predictions = []
 
         for o, output_id in enumerate(dependency["outputs"]):
-            block = self.blocks[output_id]
+            try:
+                block = self.blocks[output_id]
+            except KeyError as e:
+                raise InvalidBlockError(
+                    f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                ) from e
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
@@ -1190,7 +1205,12 @@ Received inputs:
         if block_fn.preprocess:
             processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
+                try:
+                    block = self.blocks[input_id]
+                except KeyError as e:
+                    raise InvalidBlockError(
+                        f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                    ) from e
                 assert isinstance(
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
@@ -1268,7 +1288,14 @@ Received outputs:
                     "Number of output components does not match number "
                     f"of values returned from from function {block_fn.name}"
                 ) from err
-            block = self.blocks[output_id]
+
+            try:
+                block = self.blocks[output_id]
+            except KeyError as e:
+                raise InvalidBlockError(
+                    f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                ) from e
+
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
@@ -1384,7 +1411,7 @@ Received outputs:
             "components": [],
             "css": self.css,
             "title": self.title or "Gradio",
-            "is_space": self.is_space,
+            "space_id": self.space_id,
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
@@ -1448,7 +1475,7 @@ Received outputs:
         fn: Callable | None = None,
         inputs: list[Component] | None = None,
         outputs: list[Component] | None = None,
-        api_name: str | None = None,
+        api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
         show_progress: str = "full",
         queue=None,
@@ -1482,7 +1509,7 @@ Received outputs:
             fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: Instance Method - List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
-            api_name: Instance Method - Defining this parameter exposes the endpoint in the api docs
+            api_name: Instance Method - Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
             scroll_to_output: Instance Method - If True, will scroll to output component on completion
             show_progress: Instance Method - If True, will show progress animation while pending
             queue: Instance Method - If True, will place the request on the queue, if the queue exists
@@ -1502,7 +1529,9 @@ Received outputs:
             demo.launch()
         """
         if isinstance(self_or_cls, type):
-            warnings.warn("gr.Blocks.load() will be deprecated. Use gr.load() instead.")
+            warn_deprecation(
+                "gr.Blocks.load() will be deprecated. Use gr.load() instead."
+            )
             if name is None:
                 raise ValueError(
                     "Blocks.load() requires passing parameters as keyword arguments"
@@ -1571,14 +1600,16 @@ Received outputs:
             demo.launch()
         """
         if default_enabled is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The default_enabled parameter of queue has no effect and will be removed "
                 "in a future version of gradio."
             )
         self.enable_queue = True
         self.api_open = api_open
         if client_position_to_load_data is not None:
-            warnings.warn("The client_position_to_load_data parameter is deprecated.")
+            warn_deprecation(
+                "The client_position_to_load_data parameter is deprecated."
+            )
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
@@ -1725,17 +1756,16 @@ Received outputs:
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
-            warnings.warn(
-                "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
-                DeprecationWarning,
+            warn_deprecation(
+                "The `enable_queue` parameter has been deprecated. "
+                "Please use the `.queue()` method instead.",
             )
         if encrypt is not None:
-            warnings.warn(
+            warn_deprecation(
                 "The `encrypt` parameter has been deprecated and has no effect.",
-                DeprecationWarning,
             )
 
-        if self.is_space:
+        if self.space_id:
             self.enable_queue = self.enable_queue is not False
         else:
             self.enable_queue = self.enable_queue is True
@@ -1744,9 +1774,9 @@ Received outputs:
         self.show_api = self.api_open if self.enable_queue else show_api
 
         if file_directories is not None:
-            warnings.warn(
-                "The `file_directories` parameter has been renamed to `allowed_paths`. Please use that instead.",
-                DeprecationWarning,
+            warn_deprecation(
+                "The `file_directories` parameter has been renamed to `allowed_paths`. "
+                "Please use that instead.",
             )
             if allowed_paths is None:
                 allowed_paths = file_directories
@@ -1774,15 +1804,37 @@ Received outputs:
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            server_name, server_port, local_url, app, server = networking.start_server(
-                self,
-                server_name,
-                server_port,
-                ssl_keyfile,
-                ssl_certfile,
-                ssl_keyfile_password,
-                app_kwargs=app_kwargs,
-            )
+            if wasm_utils.IS_WASM:
+                server_name = "xxx"
+                server_port = 99999
+                local_url = ""
+                server = None
+
+                # In the Wasm environment, we only need the app object
+                # which the frontend app will directly communicate with through the Worker API,
+                # and we don't need to start a server.
+                # So we just create the app object and register it here,
+                # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
+                from gradio.routes import App
+
+                app = App.create_app(self, app_kwargs=app_kwargs)
+                wasm_utils.register_app(app)
+            else:
+                (
+                    server_name,
+                    server_port,
+                    local_url,
+                    app,
+                    server,
+                ) = networking.start_server(
+                    self,
+                    server_name,
+                    server_port,
+                    ssl_keyfile,
+                    ssl_certfile,
+                    ssl_keyfile_password,
+                    app_kwargs=app_kwargs,
+                )
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
@@ -1804,7 +1856,11 @@ Received outputs:
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
-            requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+            if not wasm_utils.IS_WASM:
+                requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+
+        if wasm_utils.IS_WASM:
+            return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
         utils.launch_counter()
 
@@ -1859,7 +1915,7 @@ Received outputs:
             )
 
         if self.share:
-            if self.is_space:
+            if self.space_id:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
@@ -1958,7 +2014,7 @@ Received outputs:
                 "show_tips": self.show_tips,
                 "server_name": server_name,
                 "server_port": server_port,
-                "is_spaces": self.is_space,
+                "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
             analytics.launched_analytics(self, data)
@@ -2039,7 +2095,8 @@ Received outputs:
         try:
             if self.enable_queue:
                 self._queue.close()
-            self.server.close()
+            if self.server:
+                self.server.close()
             self.is_running = False
             # So that the startup events (starting the queue)
             # happen the next time the app is launched
@@ -2058,7 +2115,8 @@ Received outputs:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
-            self.server.close()
+            if self.server:
+                self.server.close()
             for tunnel in CURRENT_TUNNELS:
                 tunnel.kill()
 

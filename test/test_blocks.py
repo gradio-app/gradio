@@ -27,6 +27,7 @@ from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
+from gradio.blocks import get_api_info
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -211,9 +212,24 @@ class TestBlocksMethods:
     @mock.patch("requests.post")
     def test_initiated_analytics(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        with gr.Blocks(analytics_enabled=True):
+        with gr.Blocks():
             pass
         mock_post.assert_called_once()
+
+    @mock.patch("requests.post")
+    def test_launch_analytics_does_not_error_with_invalid_blocks(
+        self, mock_post, monkeypatch
+    ):
+        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
+        with gr.Blocks():
+            t1 = gr.Textbox()
+
+        with gr.Blocks() as demo:
+            t2 = gr.Textbox()
+            t2.change(lambda x: x, t2, t1)
+
+        demo.launch(prevent_thread_lock=True)
+        mock_post.assert_called()
 
     def test_show_error(self):
         with gr.Blocks() as demo:
@@ -1108,6 +1124,7 @@ class TestSpecificUpdate:
         )
         assert specific_update == {
             "lines": 4,
+            "info": None,
             "max_lines": None,
             "placeholder": None,
             "label": None,
@@ -1129,6 +1146,7 @@ class TestSpecificUpdate:
         assert specific_update == {
             "lines": 4,
             "max_lines": None,
+            "info": None,
             "placeholder": None,
             "label": None,
             "show_label": None,
@@ -1483,146 +1501,32 @@ class TestEvery:
         assert "At step 9" not in captured.out
 
 
-class TestProgressBar:
-    @pytest.mark.asyncio
-    async def test_progress_bar(self):
-        from tqdm import tqdm
-
+class TestGetAPIInfo:
+    def test_many_endpoints(self):
         with gr.Blocks() as demo:
-            name = gr.Textbox()
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
+            t1 = gr.Textbox()
+            t2 = gr.Textbox()
+            t3 = gr.Textbox()
+            t4 = gr.Textbox()
+            t5 = gr.Textbox()
+            t1.change(lambda x: x, t1, t2, api_name="change1")
+            t2.change(lambda x: x, t2, t3, api_name="change2")
+            t3.change(lambda x: x, t3, t4)
+            t4.change(lambda x: x, t4, t5, api_name=False)
 
-            def greet(s, prog=gr.Progress()):
-                prog(0, desc="start")
-                time.sleep(0.25)
-                for _ in prog.tqdm(range(4), unit="iter"):
-                    time.sleep(0.25)
-                time.sleep(1)
-                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
-                    time.sleep(0.25)
-                return f"Hello, {s}!"
+        api_info = get_api_info(demo.get_config_file())
+        assert len(api_info["named_endpoints"]) == 2
+        assert len(api_info["unnamed_endpoints"]) == 1
 
-            button.click(greet, name, greeting)
-        demo.queue(max_size=1).launch(prevent_thread_lock=True)
-
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
-        print(progress_updates)
-        assert progress_updates == [
-            [
-                {
-                    "index": None,
-                    "length": None,
-                    "unit": "steps",
-                    "progress": 0.0,
-                    "desc": "start",
-                }
-            ],
-            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-        ]
-
-    @pytest.mark.asyncio
-    async def test_progress_bar_track_tqdm(self):
-        from tqdm import tqdm
-
+    def test_no_endpoints(self):
         with gr.Blocks() as demo:
-            name = gr.Textbox()
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
+            t1 = gr.Textbox()
+            t2 = gr.Textbox()
+            t1.change(lambda x: x, t1, t2, api_name=False)
 
-            def greet(s, prog=gr.Progress(track_tqdm=True)):
-                prog(0, desc="start")
-                time.sleep(0.25)
-                for _ in prog.tqdm(range(4), unit="iter"):
-                    time.sleep(0.25)
-                time.sleep(1)
-                for _ in tqdm(["a", "b", "c"], desc="alphabet"):
-                    time.sleep(0.25)
-                return f"Hello, {s}!"
-
-            button.click(greet, name, greeting)
-        demo.queue(max_size=1).launch(prevent_thread_lock=True)
-
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            progress_updates = []
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if (
-                    msg["msg"] == "progress" and msg["progress_data"]
-                ):  # Ignore empty lists which sometimes appear on Windows
-                    progress_updates.append(msg["progress_data"])
-                if msg["msg"] == "process_completed":
-                    completed = True
-                    break
-        assert progress_updates == [
-            [
-                {
-                    "index": None,
-                    "length": None,
-                    "unit": "steps",
-                    "progress": 0.0,
-                    "desc": "start",
-                }
-            ],
-            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [
-                {
-                    "index": 0,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": "alphabet",
-                }
-            ],
-            [
-                {
-                    "index": 1,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": "alphabet",
-                }
-            ],
-            [
-                {
-                    "index": 2,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": "alphabet",
-                }
-            ],
-        ]
+        api_info = get_api_info(demo.get_config_file())
+        assert len(api_info["named_endpoints"]) == 0
+        assert len(api_info["unnamed_endpoints"]) == 0
 
 
 class TestAddRequests:

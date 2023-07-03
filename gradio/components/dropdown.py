@@ -9,6 +9,7 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import SimpleSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -22,13 +23,13 @@ set_documentation_group("component")
 
 @document()
 class Dropdown(
+    FormComponent,
     Changeable,
     Inputable,
     Selectable,
     Blurrable,
     IOComponent,
     SimpleSerializable,
-    FormComponent,
 ):
     """
     Creates a dropdown of choices from which entries can be selected.
@@ -43,7 +44,7 @@ class Dropdown(
         choices: list[str] | None = None,
         *,
         value: str | list[str] | Callable | None = None,
-        type: str = "value",
+        type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         max_choices: int | None = None,
         label: str | None = None,
@@ -124,8 +125,6 @@ class Dropdown(
             **kwargs,
         )
 
-        self.cleared_value = self.value or ([] if multiselect else "")
-
     def api_info(self) -> dict[str, dict | bool]:
         if self.multiselect:
             type = {
@@ -164,6 +163,7 @@ class Dropdown(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         choices: str | list[str] | None = None,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -175,6 +175,7 @@ class Dropdown(
         return {
             "choices": choices,
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,
@@ -235,9 +236,7 @@ class Dropdown(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if container is not None:
             self.container = container
         return self

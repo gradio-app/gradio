@@ -16,6 +16,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     Clearable,
@@ -59,11 +60,13 @@ class Image(
         shape: tuple[int, int] | None = None,
         height: int | None = None,
         width: int | None = None,
-        image_mode: str = "RGB",
+        image_mode: Literal[
+            "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+        ] = "RGB",
         invert_colors: bool = False,
-        source: str = "upload",
-        tool: str | None = None,
-        type: str = "numpy",
+        source: Literal["upload", "webcam", "canvas"] = "upload",
+        tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
+        type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
@@ -85,7 +88,7 @@ class Image(
             shape: (width, height) shape to crop and resize image when passed to function. If None, matches input image size. Pass None for either width or height to only crop and resize the other.
             height: Height of the displayed image in pixels.
             width: Width of the displayed image in pixels.
-            image_mode: "RGB" if color, or "L" if black and white.
+            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
             tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
@@ -387,9 +390,7 @@ class Image(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         if width is not None:

@@ -11,6 +11,7 @@
 	class:sr-only={!show_label}
 	class:float
 	class:hide-label={disable}
+	data-testid="block-label"
 >
 	<span>
 		<Icon />

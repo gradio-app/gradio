@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let gap: boolean = true;
 	export let min_width: number = 0;
 	export let elem_id: string = "";

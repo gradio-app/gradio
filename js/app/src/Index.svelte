@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "./css";
+	import { mount_css as default_mount_css } from "./css";
 
 	import type {
 		ComponentMeta,
@@ -23,7 +23,7 @@
 		theme: string;
 		title: string;
 		version: string;
-		is_space: boolean;
+		space_id: string | null;
 		is_colab: boolean;
 		show_api: boolean;
 		stylesheets?: string[];
@@ -58,9 +58,8 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { client, SpaceStatus } from "@gradio/client";
-
+	import { onMount, setContext } from "svelte";
+	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
 	import { Component as Loader } from "./components/StatusTracker";
@@ -75,6 +74,11 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
+
+	// These utilities are exported to be injectable for the Wasm version.
+	export let mount_css: typeof default_mount_css = default_mount_css;
+	export let client: ReturnType<typeof api_factory>["client"];
+	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
 
 	export let space: string | null;
 	export let host: string | null;
@@ -216,6 +220,8 @@
 		}
 	});
 
+	setContext("upload_files", upload_files);
+
 	$: loader_status =
 		!ready && status.load_status !== "error"
 			? "pending"
@@ -321,7 +327,7 @@
 		<Login
 			auth_message={config.auth_message}
 			root={config.root}
-			is_space={config.is_space}
+			space_id={space}
 			{app_mode}
 		/>
 	{:else if config && Blocks && css_ready}

@@ -6,7 +6,8 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+- Fix bug where space duplication would error if the demo has cpu-basic hardware by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4583](https://github.com/gradio-app/gradio/pull/4583)
+- Fixes and optimizations to URL/download functions by [@akx](https://github.com/akx) in [PR 4695](https://github.com/gradio-app/gradio/pull/4695)
 
 ## Breaking Changes:
 

@@ -13,8 +13,8 @@
 	export let subtitle: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let show_label: boolean = true;
-	export let mirror_webcam: boolean = false;
+	export let show_label = true;
+	export let mirror_webcam = false;
 	export let include_audio: boolean;
 	export let autoplay: boolean;
 
@@ -67,17 +67,19 @@
 {:else}
 	<ModifyUpload on:clear={handle_clear} />
 	{#if playable()}
-		<!-- svelte-ignore a11y-media-has-caption -->
-		<Player
-			{autoplay}
-			src={value.data}
-			subtitle={subtitle?.data}
-			on:play
-			on:pause
-			on:stop
-			on:end
-			mirror={mirror_webcam && source === "webcam"}
-		/>
+		{#key value?.data}
+			<Player
+				{autoplay}
+				src={value.data}
+				subtitle={subtitle?.data}
+				on:play
+				on:pause
+				on:stop
+				on:end
+				mirror={mirror_webcam && source === "webcam"}
+				{label}
+			/>
+		{/key}
 	{:else if value.size}
 		<div class="file-name">{value.name}</div>
 		<div class="file-size">

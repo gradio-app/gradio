@@ -11,7 +11,7 @@
 	export let value_is_output: boolean = false;
 	export let choices: Array<string>;
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let label: string = "Checkbox Group";
