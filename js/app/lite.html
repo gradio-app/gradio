@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <!-- An entrypoint for the Wasm version development -->
-<html
-	lang="en"
-	style="
-		margin: 0;
-		padding: 0;
-		min-height: 100%;
-		display: flex;
-		flex-direction: column;
-	"
->
+<html style="margin: 0; padding: 0; height: 100%;">
 	<head>
 		<meta charset="utf-8" />
 		<meta
@@ -17,27 +8,69 @@
 			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
 		/>
 
-		<script type="module" src="./src/lite/index.ts"></script>
-
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link
 			rel="preconnect"
 			href="https://fonts.gstatic.com"
 			crossorigin="anonymous"
 		/>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.6/iframeResizer.contentWindow.min.js"></script>
+
+		<script type="module" src="./src/lite/index.ts"></script>
 	</head>
 
-	<body
-		style="
-			width: 100%;
-			margin: 0;
-			padding: 0;
-			display: flex;
-			flex-direction: column;
-			flex-grow: 1;
-		"
-	>
+	<body style="margin: 0; padding: 0; height: 100%;">
 		<div id="gradio-app"></div>
+
+		<textarea id="code-input" cols="30" rows="10">
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+def upload_file(files):
+    file_paths = [file.name for file in files]
+    return file_paths
+
+with gr.Blocks() as demo:
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+
+    gr.File()
+
+    file_output = gr.File()
+    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
+    upload_button.upload(upload_file, upload_button, file_output)
+
+demo.launch()
+		</textarea>
+		<button id="exec-button">Execute</button>
+
+		<script type="module">  // type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
+			const code_input = document.getElementById("code-input");
+			const exec_button = document.getElementById("exec-button");
+
+			const initial_code = code_input.value;
+
+			const controller = createGradioApp({
+				target: document.getElementById("gradio-app"),
+				pyCode: initial_code,
+				info: true,
+				container: true,
+				isEmbed: false,
+				initialHeight: "300px",
+				eager: false,
+				themeMode: null,
+				autoScroll: false,
+				controlPageTitle: false,
+				appMode: true
+			});
+
+			exec_button.onclick = () => {
+				console.debug("exec_button.onclick");
+				controller.rerun(code_input.value);
+			}
+		</script>
 	</body>
 </html>
