@@ -65,6 +65,13 @@ public/build/
 test-results
 client/js/test.js
 .config/test.py
+
+# storybook
+storybook-static
+build-storybook.log
+js/storybook/theme.css
+
+# playwright
 .config/playwright
 !.config/playwright/index.html
 !.config/playwright/index.ts

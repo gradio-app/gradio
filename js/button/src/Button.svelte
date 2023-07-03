@@ -1,10 +1,10 @@
 <script lang="ts">
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
-	export let disabled: boolean = false;
+	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 </script>
