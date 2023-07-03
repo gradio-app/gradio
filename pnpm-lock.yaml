@@ -703,13 +703,13 @@ importers:
         version: 2.11.1
       svelte-vega:
         specifier: ^2.0.0
-        version: 2.0.0(svelte@3.59.2)(vega-lite@5.6.0)(vega@5.22.1)
+        version: 2.0.0(svelte@3.59.2)(vega-lite@5.12.0)(vega@5.22.1)
       vega:
         specifier: ^5.22.1
         version: 5.22.1
       vega-lite:
-        specifier: ^5.6.0
-        version: 5.6.0(vega@5.22.1)
+        specifier: ^5.12.0
+        version: 5.12.0(vega@5.22.1)
 
   js/table:
     dependencies:
@@ -7149,7 +7149,7 @@ packages:
     resolution: {integrity: sha512-VTWHOdwDyWbndGZnI0PQJY9DO7hgQlNubtCcCL6Wlypv5dU4vEsc4A1sX9TWMuvebEe4332SgsQQHzOdZ+guhQ==}
     dev: false
 
-  /svelte-vega@2.0.0(svelte@3.59.2)(vega-lite@5.6.0)(vega@5.22.1):
+  /svelte-vega@2.0.0(svelte@3.59.2)(vega-lite@5.12.0)(vega@5.22.1):
     resolution: {integrity: sha512-WnJM+hQNw15VAUtwT6oteog3+0KRw8i8K02gAB4VLM0RYs2NXxBZ1q/BdOvkl1XVnZytRVlLr1HQgxeZs7QwUA==}
     peerDependencies:
       svelte: ^3.54.0
@@ -7159,8 +7159,8 @@ packages:
       fast-deep-equal: 3.1.3
       svelte: 3.59.2
       vega: 5.22.1
-      vega-embed: 6.22.1(vega-lite@5.6.0)(vega@5.22.1)
-      vega-lite: 5.6.0(vega@5.22.1)
+      vega-embed: 6.22.1(vega-lite@5.12.0)(vega@5.22.1)
+      vega-lite: 5.12.0(vega@5.22.1)
     dev: false
 
   /svelte@3.57.0:
@@ -7581,7 +7581,7 @@ packages:
       - encoding
     dev: false
 
-  /vega-embed@6.22.1(vega-lite@5.6.0)(vega@5.22.1):
+  /vega-embed@6.22.1(vega-lite@5.12.0)(vega@5.22.1):
     resolution: {integrity: sha512-5a3SVhPwG5/Mz3JbcJV4WE38s/7AFrkANtPxoln7E8fbNLIbrurIennaAxB9+l0QOAg63lPSuJBNMUkM6yXvLA==}
     peerDependencies:
       vega: ^5.21.0
@@ -7593,9 +7593,9 @@ packages:
       tslib: 2.5.3
       vega: 5.22.1
       vega-interpreter: 1.0.5
-      vega-lite: 5.6.0(vega@5.22.1)
+      vega-lite: 5.12.0(vega@5.22.1)
       vega-schema-url-parser: 2.2.0
-      vega-themes: 2.13.0(vega-lite@5.6.0)(vega@5.22.1)
+      vega-themes: 2.13.0(vega-lite@5.12.0)(vega@5.22.1)
       vega-tooltip: 0.32.0
     dev: false
     bundledDependencies:
@@ -7617,11 +7617,22 @@ packages:
     resolution: {integrity: sha512-Gls93/+7tEJGE3kUuUnxrBIxtvaNeF01VIFB2Q2Of2hBIBvtHX74jcAdDtkh5UhhoYGD8Q1J30P5cqEBEwtPoQ==}
     dev: false
 
+  /vega-event-selector@3.0.1:
+    resolution: {integrity: sha512-K5zd7s5tjr1LiOOkjGpcVls8GsH/f2CWCrWcpKy74gTCp+llCdwz0Enqo013ZlGaRNjfgD/o1caJRt3GSaec4A==}
+    dev: false
+
   /vega-expression@5.0.0:
     resolution: {integrity: sha512-y5+c2frq0tGwJ7vYXzZcfVcIRF/QGfhf2e+bV1Z0iQs+M2lI1II1GPDdmOcMKimpoCVp/D61KUJDIGE1DSmk2w==}
     dependencies:
       '@types/estree': 0.0.50
       vega-util: 1.17.0
+    dev: false
+
+  /vega-expression@5.1.0:
+    resolution: {integrity: sha512-u8Rzja/cn2PEUkhQN3zUj3REwNewTA92ExrcASNKUJPCciMkHJEjESwFYuI6DWMCq4hQElQ92iosOAtwzsSTqA==}
+    dependencies:
+      '@types/estree': 1.0.0
+      vega-util: 1.17.2
     dev: false
 
   /vega-force@4.1.0:
@@ -7702,24 +7713,24 @@ packages:
       - encoding
     dev: false
 
-  /vega-lite@5.6.0(vega@5.22.1):
-    resolution: {integrity: sha512-aTjQk//SzL9ctHY4ItA8yZSGflHMWPJmCXEs8LeRlixuOaAbamZmeL8xNMbQpS/vAZQeFAqjcJ32Fuztz/oGww==}
-    engines: {node: '>=12'}
+  /vega-lite@5.12.0(vega@5.22.1):
+    resolution: {integrity: sha512-mc0vavCp77B7wJwfVbNrJTmFuAUAornyi1nTw7UjBOFlCY6S4FKpUH9OToYC1o8rzv8HZ+QAFjz6MzmxIWfH7A==}
+    engines: {node: '>=16'}
     hasBin: true
     peerDependencies:
-      vega: ^5.22.0
+      vega: ^5.24.0
     dependencies:
       '@types/clone': 2.1.1
       clone: 2.1.2
       fast-deep-equal: 3.1.3
       fast-json-stable-stringify: 2.1.0
       json-stringify-pretty-compact: 3.0.0
-      tslib: 2.4.0
+      tslib: 2.5.3
       vega: 5.22.1
-      vega-event-selector: 3.0.0
-      vega-expression: 5.0.0
-      vega-util: 1.17.0
-      yargs: 17.6.2
+      vega-event-selector: 3.0.1
+      vega-expression: 5.1.0
+      vega-util: 1.17.2
+      yargs: 17.7.2
     dev: false
 
   /vega-loader@4.5.0:
@@ -7814,14 +7825,14 @@ packages:
       d3-array: 3.1.1
     dev: false
 
-  /vega-themes@2.13.0(vega-lite@5.6.0)(vega@5.22.1):
+  /vega-themes@2.13.0(vega-lite@5.12.0)(vega@5.22.1):
     resolution: {integrity: sha512-SVr/YDqGhkVDO2bRS62TeGyr1dVuXaNLJNCu42b1tbcnnmX2m9cyaq8G6gcputPeibArvHT1MsTF7MUzboOIWg==}
     peerDependencies:
       vega: '*'
       vega-lite: '*'
     dependencies:
       vega: 5.22.1
-      vega-lite: 5.6.0(vega@5.22.1)
+      vega-lite: 5.12.0(vega@5.22.1)
     dev: false
 
   /vega-time@2.1.0:
@@ -8404,8 +8415,8 @@ packages:
       yargs-parser: 18.1.3
     dev: false
 
-  /yargs@17.6.2:
-    resolution: {integrity: sha512-1/9UrdHjDZc0eOU0HxOHoS78C69UD3JRMvzlJ7S79S2nTaWRA/whGCTV8o9e/N/1Va9YIV7Q4sOxD8VV4pCWOw==}
+  /yargs@17.7.1:
+    resolution: {integrity: sha512-cwiTb08Xuv5fqF4AovYacTFNxk62th7LKJ6BL9IGUpTJrWoU7/7WdQGTP2SjKf1dUNBGzDd28p/Yfs/GI6JrLw==}
     engines: {node: '>=12'}
     dependencies:
       cliui: 8.0.1
@@ -8417,8 +8428,8 @@ packages:
       yargs-parser: 21.1.1
     dev: false
 
-  /yargs@17.7.1:
-    resolution: {integrity: sha512-cwiTb08Xuv5fqF4AovYacTFNxk62th7LKJ6BL9IGUpTJrWoU7/7WdQGTP2SjKf1dUNBGzDd28p/Yfs/GI6JrLw==}
+  /yargs@17.7.2:
+    resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
     dependencies:
       cliui: 8.0.1
