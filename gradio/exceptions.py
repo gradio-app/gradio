@@ -19,6 +19,16 @@ class InvalidApiNameError(ValueError):
     pass
 
 
+class ServerFailedToStartError(Exception):
+    pass
+
+
+class InvalidBlockError(ValueError):
+    """Raised when an event in a Blocks contains a reference to a Block that is not in the original Blocks"""
+
+    pass
+
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 

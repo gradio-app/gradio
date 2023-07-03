@@ -7,15 +7,19 @@ import warnings
 from pathlib import Path
 from typing import Callable, Literal
 
-from ffmpy import FFmpeg
 from gradio_client import utils as client_utils
 from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import VideoSerializable
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
+
+if not wasm_utils.IS_WASM:
+    # TODO: Support ffmpeg on Wasm
+    from ffmpy import FFmpeg
 
 set_documentation_group("component")
 
@@ -37,17 +41,21 @@ class Video(
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} filepath to a video which is displayed, or a {Tuple[str, str]} where the first element is a filepath to a video and the second element is a filepath to a subtitle file.
+    Postprocessing: expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
     Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
     Demos: video_identity, video_subtitle
     """
 
     def __init__(
         self,
-        value: str | tuple[str, str | None] | Callable | None = None,
+        value: str
+        | Path
+        | tuple[str | Path, str | Path | None]
+        | Callable
+        | None = None,
         *,
         format: str | None = None,
-        source: str = "upload",
+        source: Literal["upload", "webcam"] = "upload",
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
@@ -133,7 +141,7 @@ class Video(
         | tuple[str, str | None]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
-        source: str | None = None,
+        source: Literal["upload", "webcam"] | None = None,
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
@@ -204,6 +212,10 @@ class Video(
             )
             if Path(output_file_name).exists():
                 return output_file_name
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "Video formatting is not supported in the Wasm mode."
+                )
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
@@ -212,6 +224,10 @@ class Video(
             return output_file_name
         elif not self.include_audio:
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "include_audio=False is not supported in the Wasm mode."
+                )
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
@@ -222,13 +238,12 @@ class Video(
             return str(file_name)
 
     def postprocess(
-        self, y: str | tuple[str, str | None] | None
+        self, y: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> tuple[FileData | None, FileData | None] | None:
         """
-        Processes a video to ensure that it is in the correct format before
-        returning it to the front end.
+        Processes a video to ensure that it is in the correct format before returning it to the front end.
         Parameters:
-            y: video data in either of the following formats: a tuple of (str video filepath, str subtitle filepath), or a string filepath or URL to an video file, or None.
+            y: video data in either of the following formats: a tuple of (video filepath, optional subtitle filepath), or just a filepath or URL to an video file, or None.
         Returns:
             a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
             - The first dictionary represents the video file and contains the following keys:
@@ -245,12 +260,15 @@ class Video(
 
         if y is None or y == [None, None] or y == (None, None):
             return None
-        if isinstance(y, str):
+        if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
         elif isinstance(y, (tuple, list)):
             assert (
                 len(y) == 2
             ), f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+            assert isinstance(y[0], (str, Path)) and isinstance(
+                y[1], (str, Path)
+            ), f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
             video = y[0]
             subtitle = y[1]
             processed_files = (
@@ -262,7 +280,7 @@ class Video(
 
         return processed_files
 
-    def _format_video(self, video: str | None) -> FileData | None:
+    def _format_video(self, video: str | Path | None) -> FileData | None:
         """
         Processes a video to ensure that it is in the correct format.
         Parameters:
@@ -276,6 +294,7 @@ class Video(
         """
         if video is None:
             return None
+        video = str(video)
         returned_format = video.split(".")[-1].lower()
         if self.format is None or returned_format == self.format:
             conversion_needed = False
@@ -301,6 +320,10 @@ class Video(
         # selected format
         returned_format = video.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "Returning a video in a different format is not supported in the Wasm mode."
+                )
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
             ff = FFmpeg(
                 inputs={video: None},
@@ -370,9 +393,7 @@ class Video(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         if width is not None:

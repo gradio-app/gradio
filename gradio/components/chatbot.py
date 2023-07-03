@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-import warnings
+from pathlib import Path
 from typing import Callable, Literal
 
 from gradio_client import utils as client_utils
@@ -12,6 +12,7 @@ from gradio_client.serializing import JSONSerializable
 
 from gradio import utils
 from gradio.components.base import IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
@@ -26,7 +27,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (string filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
+    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, a list of lists. The inner list should have 2 elements: the user message and the response message. Messages should be strings, tuples, or Nones. If the message is a string, it can include Markdown. If it is a tuple, it should consist of (filepath to image/video/audio, [optional string alt text]). Messages that are `None` are not displayed.
 
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
@@ -34,7 +35,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None]]
+        value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
         | None = None,
         color_map: dict[str, str] | None = None,
@@ -68,9 +69,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
         """
         if color_map is not None:
-            warnings.warn(
-                "The 'color_map' parameter has been deprecated.",
-            )
+            warn_deprecation("The 'color_map' parameter has been deprecated.")
         self.select: EventListenerMethod
         """
         Event listener for when the user selects message from Chatbot.
@@ -173,7 +172,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            file_uri = chat_message[0]
+            file_uri = str(chat_message[0])
             if utils.validate_url(file_uri):
                 filepath = file_uri
             else:
@@ -199,7 +198,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     ) -> list[list[str | dict | None]]:
         """
         Parameters:
-            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
+            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
         Returns:
             List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
         """
@@ -225,9 +224,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if height is not None:
             self.height = height
         return self

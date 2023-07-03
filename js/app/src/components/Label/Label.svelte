@@ -16,7 +16,7 @@
 	} = {};
 	export let label: string = "Label";
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -43,7 +43,7 @@
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}
 	{#if _label !== undefined && _label !== null}
-		<Label on:select {selectable} {value} {show_label} {color} />
+		<Label on:select {selectable} {value} {color} />
 	{:else}
 		<Empty unpadded_box={true}><LabelIcon /></Empty>
 	{/if}

@@ -2,13 +2,16 @@
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",
-		"lib": ["es2020", "DOM"],
+		"lib": [
+			"es2020",
+			"DOM"
+		],
 		"target": "es2020",
 		/**
 			svelte-preprocess cannot figure out whether you have a value or a type, so tell TypeScript
 			to enforce using \`import type\` instead of \`import\` for Types.
 			*/
-		"importsNotUsedAsValues": "error",
+		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		"strict": true,
@@ -19,16 +22,17 @@
 		"allowJs": true,
 		"checkJs": true,
 		"outDir": "dist",
-		"baseUrl": "."
+		"baseUrl": ".",
+		"paths": {
+			"./pure": ["./pure.js"]
+		}
 	},
 	"exclude": [
 		"**/dist/**/*",
 		"**/public/**/*",
-		"**/*.config.js",
+		"**/.config/**/*",
 		"**/*.test.ts",
 		"**/dist",
-		"**/workbench/**/*",
-		"**/Plot.svelte",
 		".github/**/*",
 		"**/demo/**/*",
 		"**/gradio/**/*",
@@ -39,8 +43,7 @@
 		"**/website/**/*",
 		"**/node_modules/**/*",
 		"**/venv/**/*",
-		"client/js/**",
-		"js/_spaces-test/**"
+		"client/js/**"
 	],
 	"include": [
 		"**/*.d.ts",

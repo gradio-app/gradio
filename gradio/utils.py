@@ -107,8 +107,10 @@ def ipython_check() -> bool:
     return is_ipython
 
 
-def is_space() -> bool:
-    return os.getenv("SYSTEM") == "spaces"
+def get_space() -> str | None:
+    if os.getenv("SYSTEM") == "spaces":
+        return os.getenv("SPACE_ID")
+    return None
 
 
 def readme_to_html(article: str) -> str:
@@ -930,3 +932,18 @@ HTML_TAG_RE = re.compile("<.*?>")
 
 def remove_html_tags(raw_html: str | None) -> str:
     return re.sub(HTML_TAG_RE, "", raw_html or "")
+
+
+def find_user_stack_level() -> int:
+    """
+    Find the first stack frame not inside Gradio.
+    """
+    frame = inspect.currentframe()
+    n = 0
+    while frame:
+        fname = inspect.getfile(frame)
+        if "/gradio/" not in fname.replace(os.sep, "/"):
+            break
+        frame = frame.f_back
+        n += 1
+    return n

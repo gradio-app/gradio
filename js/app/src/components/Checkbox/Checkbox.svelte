@@ -13,7 +13,7 @@
 	export let info: string | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let container: boolean = false;
-	export let scale: number = 1;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 </script>

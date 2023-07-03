@@ -9,6 +9,7 @@ import pkgutil
 import secrets
 import shutil
 import tempfile
+import warnings
 from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -193,15 +194,37 @@ class Communicator:
 ########################
 
 
-def is_valid_url(possible_url: str) -> bool:
+def is_http_url_like(possible_url: str) -> bool:
+    """
+    Check if the given string looks like an HTTP(S) URL.
+    """
+    return possible_url.startswith(("http://", "https://"))
+
+
+def probe_url(possible_url: str) -> bool:
+    """
+    Probe the given URL to see if it responds with a 200 status code (to HEAD, then to GET).
+    """
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        head_request = requests.head(possible_url, headers=headers)
-        if head_request.status_code == 405:
-            return requests.get(possible_url, headers=headers).ok
-        return head_request.ok
+        with requests.session() as sess:
+            head_request = sess.head(possible_url, headers=headers)
+            if head_request.status_code == 405:
+                return sess.get(possible_url, headers=headers).ok
+            return head_request.ok
     except Exception:
         return False
+
+
+def is_valid_url(possible_url: str) -> bool:
+    """
+    Check if the given string is a valid URL.
+    """
+    warnings.warn(
+        "is_valid_url should not be used. "
+        "Use is_http_url_like() and probe_url(), as suitable, instead.",
+    )
+    return is_http_url_like(possible_url) and probe_url(possible_url)
 
 
 async def get_pred_from_ws(
@@ -282,10 +305,10 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with requests.get(url_path, headers=headers, stream=True) as r, open(
-        file_path, "wb"
-    ) as f:
-        shutil.copyfileobj(r.raw, f)
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        r.raise_for_status()
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
     return str(file_path.resolve())
 
 
@@ -333,7 +356,9 @@ def encode_file_to_base64(f: str | Path):
 
 
 def encode_url_to_base64(url: str):
-    encoded_string = base64.b64encode(requests.get(url).content)
+    resp = requests.get(url)
+    resp.raise_for_status()
+    encoded_string = base64.b64encode(resp.content)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (
@@ -343,10 +368,9 @@ def encode_url_to_base64(url: str):
 
 def encode_url_or_file_to_base64(path: str | Path):
     path = str(path)
-    if is_valid_url(path):
+    if is_http_url_like(path):
         return encode_url_to_base64(path)
-    else:
-        return encode_file_to_base64(path)
+    return encode_file_to_base64(path)
 
 
 def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
@@ -444,13 +468,13 @@ def set_space_timeout(
         library_name="gradio_client",
         library_version=__version__,
     )
-    r = requests.post(
+    req = requests.post(
         f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
         json={"seconds": timeout_in_seconds},
         headers=headers,
     )
     try:
-        huggingface_hub.utils.hf_raise_for_status(r)
+        huggingface_hub.utils.hf_raise_for_status(req)
     except huggingface_hub.utils.HfHubHTTPError as err:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "

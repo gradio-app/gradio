@@ -4,18 +4,18 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
-	export let label: string = "Radio";
+	export let label = "Radio";
 	export let info: string | undefined = undefined;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: string | null = null;
-	export let value_is_output: boolean = false;
-	export let choices: Array<string> = [];
+	export let value_is_output = false;
+	export let choices: string[] = [];
 	export let mode: "static" | "dynamic";
 	export let show_label: boolean;
-	export let container: boolean = false;
-	export let scale: number = 1;
+	export let container = false;
+	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 </script>

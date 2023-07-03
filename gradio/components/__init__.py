@@ -2,8 +2,12 @@ from gradio.components.annotated_image import AnnotatedImage
 from gradio.components.audio import Audio
 from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
+    Column,
     Component,
+    Form,
+    FormComponent,
     IOComponent,
+    Row,
     _Keywords,
     component,
     get_component_instance,
@@ -19,6 +23,7 @@ from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
 from gradio.components.dropdown import Dropdown
+from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.file import File
 from gradio.components.gallery import Gallery
 from gradio.components.highlighted_text import HighlightedText
@@ -66,9 +71,13 @@ __all__ = [
     "CheckboxGroup",
     "Code",
     "ColorPicker",
+    "Column",
     "Dataframe",
     "DataFrame",
     "Dataset",
+    "DuplicateButton",
+    "Form",
+    "FormComponent",
     "Gallery",
     "HTML",
     "Image",
@@ -96,6 +105,7 @@ __all__ = [
     "Number",
     "Plot",
     "Radio",
+    "Row",
     "ScatterPlot",
     "Slider",
     "State",

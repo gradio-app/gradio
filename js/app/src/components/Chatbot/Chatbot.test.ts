@@ -1,6 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render, get_text } from "@gradio/tootils";
-import { tick } from "svelte";
 import Chatbot from "./Chatbot.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
 
@@ -19,7 +18,7 @@ describe.skip("Chatbot", () => {
 	afterEach(() => cleanup());
 
 	test("renders user and bot messages", async () => {
-		const { getAllByTestId } = render(Chatbot, {
+		const { getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "hello",
 			value: [["user message one", "bot message one"]],
@@ -37,7 +36,7 @@ describe.skip("Chatbot", () => {
 	});
 
 	test("renders additional message as they are passed", async () => {
-		const { component, getAllByTestId } = render(Chatbot, {
+		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "hello",
 			value: [["user message one", "bot message one"]],

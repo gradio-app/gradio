@@ -23,7 +23,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@gradio/client": "workspace:^0.1.2",
+		"@gradio/client": "workspace:^0.1.4",
 		"@gradio/form": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1"
 	}

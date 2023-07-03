@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import ListStringSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
 from gradio.interpretation import NeighborInterpretable
 
@@ -38,7 +38,7 @@ class CheckboxGroup(
         choices: list[str] | None = None,
         *,
         value: list[str] | str | Callable | None = None,
-        type: str = "value",
+        type: Literal["value", "index"] = "value",
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
@@ -70,7 +70,6 @@ class CheckboxGroup(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
-        self.cleared_value = []
         valid_types = ["value", "index"]
         if type not in valid_types:
             raise ValueError(
@@ -122,6 +121,7 @@ class CheckboxGroup(
         | None = _Keywords.NO_VALUE,
         choices: list[str] | None = None,
         label: str | None = None,
+        info: str | None = None,
         show_label: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
@@ -132,6 +132,7 @@ class CheckboxGroup(
         return {
             "choices": choices,
             "label": label,
+            "info": info,
             "show_label": show_label,
             "container": container,
             "scale": scale,
@@ -204,11 +205,9 @@ class CheckboxGroup(
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if item_container is not None:
-            warnings.warn("The `item_container` parameter is deprecated.")
+            warn_deprecation("The `item_container` parameter is deprecated.")
         if container is not None:
             self.container = container
         return self

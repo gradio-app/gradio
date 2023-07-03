@@ -6,6 +6,9 @@ declare global {
 		gradio_config: Config;
 		scoped_css_attach: (link: HTMLLinkElement) => void;
 		__is_colab__: boolean;
+		parentIFrame?: {
+			scrollTo: (x: number, y: number) => void;
+		};
 	}
 }
 
@@ -23,7 +26,7 @@ export interface Config {
 	theme: string;
 	title: string;
 	version: string;
-	is_space: boolean;
+	space_id: string | null;
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];

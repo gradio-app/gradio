@@ -7,12 +7,13 @@ import ast
 import csv
 import inspect
 import os
+import shutil
 import subprocess
 import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,6 +49,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
+    api_name: str | None | Literal[False] = False,
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -64,6 +66,7 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
+        api_name=api_name,
         batch=batch,
         _initiated_directly=False,
     )
@@ -97,6 +100,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
+        api_name: str | None | Literal[False] = False,
         batch: bool = False,
         _initiated_directly: bool = True,
     ):
@@ -113,6 +117,7 @@ class Examples:
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string, None, or False. If False (default), the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
         """
         if _initiated_directly:
@@ -195,6 +200,7 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
+        self.api_name = api_name
         self.batch = batch
 
         with utils.set_directory(working_directory):
@@ -263,7 +269,7 @@ class Examples:
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
-                api_name="load_example",
+                api_name=self.api_name,  # type: ignore
             )
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
@@ -547,15 +553,17 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if not hasattr(root_blocks, "_progress_tracker_per_thread"):
         root_blocks._progress_tracker_per_thread = {}
 
-    def init_tqdm(self, iterable=None, desc=None, *args, **kwargs):
+    def init_tqdm(
+        self, iterable=None, desc=None, total=None, unit="steps", *args, **kwargs
+    ):
         self._progress = root_blocks._progress_tracker_per_thread.get(
             threading.get_ident()
         )
         if self._progress is not None:
             self._progress.event_id = event_id
-            self._progress.tqdm(iterable, desc, _tqdm=self)
+            self._progress.tqdm(iterable, desc, total, unit, _tqdm=self)
             kwargs["file"] = open(os.devnull, "w")  # noqa: SIM115
-        self.__init__orig__(iterable, desc, *args, **kwargs)
+        self.__init__orig__(iterable, desc, total, *args, unit=unit, **kwargs)
 
     def iter_tqdm(self):
         if self._progress is not None:
@@ -722,7 +730,7 @@ def make_waveform(
     bars_color: str | tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
     bar_width: float = 0.6,
-):
+) -> str:
     """
     Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
     Parameters:
@@ -734,7 +742,7 @@ def make_waveform(
         bar_count: Number of bars in waveform
         bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
     Returns:
-        A filepath to the output video.
+        A filepath to the output video in mp4 format.
     """
     if isinstance(audio, str):
         audio_file = audio
@@ -743,6 +751,14 @@ def make_waveform(
         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name, format="wav")
         audio_file = tmp_wav.name
+
+    if not os.path.isfile(audio_file):
+        raise ValueError("Audio file not found.")
+
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("ffmpeg not found.")
+
     duration = round(len(audio[1]) / audio[0], 4)
 
     # Helper methods to create waveform
@@ -828,9 +844,23 @@ def make_waveform(
     # Convert waveform to video with ffmpeg
     output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
 
-    ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1" -t {duration} -y {output_mp4.name}"""
+    ffmpeg_cmd = [
+        ffmpeg,
+        "-loop",
+        "1",
+        "-i",
+        tmp_img.name,
+        "-i",
+        audio_file,
+        "-vf",
+        f"color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1",
+        "-t",
+        str(duration),
+        "-y",
+        output_mp4.name,
+    ]
 
-    subprocess.call(ffmpeg_cmd, shell=True)
+    subprocess.check_call(ffmpeg_cmd)
     return output_mp4.name
 
 

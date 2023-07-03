@@ -1,5 +1,17 @@
 # @gradio/client
 
+## 0.1.4
+
+### Patch Changes
+
+- [#4717](https://github.com/gradio-app/gradio/pull/4717) [`ab5d1ea0`](https://github.com/gradio-app/gradio/commit/ab5d1ea0de87ed888779b66fd2a705583bd29e02) Thanks [@whitphx](https://github.com/whitphx)! - Fix the package description
+
+## 0.1.3
+
+### Patch Changes
+
+- [#4357](https://github.com/gradio-app/gradio/pull/4357) [`0dbd8f7f`](https://github.com/gradio-app/gradio/commit/0dbd8f7fee4b4877f783fa7bc493f98bbfc3d01d) Thanks [@pngwn](https://github.com/pngwn)! - Various internal refactors and cleanups.
+
 ## 0.1.2
 
 ### Patch Changes

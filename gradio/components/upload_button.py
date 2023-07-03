@@ -12,6 +12,7 @@ from gradio_client.serializing import FileSerializable
 
 from gradio import utils
 from gradio.components.base import Component, IOComponent, _Keywords
+from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import Clickable, Uploadable
 
 set_documentation_group("component")
@@ -34,14 +35,14 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         *,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        type: str = "file",
-        file_count: str = "single",
+        type: Literal["file", "bytes"] = "file",
+        file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
         **kwargs,
     ):
@@ -108,7 +109,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         | list[str]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
-        size: Literal["sm"] | Literal["lg"] | None = None,
+        size: Literal["sm", "lg"] | None = None,
         variant: Literal["primary", "secondary", "stop"] | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
@@ -198,12 +199,11 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         """
         This method is deprecated. Please set these arguments in the constructor instead.
         """
-        warnings.warn(
-            "The `style` method is deprecated. Please set these arguments in the constructor instead."
-        )
+        warn_style_method_deprecation()
         if full_width is not None:
-            warnings.warn(
-                "Use `scale` in place of full_width in the constructor. scale=1 will make the button expand, whereas 0 will not."
+            warn_deprecation(
+                "Use `scale` in place of full_width in the constructor. "
+                "scale=1 will make the button expand, whereas 0 will not."
             )
             self.scale = 1 if full_width else None
         if size is not None:
