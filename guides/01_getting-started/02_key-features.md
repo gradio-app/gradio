@@ -33,7 +33,7 @@ You can also issue `gr.Warning("message")` and `gr.Info("message")` by having th
 
 Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
 
-```
+```python
 def start_process(name):
     gr.Info("Starting process")
     if name is None:
