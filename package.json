@@ -25,6 +25,9 @@
 		"test:browser:dev": "pnpm --filter @gradio/app test:browser:dev",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
 		"ci:version": "changeset version && pnpm i --lockfile-only",
+		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
+		"build-storybook": "storybook build --config-dir js/storybook",
+		"chromatic": "chromatic --exit-zero-on-changes",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts"
 	},
 	"type": "module",
@@ -81,8 +84,24 @@
 		"vitest": "^0.32.0"
 	},
 	"devDependencies": {
+		"@storybook/addon-a11y": "^7.0.24",
+		"@storybook/addon-essentials": "^7.0.23",
+		"@storybook/addon-interactions": "^7.0.23",
+		"@storybook/addon-links": "^7.0.23",
+		"@storybook/addon-styling": "^1.3.1",
+		"@storybook/addon-svelte-csf": "^3.0.3",
+		"@storybook/blocks": "^7.0.23",
+		"@storybook/manager-api": "^7.0.23",
+		"@storybook/svelte": "^7.0.23",
+		"@storybook/svelte-vite": "^7.0.23",
+		"@storybook/testing-library": "^0.0.14-next.2",
+		"@storybook/theming": "^7.0.23",
 		"@playwright/test": "^1.35.1",
-		"@types/three": "^0.152.0"
+		"@types/three": "^0.152.0",
+		"chromatic": "^6.19.9",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"storybook": "^7.0.23"
 	},
 	"prettier": {
 		"useTabs": true,
