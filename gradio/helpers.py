@@ -918,7 +918,7 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
 
 
 @document()
-def Warning(message: str = "Warning issued."):
+def Warning(message: str = "Warning issued."):  # noqa: N802
     """
     This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
     Parameters:
@@ -928,7 +928,8 @@ def Warning(message: str = "Warning issued."):
 
 
 @document()
-def Info(message: str = "Info issued."):
+def Info(message: str = "Info issued."):  # noqa: N802
+
     """
     Parameters:
         message: The info message to be displayed to the user.
