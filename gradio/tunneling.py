@@ -16,7 +16,6 @@ machine = platform.machine()
 if machine == "x86_64":
     machine = "amd64"
 
-# Check if the file exist
 BINARY_REMOTE_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
 EXTENSION = ".exe" if os.name == "nt" else ""
 BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
