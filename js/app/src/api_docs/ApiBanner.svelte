@@ -10,12 +10,12 @@
 </script>
 
 <h2>
+	<img src={api_logo} alt="" />
 	<div>
-		<img src={api_logo} alt="" />
-		API documentation for
-		<span class="url">
+		API documentation
+		<div class="url">
 			{root}
-		</span>
+		</div>
 	</div>
 	<span class="counts">
 		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
@@ -42,6 +42,7 @@
 
 	.url {
 		color: var(--color-accent);
+		font-weight: normal;
 	}
 
 	button {
