@@ -58,9 +58,7 @@ def decode_base64_to_image(encoding: str) -> Image.Image:
     image_encoded = extract_base64_data(encoding)
     img = Image.open(BytesIO(base64.b64decode(image_encoded)))
     try:
-        exif = img.getexif()
-        # 274 is the code for image rotation and 1 means "correct orientation"
-        if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+        if hasattr(ImageOps, "exif_transpose"):
             img = ImageOps.exif_transpose(img)
     except Exception:
         log.warning(
