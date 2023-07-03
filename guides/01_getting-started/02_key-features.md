@@ -31,6 +31,18 @@ You wish to pass custom error messages to the user. To do so, raise a `gr.Error(
 
 You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work. 
 
+Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
+
+```
+def start_process(name):
+    gr.Info("Starting process")
+    if name is None:
+        gr.Warning("Name is empty")
+    ...
+    if success == False:
+        raise gr.Error("Process failed")
+```
+  
 ## Descriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
