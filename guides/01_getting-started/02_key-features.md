@@ -25,10 +25,24 @@ You can load a large dataset into the examples to browse and interact with the d
 
 Continue learning about examples in the [More On Examples](https://gradio.app/more-on-examples) guide.
 
-## Errors
+## Alerts
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error). 
 
+You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work. 
+
+Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
+
+```python
+def start_process(name):
+    gr.Info("Starting process")
+    if name is None:
+        gr.Warning("Name is empty")
+    ...
+    if success == False:
+        raise gr.Error("Process failed")
+```
+  
 ## Descriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
@@ -281,4 +295,5 @@ Note: using batch functions with Gradio **requires** you to enable queuing in th
 
 ## Colab Notebooks
 
-Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](/guides/sharing-your-app/#sharing-demos). 
+
+Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](https://gradio.app/guides/sharing-your-app/#sharing-demos). 
