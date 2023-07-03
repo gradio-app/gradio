@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -24,6 +25,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
+log = logging.getLogger(__name__)
 
 #########################
 # GENERAL
@@ -55,10 +57,17 @@ def extract_base64_data(x: str) -> str:
 def decode_base64_to_image(encoding: str) -> Image.Image:
     image_encoded = extract_base64_data(encoding)
     img = Image.open(BytesIO(base64.b64decode(image_encoded)))
-    exif = img.getexif()
-    # 274 is the code for image rotation and 1 means "correct orientation"
-    if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
-        img = ImageOps.exif_transpose(img)
+    try:
+        exif = img.getexif()
+        # 274 is the code for image rotation and 1 means "correct orientation"
+        if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+            img = ImageOps.exif_transpose(img)
+    except Exception:
+        log.warning(
+            "Failed to transpose image %s based on EXIF data.",
+            img,
+            exc_info=True,
+        )
     return img
 
 
