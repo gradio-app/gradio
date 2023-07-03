@@ -1,5 +1,5 @@
 import "@gradio/theme";
-import { WorkerProxy } from "@gradio/wasm";
+import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
 import { wasm_proxied_mount_css } from "./css";
@@ -34,6 +34,7 @@ interface GradioAppController {
 
 interface Options {
 	target: HTMLElement;
+	files?: WorkerProxyOptions["files"];
 	pyCode: string;
 	info: boolean;
 	container: boolean;
@@ -57,6 +58,7 @@ export function create(options: Options): GradioAppController {
 	const worker_proxy = new WorkerProxy({
 		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
+		files: options.files ?? {},
 		requirements: []
 	});
 
