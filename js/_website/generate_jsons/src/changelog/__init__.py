@@ -2,8 +2,9 @@ import os
 import json
 import re
 
-GRADIO_DIR = "../../../"
-CHANGELOG_FILE = os.path.join(GRADIO_DIR, "CHANGELOG.md")
+DIR = os.path.dirname(__file__)
+CHANGELOG_FILE = os.path.abspath(os.path.join(DIR, "../../../../../CHANGELOG.md"))
+
 
 def clean():
     with open(CHANGELOG_FILE, "r") as change_file:

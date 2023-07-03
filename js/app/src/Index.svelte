@@ -210,7 +210,6 @@
 			status: "running",
 			detail: "RUNNING"
 		};
-		console.log("Index wrapper: ", wrapper);
 
 		window.__is_colab__ = config.is_colab;
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	export let wrapper: HTMLDivElement;
 	export let version: string;
@@ -10,11 +9,6 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
-
-	onMount(() => {
-		console.log("boo");
-		console.log("Embed wrapper: ", wrapper);
-	});
 </script>
 
 <div

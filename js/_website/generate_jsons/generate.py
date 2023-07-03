@@ -14,8 +14,6 @@ def get_latest_release():
             "version": requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
             }, j)
         
-print(make_dir(WEBSITE_DIR, "src/routes/guides/json/") + "/")
-
 demos.generate(make_dir(WEBSITE_DIR, "src/routes/demos/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/routes/guides/json/") + "/")
 docs.generate(make_dir(WEBSITE_DIR, "src/routes/docs/docs.json"))
