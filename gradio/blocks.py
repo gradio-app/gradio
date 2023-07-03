@@ -1944,8 +1944,8 @@ Received outputs:
                         strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
                             BINARY_PATH,
                             BINARY_URL,
-                            BINARY_FOLDER,
                             BINARY_FILENAME,
+                            BINARY_FOLDER,
                         )
                     )
         else:

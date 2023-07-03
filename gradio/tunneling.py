@@ -21,7 +21,7 @@ EXTENSION = ".exe" if os.name == "nt" else ""
 BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
-BINARY_FOLDER = str(Path(__file__).parent)
+BINARY_FOLDER = Path(__file__).parent
 BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
 
 
