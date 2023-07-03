@@ -1,13 +1,13 @@
 import gradio as gr
 
 component = gr.Textbox(lines=5, label="Text")
-api = gr.load("huggingface/EleutherAI/gpt-j-6B")
+api = gr.load("huggingface/gpt2-xl")
 
 demo = gr.Interface(
     fn=lambda x: x[:-50] + api(x[-50:]),
     inputs=component,
     outputs=component,
-    title="GPT-J-6B",
+    title="gpt2-xl",
 )
 
 if __name__ == "__main__":
