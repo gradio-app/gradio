@@ -37,21 +37,20 @@ export const uploadToHuggingFace = async (
 	const file = new File([blob], filename, { type: contentType });
 
 	// Send file to endpoint
-	const uploadResponse = await fetch(
-		"https://huggingface.co/uploads",
-		{
-			method: "POST",
-			body: file,
-			headers: {
-				"Content-Type": file.type,
-				"X-Requested-With": "XMLHttpRequest"
-			}
+	const uploadResponse = await fetch("https://huggingface.co/uploads", {
+		method: "POST",
+		body: file,
+		headers: {
+			"Content-Type": file.type,
+			"X-Requested-With": "XMLHttpRequest"
 		}
-	);
+	});
 
 	// Check status of response
 	if (!uploadResponse.ok) {
-		if (uploadResponse.headers.get("content-type")?.includes("application/json")) {
+		if (
+			uploadResponse.headers.get("content-type")?.includes("application/json")
+		) {
 			const error = await uploadResponse.json();
 			throw new ShareError(`Upload failed: ${error.error}`);
 		}

@@ -4,7 +4,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { ShareData } from "@gradio/utils";
 	import { ShareError } from "@gradio/utils";
-``
+	``;
 	const dispatch = createEventDispatcher<{
 		share: ShareData;
 		error: string;
@@ -27,10 +27,10 @@
 				description: formatted
 			});
 		} catch (e) {
-			console.error(e)
+			console.error(e);
 			let message = e instanceof ShareError ? e.message : "Share failed";
 			dispatch("error", message);
-        } finally {
+		} finally {
 			pending = false;
 		}
 	}}

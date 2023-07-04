@@ -371,10 +371,10 @@
 
 	.grid-container {
 		display: grid;
+		position: relative;
 		grid-template-rows: var(--grid-rows);
 		grid-template-columns: var(--grid-cols);
 		gap: var(--spacing-lg);
-		position: relative;
 	}
 	@media (--screen-sm) {
 		.grid-container {

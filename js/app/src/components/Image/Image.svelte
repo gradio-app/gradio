@@ -90,7 +90,7 @@
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";
-				dispatch("error", detail)
+				dispatch("error", detail);
 			}}
 			{label}
 			{show_label}
