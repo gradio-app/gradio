@@ -1,0 +1,59 @@
+{
+	"/": [
+		"src/routes/+page.server.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/changelog": [
+		"src/routes/changelog/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/demos": [
+		"src/routes/demos/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs": [
+		"src/routes/docs/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/block-layouts": [
+		"src/routes/docs/block-layouts/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/combining-interfaces": [
+		"src/routes/docs/combining-interfaces/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/components": [
+		"src/routes/docs/components/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/flagging": [
+		"src/routes/docs/flagging/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/js-client": [
+		"src/routes/docs/js-client/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/python-client": [
+		"src/routes/docs/python-client/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/themes": [
+		"src/routes/docs/themes/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/docs/[doc=valid_doc]": [
+		"src/routes/docs/[doc=valid_doc]/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/guides": [
+		"src/routes/guides/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/guides/[guide=valid_guide]": [
+		"src/routes/guides/[guide=valid_guide]/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	]
+}

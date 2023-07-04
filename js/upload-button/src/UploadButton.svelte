@@ -14,6 +14,7 @@
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
+	export let label: string;
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -87,6 +88,7 @@
 	multiple={file_count === "multiple" || undefined}
 	webkitdirectory={file_count === "directory" || undefined}
 	mozdirectory={file_count === "directory" || undefined}
+	data-testid="{label}-upload-button"
 />
 
 <Button

@@ -72,6 +72,7 @@
 	{min_width}
 	{mode}
 	{variant}
+	{label}
 	on:click
 	on:load={handle_upload}
 >

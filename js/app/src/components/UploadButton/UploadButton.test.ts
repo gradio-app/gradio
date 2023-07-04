@@ -23,7 +23,7 @@ describe("UploadButton", () => {
 
 		setupi18n();
 
-		const { container } = await render(UploadButton, {
+		const { getByTestId } = await render(UploadButton, {
 			label: "file",
 			value: null,
 			mode: "dynamic",
@@ -31,7 +31,7 @@ describe("UploadButton", () => {
 			file_count: "1"
 		});
 
-		const item = container.querySelectorAll("input")[0];
+		const item = getByTestId("file-upload-button"); // container.querySelectorAll("input")[0];
 
 		const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
 		await event.upload(item, file);
@@ -48,7 +48,7 @@ describe("UploadButton", () => {
 
 		await import("@gradio/client");
 		setupi18n();
-		const { container, component } = await render(UploadButton, {
+		const { component, getByTestId } = await render(UploadButton, {
 			label: "file",
 			value: null,
 			mode: "dynamic",
@@ -56,7 +56,7 @@ describe("UploadButton", () => {
 			file_count: "1"
 		});
 
-		const item = container.querySelectorAll("input")[0];
+		const item = getByTestId("file-upload-button"); //container.querySelectorAll("input")[0];
 		const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
 		event.upload(item, file);
 		const mock = await wait_for_event(component, "change");
