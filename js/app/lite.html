@@ -24,9 +24,8 @@
 		<textarea id="code-input" cols="30" rows="10">
 import gradio as gr
 
-from greetings import greet
-# def greet(name):
-#     return "Hello " + name + "!"
+def greet(name):
+    return "Hello " + name + "!"
 
 def upload_file(files):
     file_paths = [file.name for file in files]
@@ -50,61 +49,5 @@ demo.launch()
 
 		<textarea id="requirements-input"></textarea>
 		<button id="install-button">Install</button>
-
-		<script type="module">  // type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
-			const code_input = document.getElementById("code-input");
-			const exec_button = document.getElementById("exec-button");
-			const requirements_input = document.getElementById("requirements-input");
-			const install_button = document.getElementById("install-button");
-
-			function parse_requirements(text) {
-				return text
-					.split("\n")
-					.map((line) => line.trim())
-					.filter((line) => line.length > 0 && !line.startsWith("#"));
-			}
-
-			const initial_code = code_input.value;
-			const initial_requirements = parse_requirements(requirements_input.value);
-
-			const controller = createGradioApp({
-				target: document.getElementById("gradio-app"),
-				files: {
-					"greetings.py": {
-						data: `
-def greet(name):
-    return "Hello " + name + "!"
-`
-					},
-					"images/logo.png": {
-						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/logo.png"
-					}
-				},
-				pyCode: initial_code,
-				info: true,
-				container: true,
-				isEmbed: false,
-				initialHeight: "300px",
-				eager: false,
-				themeMode: null,
-				autoScroll: false,
-				controlPageTitle: false,
-				appMode: true
-			});
-
-			exec_button.onclick = () => {
-				console.debug("exec_button.onclick");
-				controller.rerun(code_input.value);
-				console.debug("Rerun finished")
-			}
-
-			install_button.onclick = async () => {
-				console.debug("install_button.onclick");
-				const requirements = parse_requirements(requirements_input.value)
-				console.debug("requirements", requirements)
-				controller.install(requirements);
-				console.debug("Install finished")
-			}
-		</script>
 	</body>
 </html>

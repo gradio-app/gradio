@@ -159,3 +159,55 @@ export function create(options: Options): GradioAppController {
  */
 // @ts-ignore
 globalThis.createGradioApp = create;
+
+declare let BUILD_MODE: string;
+if (BUILD_MODE === "dev") {
+	const code_input = document.getElementById("code-input") as HTMLTextAreaElement;
+	const exec_button = document.getElementById("exec-button") as HTMLButtonElement;
+	const requirements_input = document.getElementById("requirements-input") as HTMLTextAreaElement;
+	const install_button = document.getElementById("install-button") as HTMLButtonElement;
+
+	function parse_requirements(text: string) {
+		return text
+			.split("\n")
+			.map((line) => line.trim())
+			.filter((line) => line.length > 0 && !line.startsWith("#"));
+	}
+
+	const initial_code = code_input.value;
+	const initial_requirements = parse_requirements(requirements_input.value);
+
+	const controller = create({
+		target: document.getElementById("gradio-app")!,
+		files: {
+			"images/logo.png": {
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/logo.png"
+			}
+		},
+		pyCode: initial_code,
+		requirements: initial_requirements,
+		info: true,
+		container: true,
+		isEmbed: false,
+		initialHeight: "300px",
+		eager: false,
+		themeMode: null,
+		autoScroll: false,
+		controlPageTitle: false,
+		appMode: true
+	});
+
+	exec_button.onclick = () => {
+		console.debug("exec_button.onclick");
+		controller.rerun(code_input.value);
+		console.debug("Rerun finished")
+	}
+
+	install_button.onclick = async () => {
+		console.debug("install_button.onclick");
+		const requirements = parse_requirements(requirements_input.value)
+		console.debug("requirements", requirements)
+		controller.install(requirements);
+		console.debug("Install finished")
+	}
+}
