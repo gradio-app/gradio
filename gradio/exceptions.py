@@ -40,7 +40,7 @@ class Error(Exception):
     Demos: calculator
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message: str = "Error raised."):
         """
         Parameters:
             message: The error message to be displayed to the user.
