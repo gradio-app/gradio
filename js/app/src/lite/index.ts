@@ -29,7 +29,8 @@ declare let GRADIO_VERSION: string;
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
 interface GradioAppController {
-	rerun: (code: string) => Promise<void>;
+	run_code: (code: string) => Promise<void>;
+	run_file: (path: string) => Promise<void>;
 	write: (path: string, data: string | ArrayBufferView, opts: any) => Promise<void>;
 	rename: (old_path: string, new_path: string) => Promise<void>;
 	unlink: (path: string) => Promise<void>;
@@ -40,7 +41,8 @@ interface Options {
 	target: HTMLElement;
 	files?: WorkerProxyOptions["files"];
 	requirements?: WorkerProxyOptions["requirements"];
-	pyCode: string;
+	code?: string;
+	entrypoint?: string;
 	info: boolean;
 	container: boolean;
 	isEmbed: boolean;
@@ -67,11 +69,17 @@ export function create(options: Options): GradioAppController {
 		requirements: options.requirements ?? [],
 	});
 
-	// Internally, the execution of `runPythonAsync()` is queued
+	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
 	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
-	worker_proxy.runPythonAsync(options.pyCode);
+	if (options.code != null) {
+		worker_proxy.runPythonCode(options.code);
+	} else if (options.entrypoint != null) {
+		worker_proxy.runPythonFile(options.entrypoint);
+	} else {
+		throw new Error("Either code or entrypoint must be provided.");
+	}
 
 	const overridden_fetch: typeof fetch = (input, init?) => {
 		return wasm_proxied_fetch(worker_proxy, input, init);
@@ -120,8 +128,12 @@ export function create(options: Options): GradioAppController {
 	launchNewApp();
 
 	return {
-		rerun: async (code: string): Promise<void> => {
-			await worker_proxy.runPythonAsync(code);
+		run_code: async (code: string): Promise<void> => {
+			await worker_proxy.runPythonCode(code);
+			launchNewApp();
+		},
+		run_file: async (path: string): Promise<void> => {
+			await worker_proxy.runPythonFile(path);
 			launchNewApp();
 		},
 		write(path, data, opts) {
@@ -184,7 +196,7 @@ if (BUILD_MODE === "dev") {
 				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/logo.png"
 			}
 		},
-		pyCode: initial_code,
+		code: initial_code,
 		requirements: initial_requirements,
 		info: true,
 		container: true,
