@@ -58,6 +58,7 @@ workspace.code-workspace
 
 # FRP
 gradio/frpc_*
+.vercel
 
 # js
 node_modules

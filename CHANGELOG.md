@@ -48,7 +48,7 @@
 
 ## Breaking Changes:
 
-[PR 4683](https://github.com/gradio-app/gradio/pull/4683) removes the explict named endpoint "load_examples" from gr.Interface that was introduced in [PR 4456]((https://github.com/gradio-app/gradio/pull/4683)).
+[PR 4683](https://github.com/gradio-app/gradio/pull/4683) removes the explict named endpoint "load_examples" from gr.Interface that was introduced in [PR 4456](https://github.com/gradio-app/gradio/pull/4456).
 
 # 3.35.2
 
@@ -1774,7 +1774,7 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-- Remove h11 pinning by [@ecederstrand](<[https://github.com/abidlabs](https://github.com/ecederstrand)>) in [PR 2820](<[https://github.com/gradio-app/gradio/pull/2808](https://github.com/gradio-app/gradio/pull/2820)>)
+- Remove h11 pinning by [@ecederstrand](https://github.com/ecederstrand) in [PR 2820](https://github.com/gradio-app/gradio/pull/2820)
 
 ## Breaking Changes:
 

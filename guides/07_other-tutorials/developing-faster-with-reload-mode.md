@@ -1,6 +1,6 @@
 # Developing Faster with Auto-Reloading
 
-**Prerequisite**: This Guide requires you to know about Blocks. Make sure to [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control).
+**Prerequisite**: This Guide requires you to know about Blocks. Make sure to [read the Guide to Blocks first](https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control).
 
 This guide covers auto reloading, reloading in a Python IDE, and using gradio with Jupyter Notebooks.
 
