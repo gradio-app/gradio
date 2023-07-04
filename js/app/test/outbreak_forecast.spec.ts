@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test("matplotlib", async ({ page }) => {
+test("selecting matplotlib should show matplotlib image and pressing clear should clear output", async ({ page }) => {
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("button", { name: "Matplotlib" }).click();
 	await page.getByLabel("Month").click();
@@ -20,7 +20,7 @@ test("matplotlib", async ({ page }) => {
 	await expect(matplotlib_img).toHaveCount(0);
 });
 
-test("plotly", async ({ page }) => {
+test("selecting plotly should show plotly plot and pressing clear should clear output", async ({ page }) => {
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("button", { name: "Plotly" }).click();
 	await page.getByLabel("Month").click();
@@ -36,7 +36,7 @@ test("plotly", async ({ page }) => {
 	await expect(page.locator(".js-plotly-plot")).toHaveCount(0);
 });
 
-test("altair", async ({ page }) => {
+test("selecting altair should show altair plot and pressing clear should clear output", async ({ page }) => {
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("button", { name: "altair" }).click();
 	await page.getByLabel("Month").click();
@@ -55,7 +55,7 @@ test("altair", async ({ page }) => {
 	await expect(altair).toHaveCount(0);
 });
 
-test("switch between all plot types", async ({ page }) => {
+test("switching between all 3 plot types and pressing submit should update output component to corresponding plot type", async ({ page }) => {
 	//Matplotlib
 	await page.getByLabel("Plot Type").click();
 	await page.getByRole("button", { name: "Matplotlib" }).click();
