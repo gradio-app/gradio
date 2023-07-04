@@ -232,6 +232,16 @@
 			style="{grid_cols_style} {grid_rows_style} --object-fit: {object_fit}; height: {height}"
 			class:pt-6={show_label}
 		>
+			{#if show_share_button}
+				<div class="icon-button">
+					<ShareButton
+						on:share
+						on:error
+						{value}
+						formatter={format_gallery_for_sharing}
+					/>
+				</div>
+			{/if}
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"
@@ -251,16 +261,6 @@
 			{/each}
 		</div>
 	</div>
-	{#if show_share_button}
-		<div class="icon-button">
-			<ShareButton
-				on:share
-				on:error
-				{value}
-				formatter={format_gallery_for_sharing}
-			/>
-		</div>
-	{/if}
 {/if}
 
 <style lang="postcss">
@@ -374,6 +374,7 @@
 		grid-template-rows: var(--grid-rows);
 		grid-template-columns: var(--grid-cols);
 		gap: var(--spacing-lg);
+		position: relative;
 	}
 	@media (--screen-sm) {
 		.grid-container {
@@ -432,7 +433,8 @@
 
 	.icon-button {
 		position: absolute;
-		top: 6px;
-		right: 6px;
+		top: 0px;
+		right: 0px;
+		z-index: var(--layer-1);
 	}
 </style>
