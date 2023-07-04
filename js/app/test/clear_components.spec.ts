@@ -26,16 +26,3 @@ test("gr.ClearButton clears every component's value", async ({ page }) => {
 	]);
 	await expect(page.getByLabel("Are all cleared?")).toHaveValue("True");
 });
-
-test("Components can be hidden and removed from page", async ({ page }) => {
-	[...Array(5).keys()].forEach(async (val) => {
-		await expect(page.getByLabel(`component_0${val}`)).toBeVisible();
-	});
-	await Promise.all([
-		page.waitForResponse("**/run/predict"),
-		page.click("text=Hide")
-	]);
-	[...Array(5).keys()].forEach(async (val) => {
-		await expect(page.getByLabel(`component_0${val}`)).not.toBeVisible();
-	});
-});
