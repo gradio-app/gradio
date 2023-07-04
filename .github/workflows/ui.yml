@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: check for chromatic token
-        run: echo ::set-output name=token_exists::$(test -n "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" && echo true || echo false)
+        run: echo "token_exists=$([[ -n ${{ secrets.CHROMATIC_PROJECT_TOKEN }} ]] && echo true || echo false)" >> $GITHUB_ENV
 
   chromatic-deployment:
     needs: check-chromatic-token
