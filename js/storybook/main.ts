@@ -1,6 +1,7 @@
 import type { StorybookConfig } from "@storybook/svelte-vite";
-import turbosnap from "vite-plugin-turbosnap";
-import { mergeConfig } from "vite";
+
+const turbosnap = require("vite-plugin-turbosnap");
+const { mergeConfig } = require("vite");
 
 const config: StorybookConfig = {
 	stories: ["../../**/*.mdx", "../../**/*.stories.@(js|jsx|ts|tsx|svelte)"],
