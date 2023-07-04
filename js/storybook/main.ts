@@ -1,5 +1,8 @@
-/** @type { import('@storybook/svelte-vite').StorybookConfig } */
-const config = {
+import type { StorybookConfig } from "@storybook/svelte-vite";
+import turbosnap from "vite-plugin-turbosnap";
+import { mergeConfig } from "vite";
+
+const config: StorybookConfig = {
 	stories: ["../../**/*.mdx", "../../**/*.stories.@(js|jsx|ts|tsx|svelte)"],
 	addons: [
 		"@storybook/addon-links",
@@ -8,6 +11,14 @@ const config = {
 		"@storybook/addon-svelte-csf",
 		"@storybook/addon-a11y"
 	],
+	async viteFinal(viteConfig, { configType }) {
+		return mergeConfig(config, {
+			plugins:
+				configType === "PRODUCTION"
+					? [turbosnap({ rootDir: viteConfig.root ?? process.cwd() })]
+					: []
+		});
+	},
 	framework: {
 		name: "@storybook/svelte-vite",
 		options: {
