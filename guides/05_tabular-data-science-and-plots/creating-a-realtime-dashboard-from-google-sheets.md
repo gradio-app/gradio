@@ -8,7 +8,7 @@ Building the dashboard itself will just be 9 lines of Python code using Gradio, 
 
 <gradio-app space="gradio/line-plot"></gradio-app>
 
-**Prerequisites**: This Guide uses [Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control), so make you are familiar with the Blocks class. 
+**Prerequisites**: This Guide uses [Gradio Blocks](/guides/quickstart/#blocks-more-flexibility-and-control), so make you are familiar with the Blocks class. 
 
 The process is a little different depending on if you are working with a publicly accessible or a private Google Sheet. We'll cover both, so let's get started!
 

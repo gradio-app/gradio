@@ -39,7 +39,8 @@
 		"**/website/**/*",
 		"**/node_modules/**/*",
 		"**/venv/**/*",
-		"client/js/**"
+		"client/js/**",
+		"**/vite.config*"
 	],
 	"include": [
 		"**/*.d.ts",

@@ -262,5 +262,5 @@ And that's it! Start uploading videos and you'll get some "acapellified" videos 
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/acapellify.png)
 
- If you'd like to learn more about how to use the Gradio Python Client in your projects, [read the dedicated Guide](/getting-started-with-the-python-client/).
+ If you'd like to learn more about how to use the Gradio Python Client in your projects, [read the dedicated Guide](/guides/getting-started-with-the-python-client/).
 
