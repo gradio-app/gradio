@@ -13,7 +13,7 @@ with gr.Blocks(theme=gr.themes.Glass()):
     ...
 ```
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/theming-guide) for more details.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/guides/theming-guide) for more details.
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 

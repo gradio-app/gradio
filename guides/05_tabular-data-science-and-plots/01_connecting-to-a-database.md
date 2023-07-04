@@ -141,7 +141,7 @@ Let's deploy our Gradio app to the free HuggingFace Spaces platform.
 If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
 You will have to add the `DB_USER`, `DB_PASSWORD`, and `DB_HOST` variables as "Repo Secrets". You can do this in the "Settings" tab.
 
-![secrets](/assets/guides/secrets.png)
+![secrets](https://github.com/gradio-app/gradio/blob/main/guides/assets/secrets.png?raw=true)
 
 ## Conclusion
 Congratulations! You know how to connect your gradio app to a database hosted on the cloud! ☁️

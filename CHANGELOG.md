@@ -48,7 +48,7 @@
 
 ## Breaking Changes:
 
-[PR 4683](https://github.com/gradio-app/gradio/pull/4683) removes the explict named endpoint "load_examples" from gr.Interface that was introduced in [PR 4456]((https://github.com/gradio-app/gradio/pull/4683)).
+[PR 4683](https://github.com/gradio-app/gradio/pull/4683) removes the explict named endpoint "load_examples" from gr.Interface that was introduced in [PR 4456](https://github.com/gradio-app/gradio/pull/4456).
 
 # 3.35.2
 
@@ -113,8 +113,21 @@ demo.launch()
 - Allow any function to generate an error message and allow multiple messages to appear at a time. Other error modal improvements such as auto dismiss after a time limit and a new layout on mobile [@pngwn](https://github.com/pngwn) in [PR 4459](https://github.com/gradio-app/gradio/pull/4459).
 - Add `autoplay` kwarg to `Video` and `Audio` components by [@pngwn](https://github.com/pngwn) in [PR 4453](https://github.com/gradio-app/gradio/pull/4453)
 - Add `allow_preview` parameter to `Gallery` to control whether a detailed preview is displayed on click by
-  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4470](https://github.com/gradio-app/gradio/pull/4470)
+[@freddyaboulton](https://github.com/freddyaboulton) in [PR 4470](https://github.com/gradio-app/gradio/pull/4470)
 - Add `latex_delimiters` parameter to `Chatbot` to control the delimiters used for LaTeX and to disable LaTeX in the `Chatbot` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4516](https://github.com/gradio-app/gradio/pull/4516)
+- Can now issue `gr.Warning` and `gr.Info` modals. Simply put the code `gr.Warning("Your warning message")` or `gr.Info("Your info message")` as a standalone line in your function. By [@aliabid94](https://github.com/aliabid94) in [PR 4518](https://github.com/gradio-app/gradio/pull/4518). 
+
+Example:
+```
+def start_process(name):
+    gr.Info("Starting process")
+    if name is None:
+        gr.Warning("Name is empty")
+    ...
+    if success == False:
+        raise gr.Error("Process failed")
+```
+
 
 ## Bug Fixes:
 
@@ -1761,7 +1774,7 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 
-- Remove h11 pinning by [@ecederstrand](<[https://github.com/abidlabs](https://github.com/ecederstrand)>) in [PR 2820](<[https://github.com/gradio-app/gradio/pull/2808](https://github.com/gradio-app/gradio/pull/2820)>)
+- Remove h11 pinning by [@ecederstrand](https://github.com/ecederstrand) in [PR 2820](https://github.com/gradio-app/gradio/pull/2820)
 
 ## Breaking Changes:
 
