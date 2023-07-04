@@ -5,7 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite --port 9876",
-		"dev:lite": "vite --port 9876 --mode development:lite",
+		"dev:lite": "run-p dev:lite:*",
+		"dev:lite:self": "vite --port 9876 --mode development:lite",
+		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
 		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
 		"build:website": "vite build --mode production:website --emptyOutDir",
 		"build:local": "vite build --mode production:local --emptyOutDir",
