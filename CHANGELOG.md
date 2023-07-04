@@ -51,7 +51,7 @@
 
 [PR 4683](https://github.com/gradio-app/gradio/pull/4683) removes the explict named endpoint "load_examples" from gr.Interface that was introduced in [PR 4456](https://github.com/gradio-app/gradio/pull/4456).
 
-# 3.35.2
+# Version 3.35.2
 
 ## New Features:
 
@@ -70,7 +70,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.35.1
+# Version 3.35.1
 
 ## New Features:
 
@@ -89,7 +89,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.35.0
+# Version 3.35.0
 
 ## New Features:
 
@@ -119,7 +119,7 @@ demo.launch()
 - Can now issue `gr.Warning` and `gr.Info` modals. Simply put the code `gr.Warning("Your warning message")` or `gr.Info("Your info message")` as a standalone line in your function. By [@aliabid94](https://github.com/aliabid94) in [PR 4518](https://github.com/gradio-app/gradio/pull/4518). 
 
 Example:
-```
+```python
 def start_process(name):
     gr.Info("Starting process")
     if name is None:
@@ -161,7 +161,7 @@ def start_process(name):
 - Python 3.7 end of life is June 27 2023. Gradio will no longer support python 3.7 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4484](https://github.com/gradio-app/gradio/pull/4484)
 - Removed `$` as a default LaTeX delimiter for the `Chatbot` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4516](https://github.com/gradio-app/gradio/pull/4516). The specific LaTeX delimeters can be set using the new `latex_delimiters` parameter in `Chatbot`.
 
-# 3.34.0
+# Version 3.34.0
 
 ## New Features:
 
@@ -187,7 +187,7 @@ def start_process(name):
 
 No changes to highlight.
 
-# 3.33.1
+# Version 3.33.1
 
 ## New Features:
 
@@ -208,7 +208,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.33.0
+# Version 3.33.0
 
 ## New Features:
 
@@ -237,7 +237,7 @@ No changes to highlight.
 
 - The `/file=` route no longer allows accessing dotfiles or files in "dot directories" by [@akx](https://github.com/akx) in [PR 4303](https://github.com/gradio-app/gradio/pull/4303)
 
-# 3.32.0
+# Version 3.32.0
 
 ## New Features:
 
@@ -263,7 +263,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.31.0
+# Version 3.31.0
 
 ## New Features:
 
@@ -294,7 +294,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.30.0
+# Version 3.30.0
 
 ## New Features:
 
@@ -316,7 +316,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.29.0
+# Version 3.29.0
 
 ## New Features:
 
@@ -357,7 +357,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.28.3
+# Version 3.28.3
 
 ## New Features:
 
@@ -387,7 +387,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.28.2
+# Version 3.28.2
 
 ## Bug Fixes
 
@@ -427,7 +427,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.28.1
+# Version 3.28.1
 
 ## New Features:
 
@@ -460,7 +460,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 3.28.0
+# Version 3.28.0
 
 ## Bug Fixes:
 
