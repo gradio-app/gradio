@@ -37,7 +37,7 @@
 	"dependencies": {
 		"@changesets/changelog-github": "^0.4.8",
 		"@changesets/cli": "^2.26.1",
-		"@csstools/postcss-global-data": "^1.0.3",
+		"@csstools/postcss-global-data": "^2.0.0",
 		"@gradio/tootils": "workspace:^0.0.1",
 		"@playwright/test": "^1.35.1",
 		"@playwright/experimental-ct-svelte": "^1.35.1",
@@ -65,7 +65,7 @@
 		"polka": "^1.0.0-next.22",
 		"pollen-css": "^4.6.1",
 		"postcss": "^8.4.6",
-		"postcss-custom-media": "9",
+		"postcss-custom-media": "10",
 		"postcss-nested": "^5.0.6",
 		"postcss-prefix-selector": "^1.16.0",
 		"prettier": "^2.6.2",
