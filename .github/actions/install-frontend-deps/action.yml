@@ -41,6 +41,9 @@ runs:
       if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       shell: bash
       run: pnpm i --frozen-lockfile
+    - name: Build Css
+      shell: bash
+      run: pnpm css
     - name: Build frontend
       if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
