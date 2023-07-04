@@ -1,1 +1,1 @@
-export { WorkerProxy } from "./worker-proxy";
+export { WorkerProxy, type WorkerProxyOptions } from "./worker-proxy";

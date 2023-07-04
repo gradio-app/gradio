@@ -22,5 +22,9 @@
 	},
 	"devDependencies": {
 		"pyodide": "^0.23.2"
+	},
+	"dependencies": {
+		"@types/path-browserify": "^1.0.0",
+		"path-browserify": "^1.0.1"
 	}
 }
