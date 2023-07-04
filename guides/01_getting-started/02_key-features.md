@@ -25,10 +25,24 @@ You can load a large dataset into the examples to browse and interact with the d
 
 Continue learning about examples in the [More On Examples](https://gradio.app/more-on-examples) guide.
 
-## Errors
+## Alerts
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error). 
 
+You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work. 
+
+Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
+
+```python
+def start_process(name):
+    gr.Info("Starting process")
+    if name is None:
+        gr.Warning("Name is empty")
+    ...
+    if success == False:
+        raise gr.Error("Process failed")
+```
+  
 ## Descriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
