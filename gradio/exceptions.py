@@ -23,6 +23,12 @@ class ServerFailedToStartError(Exception):
     pass
 
 
+class InvalidBlockError(ValueError):
+    """Raised when an event in a Blocks contains a reference to a Block that is not in the original Blocks"""
+
+    pass
+
+
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 
@@ -34,7 +40,7 @@ class Error(Exception):
     Demos: calculator
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message: str = "Error raised."):
         """
         Parameters:
             message: The error message to be displayed to the user.

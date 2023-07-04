@@ -120,10 +120,10 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             if y in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["inputs"]
+            str(blocks.blocks[y]) for y in x["inputs"] if y in blocks.blocks
         ]
         outputs_telemetry = outputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["outputs"]
+            str(blocks.blocks[y]) for y in x["outputs"] if y in blocks.blocks
         ]
     additional_data = {
         "version": GRADIO_VERSION,
