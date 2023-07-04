@@ -110,7 +110,9 @@ class Audio(
         self.format = format
         self.autoplay = autoplay
         self.show_share_button = (
-            (utils.get_space() is not None) if show_share_button is None else show_share_button
+            (utils.get_space() is not None)
+            if show_share_button is None
+            else show_share_button
         )
         IOComponent.__init__(
             self,

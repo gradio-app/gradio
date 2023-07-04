@@ -83,7 +83,9 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
         self.show_share_button = (
-            (utils.get_space() is not None) if show_share_button is None else show_share_button
+            (utils.get_space() is not None)
+            if show_share_button is None
+            else show_share_button
         )
 
         IOComponent.__init__(

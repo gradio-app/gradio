@@ -111,7 +111,9 @@ class Video(
             include_audio if include_audio is not None else source == "upload"
         )
         self.show_share_button = (
-            (utils.get_space() is not None) if show_share_button is None else show_share_button
+            (utils.get_space() is not None)
+            if show_share_button is None
+            else show_share_button
         )
         IOComponent.__init__(
             self,
