@@ -1,11 +1,15 @@
 /// <reference lib="webworker" />
+/* eslint-env worker */
 
 import type { PyodideInterface } from "pyodide";
 import type {
 	InMessage,
+	InMessageInit,
 	ReplyMessageError,
 	ReplyMessageSuccess
 } from "../message-types";
+import { writeFileWithParents, renameWithParents } from "./file";
+import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
@@ -16,22 +20,39 @@ let pyodideReadyPromise: undefined | Promise<void> = undefined;
 
 let call_asgi_app_from_js: (
 	scope: unknown,
-	receive: Function,
-	send: Function
+	receive: () => Promise<unknown>,
+	send: (event: any) => Promise<void>
 ) => Promise<void>;
 
-interface InitOptions {
-	gradioWheelUrl: string;
-	gradioClientWheelUrl: string;
-	requirements: string[];
-}
-async function loadPyodideAndPackages(options: InitOptions) {
+async function loadPyodideAndPackages(options: InMessageInit["data"]): Promise<void> {
 	console.debug("Loading Pyodide.");
 	pyodide = await loadPyodide({
 		stdout: console.log,
 		stderr: console.error
 	});
 	console.debug("Pyodide is loaded.");
+
+	console.debug("Mounting files.", options.files);
+	await Promise.all(
+		Object.keys(options.files).map(async (path) => {
+			const file = options.files[path];
+
+			let data: string | ArrayBufferView;
+			if ("url" in file) {
+				console.debug(`Fetch a file from ${file.url}`);
+				data = await fetch(file.url)
+					.then((res) => res.arrayBuffer())
+					.then((buffer) => new Uint8Array(buffer));
+			} else {
+				data = file.data;
+			}
+			const { opts } = options.files[path];
+
+			console.debug(`Write a file "${path}"`);
+			writeFileWithParents(pyodide, path, data, opts);
+		})
+	);
+	console.debug("Files are mounted.");
 
 	console.debug("Loading micropip");
 	await pyodide.loadPackage("micropip");
@@ -137,7 +158,7 @@ matplotlib.use("agg")
 	console.debug("matplotlib backend is set.");
 }
 
-self.onmessage = async (event: MessageEvent<InMessage>) => {
+self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 	const msg = event.data;
 	console.debug("worker.onmessage", msg);
 
@@ -145,17 +166,14 @@ self.onmessage = async (event: MessageEvent<InMessage>) => {
 
 	try {
 		if (msg.type === "init") {
-			pyodideReadyPromise = loadPyodideAndPackages({
-				gradioWheelUrl: msg.data.gradioWheelUrl,
-				gradioClientWheelUrl: msg.data.gradioClientWheelUrl,
-				requirements: msg.data.requirements
-			});
+			pyodideReadyPromise = loadPyodideAndPackages(msg.data);
 
 			const replyMessage: ReplyMessageSuccess = {
 				type: "reply:success",
 				data: null
 			};
 			messagePort.postMessage(replyMessage);
+			return;
 		}
 
 		if (pyodideReadyPromise == null) {
@@ -193,6 +211,72 @@ self.onmessage = async (event: MessageEvent<InMessage>) => {
 				};
 				messagePort.postMessage(replyMessage);
 				break;
+			}
+			case "file:write": {
+				const { path, data: fileData, opts } = msg.data;
+
+				console.debug(`Write a file "${path}"`);
+				writeFileWithParents(pyodide, path, fileData, opts);
+
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: null
+				};
+				messagePort.postMessage(replyMessage);
+				break;
+			}
+			case "file:rename": {
+				const { oldPath, newPath } = msg.data;
+
+				console.debug(`Rename "${oldPath}" to ${newPath}`);
+				renameWithParents(pyodide, oldPath, newPath);
+
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: null
+				};
+				messagePort.postMessage(replyMessage);
+				break;
+			}
+			case "file:unlink": {
+				const { path } = msg.data;
+
+				console.debug(`Remove "${path}`);
+				pyodide.FS.unlink(path);
+
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: null
+				};
+				messagePort.postMessage(replyMessage);
+				break;
+			}
+			case "install": {
+				const { requirements } = msg.data;
+
+				const micropip = pyodide.pyimport("micropip");
+
+				console.debug("Install the requirements:", requirements);
+				verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
+				await micropip.install
+					.callKwargs(requirements, { keep_going: true })
+					.then(() => {
+						if (requirements.includes("matplotlib")) {
+							return pyodide.runPythonAsync(`
+                from stlite_server.bootstrap import _fix_matplotlib_crash
+                _fix_matplotlib_crash()
+              `);
+						}
+					})
+					.then(() => {
+						console.debug("Successfully installed");
+
+						const replyMessage: ReplyMessageSuccess = {
+							type: "reply:success",
+							data: null,
+						};
+						messagePort.postMessage(replyMessage);
+					});
 			}
 		}
 	} catch (error) {
