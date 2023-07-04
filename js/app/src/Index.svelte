@@ -211,6 +211,8 @@
 			detail: "RUNNING"
 		};
 
+		await mount_custom_css(wrapper, config.css);
+		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
 		if (config.dev_mode) {
@@ -226,10 +228,6 @@
 			: !ready && status.load_status === "error"
 			? "error"
 			: status.load_status;
-
-	$: wrapper &&
-		config?.css &&
-		mount_custom_css(wrapper, config.css).then(() => (css_ready = true));
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
