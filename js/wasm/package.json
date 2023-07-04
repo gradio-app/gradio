@@ -13,9 +13,9 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-		"start:client": "tsc -w --incremental",
-		"start:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
-		"start": "run-p start:*",
+		"dev:client": "tsc -w --incremental",
+		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
+		"dev": "run-p dev:*",
 		"build:client": "tsc",
 		"build:worker": "vite build --config vite.worker.config.js",
 		"build": "run-s build:worker build:client"
