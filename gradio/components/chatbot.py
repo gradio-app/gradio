@@ -51,7 +51,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         elem_classes: list[str] | str | None = None,
         height: int | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        shareable: bool | None = None,
+        show_share_button: bool | None = None,
         **kwargs,
     ):
         """
@@ -68,7 +68,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             height: height of the component in pixels.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
+            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         if color_map is not None:
             warn_deprecation("The 'color_map' parameter has been deprecated.")
@@ -82,8 +82,8 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        self.shareable = (
-            (utils.get_space() is not None) if shareable is None else shareable
+        self.show_share_button = (
+            (utils.get_space() is not None) if show_share_button is None else show_share_button
         )
 
         IOComponent.__init__(
@@ -107,7 +107,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "latex_delimiters": self.latex_delimiters,
             "selectable": self.selectable,
             "height": self.height,
-            "shareable": self.shareable,
+            "show_share_button": self.show_share_button,
             **IOComponent.get_config(self),
         }
 
@@ -123,6 +123,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
         height: int | None = None,
+        show_share_button: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -133,6 +134,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "visible": visible,
             "value": value,
             "height": height,
+            "show_share_button": show_share_button,
             "__type__": "update",
         }
         return updated_config

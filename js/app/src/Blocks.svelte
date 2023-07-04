@@ -364,14 +364,14 @@
 		}
 	};
 
-	const trigger_share = (title: string, description: string) => {
+	const trigger_share = (title: string | undefined, description: string) => {
 		if (space_id === null) {
 			return;
 		}
 		const discussion_url = new URL(
 			`https://huggingface.co/spaces/${space_id}/discussions/new`
 		);
-		if (title.length > 0) {
+		if (title !== undefined && title.length > 0) {
 			discussion_url.searchParams.set("title", title);
 		}
 		discussion_url.searchParams.set("description", description);
@@ -400,7 +400,7 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		let shareable_components: Array<number> = [];
+		let shareable_components: number[] = [];
 		dependencies.forEach((dep, i) => {
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
@@ -438,7 +438,7 @@
 			outputs.forEach((output_id: number) => {
 				const output_component = instance_map[output_id];
 				if (
-					output_component.props.shareable &&
+					output_component.props.show_share_button &&
 					!shareable_components.includes(output_id) // only one share listener per component
 				) {
 					shareable_components.push(output_id);

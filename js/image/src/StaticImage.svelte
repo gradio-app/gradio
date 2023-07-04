@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { SelectData, ShareData } from "@gradio/utils";
+	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
-	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import { Download, Community } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 
@@ -12,12 +12,11 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let selectable: boolean = false;
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
 		select: SelectData;
-		share: ShareData;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -42,18 +41,16 @@
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>
-		{#if shareable}
-			<IconButton
-				Icon={Community}
-				label="Share"
-				on:click={async () => {
-					if (!value) return;
+		{#if show_share_button}
+			<ShareButton
+				on:share
+				on:error
+				formatter={async (value) => {
+					if (!value) return "";
 					let url = await uploadToHuggingFace(value, "base64");
-					dispatch("share", {
-						title: "",
-						description: `<img src="${url}" />`
-					});
+					return `<img src="${url}" />`;
 				}}
+				{value}
 			/>
 		{/if}
 	</div>

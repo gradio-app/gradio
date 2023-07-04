@@ -2,9 +2,8 @@
 	import { copy, format_chat_for_sharing } from "./utils";
 	import "katex/dist/katex.min.css";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-	import { IconButton } from "@gradio/atoms";
-	import { Community } from "@gradio/icons";
-	import type { SelectData, ShareData } from "@gradio/utils";
+	import { ShareButton } from "@gradio/atoms";
+	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
 	import Markdown from "./MarkdownCode.svelte";
@@ -28,7 +27,7 @@
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 	export let theme_mode: ThemeMode;
 
 	$: if (theme_mode == "dark") {
@@ -43,7 +42,6 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
-		share: ShareData;
 	}>();
 
 	beforeUpdate(() => {
@@ -86,28 +84,13 @@
 	}
 </script>
 
-{#if shareable && value !== null && value.length > 0}
+{#if show_share_button && value !== null && value.length > 0}
 	<div class="icon-button">
-		<IconButton
-			Icon={Community}
-			label="Share"
-			on:click={async () => {
-				if (value === null) return;
-				const formatted_chat = await format_chat_for_sharing(value);
-				let title = "";
-				if (shareable === true) {
-					for (let msg of value[0]) {
-						if (msg !== null && typeof msg === "string") {
-							title = msg;
-							break;
-						}
-					}
-				}
-				dispatch("share", {
-					title: title,
-					description: formatted_chat
-				});
-			}}
+		<ShareButton
+			on:error
+			on:share
+			formatter={format_chat_for_sharing}
+			{value}
 		/>
 	</div>
 {/if}

@@ -2,9 +2,10 @@
 	export let Icon: any;
 	export let label = "";
 	export let show_label: boolean = false;
+	export let pending: boolean = false;
 </script>
 
-<button on:click aria-label={label} title={label}>
+<button on:click aria-label={label} title={label} class:pending>
 	{#if show_label}<span>{label}</span>{/if}
 	<div><Icon /></div>
 </button>
@@ -40,5 +41,21 @@
 		padding: 2px;
 		width: 14px;
 		height: 14px;
+	}
+
+	.pending {
+		animation: flash 0.5s infinite;
+	}
+
+	@keyframes flash {
+		0% {
+			opacity: 0.5;
+		}
+		50% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0.5;
+		}
 	}
 </style>

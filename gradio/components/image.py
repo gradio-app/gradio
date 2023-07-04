@@ -80,7 +80,7 @@ class Image(
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
-        shareable: bool | None = None,
+        show_share_button: bool | None = None,
         **kwargs,
     ):
         """
@@ -107,7 +107,7 @@ class Image(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
-            shareable: If True, will allow user to share generation on Hugging Face Spaces Discussions.
+            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
@@ -141,8 +141,8 @@ class Image(
         Uses event data gradio.SelectData to carry `index` to refer to the [x, y] coordinates of the clicked pixel.
         See EventData documentation on how to use this event data.
         """
-        self.shareable = (
-            (utils.get_space() is not None) if shareable is None else shareable
+        self.show_share_button = (
+            (utils.get_space() is not None) if show_share_button is None else show_share_button
         )
         IOComponent.__init__(
             self,
@@ -174,7 +174,7 @@ class Image(
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
             "selectable": self.selectable,
-            "shareable": self.shareable,
+            "show_share_button": self.show_share_button,
             **IOComponent.get_config(self),
         }
 
@@ -191,6 +191,7 @@ class Image(
         interactive: bool | None = None,
         visible: bool | None = None,
         brush_radius: float | None = None,
+        show_share_button: bool | None = None,
     ):
         return {
             "height": height,
@@ -204,6 +205,7 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
+            "show_share_button": show_share_button,
             "__type__": "update",
         }
 

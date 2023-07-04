@@ -28,7 +28,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -63,11 +63,12 @@
 		<StaticImage
 			on:select
 			on:share
+			on:error
 			{value}
 			{label}
 			{show_label}
 			{selectable}
-			{shareable}
+			{show_share_button}
 		/>
 	{:else}
 		<Image

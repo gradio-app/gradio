@@ -29,7 +29,7 @@
 	export let root_url: null | string;
 	export let selectable: boolean = false;
 	export let theme_mode: ThemeMode;
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 
 	const redirect_src_url = (src: string) =>
 		src.replace('src="/file', `src="${root}file`);
@@ -79,7 +79,7 @@
 		{/if}
 		<ChatBot
 			{selectable}
-			{shareable}
+			{show_share_button}
 			{theme_mode}
 			value={_value}
 			{latex_delimiters}
@@ -87,6 +87,7 @@
 			on:change
 			on:select
 			on:share
+			on:error
 		/>
 	</div>
 </Block>

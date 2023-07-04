@@ -9,10 +9,9 @@
 
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import type { ShareData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
-	import { BlockLabel, IconButton } from "@gradio/atoms";
-	import { Music, Community } from "@gradio/icons";
+	import { BlockLabel, ShareButton } from "@gradio/atoms";
+	import { Music } from "@gradio/icons";
 
 	import { loaded } from "./utils";
 
@@ -21,7 +20,7 @@
 	export let name: string;
 	export let show_label = true;
 	export let autoplay: boolean;
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -29,7 +28,6 @@
 		pause: undefined;
 		end: undefined;
 		stop: undefined;
-		share: ShareData;
 	}>();
 
 	$: value &&
@@ -45,19 +43,17 @@
 </script>
 
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
-{#if shareable && value !== null}
+{#if show_share_button && value !== null}
 	<div class="icon-button">
-		<IconButton
-			Icon={Community}
-			label="Share"
-			on:click={async () => {
-				if (!value) return;
+		<ShareButton
+			on:error
+			on:share
+			formatter={async (value) => {
+				if (!value) return "";
 				let url = await uploadToHuggingFace(value.data, "url");
-				dispatch("share", {
-					title: "",
-					description: `<audio controls src="${url}"></audio>`
-				});
+				return `<audio controls src="${url}"></audio>`;
 			}}
+			{value}
 		/>
 	</div>
 {/if}

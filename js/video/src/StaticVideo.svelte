@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
-	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
-	import { Video, Download, Community } from "@gradio/icons";
+	import { Video, Download } from "@gradio/icons";
 	import type { ShareData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 
@@ -13,7 +13,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label = true;
 	export let autoplay: boolean;
-	export let shareable: boolean = true;
+	export let show_share_button: boolean = true;
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
@@ -24,7 +24,6 @@
 		pause: undefined;
 		end: undefined;
 		stop: undefined;
-		share: ShareData;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -71,17 +70,15 @@
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>
-		{#if shareable}
-			<IconButton
-				Icon={Community}
-				label="Share"
-				on:click={async () => {
-					if (!value) return;
+		{#if show_share_button}
+			<ShareButton
+				on:error
+				on:share
+				{value}
+				formatter={async (value) => {
+					if (!value) return "";
 					let url = await uploadToHuggingFace(value.data, "url");
-					dispatch("share", {
-						title: "",
-						description: url
-					});
+					return url;
 				}}
 			/>
 		{/if}

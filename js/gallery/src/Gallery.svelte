@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
-	import type { SelectData, ShareData } from "@gradio/utils";
-	import { uploadToHuggingFace } from "@gradio/utils";
-
-	import { Community } from "@gradio/icons";
+	import type { SelectData } from "@gradio/utils";
 
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
@@ -12,6 +9,7 @@
 	import { Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
+	import { format_gallery_for_sharing } from "./utils";
 
 	export let container = true;
 	export let show_label = true;
@@ -26,11 +24,10 @@
 	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
-		share: ShareData;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -254,28 +251,13 @@
 			{/each}
 		</div>
 	</div>
-	{#if shareable}
+	{#if show_share_button}
 		<div class="icon-button">
-			<IconButton
-				Icon={Community}
-				label="Share"
-				on:click={async () => {
-					if (!value) return;
-					let urls = await Promise.all(
-						value.map(async (image) => {
-							if (typeof image === "string")
-								return await uploadToHuggingFace(image, "base64");
-							return await uploadToHuggingFace(image.data, "url");
-						})
-					);
-
-					dispatch("share", {
-						title: "",
-						description: `<div style="display: flex; gap: 16px">${urls
-							.map((url) => `<img src="${url}" style="height: 400px" />`)
-							.join("")}</div>`
-					});
-				}}
+			<ShareButton
+				on:share
+				on:error
+				{value}
+				formatter={format_gallery_for_sharing}
 			/>
 		</div>
 	{/if}

@@ -370,6 +370,9 @@ importers:
 
   js/atoms:
     dependencies:
+      '@gradio/icons':
+        specifier: workspace:^0.0.1
+        version: link:../icons
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils

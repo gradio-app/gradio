@@ -24,7 +24,7 @@
 	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let shareable: boolean = false;
+	export let show_share_button: boolean = false;
 </script>
 
 <Block
@@ -42,6 +42,7 @@
 	<Gallery
 		on:select
 		on:share
+		on:error
 		{label}
 		{value}
 		{show_label}
@@ -53,6 +54,6 @@
 		{preview}
 		{object_fit}
 		{allow_preview}
-		{shareable}
+		{show_share_button}
 	/>
 </Block>

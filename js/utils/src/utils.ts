@@ -6,7 +6,7 @@ export interface SelectData {
 
 export interface ShareData {
 	description: string;
-	title: string;
+	title?: string;
 }
 
 export const uploadToHuggingFace = async (
@@ -31,7 +31,7 @@ export const uploadToHuggingFace = async (
 
 	// Send file to endpoint
 	const uploadResponse = await fetch(
-		"https://radames-temp-proxy.hf.space/https://huggingface.co/uploads",
+		"https://huggingface.co/uploads",
 		{
 			method: "POST",
 			body: file,
