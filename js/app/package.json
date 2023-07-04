@@ -12,7 +12,7 @@
 		"pybuild:gradio": "cd ../../ && rm -rf gradio/templates/frontend && python -m build",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",
 		"pybuild": "run-p pybuild:*",
-		"build:lite": "pnpm pybuild && pnpm --filter @gradio/wasm build && vite build --mode production:lite --emptyOutDir",
+		"build:lite": "pnpm pybuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production:lite --emptyOutDir",
 		"preview": "vite preview",
 		"test:snapshot": "pnpm exec playwright test snapshots/ --config=../../.config/playwright.config.js",
 		"test:browser": "pnpm exec playwright test test/ --config=../../.config/playwright.config.js",
