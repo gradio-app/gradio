@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -15,8 +15,8 @@ importers:
         specifier: ^2.26.1
         version: 2.26.1
       '@csstools/postcss-global-data':
-        specifier: ^1.0.3
-        version: 1.0.3(postcss@8.4.21)
+        specifier: ^2.0.0
+        version: 2.0.0(postcss@8.4.21)
       '@gradio/tootils':
         specifier: workspace:^0.0.1
         version: link:js/tootils
@@ -3476,8 +3476,8 @@ packages:
       '@csstools/css-tokenizer': 1.0.0
     dev: false
 
-  /@csstools/postcss-global-data@1.0.3(postcss@8.4.21):
-    resolution: {integrity: sha512-x2fZOl7RJJtKC9ZfG+1bdrQKeRfP1a3Ff4uF2/fykNUKly8E8Q7lw7oegsEnqenSEDC1xjk6qXJ/fcJkTAdcNg==}
+  /@csstools/postcss-global-data@2.0.0(postcss@8.4.21):
+    resolution: {integrity: sha512-yaI3+hBJw7ljUhM0INqnFzG8nsDD+Si/FFUWw6uRLQHUALnXyxpSeihOIvG35y03GhpmiEU6qsADbVVGDHKSLw==}
     engines: {node: ^14 || ^16 || >=18}
     peerDependencies:
       postcss: ^8.4
