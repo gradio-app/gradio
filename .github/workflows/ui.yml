@@ -61,12 +61,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: check for chromatic token
-        run: echo "token_exists=$([[ -n ${{ secrets.CHROMATIC_PROJECT_TOKEN }} ]] && echo true || echo false)" >> $GITHUB_ENV
+        run: echo "token_exists=$([[ -n ${{ secrets.CHROMATIC_PROJECT_TOKEN }} ]] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   chromatic-deployment:
     needs: check-chromatic-token
     runs-on: ubuntu-latest
-    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-visual-update') && needs.check-chromatic-token.outputs.token_exists == 'true' }}
+    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-visual-update') }} && needs.check-chromatic-token.outputs.token_exists == 'true' 
     steps:
       - uses: actions/checkout@v3
         with:
