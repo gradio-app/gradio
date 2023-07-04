@@ -44,7 +44,11 @@ export const uploadToHuggingFace = async (
 
 	// Check status of response
 	if (!uploadResponse.ok) {
-		throw new Error(`Upload failed with status ${uploadResponse.status}`);
+		if (uploadResponse.headers.get("content-type")?.includes("application/json")) {
+			const error = await uploadResponse.json();
+			throw new Error(`Upload failed: ${error.error}`);
+		}
+		throw new Error(`Upload failed.`);
 	}
 
 	// Return response if needed

@@ -27,7 +27,7 @@
 			});
 		} catch (e) {
 			console.error(e)
-			dispatch("error", "Failed to upload for sharing.");
+			dispatch("error", e);
         } finally {
 			pending = false;
 		}
