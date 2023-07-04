@@ -23,14 +23,14 @@
 		"svelte-check": "^3.0.1",
 		"tailwindcss": "^3.1.6",
 		"tslib": "^2.4.1",
-		"typescript": "^4.9.3",
+		"typescript": "^5.0.0",
 		"vite": "^4.3.9"
 	},
 	"type": "module",
 	"dependencies": {
 		"@sindresorhus/slugify": "^2.2.0",
 		"hast-util-to-string": "^2.0.0",
-		"mdsvex": "^0.10.6",
+		"mdsvex": "^0.11.0",
 		"postcss": ">=8.3.3 <9.0.0"
 	}
 }
