@@ -24,8 +24,9 @@
 		<textarea id="code-input" cols="30" rows="10">
 import gradio as gr
 
-def greet(name):
-    return "Hello " + name + "!"
+from greetings import greet
+# def greet(name):
+#     return "Hello " + name + "!"
 
 def upload_file(files):
     file_paths = [file.name for file in files]
@@ -55,6 +56,17 @@ demo.launch()
 
 			const controller = createGradioApp({
 				target: document.getElementById("gradio-app"),
+				files: {
+					"greetings.py": {
+						data: `
+def greet(name):
+    return "Hello " + name + "!"
+`
+					},
+					"images/logo.png": {
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/logo.png"
+					}
+				},
 				pyCode: initial_code,
 				info: true,
 				container: true,
