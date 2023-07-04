@@ -171,11 +171,11 @@ class ImgSerializable(Serializable):
             x: String path to file to serialize
             load_dir: Path to directory containing x
         """
-        if x is None or x == "":
+        if not x:
             return None
-        is_url = utils.is_valid_url(x)
-        path = x if is_url else Path(load_dir) / x
-        return utils.encode_url_or_file_to_base64(path)
+        if utils.is_http_url_like(x):
+            return utils.encode_url_to_base64(x)
+        return utils.encode_file_to_base64(Path(load_dir) / x)
 
     def deserialize(
         self,
@@ -252,7 +252,7 @@ class FileSerializable(Serializable):
     ) -> FileData | None:
         if x is None or isinstance(x, dict):
             return x
-        if utils.is_valid_url(x):
+        if utils.is_http_url_like(x):
             filename = x
             size = None
         else:
