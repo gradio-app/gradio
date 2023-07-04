@@ -1,7 +1,5 @@
 import gradio as gr
 
-title = "GPT-J-6B"
-
 tts_examples = [
     "I love learning machine learning",
     "How do you do?",

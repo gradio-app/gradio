@@ -47,30 +47,7 @@ demo.launch()
 		</textarea>
 		<button id="exec-button">Execute</button>
 
-		<script type="module">  // type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
-			const code_input = document.getElementById("code-input");
-			const exec_button = document.getElementById("exec-button");
-
-			const initial_code = code_input.value;
-
-			const controller = createGradioApp({
-				target: document.getElementById("gradio-app"),
-				pyCode: initial_code,
-				info: true,
-				container: true,
-				isEmbed: false,
-				initialHeight: "300px",
-				eager: false,
-				themeMode: null,
-				autoScroll: false,
-				controlPageTitle: false,
-				appMode: true
-			});
-
-			exec_button.onclick = () => {
-				console.debug("exec_button.onclick");
-				controller.rerun(code_input.value);
-			}
-		</script>
+		<textarea id="requirements-input"></textarea>
+		<button id="install-button">Install</button>
 	</body>
 </html>
