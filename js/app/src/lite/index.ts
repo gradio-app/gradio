@@ -1,5 +1,5 @@
 import "@gradio/theme";
-import { WorkerProxy } from "@gradio/wasm";
+import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
 import { wasm_proxied_mount_css } from "./css";
@@ -30,10 +30,16 @@ declare let GRADIO_VERSION: string;
 
 interface GradioAppController {
 	rerun: (code: string) => Promise<void>;
+	write: (path: string, data: string | ArrayBufferView, opts: any) => Promise<void>;
+	rename: (old_path: string, new_path: string) => Promise<void>;
+	unlink: (path: string) => Promise<void>;
+	install: (requirements: string[]) => Promise<void>;
 }
 
 interface Options {
 	target: HTMLElement;
+	files?: WorkerProxyOptions["files"];
+	requirements?: WorkerProxyOptions["requirements"];
 	pyCode: string;
 	info: boolean;
 	container: boolean;
@@ -57,7 +63,8 @@ export function create(options: Options): GradioAppController {
 	const worker_proxy = new WorkerProxy({
 		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
-		requirements: []
+		files: options.files ?? {},
+		requirements: options.requirements ?? [],
 	});
 
 	// Internally, the execution of `runPythonAsync()` is queued
@@ -116,6 +123,18 @@ export function create(options: Options): GradioAppController {
 		rerun: async (code: string): Promise<void> => {
 			await worker_proxy.runPythonAsync(code);
 			launchNewApp();
+		},
+		write(path, data, opts) {
+			return worker_proxy.writeFile(path, data, opts);
+		},
+		rename(old_path: string, new_path: string): Promise<void> {
+			return worker_proxy.renameFile(old_path, new_path);
+		},
+		unlink(path) {
+			return worker_proxy.unlink(path);
+		},
+		install(requirements) {
+			return worker_proxy.install(requirements);
 		}
 	};
 }

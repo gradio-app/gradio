@@ -32,6 +32,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
+		error: string;
 	}>();
 
 	$: value, dispatch("change");
@@ -89,7 +90,7 @@
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";
-				loading_status.message = detail;
+				dispatch("error", detail)
 			}}
 			{label}
 			{show_label}
