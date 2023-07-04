@@ -3,7 +3,8 @@
 	import { Community } from "@gradio/icons";
 	import { createEventDispatcher } from "svelte";
 	import type { ShareData } from "@gradio/utils";
-
+	import { ShareError } from "@gradio/utils";
+``
 	const dispatch = createEventDispatcher<{
 		share: ShareData;
 		error: string;
@@ -27,7 +28,8 @@
 			});
 		} catch (e) {
 			console.error(e)
-			dispatch("error", e);
+			let message = e instanceof ShareError ? e.message : "Share failed";
+			dispatch("error", message);
         } finally {
 			pending = false;
 		}

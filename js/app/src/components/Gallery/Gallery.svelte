@@ -36,6 +36,7 @@
 	{container}
 	{scale}
 	{min_width}
+	allow_overflow={false}
 	height={typeof height === "number" ? height : undefined}
 >
 	<StatusTracker {...loading_status} />

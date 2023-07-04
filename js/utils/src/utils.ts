@@ -9,6 +9,13 @@ export interface ShareData {
 	title?: string;
 }
 
+export class ShareError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "ShareError";
+	}
+}
+
 export const uploadToHuggingFace = async (
 	data: string,
 	type: "base64" | "url"
@@ -46,9 +53,9 @@ export const uploadToHuggingFace = async (
 	if (!uploadResponse.ok) {
 		if (uploadResponse.headers.get("content-type")?.includes("application/json")) {
 			const error = await uploadResponse.json();
-			throw new Error(`Upload failed: ${error.error}`);
+			throw new ShareError(`Upload failed: ${error.error}`);
 		}
-		throw new Error(`Upload failed.`);
+		throw new ShareError(`Upload failed.`);
 	}
 
 	// Return response if needed
