@@ -107,6 +107,7 @@
 							{/if}
 						{:else if message !== null && message.mime_type?.includes("audio")}
 							<audio
+								data-testid="chatbot-audio"
 								controls
 								preload="metadata"
 								src={message.data}
@@ -117,6 +118,7 @@
 							/>
 						{:else if message !== null && message.mime_type?.includes("video")}
 							<video
+								data-testid="chatbot-video"
 								controls
 								src={message.data}
 								title={message.alt_text}
@@ -128,7 +130,11 @@
 								<track kind="captions" />
 							</video>
 						{:else if message !== null && message.mime_type?.includes("image")}
-							<img src={message.data} alt={message.alt_text} />
+							<img
+								data-testid="chatbot-image"
+								src={message.data}
+								alt={message.alt_text}
+							/>
 						{/if}
 					</div>
 				{/each}
