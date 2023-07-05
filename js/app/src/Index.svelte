@@ -279,9 +279,6 @@
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
-		if ("parentIFrame" in window) {
-			parentIFrame.setHeightCalculationMethod("lowestElement");
-		}
 	});
 </script>
 

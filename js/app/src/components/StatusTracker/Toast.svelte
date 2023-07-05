@@ -30,8 +30,9 @@
 	.toast-wrap {
 		display: flex;
 		position: fixed;
+		top: var(--size-4);
 		right: var(--size-4);
-		bottom: var(--size-4);
+
 		flex-direction: column-reverse;
 		align-items: end;
 		gap: var(--size-2);
@@ -41,9 +42,6 @@
 
 	@media (--screen-sm) {
 		.toast-wrap {
-			top: var(--size-4);
-			bottom: unset;
-			flex-direction: column;
 			width: calc(var(--size-96) + var(--size-10));
 		}
 	}

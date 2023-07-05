@@ -10,26 +10,6 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
-
-	console.log("CHANGE");
-
-	// const observer = new ResizeObserver((entry) => {
-	// 	console.log(entry.contentRect.height);
-	// 	parentIFrame.size(entry.contentRect.height);
-	// });
-
-	onMount(() => {
-		if ("parentIFrame" in window) {
-			window.iFrameResizer = {
-				onReady(): void {
-					window.parentIFrame.setHeightCalculationMethod("taggedElement");
-				}
-			};
-
-			// const x = wrapper.getBoundingClientRect();
-			// observer.observe();
-		}
-	});
 </script>
 
 <div
