@@ -20,7 +20,12 @@
 
 	onMount(() => {
 		if ("parentIFrame" in window) {
-			parentIFrame.heightCalculationMethod("taggedElement");
+			window.iFrameResizer = {
+				onReady(): void {
+					window.parentIFrame.setHeightCalculationMethod("taggedElement");
+				}
+			};
+
 			// const x = wrapper.getBoundingClientRect();
 			// observer.observe();
 		}
