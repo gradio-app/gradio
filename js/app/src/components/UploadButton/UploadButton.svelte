@@ -6,13 +6,13 @@
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let label: string;
 	export let value: null | FileData;
 	export let file_count: string;
-	export let file_types: Array<string> = ["file"];
+	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
@@ -72,6 +72,7 @@
 	{min_width}
 	{mode}
 	{variant}
+	{label}
 	on:click
 	on:load={handle_upload}
 >

@@ -1,3 +1,4 @@
+
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
@@ -190,11 +191,11 @@
 </script>
 
 {#if value && type == "plotly"}
-	<div bind:this={plotDiv} />
+	<div data-testid={"plotly"} bind:this={plotDiv} />
 {:else if type == "bokeh"}
-	<div id={divId} class="gradio-bokeh"/>
+	<div data-testid={"bokeh"} id={divId} class="gradio-bokeh"/>
 {:else if type == "altair"}
-	<div class="altair layout">
+	<div data-testid={"altair"} class="altair layout">
 		<Vega {spec} />
 		{#if caption}
 			<div class="caption layout">
@@ -203,7 +204,7 @@
 		{/if}
 	</div>
 {:else if type == "matplotlib"}
-	<div class="matplotlib layout">
+	<div data-testid={"matplotlib"} class="matplotlib layout">
 		<!-- svelte-ignore a11y-missing-attribute -->
 		<img src={plot} />
 	</div>

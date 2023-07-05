@@ -29,7 +29,7 @@ Here's how to build a real time speech recognition (ASR) app:
 1. [Set up the Transformers ASR Model](#1-set-up-the-transformers-asr-model)
 2. [Create a Full-Context ASR Demo with Transformers](#2-create-a-full-context-asr-demo-with-transformers) 
 3. [Create a Streaming ASR Demo  with Transformers](#3-create-a-streaming-asr-demo-with-transformers)
-4. [Create a Streaming ASR Demo with DeepSpeech](#4-create-a-streaming-asr-demo-with-deepspeech)
+4. [Create a Streaming ASR Demo with DeepSpeech](#4-create-a-streaming-asr-demo-with-deep-speech)
 
 
 ## 1. Set up the Transformers ASR Model

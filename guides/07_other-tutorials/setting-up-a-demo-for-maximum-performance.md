@@ -7,7 +7,7 @@ Let's say that your Gradio demo goes *viral* on social media -- you have lots of
 
 How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configurations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously with minimal latency.
 
-This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio Interface](https://gradio.app/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
+This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio Interface](https://gradio.app/guides/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
 
 ## Enabling Gradio's Queueing System
 
@@ -92,7 +92,7 @@ The second function can be used with `batch=True` and an appropriate `max_batch_
 
 ### The `api_open` parameter
 
-When creating a Gradio demo, you may want to restrict all traffic to happen through the user interface as opposed to the [programmatic API](/sharing_your_app/#api-page) that is automatically created for your Gradio demo. This is important because when people make requests through the programmatic API, they can potentially bypass users who are waiting in the queue and degrade the experience of these users. 
+When creating a Gradio demo, you may want to restrict all traffic to happen through the user interface as opposed to the [programmatic API](/guides/sharing-your-app/#api-page) that is automatically created for your Gradio demo. This is important because when people make requests through the programmatic API, they can potentially bypass users who are waiting in the queue and degrade the experience of these users. 
 
 **Recommendation**: set the `api_open` parameter in `queue()` to `False` in your demo to prevent programmatic requests.
 
