@@ -211,7 +211,7 @@ if (BUILD_MODE === "dev") {
 
 	exec_button.onclick = () => {
 		console.debug("exec_button.onclick");
-		controller.rerun(code_input.value);
+		controller.run_code(code_input.value);
 		console.debug("Rerun finished")
 	}
 
