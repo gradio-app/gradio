@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	export let wrapper: HTMLDivElement;
 	export let version: string;
@@ -13,7 +12,6 @@
 </script>
 
 <div
-	data-iframe-height
 	bind:this={wrapper}
 	class:app={!display && !is_embed}
 	class:embed-container={display}
