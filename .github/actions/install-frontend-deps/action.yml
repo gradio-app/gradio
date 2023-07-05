@@ -42,6 +42,7 @@ runs:
       shell: bash
       run: pnpm i --frozen-lockfile
     - name: Build Css
+      if: inputs.always-install-pnpm == 'true'
       shell: bash
       run: pnpm css
     - name: Build frontend
