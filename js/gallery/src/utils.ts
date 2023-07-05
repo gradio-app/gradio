@@ -2,7 +2,7 @@ import { uploadToHuggingFace } from "@gradio/utils";
 import type { FileData } from "@gradio/upload";
 
 export const format_gallery_for_sharing = async (
-	value: [FileData | null, any][] | null
+	value: [FileData, string | null][] | null
 ) => {
 	if (!value) return "";
 	let urls = await Promise.all(

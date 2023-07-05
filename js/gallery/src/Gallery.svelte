@@ -35,7 +35,7 @@
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
-	let _value: [FileData | null, any][] | null = null;
+	let _value: [FileData, string | null][] | null = null;
 	$: _value =
 		value === null
 			? null
