@@ -387,6 +387,8 @@
 		link && new URL(link, location.href).origin !== location.origin;
 
 	let attached_error_listeners = false;
+
+	let shareable_components: number[] = [];
 	async function handle_mount() {
 		await tick();
 
@@ -401,7 +403,6 @@
 				a[i].setAttribute("target", "_blank");
 		}
 
-		let shareable_components: number[] = [];
 		dependencies.forEach((dep, i) => {
 			let { targets, trigger, inputs, outputs } = dep;
 			const target_instances: [number, ComponentMeta][] = targets.map((t) => [
@@ -434,22 +435,22 @@
 					if (!handled_dependencies[i]) handled_dependencies[i] = [];
 					handled_dependencies[i].push(id);
 				});
-
-			// share events
-			outputs.forEach((output_id: number) => {
-				const output_component = instance_map[output_id];
-				if (
-					output_component.props.show_share_button &&
-					!shareable_components.includes(output_id) // only one share listener per component
-				) {
-					shareable_components.push(output_id);
-					output_component.instance.$on("share", (event_data) => {
-						const { title, description } = event_data.detail as ShareData;
-						trigger_share(title, description);
-					});
-				}
-			});
 		});
+		// share events
+		components.forEach((c) => {
+			if (
+				c.props.show_share_button &&
+				!shareable_components.includes(c.id) // only one share listener per component
+			) {
+				shareable_components.push(c.id);
+				c.instance.$on("share", (event_data) => {
+					const { title, description } = event_data.detail as ShareData;
+					trigger_share(title, description);
+				});
+			}
+		});
+
+		// error events
 		if (!attached_error_listeners) {
 			attached_error_listeners = true;
 			components.forEach((c) => {
