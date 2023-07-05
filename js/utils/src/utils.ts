@@ -20,6 +20,9 @@ export const uploadToHuggingFace = async (
 	data: string,
 	type: "base64" | "url"
 ) => {
+	if (window.__gradio_space__ == null) {
+		throw new ShareError("Must be on Spaces to share.");
+	}
 	let blob: Blob;
 	let contentType: string;
 	let filename: string;

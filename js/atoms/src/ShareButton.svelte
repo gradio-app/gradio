@@ -28,7 +28,7 @@
 			});
 		} catch (e) {
 			console.error(e);
-			let message = e instanceof ShareError ? e.message : "Share failed";
+			let message = e instanceof ShareError ? e.message : "Share failed.";
 			dispatch("error", message);
 		} finally {
 			pending = false;
