@@ -1903,7 +1903,7 @@ class Image(
             x = processing_utils.resize_and_crop(x, self.shape)
         resized_and_cropped_image = np.array(x)
         try:
-            from skimage.segmentation import slic
+            from  skimage.segmentation import slic
         except (ImportError, ModuleNotFoundError) as err:
             raise ValueError(
                 "Error: running this interpretation for images requires scikit-image, please install it first."
@@ -4393,7 +4393,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
             "show_label": show_label,
             "visible": visible,
             "value": value,
-            "elem_classes", elem_classes
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
