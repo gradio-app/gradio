@@ -13,16 +13,22 @@
 
 	console.log("CHANGE");
 
+	// const observer = new ResizeObserver((entry) => {
+	// 	console.log(entry.contentRect.height);
+	// 	parentIFrame.size(entry.contentRect.height);
+	// });
+
 	onMount(() => {
 		if ("parentIFrame" in window) {
-			const x = wrapper.getBoundingClientRect();
-			console.log(x);
-			parentIFrame.autoResize([false]);
+			parentIFrame.heightCalculationMethod("taggedElement");
+			// const x = wrapper.getBoundingClientRect();
+			// observer.observe();
 		}
 	});
 </script>
 
 <div
+	data-iframe-height
 	bind:this={wrapper}
 	class:app={!display && !is_embed}
 	class:embed-container={display}
