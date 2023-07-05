@@ -1,0 +1,3 @@
+content/Retrieval-based-Voice-Conversion-WebUI/EasierGUI.py", line 240, in vc_multi
+    paths = [os.path.join(dir_path, name) for name in os.listdir(dir_path)]
+FileNotFoundError: [Errno 2] No such file or directory: 'E:\\codes\\py39\\test-20230416b\\todo-songs
