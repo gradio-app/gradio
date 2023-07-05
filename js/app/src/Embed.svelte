@@ -9,6 +9,15 @@
 	export let display: boolean;
 	export let info: boolean;
 	export let loaded: boolean;
+
+	onMount(() => {
+		if ("parentIFrame" in window) {
+			wrapper.style.overflow = "hidden";
+			const x = wrapper.getBoundingClientRect();
+			console.log(x);
+			// parentIFrame.setHeightCalculationMethod("lowestElement");
+		}
+	});
 </script>
 
 <div
