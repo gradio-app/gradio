@@ -145,6 +145,7 @@ export default defineConfig(({ mode }) => {
 			handle_ce_css()
 		],
 		test: {
+			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
 			environment: TEST_MODE,
 			include:
 				TEST_MODE === "node"
