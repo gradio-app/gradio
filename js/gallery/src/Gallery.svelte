@@ -35,6 +35,7 @@
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
+	let _value: [FileData | null, any][] | null = null;
 	$: _value =
 		value === null
 			? null
@@ -237,7 +238,7 @@
 					<ShareButton
 						on:share
 						on:error
-						{value}
+						value={_value}
 						formatter={format_gallery_for_sharing}
 					/>
 				</div>
