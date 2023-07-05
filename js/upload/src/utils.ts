@@ -1,22 +1,27 @@
 import type { FileData } from "./types";
 
 export function normalise_file(
-	file: string | FileData | null,
+	file: null,
 	root: string,
 	root_url: string | null
-): FileData | null;
+): null;
+export function normalise_file(
+	file: string | FileData,
+	root: string,
+	root_url: string | null
+): FileData;
 
 export function normalise_file(
-	file: Array<FileData> | null,
+	file: Array<FileData>,
 	root: string,
 	root_url: string | null
-): Array<FileData> | null;
+): Array<FileData>;
 
 export function normalise_file(
-	file: Array<FileData> | FileData | null,
+	file: Array<FileData> | FileData,
 	root: string,
 	root_url: string | null
-): Array<FileData> | FileData | null;
+): Array<FileData> | FileData;
 
 export function normalise_file(
 	file: Array<FileData> | FileData | string | null,

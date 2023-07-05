@@ -16,7 +16,8 @@
 	export let label: string;
 	export let root = "";
 	export let root_url: null | string = null;
-	export let value: string[] | FileData[] | null = null;
+	export let value: (FileData | string | [FileData | string, string])[] | null =
+		null;
 	export let grid_cols: number | number[] | undefined = [2];
 	export let grid_rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -45,7 +46,8 @@
 						: [normalise_file(img, root, root_url), null]
 			  );
 
-	let prevValue: string[] | FileData[] | null = value;
+	let prevValue: (FileData | string | [FileData | string, string])[] | null =
+		value;
 	let selected_image = preview && value?.length ? 0 : null;
 	let old_selected_image: number | null = selected_image;
 
@@ -181,9 +183,12 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div on:keydown={on_keydown} class="preview">
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 			<img
 				data-testid="detailed-image"
 				on:click={() => (selected_image = next)}

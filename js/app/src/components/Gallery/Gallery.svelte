@@ -13,7 +13,8 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: Array<string> | Array<FileData> | null = null;
+	export let value: (FileData | string | [FileData | string, string])[] | null =
+		null;
 	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
