@@ -11,6 +11,8 @@
 	export let info: boolean;
 	export let loaded: boolean;
 
+	console.log("CHANGE");
+
 	onMount(() => {
 		if ("parentIFrame" in window) {
 			const x = wrapper.getBoundingClientRect();
