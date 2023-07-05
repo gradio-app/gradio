@@ -11,7 +11,6 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: null | string = null;
-	let old_value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;
@@ -34,12 +33,7 @@
 		change: undefined;
 	}>();
 
-	// $: {
-	// 	if (JSON.stringify(value) !== JSON.stringify(old_value)) {
-	// 		old_value = value;
-	// 		dispatch("change");
-	// 	}
-	// }
+	$: value, dispatch("change");
 	let dragging: boolean;
 	const FIXED_HEIGHT = 240;
 
@@ -76,7 +70,6 @@
 			{selectable}
 			on:edit
 			on:clear
-			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload
