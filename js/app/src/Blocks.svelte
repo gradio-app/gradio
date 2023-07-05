@@ -371,7 +371,7 @@
 	const is_external_url = (link: string | null) =>
 		link && new URL(link, location.href).origin !== location.origin;
 
-	let attached_error_listeners = false;
+	let attached_error_listeners: number[] = [];
 	async function handle_mount() {
 		await tick();
 
@@ -418,10 +418,10 @@
 					handled_dependencies[i].push(id);
 				});
 		});
-		if (!attached_error_listeners) {
-			attached_error_listeners = true;
-			components.forEach((c) => {
+		components.forEach((c) => {
+			if (!attached_error_listeners.includes(c.id)) {
 				if (c.instance) {
+					attached_error_listeners.push(c.id);
 					c.instance.$on("error", (event_data: any) => {
 						messages = [
 							new_message(event_data.detail, -1, "error"),
@@ -429,8 +429,8 @@
 						];
 					});
 				}
-			});
-		}
+			}
+		});
 	}
 
 	function handle_destroy(id: number) {
