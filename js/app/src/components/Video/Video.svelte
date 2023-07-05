@@ -57,8 +57,6 @@
 		} else {
 			value = null;
 		}
-
-		dispatch("change");
 	}
 
 	$: {
