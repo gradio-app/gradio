@@ -35,6 +35,7 @@ interface GradioAppController {
 	rename: (old_path: string, new_path: string) => Promise<void>;
 	unlink: (path: string) => Promise<void>;
 	install: (requirements: string[]) => Promise<void>;
+	unmount: () => void;
 }
 
 interface Options {
@@ -147,6 +148,10 @@ export function create(options: Options): GradioAppController {
 		},
 		install(requirements) {
 			return worker_proxy.install(requirements);
+		},
+		unmount() {
+			app.$destroy();
+			worker_proxy.terminate();
 		}
 	};
 }
