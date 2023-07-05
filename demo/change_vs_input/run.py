@@ -58,16 +58,17 @@ with gr.Blocks() as demo:
         code.input(lambda x:x, code, code_in)
         dataframe.input(lambda x:x, dataframe, dataframe_in)
 
-        text.change(lambda x:x, text, text_ch)
-        num.change(lambda x:x, num, num_ch)
-        slider.change(lambda x:x, slider, slider_ch)
-        checkbox.change(lambda x:x, checkbox, checkbox_ch)
-        checkbox_group.change(lambda x:x, checkbox_group, checkbox_group_ch)
-        radio.change(lambda x:x, radio, radio_ch)
-        dropdown.change(lambda x:x, dropdown, dropdown_ch)
-        colorpicker.change(lambda x:x, colorpicker, colorpicker_ch)
-        code.change(lambda x:x, code, code_ch)
+        text.change(lambda x:x, text, text_ch, _js="() => console.log('changed')")
+        num.change(lambda x:x, num, num_ch, _js="() => console.log('changed')")
+        slider.change(lambda x:x, slider, slider_ch, _js="() => console.log('changed')")
+        checkbox.change(lambda x:x, checkbox, checkbox_ch, _js="() => console.log('changed')")
+        checkbox_group.change(lambda x:x, checkbox_group, checkbox_group_ch, _js="() => console.log('changed')")
+        radio.change(lambda x:x, radio, radio_ch, _js="() => console.log('changed')")
+        dropdown.change(lambda x:x, dropdown, dropdown_ch, _js="() => console.log('changed')")
+        colorpicker.change(lambda x:x, colorpicker, colorpicker_ch, _js="() => console.log('changed')")
+        code.change(lambda x:x, code, code_ch, _js="() => console.log('changed')")
         dataframe.change(lambda x:x, dataframe, dataframe_ch)
+        
 
 if __name__ == "__main__":
     demo.launch()
