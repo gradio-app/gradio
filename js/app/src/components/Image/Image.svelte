@@ -11,6 +11,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: null | string = null;
+	let old_value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;
@@ -33,7 +34,12 @@
 		change: undefined;
 	}>();
 
-	$: value, dispatch("change");
+	// $: {
+	// 	if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+	// 		old_value = value;
+	// 		dispatch("change");
+	// 	}
+	// }
 	let dragging: boolean;
 	const FIXED_HEIGHT = 240;
 
