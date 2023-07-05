@@ -515,6 +515,7 @@ class Textbox(
         visible: bool | None = None,
         interactive: bool | None = None,
         type: str | None = None,
+        elem_classes: str | None = None
     ):
         return {
             "lines": lines,
@@ -526,6 +527,7 @@ class Textbox(
             "value": value,
             "type": type,
             "interactive": interactive,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -720,6 +722,7 @@ class Number(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None
     ):
         return {
             "label": label,
@@ -727,6 +730,7 @@ class Number(
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -928,6 +932,7 @@ class Slider(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None
     ):
         return {
             "minimum": minimum,
@@ -938,6 +943,7 @@ class Slider(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -1062,6 +1068,7 @@ class Checkbox(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "label": label,
@@ -1069,6 +1076,7 @@ class Checkbox(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -1187,6 +1195,7 @@ class CheckboxGroup(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None
     ):
         return {
             "choices": choices,
@@ -1195,6 +1204,7 @@ class CheckboxGroup(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -1369,6 +1379,7 @@ class Radio(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "choices": choices,
@@ -1377,6 +1388,7 @@ class Radio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -1573,6 +1585,7 @@ class Dropdown(
         interactive: bool | None = None,
         placeholder: str | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None
     ):
         return {
             "choices": choices,
@@ -1582,6 +1595,7 @@ class Dropdown(
             "value": value,
             "interactive": interactive,
             "placeholder": placeholder,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -1770,6 +1784,7 @@ class Image(
         interactive: bool | None = None,
         visible: bool | None = None,
         brush_radius: float | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "label": label,
@@ -1778,6 +1793,7 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -2091,6 +2107,7 @@ class Video(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None
     ):
         return {
             "source": source,
@@ -2099,6 +2116,7 @@ class Video(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -2424,6 +2442,7 @@ class Audio(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "source": source,
@@ -2432,6 +2451,7 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -2720,6 +2740,7 @@ class File(
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "label": label,
@@ -2727,6 +2748,7 @@ class File(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -3004,6 +3026,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "max_rows": max_rows,
@@ -3013,6 +3036,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -3221,6 +3245,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         show_label: bool | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "colors": colors,
@@ -3229,6 +3254,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -3381,12 +3407,14 @@ class Button(Clickable, IOComponent, StringSerializable):
         variant: str | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "variant": variant,
             "visible": visible,
             "value": value,
             "interactive": interactive,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -3482,11 +3510,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         interactive: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -3646,6 +3676,7 @@ class ColorPicker(
         show_label: bool | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "value": value,
@@ -3653,6 +3684,7 @@ class ColorPicker(
             "show_label": show_label,
             "visible": visible,
             "interactive": interactive,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -3920,6 +3952,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "color_map": color_map,
@@ -3928,6 +3961,7 @@ class HighlightedText(Changeable, Selectable, IOComponent, JSONSerializable):
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -4085,6 +4119,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "show_legend": show_legend,
@@ -4092,6 +4127,7 @@ class AnnotatedImage(Selectable, IOComponent, JSONSerializable):
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -4257,12 +4293,14 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -4348,12 +4386,14 @@ class HTML(Changeable, IOComponent, StringSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes", elem_classes
             "__type__": "update",
         }
         return updated_config
@@ -4418,12 +4458,14 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -4611,12 +4653,14 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -4795,12 +4839,14 @@ class Model3D(
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -4920,12 +4966,14 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -5120,6 +5168,7 @@ class ScatterPlot(Plot):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         """Update an existing plot component.
 
@@ -5196,6 +5245,7 @@ class ScatterPlot(Plot):
             "visible": visible,
             "value": value,
             "caption": caption,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -5457,6 +5507,7 @@ class LinePlot(Plot):
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
+        elem_classes: str | None = None
     ):
         """Update an existing plot component.
 
@@ -5529,6 +5580,7 @@ class LinePlot(Plot):
             "visible": visible,
             "value": value,
             "caption": caption,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -5788,6 +5840,7 @@ class BarPlot(Plot):
         label: str | None = None,
         show_label: bool = True,
         visible: bool = True,
+        elem_classes: str | None = None,
     ):
         """Update an existing BarPlot component.
 
@@ -5856,6 +5909,7 @@ class BarPlot(Plot):
             "visible": visible,
             "value": value,
             "caption": caption,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -6039,10 +6093,12 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
         return updated_config
@@ -6146,6 +6202,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         visible: bool | None = None,
         language: str | None = None,
         interactive: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "label": label,
@@ -6154,6 +6211,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
             "value": value,
             "language": language,
             "interactive": interactive,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -6243,11 +6301,13 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
         label: str | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "samples": samples,
             "visible": visible,
             "label": label,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
@@ -6315,10 +6375,12 @@ class Interpretation(Component, SimpleSerializable):
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
+        elem_classes: str | None = None,
     ):
         return {
             "visible": visible,
             "value": value,
+            "elem_classes": elem_classes,
             "__type__": "update",
         }
 
