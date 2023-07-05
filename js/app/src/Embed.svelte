@@ -17,7 +17,7 @@
 		if ("parentIFrame" in window) {
 			const x = wrapper.getBoundingClientRect();
 			console.log(x);
-			// parentIFrame.setHeightCalculationMethod("lowestElement");
+			parentIFrame.autoResize([false]);
 		}
 	});
 </script>
