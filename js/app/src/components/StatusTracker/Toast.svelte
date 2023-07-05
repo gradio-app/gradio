@@ -33,7 +33,7 @@
 		top: var(--size-4);
 		right: var(--size-4);
 
-		flex-direction: column-reverse;
+		flex-direction: column;
 		align-items: end;
 		gap: var(--size-2);
 		z-index: var(--layer-top);
