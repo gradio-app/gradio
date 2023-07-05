@@ -201,9 +201,6 @@ importers:
       storybook:
         specifier: ^7.0.23
         version: 7.0.23
-      vite-plugin-turbosnap:
-        specifier: ^1.0.2
-        version: 1.0.2
 
   client/js:
     dependencies:
@@ -14356,10 +14353,6 @@ packages:
       - supports-color
       - terser
     dev: false
-
-  /vite-plugin-turbosnap@1.0.2:
-    resolution: {integrity: sha512-irjKcKXRn7v5bPAg4mAbsS6DgibpP1VUFL9tlgxU6lloK6V9yw9qCZkS+s2PtbkZpWNzr3TN3zVJAc6J7gJZmA==}
-    dev: true
 
   /vite@4.3.5(@types/node@20.3.1)(less@4.1.3):
     resolution: {integrity: sha512-0gEnL9wiRFxgz40o/i/eTBwm+NEbpUeTWhzKrZDSdKm6nplj+z4lKz8ANDgildxHm47Vg8EUia0aicKbawUVVA==}
