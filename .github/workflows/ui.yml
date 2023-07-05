@@ -57,9 +57,16 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
-  chromatic-deployment:
+  check-chromatic-token:
     runs-on: ubuntu-latest
-    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-visual-update') }}
+    steps:
+      - name: check for chromatic token
+        run: echo "token_exists=$([[ -n ${{ secrets.CHROMATIC_PROJECT_TOKEN }} ]] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  chromatic-deployment:
+    needs: check-chromatic-token
+    runs-on: ubuntu-latest
+    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-visual-update') }} && needs.check-chromatic-token.outputs.token_exists == 'true' 
     steps:
       - uses: actions/checkout@v3
         with:
@@ -82,6 +89,7 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: post deployment link to PR
+        if: ${{ github.event_name == 'pull_request' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
