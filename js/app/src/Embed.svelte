@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import space_logo from "./images/spaces.svg";
 	export let wrapper: HTMLDivElement;
 	export let version: string;
@@ -12,7 +13,6 @@
 
 	onMount(() => {
 		if ("parentIFrame" in window) {
-			wrapper.style.overflow = "hidden";
 			const x = wrapper.getBoundingClientRect();
 			console.log(x);
 			// parentIFrame.setHeightCalculationMethod("lowestElement");
