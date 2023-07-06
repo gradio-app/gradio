@@ -65,7 +65,7 @@ jobs:
         with:
             fetch-depth: 0
       - name: install gradio
-        run: python -m pip install gradio==$(cat gradio/version.txt)
+        run: python -m pip install -e .
       - name: generate theme.css
         run: python scripts/generate_theme.py --outfile js/storybook/theme.css
       - name: install dependencies
