@@ -31,7 +31,7 @@ def upload_file(files):
     file_paths = [file.name for file in files]
     return file_paths
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     name = gr.Textbox(label="Name")
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")

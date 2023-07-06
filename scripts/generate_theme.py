@@ -1,6 +1,12 @@
-from gradio.themes.default import Default
+import argparse
+from gradio import themes
 
-css = Default()._get_theme_css()
+parser = argparse.ArgumentParser(description='Generate themed CSS which is normally served from the /theme.css endpoint of a Gradio server.')
+parser.add_argument('--outfile', type=argparse.FileType('w', encoding='latin-1'), default="-")
+parser.add_argument('--theme', choices=["default", "glass", "monochrome", "soft"], default="default")
+args = parser.parse_args()
 
-with open("js/storybook/theme.css", "w") as file1:
-    file1.write(css)
+ThemeClass = getattr(themes, args.theme.capitalize())
+css = ThemeClass()._get_theme_css()
+
+args.outfile.write(css)
