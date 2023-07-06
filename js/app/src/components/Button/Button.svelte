@@ -17,7 +17,6 @@
 	{variant}
 	{elem_id}
 	{elem_classes}
-	{size}
 	{scale}
 	{min_width}
 	{visible}

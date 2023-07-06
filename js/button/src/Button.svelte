@@ -57,7 +57,6 @@
 		border: var(--button-border-width) solid var(--button-primary-border-color);
 		background: var(--button-primary-background-fill);
 		color: var(--button-primary-text-color);
-		border: 5px solid red;
 	}
 	.primary:hover,
 	.primary[disabled] {
