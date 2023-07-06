@@ -11,7 +11,7 @@
 
 <button
 	on:click
-	class:hide={!visible}
+	class:hide-container={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
 	style:flex-grow={scale}
 	style:width={scale === 0 ? "fit-content" : null}
@@ -49,7 +49,7 @@
 		cursor: not-allowed;
 	}
 
-	.hide {
+	.hide-container {
 		display: none;
 	}
 
