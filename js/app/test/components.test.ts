@@ -75,7 +75,7 @@ const components = [
 	// ["Plot", Plot, {}],
 	["Radio", Radio, {}],
 	["Slider", Slider, {}],
-	["Textbox", Textbox, {}],
+	["Textbox", Textbox, { container: false }],
 	["TimeSeries", TimeSeries, {}],
 	["UploadButton", UploadButton, {}],
 	["Video", Video, {}]

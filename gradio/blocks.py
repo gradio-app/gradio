@@ -1957,13 +1957,8 @@ Received outputs:
 
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
-            inline = utils.ipython_check() and (self.auth is None)
+            inline = utils.ipython_check()
         if inline:
-            if self.auth is not None:
-                print(
-                    "Warning: authentication is not supported inline. Please"
-                    "click the link to access the interface in a new tab."
-                )
             try:
                 from IPython.display import HTML, Javascript, display  # type: ignore
 
