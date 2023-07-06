@@ -70,7 +70,9 @@ jobs:
           always-install-pnpm: true
           skip_build: 'true'
       - name: generate theme.css
-        run: python scripts/generate_theme.py --outfile js/storybook/theme.css
+        run: | 
+          . venv/bin/activate
+          python scripts/generate_theme.py --outfile js/storybook/theme.css
       - name: build storybook
         run: pnpm build-storybook --quiet
       - name: publish to chromatic
