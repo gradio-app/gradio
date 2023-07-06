@@ -11,8 +11,7 @@
 	function scroll_to_top(_messages: ToastMessage[]): void {
 		if (_messages.length > 0) {
 			if ("parentIFrame" in window) {
-				let is_large = window.matchMedia("(min-width: 640px)").matches;
-				window.parentIFrame?.scrollTo(0, is_large ? 0 : 999999);
+				window.parentIFrame?.scrollTo(0, 0);
 			}
 		}
 	}
@@ -30,9 +29,10 @@
 	.toast-wrap {
 		display: flex;
 		position: fixed;
+		top: var(--size-4);
 		right: var(--size-4);
-		bottom: var(--size-4);
-		flex-direction: column-reverse;
+
+		flex-direction: column;
 		align-items: end;
 		gap: var(--size-2);
 		z-index: var(--layer-top);
@@ -41,9 +41,6 @@
 
 	@media (--screen-sm) {
 		.toast-wrap {
-			top: var(--size-4);
-			bottom: unset;
-			flex-direction: column;
 			width: calc(var(--size-96) + var(--size-10));
 		}
 	}
