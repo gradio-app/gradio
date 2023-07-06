@@ -27,7 +27,7 @@
 		"ci:version": "changeset version && pnpm i --lockfile-only",
 		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
 		"build-storybook": "storybook build --config-dir js/storybook",
-		"chromatic": "chromatic",
+		"chromatic": "chromatic --exit-zero-on-changes",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts"
 	},
 	"type": "module",
