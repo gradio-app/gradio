@@ -1,3 +1,325 @@
 {
-	"trailingSlash": false
+    "redirects": [
+        {
+            "source": "/controlling-layout",
+            "destination": "/guides/controlling-layout"
+        },
+        {
+            "source": "/state-in-blocks",
+            "destination": "/guides/state-in-blocks"
+        },
+        {
+            "source": "/custom-CSS-and-JS",
+            "destination": "/guides/custom-CSS-and-JS"
+        },
+        {
+            "source": "/blocks-and-event-listeners",
+            "destination": "/guides/blocks-and-event-listeners"
+        },
+        {
+            "source": "/using-blocks-like-functions",
+            "destination": "/guides/using-blocks-like-functions"
+        },
+        {
+            "source": "/using-flagging",
+            "destination": "/guides/using-flagging"
+        },
+        {
+            "source": "/named-entity-recognition",
+            "destination": "/guides/named-entity-recognition"
+        },
+        {
+            "source": "/real-time-speech-recognition",
+            "destination": "/guides/real-time-speech-recognition"
+        },
+        {
+            "source": "/developing-faster-with-reload-mode",
+            "destination": "/guides/developing-faster-with-reload-mode"
+        },
+        {
+            "source": "/create-your-own-friends-with-a-gan",
+            "destination": "/guides/create-your-own-friends-with-a-gan"
+        },
+        {
+            "source": "/setting-up-a-demo-for-maximum-performance",
+            "destination": "/guides/setting-up-a-demo-for-maximum-performance"
+        },
+        {
+            "source": "/building-a-pictionary-app",
+            "destination": "/guides/building-a-pictionary-app"
+        },
+        {
+            "source": "/creating-a-chatbot",
+            "destination": "/guides/creating-a-chatbot"
+        },
+        {
+            "source": "/how-to-use-D-model-component",
+            "destination": "/guides/how-to-use-D-model-component"
+        },
+        {
+            "source": "/creating-a-new-component",
+            "destination": "/guides/creating-a-new-component"
+        },
+        {
+            "source": "/running-background-tasks",
+            "destination": "/guides/running-background-tasks"
+        },
+        {
+            "source": "/custom-interpretations-with-blocks",
+            "destination": "/guides/custom-interpretations-with-blocks"
+        },
+        {
+            "source": "/reactive-interfaces",
+            "destination": "/guides/reactive-interfaces"
+        },
+        {
+            "source": "/four-kinds-of-interfaces",
+            "destination": "/guides/four-kinds-of-interfaces"
+        },
+        {
+            "source": "/interface-state",
+            "destination": "/guides/interface-state"
+        },
+        {
+            "source": "/ore-on-examples",
+            "destination": "/guides/ore-on-examples"
+        },
+        {
+            "source": "/advanced-interface-features",
+            "destination": "/guides/advanced-interface-features"
+        },
+        {
+            "source": "/key-features",
+            "destination": "/guides/key-features"
+        },
+        {
+            "source": "/quickstart",
+            "destination": "/guides/quickstart"
+        },
+        {
+            "source": "/sharing-your-app",
+            "destination": "/guides/sharing-your-app"
+        },
+        {
+            "source": "/connecting-to-a-database",
+            "destination": "/guides/connecting-to-a-database"
+        },
+        {
+            "source": "/creating-a-realtime-dashboard-from-google-sheets",
+            "destination": "/guides/creating-a-realtime-dashboard-from-google-sheets"
+        },
+        {
+            "source": "/plot-component-for-maps",
+            "destination": "/guides/plot-component-for-maps"
+        },
+        {
+            "source": "/creating-a-dashboard-from-bigquery-data",
+            "destination": "/guides/creating-a-dashboard-from-bigquery-data"
+        },
+        {
+            "source": "/using-gradio-for-tabular-workflows",
+            "destination": "/guides/using-gradio-for-tabular-workflows"
+        },
+        {
+            "source": "/image-classification-in-pytorch",
+            "destination": "/guides/image-classification-in-pytorch"
+        },
+        {
+            "source": "/using-hugging-face-integrations",
+            "destination": "/guides/using-hugging-face-integrations"
+        },
+        {
+            "source": "/Gradio-and-ONNX-on-Hugging-Face",
+            "destination": "/guides/Gradio-and-ONNX-on-Hugging-Face"
+        },
+        {
+            "source": "/image-classification-with-vision-transformers",
+            "destination": "/guides/image-classification-with-vision-transformers"
+        },
+        {
+            "source": "/Gradio-and-Wandb-Integration",
+            "destination": "/guides/Gradio-and-Wandb-Integration"
+        },
+        {
+            "source": "/image-classification-in-tensorflow",
+            "destination": "/guides/image-classification-in-tensorflow"
+        },
+        {
+            "source": "/Gradio-and-Comet",
+            "destination": "/guides/Gradio-and-Comet"
+        },
+        {
+            "source": "/introduction_to_blocks",
+            "destination": "/guides/quickstart#more-complexity"
+        },
+        {
+            "source": "/adding_examples_to_your_app",
+            "destination": "/guides/key-features#example-inputs"
+        },
+        {
+            "source": "/embedding_gradio_demos",
+            "destination": "/guides/sharing-your-app#embedding-hosted-spaces"
+        },
+        {
+            "source": "/getting_started",
+            "destination": "/guides/quickstart"
+        },
+        {
+            "source": "/building_with_blocks",
+            "destination": "/guides/building-with-blocks"
+        },
+        {
+            "source": "/other_tutorials",
+            "destination": "/guides/other-tutorials"
+        },
+        {
+            "source": "/building_interfaces",
+            "destination": "/guides/building-interfaces"
+        },
+        {
+            "source": "/tabular_data_science_and_plots",
+            "destination": "/guides/tabular-data-science-and-plots"
+        },
+        {
+            "source": "/integrating_other_frameworks",
+            "destination": "/guides/integrating-other-frameworks"
+        },
+        {
+            "source": "/controlling_layout",
+            "destination": "/guides/controlling-layout"
+        },
+        {
+            "source": "/state_in_blocks",
+            "destination": "/guides/state-in-blocks"
+        },
+        {
+            "source": "/custom_CSS_and_JS",
+            "destination": "/guides/custom-CSS-and-JS"
+        },
+        {
+            "source": "/blocks_and_event_listeners",
+            "destination": "/guides/blocks-and-event-listeners"
+        },
+        {
+            "source": "/using_blocks_like_functions",
+            "destination": "/guides/using-blocks-like-functions"
+        },
+        {
+            "source": "/using_flagging",
+            "destination": "/guides/using-flagging"
+        },
+        {
+            "source": "/named_entity_recognition",
+            "destination": "/guides/named-entity-recognition"
+        },
+        {
+            "source": "/real_time_speech_recognition",
+            "destination": "/guides/real-time-speech-recognition"
+        },
+        {
+            "source": "/developing_faster_with_reload_mode",
+            "destination": "/guides/developing-faster-with-reload-mode"
+        },
+        {
+            "source": "/create_your_own_friends_with_a_gan",
+            "destination": "/guides/create-your-own-friends-with-a-gan"
+        },
+        {
+            "source": "/setting_up_a_demo_for_maximum_performance",
+            "destination": "/guides/setting-up-a-demo-for-maximum-performance"
+        },
+        {
+            "source": "/building_a_pictionary_app",
+            "destination": "/guides/building-a-pictionary-app"
+        },
+        {
+            "source": "/creating_a_chatbot",
+            "destination": "/guides/creating-a-chatbot"
+        },
+        {
+            "source": "/how_to_use_3D_model_component",
+            "destination": "/guides/how-to-use-3D-model-component"
+        },
+        {
+            "source": "/creating_a_new_component",
+            "destination": "/guides/creating-a-new-component"
+        },
+        {
+            "source": "/running_background_tasks",
+            "destination": "/guides/running-background-tasks"
+        },
+        {
+            "source": "/custom_interpretations_with_blocks",
+            "destination": "/guides/custom-interpretations-with-blocks"
+        },
+        {
+            "source": "/reactive_interfaces",
+            "destination": "/guides/reactive-interfaces"
+        },
+        {
+            "source": "/more_on_examples_and_flagging",
+            "destination": "/guides/more-on-examples"
+        },
+        {
+            "source": "/interface_state",
+            "destination": "/guides/interface-state"
+        },
+        {
+            "source": "/advanced_interface_features",
+            "destination": "/guides/advanced-interface-features"
+        },
+        {
+            "source": "/key_features",
+            "destination": "/guides/key-features"
+        },
+        {
+            "source": "/sharing_your_app",
+            "destination": "/guides/sharing-your-app"
+        },
+        {
+            "source": "/connecting_to_a_database",
+            "destination": "/guides/connecting-to-a-database"
+        },
+        {
+            "source": "/creating_a_realtime_dashboard_from_google_sheets",
+            "destination": "/guides/creating-a-realtime-dashboard-from-google-sheets"
+        },
+        {
+            "source": "/plot_component_for_maps",
+            "destination": "/guides/plot-component-for-maps"
+        },
+        {
+            "source": "/creating_a_dashboard_from_bigquery_data",
+            "destination": "/guides/creating-a-dashboard-from-bigquery-data"
+        },
+        {
+            "source": "/using_gradio_for_tabular_workflows",
+            "destination": "/guides/using-gradio-for-tabular-workflows"
+        },
+        {
+            "source": "/image_classification_in_pytorch",
+            "destination": "/guides/image-classification-in-pytorch"
+        },
+        {
+            "source": "/using_hugging_face_integrations",
+            "destination": "/guides/using-hugging-face-integrations"
+        },
+        {
+            "source": "/Gradio_and_ONNX_on_Hugging_Face",
+            "destination": "/guides/Gradio-and-ONNX-on-Hugging-Face"
+        },
+        {
+            "source": "/image_classification_with_vision_transformers",
+            "destination": "/guides/image-classification-with-vision-transformers"
+        },
+        {
+            "source": "/Gradio_and_Wandb_Integration",
+            "destination": "/guides/Gradio-and-Wandb-Integration"
+        },
+        {
+            "source": "/image_classification_in_tensorflow",
+            "destination": "/guides/image-classification-in-tensorflow"
+        }
+    ],
+    "trailingSlash": false
 }
