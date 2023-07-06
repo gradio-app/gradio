@@ -1173,6 +1173,7 @@ class TestSpecificUpdate:
                 "min_width": None,
                 "scale": None,
                 "width": None,
+                "show_share_button": None,
             }
         )
         assert specific_update == {
@@ -1188,6 +1189,7 @@ class TestSpecificUpdate:
             "min_width": None,
             "scale": None,
             "width": None,
+            "show_share_button": None,
             "__type__": "update",
         }
 
