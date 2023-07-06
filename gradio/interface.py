@@ -658,7 +658,6 @@ class Interface(Blocks):
             predict_events = []
 
             if stop_btn:
-
                 extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
