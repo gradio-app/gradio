@@ -658,20 +658,6 @@ class Interface(Blocks):
             predict_events = []
 
             if stop_btn:
-                # Wrap the original function to show/hide the "Stop" button
-                async def fn(*args):
-                    # The main idea here is to call the original function
-                    # and append some updates to keep the "Submit" button
-                    # hidden and the "Stop" button visible
-
-                    if inspect.isasyncgenfunction(self.fn):
-                        iterator = self.fn(*args)
-                    else:
-                        iterator = utils.SyncToAsyncIterator(
-                            self.fn(*args), limiter=self.limiter
-                        )
-                    async for output in iterator:
-                        yield output
 
                 extra_output = [submit_btn, stop_btn]
 
@@ -688,7 +674,7 @@ class Interface(Blocks):
                         outputs=[submit_btn, stop_btn],
                         queue=False,
                     ).then(
-                        fn,
+                        self.fn,
                         self.input_components,
                         self.output_components,
                         api_name="predict" if i == 0 else None,
