@@ -322,13 +322,12 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--border-color-accent);
+		--ring-color: var(--color-accent);
 		filter: brightness(1.1);
-		border-color: var(--border-color-accent);
 	}
 
 	.thumbnail-item.selected {
-		border: 1px solid var(--color-accent);
+		--ring-color: var(--color-accent);
 	}
 
 	.thumbnail-small {
