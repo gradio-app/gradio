@@ -59,6 +59,7 @@
 				)
 			) {
 				pending_upload = false;
+				dispatch("change");
 			} else if (mode === "dynamic") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!

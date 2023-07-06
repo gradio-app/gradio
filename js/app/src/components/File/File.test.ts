@@ -1,9 +1,12 @@
-import { test, describe, expect, afterEach, vi } from "vitest";
-import { cleanup, render } from "@gradio/tootils";
+import { test, describe, expect, afterEach, vi, assert } from "vitest";
+import { cleanup, render, wait_for_event } from "@gradio/tootils";
+import event from "@testing-library/user-event";
+import { spy } from "tinyspy";
 
-import File from "./File.svelte";
+import { File as FileComponent } from "./File.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
 import { upload_files } from "@gradio/client";
+import { on } from "events";
 
 const loading_status = {
 	eta: 0,
@@ -30,7 +33,7 @@ describe("File", () => {
 
 		const api = await import("@gradio/client");
 
-		render(File, {
+		await render(FileComponent, {
 			loading_status,
 			label: "file",
 			// @ts-ignore
@@ -45,10 +48,10 @@ describe("File", () => {
 		expect(api.upload_files).toHaveBeenCalled();
 	});
 
-	test("Does not upload without blob", () => {
-		const spy = vi.fn(upload_files);
+	test("Does not upload without blob", async () => {
+		const mockUpload = vi.fn(upload_files);
 
-		render(File, {
+		const { container, component } = await render(FileComponent, {
 			loading_status,
 			label: "file",
 			value: { name: "freddy.json", data: "{'name': 'freddy'}" },
@@ -59,6 +62,21 @@ describe("File", () => {
 			root_url: null
 		});
 
-		expect(spy).not.toHaveBeenCalled();
+		expect(mockUpload).not.toHaveBeenCalled();
+
+		const mock = spy();
+		component.$on("change", mock);
+
+		component.value = {
+			name: "freddy_2.json",
+			data: "{'name': 'freddy'}",
+			is_file: true
+		};
+
+		// const item = container.querySelectorAll("input")[0];
+		// const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
+		// event.upload(item, file);
+		// const mock = await wait_for_event(component, "change");
+		// assert.equal(mock.callCount, 1);
 	});
 });
