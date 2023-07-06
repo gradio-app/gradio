@@ -175,7 +175,9 @@
 							<div class="embedded-component">
 								{#key obj.name}
 									<gradio-app
-										space={"gradio/" + obj.name.toLowerCase() + "_component"}
+										space={"gradio/" +
+											obj.name.toLowerCase() +
+											"_component_main"}
 									/>
 								{/key}
 							</div>
