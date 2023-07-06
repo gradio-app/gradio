@@ -8,6 +8,7 @@ export { default as Circle } from "./Circle.svelte";
 export { default as Clear } from "./Clear.svelte";
 export { default as Code } from "./Code.svelte";
 export { default as Color } from "./Color.svelte";
+export { default as Community } from "./Community.svelte";
 export { default as Copy } from "./Copy.svelte";
 export { default as Download } from "./Download.svelte";
 export { default as DropdownArrow } from "./DropdownArrow.svelte";
