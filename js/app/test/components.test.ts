@@ -16,7 +16,7 @@ import Chatbot from "../src/components/Chatbot/Chatbot.svelte";
 import Checkbox from "../src/components/Checkbox/Checkbox.svelte";
 import CheckboxGroup from "../src/components/CheckboxGroup/CheckboxGroup.svelte";
 import ColorPicker from "../src/components/ColorPicker/ColorPicker.svelte";
-import Dataframe from "../src/components/Dataframe/Dataframe.svelte";
+import DataFrame from "../src/components/DataFrame/DataFrame.svelte";
 import Dropdown from "../src/components/Dropdown/Dropdown.svelte";
 import File from "../src/components/File/File.svelte";
 import Gallery from "../src/components/Gallery/Gallery.svelte";
@@ -56,8 +56,8 @@ const components = [
 	// ["Code", Code, {}],
 	["ColorPicker", ColorPicker, {}],
 	[
-		"Dataframe",
-		Dataframe,
+		"DataFrame",
+		DataFrame,
 		{ value: [[1, 2, 3]], col_count: [3, "fixed"], row_count: [3, "fixed"] }
 	],
 	// ["Dataset", Dataset, {}],
