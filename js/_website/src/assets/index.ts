@@ -44,10 +44,13 @@ export const twitter_pics = (
 		string,
 		{ default: string }
 	][]
-).reduce((a, [k, mod]) => {
-	a[k.replace("./twitter/", "")] = mod.default;
-	return a;
-}, {} as Record<string, string>);
+).reduce(
+	(a, [k, mod]) => {
+		a[k.replace("./twitter/", "")] = mod.default;
+		return a;
+	},
+	{} as Record<string, string>
+);
 
 export const tweets = _tweets.map((x) => ({
 	...x,

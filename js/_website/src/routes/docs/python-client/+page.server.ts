@@ -1,5 +1,5 @@
 import docs_json from "../docs.json";
-import DocsNav from '../../../components/DocsNav.svelte';
+import DocsNav from "../../../components/DocsNav.svelte";
 
 let components = docs_json.docs.components;
 let helpers = docs_json.docs.helpers;
@@ -8,13 +8,11 @@ let py_client = docs_json.docs["py-client"];
 let ordered_events = docs_json.docs.ordered_events;
 
 export async function load() {
-
-    return {
-        components,
-        helpers,
-        routes,
-        py_client,
-        ordered_events
-    }
-
+	return {
+		components,
+		helpers,
+		routes,
+		py_client,
+		ordered_events
+	};
 }

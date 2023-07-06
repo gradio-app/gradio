@@ -11,7 +11,7 @@ import type {
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
-import scriptRunnerPySource from "./py/script_runner.py?raw"
+import scriptRunnerPySource from "./py/script_runner.py?raw";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
@@ -26,7 +26,9 @@ let call_asgi_app_from_js: (
 ) => Promise<void>;
 let run_script: (path: string) => void;
 
-async function loadPyodideAndPackages(options: InMessageInit["data"]): Promise<void> {
+async function loadPyodideAndPackages(
+	options: InMessageInit["data"]
+): Promise<void> {
 	console.debug("Loading Pyodide.");
 	pyodide = await loadPyodide({
 		stdout: console.log,
@@ -290,7 +292,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
 						const replyMessage: ReplyMessageSuccess = {
 							type: "reply:success",
-							data: null,
+							data: null
 						};
 						messagePort.postMessage(replyMessage);
 					});

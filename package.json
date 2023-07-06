@@ -12,8 +12,8 @@
 		"preview:cdn-server": "sirv ./gradio/templates/cdn --single --port=4321 --cors",
 		"preview:cdn-app": "pnpm --filter @gradio/cdn-test dev",
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
-		"format:check": "prettier --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
-		"format:write": "prettier --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
+		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json .",
+		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json .",
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
@@ -102,14 +102,5 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.0.23"
-	},
-	"prettier": {
-		"useTabs": true,
-		"singleQuote": false,
-		"trailingComma": "none",
-		"printWidth": 80,
-		"pluginSearchDirs": [
-			".."
-		]
 	}
 }

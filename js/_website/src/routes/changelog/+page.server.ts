@@ -1,5 +1,5 @@
 import changelog_json from "./changelog.json";
-import { compile } from 'mdsvex';
+import { compile } from "mdsvex";
 let content = changelog_json.content;
 let versions = changelog_json.versions;
 import Prism from "prismjs";
@@ -19,7 +19,7 @@ const langs = {
 	shell: "bash",
 	json: "json",
 	typescript: "typescript",
-	directory: "json",
+	directory: "json"
 };
 
 function highlight(code: string, lang: string | undefined) {
@@ -27,10 +27,10 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-			code,
-			Prism.languages[_lang],
-			_lang
-		)}</code></pre>`
+				code,
+				Prism.languages[_lang],
+				_lang
+		  )}</code></pre>`
 		: code;
 
 	return highlighted;
@@ -42,10 +42,10 @@ export async function load() {
 			highlighter: highlight
 		}
 	});
-	content = await compiled?.code || "";
+	content = (await compiled?.code) || "";
 
 	return {
 		content,
 		versions
-	}
+	};
 }

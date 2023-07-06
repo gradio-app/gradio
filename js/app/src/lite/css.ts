@@ -39,8 +39,12 @@ export async function wasm_proxied_mount_css(
 	if (existing_link) return;
 
 	if (url.pathname === DYNAMIC_THEME_CSS_URL_PATH) {
-		console.debug("Unmount the prebuilt theme.css before mounting the dynamic theme.css");
-		const existing_prebuilt_css = document.querySelector(`link[href='${PREBUILT_CSS_URL}']`);
+		console.debug(
+			"Unmount the prebuilt theme.css before mounting the dynamic theme.css"
+		);
+		const existing_prebuilt_css = document.querySelector(
+			`link[href='${PREBUILT_CSS_URL}']`
+		);
 		existing_prebuilt_css?.remove();
 	}
 
