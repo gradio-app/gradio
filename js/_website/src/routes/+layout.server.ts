@@ -4,13 +4,18 @@ import { redirects } from "./redirects.js";
 export const prerender = true;
 
 export async function load({ url }: any) {
-	console.log(url.pathname);
+	// const _url = new URL(url.pathname, url.origin)
+	// console.log(_url)
 
 	for (const key in redirects) {
-		console.log(key);
+		// console.log(key);
+
+		const _url = new URL(`${key}`, url.origin)
+
+		// console.log(_url)
 		
 
-		if (url.pathname.indexOf(key) !== -1 && url.pathname.indexOf('guides/') === -1) {
+		if (url.pathname === _url.pathname) {
 			console.log('redirect')
 			throw redirect(308, redirects[key as keyof typeof redirects]);
 		}
