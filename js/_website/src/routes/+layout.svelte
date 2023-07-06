@@ -2,6 +2,7 @@
 	declare global {
 		interface Window {
 			__gradio_mode__: "app" | "website";
+			__gradio_space__: string | null;
 		}
 	}
 	import type { media_query as MQ } from "../utils";

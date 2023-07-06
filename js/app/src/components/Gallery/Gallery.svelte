@@ -13,7 +13,8 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: Array<string> | Array<FileData> | null = null;
+	export let value: (FileData | string | [FileData | string, string])[] | null =
+		null;
 	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -24,6 +25,7 @@
 	export let allow_preview: boolean = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
+	export let show_share_button: boolean = false;
 </script>
 
 <Block
@@ -35,11 +37,14 @@
 	{container}
 	{scale}
 	{min_width}
+	allow_overflow={false}
 	height={typeof height === "number" ? height : undefined}
 >
 	<StatusTracker {...loading_status} />
 	<Gallery
 		on:select
+		on:share
+		on:error
 		{label}
 		{value}
 		{show_label}
@@ -51,5 +56,6 @@
 		{preview}
 		{object_fit}
 		{allow_preview}
+		{show_share_button}
 	/>
 </Block>

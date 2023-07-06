@@ -52,7 +52,7 @@
 		class="toast-close {type}"
 		type="button"
 		aria-label="Close"
-		data-testid="toast-close"		
+		data-testid="toast-close"
 	>
 		<span aria-hidden="true">&#215;</span>
 	</button>

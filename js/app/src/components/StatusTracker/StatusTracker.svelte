@@ -183,7 +183,7 @@
 </script>
 
 <div
-	class="wrap {variant}"
+	class="wrap {variant} {show_progress}"
 	class:hide={!status || status === "complete" || show_progress === "hidden"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
@@ -204,6 +204,7 @@
 		<div
 			class:meta-text-center={variant === "center"}
 			class:meta-text={variant === "default"}
+			class="progress-text"
 		>
 			{#if progress}
 				{#each progress as p}
@@ -407,5 +408,9 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		font-family: var(--font);
+	}
+
+	.minimal .progress-text {
+		background: var(--block-background-fill);
 	}
 </style>
