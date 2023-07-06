@@ -257,7 +257,7 @@
 	const MOBILE_RECONNECT_MESSAGE =
 		"Lost connection due to leaving page. Rejoining queue...";
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
-	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 20;
+	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	const is_mobile_device =
 		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 			navigator.userAgent
@@ -319,7 +319,7 @@
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
 				})
-				.on("status", ({ fn_index, ...status }) => {
+				.on("status", async ({ fn_index, ...status }) => {
 					loading_status.update({
 						...status,
 						status: status.stage,
@@ -362,13 +362,15 @@
 
 						submission.destroy();
 					}
-
 					if (status.broken && is_mobile_device && user_left_page) {
-						messages = [
-							new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-							...messages
-						];
+						window.setTimeout(() => {
+							messages = [
+								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+								...messages
+							];
+						}, 0);
 						trigger_api_call(dep_index, event_data);
+						user_left_page = false;
 					} else if (status.stage === "error") {
 						if (status.message) {
 							const _message = status.message.replace(
