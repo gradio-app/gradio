@@ -1,3 +1,9 @@
 {
-	"trailingSlash": false
+    "redirects": [
+        {
+            "source": "/four-kinds-of-interfaces",
+            "destination": "/guides/four-kinds-of-interfaces"
+        }
+    ],
+    "trailingSlash": false
 }
