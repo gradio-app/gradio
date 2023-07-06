@@ -15,7 +15,7 @@
 		},
 		show_label: {
 			options: [true, false],
-			description: "Whether to show the gallery",
+			description: "Whether to show the label",
 			control: { type: "boolean" },
 			defaultValue: true
 		},
@@ -45,7 +45,7 @@
 		},
 		allow_preview: {
 			options: [true, false],
-			description: "Whether to allow a preview view in the gallery",
+			description: "Whether to allow a preview mode in the gallery",
 			control: { type: "boolean" },
 			defaultValue: true
 		},
