@@ -347,15 +347,16 @@ class TestBlocksMethods:
             await asyncio.gather(_get_ws_pred(3, 0)(), _get_ws_pred(4, 1)())
         finally:
             demo.close()
-    
-    def test_async_generators_interface(self, connect):
 
+    def test_async_generators_interface(self, connect):
         async def async_iteration(count: int):
             for i in range(count):
                 yield i
                 await asyncio.sleep(0.2)
 
-        demo = gr.Interface(async_iteration, gr.Number(precision=0), gr.Number()).queue()
+        demo = gr.Interface(
+            async_iteration, gr.Number(precision=0), gr.Number()
+        ).queue()
         outputs = []
         with connect(demo) as client:
             for output in client.submit(3, api_name="/predict"):
