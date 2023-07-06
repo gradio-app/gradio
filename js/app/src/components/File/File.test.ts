@@ -22,7 +22,7 @@ describe("File", () => {
 		vi.restoreAllMocks();
 	});
 
-	test("Uploads with blob", async () => {
+	test("gr.Fiel uploads with blob", async () => {
 		vi.mock("@gradio/client", async () => {
 			return {
 				upload_files: vi.fn((f) => new Promise((res) => res({})))
@@ -46,10 +46,10 @@ describe("File", () => {
 		expect(api.upload_files).toHaveBeenCalled();
 	});
 
-	test("Does not upload without blob", async () => {
+	test("gr.File does not upload without blob", async () => {
 		const mockUpload = vi.fn(upload_files);
 
-		const { container, component } = await render(File, {
+		const { component } = await render(File, {
 			loading_status,
 			label: "file",
 			value: { name: "freddy.json", data: "{'name': 'freddy'}" },
