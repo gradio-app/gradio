@@ -1,5 +1,5 @@
 import "@gradio/theme";
-import { WorkerProxy } from "@gradio/wasm";
+import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
 import { wasm_proxied_mount_css } from "./css";
@@ -28,8 +28,18 @@ declare let GRADIO_VERSION: string;
 // As a result, the users of the Wasm app will have to load the CSS file manually.
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
+interface GradioAppController {
+	rerun: (code: string) => Promise<void>;
+	write: (path: string, data: string | ArrayBufferView, opts: any) => Promise<void>;
+	rename: (old_path: string, new_path: string) => Promise<void>;
+	unlink: (path: string) => Promise<void>;
+	install: (requirements: string[]) => Promise<void>;
+}
+
 interface Options {
 	target: HTMLElement;
+	files?: WorkerProxyOptions["files"];
+	requirements?: WorkerProxyOptions["requirements"];
 	pyCode: string;
 	info: boolean;
 	container: boolean;
@@ -41,7 +51,7 @@ interface Options {
 	controlPageTitle: boolean;
 	appMode: boolean;
 }
-export async function create(options: Options) {
+export function create(options: Options): GradioAppController {
 	// TODO: Runtime type validation for options.
 
 	const observer = new MutationObserver(() => {
@@ -53,7 +63,8 @@ export async function create(options: Options) {
 	const worker_proxy = new WorkerProxy({
 		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
-		requirements: []
+		files: options.files ?? {},
+		requirements: options.requirements ?? [],
 	});
 
 	// Internally, the execution of `runPythonAsync()` is queued
@@ -70,34 +81,62 @@ export async function create(options: Options) {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
 
-	const app = new Index({
-		target: options.target,
-		props: {
-			// embed source
-			space: null,
-			src: null,
-			host: null,
-			// embed info
-			info: options.info,
-			container: options.container,
-			is_embed: options.isEmbed,
-			initial_height: options.initialHeight ?? "300px", // default: 300px
-			eager: options.eager,
-			// gradio meta info
-			version: GRADIO_VERSION,
-			theme_mode: options.themeMode,
-			// misc global behaviour
-			autoscroll: options.autoScroll,
-			control_page_title: options.controlPageTitle,
-			// for gradio docs
-			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-			app_mode: options.appMode,
-			// For Wasm mode
-			client,
-			upload_files,
-			mount_css: overridden_mount_css
+	let app: Index;
+	function launchNewApp(): void {
+		if (app != null) {
+			app.$destroy();
 		}
-	});
+
+		app = new Index({
+			target: options.target,
+			props: {
+				// embed source
+				space: null,
+				src: null,
+				host: null,
+				// embed info
+				info: options.info,
+				container: options.container,
+				is_embed: options.isEmbed,
+				initial_height: options.initialHeight ?? "300px", // default: 300px
+				eager: options.eager,
+				// gradio meta info
+				version: GRADIO_VERSION,
+				theme_mode: options.themeMode,
+				// misc global behaviour
+				autoscroll: options.autoScroll,
+				control_page_title: options.controlPageTitle,
+				// for gradio docs
+				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
+				app_mode: options.appMode,
+				// For Wasm mode
+				client,
+				upload_files,
+				mount_css: overridden_mount_css
+			}
+		});
+	}
+
+	launchNewApp();
+
+	return {
+		rerun: async (code: string): Promise<void> => {
+			await worker_proxy.runPythonAsync(code);
+			launchNewApp();
+		},
+		write(path, data, opts) {
+			return worker_proxy.writeFile(path, data, opts);
+		},
+		rename(old_path: string, new_path: string): Promise<void> {
+			return worker_proxy.renameFile(old_path, new_path);
+		},
+		unlink(path) {
+			return worker_proxy.unlink(path);
+		},
+		install(requirements) {
+			return worker_proxy.install(requirements);
+		}
+	};
 }
 
 /**
@@ -123,32 +162,30 @@ globalThis.createGradioApp = create;
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {
-	create({
+	const code_input = document.getElementById("code-input") as HTMLTextAreaElement;
+	const exec_button = document.getElementById("exec-button") as HTMLButtonElement;
+	const requirements_input = document.getElementById("requirements-input") as HTMLTextAreaElement;
+	const install_button = document.getElementById("install-button") as HTMLButtonElement;
+
+	function parse_requirements(text: string) {
+		return text
+			.split("\n")
+			.map((line) => line.trim())
+			.filter((line) => line.length > 0 && !line.startsWith("#"));
+	}
+
+	const initial_code = code_input.value;
+	const initial_requirements = parse_requirements(requirements_input.value);
+
+	const controller = create({
 		target: document.getElementById("gradio-app")!,
-		pyCode: `
-import gradio as gr
-
-def greet(name):
-    return "Hello " + name + "!"
-
-def upload_file(files):
-    file_paths = [file.name for file in files]
-    return file_paths
-
-with gr.Blocks() as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-
-    gr.File()
-
-    file_output = gr.File()
-    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
-    upload_button.upload(upload_file, upload_button, file_output)
-
-demo.launch()
-		`,
+		files: {
+			"images/logo.png": {
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/logo.png"
+			}
+		},
+		pyCode: initial_code,
+		requirements: initial_requirements,
 		info: true,
 		container: true,
 		isEmbed: false,
@@ -159,4 +196,18 @@ demo.launch()
 		controlPageTitle: false,
 		appMode: true
 	});
+
+	exec_button.onclick = () => {
+		console.debug("exec_button.onclick");
+		controller.rerun(code_input.value);
+		console.debug("Rerun finished")
+	}
+
+	install_button.onclick = async () => {
+		console.debug("install_button.onclick");
+		const requirements = parse_requirements(requirements_input.value)
+		console.debug("requirements", requirements)
+		controller.install(requirements);
+		console.debug("Install finished")
+	}
 }

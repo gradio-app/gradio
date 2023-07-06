@@ -9,7 +9,7 @@ How to share your Gradio app:
 5. [Using the API page](#api-page)
 6. [Adding authentication to the page](#authentication)
 7. [Accessing Network Requests](#accessing-the-network-request-directly)
-8. [Mounting within FastAPI](#mounting-within-another-fastapi-app)
+8. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 9. [Security](#security-and-file-access)
 
 ## Sharing Demos
@@ -24,7 +24,7 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
-<img style="width: 40%" src="/assets/guides/sharing.svg">
+![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
 Share links expire after 72 hours.
 
@@ -33,13 +33,20 @@ Share links expire after 72 hours.
 If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. [Hugging Face Spaces](http://huggingface.co/spaces/) provides the infrastructure to permanently host your machine learning model for free! 
 
 After you have [created a free Hugging Face account](https://huggingface.co/join), you have three methods to deploy your Gradio app to Hugging Face Spaces:
+
 1. From terminal: run `gradio deploy` in your app directory. The CLI will gather some basic metadata and then launch your app. To update your space, you can re-run this command or enable the Github Actions option to automatically update the Spaces on `git push`.
+
 2. From your browser: Drag and drop a folder containing your Gradio model and all related files [here](https://huggingface.co/new-space).
+
 3. Connect Spaces with your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
 
 <video autoplay muted loop>
-  <source src="/assets/guides/hf_demo.mp4" type="video/mp4" />
+  <source src="https://github.com/gradio-app/gradio/blob/main/guides/assets/hf_demo.mp4?raw=true" type="video/mp4" />
 </video>
+
+Note: Some components, like `gr.Image`, will display a "Share" button only on Spaces, so that users can share the generated output to the Discussions page of the Space easily. You can disable this with `show_share_button`, such as `gr.Image(show_share_button=False)`. 
+
+![Image with show_share_button=True](/assets/share_icon.png)
 
 ## Embedding Hosted Spaces
 
@@ -47,7 +54,7 @@ Once you have hosted your app on Hugging Face Spaces (or on your own server), yo
 
 There are two ways to embed your Gradio demos. You can find quick links to both options directly on the Hugging Face Space page, in the "Embed this Space" dropdown option:
 
-![Embed this Space dropdown option](/assets/guides/embed_this_space.png)
+![Embed this Space dropdown option](https://github.com/gradio-app/gradio/blob/main/guides/assets/embed_this_space.png?raw=true)
 
 ### Embedding with Web Components
 
@@ -57,21 +64,23 @@ To embed with Web Components:
 
 1. Import the gradio JS library into into your site by adding the script below in your site (replace {GRADIO_VERSION} in the URL with the library version of Gradio you are using). 
 
-    ```html
-&lt;script type="module"
+```html
+<script type="module"
 src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
-&lt;/script>
-    ```
+</script>
+```
 
 2. Add 
-    ```html
-&lt;gradio-app src="https://$your_space_host.hf.space">&lt;/gradio-app>
-    ```
+```html
+<gradio-app src="https://$your_space_host.hf.space"></gradio-app>
+```
+
 element where you want to place the app. Set the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button. For example:
 
-    ```html
-&lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
-    ```
+
+```html
+<gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space"></gradio-app>
+```
 
 <script>
 fetch("https://pypi.org/pypi/gradio/json"
@@ -100,8 +109,8 @@ You can also customize the appearance and behavior of your web component with at
 Here's an example of how to use these attributes to create a Gradio app that does not lazy load and has an initial height of 0px. 
 
 ```html
-&lt;gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
-initial_height="0px">&lt;/gradio-app>
+<gradio-app space="gradio/Echocardiogram-Segmentation" eager="true" 
+initial_height="0px"></gradio-app>
 ```
 
 _Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
@@ -111,7 +120,7 @@ _Note: While Gradio's CSS will never impact the embedding page, the embedding pa
 To embed with IFrames instead (if you cannot add javascript to your website, for example), add this element:
 
 ```html
-&lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
+<iframe src="https://$your_space_host.hf.space"></iframe>
 ```
 
 Again, you can find the `src=` attribute to your Space's embed URL, which you can find in the "Embed this Space" button.
@@ -124,7 +133,7 @@ You can use almost any Gradio app as an API! In the footer of a Gradio app [like
 
 ![Use via API](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/api3.gif)
 
-This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](/getting-started-with-the-python-client/), or [the JavaScript client](/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
+This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
 
 The endpoints are automatically created when you launch a Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
 
@@ -134,7 +143,7 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 This will add and document the endpoint `/api/addition/` to the automatically generated API page. Otherwise, your API endpoints will appear as "unnamed" endpoints. 
 
-*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method. To disable the API page altogether, set `show_api=False` in `.launch()`.
+*Note*: For Gradio apps in which [queueing is enabled](https://gradio.app/guides/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method. To disable the API page altogether, set `show_api=False` in `.launch()`.
 
 ## Authentication
 

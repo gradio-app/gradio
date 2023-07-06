@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { copy } from "./utils";
+	import { copy, format_chat_for_sharing } from "./utils";
 	import "katex/dist/katex.min.css";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import { ShareButton } from "@gradio/atoms";
 	import type { SelectData } from "@gradio/utils";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import type { FileData } from "@gradio/upload";
@@ -26,6 +27,7 @@
 	export let pending_message: boolean = false;
 	export let feedback: Array<string> | null = null;
 	export let selectable: boolean = false;
+	export let show_share_button: boolean = false;
 	export let theme_mode: ThemeMode;
 
 	$: if (theme_mode == "dark") {
@@ -82,6 +84,16 @@
 	}
 </script>
 
+{#if show_share_button && value !== null && value.length > 0}
+	<div class="icon-button">
+		<ShareButton
+			on:error
+			on:share
+			formatter={format_chat_for_sharing}
+			{value}
+		/>
+	</div>
+{/if}
 <div class="wrap" bind:this={div}>
 	<div class="message-wrap" use:copy>
 		{#if value !== null}
@@ -107,6 +119,7 @@
 							{/if}
 						{:else if message !== null && message.mime_type?.includes("audio")}
 							<audio
+								data-testid="chatbot-audio"
 								controls
 								preload="metadata"
 								src={message.data}
@@ -117,6 +130,7 @@
 							/>
 						{:else if message !== null && message.mime_type?.includes("video")}
 							<video
+								data-testid="chatbot-video"
 								controls
 								src={message.data}
 								title={message.alt_text}
@@ -128,7 +142,11 @@
 								<track kind="captions" />
 							</video>
 						{:else if message !== null && message.mime_type?.includes("image")}
-							<img src={message.data} alt={message.alt_text} />
+							<img
+								data-testid="chatbot-image"
+								src={message.data}
+								alt={message.alt_text}
+							/>
 						{/if}
 					</div>
 				{/each}
@@ -371,5 +389,11 @@
 
 	.message-wrap :global(pre) {
 		position: relative;
+	}
+
+	.icon-button {
+		position: absolute;
+		top: 6px;
+		right: 6px;
 	}
 </style>

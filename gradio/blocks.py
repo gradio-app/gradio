@@ -11,6 +11,7 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
@@ -36,11 +37,21 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters, warn_deprecation
-from gradio.exceptions import DuplicateBlockError, InvalidApiNameError
+from gradio.exceptions import (
+    DuplicateBlockError,
+    InvalidApiNameError,
+    InvalidBlockError,
+)
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
-from gradio.tunneling import BINARY_PATH, CURRENT_TUNNELS
+from gradio.tunneling import (
+    BINARY_FILENAME,
+    BINARY_FOLDER,
+    BINARY_PATH,
+    BINARY_URL,
+    CURRENT_TUNNELS,
+)
 from gradio.utils import (
     GRADIO_VERSION,
     TupleNoPrint,
@@ -1114,7 +1125,12 @@ class Blocks(BlockContext):
         processed_input = []
 
         for i, input_id in enumerate(dependency["inputs"]):
-            block = self.blocks[input_id]
+            try:
+                block = self.blocks[input_id]
+            except KeyError as e:
+                raise InvalidBlockError(
+                    f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                ) from e
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {input_id} not a valid input component."
@@ -1128,7 +1144,12 @@ class Blocks(BlockContext):
         predictions = []
 
         for o, output_id in enumerate(dependency["outputs"]):
-            block = self.blocks[output_id]
+            try:
+                block = self.blocks[output_id]
+            except KeyError as e:
+                raise InvalidBlockError(
+                    f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                ) from e
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
@@ -1189,7 +1210,12 @@ Received inputs:
         if block_fn.preprocess:
             processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
+                try:
+                    block = self.blocks[input_id]
+                except KeyError as e:
+                    raise InvalidBlockError(
+                        f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                    ) from e
                 assert isinstance(
                     block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
@@ -1267,7 +1293,14 @@ Received outputs:
                     "Number of output components does not match number "
                     f"of values returned from from function {block_fn.name}"
                 ) from err
-            block = self.blocks[output_id]
+
+            try:
+                block = self.blocks[output_id]
+            except KeyError as e:
+                raise InvalidBlockError(
+                    f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
+                ) from e
+
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
@@ -1902,7 +1935,17 @@ Received outputs:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                print(strings.en["COULD_NOT_GET_SHARE_LINK"].format(BINARY_PATH))
+                if Path(BINARY_PATH).exists():
+                    print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                else:
+                    print(
+                        strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
+                            BINARY_PATH,
+                            BINARY_URL,
+                            BINARY_FILENAME,
+                            BINARY_FOLDER,
+                        )
+                    )
         else:
             if not (quiet):
                 print(strings.en["PUBLIC_SHARE_TRUE"])

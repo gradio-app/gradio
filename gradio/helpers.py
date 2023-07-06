@@ -918,28 +918,19 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
 
 
 @document()
-class Warning:
+def Warning(message: str = "Warning issued."):  # noqa: N802
     """
-    This class allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
+    This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
+    Parameters:
+        message: The warning message to be displayed to the user.
     """
-
-    def __init__(self, message: str = "Warning issued."):
-        """
-        Parameters:
-            message: The warning message to be displayed to the user.
-        """
-        log_message(message, level="warning")
+    log_message(message, level="warning")
 
 
 @document()
-class Info:
+def Info(message: str = "Info issued."):  # noqa: N802
     """
-    This class allows you to pass custom info messages to the user. You can do so simply with `gr.Info('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
+    Parameters:
+        message: The info message to be displayed to the user.
     """
-
-    def __init__(self, message: str = "Info issued."):
-        """
-        Parameters:
-            message: The info message to be displayed to the user.
-        """
-        log_message(message, level="info")
+    log_message(message, level="info")

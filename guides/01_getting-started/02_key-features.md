@@ -31,6 +31,18 @@ You wish to pass custom error messages to the user. To do so, raise a `gr.Error(
 
 You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work. 
 
+Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
+
+```python
+def start_process(name):
+    gr.Info("Starting process")
+    if name is None:
+        gr.Warning("Name is empty")
+    ...
+    if success == False:
+        raise gr.Error("Process failed")
+```
+  
 ## Descriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
@@ -41,7 +53,7 @@ There are three arguments in the `Interface` constructor to specify where this c
 * `description`: which accepts text, markdown or HTML and places it right under the title.
 * `article`: which also accepts text, markdown or HTML and places it below the interface.
 
-![annotated](/assets/guides/annotated.png)
+![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
 
 If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
 
@@ -97,7 +109,7 @@ If you wish for the user to provide a reason for flagging, you can pass a list o
 
 ## Preprocessing and Postprocessing
 
-![annotated](/assets/img/dataflow.svg)
+![](https://github.com/gradio-app/gradio/blob/main/ui/packages/_website/src/assets/img/dataflow.svg?raw=true)
 
 As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
 
@@ -129,7 +141,7 @@ Gradio themes are the easiest way to customize the look and feel of your app. Yo
 demo = gr.Interface(..., theme=gr.themes.Monochrome())
 ```
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/theming-guide) for more details.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/guides/theming-guide) for more details.
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
@@ -283,4 +295,5 @@ Note: using batch functions with Gradio **requires** you to enable queuing in th
 
 ## Colab Notebooks
 
-Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](/sharing-your-app/#sharing-demos). 
+
+Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](https://gradio.app/guides/sharing-your-app/#sharing-demos). 

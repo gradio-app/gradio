@@ -19,6 +19,7 @@
 	import type { ThemeMode } from "./components/types";
 	import Toast from "./components/StatusTracker/Toast.svelte";
 	import type { ToastMessage } from "./components/StatusTracker/types";
+	import type { ShareData } from "@gradio/utils";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -399,6 +400,20 @@
 		}
 	};
 
+	const trigger_share = (title: string | undefined, description: string) => {
+		if (space_id === null) {
+			return;
+		}
+		const discussion_url = new URL(
+			`https://huggingface.co/spaces/${space_id}/discussions/new`
+		);
+		if (title !== undefined && title.length > 0) {
+			discussion_url.searchParams.set("title", title);
+		}
+		discussion_url.searchParams.set("description", description);
+		window.open(discussion_url.toString(), "_blank");
+	};
+
 	function handle_error_close(e: Event & { detail: number }) {
 		const _id = e.detail;
 		messages = messages.filter((m) => m.id !== _id);
@@ -407,6 +422,8 @@
 	const is_external_url = (link: string | null) =>
 		link && new URL(link, location.href).origin !== location.origin;
 
+	let attached_error_listeners: number[] = [];
+	let shareable_components: number[] = [];
 	async function handle_mount() {
 		await tick();
 
@@ -441,6 +458,7 @@
 				handled_dependencies[i] = [-1];
 			}
 
+			// component events
 			target_instances
 				.filter((v) => !!v && !!v[1])
 				.forEach(([id, { instance }]: [number, ComponentMeta]) => {
@@ -452,6 +470,33 @@
 					if (!handled_dependencies[i]) handled_dependencies[i] = [];
 					handled_dependencies[i].push(id);
 				});
+		});
+		// share events
+		components.forEach((c) => {
+			if (
+				c.props.show_share_button &&
+				!shareable_components.includes(c.id) // only one share listener per component
+			) {
+				shareable_components.push(c.id);
+				c.instance.$on("share", (event_data) => {
+					const { title, description } = event_data.detail as ShareData;
+					trigger_share(title, description);
+				});
+			}
+		});
+
+		components.forEach((c) => {
+			if (!attached_error_listeners.includes(c.id)) {
+				if (c.instance) {
+					attached_error_listeners.push(c.id);
+					c.instance.$on("error", (event_data: any) => {
+						messages = [
+							new_message(event_data.detail, -1, "error"),
+							...messages
+						];
+					});
+				}
+			}
 		});
 	}
 
