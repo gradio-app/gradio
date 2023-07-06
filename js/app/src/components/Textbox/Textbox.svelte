@@ -17,7 +17,7 @@
 	export let show_label: boolean;
 	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
-	export let container: boolean = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let show_copy_button: boolean = false;

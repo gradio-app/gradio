@@ -2,25 +2,25 @@
 
 import path from "path";
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 import { writeFileWithParents, renameWithParents } from "./file";
 
 describe("writeFileWithParents()", () => {
 	let pyodide: PyodideInterface;
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		pyodide = await loadPyodide({
-			indexURL: path.resolve(__dirname, "../../node_modules/pyodide"),
+			indexURL: path.resolve(__dirname, "../../node_modules/pyodide")
 		});
 	});
 
 	const testCases: { paths: string[] }[] = [
 		{ paths: ["foo.py"] },
 		{ paths: ["foo/bar.py"] },
-		{ paths: ["foo/bar.py", "foo/hoge.py"] },
-		{ paths: ["foo/bar/baz.py"] },
-		{ paths: ["foo/bar/baz.py", "foo/bar/hoge.py"] },
-		{ paths: ["/foo.py"] },
+		{ paths: ["foo/bar/baz.py", "foo/hoge.py"] },
+		{ paths: ["foo/bar/baz/pii.py"] },
+		{ paths: ["foo/bar/baz/boo.py", "foo/bar/hoge.py"] },
+		{ paths: ["/boo/foo.py"] }
 	];
 	testCases.forEach(({ paths }) => {
 		it(`writes files (${paths})`, () => {
@@ -48,9 +48,9 @@ describe("writeFileWithParents()", () => {
 describe("renameWithParents", () => {
 	let pyodide: PyodideInterface;
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		pyodide = await loadPyodide({
-			indexURL: path.resolve(__dirname, "../../node_modules/pyodide"),
+			indexURL: path.resolve(__dirname, "../../node_modules/pyodide")
 		});
 	});
 
@@ -59,7 +59,7 @@ describe("renameWithParents", () => {
 		{ oldPath: "foo.py", newPath: "bar/baz.py" }, // To a nested dir
 		{ oldPath: "baz/foo.py", newPath: "bar.py" }, // From a nested dir
 		{ oldPath: "foo/bar.py", newPath: "foo/baz.py" }, // Same dir with a parent path
-		{ oldPath: "foo/bar.py", newPath: "baz/qux.py" }, // With parent paths, different dirs
+		{ oldPath: "foo/bar.py", newPath: "baz/qux.py" } // With parent paths, different dirs
 	];
 	testCases.forEach(({ oldPath, newPath }) => {
 		it(`renames "${oldPath}" to "${newPath}"`, () => {

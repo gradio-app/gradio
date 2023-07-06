@@ -1,20 +1,23 @@
 <script lang="ts">
-	import { BlockLabel, Empty } from "@gradio/atoms";
+	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
+
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
 	import { Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
+	import { format_gallery_for_sharing } from "./utils";
 
 	export let container = true;
 	export let show_label = true;
 	export let label: string;
 	export let root = "";
 	export let root_url: null | string = null;
-	export let value: string[] | FileData[] | null = null;
+	export let value: (FileData | string | [FileData | string, string])[] | null =
+		null;
 	export let grid_cols: number | number[] | undefined = [2];
 	export let grid_rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -22,6 +25,7 @@
 	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
+	export let show_share_button: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -32,16 +36,18 @@
 
 	$: was_reset = value == null || value.length == 0 ? true : was_reset;
 
+	let _value: [FileData, string | null][] | null = null;
 	$: _value =
 		value === null
 			? null
 			: value.map((img) =>
 					Array.isArray(img)
-						? [normalise_file(img[0], root, root_url), img[1]]
-						: [normalise_file(img, root, root_url), null]
+						? [normalise_file(img[0], root, root_url) as FileData, img[1]]
+						: [normalise_file(img, root, root_url) as FileData, null]
 			  );
 
-	let prevValue: string[] | FileData[] | null = value;
+	let prevValue: (FileData | string | [FileData | string, string])[] | null =
+		value;
 	let selected_image = preview && value?.length ? 0 : null;
 	let old_selected_image: number | null = selected_image;
 
@@ -177,9 +183,12 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null && allow_preview}
-		<div on:keydown={on_keydown} class="preview" role="button">
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<div on:keydown={on_keydown} class="preview">
 			<ModifyUpload on:clear={() => (selected_image = null)} />
 
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 			<img
 				data-testid="detailed-image"
 				on:click={() => (selected_image = next)}
@@ -229,6 +238,16 @@
 			style="{grid_cols_style} {grid_rows_style} --object-fit: {object_fit}; height: {height}"
 			class:pt-6={show_label}
 		>
+			{#if show_share_button}
+				<div class="icon-button">
+					<ShareButton
+						on:share
+						on:error
+						value={_value}
+						formatter={format_gallery_for_sharing}
+					/>
+				</div>
+			{/if}
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"
@@ -352,6 +371,7 @@
 	}
 
 	.grid-wrap {
+		position: relative;
 		padding: var(--size-2);
 		height: var(--size-full);
 		overflow-y: auto;
@@ -359,6 +379,7 @@
 
 	.grid-container {
 		display: grid;
+		position: relative;
 		grid-template-rows: var(--grid-rows);
 		grid-template-columns: var(--grid-cols);
 		gap: var(--spacing-lg);
@@ -416,5 +437,12 @@
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.icon-button {
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		z-index: var(--layer-1);
 	}
 </style>
