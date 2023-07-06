@@ -56,6 +56,28 @@ test("gr.Error makes the toast show up", async ({ page }) => {
 	await expect(page.getByTestId("toast-body")).toHaveCount(0);
 });
 
+test("ValueError makes the toast show up when show_error=True", async ({
+	page
+}) => {
+	let complete;
+	page.on("websocket", (ws) => {
+		complete = ws.waitForEvent("framereceived", {
+			predicate: (event) => {
+				return JSON.parse(event.payload as string).msg === "process_completed";
+			}
+		});
+	});
+
+	await page.click("text=Trigger Failure With ValueError");
+	await complete;
+
+	const toast = page.getByTestId("toast-body");
+	expect(toast).toContainText("error");
+	const close = page.getByTestId("toast-close");
+	await close.click();
+	await expect(page.getByTestId("toast-body")).toHaveCount(0);
+});
+
 test("gr.Info makes the toast show up", async ({ page }) => {
 	let complete;
 	page.on("websocket", (ws) => {
