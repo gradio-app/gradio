@@ -31,7 +31,11 @@ declare let GRADIO_VERSION: string;
 interface GradioAppController {
 	run_code: (code: string) => Promise<void>;
 	run_file: (path: string) => Promise<void>;
-	write: (path: string, data: string | ArrayBufferView, opts: any) => Promise<void>;
+	write: (
+		path: string,
+		data: string | ArrayBufferView,
+		opts: any
+	) => Promise<void>;
 	rename: (old_path: string, new_path: string) => Promise<void>;
 	unlink: (path: string) => Promise<void>;
 	install: (requirements: string[]) => Promise<void>;
@@ -67,7 +71,7 @@ export function create(options: Options): GradioAppController {
 		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		files: options.files ?? {},
-		requirements: options.requirements ?? [],
+		requirements: options.requirements ?? []
 	});
 
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
@@ -181,10 +185,18 @@ globalThis.createGradioApp = create;
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {
-	const code_input = document.getElementById("code-input") as HTMLTextAreaElement;
-	const exec_button = document.getElementById("exec-button") as HTMLButtonElement;
-	const requirements_input = document.getElementById("requirements-input") as HTMLTextAreaElement;
-	const install_button = document.getElementById("install-button") as HTMLButtonElement;
+	const code_input = document.getElementById(
+		"code-input"
+	) as HTMLTextAreaElement;
+	const exec_button = document.getElementById(
+		"exec-button"
+	) as HTMLButtonElement;
+	const requirements_input = document.getElementById(
+		"requirements-input"
+	) as HTMLTextAreaElement;
+	const install_button = document.getElementById(
+		"install-button"
+	) as HTMLButtonElement;
 
 	function parse_requirements(text: string) {
 		return text
@@ -219,14 +231,14 @@ if (BUILD_MODE === "dev") {
 	exec_button.onclick = () => {
 		console.debug("exec_button.onclick");
 		controller.run_code(code_input.value);
-		console.debug("Rerun finished")
-	}
+		console.debug("Rerun finished");
+	};
 
 	install_button.onclick = async () => {
 		console.debug("install_button.onclick");
-		const requirements = parse_requirements(requirements_input.value)
-		console.debug("requirements", requirements)
+		const requirements = parse_requirements(requirements_input.value);
+		console.debug("requirements", requirements);
 		controller.install(requirements);
-		console.debug("Install finished")
-	}
+		console.debug("Install finished");
+	};
 }
