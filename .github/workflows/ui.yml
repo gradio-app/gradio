@@ -64,15 +64,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
             fetch-depth: 0
-      - name: install gradio
-        run: python -m pip install -e .
-      - name: generate theme.css
-        run: python scripts/generate_theme.py --outfile js/storybook/theme.css
       - name: install dependencies
         uses: "./.github/actions/install-all-deps"
         with:
           always-install-pnpm: true
           skip_build: 'true'
+      - name: generate theme.css
+        run: python scripts/generate_theme.py --outfile js/storybook/theme.css
       - name: build storybook
         run: pnpm build-storybook --quiet
       - name: publish to chromatic
