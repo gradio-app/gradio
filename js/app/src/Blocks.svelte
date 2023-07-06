@@ -265,7 +265,7 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
-	const trigger_api_call = async (
+	const trigger_api_call = (
 		dep_index: number,
 		event_data: unknown = null
 	) => {
