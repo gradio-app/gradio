@@ -33,19 +33,28 @@ export class WorkerProxy {
 				gradioWheelUrl: options.gradioWheelUrl,
 				gradioClientWheelUrl: options.gradioClientWheelUrl,
 				files: options.files,
-				requirements: options.requirements
+				requirements: options.requirements,
 			}
 		}).then(() => {
 			console.debug("WorkerProxy.constructor(): Initialization is done.");
 		});
 	}
 
-	public async runPythonAsync(code: string): Promise<void> {
+	public async runPythonCode(code: string): Promise<void> {
 		await this.postMessageAsync({
-			type: "run-python",
+			type: "run-python-code",
 			data: {
 				code
 			}
+		});
+	}
+
+	public async runPythonFile(path: string): Promise<void> {
+		await this.postMessageAsync({
+			type: "run-python-file",
+			data: {
+				path,
+			},
 		});
 	}
 

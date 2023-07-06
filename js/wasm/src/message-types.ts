@@ -33,10 +33,16 @@ export interface InMessageInit extends InMessageBase {
 		requirements: string[];
 	};
 }
-export interface InMessageRunPython extends InMessageBase {
-	type: "run-python";
+export interface InMessageRunPythonCode extends InMessageBase {
+	type: "run-python-code";
 	data: {
 		code: string;
+	};
+}
+export interface InMessageRunPythonFile extends InMessageBase {
+	type: "run-python-file";
+	data: {
+		path: string;
 	};
 }
 export interface InMessageHttpRequest extends InMessageBase {
@@ -81,7 +87,8 @@ export interface InMessageEcho extends InMessageBase {
 
 export type InMessage =
 	| InMessageInit
-	| InMessageRunPython
+	| InMessageRunPythonCode
+	| InMessageRunPythonFile
 	| InMessageHttpRequest
 	| InMessageFileWrite
 	| InMessageFileRename

@@ -11,6 +11,7 @@ import type {
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
+import scriptRunnerPySource from "./py/script_runner.py?raw"
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
@@ -23,6 +24,7 @@ let call_asgi_app_from_js: (
 	receive: () => Promise<unknown>,
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
+let run_script: (path: string) => void;
 
 async function loadPyodideAndPackages(options: InMessageInit["data"]): Promise<void> {
 	console.debug("Loading Pyodide.");
@@ -156,6 +158,11 @@ import matplotlib
 matplotlib.use("agg")
 `);
 	console.debug("matplotlib backend is set.");
+
+	console.debug("Set up a script runner");
+	await pyodide.runPythonAsync(scriptRunnerPySource);
+	run_script = pyodide.globals.get("_run_script");
+	console.debug("A script runner is set up.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
@@ -191,11 +198,21 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				messagePort.postMessage(replyMessage);
 				break;
 			}
-			case "run-python": {
+			case "run-python-code": {
 				await pyodide.runPythonAsync(msg.data.code);
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
 					data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
+				};
+				messagePort.postMessage(replyMessage);
+				break;
+			}
+			case "run-python-file": {
+				run_script(msg.data.path);
+
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: null
 				};
 				messagePort.postMessage(replyMessage);
 				break;
