@@ -49,6 +49,7 @@
         sidebar.scrollTop = target_link?.offsetTop;
     }
     $: guide_page = data.guide;
+    $: guide_slug = data.guide_slug;
 </script> 
 
     <MetaTags title={guide_page.pretty_name}
