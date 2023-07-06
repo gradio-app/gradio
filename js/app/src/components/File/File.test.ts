@@ -71,10 +71,6 @@ describe("File", () => {
 			is_file: true
 		};
 
-		// const item = container.querySelectorAll("input")[0];
-		// const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
-		// event.upload(item, file);
-		// const mock = await wait_for_event(component, "change");
 		assert.equal(mock.callCount, 1);
 	});
 });
