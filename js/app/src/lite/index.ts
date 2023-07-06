@@ -2,7 +2,7 @@ import "@gradio/theme";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
-import { wasm_proxied_mount_css } from "./css";
+import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
 import type { ThemeMode } from "../components/types";
@@ -81,6 +81,8 @@ export function create(options: Options): GradioAppController {
 	} else {
 		throw new Error("Either code or entrypoint must be provided.");
 	}
+
+	mount_prebuilt_css(document.head);
 
 	const overridden_fetch: typeof fetch = (input, init?) => {
 		return wasm_proxied_fetch(worker_proxy, input, init);
