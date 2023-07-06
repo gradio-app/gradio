@@ -22,7 +22,7 @@ import File from "../src/components/File/File.svelte";
 import Gallery from "../src/components/Gallery/Gallery.svelte";
 import HTML from "../src/components/HTML/HTML.svelte";
 import HighlightedText from "../src/components/HighlightedText/HighlightedText.svelte";
-import JSON from "../src/components/JSON/JSON.svelte";
+import Json from "../src/components/Json/Json.svelte";
 import Label from "../src/components/Label/Label.svelte";
 import Markdown from "../src/components/Markdown/Markdown.svelte";
 import Model3D from "../src/components/Model3D/Model3D.svelte";
@@ -67,7 +67,7 @@ const components = [
 	["HTML", HTML, {}],
 	["HighlightedText", HighlightedText, {}],
 	// ["Image",, {} Image],
-	["JSON", JSON, {}],
+	["Json", Json, {}],
 	["Label", Label, {}],
 	["Markdown", Markdown, {}],
 	["Model3D", Model3D, {}],
