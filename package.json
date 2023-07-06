@@ -17,7 +17,7 @@
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
-		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
+		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts --reporter=verbose",
 		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
 		"test:browser": "pnpm --filter @gradio/app test:browser",
 		"test:browser:full": "run-s build test:browser",
