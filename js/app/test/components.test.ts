@@ -30,7 +30,7 @@ import Number from "../src/components/Number/Number.svelte";
 import Radio from "../src/components/Radio/Radio.svelte";
 import Slider from "../src/components/Slider/Slider.svelte";
 import Textbox from "../src/components/Textbox/Textbox.svelte";
-import Timeseries from "../src/components/Timeseries/Timeseries.svelte";
+import TimeSeries from "../src/components/TimeSeries/TimeSeries.svelte";
 import UploadButton from "../src/components/UploadButton/UploadButton.svelte";
 import Video from "../src/components/Video/Video.svelte";
 import { LoadingStatus } from "../src/components/StatusTracker/types";
@@ -76,7 +76,7 @@ const components = [
 	["Radio", Radio, {}],
 	["Slider", Slider, {}],
 	["Textbox", Textbox, {}],
-	["Timeseries", Timeseries, {}],
+	["TimeSeries", TimeSeries, {}],
 	["UploadButton", UploadButton, {}],
 	["Video", Video, {}]
 ] as const;
