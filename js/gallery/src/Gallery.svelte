@@ -74,7 +74,7 @@
 		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
 	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
 
-	function on_keydown(e: KeyboardEvent) {
+	function on_keydown(e: KeyboardEvent): void {
 		switch (e.code) {
 			case "Escape":
 				e.preventDefault();
@@ -112,7 +112,7 @@
 	let el: HTMLButtonElement[] = [];
 	let container_element: HTMLDivElement;
 
-	async function scroll_to_img(index: number | null) {
+	async function scroll_to_img(index: number | null): Promise<void> {
 		if (typeof index !== "number") return;
 		await tick();
 
@@ -330,7 +330,6 @@
 	.thumbnail-item {
 		--ring-color: transparent;
 		position: relative;
-		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
@@ -342,9 +341,12 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--border-color-accent);
+		--ring-color: var(--color-accent);
 		filter: brightness(1.1);
-		border-color: var(--border-color-accent);
+	}
+
+	.thumbnail-item.selected {
+		--ring-color: var(--color-accent);
 	}
 
 	.thumbnail-small {
