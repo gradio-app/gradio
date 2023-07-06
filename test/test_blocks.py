@@ -347,42 +347,32 @@ class TestBlocksMethods:
             await asyncio.gather(_get_ws_pred(3, 0)(), _get_ws_pred(4, 1)())
         finally:
             demo.close()
+    
+    def test_async_generators_interface(self, connect):
 
-    @pytest.mark.asyncio
-    async def test_sync_generators(self):
+        async def async_iteration(count: int):
+            for i in range(count):
+                yield i
+                await asyncio.sleep(0.2)
+
+        demo = gr.Interface(async_iteration, gr.Number(precision=0), gr.Number()).queue()
+        outputs = []
+        with connect(demo) as client:
+            for output in client.submit(3, api_name="/predict"):
+                outputs.append(output)
+        assert outputs == [0, 1, 2]
+
+    def test_sync_generators(self, connect):
         def generator(string):
             yield from string
 
-        demo = gr.Interface(generator, "text", "text")
+        demo = gr.Interface(generator, "text", "text").queue()
+        outputs = []
+        with connect(demo) as client:
+            for output in client.submit("abc", api_name="/predict"):
+                outputs.append(output)
+        assert outputs == ["a", "b", "c"]
         demo.queue().launch(prevent_thread_lock=True)
-
-        async def _get_ws_pred(data, fn_index):
-            outputs = []
-            async with websockets.connect(
-                f"{demo.local_url.replace('http', 'ws')}queue/join"
-            ) as ws:
-                completed = False
-                while not completed:
-                    msg = json.loads(await ws.recv())
-                    if msg["msg"] == "send_data":
-                        await ws.send(
-                            json.dumps({"data": [data], "fn_index": fn_index})
-                        )
-                    if msg["msg"] == "send_hash":
-                        await ws.send(
-                            json.dumps({"fn_index": fn_index, "session_hash": "shdce"})
-                        )
-                    if msg["msg"] in ["process_generating"]:
-                        outputs.append(msg["output"]["data"])
-                    if msg["msg"] == "process_completed":
-                        completed = True
-            return outputs
-
-        try:
-            output = await _get_ws_pred(fn_index=1, data="abc")
-            assert [o[0] for o in output] == ["a", "b", "c"]
-        finally:
-            demo.close()
 
     def test_socket_reuse(self):
         try:
