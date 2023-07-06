@@ -42,8 +42,8 @@
 			? null
 			: value.map((img) =>
 					Array.isArray(img)
-						? [normalise_file(img[0], root, root_url), img[1]]
-						: [normalise_file(img, root, root_url), null]
+						? [normalise_file(img[0], root, root_url) as FileData, img[1]]
+						: [normalise_file(img, root, root_url) as FileData, null]
 			  );
 
 	let prevValue: (FileData | string | [FileData | string, string])[] | null =
