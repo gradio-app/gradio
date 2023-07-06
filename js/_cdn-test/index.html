@@ -1,27 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+	<head>
+		<style>
+			html {
+				/* background: #111; */
+				/* color: #eee; */
+				font-family: Source Sans Pro;
+			}
+		</style>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script type="module" src="http://localhost:4321/gradio.js"></script>
+		<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.1b6/gradio.js"></script> -->
+		<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.0/gradio.js"></script> -->
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.6/iframeResizer.min.js"></script> -->
 
-<head>
-	<style>
-		html {
-			/* background: #111; */
-			/* color: #eee; */
-			font-family: Source Sans Pro;
-		}
-	</style>
-	<meta charset="UTF-8" />
-	<link rel="icon" type="image/svg+xml" href="favicon.svg" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<script type="module" src="http://localhost:4321/gradio.js"></script>
-	<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.1b6/gradio.js"></script> -->
-	<!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.18.0/gradio.js"></script> -->
-	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.6/iframeResizer.min.js"></script> -->
+		<title>Vite App</title>
+	</head>
 
-	<title>Vite App</title>
-</head>
-
-<body>
-	<!-- <h1>Hello title</h1>
+	<body>
+		<!-- <h1>Hello title</h1>
 		<h2>hello subtitle</h2>
 		<p>
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
@@ -160,15 +159,15 @@
 			Hello text. Hello text. Hello text. Hello text. Hello text. Hello text.
 			Hello text. Hello text.
 		</p> -->
-	<!-- https://huggingface.co/spaces/freddyaboulton/blocks-essay -->
-	<!-- <gradio-app
+		<!-- https://huggingface.co/spaces/freddyaboulton/blocks-essay -->
+		<!-- <gradio-app
 			space="freddyaboulton/timeseries-forecasting-with-prophet
     "
 		></gradio-app> -->
-	<!-- -->
-	<!-- </p> -->
+		<!-- -->
+		<!-- </p> -->
 
-	<!-- <gradio-app space="awacke1/GradioAutoPlotFromCSV" info="false"></gradio-app>
+		<!-- <gradio-app space="awacke1/GradioAutoPlotFromCSV" info="false"></gradio-app>
 		<gradio-app
 			space="gradio/plot_component_main"
 			initial_height="400px"
@@ -280,39 +279,42 @@
 		<h2>Working</h2>
 		 -->
 
-	<gradio-app space="gradio/live_with_vars" initial_height="200px" control_page_title="true"></gradio-app>
-	<!-- <iframe
+		<gradio-app
+			space="gradio/live_with_vars"
+			initial_height="200px"
+			control_page_title="true"
+		></gradio-app>
+		<!-- <iframe
 			id="myIframe"
 			allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
 			src="http://127.0.0.1:7860/"
 			frameborder="0"
 		></iframe> -->
-	<button>Toggle Space</button>
-	<script>
-		// iFrameResize(
-		// 	{
-		// 		log: false,
-		// 		checkOrigin: false,
-		// 		heightCalculationMethod: "lowestElement"
-		// 	},
-		// 	"#myIframe"
-		// );
+		<button>Toggle Space</button>
+		<script>
+			// iFrameResize(
+			// 	{
+			// 		log: false,
+			// 		checkOrigin: false,
+			// 		heightCalculationMethod: "lowestElement"
+			// 	},
+			// 	"#myIframe"
+			// );
 
-		let spaces = [
-			"gradio/live_with_vars",
-			"gradio/colorpicker_component_main"
-		];
+			let spaces = [
+				"gradio/live_with_vars",
+				"gradio/colorpicker_component_main"
+			];
 
-		const b = document.getElementsByTagName("button")[0];
-		b.addEventListener("click", update_space);
+			const b = document.getElementsByTagName("button")[0];
+			b.addEventListener("click", update_space);
 
-		function update_space() {
-			const g = document.getElementsByTagName("gradio-app")[0];
-			g.setAttribute("space", spaces[1]);
-			const [_old, _new] = spaces;
-			spaces = [_new, _old];
-		}
-	</script>
-</body>
-
+			function update_space() {
+				const g = document.getElementsByTagName("gradio-app")[0];
+				g.setAttribute("space", spaces[1]);
+				const [_old, _new] = spaces;
+				spaces = [_new, _old];
+			}
+		</script>
+	</body>
 </html>
