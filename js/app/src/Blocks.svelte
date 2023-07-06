@@ -319,7 +319,7 @@
 				.on("data", ({ data, fn_index }) => {
 					handle_update(data, fn_index);
 				})
-				.on("status", async ({ fn_index, ...status }) => {
+				.on("status", ({ fn_index, ...status }) => {
 					loading_status.update({
 						...status,
 						status: status.stage,
