@@ -1,12 +1,10 @@
 import { test, describe, expect, afterEach, vi, assert } from "vitest";
 import { cleanup, render, wait_for_event } from "@gradio/tootils";
-import event from "@testing-library/user-event";
 import { spy } from "tinyspy";
 
-import { File as FileComponent } from "./File.svelte";
+import File from "./File.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
 import { upload_files } from "@gradio/client";
-import { on } from "events";
 
 const loading_status = {
 	eta: 0,
@@ -33,7 +31,7 @@ describe("File", () => {
 
 		const api = await import("@gradio/client");
 
-		await render(FileComponent, {
+		await render(File, {
 			loading_status,
 			label: "file",
 			// @ts-ignore
@@ -51,7 +49,7 @@ describe("File", () => {
 	test("Does not upload without blob", async () => {
 		const mockUpload = vi.fn(upload_files);
 
-		const { container, component } = await render(FileComponent, {
+		const { container, component } = await render(File, {
 			loading_status,
 			label: "file",
 			value: { name: "freddy.json", data: "{'name': 'freddy'}" },
@@ -77,6 +75,6 @@ describe("File", () => {
 		// const file = new File(["hello"], "my-audio.wav", { type: "audio/wav" });
 		// event.upload(item, file);
 		// const mock = await wait_for_event(component, "change");
-		// assert.equal(mock.callCount, 1);
+		assert.equal(mock.callCount, 1);
 	});
 });

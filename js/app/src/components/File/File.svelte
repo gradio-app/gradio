@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { createEventDispatcher, getContext } from "svelte";
 	import { File as FileComponent, FileUpload } from "@gradio/file";
