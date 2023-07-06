@@ -46,7 +46,7 @@ After you have [created a free Hugging Face account](https://huggingface.co/join
 
 Note: Some components, like `gr.Image`, will display a "Share" button only on Spaces, so that users can share the generated output to the Discussions page of the Space easily. You can disable this with `show_share_button`, such as `gr.Image(show_share_button=False)`. 
 
-![Image with show_share_button=True](/assets/share_icon.png)
+![Image with show_share_button=True](https://github.com/gradio-app/gradio/blob/main/guides/assets/share_icon.png)
 
 ## Embedding Hosted Spaces
 
