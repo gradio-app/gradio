@@ -54,6 +54,12 @@
 			description: "How to display each indivial image in the grid",
 			control: { type: "select" },
 			defaultValue: "contain"
+		},
+		show_share_button: {
+			options: [true, false],
+			description: "Whether to show the share button in the gallery",
+			control: { type: "boolean" },
+			defaultValue: false
 		}
 	}}
 />
@@ -62,7 +68,10 @@
 	<Gallery
 		{...args}
 		value={[
-			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
+			[
+				"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
+				"A fast cheetah"
+			],
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
@@ -159,5 +168,13 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		object_fit: "fill"
+	}}
+/>
+<Story
+	name="Gallery with share button"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		show_share_button: true
 	}}
 />
