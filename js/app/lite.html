@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <!-- An entrypoint for the Wasm version development -->
-<html style="margin: 0; padding: 0; height: 100%;">
+<html style="margin: 0; padding: 0; height: 100%">
 	<head>
 		<meta charset="utf-8" />
 		<meta
@@ -18,7 +18,7 @@
 		<script type="module" src="./src/lite/index.ts"></script>
 	</head>
 
-	<body style="margin: 0; padding: 0; height: 100%;">
+	<body style="margin: 0; padding: 0; height: 100%">
 		<div id="gradio-app"></div>
 
 		<textarea id="code-input" cols="30" rows="10">
@@ -44,7 +44,8 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     upload_button.upload(upload_file, upload_button, file_output)
 
 demo.launch()
-		</textarea>
+		</textarea
+		>
 		<button id="exec-button">Execute</button>
 
 		<textarea id="requirements-input"></textarea>
