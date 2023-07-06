@@ -66,10 +66,6 @@
 	}
 
 	.secondary {
-		border: var(--button-border-width) solid
-			var(--button-secondary-border-color);
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
 	}
 
 	.secondary:hover,
