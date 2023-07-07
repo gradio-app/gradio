@@ -53,6 +53,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
         allow_preview: bool = True,
+        show_share_button: bool | None = None,
         **kwargs,
     ):
         """
@@ -73,6 +74,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             preview: If True, will display the Gallery in preview mode, which shows all of the images as thumbnails and allows the user to click on them to view them in full size.
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             allow_preview: If True, images in the gallery will be enlarged when they are clicked. Default is True.
+            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.grid_cols = columns
         self.grid_rows = rows
@@ -86,6 +88,11 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         Uses event data gradio.SelectData to carry `value` referring to caption of selected image, and `index` to refer to index.
         See EventData documentation on how to use this event data.
         """
+        self.show_share_button = (
+            (utils.get_space() is not None)
+            if show_share_button is None
+            else show_share_button
+        )
         IOComponent.__init__(
             self,
             label=label,
@@ -117,6 +124,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
         | None = None,
         allow_preview: bool | None = None,
+        show_share_button: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -132,6 +140,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "preview": preview,
             "object_fit": object_fit,
             "allow_preview": allow_preview,
+            "show_share_button": show_share_button,
             "__type__": "update",
         }
         return updated_config
@@ -145,6 +154,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
             "preview": self.preview,
             "object_fit": self.object_fit,
             "allow_preview": self.allow_preview,
+            "show_share_button": self.show_share_button,
             **IOComponent.get_config(self),
         }
 

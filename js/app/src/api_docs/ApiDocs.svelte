@@ -153,7 +153,7 @@
 		</div>
 		<div class="docs-wrap">
 			<div class="client-doc">
-				<h2>
+				<p>
 					Use the <a
 						href="https://gradio.app/docs/#python-client"
 						target="_blank"><code class="library">gradio_client</code></a
@@ -162,7 +162,7 @@
 					<a href="https://gradio.app/docs/#javascript-client" target="_blank"
 						><code class="library">@gradio/client</code></a
 					> Javascript package to query the demo via API.
-				</h2>
+				</p>
 			</div>
 			<div class="endpoint">
 				<div class="snippets">
@@ -313,7 +313,7 @@
 		padding-top: var(--size-6);
 		padding-right: var(--size-6);
 		padding-left: var(--size-6);
-		font-size: var(--text-xl);
+		font-size: var(--text-md);
 	}
 
 	.library {
@@ -372,8 +372,7 @@
 	}
 
 	.header {
-		margin-top: var(--size-3);
-		margin-bottom: var(--size-3);
+		margin-top: var(--size-6);
 		font-size: var(--text-xl);
 	}
 

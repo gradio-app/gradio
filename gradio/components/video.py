@@ -71,6 +71,7 @@ class Video(
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         autoplay: bool = False,
+        show_share_button: bool | None = None,
         **kwargs,
     ):
         """
@@ -92,6 +93,8 @@ class Video(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
+            autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
+            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.format = format
         self.autoplay = autoplay
@@ -106,6 +109,11 @@ class Video(
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
             include_audio if include_audio is not None else source == "upload"
+        )
+        self.show_share_button = (
+            (utils.get_space() is not None)
+            if show_share_button is None
+            else show_share_button
         )
         IOComponent.__init__(
             self,
@@ -132,6 +140,7 @@ class Video(
             "mirror_webcam": self.mirror_webcam,
             "include_audio": self.include_audio,
             "autoplay": self.autoplay,
+            "show_share_button": self.show_share_button,
             **IOComponent.get_config(self),
         }
 
@@ -152,6 +161,7 @@ class Video(
         interactive: bool | None = None,
         visible: bool | None = None,
         autoplay: bool | None = None,
+        show_share_button: bool | None = None,
     ):
         return {
             "source": source,
@@ -166,6 +176,7 @@ class Video(
             "visible": visible,
             "value": value,
             "autoplay": autoplay,
+            "show_share_button": show_share_button,
             "__type__": "update",
         }
 

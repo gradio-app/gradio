@@ -11,8 +11,9 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
+from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, cast
 
 import anyio
 import requests
@@ -44,7 +45,13 @@ from gradio.exceptions import (
 from gradio.helpers import EventData, create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
-from gradio.tunneling import BINARY_PATH, CURRENT_TUNNELS
+from gradio.tunneling import (
+    BINARY_FILENAME,
+    BINARY_FOLDER,
+    BINARY_PATH,
+    BINARY_URL,
+    CURRENT_TUNNELS,
+)
 from gradio.utils import (
     GRADIO_VERSION,
     TupleNoPrint,
@@ -1067,14 +1074,14 @@ class Blocks(BlockContext):
 
         start = time.time()
 
+        fn = utils.get_function_with_locals(block_fn.fn, self, event_id)
+
         if iterator is None:  # If not a generator function that has already run
             if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
-                    self, event_id, block_fn.fn, progress_tracker.track_tqdm
+                    self, event_id, fn, progress_tracker.track_tqdm
                 )
                 processed_input[progress_index] = progress_tracker
-            else:
-                fn = block_fn.fn
 
             if inspect.iscoroutinefunction(fn):
                 prediction = await fn(*processed_input)
@@ -1085,14 +1092,12 @@ class Blocks(BlockContext):
         else:
             prediction = None
 
-        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(
-            block_fn.fn
-        ):
+        if inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
                 if iterator is None:
-                    iterator = prediction
+                    iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
                     iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
                 prediction = await utils.async_iteration(iterator)
@@ -1930,7 +1935,17 @@ Received outputs:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                print(strings.en["COULD_NOT_GET_SHARE_LINK"].format(BINARY_PATH))
+                if Path(BINARY_PATH).exists():
+                    print(strings.en["COULD_NOT_GET_SHARE_LINK"])
+                else:
+                    print(
+                        strings.en["COULD_NOT_GET_SHARE_LINK_MISSING_FILE"].format(
+                            BINARY_PATH,
+                            BINARY_URL,
+                            BINARY_FILENAME,
+                            BINARY_FOLDER,
+                        )
+                    )
         else:
             if not (quiet):
                 print(strings.en["PUBLIC_SHARE_TRUE"])
@@ -1942,13 +1957,8 @@ Received outputs:
 
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
-            inline = utils.ipython_check() and (self.auth is None)
+            inline = utils.ipython_check()
         if inline:
-            if self.auth is not None:
-                print(
-                    "Warning: authentication is not supported inline. Please"
-                    "click the link to access the interface in a new tab."
-                )
             try:
                 from IPython.display import HTML, Javascript, display  # type: ignore
 
@@ -2149,9 +2159,7 @@ Received outputs:
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            utils.run_coro_in_background(
-                self._queue.start, self.progress_tracking, self.ssl_verify
-            )
+            utils.run_coro_in_background(self._queue.start, self.ssl_verify)
             # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)

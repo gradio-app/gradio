@@ -46,7 +46,7 @@ from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import Block, BlockContext
+    from gradio.blocks import Block, BlockContext, Blocks
     from gradio.components import Component
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
@@ -646,6 +646,73 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
             time.sleep(every)
 
     return continuous_fn
+
+
+def function_wrapper(
+    f, before_fn=None, before_args=None, after_fn=None, after_args=None
+):
+    before_args = [] if before_args is None else before_args
+    after_args = [] if after_args is None else after_args
+    if inspect.isasyncgenfunction(f):
+
+        @functools.wraps(f)
+        async def asyncgen_wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
+            async for response in f(*args, **kwargs):
+                yield response
+            if after_fn:
+                after_fn(*after_args)
+
+        return asyncgen_wrapper
+
+    elif asyncio.iscoroutinefunction(f):
+
+        @functools.wraps(f)
+        async def async_wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
+            response = await f(*args, **kwargs)
+            if after_fn:
+                after_fn(*after_args)
+            return response
+
+        return async_wrapper
+
+    elif inspect.isgeneratorfunction(f):
+
+        @functools.wraps(f)
+        def gen_wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
+            yield from f(*args, **kwargs)
+            if after_fn:
+                after_fn(*after_args)
+
+        return gen_wrapper
+
+    else:
+
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
+            response = f(*args, **kwargs)
+            if after_fn:
+                after_fn(*after_args)
+            return response
+
+        return wrapper
+
+
+def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None):
+    def before_fn(blocks, event_id):
+        from gradio.context import thread_data
+
+        thread_data.blocks = blocks
+        thread_data.event_id = event_id
+
+    return function_wrapper(fn, before_fn=before_fn, before_args=(blocks, event_id))
 
 
 async def cancel_tasks(task_ids: set[str]):

@@ -1,17 +1,17 @@
 <script lang="ts">
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
-	export let disabled: boolean = false;
+	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 </script>
 
 <button
 	on:click
-	class:hide={!visible}
+	class:hide-container={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
 	style:flex-grow={scale}
 	style:width={scale === 0 ? "fit-content" : null}
@@ -49,7 +49,7 @@
 		cursor: not-allowed;
 	}
 
-	.hide {
+	.hide-container {
 		display: none;
 	}
 

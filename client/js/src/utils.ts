@@ -144,7 +144,7 @@ export async function get_space_hardware(
 
 export async function set_space_hardware(
 	space_id: string,
-	new_hardware: typeof hardware_types[number],
+	new_hardware: (typeof hardware_types)[number],
 	token: `hf_${string}`
 ) {
 	const headers: { Authorization?: string } = {};
