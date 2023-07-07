@@ -183,7 +183,7 @@ class TestLoadInterface:
 
     def test_english_to_spanish(self):
         with pytest.warns(UserWarning):
-            io = gr.load("spaces/abidlabs/english_to_spanish", title="hi")
+            io = gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
         assert isinstance(io.input_components[0], gr.Textbox)
         assert isinstance(io.output_components[0], gr.Textbox)
 
@@ -212,7 +212,7 @@ class TestLoadInterface:
             pass
 
     def test_numerical_to_label_space(self):
-        io = gr.load("spaces/abidlabs/titanic-survival")
+        io = gr.load("spaces/gradio-tests/titanic-survival")
         try:
             assert io.theme.name == "soft"
             with open(io("male", 77, 10)) as f:
@@ -366,11 +366,11 @@ class TestLoadInterfaceWithExamples:
 
     def test_interface_with_examples(self):
         # This demo has the "fake_event" correctly removed
-        demo = gr.load("spaces/freddyaboulton/calculator")
+        demo = gr.load("spaces/gradio-tests/test-calculator-1")
         assert demo(2, "add", 3) == 5
 
         # This demo still has the "fake_event". both should work
-        demo = gr.load("spaces/abidlabs/test-calculator-2")
+        demo = gr.load("spaces/gradio-tests/test-calculator-2")
         assert demo(2, "add", 4) == 6
 
 
@@ -441,13 +441,13 @@ def check_dataset(config, readme_examples):
 
 
 def test_load_blocks_with_default_values():
-    io = gr.load("spaces/abidlabs/min-dalle")
+    io = gr.load("spaces/gradio-tests/min-dalle")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.load("spaces/abidlabs/min-dalle-later")
+    io = gr.load("spaces/gradio-tests/min-dalle-later")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.load("spaces/freddyaboulton/dataframe_load")
+    io = gr.load("spaces/gradio-tests/dataframe_load")
     assert io.get_config_file()["components"][0]["props"]["value"] == {
         "headers": ["a", "b"],
         "data": [[1, 4], [2, 5], [3, 6]],
