@@ -41,6 +41,7 @@ export interface Status {
 	code?: string;
 	success?: boolean;
 	stage: "pending" | "error" | "complete" | "generating";
+	broken?: boolean;
 	size?: number;
 	position?: number;
 	eta?: number;

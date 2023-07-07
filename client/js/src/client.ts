@@ -478,6 +478,7 @@ export function api_factory(fetch_implementation: typeof fetch) {
 								fire_event({
 									type: "status",
 									stage: "error",
+									broken: true,
 									message: BROKEN_CONNECTION_MSG,
 									queue: true,
 									endpoint: _endpoint,
