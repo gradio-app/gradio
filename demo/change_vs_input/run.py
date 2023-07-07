@@ -16,9 +16,9 @@ with gr.Blocks() as demo:
             colorpicker = gr.ColorPicker()
             code = gr.Code()
             dataframe = gr.Dataframe()
-            image = gr.Image(label="Image input")
-            audio = gr.Audio(label="Audio input")
-            video = gr.Video(label="Video input")
+            image = gr.Image(elem_id="image-original")
+            audio = gr.Audio(elem_id="audio-original")
+            video = gr.Video(elem_id="video-original")
 
         with gr.Column(min_width=200):
             gr.Markdown("# ON:INPUT/UPLOAD")
