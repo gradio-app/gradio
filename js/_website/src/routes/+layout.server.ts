@@ -1,5 +1,5 @@
-import { redirect } from '@sveltejs/kit';
-import { redirects } from './redirects.js';
+import { redirect } from "@sveltejs/kit";
+import { redirects } from "./redirects.js";
 
 export const prerender = true;
 

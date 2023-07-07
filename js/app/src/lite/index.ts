@@ -31,7 +31,11 @@ declare let GRADIO_VERSION: string;
 interface GradioAppController {
 	run_code: (code: string) => Promise<void>;
 	run_file: (path: string) => Promise<void>;
-	write: (path: string, data: string | ArrayBufferView, opts: any) => Promise<void>;
+	write: (
+		path: string,
+		data: string | ArrayBufferView,
+		opts: any
+	) => Promise<void>;
 	rename: (old_path: string, new_path: string) => Promise<void>;
 	unlink: (path: string) => Promise<void>;
 	install: (requirements: string[]) => Promise<void>;
@@ -67,7 +71,7 @@ export function create(options: Options): GradioAppController {
 		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		files: options.files ?? {},
-		requirements: options.requirements ?? [],
+		requirements: options.requirements ?? []
 	});
 
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
@@ -185,7 +189,7 @@ if (BUILD_MODE === "dev") {
 		const DevApp = (await import("./dev/App.svelte")).default;
 
 		const app = new DevApp({
-			target: document.getElementById("dev-app")!,
-		})
-	})()
+			target: document.getElementById("dev-app")!
+		});
+	})();
 }

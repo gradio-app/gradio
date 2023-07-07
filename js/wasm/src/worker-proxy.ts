@@ -33,7 +33,7 @@ export class WorkerProxy {
 				gradioWheelUrl: options.gradioWheelUrl,
 				gradioClientWheelUrl: options.gradioClientWheelUrl,
 				files: options.files,
-				requirements: options.requirements,
+				requirements: options.requirements
 			}
 		}).then(() => {
 			console.debug("WorkerProxy.constructor(): Initialization is done.");
@@ -53,8 +53,8 @@ export class WorkerProxy {
 		await this.postMessageAsync({
 			type: "run-python-file",
 			data: {
-				path,
-			},
+				path
+			}
 		});
 	}
 
@@ -125,8 +125,8 @@ export class WorkerProxy {
 			data: {
 				path,
 				data,
-				opts,
-			},
+				opts
+			}
 		}) as Promise<void>;
 	}
 
@@ -135,8 +135,8 @@ export class WorkerProxy {
 			type: "file:rename",
 			data: {
 				oldPath,
-				newPath,
-			},
+				newPath
+			}
 		}) as Promise<void>;
 	}
 
@@ -144,8 +144,8 @@ export class WorkerProxy {
 		return this.postMessageAsync({
 			type: "file:unlink",
 			data: {
-				path,
-			},
+				path
+			}
 		}) as Promise<void>;
 	}
 
@@ -153,8 +153,8 @@ export class WorkerProxy {
 		return this.postMessageAsync({
 			type: "install",
 			data: {
-				requirements,
-			},
+				requirements
+			}
 		}) as Promise<void>;
 	}
 

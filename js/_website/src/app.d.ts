@@ -9,7 +9,6 @@ declare global {
 	}
 }
 
-declare module "*.json"
+declare module "*.json";
 
-
-export { };
+export {};
