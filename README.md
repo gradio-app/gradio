@@ -270,6 +270,9 @@ Gradio is built with many wonderful open-source libraries, please support them a
 [<img src="readme_files/vite.svg" alt="vite" height=40>](https://vitejs.dev)
 [<img src="readme_files/pnpm.svg" alt="pnpm" height=40>](https://pnpm.io)
 [<img src="readme_files/tailwind.svg" alt="tailwind" height=40>](https://tailwindcss.com)
+[<img src="readme_files/storybook.svg" alt="storybook" height=40>](https://storybook.js.org/)
+[<img src="readme_files/chromatic.svg" alt="chromatic" height=40>](https://www.chromatic.com/)
+
 
 ## License
 
