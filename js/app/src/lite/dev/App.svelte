@@ -89,7 +89,7 @@ def hi(name):
 		controller.unmount();
 	})
 
-	function handleExecClick () {
+	function execute () {
 		console.debug("exec_button.onclick");
 		editorFiles.forEach((file) => {
 			controller.write(file.name, file.content, {});
@@ -98,7 +98,7 @@ def hi(name):
 		console.debug("Rerun finished")
 	}
 
-	function handleInstallClick() {
+	function install() {
 		console.debug("install_button.onclick");
 		const requirements = parse_requirements(requirements_txt)
 		console.debug("requirements", requirements)
@@ -106,19 +106,19 @@ def hi(name):
 		console.debug("Install finished")
 	}
 
-	let newFileName = "";
-	function addFile() {
-		controller.write(newFileName, "", {});
+	let new_file_name = "";
+	function add_file() {
+		controller.write(new_file_name, "", {});
 		editorFiles = editorFiles.concat({
-			name: newFileName,
+			name: new_file_name,
 			content: "",
 		});
-		newFileName = ""
+		new_file_name = ""
 	}
 
-	function deleteFile(deleteFileName: string) {
-		controller.unlink(deleteFileName);
-		editorFiles = editorFiles.filter((file) => file.name !== deleteFileName);
+	function delete_file(delete_file_name: string) {
+		controller.unlink(delete_file_name);
+		editorFiles = editorFiles.filter((file) => file.name !== delete_file_name);
 	}
 </script>
 
@@ -135,25 +135,25 @@ def hi(name):
 							<input type="radio" name="entrypoint" bind:group={entrypoint} value={file.name} />
 							Set as an entrypoint file
 						</label>
-						<button on:click={() => deleteFile(file.name)}>Delete</button>
+						<button on:click={() => delete_file(file.name)}>Delete</button>
 					</div>
 				</div>
 				<textarea class="code-edit" bind:value={file.content}></textarea>
 			</div>
 		{/each}
-		<button on:click={handleExecClick}>Execute</button>
+		<button on:click={execute}>Execute</button>
 
 		<div>
 			<h3>Create a new file</h3>
-			<input type="text" bind:value={newFileName} />
-			<button on:click={addFile}>Create</button>
+			<input type="text" bind:value={new_file_name} />
+			<button on:click={add_file}>Create</button>
 		</div>
 	</div>
 
 	<div class="panel">
 		<h2>Install requirements</h2>
 		<textarea class="code-edit" bind:value={requirements_txt}></textarea>
-		<button on:click={handleInstallClick}>Install</button>
+		<button on:click={install}>Install</button>
 	</div>
 </div>
 
