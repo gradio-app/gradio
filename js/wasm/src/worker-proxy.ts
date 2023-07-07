@@ -40,11 +40,20 @@ export class WorkerProxy {
 		});
 	}
 
-	public async runPythonAsync(code: string): Promise<void> {
+	public async runPythonCode(code: string): Promise<void> {
 		await this.postMessageAsync({
-			type: "run-python",
+			type: "run-python-code",
 			data: {
 				code
+			}
+		});
+	}
+
+	public async runPythonFile(path: string): Promise<void> {
+		await this.postMessageAsync({
+			type: "run-python-file",
+			data: {
+				path
 			}
 		});
 	}
@@ -116,8 +125,8 @@ export class WorkerProxy {
 			data: {
 				path,
 				data,
-				opts,
-			},
+				opts
+			}
 		}) as Promise<void>;
 	}
 
@@ -126,8 +135,8 @@ export class WorkerProxy {
 			type: "file:rename",
 			data: {
 				oldPath,
-				newPath,
-			},
+				newPath
+			}
 		}) as Promise<void>;
 	}
 
@@ -135,8 +144,8 @@ export class WorkerProxy {
 		return this.postMessageAsync({
 			type: "file:unlink",
 			data: {
-				path,
-			},
+				path
+			}
 		}) as Promise<void>;
 	}
 
@@ -144,8 +153,8 @@ export class WorkerProxy {
 		return this.postMessageAsync({
 			type: "install",
 			data: {
-				requirements,
-			},
+				requirements
+			}
 		}) as Promise<void>;
 	}
 

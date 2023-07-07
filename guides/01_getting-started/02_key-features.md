@@ -3,7 +3,7 @@
 Let's go through some of the most popular features of Gradio! Here are Gradio's key features:
 
 1. [Adding example inputs](#example-inputs)
-2. [Passing custom error messages](#errors)
+2. [Passing custom error messages](#alerts)
 3. [Adding descriptive content](#descriptive-content)
 4. [Setting up flagging](#flagging)
 5. [Preprocessing and postprocessing](#preprocessing-and-postprocessing)

@@ -37,6 +37,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
+	export let show_share_button: boolean = false;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -93,7 +94,7 @@
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";
-				loading_status.message = detail;
+				dispatch("error", detail);
 			}}
 		>
 			<UploadText type="audio" />
@@ -102,9 +103,12 @@
 		<StaticAudio
 			{autoplay}
 			{show_label}
+			{show_share_button}
 			value={_value}
 			name={_value?.name || "audio_file"}
 			{label}
+			on:share
+			on:error
 		/>
 	{/if}
 </Block>

@@ -12,12 +12,12 @@
 		"preview:cdn-server": "sirv ./gradio/templates/cdn --single --port=4321 --cors",
 		"preview:cdn-app": "pnpm --filter @gradio/cdn-test dev",
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
-		"format:check": "prettier --ignore-path .config/.prettierignore --check --plugin-search-dir=. .",
-		"format:write": "prettier --ignore-path .config/.prettierignore --write --plugin-search-dir=. .",
+		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json .",
+		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json .",
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
-		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts",
+		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts --reporter=verbose",
 		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
 		"test:browser": "pnpm --filter @gradio/app test:browser",
 		"test:browser:full": "run-s build test:browser",
@@ -68,7 +68,7 @@
 		"postcss-custom-media": "10",
 		"postcss-nested": "^5.0.6",
 		"postcss-prefix-selector": "^1.16.0",
-		"prettier": "^2.6.2",
+		"prettier": "^3.0.0",
 		"prettier-plugin-css-order": "^1.3.1",
 		"prettier-plugin-svelte": "^2.10.1",
 		"sirv": "^2.0.2",
@@ -81,7 +81,7 @@
 		"tinyspy": "^2.0.0",
 		"typescript": "^5.0.0",
 		"vite": "^4.3.9",
-		"vitest": "^0.32.0"
+		"vitest": "^0.33.0"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.35.1",
@@ -97,19 +97,10 @@
 		"@storybook/svelte-vite": "^7.0.23",
 		"@storybook/testing-library": "^0.2.0",
 		"@storybook/theming": "^7.0.23",
-		"@types/three": "^0.152.0",
+		"@types/three": "^0.153.0",
 		"chromatic": "^6.19.9",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.0.23"
-	},
-	"prettier": {
-		"useTabs": true,
-		"singleQuote": false,
-		"trailingComma": "none",
-		"printWidth": 80,
-		"pluginSearchDirs": [
-			".."
-		]
 	}
 }
