@@ -1,5 +1,5 @@
 import { test, describe, expect, afterEach, vi, assert } from "vitest";
-import { cleanup, render, wait_for_event } from "@gradio/tootils";
+import { cleanup, render } from "@gradio/tootils";
 import { spy } from "tinyspy";
 
 import File from "./File.svelte";
@@ -22,7 +22,7 @@ describe("File", () => {
 		vi.restoreAllMocks();
 	});
 
-	test("gr.Fiel uploads with blob", async () => {
+	test("gr.File uploads with blob", async () => {
 		vi.mock("@gradio/client", async () => {
 			return {
 				upload_files: vi.fn((f) => new Promise((res) => res({})))
