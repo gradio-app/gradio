@@ -39,8 +39,8 @@ test("change() event gets triggered upon programmatic change", async ({ page }) 
 	const video_input = await page.locator("#video-original input")
 	await video_input.setInputFiles("./test/files/world.mp4");
 
-	const video_change = await page.locator("#video-change img")
-	const video_change_2 = await page.locator("#video-change-2 img")
+	const video_change = await page.locator("#video-change video")
+	const video_change_2 = await page.locator("#video-change-2 video")
 	const video_in_change = await video_change.getAttribute("src")
 	const video_in_change2 = await video_change_2.getAttribute("src")
 	await expect(video_in_change).toEqual(video_in_change2);
