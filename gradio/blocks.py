@@ -283,7 +283,7 @@ class Block:
             "js": js,
             "queue": False if fn is None else queue,
             "api_name": api_name,
-            "scroll_to_output": scroll_to_output,
+            "scroll_to_output": False if utils.get_space() else scroll_to_output,
             "show_progress": show_progress,
             "every": every,
             "batch": batch,
