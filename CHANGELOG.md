@@ -10,7 +10,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Warning on mobile that if a user leaves the tab, websocket connection may break. On broken connection, tries to rejoin queue and displays error conveying connection broke. By [@aliabid94](https://github.com/aliabid94) in [PR 4742](https://github.com/gradio-app/gradio/pull/4742)
 
 ## Breaking Changes:
 
