@@ -604,12 +604,15 @@ def create_tracker(root_blocks, event_id, fn, track_tqdm):
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
 
-    def tracked_fn(*args):
+    def before_fn():
         thread_id = threading.get_ident()
         root_blocks._progress_tracker_per_thread[thread_id] = progress
-        response = fn(*args)
+
+    def after_fn():
+        thread_id = threading.get_ident()
         del root_blocks._progress_tracker_per_thread[thread_id]
-        return response
+
+    tracked_fn = utils.function_wrapper(fn, before_fn=before_fn, after_fn=after_fn)
 
     return progress, tracked_fn
 
@@ -893,3 +896,41 @@ class EventData:
         """
         self.target = target
         self._data = _data
+
+
+def log_message(message: str, level: Literal["info", "warning"] = "info"):
+    from gradio import context
+
+    if not hasattr(context.thread_data, "blocks"):  # Function called outside of Gradio
+        if level == "info":
+            print(message)
+        elif level == "warning":
+            warnings.warn(message)
+        return
+    if not context.thread_data.blocks.enable_queue:
+        warnings.warn(
+            f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
+        )
+        return
+    context.thread_data.blocks._queue.log_message(
+        event_id=context.thread_data.event_id, log=message, level=level
+    )
+
+
+@document()
+def Warning(message: str = "Warning issued."):  # noqa: N802
+    """
+    This function allows you to pass custom warning messages to the user. You can do so simply with `gr.Warning('message here')`, and when that line is executed the custom message will appear in a modal on the demo.
+    Parameters:
+        message: The warning message to be displayed to the user.
+    """
+    log_message(message, level="warning")
+
+
+@document()
+def Info(message: str = "Info issued."):  # noqa: N802
+    """
+    Parameters:
+        message: The info message to be displayed to the user.
+    """
+    log_message(message, level="info")

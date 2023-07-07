@@ -78,8 +78,8 @@ export function generate_cdn_entry({
 
 			const tree = parse(bundle["index.html"].source as string);
 			const script =
-				Array.from(tree.querySelectorAll("script[type=module]")).find((node) =>
-					node.attributes.src?.startsWith(cdn_url)
+				Array.from(tree.querySelectorAll("script[type=module]")).find(
+					(node) => node.attributes.src?.startsWith(cdn_url)
 				)?.attributes.src || "";
 
 			const output_location = join(config.dir, "gradio.js");

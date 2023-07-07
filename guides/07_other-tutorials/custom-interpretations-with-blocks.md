@@ -2,7 +2,7 @@
 Tags: INTERPRETATION, SENTIMENT ANALYSIS
 
 **Prerequisite**: This Guide requires you to know about Blocks and the interpretation feature of Interfaces.
-Make sure to [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) as well as the
+Make sure to [read the Guide to Blocks first](https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control) as well as the
 interpretation section of the [Advanced Interface Features Guide](/advanced-interface-features#interpreting-your-predictions).
 
 ## Introduction

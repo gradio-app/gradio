@@ -9,8 +9,15 @@ from typing import Any
 
 import fastapi
 import httpx
+from typing_extensions import Literal
 
-from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
+from gradio.data_classes import (
+    Estimation,
+    LogMessage,
+    PredictBody,
+    Progress,
+    ProgressUnit,
+)
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
@@ -31,6 +38,7 @@ class Event:
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
+        self.log_messages: deque[LogMessage] = deque()
 
     async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
@@ -65,14 +73,14 @@ class Queue:
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
         self.queue_client = None
+        self.continuous_tasks: list[Event] = []
 
-    async def start(self, progress_tracking=False, ssl_verify=True):
+    async def start(self, ssl_verify=True):
         # So that the client is attached to the running event loop
         self.queue_client = httpx.AsyncClient(verify=ssl_verify)
 
         run_coro_in_background(self.start_processing)
-        if progress_tracking:
-            run_coro_in_background(self.start_progress_tracking)
+        run_coro_in_background(self.start_log_and_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
 
@@ -134,25 +142,35 @@ class Queue:
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
-    async def start_progress_tracking(self) -> None:
+    async def start_log_and_progress_updates(self) -> None:
         while not self.stopped:
-            if not any(self.active_jobs):
+            events = [
+                evt for job in self.active_jobs if job is not None for evt in job
+            ] + self.continuous_tasks
+
+            if len(events) == 0:
                 await asyncio.sleep(self.progress_update_sleep_when_free)
                 continue
 
-            for job in self.active_jobs:
-                if job is None:
-                    continue
-                for event in job:
-                    if event.progress_pending and event.progress:
-                        event.progress_pending = False
-                        client_awake = await self.send_message(
-                            event, event.progress.dict()
-                        )
-                        if not client_awake:
-                            await self.clean_event(event)
+            for event in events:
+                if event.progress_pending and event.progress:
+                    event.progress_pending = False
+                    client_awake = await self.send_message(event, event.progress.dict())
+                    if not client_awake:
+                        await self.clean_event(event)
+                await self.send_log_updates_for_event(event)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
+
+    async def send_log_updates_for_event(self, event: Event) -> None:
+        while True:
+            try:
+                message = event.log_messages.popleft()
+            except IndexError:
+                break
+            client_awake = await self.send_message(event, message.dict())
+            if not client_awake:
+                await self.clean_event(event)
 
     def set_progress(
         self,
@@ -178,6 +196,23 @@ class Queue:
                         progress_data.append(progress_unit)
                     evt.progress = Progress(progress_data=progress_data)
                     evt.progress_pending = True
+
+    def log_message(
+        self,
+        event_id: str,
+        log: str,
+        level: Literal["info", "warning"],
+    ):
+        events = [
+            evt for job in self.active_jobs if job is not None for evt in job
+        ] + self.continuous_tasks
+        for event in events:
+            if event._id == event_id:
+                log_message = LogMessage(
+                    log=log,
+                    level=level,
+                )
+                event.log_messages.append(log_message)
 
     def push(self, event: Event) -> int | None:
         """
@@ -390,7 +425,7 @@ class Queue:
                         relevant_response = response
                     else:
                         relevant_response = old_response
-
+                    await self.send_log_updates_for_event(event)
                     await self.send_message(
                         event,
                         {
@@ -404,6 +439,9 @@ class Queue:
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.json.get("data")))[e]
+                    await self.send_log_updates_for_event(
+                        event
+                    )  # clean out pending log updates first
                     await self.send_message(
                         event,
                         {
@@ -415,6 +453,8 @@ class Queue:
             end_time = time.time()
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
+        except Exception as e:
+            print(e)
         finally:
             for event in awake_events:
                 try:

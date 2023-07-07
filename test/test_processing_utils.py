@@ -1,3 +1,6 @@
+import base64
+import io
+import logging
 import os
 import shutil
 import tempfile
@@ -261,3 +264,20 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert Path(playable_vid).suffix == ".avi"
+
+
+def test_decode_base64_to_image_does_not_crash_when_image_has_bogus_exif_data(caplog):
+    from PIL.PngImagePlugin import PngInfo
+
+    caplog.set_level(logging.WARNING)
+    i = Image.new("RGB", (32, 32), "orange")
+    bio = io.BytesIO()
+    # since `exif` is the `.info` key for EXIF data parsed from a JPEG,
+    # adding an iTXt chunk with the same name should trigger the warning
+    pi = PngInfo()
+    pi.add_text("exif", "bogus")
+    i.save(bio, format="png", pnginfo=pi)
+    bio.seek(0)
+    encoded = base64.b64encode(bio.getvalue()).decode()
+    assert processing_utils.decode_base64_to_image(encoded).size == (32, 32)
+    assert "Failed to transpose image" in caplog.text

@@ -105,7 +105,7 @@ Here, `create_repo` creates a gradio repo with the target name under a specific 
 
 ## Embedding your Space demo on other websites
 
-Throughout this guide, you've seen many embedded Gradio demos. You can also do this on own website! The first step is to create a Hugging Face Space with the demo you want to showcase. Then, [follow the steps here to embed the Space on your website](/sharing-your-app/#embedding-hosted-spaces).
+Throughout this guide, you've seen many embedded Gradio demos. You can also do this on own website! The first step is to create a Hugging Face Space with the demo you want to showcase. Then, [follow the steps here to embed the Space on your website](/guides/sharing-your-app/#embedding-hosted-spaces).
 
 
 ## Loading demos from Spaces

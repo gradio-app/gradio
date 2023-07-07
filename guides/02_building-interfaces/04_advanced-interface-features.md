@@ -12,7 +12,11 @@ $code_image_classifier_interpretation
 In addition to `default`, Gradio also includes [Shapley-based interpretation](https://christophm.github.io/interpretable-ml-book/shap.html), which provides more accurate interpretations, albeit usually with a slower runtime. To use this, simply set the `interpretation` parameter to `"shap"` (note: also make sure the python package `shap` is installed). Optionally, you can modify the `num_shap` parameter, which controls the tradeoff between accuracy and runtime (increasing this value generally increases accuracy). Here is an example:
 
 ```python
-gr.Interface(fn=classify_image, inputs=image, outputs=label, interpretation="shap", num_shap=5).launch()
+gr.Interface(fn=classify_image,
+            inputs=image, 
+            outputs=label, 
+            interpretation="shap", 
+            num_shap=5).launch()
 ```
 
 This will work for any function, even if internally, the model is a complex neural network or some other black box. If you use Gradio's `default` or `shap` interpretation, the output component must be a `Label`. All common input components are supported. Here is an example with text input.
@@ -41,7 +45,7 @@ If you'd like to reference external files in your css, preface the file path (wh
 gr.Interface(..., css="body {background-image: url('file=clouds.jpg')}")
 ```
 
-**Warning**: Custom CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using custom CSS sparingly and instead using [Themes](/theming-guide/) whenever possible. 
+**Warning**: Custom CSS is *not* guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using custom CSS sparingly and instead using [Themes](/guides/theming-guide/) whenever possible. 
 
 ## Loading Hugging Face Models and Spaces
 
@@ -62,7 +66,9 @@ gr.Interface.load("huggingface/EleutherAI/gpt-j-6B",
 - To load any Space from the Hugging Face Hub and recreate it locally (so that you can customize the inputs and outputs for example), you pass `"spaces/"` followed by the model name:
 
 ```python
-gr.Interface.load("spaces/eugenesiow/remove-bg", inputs="webcam", title="Remove your webcam background!").launch()
+gr.Interface.load("spaces/eugenesiow/remove-bg", 
+                  inputs="webcam", 
+                  title="Remove your webcam background!").launch()
 ```
 
 One of the great things about loading Hugging Face models or spaces using Gradio is that you can then immediately use the resulting `Interface` object just like function in your Python code (this works for every type of model/space: text, images, audio, video, and even multimodal models):
@@ -90,7 +96,8 @@ gr.Parallel(generator1, generator2, generator3).launch()
 generator = gr.Interface.load("huggingface/gpt2")
 translator = gr.Interface.load("huggingface/t5-small")
 
-gr.Series(generator, translator).launch()  # this demo generates text, then translates it to German, and outputs the final result.
+gr.Series(generator, translator).launch()  
+# this demo generates text, then translates it to German, and outputs the final result.
 ```
 
 And of course, you can also mix `Parallel` and `Series` together whenever that makes sense!

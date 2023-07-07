@@ -1,0 +1,83 @@
+[
+	{
+		"name": "Amar Saini",
+		"handle": "_Epoching_",
+		"link": "https://twitter.com/_Epoching_/status/1471091318482825219",
+		"content": "Just built a ️<span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span> app for a video related deep learning project. <br> I’m astonished by how simple it is to use & how elegant it looks! Lots and lots of great features & flexibility. Thanks for making this ❤ ",
+		"likes": 47,
+		"timestamp": "7:14 AM · Dec 15, 2021",
+		"profile_pic": "pwMrDOBv_400x400.jpeg"
+	},
+	{
+		"name": "Will Rice",
+		"handle": "_Will_Rice",
+		"link": "https://twitter.com/_Will_Rice/status/1430258610131582979",
+		"content": "Just tried out <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span> and I am very impressed. Only took like 10mins to put together a <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#tts</span> demo.",
+		"likes": 11,
+		"timestamp": "4:00 PM · Aug 24, 2021",
+		"profile_pic": "LsCnjnsl_400x400.jpeg"
+	},
+	{
+		"name": "Roxana Daneshjou MD/PhD",
+		"handle": "RoxanaDaneshjou",
+		"link": "https://twitter.com/RoxanaDaneshjou/status/1418399829944721415",
+		"content": "Honestly, without <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span>, we would not be doing a real time AI trial.  We have many other ideas for algorithms we want to test through clinical trials, and we know it's possible thanks to <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span>.",
+		"likes": 15,
+		"timestamp": "7:37 PM · Jul 22, 2021",
+		"profile_pic": "ITFspAMm_x96.jpg"
+	},
+	{
+		"name": "Vinay Prabhu",
+		"handle": "vinayprabhu",
+		"link": "https://twitter.com/vinayprabhu/status/1324409497641652225",
+		"content": "Dear <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#MachineLearning</span> twitter,<br>If you haven't typed: <br>$ pip install gradio<br>yet, now would be a damn good time.<br>Especially if you are working in computer vision &amp; deploying models in the real world. ",
+		"likes": 19,
+		"timestamp": "12:53 PM · Nov 5, 2020",
+		"profile_pic": "1013607349943058433.jpg"
+	},
+	{
+		"name": "Tanishq Mathew Abraham",
+		"handle": "iScienceLuvr",
+		"link": "https://twitter.com/iScienceLuvr/status/1460716613032837120",
+		"content": "After training an ML model, the BEST way to showcase it to the world is to make a demo for others to try! <br>The easiest way to do so is w/ <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span>, hosted on <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@HuggingFace</span> Spaces. <br>Read my new blog post to learn how to do this (w/ appearance by <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@fastdotai</span>)! <br> <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">https://tmabraham.github...</span>",
+		"likes": 285,
+		"timestamp": "4:09 PM · Nov 16, 2021",
+		"profile_pic": "ksO1TT2P_400x400.jpeg"
+	},
+	{
+		"name": "Dipankar Mazumdar",
+		"handle": "Dipankartnt",
+		"link": "https://twitter.com/Dipankartnt/status/1427750254586253318",
+		"content": "I love low-code ML solutions like <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span> that do not restricts anyone from making ML accessible. <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#machinelearning</span> <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#datascience</span>",
+		"likes": 0,
+		"timestamp": "5:52 PM · Aug 17, 2021",
+		"profile_pic": "GDLc7Oe4_400x400.jpeg"
+	},
+	{
+		"name": "Charly Wargnier",
+		"handle": "DataChaz",
+		"link": "https://twitter.com/DataChaz/status/1351290055894179842",
+		"content": "Pretty neat that <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@GradioML</span>!\uD83D\uDC0D\uD83D\uDD25 <br>+ Generate an easy-to-use UI for your <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#ML</span> model, function, or <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#API</span> with only a few lines of code!<br>+ Integrate directly into your <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@ProjectJupyter</span> notebook<br>+ or share a link with anyone<br><br>h/t <br> <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@VincentTerrasi</span> <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">#MachineLearning</span> <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">www.gradio.app</span>",
+		"likes": 18,
+		"timestamp": "5:07 PM · Jan 18, 2021",
+		"profile_pic": "1362781887098454025.jpg"
+	},
+	{
+		"name": "Chua Chin Hon",
+		"handle": "chinhon",
+		"link": "https://twitter.com/chinhon/status/1452510073452859392",
+		"content": "What's exciting about ML in 2021 is how the building blocks r coming together. Built this headline writer using: <br>- AutoNLP to finetune Bart<br>- <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span> for the UI<br>- <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@huggingface</span>'s Spaces for hosting and compute <br>Try it here: <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">https://huggingface.co/spa...</span><br>",
+		"likes": 61,
+		"timestamp": "10:39 PM · Oct 24, 2021",
+		"profile_pic": "R1gj6nb3_x96.jpg"
+	},
+	{
+		"name": "Poonam Ligade @Jarvislabs.ai",
+		"handle": "Poonamligade",
+		"link": "https://twitter.com/Poonamligade/status/1521740054368251905",
+		"content": "My son is fascinated with all things about dinosaurs. I built a \uD83E\uDD96 \uD83E\uDD95 classifier for him as homework for the first week of the fastai cohort. <br> I used <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@Gradio</span>, and deployed on <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">@jarvislabsai</span>. <span class=\"font-semibold\" style=\"color: rgb(29, 155, 240);\">http://dinoapp.jarvis..</span>",
+		"likes": 305,
+		"timestamp": "2:34 AM · May 4, 2022",
+		"profile_pic": "8vyTl51q_400x400.jpeg"
+	}
+]

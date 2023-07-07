@@ -1,5 +1,7 @@
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 import type {
+	EmscriptenFile,
+	EmscriptenFileUrl,
 	HttpRequest,
 	HttpResponse,
 	InMessage,
@@ -9,6 +11,7 @@ import type {
 export interface WorkerProxyOptions {
 	gradioWheelUrl: string;
 	gradioClientWheelUrl: string;
+	files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
 	requirements: string[];
 }
 
@@ -29,6 +32,7 @@ export class WorkerProxy {
 			data: {
 				gradioWheelUrl: options.gradioWheelUrl,
 				gradioClientWheelUrl: options.gradioClientWheelUrl,
+				files: options.files,
 				requirements: options.requirements
 			}
 		}).then(() => {
@@ -36,11 +40,20 @@ export class WorkerProxy {
 		});
 	}
 
-	public async runPythonAsync(code: string): Promise<void> {
+	public async runPythonCode(code: string): Promise<void> {
 		await this.postMessageAsync({
-			type: "run-python",
+			type: "run-python-code",
 			data: {
 				code
+			}
+		});
+	}
+
+	public async runPythonFile(path: string): Promise<void> {
+		await this.postMessageAsync({
+			type: "run-python-file",
+			data: {
+				path
 			}
 		});
 	}
@@ -100,6 +113,49 @@ export class WorkerProxy {
 		}
 
 		return response;
+	}
+
+	public writeFile(
+		path: string,
+		data: string | ArrayBufferView,
+		opts?: Record<string, unknown>
+	): Promise<void> {
+		return this.postMessageAsync({
+			type: "file:write",
+			data: {
+				path,
+				data,
+				opts
+			}
+		}) as Promise<void>;
+	}
+
+	public renameFile(oldPath: string, newPath: string): Promise<void> {
+		return this.postMessageAsync({
+			type: "file:rename",
+			data: {
+				oldPath,
+				newPath
+			}
+		}) as Promise<void>;
+	}
+
+	public unlink(path: string): Promise<void> {
+		return this.postMessageAsync({
+			type: "file:unlink",
+			data: {
+				path
+			}
+		}) as Promise<void>;
+	}
+
+	public install(requirements: string[]): Promise<void> {
+		return this.postMessageAsync({
+			type: "install",
+			data: {
+				requirements
+			}
+		}) as Promise<void>;
 	}
 
 	public terminate(): void {

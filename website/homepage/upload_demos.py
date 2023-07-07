@@ -23,7 +23,7 @@ gradio_version = gradio_version.strip()
 # 2. reset_components includes media files that are only present in all_demos (only for PRs)
 # 3. custom_path doesn't have .launch since the point is to show how to launch with uvicorn
 # 4. The same reason as 2 for kitchen_sink_random and blocks_kitchen_sink
-DEMOS_TO_SKIP = {"all_demos", "reset_components", "custom_path", "kitchen_sink_random", "blocks_kitchen_sink"}
+DEMOS_TO_SKIP = {"all_demos", "clear_components", "custom_path", "kitchen_sink_random", "blocks_kitchen_sink"}
 
 
 def upload_demo_to_space(

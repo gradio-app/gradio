@@ -16,11 +16,13 @@ machine = platform.machine()
 if machine == "x86_64":
     machine = "amd64"
 
-# Check if the file exist
-BINARY_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
-BINARY_FILENAME = f"{BINARY_NAME}_v{VERSION}"
-BINARY_PATH = f"{Path(__file__).parent / BINARY_FILENAME}"
+BINARY_REMOTE_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
 EXTENSION = ".exe" if os.name == "nt" else ""
+BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
+
+BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
+BINARY_FOLDER = Path(__file__).parent
+BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"
 
 
 class Tunnel:
@@ -36,8 +38,7 @@ class Tunnel:
     @staticmethod
     def download_binary():
         if not Path(BINARY_PATH).exists():
-            binary_url = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_NAME}{EXTENSION}"
-            resp = requests.get(binary_url)
+            resp = requests.get(BINARY_URL)
 
             if resp.status_code == 403:
                 raise OSError(
