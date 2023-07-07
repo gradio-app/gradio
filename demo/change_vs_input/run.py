@@ -32,9 +32,9 @@ with gr.Blocks() as demo:
             colorpicker_in = gr.ColorPicker()
             code_in = gr.Code()
             dataframe_in = gr.Dataframe()
-            image_up = gr.Image()
-            audio_up = gr.Audio()
-            video_up = gr.Video()
+            image_up = gr.Image(elem_id="image-upload")
+            audio_up = gr.Audio(elem_id="audio-upload")
+            video_up = gr.Video(elem_id="video-upload")
 
         with gr.Column(min_width=200):
             gr.Markdown("# ON:CHANGE")
@@ -48,9 +48,9 @@ with gr.Blocks() as demo:
             colorpicker_ch = gr.ColorPicker()
             code_ch = gr.Code()
             dataframe_ch = gr.Dataframe()
-            image_ch = gr.Image()
-            audio_ch = gr.Audio()
-            video_ch = gr.Video()
+            image_ch = gr.Image(elem_id="image-change")
+            audio_ch = gr.Audio(elem_id="audio-change")
+            video_ch = gr.Video(elem_id="video-change")
 
         with gr.Column(min_width=200):
             gr.Markdown("# ON:CHANGE x2")
@@ -64,9 +64,9 @@ with gr.Blocks() as demo:
             colorpicker_ch2 = gr.ColorPicker()
             code_ch2 = gr.Code()
             dataframe_ch2 = gr.Dataframe()
-            image_ch2 = gr.Image()
-            audio_ch2 = gr.Audio()
-            video_ch2 = gr.Video()
+            image_ch2 = gr.Image(elem_id="image-change-2")
+            audio_ch2 = gr.Audio(elem_id="audio-change-2")
+            video_ch2 = gr.Video(elem_id="video-change-2")
 
     counter = gr.Number(label="Change counter")
 
