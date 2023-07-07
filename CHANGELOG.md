@@ -1,8 +1,8 @@
-# Upcoming Release
+# Version 3.36.1
 
 ## New Features:
 
-No changes to highlight.
+- Hotfix to support pydantic v1 and v2 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4835](https://github.com/gradio-app/gradio/pull/4835)
 
 ## Bug Fixes:
 
