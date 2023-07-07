@@ -54,7 +54,7 @@
 			{/each}
 		</div>
 	</div>
-	<div class="w-full">
+	<div class="w-10/12 mx-auto">
 		<div class="prose text-lg max-w-full">{@html content}</div>
 	</div>
 </div>
