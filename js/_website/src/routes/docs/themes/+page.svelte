@@ -28,7 +28,7 @@
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
 			top: anchor?.offsetTop,
-			behavior: "smooth"
+			behavior: "smooth",
 		});
 	}
 
@@ -106,7 +106,7 @@
 			</a>
 		</div>
 
-		<div class="flex flex-row">
+		<div class="flex flex-row mr-28">
 			<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
 				<div class="obj" id="themes">
 					<div class="flex flex-row items-center justify-between">
