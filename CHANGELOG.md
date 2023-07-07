@@ -16,6 +16,24 @@ No changes to highlight.
 
 No changes to highlight.
 
+# Version 3.36.1
+
+## New Features:
+
+- Hotfix to support pydantic v1 and v2 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4835](https://github.com/gradio-app/gradio/pull/4835)
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
+No changes to highlight.
+
+## Breaking Changes:
+
+No changes to highlight.
+
 # Version 3.36.0
 
 ## New Features:
