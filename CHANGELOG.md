@@ -10,6 +10,24 @@ No changes to highlight.
 
 ## Other Changes:
 
+- Warning on mobile that if a user leaves the tab, websocket connection may break. On broken connection, tries to rejoin queue and displays error conveying connection broke. By [@aliabid94](https://github.com/aliabid94) in [PR 4742](https://github.com/gradio-app/gradio/pull/4742)
+
+## Breaking Changes:
+
+No changes to highlight.
+
+# Version 3.36.1
+
+## New Features:
+
+- Hotfix to support pydantic v1 and v2 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4835](https://github.com/gradio-app/gradio/pull/4835)
+
+## Bug Fixes:
+
+No changes to highlight.
+
+## Other Changes:
+
 No changes to highlight.
 
 ## Breaking Changes:
