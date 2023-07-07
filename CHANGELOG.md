@@ -6,7 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 
-No changes to highlight.
+* The `.change()` event is fixed in `Video`, `Image`, `Audio` by [@abidlabs](https://github.com/abidlabs) in [PR 4793](https://github.com/gradio-app/gradio/pull/4793)
 
 ## Other Changes:
 
