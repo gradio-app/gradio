@@ -6,11 +6,11 @@
 
 	import { onMount, onDestroy } from "svelte"
 
-	interface File {
+	interface EditorFile {
 		name: string;
 		content: string | ArrayBufferView;
 	}
-	let editorFiles: File[] = [
+	let editorFiles: EditorFile[] = [
 		{
 			name: "app.py",
 			content: `import gradio as gr
