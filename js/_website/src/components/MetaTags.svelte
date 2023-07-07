@@ -16,12 +16,18 @@
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content={url} />
 	<meta property="og:description" content={description} />
-	<meta property="og:image" content={image} />
+	<meta
+		property="og:image"
+		content="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/meta-image.png"
+	/>
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:creator" content="@Gradio" />
 	<meta name="twitter:title" content={title} />
 	<meta name="twitter:description" content="{description}." />
-	<meta name="twitter:image" content={image} />
+	<meta
+		name="twitter:image"
+		content="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/meta-image.png"
+	/>
 
 	<link rel="canonical" href={canonical} />
 </svelte:head>
