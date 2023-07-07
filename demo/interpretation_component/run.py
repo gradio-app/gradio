@@ -11,9 +11,7 @@ def interpretation_function(text):
     scores = list(zip(shap_values.data[0], shap_values.values[0, :, 1]))
     return {"original": text, "interpretation": scores}
 
-css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
-
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             input_text = gr.Textbox(label="Sentiment Analysis", value="Wonderfully terrible")

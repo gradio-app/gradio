@@ -3,9 +3,7 @@ from vega_datasets import data
 
 cars = data.cars()
 
-css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
-
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.ScatterPlot(show_label=False,
                    value=cars,
                    x="Horsepower",

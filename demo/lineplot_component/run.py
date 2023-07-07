@@ -1,9 +1,7 @@
 import gradio as gr
 from vega_datasets import data
 
-css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
-
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.LinePlot(
         data.stocks(),
         x="date",
