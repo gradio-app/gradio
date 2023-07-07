@@ -9,9 +9,7 @@ x = np.arange(sample)
 y = np.sin(2 * np.pi * f * x / Fs)
 plt.plot(x, y)
 
-css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
-
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.Plot(value=plt)
 
 demo.launch()
