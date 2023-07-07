@@ -12,6 +12,7 @@ import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
+import unloadModulesPySource from "./py/unload_modules.py?raw"
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
@@ -25,6 +26,7 @@ let call_asgi_app_from_js: (
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
 let run_script: (path: string) => void;
+let unload_local_modules: (target_dir_path?: string) => void;
 
 async function loadPyodideAndPackages(
 	options: InMessageInit["data"]
@@ -161,10 +163,12 @@ matplotlib.use("agg")
 `);
 	console.debug("matplotlib backend is set.");
 
-	console.debug("Set up a script runner");
+	console.debug("Set up Python utility functions.");
 	await pyodide.runPythonAsync(scriptRunnerPySource);
 	run_script = pyodide.globals.get("_run_script");
-	console.debug("A script runner is set up.");
+	await pyodide.runPythonAsync(unloadModulesPySource);
+	unload_local_modules = pyodide.globals.get("unload_local_modules");
+	console.debug("Python utility functions are set up.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
@@ -201,7 +205,10 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				break;
 			}
 			case "run-python-code": {
+				unload_local_modules()
+
 				await pyodide.runPythonAsync(msg.data.code);
+
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
 					data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
@@ -210,6 +217,8 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				break;
 			}
 			case "run-python-file": {
+				unload_local_modules()
+
 				run_script(msg.data.path);
 
 				const replyMessage: ReplyMessageSuccess = {
