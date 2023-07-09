@@ -1,8 +1,6 @@
 import gradio as gr 
 
-css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
-
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     cheetahs = [
         "https://upload.wikimedia.org/wikipedia/commons/0/09/TheCheethcat.jpg",
         "https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg",

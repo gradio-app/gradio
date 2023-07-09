@@ -240,12 +240,30 @@
 		id: ++_error_id
 	});
 	let _error_id = -1;
+
+	let user_left_page: boolean = false;
+	document.addEventListener("visibilitychange", function () {
+		if (document.visibilityState === "hidden") {
+			user_left_page = true;
+		}
+	});
+
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE =
 		"There is a long queue of requests pending. Duplicate this Space to skip.";
+	const MOBILE_QUEUE_WARNING =
+		"On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.";
+	const MOBILE_RECONNECT_MESSAGE =
+		"Lost connection due to leaving page. Rejoining queue...";
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
+	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
+	const is_mobile_device =
+		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent
+		);
 	let showed_duplicate_message = false;
+	let showed_mobile_warning = false;
 
 	const trigger_api_call = async (
 		dep_index: number,
@@ -322,6 +340,18 @@
 							...messages
 						];
 					}
+					if (
+						!showed_mobile_warning &&
+						is_mobile_device &&
+						status.eta !== undefined &&
+						status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+					) {
+						showed_mobile_warning = true;
+						messages = [
+							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+							...messages
+						];
+					}
 
 					if (status.stage === "complete") {
 						dependencies.map(async (dep, i) => {
@@ -332,8 +362,16 @@
 
 						submission.destroy();
 					}
-
-					if (status.stage === "error") {
+					if (status.broken && is_mobile_device && user_left_page) {
+						window.setTimeout(() => {
+							messages = [
+								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+								...messages
+							];
+						}, 0);
+						trigger_api_call(dep_index, event_data);
+						user_left_page = false;
+					} else if (status.stage === "error") {
 						if (status.message) {
 							const _message = status.message.replace(
 								MESSAGE_QUOTE_RE,
