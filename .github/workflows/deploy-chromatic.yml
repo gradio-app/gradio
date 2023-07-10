@@ -28,18 +28,15 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: post deployment link to PR
-        if: ${{ github.event_name == 'pull_request' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
             Chromatic build result: ${{steps.publish-chromatic.code}}
-
+            ${{ github.event_name }}
             ${{steps.publish-chromatic.changeCount}} visual changes were found in this build.
             There are ${{steps.publish-chromatic.errorCount}} failed tests to review. 
-
             * [Storybook Preview](${{steps.publish-chromatic.outputs.storybookUrl}})
             * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})
-           
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           comment_tag: chromatic-build
           pr_number: ${{ env.pr_number }}
