@@ -1465,7 +1465,6 @@ class TestVideo:
             str(test_file_dir / "playable_but_bad_container.mkv")
         )
         assert Path(output[0]["name"]).suffix == ".mp4"
-        os.remove(output[0]["name"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
