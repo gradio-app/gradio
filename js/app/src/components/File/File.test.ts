@@ -1,5 +1,6 @@
-import { test, describe, expect, afterEach, vi } from "vitest";
+import { test, describe, expect, afterEach, vi, assert } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
+import { spy } from "tinyspy";
 
 import File from "./File.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
@@ -21,7 +22,7 @@ describe("File", () => {
 		vi.restoreAllMocks();
 	});
 
-	test("Uploads with blob", async () => {
+	test("gr.File uploads with blob", async () => {
 		vi.mock("@gradio/client", async () => {
 			return {
 				upload_files: vi.fn((f) => new Promise((res) => res({})))
@@ -30,7 +31,7 @@ describe("File", () => {
 
 		const api = await import("@gradio/client");
 
-		render(File, {
+		await render(File, {
 			loading_status,
 			label: "file",
 			// @ts-ignore
@@ -45,10 +46,10 @@ describe("File", () => {
 		expect(api.upload_files).toHaveBeenCalled();
 	});
 
-	test("Does not upload without blob", () => {
-		const spy = vi.fn(upload_files);
+	test("gr.File does not upload without blob", async () => {
+		const mockUpload = vi.fn(upload_files);
 
-		render(File, {
+		const { component } = await render(File, {
 			loading_status,
 			label: "file",
 			value: { name: "freddy.json", data: "{'name': 'freddy'}" },
@@ -59,6 +60,17 @@ describe("File", () => {
 			root_url: null
 		});
 
-		expect(spy).not.toHaveBeenCalled();
+		expect(mockUpload).not.toHaveBeenCalled();
+
+		const mock = spy();
+		component.$on("change", mock);
+
+		component.value = {
+			name: "freddy_2.json",
+			data: "{'name': 'freddy'}",
+			is_file: true
+		};
+
+		assert.equal(mock.callCount, 1);
 	});
 });
