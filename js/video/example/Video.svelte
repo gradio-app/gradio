@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { playable } from "../shared";
-	import { onMount } from "svelte";
+	import { onMount, getContext } from "svelte";
 
 	export let type: "gallery" | "table";
 	export let selected = false;
@@ -21,9 +21,23 @@
 	onMount(() => {
 		init();
 	});
+
+	let src = samples_dir + value;
+	let ready = true;
+
+	// For Wasm version, we need to fetch the file from the server running in the Wasm worker.
+	const get_file_from_wasm = getContext<((pathname: string) => Promise<Blob>) | undefined>("get_file_from_wasm");
+	$: if (get_file_from_wasm) {
+		ready = false;
+		const path = new URL(samples_dir + value).pathname;
+		get_file_from_wasm(path).then((blob) => {
+			src = URL.createObjectURL(blob);
+			ready = true;
+		})
+	}
 </script>
 
-{#if playable()}
+{#if playable() && ready}
 	<video
 		muted
 		playsinline
@@ -33,7 +47,7 @@
 		class:selected
 		on:mouseover={video.play}
 		on:mouseout={video.pause}
-		src={samples_dir + value}
+		src={src}
 	/>
 {:else}
 	<div>{value}</div>
