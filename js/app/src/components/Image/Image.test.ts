@@ -6,13 +6,12 @@ import {
 	vi,
 	beforeAll,
 	beforeEach,
-	expect
 } from "vitest";
-import { spy, spyOn } from "tinyspy";
+import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../../i18n";
 
-import Video from "./Video.svelte";
+import Image from "./Image.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
 
 const loading_status = {
@@ -26,7 +25,7 @@ const loading_status = {
 	show_progress: "full" as LoadingStatus["show_progress"]
 };
 
-describe("Video", () => {
+describe("Image", () => {
 	beforeAll(() => {
 		window.HTMLMediaElement.prototype.play = vi.fn();
 		window.HTMLMediaElement.prototype.pause = vi.fn();
@@ -34,36 +33,23 @@ describe("Video", () => {
 	beforeEach(setupi18n);
 	afterEach(() => cleanup());
 
-	test("video change event trigger fires when value is changed and only fires once", async () => {
-		const { component } = await render(Video, {
+	test("image change event trigger fires when value is changed and only fires once", async () => {
+		const { component } = await render(Image, {
 			show_label: true,
 			loading_status,
 			mode: "dynamic",
-			value: [
-				{
-					name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					data: null,
-					is_file: true
-				}
-			],
+			value: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
 			root: "foo",
 			root_url: null,
 			streaming: false,
 			pending: false,
 			source: "upload",
-			autoplay: true
 		});
 
 		const mock = spy();
 		component.$on("change", mock);
 
-		(component.value = [
-			{
-				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4",
-				data: null,
-				is_file: true
-			}
-		]),
-			assert.equal(mock.callCount, 1);
+		component.value = "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg"
+		assert.equal(mock.callCount, 1);
 	});
 });
