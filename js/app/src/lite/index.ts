@@ -95,6 +95,22 @@ export function create(options: Options): GradioAppController {
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
+	function get_file_from_wasm(path: string): Promise<Blob> {
+		return worker_proxy.httpRequest({
+			method: "GET",
+			path,
+			query_string: "",
+			headers: {},
+		}).then((res) => {
+			if (res.status !== 200) {
+				throw new Error(`Failed to get file ${path} from the Wasm worker.`)
+			}
+
+			const blob = new Blob([res.body], { type: res.headers["Content-Type"] });
+
+			return blob;
+		})
+	}
 
 	let app: Index;
 	function launchNewApp(): void {
@@ -127,7 +143,8 @@ export function create(options: Options): GradioAppController {
 				// For Wasm mode
 				client,
 				upload_files,
-				mount_css: overridden_mount_css
+				mount_css: overridden_mount_css,
+				get_file_from_wasm,
 			}
 		});
 	}

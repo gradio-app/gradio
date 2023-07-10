@@ -1,18 +1,36 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+
 	export let value: string;
 	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
+
+	let src = samples_dir + value;
+	let ready = true;
+
+	// For Wasm version, we need to fetch the file from the server running in the Wasm worker.
+	const get_file_from_wasm = getContext<((pathname: string) => Promise<Blob>) | undefined>("get_file_from_wasm");
+	$: if (get_file_from_wasm) {
+		ready = false;
+		const path = new URL(samples_dir + value).pathname;
+		get_file_from_wasm(path).then((blob) => {
+			src = URL.createObjectURL(blob);
+			ready = true;
+		})
+	}
 </script>
 
 <!-- TODO: fix -->
 <!-- svelte-ignore a11y-missing-attribute -->
+{#if ready}
 <img
-	src={samples_dir + value}
+	src={src}
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
 />
+{/if}
 
 <style>
 	img {
