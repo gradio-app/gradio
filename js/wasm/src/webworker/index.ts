@@ -75,7 +75,7 @@ async function loadPyodideAndPackages(
 	await micropip.add_mock_package("aiohttp", "3.8.4");
 	await micropip.add_mock_package("multidict", "4.7.6");
 	await pyodide.loadPackage(["ssl", "distutils", "setuptools"]);
-	await micropip.install(["markdown-it-py~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
+	await micropip.install(["markdown-it-py[linkify]~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
