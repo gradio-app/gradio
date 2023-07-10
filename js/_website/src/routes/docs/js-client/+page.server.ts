@@ -19,7 +19,6 @@ let helpers = docs_json.docs.helpers;
 let routes = docs_json.docs.routes;
 let py_client = docs_json.docs["py-client"];
 let js_client = docs_json.js_client;
-let ordered_events = docs_json.docs.ordered_events;
 
 function plugin() {
 	return function transform(tree: any) {
@@ -48,10 +47,10 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre>`
+			code,
+			Prism.languages[_lang],
+			_lang
+		)}</code></pre>`
 		: code;
 
 	return highlighted;
@@ -117,7 +116,6 @@ export async function load({ params }: any) {
 		components,
 		helpers,
 		routes,
-		py_client,
-		ordered_events
+		py_client
 	};
 }
