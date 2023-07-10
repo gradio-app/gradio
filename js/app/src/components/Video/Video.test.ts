@@ -8,7 +8,7 @@ import {
 	beforeEach,
 	expect
 } from "vitest";
-import { spyOn } from "tinyspy";
+import { spy, spyOn } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../../i18n";
 
@@ -125,7 +125,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "microphone",
+			source: "upload",
 			autoplay: true
 		});
 		const startButton = getByTestId<HTMLAudioElement>("test-player");
@@ -150,7 +150,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "microphone",
+			source: "upload",
 			autoplay: true
 		});
 		const startButton = getByTestId<HTMLAudioElement>("test-player");
@@ -175,7 +175,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "microphone",
+			source: "upload",
 			autoplay: true
 		});
 		const startButton = getByTestId<HTMLAudioElement>("test-player");
@@ -208,7 +208,7 @@ describe("Video", () => {
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "microphone",
+			source: "upload",
 			autoplay: true
 		});
 		const startButton = getByTestId<HTMLAudioElement>("test-player");
@@ -247,5 +247,38 @@ describe("Video", () => {
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
+	});
+
+	test("Video change event trigger fires when value is changed and only fires once", async () => {
+		const { component } = await render(Video, {
+			show_label: true,
+			loading_status,
+			mode: "dynamic",
+			value: [
+				{
+					name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					data: null,
+					is_file: true
+				}
+			],
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "upload",
+			autoplay: true
+		});
+
+		const mock = spy();
+		component.$on("change", mock);
+
+		(component.value = [
+			{
+				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4",
+				data: null,
+				is_file: true
+			}
+		]),
+			assert.equal(mock.callCount, 1);
 	});
 });
