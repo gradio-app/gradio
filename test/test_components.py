@@ -709,7 +709,7 @@ class TestImage:
 
     @pytest.mark.flaky
     def test_serialize_url(self):
-        img = "https://gradio.app/assets/img/header-image.jpg"
+        img = "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
         expected = client_utils.encode_url_or_file_to_base64(img)
         assert gr.Image().serialize(img) == expected
 
