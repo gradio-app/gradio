@@ -149,7 +149,29 @@ async def mocked_anyio_to_thread_run_sync(func, *args, cancellable=False, limite
 
 import anyio.to_thread
 anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
-	`);
+`);
+
+	// `gradio_client.utils.synchronize_async()`, which is used in several places in the Gradio package, uses `fsspec.asyn.get_loop()` and `fsspec.asyn.sync()` internally.
+	// However, `fsspec.asyn.get_loop` doesn't work in Wasm environments because it internally uses the `threading` module which is not supported in Wasm environments.
+	// `fsspec.asyn.sync()` also doesn't work stopping the script execution somehow.
+	// So we mock them here.
+	// In the mock implementation of `fsspec.asyn.sync()`, `asyncio.ensure_future()` is used instead
+	// because it's the best we can do in the Wasm env,
+	// while it's not fully compatible with the original implementation
+	// as `asyncio.ensure_future()` doesn't block the current thread.
+	await pyodide.runPythonAsync(`
+import asyncio
+
+def mocked_fsspec_asyn_get_loop():
+	return asyncio.get_event_loop()
+
+def mocked_fsspec_asyn_sync(loop, func, *args, **kwargs):
+	asyncio.ensure_future(func(*args, **kwargs), loop=loop)
+
+import fsspec.asyn
+fsspec.asyn.get_loop = mocked_fsspec_asyn_get_loop
+fsspec.asyn.sync = mocked_fsspec_asyn_sync
+`);
 	console.debug("Async libraries are mocked.");
 
 	console.debug("Set matplotlib backend.");
