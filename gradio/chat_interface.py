@@ -191,9 +191,3 @@ class ChatInterface(Blocks):
         except IndexError:
             message = None
         return history, message
-
-    # def retry_fn(self, history, inp):
-    #     if inp is not None:
-    #         out = self.fn(history, inp)
-    #         history.append((inp, out))
-    #     return history
