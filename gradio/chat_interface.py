@@ -112,31 +112,26 @@ class ChatInterface(Blocks):
                     fn=self.fn,
                     cache_examples=self.cache_examples,
                 )
-
-
-            # self.stored_history = State()
-
-            # # Invisible elements only used to set up the API
-            # api_btn = Button(visible=False)
-            # api_output_textbox = Textbox(visible=False, label="output")
-
-            # self.buttons = [submit_btn, retry_btn, clear_btn]
-
+            
             self.saved_input = State()
+            
+            self._setup_events()
 
-            self.textbox.submit(
-                self._clear_and_save_textbox,
-                [self.textbox],
-                [self.textbox, self.saved_input],
-                api_name=False,
-                queue=False,
-            ).then(
-                self._submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                api_name=False,
-            )
+    def _setup_events(self):            
+        self.textbox.submit(
+            self._clear_and_save_textbox,
+            [self.textbox],
+            [self.textbox, self.saved_input],
+            api_name=False,
+            queue=False,
+        ).then(
+            self._submit_fn,
+            [self.saved_input, self.chatbot],
+            [self.chatbot],
+            api_name=False,
+        )
 
+        if self.submit_btn:
             self.submit_btn.click(
                 self._clear_and_save_textbox,
                 [self.textbox],
@@ -149,10 +144,37 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 api_name=False,
             )
-            # delete_btn.click(self.delete_prev_fn, [self.chatbot], [self.chatbot, self.stored_input], queue=False, api_name=False)
-            # retry_btn.click(self.delete_prev_fn, [self.chatbot], [self.chatbot, self.stored_input], queue=False, api_name=False).success(self.retry_fn, [self.chatbot, self.stored_input], [self.chatbot], api_name=False)
-            # api_btn.click(self.submit_fn, [self.stored_history, self.textbox], [self.stored_history, api_output_textbox], api_name="chat")
-            # clear_btn.click(lambda :[], None, self.chatbot, api_name="clear")
+        
+        if self.retry_btn:
+            self.retry_btn.click(
+                self._delete_prev_fn,
+                [self.chatbot],
+                [self.chatbot, self.saved_input],
+                api_name=False,
+                queue=False,
+            ).then(
+                self._submit_fn,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                api_name=False,
+            )
+
+        if self.delete_last_btn:
+            self.delete_last_btn.click(
+                self._delete_prev_fn,
+                [self.chatbot],
+                [self.chatbot, self.saved_input],
+                api_name=False,
+                queue=False,
+            )
+
+        if self.clear_btn:
+            self.clear_btn.click(
+                lambda :([], None), 
+                None, 
+                [self.chatbot, self.saved_input],
+                queue=False,
+                api_name="clear")
 
     def _clear_and_save_textbox(self, message):
         return "", message
@@ -165,10 +187,10 @@ class ChatInterface(Blocks):
 
     def _delete_prev_fn(self, history):
         try:
-            inp, _ = history.pop()
+            message, _ = history.pop()
         except IndexError:
-            inp = None
-        return history, inp
+            message = None
+        return history, message
 
     # def retry_fn(self, history, inp):
     #     if inp is not None:
