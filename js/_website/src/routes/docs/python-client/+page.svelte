@@ -6,7 +6,6 @@
 	let components = data.components;
 	let helpers = data.helpers;
 	let routes = data.routes;
-	let ordered_events = data.ordered_events;
 	let py_client = data.py_client;
 </script>
 
