@@ -1,6 +1,7 @@
 **/js/app/public/**
 **/pnpm-workspace.yaml
 **/js/app/dist/**
+**/js/wasm/dist/**
 **/client/js/dist/**
 **/js/lite/dist/**
 **/pnpm-lock.yaml
@@ -17,5 +18,5 @@
 **/*.md
 !test-strategy.md
 **/js/_space-test/**
-js/app/test/gradio_cached_examples/**
-
+../js/app/src/lite/theme.css
+../js/storybook/theme.css
