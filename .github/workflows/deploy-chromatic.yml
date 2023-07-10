@@ -27,6 +27,8 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: publish summary
+        run: echo -e "| Results |  |\n| --- | --- |\n| Build Results | ${{steps.chromatic.outputs.buildUrl}} |\n| Storybook Preview | ${{steps.chromatic.outputs.storybookUrl}} |\n| Component Count | ${{steps.chromatic.outputs.componentCount}}  ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
       - name: post deployment link to PR
         uses: thollander/actions-comment-pull-request@v2
         with:
