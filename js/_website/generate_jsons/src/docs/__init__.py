@@ -1,8 +1,9 @@
 import json
 import os
 from gradio_client.documentation import generate_documentation, document_cls
-from gradio.events import EventListener
+from gradio.events import EventListener, EventListenerMethod
 from ..guides import guides
+import inspect
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
@@ -54,26 +55,13 @@ def add_demos():
 
 add_demos()
 
-events = [
-        "change",
-        "input",
-        "click",
-        "submit",
-        "edit",
-        "clear",
-        "play",
-        "pause",
-        "stop",
-        "stream",
-        "start_recording",
-        "stop_recording",
-        "blur",
-        "upload",
-        "release",
-        "select"
-    ]
-
 def create_events_matrix():
+    events = []
+    for c in EventListener.__subclasses__():
+        methods = c().__dict__
+        for m in methods: 
+            if m[:1] != '_' and isinstance(methods[m], EventListenerMethod) and m[:1] not in events: 
+                events.append(m)
     component_events = {}
     for component in docs["component"]:
         component_event_list = []
@@ -83,9 +71,10 @@ def create_events_matrix():
                     component_event_list.append(event)
         component_events[component["name"]] = component_event_list
     
-    return component_events
+    
+    return events, component_events
 
-component_events = create_events_matrix()
+events, component_events = create_events_matrix()
 
 
 def add_guides():
