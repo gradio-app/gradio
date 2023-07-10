@@ -249,7 +249,7 @@ describe("Video", () => {
 		).toBeGreaterThan(0);
 	});
 
-	test("Video change event trigger fires when value is changed and only fires once", async () => {
+	test("video change event trigger fires when value is changed and only fires once", async () => {
 		const { component } = await render(Video, {
 			show_label: true,
 			loading_status,

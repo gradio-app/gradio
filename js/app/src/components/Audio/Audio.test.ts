@@ -317,4 +317,39 @@ describe("Audio", () => {
 
 		assert.equal(fn.callCount, 2);
 	});
+
+	test("audio change event trigger fires when value is changed and only fires once", async () => {
+		const { component } = await render(Audio, {
+			show_label: true,
+			loading_status,
+			mode: "static",
+			value: {
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+				data: null,
+				is_file: true
+			},
+			label: "static",
+			root: "foo",
+			root_url: null,
+			streaming: false,
+			pending: false,
+			source: "microphone",
+			autoplay: true
+		})
+
+		const mock = spy();
+		component.$on("change", mock);
+
+		(component.value = [
+			{
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample2.wav",
+				data: null,
+				is_file: true
+			}
+		]),
+			assert.equal(mock.callCount, 1);
+
+
+	});
+
 });
