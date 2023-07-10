@@ -1,8 +1,7 @@
 # Upcoming Release
 
 ## New Features:
-
-No changes to highlight.
+- Chatbot messages now show hyperlinks to download files uploaded to `gr.Chatbot()` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4848](https://github.com/gradio-app/gradio/pull/4848)
 
 ## Bug Fixes:
 

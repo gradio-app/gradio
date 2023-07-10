@@ -147,6 +147,17 @@
 								src={message.data}
 								alt={message.alt_text}
 							/>
+						{:else if message !== null && message.data !== null}
+							<a
+								data-testid="chatbot-file"
+								href={message.data}
+								target="_blank"
+								download={window.__is_colab__
+									? null
+									: message.orig_name || message.name}
+							>
+								{message.orig_name || message.name}
+							</a>
 						{/if}
 					</div>
 				{/each}

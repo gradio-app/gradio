@@ -150,4 +150,34 @@ describe("Chatbot", () => {
 		assert.isTrue(audio[0].src.includes("audio_sample.wav"));
 		assert.isTrue(audio[1].src.includes("audio_sample.wav"));
 	});
+
+	test("renders hyperlinks to file bot and user messages", async () => {
+		const { component, getAllByTestId } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: null,
+			root: "",
+			root_url: "",
+			latex_delimiters: null,
+			theme_mode: "dark"
+		});
+
+		let value = Array(2).fill([
+			{
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+				mime_type: "text/csv",
+				alt_text: null,
+				data: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+				is_file: true
+			}
+		]);
+
+		await component.$set({
+			value: value
+		});
+
+		const file_link = getAllByTestId("chatbot-file");
+		assert.isTrue(file_link[0].href.includes("titanic.csv"));
+		assert.isTrue(file_link[0].href.includes("titanic.csv"));
+	});
 });
