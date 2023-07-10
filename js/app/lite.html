@@ -18,37 +18,18 @@
 		<script type="module" src="./src/lite/index.ts"></script>
 	</head>
 
-	<body style="margin: 0; padding: 0; height: 100%">
-		<div id="gradio-app"></div>
-
-		<textarea id="code-input" cols="30" rows="10">
-import gradio as gr
-
-def greet(name):
-    return "Hello " + name + "!"
-
-def upload_file(files):
-    file_paths = [file.name for file in files]
-    return file_paths
-
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
-    name = gr.Textbox(label="Name")
-    output = gr.Textbox(label="Output Box")
-    greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-
-    gr.File()
-
-    file_output = gr.File()
-    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
-    upload_button.upload(upload_file, upload_button, file_output)
-
-demo.launch()
-		</textarea
-		>
-		<button id="exec-button">Execute</button>
-
-		<textarea id="requirements-input"></textarea>
-		<button id="install-button">Install</button>
+	<body
+		style="
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+		"
+	>
+		<div style="flex-grow: 1; overflow: scroll; position: relative">
+			<div id="gradio-app" style="min-height: 100%"></div>
+		</div>
+		<div id="dev-app" style="height: 300px; position: relative"></div>
 	</body>
 </html>
