@@ -1,9 +1,7 @@
 import { test, expect } from "@gradio/tootils";
 import type { Response } from "@playwright/test";
 
-test(".success event runs after function successfully completes. .success should not run if function fails", async ({
-	page
-}) => {
+test(".success should not run if function fails", async ({ page }) => {
 	let last_iteration;
 	const textbox = page.getByLabel("Result");
 	await expect(textbox).toHaveValue("");
@@ -19,9 +17,22 @@ test(".success event runs after function successfully completes. .success should
 	await page.click("text=Trigger Failure");
 	await last_iteration;
 	expect(textbox).toHaveValue("");
+});
 
+test(".success event runs after function successfully completes", async ({
+	page
+}) => {
+	const textbox = page.getByLabel("Result");
+	let success_iteration;
+	page.on("websocket", (ws) => {
+		success_iteration = ws.waitForEvent("framereceived", {
+			predicate: (event) => {
+				return JSON.parse(event.payload as string).msg === "process_completed";
+			}
+		});
+	});
 	await page.click("text=Trigger Success");
-	await last_iteration;
+	await success_iteration;
 	expect(textbox).toHaveValue("Success event triggered");
 });
 
