@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render } from "@gradio/tootils";
 import Checkbox from "./Checkbox.svelte";
+import assert from "assert";
 
 describe("Checkbox", () => {
 	afterEach(() => cleanup());
