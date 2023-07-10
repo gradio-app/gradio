@@ -27,8 +27,12 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: get pull request
+        id: get-pr
+        run: echo "::set-output name=pull_request_number::$(gh pr view --json number -q .number || echo "")"
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: post deployment link to PR
-        if: ${{ github.event == 'pull_request' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
@@ -40,4 +44,4 @@ jobs:
             * [Build Review](${{ steps.publish-chromatic.outputs.buildUrl }})
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           comment_tag: chromatic-build
-          pr_number: ${{ github.event.pull_request.number }}
+          pr_number: ${{ steps.get-pr.outputs.pull_request_number }}
