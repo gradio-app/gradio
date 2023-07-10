@@ -14,6 +14,7 @@ from gradio.components import (
     Button,
     Chatbot,
     Markdown,
+    State,
     Textbox,
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
@@ -38,6 +39,10 @@ class ChatInterface(Blocks):
         theme: Theme | str | None = None,
         css: str | None = None,
         analytics_enabled: bool | None = None,
+        submit_btn: str | None | Button = "Submit",
+        retry_btn: str | None | Button = "🔄  Retry",
+        delete_last_btn: str | None | Button = None,
+        clear_btn: str | None | Button = "🗑️  Clear History",
     ):
         """
         Parameters:
@@ -51,6 +56,10 @@ class ChatInterface(Blocks):
             theme: Theme to use, loaded from gradio.themes.
             css: custom css or path to custom css file to use with interface.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
+            submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
+            retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
+            delete_last_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
+            clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -62,6 +71,7 @@ class ChatInterface(Blocks):
         self.fn = fn
         self.examples = examples
         self.cache_examples = cache_examples
+        self.buttons: list[Button] = []
         self.history = []
 
         with self:
@@ -73,10 +83,26 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             with Group():
-                self.chatbot = chatbot or Chatbot(label="Input")
-                self.textbox = textbox or Textbox(
-                    show_label=False, placeholder="Type a message..."
-                )
+                if chatbot:
+                    self.chatbot = chatbot.render()
+                else:
+                    self.chatbot = Chatbot(label="Input")
+                if textbox:
+                    self.textbox = textbox.render() 
+                else: 
+                    self.textbox = Textbox(show_label=False, placeholder="Type a message...")
+            
+            with Row():
+                for b, btn in enumerate([submit_btn, retry_btn, delete_last_btn, clear_btn]):
+                    if btn:
+                        if isinstance(btn, Button):
+                            btn.render()
+                        elif isinstance(btn, str):
+                            btn = Button(btn, variant="primary" if b == 0 else "secondary")
+                        else:
+                            raise ValueError("The `submit_btn` parameter must be a gr.Button or a string")
+                    self.buttons.append(btn)
+                self.submit_btn, self.retry_btn, self.delete_last_btn, self.clear_btn = self.buttons
             
             if examples:
                 self.examples_handler = Examples(
@@ -87,8 +113,8 @@ class ChatInterface(Blocks):
                     cache_examples=self.cache_examples,
                 )
 
+
             # self.stored_history = State()
-            # self.stored_input = State()
 
             # # Invisible elements only used to set up the API
             # api_btn = Button(visible=False)
@@ -96,48 +122,53 @@ class ChatInterface(Blocks):
 
             # self.buttons = [submit_btn, retry_btn, clear_btn]
 
-            # self.textbox.submit(
-            #     self.clear_and_save_textbox,
-            #     [self.textbox],
-            #     [self.textbox, self.stored_input],
-            #     api_name=False,
-            #     queue=False,
-            # ).then(
-            #     self.submit_fn,
-            #     [self.chatbot, self.stored_input],
-            #     [self.chatbot],
-            #     api_name=False,
-            # )
+            self.saved_input = State()
 
-            # submit_btn.click(self.submit_fn, [self.chatbot, self.textbox], [self.chatbot, self.textbox], api_name=False)
+            self.textbox.submit(
+                self._clear_and_save_textbox,
+                [self.textbox],
+                [self.textbox, self.saved_input],
+                api_name=False,
+                queue=False,
+            ).then(
+                self._submit_fn,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                api_name=False,
+            )
+
+            self.submit_btn.click(
+                self._clear_and_save_textbox,
+                [self.textbox],
+                [self.textbox, self.saved_input],
+                api_name=False,
+                queue=False,
+            ).then(
+                self._submit_fn,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                api_name=False,
+            )
             # delete_btn.click(self.delete_prev_fn, [self.chatbot], [self.chatbot, self.stored_input], queue=False, api_name=False)
             # retry_btn.click(self.delete_prev_fn, [self.chatbot], [self.chatbot, self.stored_input], queue=False, api_name=False).success(self.retry_fn, [self.chatbot, self.stored_input], [self.chatbot], api_name=False)
             # api_btn.click(self.submit_fn, [self.stored_history, self.textbox], [self.stored_history, api_output_textbox], api_name="chat")
             # clear_btn.click(lambda :[], None, self.chatbot, api_name="clear")
 
-    # def clear_and_save_textbox(self, inp):
-    #     return "", inp
+    def _clear_and_save_textbox(self, message):
+        return "", message
 
-    # def disable_button(self):
-    #     # Need to implement in the event handlers above
-    #     return Button.update(interactive=False)
+    def _submit_fn(self, message: str, history: list[list[str]]):
+        # Need to handle streaming case
+        response = self.fn(message, history)
+        history.append((message, response))
+        return history
 
-    # def enable_button(self):
-    #     # Need to implement in the event handlers above
-    #     return Button.update(interactive=True)
-
-    # def submit_fn(self, history, inp):
-    #     # Need to handle streaming case
-    #     out = self.fn(history, inp)
-    #     history.append((inp, out))
-    #     return history
-
-    # def delete_prev_fn(self, history):
-    #     try:
-    #         inp, _ = history.pop()
-    #     except IndexError:
-    #         inp = None
-    #     return history, inp
+    def _delete_prev_fn(self, history):
+        try:
+            inp, _ = history.pop()
+        except IndexError:
+            inp = None
+        return history, inp
 
     # def retry_fn(self, history, inp):
     #     if inp is not None:
