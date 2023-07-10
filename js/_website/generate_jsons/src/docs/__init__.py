@@ -1,8 +1,9 @@
 import json
 import os
 from gradio_client.documentation import generate_documentation, document_cls
-from gradio.events import EventListener
+from gradio.events import EventListener, EventListenerMethod
 from ..guides import guides
+import inspect
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
@@ -54,35 +55,26 @@ def add_demos():
 
 add_demos()
 
-ordered_events = [
-    "Change()",
-    "Click()",
-    "Submit()",
-    "Edit()",
-    "Clear()",
-    "Play()",
-    "Pause()",
-    "Stream()",
-    "Blur()",
-    "Upload()",
-]
-
-
-def add_supported_events():
+def create_events_matrix():
+    events = []
+    for c in EventListener.__subclasses__():
+        methods = c().__dict__
+        for m in methods: 
+            if m[:1] != '_' and isinstance(methods[m], EventListenerMethod) and m not in events: 
+                events.append(m)
+    component_events = {}
     for component in docs["component"]:
-        component["events_list"] = []
-        event_listener_props = dir(EventListener)
-        for listener in EventListener.__subclasses__():
-            if not issubclass(component["class"], listener):
-                continue
-            for prop in dir(listener):
-                if prop not in event_listener_props:
-                    component["events_list"].append(prop + "()")
-        if component["events_list"]:
-            component["events"] = ", ".join(component["events_list"])
+        component_event_list = []
+        for event in events:
+            for fn in component["fns"]:
+                if event == fn["name"]:
+                    component_event_list.append(event)
+        component_events[component["name"]] = component_event_list
+    
+    
+    return events, component_events
 
-
-add_supported_events()
+events, component_events = create_events_matrix()
 
 
 def add_guides():
@@ -267,7 +259,8 @@ def organize_docs(d):
                 c_keys[i + 1]
             ]["name"]
 
-    organized["ordered_events"] = ordered_events
+    organized["events_matrix"] = component_events
+    organized["events"] = events
 
     with open(JS_CLIENT_README, "r") as f:
         readme_content = f.read()

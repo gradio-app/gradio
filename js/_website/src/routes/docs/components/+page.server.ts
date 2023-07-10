@@ -6,7 +6,8 @@ let helpers = docs_json.docs.helpers;
 let routes = docs_json.docs.routes;
 let py_client = docs_json.docs["py-client"];
 
-let ordered_events = docs_json.docs.ordered_events;
+let events = docs_json.docs.events;
+let events_matrix = docs_json.docs.events_matrix;
 
 export async function load() {
 	return {
@@ -14,6 +15,7 @@ export async function load() {
 		helpers,
 		routes,
 		py_client,
-		ordered_events
+		events,
+		events_matrix
 	};
 }

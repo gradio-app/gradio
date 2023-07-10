@@ -223,7 +223,7 @@ class Clearable(EventListener):
         """
 
 
-@document("*play", "*pause", "*stop", inherit=True)
+@document("*play", "*pause", "*stop", "*end", inherit=True)
 class Playable(EventListener):
     def __init__(self):
         self.play = EventListenerMethod(self, "play")
