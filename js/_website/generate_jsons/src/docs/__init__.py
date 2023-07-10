@@ -60,7 +60,7 @@ def create_events_matrix():
     for c in EventListener.__subclasses__():
         methods = c().__dict__
         for m in methods: 
-            if m[:1] != '_' and isinstance(methods[m], EventListenerMethod) and m[:1] not in events: 
+            if m[:1] != '_' and isinstance(methods[m], EventListenerMethod) and m not in events: 
                 events.append(m)
     component_events = {}
     for component in docs["component"]:
