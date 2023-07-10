@@ -5,7 +5,7 @@ on: push
 jobs:
   chromatic-deployment:
     runs-on: ubuntu-latest
-    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-visual-update') && !github.event.pull_request.head.repo.fork }}  
+    if: ${{ !contains( github.event.label.name, 'no-visual-update') && github.repository == 'gradio-app/gradio' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -37,7 +37,6 @@ jobs:
         with:
           message: |
             Chromatic build result: ${{ steps.publish-chromatic.code }}
-            ${{ github.event_name }}
             ${{ steps.publish-chromatic.changeCount }} visual changes were found in this build.
             There are ${{ steps.publish-chromatic.errorCount }} failed tests to review. 
             * [Storybook Preview](${{ steps.publish-chromatic.outputs.storybookUrl }})
