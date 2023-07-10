@@ -5,7 +5,7 @@ import {
 	afterEach,
 	vi,
 	beforeAll,
-	beforeEach,
+	beforeEach
 } from "vitest";
 import { spy } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
@@ -38,18 +38,20 @@ describe("Image", () => {
 			show_label: true,
 			loading_status,
 			mode: "dynamic",
-			value: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+			value:
+				"https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
 			root: "foo",
 			root_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			source: "upload"
 		});
 
 		const mock = spy();
 		component.$on("change", mock);
 
-		component.value = "https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg"
+		component.value =
+			"https://github.com/gradio-app/gradio/blob/main/test/test_files/cheetah1.jpg";
 		assert.equal(mock.callCount, 1);
 	});
 });

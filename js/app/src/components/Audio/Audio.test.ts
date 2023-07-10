@@ -335,7 +335,7 @@ describe("Audio", () => {
 			pending: false,
 			source: "microphone",
 			autoplay: true
-		})
+		});
 
 		const mock = spy();
 		component.$on("change", mock);
@@ -348,8 +348,5 @@ describe("Audio", () => {
 			}
 		]),
 			assert.equal(mock.callCount, 1);
-
-
 	});
-
 });
