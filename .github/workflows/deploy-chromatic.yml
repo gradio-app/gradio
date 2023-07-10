@@ -27,18 +27,17 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: publish summary
-        run: echo -e "| Results |  |\n| --- | --- |\n| Build Results | ${{steps.chromatic.outputs.buildUrl}} |\n| Storybook Preview | ${{steps.chromatic.outputs.storybookUrl}} |\n| Component Count | ${{steps.chromatic.outputs.componentCount}}  ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
       - name: post deployment link to PR
+        if: ${{ github.event == 'pull_request' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            Chromatic build result: ${{steps.publish-chromatic.code}}
+            Chromatic build result: ${{ steps.publish-chromatic.code }}
             ${{ github.event_name }}
-            ${{steps.publish-chromatic.changeCount}} visual changes were found in this build.
-            There are ${{steps.publish-chromatic.errorCount}} failed tests to review. 
-            * [Storybook Preview](${{steps.publish-chromatic.outputs.storybookUrl}})
-            * [Build Review](${{steps.publish-chromatic.outputs.buildUrl}})
+            ${{ steps.publish-chromatic.changeCount }} visual changes were found in this build.
+            There are ${{ steps.publish-chromatic.errorCount }} failed tests to review. 
+            * [Storybook Preview](${{ steps.publish-chromatic.outputs.storybookUrl }})
+            * [Build Review](${{ steps.publish-chromatic.outputs.buildUrl }})
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           comment_tag: chromatic-build
-          pr_number: ${{ env.pr_number }}
+          pr_number: ${{ github.event.pull_request.number }}
