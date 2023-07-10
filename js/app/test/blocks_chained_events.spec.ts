@@ -81,18 +81,7 @@ test("ValueError makes the toast show up when show_error=True", async ({
 });
 
 test("gr.Info makes the toast show up", async ({ page }) => {
-	let complete;
-	page.on("websocket", (ws) => {
-		complete = ws.waitForEvent("framereceived", {
-			predicate: (event) => {
-				return JSON.parse(event.payload as string).msg === "process_completed";
-			}
-		});
-	});
-
 	await page.click("text=Trigger Info");
-	await complete;
-
 	const toast = page.getByTestId("toast-body");
 
 	expect(toast).toContainText("This is some info");
@@ -102,17 +91,7 @@ test("gr.Info makes the toast show up", async ({ page }) => {
 });
 
 test("gr.Warning makes the toast show up", async ({ page }) => {
-	let complete;
-	page.on("websocket", (ws) => {
-		complete = ws.waitForEvent("framereceived", {
-			predicate: (event) => {
-				return JSON.parse(event.payload as string).msg === "process_completed";
-			}
-		});
-	});
-
 	page.click("text=Trigger Warning");
-	await complete;
 
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("This is a warning!");
