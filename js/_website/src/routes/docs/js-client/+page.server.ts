@@ -47,10 +47,10 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre>`
+			code,
+			Prism.languages[_lang],
+			_lang
+		)}</code></pre>`
 		: code;
 
 	return highlighted;
