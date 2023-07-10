@@ -23,17 +23,8 @@ test(".success event runs after function successfully completes", async ({
 	page
 }) => {
 	const textbox = page.getByLabel("Result");
-	let success_iteration;
-	page.on("websocket", (ws) => {
-		success_iteration = ws.waitForEvent("framereceived", {
-			predicate: (event) => {
-				return JSON.parse(event.payload as string).msg === "process_completed";
-			}
-		});
-	});
 	await page.click("text=Trigger Success");
-	await success_iteration;
-	expect(textbox).toHaveValue("Success event triggered");
+	await expect(textbox).toHaveValue("Success event triggered");
 });
 
 test("Consecutive .success event is triggered successfully", async ({
