@@ -5,7 +5,7 @@ on: push
 jobs:
   chromatic-deployment:
     runs-on: ubuntu-latest
-    if: ${{ !contains( github.event.label.name, 'no-visual-update') && github.repository == 'gradio-app/gradio' }}
+    if: ${{ github.repository == 'gradio-app/gradio' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -27,12 +27,10 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: get pull request
-        id: get-pr
-        run: echo "::set-output name=pull_request_number::$(gh pr view --json number -q .number || echo "")"
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: 8BitJonny/gh-get-current-pr@2.2.0
+        id: PR
       - name: post deployment link to PR
+        if: steps.PR.outputs.pr_found == 'true' && !contains(steps.PR.outputs.pr_labels, 'no-visual-update') 
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
