@@ -8,8 +8,6 @@ jobs:
     steps:
     - uses: 8BitJonny/gh-get-current-pr@2.2.0
       id: get-pr
-    - name: boop
-      run: echo ${{ steps.get-pr.outputs.pr_labels }}
     outputs:
       pr_found: ${{ steps.get-pr.outputs.pr_found }}
       pr_number: ${{ steps.get-pr.outputs.number }}
@@ -17,7 +15,7 @@ jobs:
   chromatic-deployment:
     needs: get-current-pr
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'gradio-app/gradio' }} && !contains( ${{ needs.get-current-pr.outputs.pr_labels }}, 'no-visual-update') 
+    if: ${{ github.repository == 'gradio-app/gradio' && !contains(needs.get-current-pr.outputs.pr_labels, 'no-visual-update') }}
     steps:
       - uses: actions/checkout@v3
         with:
