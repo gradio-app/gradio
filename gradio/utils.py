@@ -106,6 +106,10 @@ def ipython_check() -> bool:
     return is_ipython
 
 
+def is_space() -> bool:
+    return os.getenv("SYSTEM") == "spaces"
+
+
 def readme_to_html(article: str) -> str:
     try:
         response = requests.get(article, timeout=3)
