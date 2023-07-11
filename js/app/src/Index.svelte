@@ -89,7 +89,7 @@
 	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let client: ReturnType<typeof api_factory>["client"];
 	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
-	export let get_file_from_wasm: ((pathname: string) => Promise<Blob>) | undefined;
+	export let get_file_from_wasm: ((pathname: string) => Promise<Blob>) | undefined = undefined;
 
 	export let space: string | null;
 	export let host: string | null;
