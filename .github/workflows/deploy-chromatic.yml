@@ -17,6 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'gradio-app/gradio' && !contains(needs.get-current-pr.outputs.pr_labels, 'no-visual-update') }}
     steps:
+      - name: post pending deployment comment to PR
+        if: ${{ needs.get-current-pr.outputs.pr_found }} == 'true' 
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            Chromatic build pending :hourglass:
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          comment_tag: chromatic-build
+          pr_number: ${{ needs.get-current-pr.outputs.pr_number }}
       - uses: actions/checkout@v3
         with:
             fetch-depth: 0
@@ -42,7 +51,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            Chromatic build result: ${{ steps.publish-chromatic.outputs.code }}
+            Chromatic build completed :tada:
             ${{ steps.publish-chromatic.outputs.changeCount }} visual changes were found in this build.
             There are ${{ steps.publish-chromatic.outputs.errorCount }} failed tests to review. 
             * [Storybook Preview](${{ steps.publish-chromatic.outputs.storybookUrl }})
