@@ -427,7 +427,7 @@ class Client:
 
         # Versions of Gradio older than 3.29.0 returned format of the API info
         # from the /info endpoint
-        if version.parse(self.config.get("version", "2.0")) > version.Version("3.29.0"):
+        if version.parse(self.config.get("version", "2.0")) > version.Version("3.36.1"):
             r = requests.get(api_info_url, headers=self.headers)
             if r.ok:
                 info = r.json()
@@ -775,11 +775,11 @@ class Endpoint:
                 data.insert(i, None)
         return tuple(data)
 
-    def remove_state(self, *data) -> tuple:
+    def remove_skipped_components(self, *data) -> tuple:
         data = [
             d
             for d, oct in zip(data, self.output_component_types)
-            if oct != utils.STATE_COMPONENT
+            if oct not in utils.SKIP_COMPONENTS
         ]
         return tuple(data)
 
@@ -789,7 +789,7 @@ class Endpoint:
                 [
                     oct
                     for oct in self.output_component_types
-                    if oct != utils.STATE_COMPONENT
+                    if oct not in utils.SKIP_COMPONENTS
                 ]
             )
             == 1
@@ -834,7 +834,7 @@ class Endpoint:
     def process_predictions(self, *predictions):
         if self.client.serialize:
             predictions = self.deserialize(*predictions)
-        predictions = self.remove_state(*predictions)
+        predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
 

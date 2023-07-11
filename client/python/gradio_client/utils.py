@@ -31,10 +31,21 @@ UPLOAD_URL = "upload"
 CONFIG_URL = "config"
 API_INFO_URL = "info"
 RAW_API_INFO_URL = "info?serialize=False"
-SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
+SPACE_FETCHER_URL = "https://freddyaboulton-space-api-fetcher.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
+SKIP_COMPONENTS = [
+    "state",
+    "row",
+    "column",
+    "tabs",
+    "tab",
+    "box",
+    "form",
+    "accordion",
+    "group",
+]
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
