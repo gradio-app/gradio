@@ -8,6 +8,8 @@ jobs:
     steps:
     - uses: 8BitJonny/gh-get-current-pr@2.2.0
       id: get-pr
+    - name: boop
+      run: echo ${{ steps.get-pr.outputs.pr_labels }}
     outputs:
       pr_found: ${{ steps.get-pr.outputs.pr_found }}
       pr_number: ${{ steps.get-pr.outputs.number }}
