@@ -55,3 +55,18 @@ def connect():
             demo.server.thread.join(timeout=1)
 
     return _connect
+
+
+@pytest.fixture(autouse=True)
+def gradio_temp_dir(monkeypatch, tmp_path):
+    """tmp_path is unique to each test function.
+    It will be cleared automatically according to pytest docs: https://docs.pytest.org/en/6.2.x/reference.html#tmp-path
+    """
+    monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+    yield tmp_path
+
+
+@pytest.fixture(autouse=True)
+def disable_analytics(monkeypatch):
+    """Automatically disable analytics."""
+    monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "False")
