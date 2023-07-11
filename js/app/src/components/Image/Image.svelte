@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Image, StaticImage } from "@gradio/image";
@@ -81,7 +83,6 @@
 			{selectable}
 			on:edit
 			on:clear
-			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload

@@ -96,8 +96,6 @@
 		select: SelectData;
 	}>();
 
-	$: dispatch("change", value as string);
-
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
