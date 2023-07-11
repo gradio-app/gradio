@@ -1432,7 +1432,8 @@ class TestVideo:
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
         assert iface(x_audio).endswith(".mp4")
 
-    def test_video_postprocess_converts_to_playable_format(self):
+    def test_video_postprocess_converts_to_playable_format(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         test_file_dir = Path(Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
