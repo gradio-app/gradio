@@ -202,9 +202,14 @@ class Video(
             video.get("is_file", False),
         )
 
+        # if client_utils.is_http_url_like(file_name):
+
         if is_file:
             assert file_name is not None, "Received file data without a file name."
-            file_name = Path(self.make_temp_copy_if_needed(file_name))
+            if client_utils.probe_url(file_name):
+                file_name = Path(self.download_temp_copy_if_needed(file_name))
+            else:
+                file_name = Path(self.make_temp_copy_if_needed(file_name))
         else:
             assert file_data is not None, "Received empty file data."
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
