@@ -64,9 +64,3 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     yield tmp_path
-
-
-@pytest.fixture(autouse=True)
-def disable_analytics(monkeypatch):
-    """Automatically disable analytics."""
-    monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "False")
