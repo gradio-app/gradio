@@ -52,6 +52,7 @@ jobs:
         with:
           message: |
             :tada: Chromatic build completed!
+            
             There are ${{ steps.publish-chromatic.outputs.changeCount }} visual changes to review.
             There are ${{ steps.publish-chromatic.outputs.errorCount }} failed tests to fix. 
             * [Storybook Preview](${{ steps.publish-chromatic.outputs.storybookUrl }})
