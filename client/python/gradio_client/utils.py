@@ -41,6 +41,7 @@ SKIP_COMPONENTS = [
     "column",
     "tabs",
     "tab",
+    "tabitem",
     "box",
     "form",
     "accordion",
