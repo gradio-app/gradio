@@ -21,7 +21,7 @@
 		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
 		"test:browser": "GRADIO_TEST_VERBOSE=true pnpm --filter @gradio/app test:browser",
 		"test:browser:full": "run-s build test:browser",
-		"test:browser:verbose": "GRADIO_TEST_VERBOSE=true pnpm test:browser",
+		"test:browser:verbose": "pnpm test:browser",
 		"test:browser:dev": "pnpm --filter @gradio/app test:browser:dev",
 		"ci:publish": "pnpm publish --no-git-checks --access public -r",
 		"ci:version": "changeset version && pnpm i --lockfile-only",

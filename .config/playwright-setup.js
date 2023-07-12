@@ -21,8 +21,8 @@ const test_files = readdirSync(TEST_FILES_PATH)
 	.map((f) => basename(f, ".spec.ts"));
 
 export default async function global_setup() {
-	const verbose = process.env.GRADIO_TEST_VERBOSE;
-
+	// const verbose = process.env.GRADIO_TEST_VERBOSE;
+	const verbose = true;
 	const port = await find_free_port(7860, 8860);
 	process.env.GRADIO_E2E_TEST_PORT = port;
 
