@@ -2,7 +2,43 @@
 
 ## New Features:
 
+No changes to highlight
+
+## Bug Fixes:
+
+No changes to highlight
+
+## Breaking Changes:
+
 No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+# Version 0.2.9
+
+## New Features:
+
+No changes to highlight
+
+## Bug Fixes:
+
+- Fix bug determining the api name when a demo has `api_name=False` by [@freddyboulton](https://github.com/freddyaboulton) in [PR 4886](https://github.com/gradio-app/gradio/pull/4886)
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+# Version 0.2.8
+
+## New Features:
+
+- Support loading gradio apps where `api_name=False` by [@abidlabs](https://github.com/abidlabs) in [PR 4683](https://github.com/gradio-app/gradio/pull/4683)
 
 ## Bug Fixes:
 
@@ -17,7 +53,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.2.7
+# Version 0.2.7
 
 ## New Features:
 
@@ -35,25 +71,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.2.7
-
-## New Features:
-
-- The output directory for files downloaded via the Client can now be set by the `output_dir` parameter in `Client` by [@abidlabs](https://github.com/abidlabs) in [PR 4501](https://github.com/gradio-app/gradio/pull/4501)
-
-## Bug Fixes:
-
-- The output directory for files downloaded via the Client are now set to a temporary directory by default (instead of the working directory in some cases) by [@abidlabs](https://github.com/abidlabs) in [PR 4501](https://github.com/gradio-app/gradio/pull/4501)
-
-## Breaking Changes:
-
-No changes to highlight.
-
-## Full Changelog:
-
-No changes to highlight.
-
-# 0.2.6
+# Version 0.2.6
 
 ## New Features:
 
@@ -72,7 +90,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.2.5
+# Version 0.2.5
 
 ## New Features:
 
@@ -91,7 +109,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.2.4
+# Version 0.2.4
 
 ## Bug Fixes:
 - Fixes missing serialization classes for several components: `Barplot`, `Lineplot`, `Scatterplot`, `AnnotatedImage`, `Interpretation` by [@abidlabs](https://github.com/abidlabs) in [PR 4167](https://github.com/gradio-app/gradio/pull/4167)
@@ -116,7 +134,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.2.3
+# Version 0.2.3
 
 ## New Features:
 
@@ -145,7 +163,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.2.2
+# Version 0.2.2
 
 ## New Features:
 
@@ -166,7 +184,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 0.2.1
+# Version 0.2.1
 
 ## New Features:
 
@@ -197,7 +215,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.1.4
+# Version 0.1.4
 
 ## New Features:
 
@@ -227,7 +245,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.1.3
+# Version 0.1.3
 
 ## New Features:
 
@@ -257,7 +275,7 @@ No changes to highlight.
 
 No changes to highlight.
 
-# 0.1.2
+# Version 0.1.2
 
 First public release of the Gradio Client library! The `gradio_client` Python library that makes it very easy to use any Gradio app as an API. 
 

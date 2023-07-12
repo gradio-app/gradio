@@ -15,7 +15,7 @@ set_documentation_group("component")
 @document()
 class DuplicateButton(Button):
     """
-    Button that appears only on Hugging Face Spaces, triggering a Spaces Duplication.
+    Button that triggers a Spaces Duplication, when the demo is on Hugging Face Spaces. Does nothing locally.
     Preprocessing: passes the button value as a {str} into the function
     Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
     """

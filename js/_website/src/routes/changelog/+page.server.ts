@@ -1,7 +1,12 @@
 import changelog_json from "./changelog.json";
 import { compile } from "mdsvex";
+import anchor from "../../assets/img/anchor.svg";
+
 let content = changelog_json.content;
 let versions = changelog_json.versions;
+import { make_slug_processor } from "../../utils";
+import { toString as to_string } from "hast-util-to-string";
+
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-bash";
@@ -37,7 +42,51 @@ function highlight(code: string, lang: string | undefined) {
 }
 
 export async function load() {
+	const changelog_slug: object[] = [];
+
+	const get_slug = make_slug_processor();
+	function plugin() {
+		return function transform(tree: any) {
+			tree.children.forEach((n: any) => {
+				if (n.type === "element" && ["h1"].includes(n.tagName)) {
+					const str_of_heading = to_string(n);
+					const slug = get_slug(str_of_heading);
+
+					changelog_slug.push({
+						text: str_of_heading,
+						href: `#${slug}`,
+						level: parseInt(n.tagName.replace("h", ""))
+					});
+
+					if (!n.children) n.children = [];
+					n.properties.className = ["group"];
+					n.properties.id = [slug];
+					n.children.push({
+						type: "element",
+						tagName: "a",
+						properties: {
+							href: `#${slug}`,
+							className: ["invisible", "group-hover-visible"]
+						},
+						children: [
+							{
+								type: "element",
+								tagName: "img",
+								properties: {
+									src: anchor,
+									className: ["anchor-img"]
+								},
+								children: []
+							}
+						]
+					});
+				}
+			});
+		};
+	}
+
 	const compiled = await compile(content, {
+		rehypePlugins: [plugin],
 		highlight: {
 			highlighter: highlight
 		}
@@ -46,6 +95,6 @@ export async function load() {
 
 	return {
 		content,
-		versions
+		changelog_slug
 	};
 }

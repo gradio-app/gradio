@@ -709,7 +709,7 @@ class TestImage:
 
     @pytest.mark.flaky
     def test_serialize_url(self):
-        img = "https://gradio.app/assets/img/header-image.jpg"
+        img = "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
         expected = client_utils.encode_url_or_file_to_base64(img)
         assert gr.Image().serialize(img) == expected
 
@@ -1441,10 +1441,8 @@ class TestVideo:
             bad_vid = str(test_file_dir / "bad_video_sample.mp4")
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
-            _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-            # The original video gets converted to .mp4 format
-            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
-            assert processing_utils.video_is_playable(str(full_path_to_output))
+            output = gr.Video().postprocess(tmp_not_playable_vid.name)
+            assert processing_utils.video_is_playable(output[0]["name"])
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
@@ -1453,18 +1451,8 @@ class TestVideo:
             bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
-            _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-            full_path_to_output = Path(tmp_not_playable_vid.name).with_suffix(".mp4")
-            assert processing_utils.video_is_playable(str(full_path_to_output))
-
-    def test_convert_video_to_playable_format(self, monkeypatch, tmp_path):
-        test_file_dir = Path(Path(__file__).parent, "test_files")
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
-        video = gr.Video(format="mp4")
-        output = video.postprocess(
-            str(test_file_dir / "playable_but_bad_container.mkv")
-        )
-        assert Path(output[0]["name"]).suffix == ".mp4"
+            output = gr.Video().postprocess(tmp_not_playable_vid.name)
+            assert processing_utils.video_is_playable(output[0]["name"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.video.FFmpeg")
@@ -1507,7 +1495,7 @@ class TestVideo:
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]
-        assert "flip" not in list(output_params.keys())[0]
+        assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
 

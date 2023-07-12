@@ -1,5 +1,4 @@
 import json
-import os
 
 import pytest
 
@@ -12,8 +11,6 @@ WARNING: Some of these tests have an external dependency: namely that Hugging Fa
 So if, e.g. Spaces is down, then these test will not pass.
 """
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
 
 class TestSeries:
     def test_in_interface(self):
@@ -24,8 +21,8 @@ class TestSeries:
 
     @pytest.mark.flaky
     def test_with_external(self):
-        io1 = gr.load("spaces/abidlabs/image-identity")
-        io2 = gr.load("spaces/abidlabs/image-classifier")
+        io1 = gr.load("spaces/gradio-tests/image-identity")
+        io2 = gr.load("spaces/gradio-tests/image-classifier")
         series = mix.Series(io1, io2)
         try:
             with open(series("gradio/test_data/lion.jpg")) as f:
@@ -55,8 +52,8 @@ class TestParallel:
 
     @pytest.mark.flaky
     def test_with_external(self):
-        io1 = gr.load("spaces/abidlabs/english_to_spanish")
-        io2 = gr.load("spaces/abidlabs/english2german")
+        io1 = gr.load("spaces/gradio-tests/english_to_spanish")
+        io2 = gr.load("spaces/gradio-tests/english2german")
         parallel = mix.Parallel(io1, io2)
         try:
             hello_es, hello_de = parallel("Hello")
