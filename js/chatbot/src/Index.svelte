@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChatBot } from "./interactive";
+	import ChatBot from "./static";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
 	import type { ThemeMode } from "js/app/src/components/types";
