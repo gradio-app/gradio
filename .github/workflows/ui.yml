@@ -53,6 +53,13 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm test:browser
+      - name: upload screenshots
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-screenshots
+          path: |
+            ../../test-results
       - name: run browser component tests
         run: |
           . venv/bin/activate
