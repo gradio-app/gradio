@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import Examples, analytics, external, interpretation, utils
+from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -371,7 +371,6 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
-        analytics.version_check()
         Interface.instances.add(self)
 
         param_names = inspect.getfullargspec(self.fn)[0]
