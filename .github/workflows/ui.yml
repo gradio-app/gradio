@@ -59,7 +59,7 @@ jobs:
         with:
           name: playwright-screenshots
           path: |
-            ../../test-results
+            ./test-results
       - name: run browser component tests
         run: |
           . venv/bin/activate
