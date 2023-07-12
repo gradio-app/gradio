@@ -12,7 +12,7 @@ import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
-import unloadModulesPySource from "./py/unload_modules.py?raw"
+import unloadModulesPySource from "./py/unload_modules.py?raw";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
@@ -205,7 +205,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				break;
 			}
 			case "run-python-code": {
-				unload_local_modules()
+				unload_local_modules();
 
 				await pyodide.runPythonAsync(msg.data.code);
 
@@ -217,7 +217,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				break;
 			}
 			case "run-python-file": {
-				unload_local_modules()
+				unload_local_modules();
 
 				run_script(msg.data.path);
 
