@@ -6,7 +6,25 @@ No changes to highlight
 
 ## Bug Fixes:
 
+No changes to highlight
+
+## Breaking Changes:
+
 No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+# Version 0.2.9
+
+## New Features:
+
+No changes to highlight
+
+## Bug Fixes:
+
+- Fix bug determining the api name when a demo has `api_name=False` by [@freddyboulton](https://github.com/freddyaboulton) in [PR 4886](https://github.com/gradio-app/gradio/pull/4886)
 
 ## Breaking Changes:
 

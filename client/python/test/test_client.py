@@ -366,6 +366,11 @@ class TestClientPredictions:
         finally:
             server.thread.join(timeout=1)
 
+    def test_predict_with_space_with_api_name_false(self):
+        client = Client("gradio-tests/client-bool-api-name-error")
+        assert client.predict("Hello!", api_name="/run") == "Hello!"
+        assert client.predict("Freddy", api_name="/say_hello") == "hello"
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")

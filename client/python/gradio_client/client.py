@@ -550,7 +550,7 @@ class Client:
         if api_name is not None:
             for i, d in enumerate(self.config["dependencies"]):
                 config_api_name = d.get("api_name")
-                if config_api_name is None:
+                if config_api_name is None or config_api_name is False:
                     continue
                 if "/" + config_api_name == api_name:
                     inferred_fn_index = i
