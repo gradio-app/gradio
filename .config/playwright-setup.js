@@ -83,6 +83,7 @@ function spawn_gradio_app(app, port, verbose) {
 				process.stdout.write(kl.bgBlue("\n =========== END =========== "));
 
 				res(_process);
+				console.log(verbose);
 
 				if (!verbose) {
 					_process.stdout.off("data", std_out);
