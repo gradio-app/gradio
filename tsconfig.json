@@ -32,19 +32,21 @@
 		".github/**/*",
 		"**/demo/**/*",
 		"**/gradio/**/*",
-		"**/guides/**/*",
+		"/guides/**/*",
 		"**/readme_files/**/*",
 		"**/scripts/**/*",
 		"**/test/**/*",
 		"**/website/**/*",
 		"**/node_modules/**/*",
 		"**/venv/**/*",
-		"client/js/**",
-		"**/vite.config*"
+		"client/js/**"
+		// "**/vite.config*"
 	],
 	"include": [
 		"**/*.d.ts",
 		"**/*.js",
+		"**/*.cjs",
+
 		"**/*.ts",
 		"**/*.svelte",
 		"client/js/**/*"
