@@ -14,7 +14,7 @@ No changes to highlight.
 
 ## Full Changelog:
 
-No changes to highlight.
+* Pinned dependencies to major versions to reduce the likelihood of breaking changes in `gradio_client` due to downstream changes by [@abidlabs](https://github.com/abidlabs) in [PR 4885](https://github.com/gradio-app/gradio/pull/4885)
 
 # Version 0.2.8
 
