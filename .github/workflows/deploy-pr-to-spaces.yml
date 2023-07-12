@@ -63,6 +63,7 @@ jobs:
           ```bash
           pip install https://gradio-builds.s3.amazonaws.com/pr${{ env.pr_number  }}/gradio-${{ env.gradio_version }}-py3-none-any.whl
           ```
+          Note: share=True will not work but all other features will.
 
         comment_tag: All the demos for this PR have been deployed at
         GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
