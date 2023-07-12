@@ -15,7 +15,7 @@
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json .",
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
-		"ts:check": "svelte-check --tsconfig tsconfig.json",
+		"ts:check": "svelte-check --tsconfig tsconfig.json --threshold error",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts --reporter=verbose",
 		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",

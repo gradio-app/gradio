@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "src/Index.svelte",
 	"author": "",
 	"license": "ISC",
 	"private": true,

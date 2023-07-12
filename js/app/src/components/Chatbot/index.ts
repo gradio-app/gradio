@@ -1,4 +1,4 @@
-export { default as Component } from "./Chatbot.svelte";
+export { default as Component } from "@gradio/chatbot";
 export const modes = ["static"];
 
 export const document = (config: Record<string, any>) => ({

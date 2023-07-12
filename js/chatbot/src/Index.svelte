@@ -1,37 +1,35 @@
 <script lang="ts">
-	import { ChatBot } from "@gradio/chatbot";
+	import { ChatBot } from "./interactive";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
 	import type { ThemeMode } from "js/app/src/components/types";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import StatusTracker from "../../app/src/components/StatusTracker/StatusTracker.svelte";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let value: Array<
-		[string | FileData | null, string | FileData | null]
-	> = [];
-	let _value: Array<[string | FileData | null, string | FileData | null]>;
-	export let latex_delimiters: Array<{
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: [string | FileData | null, string | FileData | null][] = [];
+	let _value: [string | FileData | null, string | FileData | null][];
+	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
-	}>;
-	export let container: boolean = false;
+	}[];
+	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let root: string;
 	export let root_url: null | string;
-	export let selectable: boolean = false;
+	export let selectable = false;
 	export let theme_mode: ThemeMode;
-	export let show_share_button: boolean = false;
+	export let show_share_button = false;
 
-	const redirect_src_url = (src: string) =>
+	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
 
 	$: _value = value
@@ -45,7 +43,7 @@
 		  ])
 		: [];
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height: number = 400;
+	export let height = 400;
 </script>
 
 <Block
