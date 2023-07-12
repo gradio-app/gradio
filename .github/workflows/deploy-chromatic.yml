@@ -5,6 +5,7 @@ on:
     paths:
       - js/**
       - gradio/themes/**
+      - .github/workflows/deploy-chromatic.yml
 
 jobs:
   get-current-pr:
