@@ -35,7 +35,7 @@ SPACE_FETCHER_URL = "https://freddyaboulton-space-api-fetcher.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
-SKIP_COMPONENTS = [
+SKIP_COMPONENTS = {
     "state",
     "row",
     "column",
@@ -46,7 +46,7 @@ SKIP_COMPONENTS = [
     "form",
     "accordion",
     "group",
-]
+}
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
