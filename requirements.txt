@@ -17,7 +17,7 @@ packaging
 pandas>=1.0,<3.0
 pillow>=8.0,<11.0
 pydantic>=1.0,<3.0
-python-multipart
+python-multipart  # required for fastapi forms
 pydub
 pyyaml>=5.0,<7.0
 requests~=2.0
