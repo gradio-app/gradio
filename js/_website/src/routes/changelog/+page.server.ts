@@ -32,27 +32,23 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-			code,
-			Prism.languages[_lang],
-			_lang
-		)}</code></pre>`
+				code,
+				Prism.languages[_lang],
+				_lang
+		  )}</code></pre>`
 		: code;
 
 	return highlighted;
 }
 
 export async function load() {
-
 	const changelog_slug: object[] = [];
 
 	const get_slug = make_slug_processor();
 	function plugin() {
 		return function transform(tree: any) {
 			tree.children.forEach((n: any) => {
-				if (
-					n.type === "element" &&
-					["h1"].includes(n.tagName)
-				) {
+				if (n.type === "element" && ["h1"].includes(n.tagName)) {
 					const str_of_heading = to_string(n);
 					const slug = get_slug(str_of_heading);
 
@@ -63,14 +59,14 @@ export async function load() {
 					});
 
 					if (!n.children) n.children = [];
-					n.properties.className = ["group"]
+					n.properties.className = ["group"];
 					n.properties.id = [slug];
 					n.children.push({
 						type: "element",
 						tagName: "a",
 						properties: {
 							href: `#${slug}`,
-							className: ["invisible", "group-hover-visible"],
+							className: ["invisible", "group-hover-visible"]
 						},
 						children: [
 							{
