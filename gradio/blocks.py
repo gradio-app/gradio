@@ -1858,11 +1858,12 @@ Received outputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            print(
-                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                    self.protocol, self.server_name, self.server_port
+            if not self.is_colab:
+                print(
+                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                        self.protocol, self.server_name, self.server_port
+                    )
                 )
-            )
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
