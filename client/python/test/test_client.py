@@ -368,7 +368,8 @@ class TestClientPredictions:
 
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
-        assert client.predict("Hello!") == "Hello!"
+        assert client.predict("Hello!", api_name="/run") == "Hello!"
+        assert client.predict("Freddy", api_name="/say_hello") == "hello"
 
 
 class TestStatusUpdates:
