@@ -4,7 +4,7 @@
 </script>
 
 <div on:click={() => (open = !open)} class="label-wrap" class:open>
-	<span>{label}</span>
+	<span>test</span>
 	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon">
 		▼
 	</span>
