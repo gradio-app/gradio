@@ -56,6 +56,13 @@ jobs:
       with:
         message: |
           All the demos for this PR have been deployed at ${{ env.SPACE_URL }}
+          
+          ---
+          You can install the changes in this PR by running:
+          ```bash
+          pip install ${{ env.wheel_name }}
+          ```
+
         comment_tag: All the demos for this PR have been deployed at
         GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
         pr_number: ${{ env.pr_number }}
