@@ -1,6 +1,9 @@
 name: 'deploy to chromatic'
 
-on: push
+on: 
+  push:
+    paths:
+      - js/**
 
 jobs:
   get-current-pr:
