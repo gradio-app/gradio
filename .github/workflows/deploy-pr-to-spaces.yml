@@ -56,11 +56,11 @@ jobs:
       with:
         message: |
           All the demos for this PR have been deployed at ${{ env.SPACE_URL }}
-          
+
           ---
           You can install the changes in this PR by running:
           ```bash
-          pip install ${{ env.wheel_name }}
+          pip install https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.gradio_version }}-py3-none-any.whl
           ```
 
         comment_tag: All the demos for this PR have been deployed at
