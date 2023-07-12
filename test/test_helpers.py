@@ -15,8 +15,6 @@ from tqdm import tqdm
 
 import gradio as gr
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamples:

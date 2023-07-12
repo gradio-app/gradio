@@ -64,3 +64,7 @@ extend = "../../pyproject.toml"
 known-first-party = [
   "gradio_client"
 ]
+
+[tool.pytest.ini_options]
+GRADIO_ANALYTICS_ENABLED = "False"
+HF_HUB_DISABLE_TELEMETRY =  "1"

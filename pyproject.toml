@@ -111,3 +111,6 @@ ignore = [
 "gradio/routes.py" = [
   "UP006", # Pydantic on Python 3.7 requires old-style type annotations (TODO: drop when Python 3.7 is dropped)
 ]
+
+[tool.pytest.ini_options]
+GRADIO_ANALYTICS_ENABLED = "False"

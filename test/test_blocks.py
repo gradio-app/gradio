@@ -436,7 +436,7 @@ class TestBlocksMethods:
 
 
 class TestTempFile:
-    def test_pil_images_hashed(self, tmp_path, connect, monkeypatch):
+    def test_pil_images_hashed(self, connect, gradio_temp_dir):
         images = [
             Image.new("RGB", (512, 512), color) for color in ("red", "green", "blue")
         ]
@@ -444,7 +444,6 @@ class TestTempFile:
         def create_images(n_images):
             return random.sample(images, n_images)
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         gallery = gr.Gallery()
         demo = gr.Interface(
             create_images,
@@ -455,14 +454,13 @@ class TestTempFile:
             path = client.predict(3)
             _ = client.predict(3)
         # only three files created and in temp directory
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
         assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
-    def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
+    def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         image = str(file_dir / "bus.png")
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(
             lambda x: x,
             inputs=gr.Image(type="filepath"),
@@ -473,12 +471,11 @@ class TestTempFile:
             _ = client.predict(image)
             _ = client.predict(image)
         # only three files created
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 1
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
-    def test_file_component_uploads(self, component, tmp_path, connect, monkeypatch):
+    def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
             _ = client.predict(code_file)
@@ -487,14 +484,13 @@ class TestTempFile:
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will only create one file since we hash
         # so 2 + 2 + 1 = 5
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 5
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads_no_serialize(
-        self, component, tmp_path, connect, monkeypatch
+        self, component, connect, gradio_temp_dir
     ):
         code_file = str(pathlib.Path(__file__))
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo, serialize=False) as client:
             _ = client.predict(gr.File().serialize(code_file))
@@ -503,12 +499,11 @@ class TestTempFile:
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will only create one file since we hash
         # so 2 + 1 = 3
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    def test_no_empty_video_files(self, tmp_path, monkeypatch, connect):
+    def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
             _, url, _ = demo.launch(prevent_thread_lock=True)
@@ -517,9 +512,9 @@ class TestTempFile:
             _ = client.predict(video)
         # During preprocessing we compute the hash based on base64
         # In postprocessing we compute it based on the file
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
-    def test_no_empty_audio_files(self, tmp_path, monkeypatch, connect):
+    def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
 
@@ -527,14 +522,13 @@ class TestTempFile:
             sr, data = audio
             return (sr, np.flipud(data))
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
             _ = client.predict(audio)
             _ = client.predict(audio)
             # During preprocessing we compute the hash based on base64
             # In postprocessing we compute it based on the file
-            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+            assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
 class TestComponentsInBlocks:

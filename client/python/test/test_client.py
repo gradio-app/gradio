@@ -1,5 +1,4 @@
 import json
-import os
 import pathlib
 import tempfile
 import time
@@ -22,8 +21,6 @@ from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
-
-os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
 HF_TOKEN = "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"  # Intentionally revealing this key for testing purposes
 

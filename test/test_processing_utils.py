@@ -16,8 +16,6 @@ from PIL import Image, ImageCms
 
 from gradio import components, processing_utils, utils
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
 
 class TestImagePreprocessing:
     def test_decode_base64_to_image(self):

@@ -1,8 +1,4 @@
-import os
-
 from gradio_client import documentation
-
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestDocumentation:
