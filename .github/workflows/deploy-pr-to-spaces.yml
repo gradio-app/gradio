@@ -38,7 +38,7 @@ jobs:
         export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
         export AWS_DEFAULT_REGION=us-east-1
         aws s3 cp ${{ env.wheel_name }} s3://gradio-builds/${{ env.gh_sha }}/
-        aws s3 cp ${{ env.wheel_name }} s3://gradio-builds/pr-${{ env.pr_number }}/
+        aws s3 cp ${{ env.wheel_name }} s3://gradio-builds/pr${{ env.pr_number }}/
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: 'Download all_demos'
@@ -61,7 +61,7 @@ jobs:
           ---
           You can install the changes in this PR by running:
           ```bash
-          pip install https://gradio-builds.s3.amazonaws.com/pr-${{ env.pr_number  }}/gradio-${{ env.gradio_version }}-py3-none-any.whl
+          pip install https://gradio-builds.s3.amazonaws.com/pr${{ env.pr_number  }}/gradio-${{ env.gradio_version }}-py3-none-any.whl
           ```
           Note: share=True will not work but all other features will.
 
