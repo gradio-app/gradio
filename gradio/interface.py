@@ -165,7 +165,7 @@ class Interface(Blocks):
             thumbnail: path or url to image to use as display image when the web demo is shared on social media.
             theme: Theme to use, loaded from gradio.themes.
             css: custom css or path to custom css file to use with interface.
-            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
+            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
@@ -394,7 +394,8 @@ class Interface(Blocks):
                 self.interface_type == InterfaceTypes.UNIFIED
                 or self.allow_flagging == "auto"
             ):
-                self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
+                self.flagging_callback.setup(
+                    self.input_components + self.output_components, self.flagging_dir)  # type: ignore
             elif self.interface_type == InterfaceTypes.INPUT_ONLY:
                 pass
             else:
