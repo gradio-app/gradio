@@ -1,4 +1,4 @@
-aiofiles
+aiofiles>=22.0,<24.0
 aiohttp
 altair>=4.2.0
 fastapi
