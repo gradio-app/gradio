@@ -109,6 +109,7 @@ class Image(
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        assert False
         self.brush_radius = brush_radius
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
