@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - js/**
+      - gradio/themes/**
 
 jobs:
   get-current-pr:
