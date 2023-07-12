@@ -63,4 +63,4 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     It will be cleared automatically according to pytest docs: https://docs.pytest.org/en/6.2.x/reference.html#tmp-path
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
-    yield tmp_path
+    return tmp_path

@@ -228,15 +228,3 @@ def all_components():
             subclasses.append(subclass)
 
     return subclasses
-
-
-@pytest.fixture(autouse=True)
-def disable_telemetry(monkeypatch):
-    """Automatically disable analytics."""
-    monkeypatch.setenv("HF_HUB_DISABLE_TELEMETRY", "1")
-
-
-@pytest.fixture(autouse=True)
-def disable_analytics(monkeypatch):
-    """Automatically disable analytics."""
-    monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "False")
