@@ -2,7 +2,6 @@
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Row from "./Row.svelte";
     import Image from '../Image/Image.svelte';
-    import Blocks from '../../Blocks.svelte'
 </script>
 
 <Meta
