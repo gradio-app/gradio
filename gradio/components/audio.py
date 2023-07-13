@@ -194,7 +194,7 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
-            if utils.validate_url(file_name):
+            if client_utils.is_http_url_like(file_name):
                 temp_file_path = self.download_temp_copy_if_needed(file_name)
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
@@ -322,7 +322,7 @@ class Audio(
         """
         if y is None:
             return None
-        if isinstance(y, str) and utils.validate_url(y):
+        if isinstance(y, str) and client_utils.is_http_url_like(y):
             return {"name": y, "data": None, "is_file": True}
         if isinstance(y, tuple):
             sample_rate, data = y

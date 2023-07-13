@@ -1499,6 +1499,19 @@ class TestVideo:
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
 
+    @pytest.mark.flaky
+    def test_preprocess_url(self):
+        output = gr.Video().preprocess(
+            {
+                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "is_file": True,
+                "data": None,
+                "size": None,
+                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+            }
+        )
+        assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
+
 
 class TestTimeseries:
     def test_component_functions(self):
