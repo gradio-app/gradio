@@ -6,6 +6,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
+import warnings
 from typing import Callable
 
 from gradio_client.documentation import document, set_documentation_group
@@ -19,7 +20,7 @@ from gradio.components import (
     Textbox,
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Column, Group, Row
+from gradio.layouts import Column, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("interface")
@@ -69,6 +70,12 @@ class ChatInterface(Blocks):
             title=title or "Gradio",
             theme=theme,
         )
+        if len(inspect.signature(fn).parameters) != 2:
+            warnings.warn(
+                "The function to ChatInterface should take two inputs (message, history) and return a single string response.",
+                UserWarning,
+            )
+
         self.fn = fn
         self.examples = examples
         self.cache_examples = cache_examples
@@ -89,9 +96,13 @@ class ChatInterface(Blocks):
             with Row():
                 with Column(scale=10):
                     if textbox:
-                        self.textbox = textbox.render() 
-                    else: 
-                        self.textbox = Textbox(show_label=False, container=False, placeholder="Type a message...")
+                        self.textbox = textbox.render()
+                    else:
+                        self.textbox = Textbox(
+                            show_label=False,
+                            container=False,
+                            placeholder="Type a message...",
+                        )
                 if submit_btn:
                     with Column(scale=1, min_width=0):
                         if isinstance(submit_btn, Button):
@@ -99,12 +110,14 @@ class ChatInterface(Blocks):
                         elif isinstance(submit_btn, str):
                             submit_btn = Button(submit_btn, variant="primary")
                         else:
-                            raise ValueError(f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}")
-                        self.buttons.append(submit_btn)
+                            raise ValueError(
+                                f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
+                            )
+                self.buttons.append(submit_btn)
 
             with Row():
                 self.stop_btn = Button("Stop", variant="stop", visible=False)
-                
+
                 for btn in [retry_btn, delete_last_btn, clear_btn]:
                     if btn:
                         if isinstance(btn, Button):
@@ -112,13 +125,20 @@ class ChatInterface(Blocks):
                         elif isinstance(btn, str):
                             btn = Button(btn, variant="secondary")
                         else:
-                            raise ValueError(f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}")
+                            raise ValueError(
+                                f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
+                            )
                     self.buttons.append(btn)
-                
+
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
-                self.submit_btn, self.retry_btn, self.delete_last_btn, self.clear_btn = self.buttons
-            
+                (
+                    self.submit_btn,
+                    self.retry_btn,
+                    self.delete_last_btn,
+                    self.clear_btn,
+                ) = self.buttons
+
             if examples:
                 self.examples_handler = Examples(
                     examples=examples,
@@ -127,9 +147,9 @@ class ChatInterface(Blocks):
                     fn=self._examples_fn,
                     cache_examples=self.cache_examples,
                 )
-            
+
             self.saved_input = State()
-            
+
             self._setup_events()
             self._setup_api()
 
@@ -177,7 +197,7 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 api_name=False,
             )
-        
+
         if self.retry_btn:
             self.retry_btn.click(
                 self._delete_prev_fn,
@@ -209,12 +229,13 @@ class ChatInterface(Blocks):
 
         if self.clear_btn:
             self.clear_btn.click(
-                lambda :([], None), 
-                None, 
+                lambda: ([], None),
+                None,
                 [self.chatbot, self.saved_input],
                 queue=False,
-                api_name=False)
-            
+                api_name=False,
+            )
+
     def _setup_api(self):
         if inspect.isgeneratorfunction(self.fn):
             api_fn = self._api_stream_fn
@@ -239,26 +260,34 @@ class ChatInterface(Blocks):
         history.append((message, None))
         return history
 
-    def _submit_fn(self, message: str, history_with_input: list[list[str]]) -> list[list[str]]:
+    def _submit_fn(
+        self, message: str, history_with_input: list[list[str]]
+    ) -> list[list[str]]:
         history = history_with_input[:-1]
         response = self.fn(message, history)
         history.append([message, response])
         return history
 
-    def _stream_fn(self, message: str, history_with_input: list[list[str]]) -> list[list[str]]:
+    def _stream_fn(
+        self, message: str, history_with_input: list[list[str]]
+    ) -> list[list[str]]:
         history = history_with_input[:-1]
         for response in self.fn(message, history):
             yield history + [[message, response]]
 
-    def _api_submit_fn(self, message: str, history: list[list[str]]) -> tuple[str, list[list[str]]]:
+    def _api_submit_fn(
+        self, message: str, history: list[list[str]]
+    ) -> tuple[str, list[list[str]]]:
         response = self.fn(message, history)
         history.append([message, response])
         return response, history
-        
-    def _api_stream_fn(self, message: str, history: list[list[str]]) -> tuple[str, list[list[str]]]:
+
+    def _api_stream_fn(
+        self, message: str, history: list[list[str]]
+    ) -> tuple[str, list[list[str]]]:
         for response in self.fn(message, history):
             yield response, history + [[message, response]]
-        
+
     def _examples_fn(self, message: str) -> list[list[str]]:
         return [[message, self.fn(message, [])]]
 
