@@ -1,0 +1,100 @@
+import time
+
+import pytest
+from gradio_client import Client
+
+import gradio as gr
+
+
+def invalid_fn(message):
+    return message
+
+
+def double(message, history):
+    return message + " " + message
+
+
+def stream(message, history):
+    for i in range(len(message)):
+        yield message[: i + 1]
+
+
+def count(message, history):
+    return str(len(history))
+
+
+class TestInit:
+    def test_no_fn(self):
+        with pytest.raises(TypeError):
+            gr.ChatInterface()
+
+    def test_invalid_fn_inputs(self):
+        with pytest.warns(UserWarning):
+            gr.ChatInterface(invalid_fn)
+
+    def test_configuring_buttons(self):
+        chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
+        assert chatbot.submit_btn is None
+        assert chatbot.retry_btn is None
+
+    def test_events_attached(self):
+        chatbot = gr.ChatInterface(double)
+        dependencies = chatbot.dependencies
+        textbox = chatbot.textbox._id
+        assert next(
+            (
+                d
+                for d in dependencies
+                if d["targets"] == [textbox] and d["trigger"] == "submit"
+            ),
+            None,
+        )
+        for btn_id in [
+            chatbot.submit_btn._id,
+            chatbot.retry_btn._id,
+            chatbot.clear_btn._id,
+            chatbot.delete_last_btn._id,
+        ]:
+            assert next(
+                (
+                    d
+                    for d in dependencies
+                    if d["targets"] == [btn_id] and d["trigger"] == "click"
+                ),
+                None,
+            )
+
+
+class TestExamples:
+    def test_without_caching(self):
+        pass
+
+    def test_with_caching(self):
+        pass
+
+
+class TestAPI:
+    def test_get_api_info(self):
+        chatbot = gr.ChatInterface(double)
+        api_info = gr.blocks.get_api_info(chatbot.get_config_file())
+        assert len(api_info["named_endpoints"]) == 1
+        assert len(api_info["unnamed_endpoints"]) == 0
+        assert "/chat" in api_info["named_endpoints"]
+
+    def test_streaming_api(self):
+        chatbot = gr.ChatInterface(stream)
+        _, url, _ = chatbot.queue().launch(prevent_thread_lock=True)
+        client = Client(url)
+        job = client.submit("hello")
+        while not job.done():
+            time.sleep(0.1)
+        assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
+        chatbot.close()
+
+    def test_non_streaming_api(self):
+        chatbot = gr.ChatInterface(double)
+        _, url, _ = chatbot.launch(prevent_thread_lock=True)
+        client = Client(url)
+        result = client.predict("hello")
+        assert result == "hello hello"
+        chatbot.close()
