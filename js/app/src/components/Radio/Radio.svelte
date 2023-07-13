@@ -25,7 +25,7 @@
 	type="fieldset"
 	{elem_id}
 	{elem_classes}
-	{container}
+	
 	{scale}
 	{min_width}
 >

@@ -26,7 +26,7 @@
 	export let value_is_output: boolean = false;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
+<Block {visible} {elem_id} {elem_classes} {scale} {min_width} padding={container} >
 	{#if loading_status}
 		<StatusTracker {...loading_status} />
 	{/if}
@@ -39,6 +39,7 @@
 		{show_label}
 		{lines}
 		{type}
+		{container}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		{show_copy_button}

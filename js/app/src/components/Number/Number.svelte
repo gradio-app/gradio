@@ -9,7 +9,7 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let container: boolean = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let value: number = 0;
@@ -21,7 +21,7 @@
 	export let value_is_output: boolean = false;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
+<Block {visible} {elem_id} {elem_classes}  {scale} {min_width} padding={container}>
 	<StatusTracker {...loading_status} />
 
 	<Number
@@ -32,6 +32,7 @@
 		{show_label}
 		{minimum}
 		{maximum}
+		{container}
 		disabled={mode === "static"}
 		on:change
 		on:input

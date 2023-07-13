@@ -34,7 +34,6 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let root_url: null | string;
-	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
@@ -63,7 +62,6 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	{container}
 	{scale}
 	{min_width}
 >
