@@ -255,7 +255,7 @@ class ChatInterface(Blocks):
     def _api_stream_fn(self, message: str, history: list[list[str]]):
         history = self._display_input(message, history)
         for response in self._stream_fn(message, history):
-            return response
+            yield response
         
     def _examples_fn(self, message: str):
         return [[message, self.fn(message, [])]]
