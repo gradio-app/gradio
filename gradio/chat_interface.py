@@ -114,6 +114,7 @@ class ChatInterface(Blocks):
                     self.buttons.append(btn)
                 
                 self.fake_api_btn = Button("Fake API", visible=False)
+                self.fake_response_textbox = Textbox(label="Response", visible=False)
                 self.submit_btn, self.retry_btn, self.delete_last_btn, self.clear_btn = self.buttons
             
             if examples:
