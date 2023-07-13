@@ -6,7 +6,7 @@ on:
       - 'js/**'
       - 'gradio/themes/**'
       - '.github/workflows/deploy-chromatic.yml'
-      - '!js/_website'
+      - '!js/_website/**'
 
 
 jobs:
@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'gradio-app/gradio' && !contains(needs.get-current-pr.outputs.pr_labels, 'no-visual-update') }}
     steps:
-      - run: echo ${{ needs.get-current-pr.outputs.pr_number }}
       - name: post pending deployment comment to PR
         if: ${{ needs.get-current-pr.outputs.pr_found }} == 'true' 
         uses: thollander/actions-comment-pull-request@v2
