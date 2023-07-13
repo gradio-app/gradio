@@ -14,13 +14,13 @@ This tutorial will highlight `gr.ChatbotInterface()` which is a high-level abstr
 
 We'll start with a toy example, and then show how to use `gr.ChatbotInterface()` with several popular APIs and libraries for creating chatbots, including `langchain`, `openai`, and Hugging Face. 
 
-## A Simple Chatbot that Echoes Its Inputs
+## A simple chatbot that echoes its inputs
 
-## Other Parameters in `gr.ChatbotInterface()`
+## Other parameters in `gr.ChatbotInterface()`
 
 ## A `langchain` example
 
-## Directly using `openai` APIs
+## An example using `openai` APIs
 
-## Using open-source LLMs with Hugging Face!
+## Examples using open-source LLMs with Hugging Face!
 
