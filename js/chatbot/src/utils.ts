@@ -5,8 +5,9 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-latex";
 import type { FileData } from "@gradio/upload";
 import { uploadToHuggingFace } from "@gradio/utils";
+import type { ActionReturn } from "svelte/action";
 
-const copy_icon = `<svg
+const COPY_ICON_CODE = `<svg
 xmlns="http://www.w3.org/2000/svg"
 width="100%"
 height="100%"
@@ -15,7 +16,7 @@ viewBox="0 0 32 32"
   fill="currentColor"
   d="M28 10v18H10V10h18m0-2H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2Z"
 /><path fill="currentColor" d="M4 18H2V4a2 2 0 0 1 2-2h14v2H4Z" /></svg>`;
-const check_icon = `<svg
+const CHECK_ICON_CODE = `<svg
 xmlns="http://www.w3.org/2000/svg"
 width="100%"
 height="100%"
@@ -25,9 +26,9 @@ stroke="currentColor"
 stroke-width="3"
 stroke-linecap="round"
 stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`;
-const copy_button = `<button title="copy" class="copy_code_button">
-<span class="copy-text">${copy_icon}</span>
-<span class="check">${check_icon}</span>
+const COPY_BUTTON_CODE = `<button title="copy" class="copy_code_button">
+<span class="copy-text">${COPY_ICON_CODE}</span>
+<span class="check">${CHECK_ICON_CODE}</span>
 </button>`;
 
 const escape_test = /[&<>"']/;
@@ -43,16 +44,17 @@ const escape_replacements: Record<string, any> = {
 	"'": "&#39;"
 };
 
-const getEscapeReplacement = (ch: string) => escape_replacements[ch] || "";
+const get_escape_replacement = (ch: string): string =>
+	escape_replacements[ch] || "";
 
-function escape(html: string, encode?: boolean) {
+function escape(html: string, encode?: boolean): string {
 	if (encode) {
 		if (escape_test.test(html)) {
-			return html.replace(escape_replace, getEscapeReplacement);
+			return html.replace(escape_replace, get_escape_replacement);
 		}
 	} else {
 		if (escape_test_no_encode.test(html)) {
-			return html.replace(escape_replace_no_encode, getEscapeReplacement);
+			return html.replace(escape_replace_no_encode, get_escape_replacement);
 		}
 	}
 
@@ -82,7 +84,7 @@ const renderer: Partial<
 		if (!lang) {
 			return (
 				"<pre><code>" +
-				copy_button +
+				COPY_BUTTON_CODE +
 				(escaped ? code : escape(code, true)) +
 				"</code></pre>\n"
 			);
@@ -93,7 +95,7 @@ const renderer: Partial<
 			this.options.langPrefix +
 			escape(lang) +
 			'">' +
-			copy_button +
+			COPY_BUTTON_CODE +
 			(escaped ? code : escape(code, true)) +
 			"</code></pre>\n"
 		);
@@ -112,18 +114,17 @@ marked.use(
 		highlight: (code: string, lang: string) => {
 			if (Prism.languages[lang]) {
 				return Prism.highlight(code, Prism.languages[lang], lang);
-			} else {
-				return code;
 			}
+			return code;
 		}
 	}),
 	{ renderer }
 );
 
-export function copy(node: HTMLDivElement) {
+export function copy(node: HTMLDivElement): ActionReturn {
 	node.addEventListener("click", handle_copy);
 
-	async function handle_copy(event: MouseEvent) {
+	async function handle_copy(event: MouseEvent): Promise<void> {
 		const path = event.composedPath() as HTMLButtonElement[];
 
 		const [copy_button] = path.filter(
@@ -142,23 +143,23 @@ export function copy(node: HTMLDivElement) {
 
 			if (copied) copy_feedback(copy_sucess_button);
 
-			function copy_feedback(copy_sucess_button: HTMLDivElement) {
-				copy_sucess_button.style.opacity = "1";
+			function copy_feedback(_copy_sucess_button: HTMLDivElement): void {
+				_copy_sucess_button.style.opacity = "1";
 				setTimeout(() => {
-					copy_sucess_button.style.opacity = "0";
+					_copy_sucess_button.style.opacity = "0";
 				}, 2000);
 			}
 		}
 	}
 
 	return {
-		destroy() {
+		destroy(): void {
 			node.removeEventListener("click", handle_copy);
 		}
 	};
 }
 
-async function copy_to_clipboard(value: string) {
+async function copy_to_clipboard(value: string): Promise<boolean> {
 	let copied = false;
 	if ("clipboard" in navigator) {
 		await navigator.clipboard.writeText(value);
@@ -190,8 +191,8 @@ async function copy_to_clipboard(value: string) {
 export { marked };
 
 export const format_chat_for_sharing = async (
-	chat: Array<[string | FileData | null, string | FileData | null]>
-) => {
+	chat: [string | FileData | null, string | FileData | null][]
+): Promise<string> => {
 	let messages = await Promise.all(
 		chat.map(async (message_pair) => {
 			return await Promise.all(
