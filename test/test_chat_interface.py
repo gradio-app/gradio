@@ -64,14 +64,13 @@ class TestInit:
                 None,
             )
 
-
-class TestExamples:
-    def test_without_caching(self):
-        pass
-
-    def test_with_caching(self):
-        pass
-
+    @pytest.mark.asyncio
+    async def test_example_caching(self):
+        chatbot = gr.ChatInterface(double, examples=["hello", "hi"], cache_examples=True)
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello == "hello hello"
+        assert prediction_hi == "hi hi"
 
 class TestAPI:
     def test_get_api_info(self):
