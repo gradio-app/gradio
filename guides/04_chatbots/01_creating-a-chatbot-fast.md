@@ -112,6 +112,8 @@ def yes_man(message, history):
 
 gr.ChatInterface(
     yes_man,
+    chatbot=gr.Chatbot(height=300),
+    textbox=gr.Textbox(placeholder="Ask me a yes or no question")
     title="Yes Man",
     description="Ask Yes Man any question",
     theme="soft",
@@ -133,100 +135,82 @@ To use the endpoint, you should use either the Gradio Python Client or the Gradi
 
 ## A `langchain` example
 
-Now, let's actually use the `gr.ChatInterface` with some real large language models. We'll start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in XX lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
+Now, let's actually use the `gr.ChatInterface` with some real large language models. We'll start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
 ```py
-import langchain
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import AIMessage, HumanMessage
+import openai
 import gradio as gr
-
-def predict(user_input, chatbot):
-
-    chat = ChatOpenAI(temperature=1.0, streaming=True, model='gpt-3.5-turbo-0613')
-    messages=[]
-
-    for conv in chatbot:
-        human = HumanMessage(content=conv[0])
-        ai = AIMessage(content=conv[1])
-        messages.append(human)
-        messages.append(ai)
-
-    messages.append(HumanMessage(content=user_input))
-
-    # getting gpt3.5's response
-    gpt_response = chat(messages)
-    return gpt_response.content
-
-gr.ChatInterface(predict, delete_last_btn="❌Delete").launch(debug=True) 
-```
-
-## An Streaming example using `openai` APIs 
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def predict(inputs, chatbot):
+llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
 
-    messages = []
-    for conv in chatbot:
-        user = conv[0]
-        messages.append({"role": "user", "content":user })
-        if conv[1] is None: 
-            break
-        assistant = conv[1]
-        messages.append({"role": "assistant", "content":assistant})
+def predict(message, history):
+    history_langchain_format = []
+    for human, ai in history:
+        history_langchain_format.append(HumanMessage(content=human))
+        history_langchain_format.append(AIMessage(content=ai))
+    history_langchain_format.append(HumanMessage(content=message))
+    gpt_response = chat(history_langchain_format)
+    return gpt_response.content
 
-    # a ChatCompletion request
+gr.ChatInterface(predict).launch() 
+```
+
+## A streaming example using `openai`
+
+Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
+
+
+```py
+import openai
+import gradio as gr
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def predict(message, history):
+    history_openai_format = []
+    for human, assistant in history:
+        history_openai_format.append({"role": "user", "content": human })
+        history_openai_format.append({"role": "assistant", "content":assistant})
+    history_openai_format.append({"role": "user", "content": message})
+
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
-        messages= messages, # example :  [{'role': 'user', 'content': "What is life? Answer in three words."}],
+        messages= history_openai_format,         
         temperature=1.0,
-        stream=True  # for streaming the output to chatbot
+        stream=True
     )
-
+    
     partial_message = ""
     for chunk in response:
         if len(chunk['choices'][0]['delta']) != 0:
-          print(chunk['choices'][0]['delta']['content'])
-          partial_message = partial_message + chunk['choices'][0]['delta']['content']
-          yield partial_message 
+            partial_message = partial_message + chunk['choices'][0]['delta']['content']
+            yield partial_message 
 
-gr.ChatInterface(predict, delete_last_btn="❌Delete").queue().launch(debug=True) 
+gr.ChatInterface(predict).queue().launch() 
+```
 
 ## Examples using open-source LLMs with Hugging Face!
 
-model2endpoint = {
-    "starchat-alpha": "https://api-inference.huggingface.co/models/HuggingFaceH4/starcoderbase-finetuned-oasst1",
-    "starchat-beta": "https://api-inference.huggingface.co/models/HuggingFaceH4/starchat-beta",
-}
-system_message = "Below is a conversation between a human user and a helpful AI coding assistant."
+Of course, why use a closed-source model when you can use an open-source one instead? Here's the equivalent example using Hugging Face's StarChat model, which is primarily designed as a coding assistant.
 
-def predict(user_message, chatbot):
-    client = Client(
-            model2endpoint["starchat-beta"],
-            headers={"Authorization": f"Bearer {<YOUR_INFERENCE_API_TOKEN>}"},
-        )
+```py
+from text_generation import Client, DialogueTemplate
+
+system_message = "Below is a conversation between a human user and a helpful AI coding assistant."
+client = Client("https://api-inference.huggingface.co/models/HuggingFaceH4/starchat-beta")
+
+def predict(message, history):    
+    history_starchat_format = []
+    for user, assistant in history:
+        history_starchat_format.append({"role": "user", "content": user})
+        history_starchat_format.append({"role": "assistant", "content": assistant.rstrip()})        
+    history_starchat_format.append({"role": "user", "content": message})
     
-    past_messages = []
-    for data in chatbot:
-        user_data, model_data = data
-        if model_data is None:
-            break
-    
-        past_messages.extend(
-            [{"role": "user", "content": user_data}, {"role": "assistant", "content": model_data.rstrip()}]
-        )
-    
-    if len(past_messages) < 1:
-        dialogue_template = DialogueTemplate(
-            system=system_message, messages=[{"role": "user", "content": user_message}]
-        )
-        prompt = dialogue_template.get_inference_prompt()
-    else:
-        dialogue_template = DialogueTemplate(
-            system=system_message, messages=past_messages + [{"role": "user", "content": user_message}]
-        )
-        prompt = dialogue_template.get_inference_prompt()
-    
-    
+    dialogue_template = DialogueTemplate(system=system_message, messages=history_starchat_format)
     generate_kwargs = dict(
         temperature=1.0,
         max_new_tokens=1024,
@@ -237,7 +221,6 @@ def predict(user_message, chatbot):
         seed=42,
         stop_sequences=["<|end|>"],
     )
-    
     stream = client.generate_stream(
         prompt,
         **generate_kwargs,
@@ -248,7 +231,7 @@ def predict(user_message, chatbot):
         if response.token.special:
             continue
         output += response.token.text
-        yield output #chat, history, user_message, ""
+        yield output
 
-gr.ChatInterface(predict, delete_last_btn="❌Delete").queue().launch(debug=True)
-
+gr.ChatInterface(predict).queue().launch()
+```
