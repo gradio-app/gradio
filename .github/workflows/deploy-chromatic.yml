@@ -3,9 +3,11 @@ name: 'deploy to chromatic'
 on: 
   push:
     paths:
-      - js/**
-      - gradio/themes/**
-      - .github/workflows/deploy-chromatic.yml
+      - 'js/**'
+      - 'gradio/themes/**'
+      - '.github/workflows/deploy-chromatic.yml'
+      - '!js/_website/**'
+
 
 jobs:
   get-current-pr:
@@ -28,8 +30,8 @@ jobs:
         with:
           message: |
             Chromatic build pending :hourglass:
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           comment_tag: chromatic-build
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           pr_number: ${{ needs.get-current-pr.outputs.pr_number }}
       - uses: actions/checkout@v3
         with:
