@@ -73,7 +73,6 @@ class ChatInterface(Blocks):
         self.examples = examples
         self.cache_examples = cache_examples
         self.buttons: list[Button] = []
-        self.history = []
 
         with self:
             if title:
