@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "./utils";
+	import { copy, format_chat_for_sharing } from "../utils";
 	import "katex/dist/katex.min.css";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
@@ -9,25 +9,21 @@
 	import Markdown from "./MarkdownCode.svelte";
 
 	const code_highlight_css = {
-		light: () => import("prismjs/themes/prism.css"),
-		dark: () => import("prismjs/themes/prism-dark.css")
+		light: (): Promise<typeof import("prismjs/themes/prism.css")> => import("prismjs/themes/prism.css"),
+		dark: (): Promise<typeof import("prismjs/themes/prism.css") > => import("prismjs/themes/prism-dark.css")
 	};
 
-	export let value: Array<
-		[string | FileData | null, string | FileData | null]
-	> | null;
-	let old_value: Array<
-		[string | FileData | null, string | FileData | null]
-	> | null = null;
-	export let latex_delimiters: Array<{
+	export let value: [string | FileData | null, string | FileData | null][] | null;
+	let old_value: [string | FileData | null, string | FileData | null][] | null = null;
+	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
-	}>;
-	export let pending_message: boolean = false;
-	export let feedback: Array<string> | null = null;
-	export let selectable: boolean = false;
-	export let show_share_button: boolean = false;
+	}[];
+	export let pending_message = false;
+	export let feedback: string[] | null = null;
+	export let selectable = false;
+	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
 
 	$: if (theme_mode == "dark") {
@@ -37,7 +33,7 @@
 	}
 
 	let div: HTMLDivElement;
-	let autoscroll: Boolean;
+	let autoscroll: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -49,7 +45,7 @@
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
-	const scroll = () => {
+	const scroll = (): void => {
 		if (autoscroll) {
 			div.scrollTo(0, div.scrollHeight);
 		}
@@ -76,7 +72,7 @@
 		i: number,
 		j: number,
 		message: string | FileData | null
-	) {
+	): void {
 		dispatch("select", {
 			index: [i, j],
 			value: message
