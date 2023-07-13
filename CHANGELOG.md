@@ -1,6 +1,19 @@
 # Upcoming Release
 
 ## New Features:
+
+Introducing a new `gr.ChatInterface` abstraction, which allows Gradio users to build fully functioning Chat interfaces very easily. The only required parameter is a chat function, which accepts a (string) user input `message` and a (list of lists) chat `history` and returns a (string) response. Here's a toy example:
+
+```py
+
+```
+
+Which produces:
+
+[SCREENSHOT]
+
+Works nicely with various LLM libraries, such as `langchain`. See the [dedicated guide] for `gr.ChatInterface`. Collective team effort in [PR 4869](https://github.com/gradio-app/gradio/pull/4869)
+
 - Chatbot messages now show hyperlinks to download files uploaded to `gr.Chatbot()` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4848](https://github.com/gradio-app/gradio/pull/4848)
 
 ## Bug Fixes:
