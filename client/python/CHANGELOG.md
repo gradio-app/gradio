@@ -6,7 +6,7 @@ No changes to highlight
 
 ## Bug Fixes:
 
-No changes to highlight.
+No changes to highlight
 
 ## Breaking Changes:
 
@@ -15,6 +15,24 @@ No changes to highlight.
 ## Full Changelog:
 
 No changes to highlight.
+
+# Version 0.2.9
+
+## New Features:
+
+No changes to highlight
+
+## Bug Fixes:
+
+- Fix bug determining the api name when a demo has `api_name=False` by [@freddyboulton](https://github.com/freddyaboulton) in [PR 4886](https://github.com/gradio-app/gradio/pull/4886)
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+* Pinned dependencies to major versions to reduce the likelihood of a broken `gradio_client` due to changes in downstream dependencies by [@abidlabs](https://github.com/abidlabs) in [PR 4885](https://github.com/gradio-app/gradio/pull/4885)
 
 # Version 0.2.8
 

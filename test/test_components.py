@@ -1432,8 +1432,7 @@ class TestVideo:
         iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
         assert iface(x_audio).endswith(".mp4")
 
-    def test_video_postprocess_converts_to_playable_format(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
+    def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
@@ -1496,9 +1495,22 @@ class TestVideo:
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]
-        assert "flip" not in list(output_params.keys())[0]
+        assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
+
+    @pytest.mark.flaky
+    def test_preprocess_url(self):
+        output = gr.Video().preprocess(
+            {
+                "name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+                "is_file": True,
+                "data": None,
+                "size": None,
+                "orig_name": "https://gradio-builds.s3.amazonaws.com/demo-files/a.mp4",
+            }
+        )
+        assert Path(output).name == "a.mp4" and not client_utils.probe_url(output)
 
 
 class TestTimeseries:

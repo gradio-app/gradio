@@ -1,5 +1,4 @@
 import json
-import os
 
 import pytest
 
@@ -11,8 +10,6 @@ from gradio.external import TooManyRequestsError
 WARNING: Some of these tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up.
 So if, e.g. Spaces is down, then these test will not pass.
 """
-
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestSeries:
