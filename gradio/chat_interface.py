@@ -122,7 +122,7 @@ class ChatInterface(Blocks):
                     examples=examples,
                     inputs=self.textbox,
                     outputs=self.chatbot,
-                    fn=self.fn,
+                    fn=self._examples_fn,
                     cache_examples=self.cache_examples,
                 )
             
@@ -256,6 +256,9 @@ class ChatInterface(Blocks):
         history = self._display_input(message, history)
         for response in self._stream_fn(message, history):
             return response
+        
+    def _examples_fn(self, message: str):
+        return [[message, self.fn(message, [])]]
 
     def _delete_prev_fn(self, history):
         try:
