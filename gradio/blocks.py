@@ -7,7 +7,6 @@ import os
 import random
 import secrets
 import sys
-import threading
 import time
 import warnings
 import webbrowser
