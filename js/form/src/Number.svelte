@@ -10,7 +10,6 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let show_label: boolean = true;
-	export let container: boolean = true;
 
 	const dispatch = createEventDispatcher<{
 		change: number;
@@ -46,7 +45,7 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label class="block" class:container>
+<label class="block">
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<input
 		type="number"
@@ -60,19 +59,13 @@
 </label>
 
 <style>
-	label:not(.container), label:not(.container) > input {
-		height: 100%;
-		border: none;
-	}
-	.container > input {
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--input-radius);
-	}
 	input[type="number"] {
 		display: block;
 		position: relative;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--input-radius);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 100%;

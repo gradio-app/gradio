@@ -15,6 +15,7 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	} = {};
 	export let label: string = "Label";
+	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
@@ -32,14 +33,14 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	
+	{container}
 	{scale}
 	{min_width}
 	padding={false}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}
-		<BlockLabel Icon={LabelIcon} {label}  />
+		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
 	{/if}
 	{#if _label !== undefined && _label !== null}
 		<Label on:select {selectable} {value} {color} />

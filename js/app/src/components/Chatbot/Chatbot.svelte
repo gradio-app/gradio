@@ -20,6 +20,7 @@
 		right: string;
 		display: boolean;
 	}>;
+	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -52,7 +53,7 @@
 	{elem_classes}
 	{visible}
 	padding={false}
-	
+	{container}
 	{scale}
 	{min_width}
 	{height}
@@ -73,7 +74,7 @@
 				Icon={Chat}
 				float={false}
 				label={label || "Chatbot"}
-				
+				disable={container === false}
 			/>
 		{/if}
 		<ChatBot

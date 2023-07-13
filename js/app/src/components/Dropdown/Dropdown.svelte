@@ -15,7 +15,7 @@
 	export let max_choices: number;
 	export let choices: Array<string>;
 	export let show_label: boolean;
-	export let container: boolean = true;
+	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
@@ -30,7 +30,7 @@
 	}
 </script>
 
-<Block {visible} {elem_id} {elem_classes}  {scale} {min_width} padding={container}>
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Dropdown
@@ -43,7 +43,6 @@
 		{info}
 		{show_label}
 		{allow_custom_value}
-		{container}
 		on:change
 		on:input
 		on:select

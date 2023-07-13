@@ -36,6 +36,7 @@ class Video(
 ):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
     combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
@@ -60,6 +61,7 @@ class Video(
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
+        container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -82,6 +84,7 @@ class Video(
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
+            container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -117,6 +120,7 @@ class Video(
             label=label,
             every=every,
             show_label=show_label,
+            container=container,
             scale=scale,
             min_width=min_width,
             interactive=interactive,
@@ -151,6 +155,7 @@ class Video(
         width: int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
+        container: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool | None = None,
@@ -164,6 +169,7 @@ class Video(
             "width": width,
             "label": label,
             "show_label": show_label,
+            "container": container,
             "scale": scale,
             "min_width": min_width,
             "interactive": interactive,
@@ -317,7 +323,9 @@ class Video(
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(video)
         ):
-            warnings.warn()
+            warnings.warn(
+                "Video does not have browser-compatible container or codec. Converting to mp4"
+            )
             video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the
         # selected format

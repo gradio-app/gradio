@@ -12,12 +12,13 @@
 	export let label: string = "Checkbox";
 	export let info: string | undefined = undefined;
 	export let mode: "static" | "dynamic";
+	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {visible} {elem_id} {elem_classes}  {scale} {min_width}>
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	{#if info}

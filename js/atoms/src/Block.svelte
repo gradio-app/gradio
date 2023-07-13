@@ -1,4 +1,5 @@
 <script lang="ts">
+	export let container: boolean = true;
 	export let height: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let elem_id: string = "";
@@ -9,7 +10,6 @@
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
 	export let explicit_call: boolean = false;
-	export let container: boolean = true;
 	export let visible = true;
 	export let allow_overflow = true;
 	export let scale: number | null = null;
@@ -35,7 +35,6 @@
 	style:overflow={allow_overflow ? "visible" : "hidden"}
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
-	style:border-width="var(--block-border-width)"
 >
 	<slot />
 </svelte:element>
@@ -67,7 +66,7 @@
 	.hide-container {
 		margin: 0;
 		box-shadow: none;
-		--block-border-width: 0;
+		border-width: 0;
 		background: transparent;
 		padding: 0;
 		overflow: visible;

@@ -14,7 +14,6 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
-	export let container: boolean = true;
 	export let allow_custom_value: boolean = false;
 
 	const dispatch = createEventDispatcher<{
@@ -172,7 +171,7 @@
 	}
 </script>
 
-<label class:container>
+<label>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
@@ -254,16 +253,10 @@
 </label>
 
 <style>
-	label:not(.container), label:not(.container) .wrap, label:not(.container) .wrap-inner, label:not(.container) .secondary-wrap, label:not(.container) .token, label:not(.container) input {
-		height: 100%;
-	}
-	.container .wrap {
-		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--border-color-primary);
-	}
-
 	.wrap {
 		position: relative;
+		box-shadow: var(--input-shadow);
+		border: var(--input-border-width) solid var(--border-color-primary);
 		border-radius: var(--input-radius);
 		background: var(--input-background-fill);
 	}

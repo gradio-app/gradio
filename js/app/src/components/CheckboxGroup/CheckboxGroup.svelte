@@ -10,6 +10,7 @@
 	export let value: Array<string> = [];
 	export let value_is_output: boolean = false;
 	export let choices: Array<string>;
+	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
@@ -25,7 +26,7 @@
 	{elem_id}
 	{elem_classes}
 	type="fieldset"
-	
+	{container}
 	{scale}
 	{min_width}
 >

@@ -10,6 +10,7 @@
 	export let value: number = 0;
 	export let label: string = "Slider";
 	export let info: string | undefined = undefined;
+	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let minimum: number;
@@ -22,7 +23,7 @@
 	export let value_is_output: boolean = false;
 </script>
 
-<Block {visible} {elem_id} {elem_classes}  {scale} {min_width}>
+<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Range
