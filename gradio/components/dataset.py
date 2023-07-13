@@ -39,7 +39,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         **kwargs,
@@ -54,14 +53,12 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
         Component.__init__(
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
-        self.container = container
         self.scale = scale
         self.min_width = min_width
         self.components = [get_component_instance(c, render=False) for c in components]
@@ -96,7 +93,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             "type": self.type,
             "label": self.label,
             "samples_per_page": self.samples_per_page,
-            "container": self.container,
             "scale": self.scale,
             "min_width": self.min_width,
             **Component.get_config(self),
@@ -107,7 +103,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
         samples: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
         label: str | None = None,
-        container: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
     ):
@@ -115,7 +110,6 @@ class Dataset(Clickable, Selectable, Component, StringSerializable):
             "samples": samples,
             "visible": visible,
             "label": label,
-            "container": container,
             "scale": scale,
             "min_width": min_width,
             "__type__": "update",

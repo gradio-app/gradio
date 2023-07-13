@@ -52,7 +52,6 @@ class File(
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
-        container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -70,7 +69,6 @@ class File(
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
-            container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -113,7 +111,6 @@ class File(
             label=label,
             every=every,
             show_label=show_label,
-            container=container,
             scale=scale,
             min_width=min_width,
             interactive=interactive,
@@ -138,7 +135,6 @@ class File(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
-        container: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool | None = None,
@@ -147,7 +143,6 @@ class File(
         return {
             "label": label,
             "show_label": show_label,
-            "container": container,
             "scale": scale,
             "min_width": min_width,
             "interactive": interactive,

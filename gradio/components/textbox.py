@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -59,7 +60,7 @@ class Textbox(
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -81,7 +82,7 @@ class Textbox(
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
-            container: If True, will place the component in a container - providing some extra padding around the border.
+            container: If False, will remove all content surrounding input box.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -101,6 +102,13 @@ class Textbox(
             self.max_lines = 1
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
+        if not container:
+            if show_label:
+                warnings.warn("show_label has no effect when container is False.")
+            show_label = False
+        if show_label is None:
+            show_label = True
+        self.container = container
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
@@ -113,7 +121,6 @@ class Textbox(
             info=info,
             every=every,
             show_label=show_label,
-            container=container,
             scale=scale,
             min_width=min_width,
             interactive=interactive,
@@ -134,6 +141,7 @@ class Textbox(
             "value": self.value,
             "type": self.type,
             "show_copy_button": self.show_copy_button,
+            "container": self.container,
             **IOComponent.get_config(self),
         }
 

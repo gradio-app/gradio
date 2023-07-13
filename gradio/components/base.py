@@ -134,7 +134,6 @@ class IOComponent(Component):
         label: str | None = None,
         info: str | None = None,
         show_label: bool = True,
-        container: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool | None = None,
@@ -157,7 +156,6 @@ class IOComponent(Component):
         self.label = label
         self.info = info
         self.show_label = show_label
-        self.container = container
         if scale is not None and scale != round(scale):
             warn_deprecation(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
@@ -335,7 +333,6 @@ class IOComponent(Component):
         config = {
             "label": self.label,
             "show_label": self.show_label,
-            "container": self.container,
             "scale": self.scale,
             "min_width": self.min_width,
             "interactive": self.interactive,

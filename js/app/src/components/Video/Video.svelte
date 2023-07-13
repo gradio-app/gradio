@@ -81,7 +81,7 @@
 	{elem_classes}
 	{height}
 	{width}
-	{container}
+	
 	{scale}
 	{min_width}
 	allow_overflow={false}

@@ -14,14 +14,13 @@
 	export let value: string;
 	export let value_is_output: boolean = false;
 	export let show_label: boolean;
-	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
+<Block {visible} {elem_id} {elem_classes}  {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<ColorPicker

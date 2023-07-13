@@ -21,7 +21,6 @@
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
-	export let container: boolean = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
@@ -38,7 +37,7 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	{container}
+	
 	{scale}
 	{min_width}
 >
