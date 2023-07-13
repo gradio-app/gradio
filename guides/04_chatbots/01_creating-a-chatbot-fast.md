@@ -4,9 +4,11 @@ Tags: NLP, TEXT, CHAT
 
 ## Introduction
 
-Chatbots are a popular application of large language models. Using `gradio`, you can easily build a demo of your chatbot model and share that with your users, or try it yourself using an intuitive chatbot GUI.
+Chatbots are a popular application of large language models. Using `gradio`, you can easily build a demo of your chatbot model and share that with your users, or try it yourself using an intuitive chatbot UI.
 
 This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a single line of code. The chatbot interface that we create will look something like this:
+
+$demo_chatinterface_streaming_echo
 
 We'll start with a couple of simple examples, and then show how to use `gr.ChatInterface()` with real language models from several popular APIs and libraries, including `langchain`, `openai`, and Hugging Face. 
 
@@ -25,7 +27,7 @@ When working with `gr.ChatInterface()`, the first thing you should do is define 
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
 
-Take a look at an example:
+Let's take a look at a few examples.
 
 ## Example: a chatbot that responds yes or no
 
@@ -50,6 +52,8 @@ gr.ChatInterface(random_response).launch()
 
 That's it! Here's our running demo, try it out:
 
+$demo_chatinterface_random_response
+
 ## Another example using the user's input and history
 
 Of course, the previous example was very simplistic, it didn't even take user input or the previous history into account! Here's a pretty simple example showing how to incorporate a user's input as well as the history.
@@ -72,7 +76,6 @@ gr.ChatInterface(alternatingly_agree).launch()
 If in your chat function, if you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
 
 ```py
-import random
 import time
 import gradio as gr
 
@@ -84,7 +87,7 @@ def slow_echo(message, history):
 gr.ChatInterface(slow_echo).queue().launch()
 ```
 
-Notice that we've [enabled queuing], which is required to use generator functions.
+Notice that we've [enabled queuing](), which is required to use generator functions.
 
 ## Customizing your chatbot
 
@@ -235,3 +238,5 @@ def predict(message, history):
 
 gr.ChatInterface(predict).queue().launch()
 ```
+
+With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building more custom Chabot UI, check out [a dedicated guide](/) using the low-level `gr.Blocks()` API.
