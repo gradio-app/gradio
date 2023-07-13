@@ -202,11 +202,9 @@ class Video(
             video.get("is_file", False),
         )
 
-        # if client_utils.is_http_url_like(file_name):
-
         if is_file:
             assert file_name is not None, "Received file data without a file name."
-            if client_utils.probe_url(file_name):
+            if client_utils.is_http_url_like(file_name):
                 fn = self.download_temp_copy_if_needed
             else:
                 fn = self.make_temp_copy_if_needed
@@ -318,7 +316,7 @@ class Video(
         else:
             conversion_needed = True
 
-        is_url = client_utils.probe_url(video)
+        is_url = client_utils.is_http_url_like(video)
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
         if is_url and not (conversion_needed):
