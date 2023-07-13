@@ -3,9 +3,11 @@ name: 'deploy to chromatic'
 on: 
   push:
     paths:
-      - js/**
-      - gradio/themes/**
-      - .github/workflows/deploy-chromatic.yml
+      - 'js/**'
+      - 'gradio/themes/**'
+      - '.github/workflows/deploy-chromatic.yml'
+      - '!js/_website'
+
 
 jobs:
   get-current-pr:
@@ -22,14 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'gradio-app/gradio' && !contains(needs.get-current-pr.outputs.pr_labels, 'no-visual-update') }}
     steps:
+      - run: echo ${{ needs.get-current-pr.outputs.pr_number }}
       - name: post pending deployment comment to PR
         if: ${{ needs.get-current-pr.outputs.pr_found }} == 'true' 
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
             Chromatic build pending :hourglass:
-          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           comment_tag: chromatic-build
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           pr_number: ${{ needs.get-current-pr.outputs.pr_number }}
       - uses: actions/checkout@v3
         with:
