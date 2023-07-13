@@ -1,7 +1,5 @@
 <script lang="ts">
-	import type { create as createType } from "..";
-	// @ts-ignore
-	const create: typeof createType = globalThis.createGradioApp;
+	import { create } from "..";
 	type CreateOptions = Parameters<typeof create>[0];
 
 	import { onMount, onDestroy } from "svelte";

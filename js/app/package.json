@@ -73,6 +73,9 @@
 		"postcss": "^8.4.21",
 		"postcss-prefix-selector": "^1.16.0"
 	},
+	"devDependencies": {
+		"vite-plugin-static-copy": "^0.16.0"
+	},
 	"msw": {
 		"workerDirectory": "public"
 	},

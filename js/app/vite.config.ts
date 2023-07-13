@@ -8,6 +8,7 @@ import global_data from "@csstools/postcss-global-data";
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const version_path = resolve(__dirname, "../../gradio/version.txt");
 const theme_token_path = resolve(__dirname, "../theme/src/tokens.css");
@@ -63,38 +64,21 @@ export default defineConfig(({ mode }) => {
 			outDir: is_lite
 				? resolve(__dirname, "../lite/dist")
 				: `../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`,
-			// To build Gradio-lite as a library, we can't use the library mode
-			// like `lib: is_lite && {}`
-			// because it inevitably enables inlining of all the static file assets,
-			// while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
-			// So we build it as an app and only use the bundled JS and CSS files as library assets, ignoring the HTML file.
-			// See also `lite.ts` about it.
-			rollupOptions: is_lite && {
-				input: "./lite.html",
-				output: {
-					// To use it as a library, we don't add the hash to the file name.
-					entryFileNames: "lite.js",
-					assetFileNames: (file) => {
-						if (file.name?.endsWith(".whl")) {
-							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
-							return `assets/[name].[ext]`;
-						}
-						if (file.name === "lite.css") {
-							// To use it as a library, we don't add the hash to the file name.
-							return `[name].[ext]`;
-						} else {
-							return `assets/[name]-[hash].[ext]`;
-						}
-					}
-				}
-			}
+			lib: is_lite && production && {
+				formats: ["es"],
+				entry: resolve(__dirname, "./src/lite/index.ts"),
+				name: "gradio",
+				fileName: "gradio"
+			},
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
-			GRADIO_VERSION: JSON.stringify(version)
+			GRADIO_VERSION: JSON.stringify(version),
+			GRADIO_VERSION_RAW: JSON.stringify(version_raw),
+			GRADIO_CLIENT_VERSION_RAW: JSON.stringify(client_version_raw)
 		},
 		css: {
 			postcss: {
@@ -142,7 +126,39 @@ export default defineConfig(({ mode }) => {
 				cdn_url: CDN_URL
 			}),
 			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
-			handle_ce_css()
+			handle_ce_css(),
+			is_lite && viteStaticCopy({
+				// Gradio-lite is built as a library with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
+				// but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
+				// while we need to disable inlining for the wheel files so that they are served as static files
+				// and their URLs to be passed to `micropip.install()`.
+				// Currently disabling inlining is not supported in the library mode:
+				// > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
+				// > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
+				//
+				// and there is an open issue about this: https://github.com/vitejs/vite/issues/4454.
+				// So, we don't use the `import()` syntax for the wheel files to rely on Vite's static asset handling.
+				// Instead, we copy the wheel files to the `dist` directory with the 'vite-plugin-static-copy' plugin here
+				// and construct the URLs to them manually in `lite/index.ts`.
+				//
+				// Ref: This workaround is introduced in https://github.com/vitejs/vite/issues/4454#issuecomment-1588713917
+				targets: [
+					{
+						src: resolve(
+							__dirname,
+							`../../dist/gradio-${version_raw}-py3-none-any.whl`
+						),
+						dest: 'wheels'
+					},
+					{
+						src: resolve(
+							__dirname,
+							`../../client/python/dist/gradio_client-${client_version_raw}-py3-none-any.whl`
+						),
+						dest: 'wheels'
+					}
+				]
+			})
 		],
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
@@ -153,19 +169,5 @@ export default defineConfig(({ mode }) => {
 					: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 			globals: true
 		},
-		resolve: {
-			alias: {
-				// For the Wasm app to import the wheel file URLs.
-				"gradio.whl": resolve(
-					__dirname,
-					`../../dist/gradio-${version_raw}-py3-none-any.whl`
-				),
-				"gradio_client.whl": resolve(
-					__dirname,
-					`../../client/python/dist/gradio_client-${client_version_raw}-py3-none-any.whl`
-				)
-			}
-		},
-		assetsInclude: ["**/*.whl"] // To pass URLs of built wheel files to the Wasm worker.
 	};
 });

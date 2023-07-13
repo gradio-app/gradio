@@ -7,11 +7,17 @@ import type { mount_css } from "../css";
 import Index from "../Index.svelte";
 import type { ThemeMode } from "../components/types";
 
-// These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
-import gradioWheel from "gradio.whl";
-import gradioClientWheel from "gradio_client.whl";
-
+declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
+declare let GRADIO_VERSION_RAW: string;
+declare let GRADIO_CLIENT_VERSION_RAW: string;
+
+// These wheel files are copied to these paths at built time with Vite.
+// See the `viteStaticCopy` plugin setting in `vite.config.ts`.
+const gradioWheelRelPath = `wheels/gradio-${GRADIO_VERSION_RAW}-py3-none-any.whl`;
+const gradioClientWheelRelPath = `wheels/gradio_client-${GRADIO_CLIENT_VERSION_RAW}-py3-none-any.whl`;
+const gradioWheelUrl = BUILD_MODE === "dev" ? "/" + gradioWheelRelPath : new URL(gradioWheelRelPath, import.meta.url).href;
+const gradioClientWheelUrl = BUILD_MODE === "dev" ? "/" + gradioClientWheelRelPath : new URL(gradioClientWheelRelPath, import.meta.url).href;
 
 // NOTE: The following line has been copied from `main.ts`.
 // In `main.ts`, which is the normal Gradio app entry point,
@@ -68,8 +74,8 @@ export function create(options: Options): GradioAppController {
 	observer.observe(options.target, { childList: true });
 
 	const worker_proxy = new WorkerProxy({
-		gradioWheelUrl: new URL(gradioWheel, import.meta.url).href,
-		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
+		gradioWheelUrl,
+		gradioClientWheelUrl,
 		files: options.files ?? {},
 		requirements: options.requirements ?? []
 	});
@@ -160,36 +166,4 @@ export function create(options: Options): GradioAppController {
 			worker_proxy.terminate();
 		}
 	};
-}
-
-/**
- * I'm not sure if this is a correct way to export functions from a bundle created with Vite.
- * However, at least, the library mode (https://vitejs.dev/guide/build.html#library-mode)
- * with an exported function (`export async function create()`) didn't work for our case.
- * In library mode with the `build.lib.entry = (this file)` config,
- * Vite creates a bundle exporting the functions from this file, which looks nice,
- * however, it inevitably enables inlining of all the static file assets,
- * while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
- *
- * > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
- * > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
- *
- * There is an open issue about this: https://github.com/vitejs/vite/issues/4454
- *
- * FYI, stlite (https://github.com/whitphx/stlite) uses Webpack,
- * which supports bundling libraries that export entities to the global scope and disabling assets inlining
- * (https://webpack.js.org/guides/author-libraries/).
- */
-// @ts-ignore
-globalThis.createGradioApp = create;
-
-declare let BUILD_MODE: string;
-if (BUILD_MODE === "dev") {
-	(async function () {
-		const DevApp = (await import("./dev/App.svelte")).default;
-
-		const app = new DevApp({
-			target: document.getElementById("dev-app")!
-		});
-	})();
 }
