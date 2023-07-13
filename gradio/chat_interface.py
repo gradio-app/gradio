@@ -19,7 +19,7 @@ from gradio.components import (
     Textbox,
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Group, Row
+from gradio.layouts import Column, Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("interface")
@@ -40,9 +40,9 @@ class ChatInterface(Blocks):
         theme: Theme | str | None = None,
         css: str | None = None,
         analytics_enabled: bool | None = None,
-        submit_btn: str | None | Button = "Submit",
+        submit_btn: str | None | Button = "✔",
         retry_btn: str | None | Button = "🔄  Retry",
-        delete_last_btn: str | None | Button = None,
+        delete_last_btn: str | None | Button = "⏪ Delete Last",
         clear_btn: str | None | Button = "🗑️  Clear History",
     ):
         """
@@ -82,25 +82,27 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
 
-            with Group():
-                if chatbot:
-                    self.chatbot = chatbot.render()
-                else:
-                    self.chatbot = Chatbot(label="Input")
-                if textbox:
-                    self.textbox = textbox.render() 
-                else: 
-                    self.textbox = Textbox(show_label=False, placeholder="Type a message...")
-            
+            if chatbot:
+                self.chatbot = chatbot.render()
+            else:
+                self.chatbot = Chatbot(label="Input")
             with Row():
+                with Column(scale=10):
+                    if textbox:
+                        self.textbox = textbox.render() 
+                    else: 
+                        self.textbox = Textbox(show_label=False, container=False, placeholder="Type a message...")
                 if submit_btn:
-                    if isinstance(submit_btn, Button):
-                        submit_btn.render()
-                    elif isinstance(submit_btn, str):
-                        submit_btn = Button(submit_btn, variant="primary")
-                    else:
-                        raise ValueError(f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}")
-                    self.buttons.append(submit_btn)
+                    with Column(scale=1, min_width=0):
+                        if isinstance(submit_btn, Button):
+                            submit_btn.render()
+                        elif isinstance(submit_btn, str):
+                            submit_btn = Button(submit_btn, variant="primary")
+                        else:
+                            raise ValueError(f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}")
+                        self.buttons.append(submit_btn)
+
+            with Row():
                 self.stop_btn = Button("Stop", variant="stop", visible=False)
                 
                 for btn in [retry_btn, delete_last_btn, clear_btn]:
@@ -230,38 +232,37 @@ class ChatInterface(Blocks):
             api_name="chat",
         )
 
-    def _clear_and_save_textbox(self, message):
+    def _clear_and_save_textbox(self, message: str) -> tuple[str, str]:
         return "", message
 
-    def _display_input(self, message: str, history: list[list[str]]):
+    def _display_input(self, message: str, history: list[list[str]]) -> list[list[str]]:
         history.append((message, None))
         return history
 
-    def _submit_fn(self, message: str, history: list[list[str]]):
+    def _submit_fn(self, message: str, history_with_input: list[list[str]]) -> list[list[str]]:
+        history = history_with_input[:-1]
         response = self.fn(message, history)
-        history[-1][1] = response
+        history.append([message, response])
         return history
 
-    def _stream_fn(self, message: str, history: list[list[str]]):
+    def _stream_fn(self, message: str, history_with_input: list[list[str]]) -> list[list[str]]:
+        history = history_with_input[:-1]
         for response in self.fn(message, history):
-            history[-1][1] = response
-            yield history
+            yield history + [[message, response]]
 
-    def _api_submit_fn(self, message: str, history: list[list[str]]):
+    def _api_submit_fn(self, message: str, history: list[list[str]]) -> tuple[str, list[list[str]]]:
         response = self.fn(message, history)
         history.append([message, response])
         return response, history
         
-    def _api_stream_fn(self, message: str, history: list[list[str]]):
-        history = self._display_input(message, history)
+    def _api_stream_fn(self, message: str, history: list[list[str]]) -> tuple[str, list[list[str]]]:
         for response in self.fn(message, history):
-            history[-1][1] = response
-            yield response, history
+            yield response, history + [[message, response]]
         
-    def _examples_fn(self, message: str):
+    def _examples_fn(self, message: str) -> list[list[str]]:
         return [[message, self.fn(message, [])]]
 
-    def _delete_prev_fn(self, history):
+    def _delete_prev_fn(self, history: list[list[str]]) -> tuple[list[list[str]], str]:
         try:
             message, _ = history.pop()
         except IndexError:
