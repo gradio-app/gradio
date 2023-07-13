@@ -799,7 +799,8 @@ def make_waveform(
             else get_color_gradient(bars_color[0], bars_color[1], bar_count)
         )
 
-        fig=plt.figure()
+        fig=plt.figure(figsize=(5, 1), dpi=200, frameon=False)
+        fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
         plt.axis("off")
         plt.margins(x=0)
         fig.patch.set_alpha(0)
@@ -816,12 +817,12 @@ def make_waveform(
             for idx, b in enumerate(barcollection):
                 rand_height = np.random.uniform(0.8, 1.2)
                 b.set_height(samples[idx] * rand_height * 2)
-
-        anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=300,
+        frames = int(duration * 10)
+        anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=frames,
                                     interval=100)
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
 
-        savefig_kwargs: dict[str, Any] = {}
+        savefig_kwargs: dict[str, Any] = {"bbox_inches": "tight"}
         if bg_image is not None:
             savefig_kwargs["transparent"] = True
             savefig_kwargs["facecolor"] = "none"
@@ -844,11 +845,19 @@ def make_waveform(
                 "-i",
                 audio_file,
                 "-filter_complex",
-                "[1:v]format=rgba,colorchannelmixer=aa=0.5[ov];[0:v][ov]overlay=(main_w-overlay_w)/2:main_h-overlay_h/2[output]",
+                "[1:v]format=rgba,colorchannelmixer=aa=1.0[ov];[0:v][ov]overlay=(main_w-overlay_w)/2:main_h-overlay_h/2[output]",
                 "-t",
                 str(duration),
                 "-map",
                 "[output]",
+                "-map",
+                "2:a",
+                "-c:v",
+                "libx264",
+                "-c:a",
+                "aac",
+                "-shortest",
+                "-y",
                 output_mp4.name,
         ]
     else:
@@ -859,7 +868,7 @@ def make_waveform(
             "-i",
             audio_file,
             "-filter_complex",
-            f"[0:v]scale=w={1000}:h={200}[bg];[bg][1:a]concat=n=1:v=1:a=1[v][a]",
+            "[0:v][1:a]concat=n=1:v=1:a=1[v][a]",
             "-map",
             "[v]",
             "-map",
@@ -869,6 +878,7 @@ def make_waveform(
             "-c:a",
             "aac",
             "-shortest",
+            "-y",
             output_mp4.name,
         ]
 
