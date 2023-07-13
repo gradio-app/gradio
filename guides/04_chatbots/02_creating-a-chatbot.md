@@ -1,4 +1,4 @@
-# How to Create a Chatbot
+# How to Create a Custom Chatbot with Gradio
 
 Tags: NLP, TEXT, CHAT
 Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/project-baize/Baize-7B, 
