@@ -224,7 +224,7 @@ class ChatInterface(Blocks):
 
         self.fake_api_btn.click(
             api_fn,
-            [self.saved_input, history],
+            [self.textbox],
             [history],
             api_name="chat",
         )
@@ -247,9 +247,9 @@ class ChatInterface(Blocks):
             yield history
 
     def _api_submit_fn(self, message: str, history: list[list[str]]):
-        history = self._display_input(message, history)
-        history = self._submit_fn(message, history)
-        return history
+        response = self.fn(message, history)
+        history.append([message, response]])
+        return response, history
         
     def _api_stream_fn(self, message: str, history: list[list[str]]):
         history = self._display_input(message, history)
