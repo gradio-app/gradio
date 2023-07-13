@@ -91,7 +91,7 @@ test("gr.Info makes the toast show up", async ({ page }) => {
 });
 
 test("gr.Warning makes the toast show up", async ({ page }) => {
-	page.click("text=Trigger Warning");
+	await page.click("text=Trigger Warning");
 
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("This is a warning!");
