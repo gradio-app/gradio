@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
 import matplotlib.pyplot as plt
+from matplotlib import animation
 import numpy as np
 import PIL
 import PIL.Image
@@ -797,71 +798,79 @@ def make_waveform(
             if isinstance(bars_color, str)
             else get_color_gradient(bars_color[0], bars_color[1], bar_count)
         )
-        plt.bar(
+
+        fig=plt.figure()
+        plt.axis("off")
+        plt.margins(x=0)
+        fig.patch.set_alpha(0)
+        
+        barcollection = plt.bar(
             np.arange(0, bar_count),
             samples * 2,
             bottom=(-1 * samples),
             width=bar_width,
             color=color,
         )
-        plt.axis("off")
-        plt.margins(x=0)
+
+        def animate(_):
+            for idx, b in enumerate(barcollection):
+                rand_height = np.random.uniform(0.8, 1.2)
+                b.set_height(samples[idx] * rand_height * 2)
+
+        anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=300,
+                                    interval=100)
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        savefig_kwargs: dict[str, Any] = {"bbox_inches": "tight"}
+
+        savefig_kwargs: dict[str, Any] = {}
         if bg_image is not None:
             savefig_kwargs["transparent"] = True
+            savefig_kwargs["facecolor"] = "none"
         else:
             savefig_kwargs["facecolor"] = bg_color
-        plt.savefig(tmp_img.name, **savefig_kwargs)
-        waveform_img = PIL.Image.open(tmp_img.name)
-        waveform_img = waveform_img.resize((1000, 200))
-
-        # Composite waveform with background image
-        if bg_image is not None:
-            waveform_array = np.array(waveform_img)
-            waveform_array[:, :, 3] = waveform_array[:, :, 3] * fg_alpha
-            waveform_img = PIL.Image.fromarray(waveform_array)
-
-            bg_img = PIL.Image.open(bg_image)
-            waveform_width, waveform_height = waveform_img.size
-            bg_width, bg_height = bg_img.size
-            if waveform_width != bg_width:
-                bg_img = bg_img.resize(
-                    (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
-                )
-                bg_width, bg_height = bg_img.size
-            composite_height = max(bg_height, waveform_height)
-            composite = PIL.Image.new(
-                "RGBA", (waveform_width, composite_height), "#FFFFFF"
-            )
-            composite.paste(bg_img, (0, composite_height - bg_height))
-            composite.paste(
-                waveform_img, (0, composite_height - waveform_height), waveform_img
-            )
-            composite.save(tmp_img.name)
-            img_width, img_height = composite.size
-        else:
-            img_width, img_height = waveform_img.size
-            waveform_img.save(tmp_img.name)
+        anim.save(tmp_img.name, writer="pillow", fps=10, codec="png", savefig_kwargs=savefig_kwargs)
 
     # Convert waveform to video with ffmpeg
     output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
 
-    ffmpeg_cmd = [
-        ffmpeg,
-        "-loop",
-        "1",
-        "-i",
-        tmp_img.name,
-        "-i",
-        audio_file,
-        "-vf",
-        f"color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1",
-        "-t",
-        str(duration),
-        "-y",
-        output_mp4.name,
-    ]
+    if bg_image is not None:
+        ffmpeg_cmd = [
+                ffmpeg,
+                "-loop",
+                "1",
+                "-i",
+                bg_image,
+                "-i",
+                tmp_img.name,
+                "-i",
+                audio_file,
+                "-filter_complex",
+                "[1:v]format=rgba,colorchannelmixer=aa=0.5[ov];[0:v][ov]overlay=(main_w-overlay_w)/2:main_h-overlay_h/2[output]",
+                "-t",
+                str(duration),
+                "-map",
+                "[output]",
+                output_mp4.name,
+        ]
+    else:
+        ffmpeg_cmd = [
+            ffmpeg,
+            "-i",
+            tmp_img.name,
+            "-i",
+            audio_file,
+            "-filter_complex",
+            f"[0:v]scale=w={1000}:h={200}[bg];[bg][1:a]concat=n=1:v=1:a=1[v][a]",
+            "-map",
+            "[v]",
+            "-map",
+            "[a]",
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            "-shortest",
+            output_mp4.name,
+        ]
 
     subprocess.check_call(ffmpeg_cmd)
     return output_mp4.name
