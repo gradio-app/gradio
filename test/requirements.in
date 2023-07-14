@@ -9,7 +9,6 @@ fastapi>=0.87.0
 httpx
 huggingface_hub
 pydantic
-pyright==1.1.316
 pytest
 pytest-asyncio
 pytest-cov
