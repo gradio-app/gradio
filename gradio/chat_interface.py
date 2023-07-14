@@ -329,4 +329,4 @@ class ChatInterface(Blocks):
             message, _ = history.pop()
         except IndexError:
             message = ""
-        return history, message
+        return history, message or ""
