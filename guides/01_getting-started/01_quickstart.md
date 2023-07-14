@@ -85,11 +85,29 @@ Also note that our input `Image` component comes with an edit button 🖉, which
 
 You can read more about the many components and how to use them in the [Gradio docs](https://gradio.app/docs).
 
+## Chatbots
+
+Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to build chatbot UIs. The `gr.ChatInterface` also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
+
+* `message`: a `str` representing the user's input
+* `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
+
+Your function should return a single string response, which is the bot's response to the particular user input `message`.
+
+Other than that, `gr.ChatInterface` has no required parameters (though several are available for customization of the UI).
+
+Here's a toy example:
+
+$code_chatinterface_random_response
+$demo_chatinterface_random_response
+
+You can [read more about `gr.ChatInterface` here](https://gradio.app/guides/creating-a-chatbot-fast).
+
 ## Blocks: More Flexibility and Control
 
-Gradio offers two classes to build apps:
+Gradio offers two approaches to build apps:
 
-1\. **Interface**, that provides a high-level abstraction for creating demos that we've been discussing so far.
+1\. **Interface** and **ChatInterface**, which provide a high-level abstraction for creating demos that we've been discussing so far.
 
 2\. **Blocks**, a low-level API for designing web apps with more flexible layouts and data flows. Blocks allows you to do things like feature multiple data flows and demos, control where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction — still all in Python. If this customizability is what you need, try `Blocks` instead!
 
