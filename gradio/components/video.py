@@ -204,7 +204,11 @@ class Video(
 
         if is_file:
             assert file_name is not None, "Received file data without a file name."
-            file_name = Path(self.make_temp_copy_if_needed(file_name))
+            if client_utils.is_http_url_like(file_name):
+                fn = self.download_temp_copy_if_needed
+            else:
+                fn = self.make_temp_copy_if_needed
+            file_name = Path(fn(file_name))
         else:
             assert file_data is not None, "Received empty file data."
             file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
@@ -312,12 +316,14 @@ class Video(
         else:
             conversion_needed = True
 
+        is_url = client_utils.is_http_url_like(video)
+
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
-        if utils.validate_url(video) and not (conversion_needed):
+        if is_url and not (conversion_needed):
             return {"name": video, "data": None, "is_file": True}
 
         # For cases where the video needs to be converted to another format
-        if utils.validate_url(video):
+        if is_url:
             video = self.download_temp_copy_if_needed(video)
         if (
             processing_utils.ffmpeg_installed()
