@@ -298,9 +298,15 @@ class Examples:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
-            if inspect.isgeneratorfunction(self.fn) or inspect.isasyncgenfunction(self.fn):
+            if inspect.isgeneratorfunction(self.fn):
                 def get_final_item(args):
                     for x in self.fn(args):  # noqa: B007
+                        pass
+                    return x
+                fn = get_final_item
+            elif inspect.isasyncgenfunction(self.fn):
+                async def get_final_item(args):
+                    async for x in self.fn(args):  # noqa: B007
                         pass
                     return x
                 fn = get_final_item
