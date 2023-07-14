@@ -845,7 +845,7 @@ def make_waveform(
                 "-i",
                 audio_file,
                 "-filter_complex",
-                "[1:v]format=rgba,colorchannelmixer=aa=1.0[ov];[0:v][ov]overlay=(main_w-overlay_w)/2:main_h-overlay_h/2[output]",
+                "[0:v]scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[bg];[1:v]format=rgba,colorchannelmixer=aa=1.0[ov];[bg][ov]overlay=(main_w-overlay_w*0.9)/2:main_h-overlay_h*0.9/2[output]",
                 "-t",
                 str(duration),
                 "-map",
