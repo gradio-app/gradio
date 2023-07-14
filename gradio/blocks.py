@@ -513,6 +513,8 @@ def get_api_info(config: dict, serialize: bool = True):
                 skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
+            if type in client_utils.SKIP_COMPONENTS:
+                continue
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
@@ -567,14 +569,14 @@ def get_api_info(config: dict, serialize: bool = True):
                 skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
+            if type in client_utils.SKIP_COMPONENTS:
+                continue
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
                 skip_endpoint = True  # if component not serializable, skip endpoint
                 break
-            if type in client_utils.SKIP_COMPONENTS:
-                continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             if component.get("api_info") and after_new_format:
