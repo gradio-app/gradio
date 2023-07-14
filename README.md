@@ -71,6 +71,8 @@ demo.launch()
 ```
 
 
+We shorten the imported name to `gr` for better readability of code using Gradio. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it.
+
 3\. The demo below will appear automatically within the Jupyter Notebook, or pop in a browser on [http://localhost:7860](http://localhost:7860) if running from a script:
 
 ![`hello_world` demo](demo/hello_world/screenshot.gif)
@@ -85,7 +87,7 @@ Note: you can also do `python app.py`, but it won't provide the automatic reload
 
 ### The `Interface` Class
 
-You'll notice that in order to make the demo, we created a `gradio.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+You'll notice that in order to make the demo, we created a `gr.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The core `Interface` class is initialized with three required parameters:
 
@@ -200,7 +202,8 @@ with gr.Blocks() as demo:
     name = gr.Textbox(label="Name")
     output = gr.Textbox(label="Output Box")
     greet_btn = gr.Button("Greet")
-    greet_btn.click(fn=greet, inputs=name, outputs=output)
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+   
 
 demo.launch()
 ```
@@ -272,7 +275,6 @@ Gradio is built with many wonderful open-source libraries, please support them a
 [<img src="readme_files/tailwind.svg" alt="tailwind" height=40>](https://tailwindcss.com)
 [<img src="readme_files/storybook.svg" alt="storybook" height=40>](https://storybook.js.org/)
 [<img src="readme_files/chromatic.svg" alt="chromatic" height=40>](https://www.chromatic.com/)
-
 
 ## License
 
