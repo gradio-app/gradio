@@ -210,12 +210,12 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    @mock.patch("requests.post")
-    def test_initiated_analytics(self, mock_post, monkeypatch):
+    @mock.patch("gradio.analytics._do_analytics_request")
+    def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             pass
-        mock_post.assert_called_once()
+        mock_anlaytics.assert_called_once()
 
     @mock.patch("requests.post")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
