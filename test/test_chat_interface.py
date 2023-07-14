@@ -1,7 +1,6 @@
 import time
 
 import pytest
-from gradio_client import Client
 
 import gradio as gr
 
@@ -83,20 +82,16 @@ class TestAPI:
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]
 
-    def test_streaming_api(self):
-        chatbot = gr.ChatInterface(stream)
-        _, url, _ = chatbot.queue().launch(prevent_thread_lock=True)
-        client = Client(url)
-        job = client.submit("hello")
-        while not job.done():
-            time.sleep(0.1)
-        assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
-        chatbot.close()
+    def test_streaming_api(self, connect):
+        chatbot = gr.ChatInterface(stream).queue()
+        with connect(chatbot) as client:
+            job = client.submit("hello")
+            while not job.done():
+                time.sleep(0.1)
+            assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
-    def test_non_streaming_api(self):
+    def test_non_streaming_api(self, connect):
         chatbot = gr.ChatInterface(double)
-        _, url, _ = chatbot.launch(prevent_thread_lock=True)
-        client = Client(url)
-        result = client.predict("hello")
-        assert result == "hello hello"
-        chatbot.close()
+        with connect(chatbot) as client:
+            result = client.predict("hello")
+            assert result == "hello hello"
