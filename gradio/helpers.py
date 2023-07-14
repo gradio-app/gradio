@@ -289,7 +289,7 @@ class Examples:
         """
         if Path(self.cached_file).exists():
             print(
-                f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
+                f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
         else:
             if Context.root_block is None:
@@ -298,10 +298,19 @@ class Examples:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
+            if inspect.isgeneratorfunction(self.fn) or inspect.isasyncgenfunction(self.fn):
+                def get_final_item(args):
+                    for x in self.fn(args):  # noqa: B007
+                        pass
+                    return x
+                fn = get_final_item
+            else:
+                fn = self.fn
+
             # create a fake dependency to process the examples and get the predictions
             dependency, fn_index = Context.root_block.set_event_trigger(
                 event_name="fake_event",
-                fn=self.fn,
+                fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
                 outputs=self.outputs,  # type: ignore
                 preprocess=self.preprocess and not self._api_mode,
@@ -312,6 +321,7 @@ class Examples:
             assert self.outputs is not None
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
+                print(f"Caching example {example_id + 1}/{len(self.examples)}")             
                 processed_input = self.processed_examples[example_id]
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
@@ -329,6 +339,7 @@ class Examples:
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
+            print("Caching complete\n")
 
     async def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
