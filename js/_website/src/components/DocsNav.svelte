@@ -130,6 +130,11 @@
 		href="/docs/block-layouts/">Block Layouts</a
 	>
 	<a
+		class:current-nav-link={current_nav_link == "chatinterface"}
+		class="thin-link px-4 block"
+		href="/docs/chatinterface/">ChatInterface</a
+	>
+	<a
 		class:current-nav-link={current_nav_link == "themes"}
 		class="thin-link px-4 block"
 		href="/docs/themes/">Themes</a

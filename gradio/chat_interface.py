@@ -23,7 +23,7 @@ from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Group, Row
 from gradio.themes import ThemeClass as Theme
 
-set_documentation_group("interface")
+set_documentation_group("chatinterface")
 
 
 @document()
