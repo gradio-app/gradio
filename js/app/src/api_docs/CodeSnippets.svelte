@@ -69,8 +69,8 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!--
-			--> in '{label}' <!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description}) {/if}<!--
+			-->in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--
@@ -156,6 +156,7 @@ console.log(result.data);
 
 	code {
 		position: relative;
+		display: block;
 	}
 
 	.copy {
