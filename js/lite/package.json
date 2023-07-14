@@ -3,12 +3,23 @@
 	"version": "0.3.0",
 	"description": "Serverless Gradio",
 	"type": "module",
-	"main": "dist/index.js",
+	"main": "dist/gradio.js",
 	"author": "Gradio Team",
 	"license": "Apache-2.0",
 	"files": [
-		"dist"
+		"dist",
+		"types"
 	],
+	"types": "./types/lite/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/gradio.js",
+			"types": "./types/lite/index.d.ts"
+		},
+		"./style.css": {
+			"import": "./dist/style.css"
+		}
+	},
 	"scripts": {
 		"build": "pnpm --filter @gradio/app build:lite"
 	}
