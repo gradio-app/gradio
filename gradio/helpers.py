@@ -299,16 +299,20 @@ class Examples:
             cache_logger = CSVLogger()
 
             if inspect.isgeneratorfunction(self.fn):
+
                 def get_final_item(args):
                     for x in self.fn(args):  # noqa: B007
                         pass
                     return x
+
                 fn = get_final_item
             elif inspect.isasyncgenfunction(self.fn):
+
                 async def get_final_item(args):
                     async for x in self.fn(args):  # noqa: B007
                         pass
                     return x
+
                 fn = get_final_item
             else:
                 fn = self.fn
@@ -327,7 +331,7 @@ class Examples:
             assert self.outputs is not None
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
-                print(f"Caching example {example_id + 1}/{len(self.examples)}")             
+                print(f"Caching example {example_id + 1}/{len(self.examples)}")
                 processed_input = self.processed_examples[example_id]
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
