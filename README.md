@@ -182,7 +182,7 @@ You can read more about the many components and how to use them in the [Gradio d
 
 ### Chatbots
 
-Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to build chatbot UIs. The `gr.ChatInterface` also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
+Gradio includes a high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed for chatbot UIs. The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
 * `message`: a `str` representing the user's input
 * `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
