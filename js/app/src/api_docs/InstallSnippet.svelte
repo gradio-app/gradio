@@ -38,6 +38,7 @@
 
 	code {
 		position: relative;
+		display: block;
 	}
 
 	.copy {
