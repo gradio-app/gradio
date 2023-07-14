@@ -20,7 +20,7 @@ from gradio.components import (
     Textbox,
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Column, Row
+from gradio.layouts import Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("interface")
@@ -89,31 +89,31 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
 
-            if chatbot:
-                self.chatbot = chatbot.render()
-            else:
-                self.chatbot = Chatbot(label="Input")
-            with Row():
-                with Column(scale=10):
+            with Group():
+                if chatbot:
+                    self.chatbot = chatbot.render()
+                else:
+                    self.chatbot = Chatbot(label="Input")
+                with Row():
                     if textbox:
                         self.textbox = textbox.render()
                     else:
                         self.textbox = Textbox(
-                            show_label=False,
                             container=False,
+                            show_label=False,
                             placeholder="Type a message...",
+                            scale=10
                         )
-                if submit_btn:
-                    with Column(scale=1, min_width=0):
+                    if submit_btn:
                         if isinstance(submit_btn, Button):
                             submit_btn.render()
                         elif isinstance(submit_btn, str):
-                            submit_btn = Button(submit_btn, variant="primary")
+                            submit_btn = Button(submit_btn, variant="primary", scale=1, min_width=0)
                         else:
                             raise ValueError(
                                 f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
                             )
-                self.buttons.append(submit_btn)
+                    self.buttons.append(submit_btn)
 
             with Row():
                 self.stop_btn = Button("Stop", variant="stop", visible=False)
