@@ -23,7 +23,7 @@ $ pip install --upgrade gradio
 When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
 * `message`: a `str` representing the user's input
-* `history`: a `list` of `list` representing the conversations up until that point. Uusally, each inner list consists of two `str` representing a pair: `[user input, bot response]`. We'll discuss this more later
+* `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
 

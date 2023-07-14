@@ -5,10 +5,9 @@ test("chatinterface works with streaming functions", async ({
 }) => {
 	let last_iteration;
 
-	const start_button = await page.locator("button", {
-		hasText: /Start Iterating/
-	});
-	const textbox = await page.getByLabel("Iterative Output");
+	const submit_button = await page.locator("button").nth(0);
+	const textbox = await page.getByTestId("textbox");
+	textbox.fill("hello");
 
 	page.on("websocket", (ws) => {
 		last_iteration = ws.waitForEvent("framereceived", {
@@ -18,10 +17,10 @@ test("chatinterface works with streaming functions", async ({
 		});
 	});
 
-	await start_button.click();
+	await submit_button.click();
 
 	await last_iteration;
-	await expect(textbox).toHaveValue("8");
+	await expect(textbox).toHaveValue("hello");
 });
 
 test("the buttons in chatinterface work as expected", async ({
