@@ -110,7 +110,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
-            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
+            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
@@ -299,8 +299,10 @@ class Examples:
             cache_logger = CSVLogger()
 
             if inspect.isgeneratorfunction(self.fn):
-
-                def get_final_item(args):
+                
+                assert self.fn is not None
+                def get_final_item(args):  # type: ignore
+                    x = None
                     for x in self.fn(args):  # noqa: B007
                         pass
                     return x
@@ -308,7 +310,8 @@ class Examples:
                 fn = get_final_item
             elif inspect.isasyncgenfunction(self.fn):
 
-                async def get_final_item(args):
+                async def get_final_item(args):  # type: ignore
+                    x = None
                     async for x in self.fn(args):  # noqa: B007
                         pass
                     return x
