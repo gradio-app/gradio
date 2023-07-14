@@ -96,7 +96,7 @@ If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` inclu
 * add a title and description above your chatbot using `title` and `description` arguments.
 * add a theme or custom css using `theme` and `css` arguments respectively.
 * add `examples` and even enable `cache_examples`, which make it easier for users to try it out .
-* You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `delete_last_btn`, `clear_btn`.
+* You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `undo_btn`, `clear_btn`.
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
 
@@ -119,8 +119,8 @@ gr.ChatInterface(
     theme="soft",
     examples=["Hello", "Am I cool?", "Are tomatoes vegetables?"],
     cache_examples=True,
-    retry_btn=False,
-    delete_last_btn="Delete",
+    retry_btn=None,
+    undo_btn="Delete Previous",
     clear_btn="Clear",
 ).launch()
 ```
