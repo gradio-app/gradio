@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import inspect
 import warnings
-from typing import Callable
+from typing import Callable, Generator
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -28,6 +28,23 @@ set_documentation_group("interface")
 
 @document()
 class ChatInterface(Blocks):
+    """
+    ChatInterface is Gradio's high-level abstraction for creating chatbot UIs, and allows you to create 
+    a web-based demo around a chatbot model in a few lines of code. Only one parameter is required: fn, which 
+    takes a function that governs the response of the chatbot based on the user input and chat history. Additional 
+    parameters can be used to control the appearance and behavior of the demo.
+
+    Example:
+        import gradio as gr
+
+        def echo(message, history):
+            return message
+
+        demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot",)
+        demo.launch()
+    Demos: chatinterface_random_response, chatinterface_streaming_echo
+    Guides: creating-a-chatbot-fast, sharing-your-app
+    """
     def __init__(
         self,
         fn: Callable,
@@ -261,42 +278,46 @@ class ChatInterface(Blocks):
     def _clear_and_save_textbox(self, message: str) -> tuple[str, str]:
         return "", message
 
-    def _display_input(self, message: str, history: list[list[str]]) -> list[list[str]]:
-        history.append((message, None))
+    def _display_input(
+        self, message: str, history: list[list[str | None]]
+    ) -> list[list[str | None]]:
+        history.append([message, None])
         return history
 
     def _submit_fn(
-        self, message: str, history_with_input: list[list[str]]
-    ) -> list[list[str]]:
+        self, message: str, history_with_input: list[list[str | None]]
+    ) -> list[list[str | None]]:
         history = history_with_input[:-1]
         response = self.fn(message, history)
         history.append([message, response])
         return history
 
     def _stream_fn(
-        self, message: str, history_with_input: list[list[str]]
-    ) -> list[list[str]]:
+        self, message: str, history_with_input: list[list[str | None]]
+    ) -> Generator[list[list[str | None]], None, None]:
         history = history_with_input[:-1]
         for response in self.fn(message, history):
             yield history + [[message, response]]
 
     def _api_submit_fn(
-        self, message: str, history: list[list[str]]
-    ) -> tuple[str, list[list[str]]]:
+        self, message: str, history: list[list[str | None]]
+    ) -> tuple[str, list[list[str | None]]]:
         response = self.fn(message, history)
         history.append([message, response])
         return response, history
 
     def _api_stream_fn(
-        self, message: str, history: list[list[str]]
-    ) -> tuple[str, list[list[str]]]:
+        self, message: str, history: list[list[str | None]]
+    ) -> Generator[tuple[str, list[list[str | None]]], None, None]:
         for response in self.fn(message, history):
             yield response, history + [[message, response]]
 
-    def _examples_fn(self, message: str) -> list[list[str]]:
+    def _examples_fn(self, message: str) -> list[list[str | None]]:
         return [[message, self.fn(message, [])]]
 
-    def _delete_prev_fn(self, history: list[list[str]]) -> tuple[list[list[str]], str]:
+    def _delete_prev_fn(
+        self, history: list[list[str | None]]
+    ) -> tuple[list[list[str | None]], str]:
         try:
             message, _ = history.pop()
         except IndexError:
