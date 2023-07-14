@@ -800,10 +800,10 @@ def make_waveform(
         )
 
         fig = plt.figure(figsize=(5, 1), dpi=200, frameon=False)
-        fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+        fig.subplots_adjust(left=0, bottom=0, right=1, top=1)
         plt.axis("off")
         plt.margins(x=0)
-        fig.patch.set_alpha(0)
+        # fig.patch.set_alpha(0)
 
         barcollection = plt.bar(
             np.arange(0, bar_count),
