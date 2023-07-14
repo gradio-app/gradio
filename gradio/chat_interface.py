@@ -62,7 +62,7 @@ class ChatInterface(Blocks):
         submit_btn: str | None | Button = "✔",
         retry_btn: str | None | Button = "🔄  Retry",
         undo_btn: str | None | Button = "↩️ Undo",
-        clear_btn: str | None | Button = "🗑️  Clear History",
+        clear_btn: str | None | Button = "🗑️  Clear",
     ):
         """
         Parameters:
