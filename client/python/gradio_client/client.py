@@ -853,8 +853,6 @@ class Endpoint:
                             serializer_name in serializing.SERIALIZER_MAPPING
                         ), f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
                         serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    elif component_name in utils.SKIP_COMPONENTS:
-                        serializer = serializing.SimpleSerializable
                     else:
                         assert (
                             component_name in serializing.COMPONENT_MAPPING
