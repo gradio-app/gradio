@@ -803,7 +803,6 @@ def make_waveform(
         fig.subplots_adjust(left=0, bottom=0, right=1, top=1)
         plt.axis("off")
         plt.margins(x=0)
-        # fig.patch.set_alpha(0)
 
         barcollection = plt.bar(
             np.arange(0, bar_count),
@@ -817,6 +816,7 @@ def make_waveform(
             for idx, b in enumerate(barcollection):
                 rand_height = np.random.uniform(0.8, 1.2)
                 b.set_height(samples[idx] * rand_height * 2)
+                b.set_y((-rand_height * samples)[idx])
 
         frames = int(duration * 10)
         anim = animation.FuncAnimation(
