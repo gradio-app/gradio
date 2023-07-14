@@ -52,7 +52,7 @@ class TestInit:
             chatbot.submit_btn._id,
             chatbot.retry_btn._id,
             chatbot.clear_btn._id,
-            chatbot.delete_last_btn._id,
+            chatbot.undo_btn._id,
         ]:
             assert next(
                 (
