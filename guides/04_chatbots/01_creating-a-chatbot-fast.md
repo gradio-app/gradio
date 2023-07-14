@@ -1,4 +1,4 @@
-# How to Create a Chatbot with Gradio Fast
+# How to Create a Chatbot with Gradio
 
 Tags: NLP, TEXT, CHAT
 
