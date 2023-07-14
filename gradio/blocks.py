@@ -7,6 +7,7 @@ import os
 import random
 import secrets
 import sys
+import threading
 import time
 import warnings
 import webbrowser
@@ -715,7 +716,10 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else analytics.analytics_enabled()
         )
-        if not self.analytics_enabled:
+        if self.analytics_enabled:
+            t = threading.Thread(target=analytics.version_check)
+            t.start()
+        else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: dict[int, Block] = {}
@@ -1848,13 +1852,18 @@ Received outputs:
             self.is_running = True
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
-            self.is_sagemaker = utils.sagemaker_check()
 
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
+            if not self.is_colab:
+                print(
+                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                        self.protocol, self.server_name, self.server_port
+                    )
+                )
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
@@ -1868,7 +1877,7 @@ Received outputs:
             return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
         utils.launch_counter()
-
+        self.is_sagemaker = utils.sagemaker_check()
         if share is None:
             if self.is_colab and self.enable_queue:
                 if not quiet:
@@ -1912,12 +1921,6 @@ Received outputs:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
                 )
-        else:
-            print(
-                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                    self.protocol, self.server_name, self.server_port
-                )
-            )
 
         if self.share:
             if self.space_id:
