@@ -318,7 +318,7 @@ class ChatInterface(Blocks):
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
-    ) -> tuple[list[list[str | None]], str]:
+    ) -> tuple[list[list[str | None]], str | None]:
         try:
             message, _ = history.pop()
         except IndexError:
