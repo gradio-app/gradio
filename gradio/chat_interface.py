@@ -29,9 +29,9 @@ set_documentation_group("interface")
 @document()
 class ChatInterface(Blocks):
     """
-    ChatInterface is Gradio's high-level abstraction for creating chatbot UIs, and allows you to create 
-    a web-based demo around a chatbot model in a few lines of code. Only one parameter is required: fn, which 
-    takes a function that governs the response of the chatbot based on the user input and chat history. Additional 
+    ChatInterface is Gradio's high-level abstraction for creating chatbot UIs, and allows you to create
+    a web-based demo around a chatbot model in a few lines of code. Only one parameter is required: fn, which
+    takes a function that governs the response of the chatbot based on the user input and chat history. Additional
     parameters can be used to control the appearance and behavior of the demo.
 
     Example:
@@ -40,11 +40,12 @@ class ChatInterface(Blocks):
         def echo(message, history):
             return message
 
-        demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot",)
+        demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot")
         demo.launch()
     Demos: chatinterface_random_response, chatinterface_streaming_echo
     Guides: creating-a-chatbot-fast, sharing-your-app
     """
+
     def __init__(
         self,
         fn: Callable,
