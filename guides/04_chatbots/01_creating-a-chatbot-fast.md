@@ -20,9 +20,9 @@ $ pip install --upgrade gradio
 
 ## Defining a chat function
 
-When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
+When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order).
 
-* `message`: a `str` representing the user's input
+* `message`: a `str` representing the user's input.
 * `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. 
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
@@ -73,7 +73,7 @@ gr.ChatInterface(alternatingly_agree).launch()
 
 ## Streaming chatbots 
 
-If in your chat function, if you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
+If in your chat function, you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
 
 ```py
 import time
@@ -93,10 +93,10 @@ Notice that we've [enabled queuing](/guides/key-features#queuing), which is requ
 
 If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` includes many of the same arguments that you can use to customize the look and feel of your Chatbot. For example, you can:
 
-* add a title and description above your chatbot using `title` and `description` arguments
-* add a theme or custom css using `theme` and `css` arguments respectively
-* add `examples` and even enable `cache_examples`, which make it easier for users to try it out 
-* You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `delete_last_btn`, `clear_btn`
+* add a title and description above your chatbot using `title` and `description` arguments.
+* add a theme or custom css using `theme` and `css` arguments respectively.
+* add `examples` and even enable `cache_examples`, which make it easier for users to try it out .
+* You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `delete_last_btn`, `clear_btn`.
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
 
@@ -197,7 +197,7 @@ gr.ChatInterface(predict).queue().launch()
 
 ## Examples using open-source LLMs with Hugging Face!
 
-Of course, why use a closed-source model when you can use an open-source one instead? Here's the equivalent example using Hugging Face's StarChat model, which is primarily designed as a coding assistant.
+Of course, why use a closed-source model when you can use an open-source one instead? Here's the equivalent example using Together's RedePajama model.
 
 ```py
 import gradio as gr
@@ -251,4 +251,4 @@ def predict(message, history):
 gr.ChatInterface(predict).queue().launch()
 ```
 
-With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building more custom Chabot UI, check out [a dedicated guide](/) using the low-level `gr.Blocks()` API.
+With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building more custom Chabot UI, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.
