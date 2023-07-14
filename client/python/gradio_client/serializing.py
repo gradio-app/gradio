@@ -547,12 +547,4 @@ COMPONENT_MAPPING: dict[str, type] = {
     "code": StringSerializable,
     "interpretation": SimpleSerializable,
     "annotatedimage": JSONSerializable,
-    "row": SimpleSerializable,
-    "column": SimpleSerializable,
-    "tabs": SimpleSerializable,
-    "tab": SimpleSerializable,
-    "box": SimpleSerializable,
-    "form": SimpleSerializable,
-    "accordion": SimpleSerializable,
-    "group": SimpleSerializable,
 }
