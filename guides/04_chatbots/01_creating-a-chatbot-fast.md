@@ -56,7 +56,7 @@ $demo_chatinterface_random_response
 
 ## Another example using the user's input and history
 
-Of course, the previous example was very simplistic, it didn't even take user input or the previous history into account! Here's a pretty simple example showing how to incorporate a user's input as well as the history.
+Of course, the previous example was very simplistic, it didn't even take user input or the previous history into account! Here's another simple example showing how to incorporate a user's input as well as the history.
 
 ```py
 import random
@@ -87,22 +87,19 @@ def slow_echo(message, history):
 gr.ChatInterface(slow_echo).queue().launch()
 ```
 
-Notice that we've [enabled queuing](), which is required to use generator functions.
+Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions.
 
 ## Customizing your chatbot
 
 If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` includes many of the same arguments that you can use to customize the look and feel of your Chatbot. For example, you can:
 
-* add a `title` and `description` above your chatbot using `title` and `description` arguments
+* add a title and description above your chatbot using `title` and `description` arguments
 * add a theme or custom css using `theme` and `css` arguments respectively
 * add `examples` and even enable `cache_examples`, which make it easier for users to try it out 
 * You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `delete_last_btn`, `clear_btn`
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
 
-If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/).
-
-Here's a complete example using the parameters above:
 
 ```py
 import gradio as gr
@@ -128,13 +125,15 @@ gr.ChatInterface(
 ).launch()
 ```
 
+If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
+
 ## Using your chatbot via an API
 
 Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message, and will return the response, internally keeping track of the messages sent so far.
 
-INSERT SCREENSHOT
+[](!https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
-To use the endpoint, you should use either the Gradio Python Client or the Gradio JS client.
+To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client).
 
 ## A `langchain` example
 
@@ -201,7 +200,7 @@ gr.ChatInterface(predict).queue().launch()
 Of course, why use a closed-source model when you can use an open-source one instead? Here's the equivalent example using Hugging Face's StarChat model, which is primarily designed as a coding assistant.
 
 ```py
-from text_generation import Client, DialogueTemplate
+from text_generation import Client
 
 system_message = "Below is a conversation between a human user and a helpful AI coding assistant."
 client = Client("https://api-inference.huggingface.co/models/HuggingFaceH4/starchat-beta")
