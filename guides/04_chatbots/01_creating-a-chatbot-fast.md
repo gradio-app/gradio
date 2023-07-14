@@ -200,40 +200,53 @@ gr.ChatInterface(predict).queue().launch()
 Of course, why use a closed-source model when you can use an open-source one instead? Here's the equivalent example using Hugging Face's StarChat model, which is primarily designed as a coding assistant.
 
 ```py
-from text_generation import Client
+import gradio as gr
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer
+from threading import Thread
 
-system_message = "Below is a conversation between a human user and a helpful AI coding assistant."
-client = Client("https://api-inference.huggingface.co/models/HuggingFaceH4/starchat-beta")
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1")
+model = AutoModelForCausalLM.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1", torch_dtype=torch.float16)
+model = model.to('cuda:0')
 
-def predict(message, history):    
-    history_starchat_format = []
-    for user, assistant in history:
-        history_starchat_format.append({"role": "user", "content": user})
-        history_starchat_format.append({"role": "assistant", "content": assistant.rstrip()})        
-    history_starchat_format.append({"role": "user", "content": message})
+class StopOnTokens(StoppingCriteria):
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+        stop_ids = [29, 0]
+        for stop_id in stop_ids:
+            if input_ids[0][-1] == stop_id:
+                return True
+        return False
+
+def predict(message, history): 
+
+    history_transformer_format = history + [[message, ""]]
+    stop = StopOnTokens()
+
+    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])  #curr_system_message + 
+                for item in history_transformer_format])
     
-    dialogue_template = DialogueTemplate(system=system_message, messages=history_starchat_format)
+    model_inputs = tokenizer([messages], return_tensors="pt").to("cuda")
+    streamer = TextIteratorStreamer(tokenizer, timeout=10., skip_prompt=True, skip_special_tokens=True)
     generate_kwargs = dict(
-        temperature=1.0,
+        model_inputs,
+        streamer=streamer,
         max_new_tokens=1024,
-        top_p=0.95,
-        repetition_penalty=1.2,
         do_sample=True,
-        truncate=4096,
-        seed=42,
-        stop_sequences=["<|end|>"],
-    )
-    stream = client.generate_stream(
-        prompt,
-        **generate_kwargs,
-    )
-    
-    output = ""
-    for idx, response in enumerate(stream):
-        if response.token.special:
-            continue
-        output += response.token.text
-        yield output
+        top_p=0.95,
+        top_k=1000,
+        temperature=1.0,
+        num_beams=1,
+        stopping_criteria=StoppingCriteriaList([stop])
+        )
+    t = Thread(target=model.generate, kwargs=generate_kwargs)
+    t.start()
+
+    partial_message  = ""
+    for new_token in streamer:
+        if new_token != '<':
+            partial_message += new_token
+            yield partial_message 
+            
 
 gr.ChatInterface(predict).queue().launch()
 ```
