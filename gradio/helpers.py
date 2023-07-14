@@ -299,7 +299,7 @@ class Examples:
             cache_logger = CSVLogger()
 
             if inspect.isgeneratorfunction(self.fn):
-                
+
                 def get_final_item(args):  # type: ignore
                     x = None
                     for x in self.fn(args):  # noqa: B007  # type: ignore
@@ -309,7 +309,7 @@ class Examples:
                 fn = get_final_item
             elif inspect.isasyncgenfunction(self.fn):
 
-                async def get_final_item(args): 
+                async def get_final_item(args):
                     x = None
                     async for x in self.fn(args):  # noqa: B007  # type: ignore
                         pass
