@@ -799,12 +799,12 @@ def make_waveform(
             else get_color_gradient(bars_color[0], bars_color[1], bar_count)
         )
 
-        fig=plt.figure(figsize=(5, 1), dpi=200, frameon=False)
+        fig = plt.figure(figsize=(5, 1), dpi=200, frameon=False)
         fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
         plt.axis("off")
         plt.margins(x=0)
         fig.patch.set_alpha(0)
-        
+
         barcollection = plt.bar(
             np.arange(0, bar_count),
             samples * 2,
@@ -817,9 +817,11 @@ def make_waveform(
             for idx, b in enumerate(barcollection):
                 rand_height = np.random.uniform(0.8, 1.2)
                 b.set_height(samples[idx] * rand_height * 2)
+
         frames = int(duration * 10)
-        anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=frames,
-                                    interval=100)
+        anim = animation.FuncAnimation(
+            fig, animate, repeat=False, blit=False, frames=frames, interval=100
+        )
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
 
         savefig_kwargs: dict[str, Any] = {"bbox_inches": "tight"}
@@ -828,37 +830,43 @@ def make_waveform(
             savefig_kwargs["facecolor"] = "none"
         else:
             savefig_kwargs["facecolor"] = bg_color
-        anim.save(tmp_img.name, writer="pillow", fps=10, codec="png", savefig_kwargs=savefig_kwargs)
+        anim.save(
+            tmp_img.name,
+            writer="pillow",
+            fps=10,
+            codec="png",
+            savefig_kwargs=savefig_kwargs,
+        )
 
     # Convert waveform to video with ffmpeg
     output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
 
     if bg_image is not None:
         ffmpeg_cmd = [
-                ffmpeg,
-                "-loop",
-                "1",
-                "-i",
-                bg_image,
-                "-i",
-                tmp_img.name,
-                "-i",
-                audio_file,
-                "-filter_complex",
-                "[0:v]scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[bg];[1:v]format=rgba,colorchannelmixer=aa=1.0[ov];[bg][ov]overlay=(main_w-overlay_w*0.9)/2:main_h-overlay_h*0.9/2[output]",
-                "-t",
-                str(duration),
-                "-map",
-                "[output]",
-                "-map",
-                "2:a",
-                "-c:v",
-                "libx264",
-                "-c:a",
-                "aac",
-                "-shortest",
-                "-y",
-                output_mp4.name,
+            ffmpeg,
+            "-loop",
+            "1",
+            "-i",
+            bg_image,
+            "-i",
+            tmp_img.name,
+            "-i",
+            audio_file,
+            "-filter_complex",
+            "[0:v]scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[bg];[1:v]format=rgba,colorchannelmixer=aa=1.0[ov];[bg][ov]overlay=(main_w-overlay_w*0.9)/2:main_h-overlay_h*0.9/2[output]",
+            "-t",
+            str(duration),
+            "-map",
+            "[output]",
+            "-map",
+            "2:a",
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            "-shortest",
+            "-y",
+            output_mp4.name,
         ]
     else:
         ffmpeg_cmd = [
