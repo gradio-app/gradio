@@ -67,8 +67,8 @@ export default defineConfig(({ mode }) => {
 			lib: is_lite && production && {
 				formats: ["es"],
 				entry: resolve(__dirname, "./src/lite/index.ts"),
-				name: "gradio",
-				fileName: "gradio"
+				name: "GradioLite",
+				fileName: "gradio-lite"
 			},
 		},
 		define: {

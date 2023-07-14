@@ -13,7 +13,7 @@
 	"types": "./types/lite/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/gradio.js",
+			"import": "./dist/gradio-lite.js",
 			"types": "./types/lite/index.d.ts"
 		},
 		"./style.css": {
