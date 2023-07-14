@@ -16,7 +16,7 @@ demo.launch()
 
 Which produces:
 
-[SCREENSHOT]
+<img width="1291" alt="image" src="https://github.com/gradio-app/gradio/assets/1778297/ae94fd72-c2bb-406e-9e8d-7b9c12e80119">
 
 Works nicely with various LLM libraries, such as `langchain`. See the [dedicated guide] for `gr.ChatInterface`. Collective team effort in [PR 4869](https://github.com/gradio-app/gradio/pull/4869)
 
