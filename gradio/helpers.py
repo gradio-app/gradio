@@ -300,19 +300,18 @@ class Examples:
 
             if inspect.isgeneratorfunction(self.fn):
                 
-                assert self.fn is not None
                 def get_final_item(args):  # type: ignore
                     x = None
-                    for x in self.fn(args):  # noqa: B007
+                    for x in self.fn(args):  # noqa: B007  # type: ignore
                         pass
                     return x
 
                 fn = get_final_item
             elif inspect.isasyncgenfunction(self.fn):
 
-                async def get_final_item(args):  # type: ignore
+                async def get_final_item(args): 
                     x = None
-                    async for x in self.fn(args):  # noqa: B007
+                    async for x in self.fn(args):  # noqa: B007  # type: ignore
                         pass
                     return x
 
