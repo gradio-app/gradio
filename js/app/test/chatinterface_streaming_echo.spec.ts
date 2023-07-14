@@ -5,7 +5,7 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 }) => {
 	const submit_button = await page.locator("button").nth(0);
 	const retry_button = await page.locator("button").nth(2);
-	const delete_last_button = await page.locator("button").nth(3);
+	const undo_button = await page.locator("button").nth(3);
 	const clear_button = await page.locator("button").nth(4);
 	const textbox = await page.getByTestId("textbox").nth(0);
 
@@ -39,8 +39,9 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 	await expect(textbox).toHaveValue("");
 	await expect(bot_message_1).toContainText("You typed: hi"); 
 
-	await delete_last_button.click();
+	await undo_button.click();
 	await expect.poll(async () => page.locator('.bot.message p').count()).toBe(1);
+	await expect(textbox).toHaveValue("hi");
 
 	await textbox.fill("salaam");
 	await submit_button.click();

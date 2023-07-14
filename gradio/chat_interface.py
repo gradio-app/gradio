@@ -61,7 +61,7 @@ class ChatInterface(Blocks):
         analytics_enabled: bool | None = None,
         submit_btn: str | None | Button = "✔",
         retry_btn: str | None | Button = "🔄  Retry",
-        delete_last_btn: str | None | Button = "⏪ Delete Last",
+        undo_btn: str | None | Button = "↩️ Undo",
         clear_btn: str | None | Button = "🗑️  Clear History",
     ):
         """
@@ -78,7 +78,7 @@ class ChatInterface(Blocks):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
             retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
-            delete_last_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
+            undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
         """
         super().__init__(
@@ -141,7 +141,7 @@ class ChatInterface(Blocks):
             with Row():
                 self.stop_btn = Button("Stop", variant="stop", visible=False)
 
-                for btn in [retry_btn, delete_last_btn, clear_btn]:
+                for btn in [retry_btn, undo_btn, clear_btn]:
                     if btn:
                         if isinstance(btn, Button):
                             btn.render()
@@ -158,7 +158,7 @@ class ChatInterface(Blocks):
                 (
                     self.submit_btn,
                     self.retry_btn,
-                    self.delete_last_btn,
+                    self.undo_btn,
                     self.clear_btn,
                 ) = self.buttons
 
@@ -241,11 +241,17 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
 
-        if self.delete_last_btn:
-            self.delete_last_btn.click(
+        if self.undo_btn:
+            self.undo_btn.click(
                 self._delete_prev_fn,
                 [self.chatbot],
                 [self.chatbot, self.saved_input],
+                api_name=False,
+                queue=False,
+            ).then(
+                lambda x:x,
+                [self.saved_input],
+                [self.textbox],
                 api_name=False,
                 queue=False,
             )
@@ -318,9 +324,9 @@ class ChatInterface(Blocks):
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
-    ) -> tuple[list[list[str | None]], str | None]:
+    ) -> tuple[list[list[str | None]], str]:
         try:
             message, _ = history.pop()
         except IndexError:
-            message = None
+            message = ""
         return history, message
