@@ -7,6 +7,7 @@ import os
 import random
 import secrets
 import sys
+import threading
 import time
 import warnings
 import webbrowser
@@ -22,7 +23,6 @@ from gradio_client import serializing
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from packaging import version
-import threading
 
 from gradio import (
     analytics,
@@ -718,7 +718,7 @@ class Blocks(BlockContext):
         )
         if self.analytics_enabled:
             t = threading.Thread(target=analytics.version_check)
-            t.start() 
+            t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
