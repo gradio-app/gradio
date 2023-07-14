@@ -78,7 +78,10 @@ class ChatInterface(Blocks):
 
         self.fn = fn
         self.examples = examples
-        self.cache_examples = cache_examples
+        if self.space_id and cache_examples is None:
+            self.cache_examples = True
+        else:
+            self.cache_examples = cache_examples or False
         self.buttons: list[Button] = []
 
         with self:
