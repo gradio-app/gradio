@@ -35,7 +35,7 @@ Let's write a chat function that responds `Yes` or `No` randomly.
 
 Here's our chat function:
 
-```py
+```python
 import random
 
 def random_response(message, history):
@@ -44,7 +44,7 @@ def random_response(message, history):
 
 Now, we can plug this into `gr.ChatInterface()` and call the `.launch()` method to create the web interface:
 
-```py
+```python
 import gradio as gr
 
 gr.ChatInterface(random_response).launch()
@@ -58,7 +58,7 @@ $demo_chatinterface_random_response
 
 Of course, the previous example was very simplistic, it didn't even take user input or the previous history into account! Here's another simple example showing how to incorporate a user's input as well as the history.
 
-```py
+```python
 import random
 import gradio as gr
 
@@ -75,7 +75,7 @@ gr.ChatInterface(alternatingly_agree).launch()
 
 If in your chat function, you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
 
-```py
+```python
 import time
 import gradio as gr
 
@@ -101,7 +101,7 @@ If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` inclu
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
 
 
-```py
+```python
 import gradio as gr
 
 def yes_man(message, history):
@@ -139,7 +139,7 @@ To use the endpoint, you should use either the [Gradio Python Client](/guides/ge
 
 Now, let's actually use the `gr.ChatInterface` with some real large language models. We'll start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
-```py
+```python
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import AIMessage, HumanMessage
 import openai
@@ -166,7 +166,7 @@ gr.ChatInterface(predict).launch()
 Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
 
 
-```py
+```python
 import openai
 import gradio as gr
 
@@ -195,11 +195,11 @@ def predict(message, history):
 gr.ChatInterface(predict).queue().launch() 
 ```
 
-## Examples using open-source LLMs with Hugging Face!
+## Example using a local, open-source LLM with Hugging Face
 
-Of course, why use a closed-source model when you can use an open-source one instead? Here's the equivalent example using Together's RedePajama model.
+Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedePajama model, from Hugging Face (this requires you to have a GPU with CUDA).
 
-```py
+```python
 import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer

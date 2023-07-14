@@ -114,7 +114,7 @@ class ChatInterface(Blocks):
                 if chatbot:
                     self.chatbot = chatbot.render()
                 else:
-                    self.chatbot = Chatbot(label="Input")
+                    self.chatbot = Chatbot(label="Chatbot")
                 with Row():
                     if textbox:
                         self.textbox = textbox.render()
