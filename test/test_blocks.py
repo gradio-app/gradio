@@ -217,9 +217,9 @@ class TestBlocksMethods:
             pass
         mock_anlaytics.assert_called_once()
 
-    @mock.patch("requests.post")
+    @mock.patch("gradio.analytics._do_analytics_request")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
-        self, mock_post, monkeypatch
+        self, mock_anlaytics, monkeypatch
     ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
@@ -230,7 +230,7 @@ class TestBlocksMethods:
             t2.change(lambda x: x, t2, t1)
 
         demo.launch(prevent_thread_lock=True)
-        mock_post.assert_called()
+        mock_anlaytics.assert_called()
 
     def test_show_error(self):
         with gr.Blocks() as demo:
