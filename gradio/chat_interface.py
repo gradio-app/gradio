@@ -249,7 +249,7 @@ class ChatInterface(Blocks):
                 api_name=False,
                 queue=False,
             ).then(
-                lambda x:x,
+                lambda x: x,
                 [self.saved_input],
                 [self.textbox],
                 api_name=False,
