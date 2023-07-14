@@ -2,10 +2,16 @@
 
 ## New Features:
 
-Introducing a new `gr.ChatInterface` abstraction, which allows Gradio users to build fully functioning Chat interfaces very easily. The only required parameter is a chat function, which accepts a (string) user input `message` and a (list of lists) chat `history` and returns a (string) response. Here's a toy example:
+Introducing a new `gr.ChatInterface` abstraction, which allows Gradio users to build fully functioning Chat interfaces very easily. The only required parameter is a chat function `fn`, which accepts a (string) user input `message` and a (list of lists) chat `history` and returns a (string) response. Here's a toy example:
 
 ```py
+import gradio as gr
 
+def echo(message, history):
+    return message
+
+demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot")
+demo.launch()
 ```
 
 Which produces:
