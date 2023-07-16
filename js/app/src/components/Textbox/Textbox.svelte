@@ -24,6 +24,7 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let value_is_output: boolean = false;
+	export let rtl = false;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
@@ -39,6 +40,7 @@
 		{show_label}
 		{lines}
 		{type}
+		{rtl}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		{show_copy_button}

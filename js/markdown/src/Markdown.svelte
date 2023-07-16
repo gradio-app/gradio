@@ -5,6 +5,7 @@
 	export let visible: boolean = true;
 	export let value: string;
 	export let min_height = false;
+	export let rtl = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -18,6 +19,7 @@
 	class:min={min_height}
 	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
+	class:rtl={rtl}
 	bind:this={target}
 	data-testid="markdown"
 >
@@ -48,4 +50,8 @@
 	.hide {
 		display: none;
 	}
+	.rtl {
+		text-align: right;
+	}
+
 </style>

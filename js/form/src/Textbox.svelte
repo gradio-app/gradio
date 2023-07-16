@@ -16,6 +16,7 @@
 	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
+	export let rtl = false;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -142,6 +143,7 @@
 				data-testid="textbox"
 				type="text"
 				class="scroll-hide"
+				class:rtl={rtl}
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -191,6 +193,7 @@
 			data-testid="textbox"
 			use:text_area_resize={value}
 			class="scroll-hide"
+			class:rtl={rtl}
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -226,6 +229,9 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+	}
+	.rtl {
+		text-align: right;
 	}
 	input:disabled,
 	textarea:disabled {

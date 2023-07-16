@@ -35,6 +35,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        rtl: bool = False,
         **kwargs,
     ):
         """
@@ -43,8 +44,10 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            rtl: If True, rendered Markdown will be displayed right-to-left. Default is False, which renders left-to-right.
         """
         self.md = utils.get_markdown_parser()
+        self.rtl = rtl
         IOComponent.__init__(
             self,
             visible=visible,
@@ -69,6 +72,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def get_config(self):
         return {
             "value": self.value,
+            "rtl": self.rtl,
             **Component.get_config(self),
         }
 
@@ -76,10 +80,12 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
+        rtl: bool | None = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
+            "rtl": rtl,
             "__type__": "update",
         }
         return updated_config

@@ -25,6 +25,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
+	export let rtl: false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -101,11 +102,12 @@
 						class:latest={i === value.length - 1}
 						class="message {j == 0 ? 'user' : 'bot'}"
 						class:hide={message === null}
+						class:rtl={rtl}
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
 					>
 						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} on:load={scroll} />
+							<Markdown {message} {latex_delimiters} {rtl} on:load={scroll} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -402,5 +404,9 @@
 		position: absolute;
 		top: 6px;
 		right: 6px;
+	}
+
+	.rtl {
+		text-align: right;
 	}
 </style>
