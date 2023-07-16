@@ -19,7 +19,6 @@
 	style:min-width="calc(min({min_width}px, 100%))"
 >
 	<slot />
-	<div class="fill"></div>
 </div>
 
 <style>
@@ -32,14 +31,6 @@
 	div > :global(*),
 	div > :global(.form > *) {
 		width: var(--size-full);
-	}
-	.fill {
-		display: none;
-	}
-	:global(.gr-group) .fill {
-		display: block;
-		flex-grow: 1;
-		background-color: var(--block-background-fill);
 	}
 
 	.gap {

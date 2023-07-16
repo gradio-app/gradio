@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -24,6 +23,7 @@ from gradio.events import (
     Submittable,
 )
 from gradio.interpretation import TokenInterpretable
+from gradio.deprecation import warn_deprecation 
 
 set_documentation_group("component")
 
@@ -104,11 +104,10 @@ class Textbox(
         self.show_copy_button = show_copy_button
         if not container:
             if show_label:
-                warnings.warn("show_label has no effect when container is False.")
+                warn_deprecation("show_label has no effect when container is False.")
             show_label = False
         if show_label is None:
             show_label = True
-        self.container = container
         self.select: EventListenerMethod
         """
         Event listener for when the user selects text in the Textbox.
@@ -121,6 +120,7 @@ class Textbox(
             info=info,
             every=every,
             show_label=show_label,
+            container=container,
             scale=scale,
             min_width=min_width,
             interactive=interactive,

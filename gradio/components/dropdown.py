@@ -17,6 +17,7 @@ from gradio.events import (
     Inputable,
     Selectable,
 )
+from gradio.deprecation import warn_deprecation 
 
 set_documentation_group("component")
 
@@ -103,11 +104,10 @@ class Dropdown(
             )
         if not container:
             if show_label:
-                warnings.warn("show_label has no effect when container is False.")
+                warn_deprecation("show_label has no effect when container is False.")
             show_label = False
         if show_label is None:
             show_label = True
-        self.container = container
         self.interpret_by_tokens = False
         self.select: EventListenerMethod
         """
@@ -121,6 +121,7 @@ class Dropdown(
             info=info,
             every=every,
             show_label=show_label,
+            container=container,
             scale=scale,
             min_width=min_width,
             interactive=interactive,

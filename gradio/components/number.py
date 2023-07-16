@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-import warnings
 from typing import Callable, Literal
 
 import numpy as np
@@ -19,6 +18,7 @@ from gradio.events import (
 )
 from gradio.exceptions import Error
 from gradio.interpretation import NeighborInterpretable
+from gradio.deprecation import warn_deprecation
 
 set_documentation_group("component")
 
@@ -86,11 +86,10 @@ class Number(
         self.maximum = maximum
         if not container:
             if show_label:
-                warnings.warn("show_label has no effect when container is False.")
+                warn_deprecation("show_label has no effect when container is False.")
             show_label = False
         if show_label is None:
             show_label = True
-        self.container = container
 
         IOComponent.__init__(
             self,
@@ -98,6 +97,7 @@ class Number(
             info=info,
             every=every,
             show_label=show_label,
+            container=container,
             scale=scale,
             min_width=min_width,
             interactive=interactive,

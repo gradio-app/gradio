@@ -20,9 +20,10 @@
 
 	export let loading_status: LoadingStatus;
 	export let value_is_output: boolean = false;
+	export let container: boolean = true;
 </script>
 
-<Block {visible} {elem_id} {elem_classes}  {scale} {min_width}>
+<Block {visible} {elem_id} {elem_classes}  {scale} {min_width} {container}>
 	<StatusTracker {...loading_status} />
 
 	<Range
