@@ -308,7 +308,7 @@ class ChatInterface(Blocks):
             first_response = next(generator)
             yield history + [[message, first_response]]
         except StopIteration:
-            yield history + [[message, ""]]            
+            yield history + [[message, None]]
         for response in generator:
             yield history + [[message, response]]
 
@@ -322,7 +322,13 @@ class ChatInterface(Blocks):
     def _api_stream_fn(
         self, message: str, history: list[list[str | None]]
     ) -> Generator[tuple[str, list[list[str | None]]], None, None]:
-        for response in self.fn(message, history):
+        generator = self.fn(message, history)
+        try:
+            first_response = next(generator)
+            yield first_response, history + [[message, first_response]]
+        except StopIteration:
+            yield None, history + [[message, None]]
+        for response in generator:
             yield response, history + [[message, response]]
 
     def _examples_fn(self, message: str) -> list[list[str | None]]:
