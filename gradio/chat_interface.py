@@ -339,7 +339,9 @@ class ChatInterface(Blocks):
     def _examples_fn(self, message: str) -> list[list[str | None]]:
         return [[message, self.fn(message, [])]]
 
-    def _examples_stream_fn(self, message: str) -> list[list[str | None]]:
+    def _examples_stream_fn(
+        self, message: str
+    ) -> Generator[list[list[str | None]], None, None]:
         for response in self.fn(message, []):
             yield [[message, response]]
 
