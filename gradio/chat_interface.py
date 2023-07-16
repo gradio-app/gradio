@@ -321,7 +321,7 @@ class ChatInterface(Blocks):
 
     def _api_stream_fn(
         self, message: str, history: list[list[str | None]]
-    ) -> Generator[tuple[str, list[list[str | None]]], None, None]:
+    ) -> Generator[tuple[str | None, list[list[str | None]]], None, None]:
         generator = self.fn(message, history)
         try:
             first_response = next(generator)
