@@ -163,11 +163,16 @@ class ChatInterface(Blocks):
                 ) = self.buttons
 
             if examples:
+                if inspect.isgeneratorfunction(self.fn):
+                    examples_fn = self._examples_stream_fn
+                else:
+                    examples_fn = self._examples_fn
+
                 self.examples_handler = Examples(
                     examples=examples,
                     inputs=self.textbox,
                     outputs=self.chatbot,
-                    fn=self._examples_fn,
+                    fn=examples_fn,
                     cache_examples=self.cache_examples,
                 )
 
@@ -333,6 +338,10 @@ class ChatInterface(Blocks):
 
     def _examples_fn(self, message: str) -> list[list[str | None]]:
         return [[message, self.fn(message, [])]]
+
+    def _examples_stream_fn(self, message: str) -> list[list[str | None]]:
+        for response in self.fn(message, []):
+            yield [[message, response]]
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
