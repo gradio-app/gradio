@@ -107,7 +107,7 @@
 						style="--text-align: {text_align}"
 						>
 						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} {text_align} on:load={scroll} />
+							<Markdown {message} {latex_delimiters} on:load={scroll} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
