@@ -5,7 +5,7 @@
 	export let visible: boolean = true;
 	export let value: string;
 	export let min_height = false;
-	export let rtl = false;
+	export let text_align: "left" | "center" | "right" | "justify" = "left";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -19,9 +19,9 @@
 	class:min={min_height}
 	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
-	class:rtl={rtl}
 	bind:this={target}
 	data-testid="markdown"
+	style="--text-align: {text_align}"
 >
 	{@html value}
 </div>
@@ -42,6 +42,7 @@
 
 	div {
 		max-width: 100%;
+		text-align: var(--text-align);
 	}
 
 	.min {
@@ -49,9 +50,6 @@
 	}
 	.hide {
 		display: none;
-	}
-	.rtl {
-		text-align: right;
 	}
 
 </style>

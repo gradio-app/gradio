@@ -25,7 +25,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
-	export let rtl: false;
+	export let text_align: "left" | "center" | "right" | "justify" = "left";
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -102,12 +102,12 @@
 						class:latest={i === value.length - 1}
 						class="message {j == 0 ? 'user' : 'bot'}"
 						class:hide={message === null}
-						class:rtl={rtl}
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
-					>
+						style="--text-align: {text_align}"
+						>
 						{#if typeof message === "string"}
-							<Markdown {message} {latex_delimiters} {rtl} on:load={scroll} />
+							<Markdown {message} {latex_delimiters} {text_align} on:load={scroll} />
 							{#if feedback && j == 1}
 								<div class="feedback">
 									{#each feedback as f}
@@ -211,6 +211,7 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
+		text-align: var(--text-align);
 	}
 	.user {
 		align-self: flex-end;
@@ -406,7 +407,4 @@
 		right: 6px;
 	}
 
-	.rtl {
-		text-align: right;
-	}
 </style>

@@ -25,6 +25,7 @@
 	export let mode: "static" | "dynamic";
 	export let value_is_output: boolean = false;
 	export let rtl = false;
+	export let text_align: "left" | "right" = "left";
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
@@ -41,6 +42,7 @@
 		{lines}
 		{type}
 		{rtl}
+		{text_align}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		{show_copy_button}

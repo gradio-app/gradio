@@ -17,6 +17,7 @@
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
 	export let rtl = false;
+	export let text_align: "left" | "right" = "left";
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -151,6 +152,7 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
+				style="--text-align: {text_align}"
 			/>
 		{:else if type === "password"}
 			<input
@@ -202,6 +204,7 @@
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
 			on:select={handle_select}
+			style="--text-align: {text_align}"
 		/>
 	{/if}
 </label>
@@ -229,9 +232,10 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+		text-align: var(--text_align);
 	}
 	.rtl {
-		text-align: right;
+		direction: rtl;
 	}
 	input:disabled,
 	textarea:disabled {

@@ -28,7 +28,7 @@
 	export let selectable = false;
 	export let theme_mode: ThemeMode;
 	export let show_share_button = false;
-	export let rtl = false;
+	export let text_align: "left" | "center" | "right" | "justify" = "left";
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
@@ -83,7 +83,7 @@
 			value={_value}
 			{latex_delimiters}
 			pending_message={loading_status?.status === "pending"}
-			{rtl}
+			{text_align}
 			on:change
 			on:select
 			on:share

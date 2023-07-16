@@ -68,6 +68,7 @@ class Textbox(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         type: Literal["text", "password", "email"] = "text",
+        text_align: Literal["left", "right"] = "left",
         rtl: bool = False,
         show_copy_button: bool = False,
         **kwargs,
@@ -90,7 +91,8 @@ class Textbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
-            rtl: If True and type=='text', text will be rendered right-to-left. Default is False, which renders left-to-right.
+            text_align: How to align the text in the textbox. One of: 'left', 'center', 'right', 'justify'. Default is 'left'. Can only be changed if type=='text'.
+            rtl: If True and type=='text', sets the direction of the text to right-to-left (text is aligned right, and cursor appears on the left of the text). Takes precendence over the `text_align` parameter. Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
         """
         if type not in ["text", "password", "email"]:
@@ -128,6 +130,7 @@ class Textbox(
         TokenInterpretable.__init__(self)
         self.type = type
         self.rtl = rtl
+        self.text_align = text_align
 
     def get_config(self):
         return {
@@ -137,6 +140,7 @@ class Textbox(
             "value": self.value,
             "type": self.type,
             "show_copy_button": self.show_copy_button,
+            "text_align": self.text_align,
             "rtl": self.rtl,
             **IOComponent.get_config(self),
         }
@@ -156,6 +160,7 @@ class Textbox(
         visible: bool | None = None,
         interactive: bool | None = None,
         type: Literal["text", "password", "email"] | None = None,
+        text_align: Literal["left", "right"] | None = None,
         rtl: bool | None = None,
         show_copy_button: bool | None = None,
     ):
@@ -174,6 +179,7 @@ class Textbox(
             "type": type,
             "interactive": interactive,
             "show_copy_button": show_copy_button,
+            "text_align": text_align,
             "rtl": rtl,
             "__type__": "update",
         }
