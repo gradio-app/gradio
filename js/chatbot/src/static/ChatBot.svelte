@@ -104,7 +104,7 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
-						style="--text-align: {text_align}"
+						style="text-align: {text_align}"
 						>
 						{#if typeof message === "string"}
 							<Markdown {message} {latex_delimiters} on:load={scroll} />
@@ -211,7 +211,6 @@
 		font-size: var(--text-lg);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
-		text-align: var(--text-align);
 	}
 	.user {
 		align-self: flex-end;

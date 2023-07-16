@@ -21,7 +21,7 @@
 	class:hide={!visible}
 	bind:this={target}
 	data-testid="markdown"
-	style="--text-align: {text_align}"
+	style="text-align: {text_align}"
 >
 	{@html value}
 </div>
@@ -42,7 +42,6 @@
 
 	div {
 		max-width: 100%;
-		text-align: var(--text-align);
 	}
 
 	.min {

@@ -9,9 +9,8 @@
 	argTypes={{
 		label: {
 			control: "text",
-			description: "The gallery label",
+			description: "The textbox label",
 			name: "label",
-			value: "Gradio Button"
 		},
 		show_label: {
 			options: [true, false],
@@ -33,7 +32,13 @@
 		},
 		lines: {
 			options: [1, 5, 10, 20],
-			description: "The number of lines to show in the textbox",
+			description: "The number of lines to display in the textbox",
+			control: { type: "select" },
+			defaultValue: 1
+		},
+		max_lines: {
+			options: [1, 5, 10, 20],
+			description: "The maximum number of lines to allow users to type in the textbox",
 			control: { type: "select" },
 			defaultValue: 1
 		},
@@ -53,12 +58,12 @@
 	args={{ label: "My simple label", show_label: true }}
 />
 <Story
-	name="Textbox with lines specified"
-	args={{ lines: 10 }}
+	name="Textbox with 5 lines and max 5 lines"
+	args={{ lines: 5, max_lines: 5 }}
 />
 <Story
 	name="Password input"
-	args={{ type: "password" }}
+	args={{ type: "password", lines: 1, max_lines: 1 }}
 />
 <Story
 	name="Right aligned textbox"
