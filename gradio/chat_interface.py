@@ -303,7 +303,13 @@ class ChatInterface(Blocks):
         self, message: str, history_with_input: list[list[str | None]]
     ) -> Generator[list[list[str | None]], None, None]:
         history = history_with_input[:-1]
-        for response in self.fn(message, history):
+        generator = self.fn(message, history)
+        try:
+            first_response = next(generator)
+            yield history + [[message, first_response]]
+        except StopIteration:
+            yield history + [[message, ""]]            
+        for response in generator:
             yield history + [[message, response]]
 
     def _api_submit_fn(
