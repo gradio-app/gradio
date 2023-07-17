@@ -324,6 +324,7 @@
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
+		direction: ltr;
 	}
 
 	/* Tables */
@@ -359,6 +360,7 @@
 	/* KaTeX */
 	.message-wrap :global(span.katex) {
 		font-size: var(--text-lg);
+		direction: ltr;
 	}
 
 	/* Copy button */
