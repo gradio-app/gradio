@@ -35,7 +35,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        text_align: Literal["left", "center", "right", "justify"] = "left",
+        rtl: bool = False,
         **kwargs,
     ):
         """
@@ -47,7 +47,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             text_align: How to align the rendered Markdown. One of: 'left', 'center', 'right', 'justify'. Default is 'left'.
         """
         self.md = utils.get_markdown_parser()
-        self.text_align = text_align
+        self.rtl = rtl
         IOComponent.__init__(
             self,
             visible=visible,
@@ -72,7 +72,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def get_config(self):
         return {
             "value": self.value,
-            "text_align": self.text_align,
+            "rtl": self.rtl,
             **Component.get_config(self),
         }
 
@@ -80,12 +80,12 @@ class Markdown(IOComponent, Changeable, StringSerializable):
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         visible: bool | None = None,
-        text_align: Literal["left", "center", "right", "justify"] | None = None,
+        rtl: bool | None = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
-            "text_align": text_align,
+            "rtl": rtl,
             "__type__": "update",
         }
         return updated_config

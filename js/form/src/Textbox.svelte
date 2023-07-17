@@ -17,7 +17,7 @@
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
 	export let rtl = false;
-	export let text_align: "left" | "right" = "left";
+	export let text_align: "left" | "right" | undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -144,7 +144,7 @@
 				data-testid="textbox"
 				type="text"
 				class="scroll-hide"
-				class:rtl={rtl}
+				dir={rtl ? "rtl" : "ltr"}
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -152,8 +152,8 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
-				style="text-align: {text_align}"
-			/>
+				style={text_align ? "text-align: " + text_align : ""}
+				/>
 		{:else if type === "password"}
 			<input
 				data-testid="password"
@@ -195,7 +195,7 @@
 			data-testid="textbox"
 			use:text_area_resize={value}
 			class="scroll-hide"
-			class:rtl={rtl}
+			dir={rtl ? "rtl" : "ltr"}
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -204,8 +204,8 @@
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
 			on:select={handle_select}
-			style="text-align: {text_align}"
-		/>
+			style={text_align ? "text-align: " + text_align : ""}
+			/>
 	{/if}
 </label>
 
@@ -232,9 +232,6 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
-	}
-	.rtl {
-		direction: rtl;
 	}
 	input:disabled,
 	textarea:disabled {

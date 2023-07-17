@@ -51,7 +51,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         elem_classes: list[str] | str | None = None,
         height: int | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
-        text_align: Literal["left", "center", "right", "justify"] = "left",
+        rtl: bool = False,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -82,7 +82,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         See EventData documentation on how to use this event data.
         """
         self.height = height
-        self.text_align = text_align
+        self.rtl = rtl
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
@@ -114,7 +114,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "selectable": self.selectable,
             "height": self.height,
             "show_share_button": self.show_share_button,
-            "text_align": self.text_align,
+            "rtl": self.rtl,
             **IOComponent.get_config(self),
         }
 
@@ -130,7 +130,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         min_width: int | None = None,
         visible: bool | None = None,
         height: int | None = None,
-        text_align: Literal["left", "center", "right", "justify"] | None = None,
+        rtl: bool | None = None,
         show_share_button: bool | None = None,
     ):
         updated_config = {
@@ -143,7 +143,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             "value": value,
             "height": height,
             "show_share_button": show_share_button,
-            "text_align": text_align,
+            "rtl": rtl,
             "__type__": "update",
         }
         return updated_config

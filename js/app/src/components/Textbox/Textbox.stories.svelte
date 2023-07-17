@@ -42,6 +42,12 @@
 			control: { type: "select" },
 			defaultValue: 1
 		},
+		rtl: {
+			options: [true, false],
+			description: "Whether to render right-to-left",
+			control: { type: "boolean" },
+			defaultValue: false
+		},
 	}}
 />
 
@@ -68,5 +74,9 @@
 <Story
 	name="Right aligned textbox"
 	args={{ text_align: "right" }}
+/>
+<Story
+	name="RTL textbox"
+	args={{ rtl: true }}
 />
 

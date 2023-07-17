@@ -18,11 +18,11 @@
 			control: { type: "boolean" },
 			defaultValue: true
 		},
-		text_align: {
-			options: ["left", "right"],
-			description: "Whether to align the text left or right",
-			control: { type: "select" },
-			defaultValue: "left"
+		rtl: {
+			options: [true, false],
+			description: "Whether to render right-to-left",
+			control: { type: "boolean" },
+			defaultValue: false
 		},
 	}}
 />
@@ -45,7 +45,7 @@
 />
 
 <Story
-	name="Chatbot with text aligned to the right"
-	args={{ text_align: "right", latex_delimiters: [{ "left": "$$", "right": "$$", "display": true }]}}
+	name="Chatbot with text rendered right-to-left"
+	args={{ rtl: true, latex_delimiters: [{ "left": "$$", "right": "$$", "display": true }]}}
 />
 

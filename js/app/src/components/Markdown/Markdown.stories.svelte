@@ -7,12 +7,12 @@
 	title="Components/Markdown"
 	component={Markdown}
 	argTypes={{
-		text_align: {
-			options: ["left", "center", "right"],
-			description: "Whether to align the text left or right",
-			control: { type: "select" },
-			defaultValue: "left"
-		}
+		rtl: {
+			options: [true, false],
+			description: "Whether to render right-to-left",
+			control: { type: "boolean" },
+			defaultValue: false
+		},
 	}}
 />
 
@@ -25,11 +25,10 @@
 </Template>
 
 <Story
-	name="Simple inline Markdown"
-	args={{  }}
+	name="Simple inline Markdown with HTML"
 />
 <Story
-	name="Right aligned Markdown"
-	args={{ text_align: "right" }}
+	name="Right aligned Markdown with HTML"
+	args={{ rtl: true }}
 />
 

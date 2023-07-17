@@ -11,7 +11,7 @@
 	export let visible: boolean = true;
 	export let value: string = "";
 	export let loading_status: LoadingStatus;
-	export let text_align: "left" | "center" | "right" | "justify" = "left";
+	export let rtl = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -27,7 +27,7 @@
 			{elem_id}
 			{elem_classes}
 			{visible}
-			{text_align}
+			{rtl}
 			on:change
 		/>
 	</div>

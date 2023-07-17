@@ -25,7 +25,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
-	export let text_align: "left" | "center" | "right" | "justify" = "left";
+	export let rtl = false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -104,7 +104,7 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
-						style="text-align: {text_align}"
+						dir={rtl ? "rtl" : "ltr"}
 						>
 						{#if typeof message === "string"}
 							<Markdown {message} {latex_delimiters} on:load={scroll} />

@@ -25,7 +25,7 @@
 	export let mode: "static" | "dynamic";
 	export let value_is_output: boolean = false;
 	export let rtl = false;
-	export let text_align: "left" | "right" = "left";
+	export let text_align: "left" | "right" | undefined;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
