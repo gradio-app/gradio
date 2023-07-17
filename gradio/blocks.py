@@ -1623,7 +1623,7 @@ Received outputs:
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
-            max_size=max_size,
+            max_size=self.max_threads if max_size is None and utils.is_zero_gpu_space() else max_size,
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
