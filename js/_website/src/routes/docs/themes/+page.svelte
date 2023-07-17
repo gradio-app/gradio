@@ -28,7 +28,7 @@
 		const anchor = document.getElementById(anchorId);
 		window.scrollTo({
 			top: anchor?.offsetTop,
-			behavior: "smooth"
+			behavior: "smooth",
 		});
 	}
 
@@ -89,11 +89,11 @@
 
 		<div class="flex justify-between mt-4">
 			<a
-				href="/docs/block-layouts"
+				href="/docs/chatinterface"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					<span class="text-orange-500">&#8592;</span> Block Layouts
+					<span class="text-orange-500">&#8592;</span> ChatInterface
 				</div>
 			</a>
 			<a
@@ -481,19 +481,19 @@
 
 		<div class="flex justify-between my-4">
 			<a
-				href="/docs/interface"
+				href="/docs/chatinterface"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					<span class="text-orange-500">&#8592;</span> Interface
+					<span class="text-orange-500">&#8592;</span> ChatInterface
 				</div>
 			</a>
 			<a
-				href="/docs/combining-interfaces"
+				href="/docs/components"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					Combining Interfaces <span class="text-orange-500">&#8594;</span>
+					Components <span class="text-orange-500">&#8594;</span>
 				</div>
 			</a>
 		</div>
