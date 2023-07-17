@@ -368,6 +368,24 @@ class TestClientPredictions:
         assert client.predict("Hello!", api_name="/run") == "Hello!"
         assert client.predict("Freddy", api_name="/say_hello") == "hello"
 
+    def test_return_layout_component(self, hello_world_with_group):
+        with connect(hello_world_with_group) as demo:
+            assert demo.predict("Freddy", api_name="/greeting") == "Hello Freddy"
+            assert demo.predict(api_name="/show_group") == ()
+
+    def test_return_layout_and_state_components(
+        self, hello_world_with_state_and_accordion
+    ):
+        with connect(hello_world_with_state_and_accordion) as demo:
+            assert demo.predict("Freddy", api_name="/greeting") == ("Hello Freddy", 1)
+            assert demo.predict("Abubakar", api_name="/greeting") == (
+                "Hello Abubakar",
+                2,
+            )
+            assert demo.predict(api_name="/open") == 3
+            assert demo.predict(api_name="/close") == 4
+            assert demo.predict("Ali", api_name="/greeting") == ("Hello Ali", 5)
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
@@ -818,6 +836,113 @@ class TestAPIInfo:
             assert outputs[1]["python_type"] == {
                 "type": "str",
                 "description": "filepath or URL to file",
+            }
+
+    def test_layout_components_in_output(self, hello_world_with_group):
+        with connect(hello_world_with_group) as client:
+            info = client.view_api(return_format="dict")
+            assert info == {
+                "named_endpoints": {
+                    "/greeting": {
+                        "parameters": [
+                            {
+                                "label": "name",
+                                "type": {"type": "string"},
+                                "python_type": {"type": "str", "description": ""},
+                                "component": "Textbox",
+                                "example_input": "Howdy!",
+                                "serializer": "StringSerializable",
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "label": "greeting",
+                                "type": {"type": "string"},
+                                "python_type": {"type": "str", "description": ""},
+                                "component": "Textbox",
+                                "serializer": "StringSerializable",
+                            }
+                        ],
+                    },
+                    "/show_group": {"parameters": [], "returns": []},
+                },
+                "unnamed_endpoints": {},
+            }
+            assert info["named_endpoints"]["/show_group"] == {
+                "parameters": [],
+                "returns": [],
+            }
+
+    def test_layout_and_state_components_in_output(
+        self, hello_world_with_state_and_accordion
+    ):
+        with connect(hello_world_with_state_and_accordion) as client:
+            info = client.view_api(return_format="dict")
+            assert info == {
+                "named_endpoints": {
+                    "/greeting": {
+                        "parameters": [
+                            {
+                                "label": "name",
+                                "type": {"type": "string"},
+                                "python_type": {"type": "str", "description": ""},
+                                "component": "Textbox",
+                                "example_input": "Howdy!",
+                                "serializer": "StringSerializable",
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "label": "greeting",
+                                "type": {"type": "string"},
+                                "python_type": {"type": "str", "description": ""},
+                                "component": "Textbox",
+                                "serializer": "StringSerializable",
+                            },
+                            {
+                                "label": "count",
+                                "type": {"type": "number"},
+                                "python_type": {
+                                    "type": "int | float",
+                                    "description": "",
+                                },
+                                "component": "Number",
+                                "serializer": "NumberSerializable",
+                            },
+                        ],
+                    },
+                    "/open": {
+                        "parameters": [],
+                        "returns": [
+                            {
+                                "label": "count",
+                                "type": {"type": "number"},
+                                "python_type": {
+                                    "type": "int | float",
+                                    "description": "",
+                                },
+                                "component": "Number",
+                                "serializer": "NumberSerializable",
+                            }
+                        ],
+                    },
+                    "/close": {
+                        "parameters": [],
+                        "returns": [
+                            {
+                                "label": "count",
+                                "type": {"type": "number"},
+                                "python_type": {
+                                    "type": "int | float",
+                                    "description": "",
+                                },
+                                "component": "Number",
+                                "serializer": "NumberSerializable",
+                            }
+                        ],
+                    },
+                },
+                "unnamed_endpoints": {},
             }
 
 

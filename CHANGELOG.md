@@ -18,6 +18,7 @@ with gr.Blocks() as demo:
     gr.Markdown("سلام", rtl=True)
 demo.launch()
 ```
+- The `get_api_info` method of `Blocks` now supports layout output components [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4871](https://github.com/gradio-app/gradio/pull/4871)
 
 ## Bug Fixes:
 

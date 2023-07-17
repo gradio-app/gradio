@@ -210,6 +210,68 @@ def stateful_chatbot():
 
 
 @pytest.fixture
+def hello_world_with_group():
+    with gr.Blocks() as demo:
+        name = gr.Textbox(label="name")
+        output = gr.Textbox(label="greeting")
+        greet = gr.Button("Greet")
+        show_group = gr.Button("Show group")
+        with gr.Group(visible=False) as group:
+            gr.Textbox("Hello!")
+
+        def greeting(name):
+            return f"Hello {name}", gr.Group.update(visible=True)
+
+        greet.click(
+            greeting, inputs=[name], outputs=[output, group], api_name="greeting"
+        )
+        show_group.click(
+            lambda: gr.Group.update(visible=False), None, group, api_name="show_group"
+        )
+    return demo
+
+
+@pytest.fixture
+def hello_world_with_state_and_accordion():
+    with gr.Blocks() as demo:
+        with gr.Row():
+            name = gr.Textbox(label="name")
+            output = gr.Textbox(label="greeting")
+            num = gr.Number(label="count")
+        with gr.Row():
+            n_counts = gr.State(value=0)
+            greet = gr.Button("Greet")
+            open_acc = gr.Button("Open acc")
+            close_acc = gr.Button("Close acc")
+        with gr.Accordion(label="Extra stuff", open=False) as accordion:
+            gr.Textbox("Hello!")
+
+        def greeting(name, state):
+            state += 1
+            return state, f"Hello {name}", state, gr.Accordion.update(open=False)
+
+        greet.click(
+            greeting,
+            inputs=[name, n_counts],
+            outputs=[n_counts, output, num, accordion],
+            api_name="greeting",
+        )
+        open_acc.click(
+            lambda state: (state + 1, state + 1, gr.Accordion.update(open=True)),
+            [n_counts],
+            [n_counts, num, accordion],
+            api_name="open",
+        )
+        close_acc.click(
+            lambda state: (state + 1, state + 1, gr.Accordion.update(open=False)),
+            [n_counts],
+            [n_counts, num, accordion],
+            api_name="close",
+        )
+    return demo
+
+
+@pytest.fixture
 def all_components():
     classes_to_check = gr.components.Component.__subclasses__()
     subclasses = []
