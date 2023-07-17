@@ -49,7 +49,6 @@
 
 	div > :global(*),
 	div > :global(.form > *) {
-		display: flex;
 		flex: 1 1 0%;
 		flex-wrap: wrap;
 		min-width: min(160px, 100%);
