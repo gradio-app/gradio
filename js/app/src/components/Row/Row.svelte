@@ -1,8 +1,8 @@
 <script lang="ts">
-	export let equal_height: boolean = true;
+	export let equal_height = true;
 	export let elem_id: string;
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let variant: "default" | "panel" | "compact" = "default";
 </script>
 
@@ -49,6 +49,7 @@
 
 	div > :global(*),
 	div > :global(.form > *) {
+		display: flex;
 		flex: 1 1 0%;
 		flex-wrap: wrap;
 		min-width: min(160px, 100%);
