@@ -3,19 +3,19 @@
 ## New Features:
 - Chatbot messages now show hyperlinks to download files uploaded to `gr.Chatbot()` by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4848](https://github.com/gradio-app/gradio/pull/4848)
 - Cached examples now work with generators and async generators by [@abidlabs](https://github.com/abidlabs) in [PR 4927](https://github.com/gradio-app/gradio/pull/4927)
-- Add RTL support to `gr.Textbox` (via the `rtl` boolean parameter) and text-alignment to `gr.Textbox`, `gr.Markdown`, and `gr.Chatbot` (via the string `text_align` parameter) by [@abidlabs](https://github.com/abidlabs) in [PR 4933](https://github.com/gradio-app/gradio/pull/4933)
+- Add RTL support to `gr.Markdown`, `gr.Chatbot`, `gr.Textbox` (via the `rtl` boolean parameter) and text-alignment to `gr.Textbox`(via the string `text_align` parameter) by [@abidlabs](https://github.com/abidlabs) in [PR 4933](https://github.com/gradio-app/gradio/pull/4933)
 
 Examples of usage:
 
 ```py
 with gr.Blocks() as demo:   
-    gr.Textbox(interactive=True, rtl=True)
+    gr.Textbox(interactive=True, text_align="right")
 demo.launch()
 ```
 
 ```py
 with gr.Blocks() as demo:   
-    gr.Markdown("سلام", text_align="right")
+    gr.Markdown("سلام", rtl=True)
 demo.launch()
 ```
 
