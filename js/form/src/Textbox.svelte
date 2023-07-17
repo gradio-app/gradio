@@ -16,6 +16,8 @@
 	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
+	export let rtl = false;
+	export let text_align: "left" | "right" | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -142,6 +144,7 @@
 				data-testid="textbox"
 				type="text"
 				class="scroll-hide"
+				dir={rtl ? "rtl" : "ltr"}
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -149,7 +152,8 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
-			/>
+				style={text_align ? "text-align: " + text_align : ""}
+				/>
 		{:else if type === "password"}
 			<input
 				data-testid="password"
@@ -191,6 +195,7 @@
 			data-testid="textbox"
 			use:text_area_resize={value}
 			class="scroll-hide"
+			dir={rtl ? "rtl" : "ltr"}
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -199,7 +204,8 @@
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
 			on:select={handle_select}
-		/>
+			style={text_align ? "text-align: " + text_align : ""}
+			/>
 	{/if}
 </label>
 
