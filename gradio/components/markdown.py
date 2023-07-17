@@ -44,7 +44,7 @@ class Markdown(IOComponent, Changeable, StringSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            text_align: How to align the rendered Markdown. One of: 'left', 'center', 'right', 'justify'. Default is 'left'.
+            rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
         """
         self.md = utils.get_markdown_parser()
         self.rtl = rtl
