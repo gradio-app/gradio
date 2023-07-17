@@ -17,7 +17,7 @@
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
 	export let rtl = false;
-	export let text_align: "left" | "right" | undefined;
+	export let text_align: "left" | "right" | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
