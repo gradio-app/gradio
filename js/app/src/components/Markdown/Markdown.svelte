@@ -11,6 +11,7 @@
 	export let visible: boolean = true;
 	export let value: string = "";
 	export let loading_status: LoadingStatus;
+	export let rtl = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -26,6 +27,7 @@
 			{elem_id}
 			{elem_classes}
 			{visible}
+			{rtl}
 			on:change
 		/>
 	</div>

@@ -5,5 +5,5 @@ export default {
 	},
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
-	globalSetup: "./playwright-setup.js",
+	globalSetup: "./playwright-setup.js"
 };
