@@ -3,4 +3,4 @@ source scripts/helpers.sh
 
 pip_required
 
-python -m pyright gradio/*.py gradio/components/*.py
+python -m pyright
