@@ -115,6 +115,8 @@
 			</span>
 
 			<span class="time">{format(time)} / {format(duration)}</span>
+
+			<!-- TODO: implement accessible video timeline for 4.0 --> 
 			<progress
 				value={time / duration || 0}
 				on:mousemove={handleMove}
