@@ -27,6 +27,7 @@
 	export let selectable = false;
 	export let theme_mode: ThemeMode;
 	export let show_share_button = false;
+	export let rtl = false;
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
@@ -81,6 +82,7 @@
 			value={_value}
 			{latex_delimiters}
 			pending_message={loading_status?.status === "pending"}
+			{rtl}
 			on:change
 			on:select
 			on:share
