@@ -57,7 +57,7 @@ class Code(Changeable, Inputable, IOComponent, StringSerializable):
         lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,

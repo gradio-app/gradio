@@ -28,7 +28,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {scale} {min_width} {container}>
+<Block {visible} {elem_id} {elem_classes} {scale} {min_width} allow_overflow={false} padding={container}>
 	{#if loading_status}
 		<StatusTracker {...loading_status} />
 	{/if}
@@ -46,6 +46,7 @@
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		{show_copy_button}
+		{container}
 		on:change
 		on:input
 		on:submit
