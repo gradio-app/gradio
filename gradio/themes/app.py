@@ -63,7 +63,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
             check = gr.Checkbox(label="Go")
         with gr.Column(variant="panel", scale=2):
             img = gr.Image(
-                "https://i.ibb.co/6BgKdSj/groot.jpg", label="Image"
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/assets/img/header-image.jpg", label="Image"
             ).style(height=320)
             with gr.Row():
                 go_btn = gr.Button("Go", label="Primary Button", variant="primary")
