@@ -1,15 +1,13 @@
-# How to Create a Chatbot
+# How to Create a Custom Chatbot with Gradio Blocks
 
 Tags: NLP, TEXT, CHAT
 Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://huggingface.co/spaces/project-baize/Baize-7B, 
 
 ## Introduction
 
-Chatbots are widely used in natural language processing (NLP) research and industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts.
+**Important Note**: if you are getting started, we recommend using the `gr.ChatInterface` to create chatbots -- its a high-level abstraction that makes it possible to create beautiful chatbot applications fast, often with a single line of code. [Read more about it here](/guides/creating-a-chatbot-fast).
 
-Using `gradio`, you can easily build a demo of your chatbot model and share that with your users, or try it yourself using an intuitive chatbot GUI.
-
-This tutorial will show how to make several kinds of chatbot UIs with Gradio: first a simple one to display text, second one to stream text responses, and finally a chatbot that can handle media files as well. The chatbot interface that we create will look something like this:
+This tutorial will show how to make chatbot UIs from scratch with Gradio's low-level Blocks API. This will give you full control over your Chatbot UI. You'll start by first creating a a simple chatbot to display text, a second one to stream text responses, and finally a chatbot that can handle media files as well. The chatbot interface that we create will look something like this:
 
 $demo_chatbot_streaming
 

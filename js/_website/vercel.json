@@ -50,7 +50,11 @@
 		},
 		{
 			"source": "/creating-a-chatbot",
-			"destination": "/guides/creating-a-chatbot"
+			"destination": "/guides/creating-a-custom-chatbot-with-blocks"
+		},
+		{
+			"source": "/guides/creating-a-chatbot",
+			"destination": "/guides/creating-a-custom-chatbot-with-blocks"
 		},
 		{
 			"source": "/how-to-use-D-model-component",
