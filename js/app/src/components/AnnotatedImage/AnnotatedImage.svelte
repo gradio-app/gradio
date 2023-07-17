@@ -19,6 +19,7 @@
 	export let height: number | undefined;
 	export let width: number | undefined;
 	export let color_map: Record<string, string>;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let root: string;
@@ -64,7 +65,7 @@
 	{height}
 	{width}
 	allow_overflow={false}
-	
+	{container}
 	{scale}
 	{min_width}
 >

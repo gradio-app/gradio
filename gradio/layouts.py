@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -7,7 +8,6 @@ from gradio_client.documentation import document, set_documentation_group
 from gradio.blocks import BlockContext
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import Changeable, Selectable
-import warnings
 
 if TYPE_CHECKING:
     from gradio.blocks import Block

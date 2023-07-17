@@ -133,7 +133,7 @@ class IOComponent(Component):
         value: Any = None,
         label: str | None = None,
         info: str | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
@@ -156,6 +156,12 @@ class IOComponent(Component):
 
         self.label = label
         self.info = info
+        if not container:
+            if show_label:
+                warn_deprecation("show_label has no effect when container is False.")
+            show_label = False
+        if show_label is None:
+            show_label = True
         self.show_label = show_label
         self.container = container
         if scale is not None and scale != round(scale):
@@ -366,7 +372,7 @@ class IOComponent(Component):
 
 class FormComponent:
     def get_expected_parent(self) -> type[Form]:
-        if getattr(self, "container", None) == False:
+        if getattr(self, "container", None) is False:
             return None
         return Form
 

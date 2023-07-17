@@ -21,7 +21,7 @@
 	export let value_is_output: boolean = false;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {scale} {min_width} padding={container} allow_overflow={false}>
+<Block {visible} {elem_id} {elem_classes} padding={container} allow_overflow={false} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Number

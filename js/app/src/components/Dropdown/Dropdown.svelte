@@ -30,7 +30,7 @@
 	}
 </script>
 
-<Block {visible} {elem_id} {elem_classes}  {scale} {min_width} padding={container}>
+<Block {visible} {elem_id} {elem_classes} padding={container} allow_overflow={false} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
 	<Dropdown

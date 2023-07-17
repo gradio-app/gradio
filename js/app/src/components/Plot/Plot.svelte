@@ -17,6 +17,7 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let target: HTMLElement;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let theme_mode: ThemeMode;
@@ -29,7 +30,7 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	
+	{container}
 	{scale}
 	{min_width}
 >

@@ -36,7 +36,6 @@
 		border: none;
 		border-radius: 0;
 	}
-
 	.hide {
 		display: none;
 	}

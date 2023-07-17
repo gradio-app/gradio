@@ -14,6 +14,7 @@
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label: string = "Highlighted Text";
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let selectable: boolean = false;
@@ -40,7 +41,7 @@
 	{elem_id}
 	{elem_classes}
 	padding={false}
-	
+	{container}
 	{scale}
 	{min_width}
 >
@@ -50,7 +51,7 @@
 			Icon={TextHighlight}
 			{label}
 			float={false}
-			
+			disable={container === false}
 		/>
 	{/if}
 

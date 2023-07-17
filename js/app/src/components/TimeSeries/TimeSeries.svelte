@@ -42,6 +42,7 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let colors: Array<string>;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
@@ -143,7 +144,7 @@
 	padding={false}
 	{elem_id}
 	{elem_classes}
-	
+	{container}
 	{scale}
 	{min_width}
 >
