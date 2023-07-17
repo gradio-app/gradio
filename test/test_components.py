@@ -104,7 +104,6 @@ class TestTextbox:
             "interactive": None,
             "root_url": None,
             "rtl": False,
-            "text_align": "left",
         }
 
     @pytest.mark.asyncio
@@ -1978,7 +1977,6 @@ class TestChatbot:
             "root_url": None,
             "selectable": False,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
-            "text_align": "left",
         }
 
 
