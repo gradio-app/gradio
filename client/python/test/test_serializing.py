@@ -22,9 +22,7 @@ def test_duplicate(serializer_class):
 def test_check_component_fallback_serializers():
     for component_name, class_type in COMPONENT_MAPPING.items():
         # skip components that cannot be instantiated without parameters
-        if component_name in ["dataset", "interpretation"] + list(
-            SKIP_COMPONENTS - {"state"}
-        ):
+        if component_name in SKIP_COMPONENTS:
             continue
         component = components.get_component_instance(component_name)
         assert isinstance(component, class_type)
