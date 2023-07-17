@@ -38,6 +38,8 @@ from gradio.components import (
     Json,
     Label,
     LinePlot,
+    LoginButton,
+    LogoutButton,
     Markdown,
     Model3D,
     Number,

@@ -4,6 +4,7 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import inspect
 import json
 import mimetypes
@@ -24,6 +25,7 @@ import httpx
 import markupsafe
 import orjson
 import pkg_resources
+from authlib.integrations.starlette_client import OAuth
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
@@ -37,6 +39,7 @@ from fastapi.templating import Jinja2Templates
 from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
 from starlette.background import BackgroundTask
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse, StreamingResponse
 from starlette.websockets import WebSocketState
 
@@ -241,6 +244,62 @@ class App(FastAPI):
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
+
+        ###############
+        # OAuth Routes
+        ###############
+
+        # TODO: adding oauth routes to the app must be optional (use a parameter demo.launch(auth=True) ?)
+        OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
+        OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
+        OAUTH_SCOPES = os.environ.get("OAUTH_SCOPES")
+        OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
+
+        for value in (
+            OAUTH_CLIENT_ID,
+            OAUTH_CLIENT_SECRET,
+            OAUTH_SCOPES,
+            OPENID_PROVIDER_URL,
+        ):
+            if value is None:
+                raise ValueError("Missing environment variable")
+
+        METADATA_URL = OPENID_PROVIDER_URL + "/.well-known/openid-configuration"
+
+        oauth = OAuth()
+        oauth.register(
+            name="huggingface",
+            client_id=OAUTH_CLIENT_ID,
+            client_secret=OAUTH_CLIENT_SECRET,
+            client_kwargs={"scope": OAUTH_SCOPES},
+            server_metadata_url=METADATA_URL,
+        )
+
+        @app.get("/login/huggingface")
+        async def oauth_login(request: fastapi.Request):
+            redirect_uri = str(request.url_for("oauth_redirect_callback"))
+            if ".hf.space" in redirect_uri:
+                # In Space, FastAPI redirect as http but we want https
+                redirect_uri = redirect_uri.replace("http://", "https://")
+            return await oauth.huggingface.authorize_redirect(request, redirect_uri)
+
+        @app.get("/login/callback")
+        async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
+            token = await oauth.huggingface.authorize_access_token(request)
+            request.session["oauth_info"] = token
+            return RedirectResponse("/")
+
+        @app.get("/logout")
+        async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
+            request.session.pop("oauth_info", None)
+            return RedirectResponse("/")
+
+        # Session Middleware requires a secret key to sign the cookies. Let's use a hash of the OAuth secret key to
+        # make it unique to the Space + updated in case OAuth config gets updated.
+        app.add_middleware(
+            SessionMiddleware,
+            secret_key=hashlib.sha256(OAUTH_CLIENT_SECRET.encode()).hexdigest(),
+        )
 
         ###############
         # Main Routes

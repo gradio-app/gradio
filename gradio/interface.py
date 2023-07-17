@@ -22,6 +22,8 @@ from gradio.components import (
     DuplicateButton,
     Interpretation,
     IOComponent,
+    LoginButton,
+    LogoutButton,
     Markdown,
     State,
     get_component_instance,

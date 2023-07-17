@@ -343,6 +343,7 @@ class Queue:
             "headers": dict(websocket.headers),
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
+            "session": websocket.session,  # forward OAuth information
             "client": {"host": websocket.client.host, "port": websocket.client.port},  # type: ignore
         }
 
