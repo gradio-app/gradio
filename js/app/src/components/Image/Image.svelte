@@ -25,7 +25,7 @@
 	export let shape: [number, number];
 	export let brush_radius: number;
 	export let selectable: boolean = false;
-	export let container: boolean = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;

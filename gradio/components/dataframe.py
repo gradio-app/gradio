@@ -55,7 +55,7 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,

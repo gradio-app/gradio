@@ -30,7 +30,7 @@ class HTML(Changeable, IOComponent, StringSerializable):
         *,
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
