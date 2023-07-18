@@ -1,7 +1,3 @@
-import os
-print(os.getcwd())
-print(os.listdir(os.path.dirname(__file__)))
-
 from src import demos, guides, docs, changelog
 import os 
 import requests

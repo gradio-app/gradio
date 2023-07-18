@@ -325,5 +325,11 @@
 			"destination": "/guides/image-classification-in-tensorflow"
 		}
 	],
-	"trailingSlash": false
+	"trailingSlash": false,
+	"builds": [
+		{
+			"src": "*.py",
+			"use": "@vercel/python"
+		}
+	]
 }
