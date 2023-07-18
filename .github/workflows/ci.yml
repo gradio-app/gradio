@@ -10,7 +10,8 @@ env:
 
 jobs:
   publish:
-    name: static checks
+    permissions: write-all
+    name: publish
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
