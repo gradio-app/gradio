@@ -212,5 +212,6 @@
 		background-color: var(--background-fill-secondary);
 		height: var(--size-full);
 		width: var(--size-full);
+		border: 5px solid red;
 	}
 </style>
