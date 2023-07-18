@@ -5,7 +5,9 @@ import concurrent.futures
 import json
 import os
 import re
+import secrets
 import tempfile
+import textwrap
 import threading
 import time
 import urllib.parse
@@ -630,8 +632,10 @@ class Client:
         if self.space_id:
             is_private = huggingface_hub.space_info(self.space_id).private
             if is_private:
-                assert hf_token, (f"Since {self.space_id} is private, you must explicitly pass in hf_token "
-                                  "so that it can be added as a secret in the discord bot space.")
+                assert hf_token, (
+                    f"Since {self.space_id} is private, you must explicitly pass in hf_token "
+                    "so that it can be added as a secret in the discord bot space."
+                )
 
         if to_id:
             if "/" in to_id:
@@ -639,10 +643,16 @@ class Client:
             space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
         else:
             space_id = huggingface_hub.get_full_repo_name(
-                "gradio-discord-bot", token=hf_token
+                f"gradio-discord-bot-{secrets.token_hex(4)}", token=hf_token
             )
 
         api = huggingface_hub.HfApi()
+
+        try:
+            huggingface_hub.space_info(space_id)
+            first_upload = False
+        except huggingface_hub.utils.RepositoryNotFoundError:
+            first_upload = True
 
         huggingface_hub.create_repo(
             space_id,
@@ -661,9 +671,23 @@ class Client:
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as requirements:
                 app_file.write(app)
-                requirements.write(
-                    "\n".join(["gradio_client", "discord.py==2.3.1", "apscheduler"])
-                )
+                requirements.write("\n".join(["discord.py==2.3.1", "apscheduler"]))
+        readme = None
+        if first_upload:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme:
+                content = f"""
+                        ---
+                        tags: [gradio-discord-bot]
+                        title: {space_id}
+                        colorFrom: orange
+                        colorTo: purple
+                        sdk: gradio
+                        sdk_version: {requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]}
+                        app_file: app.py
+                        pinned: false
+                        ---
+                        """
+                readme.write(textwrap.dedent(content))
 
         operations = [
             CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
@@ -671,6 +695,12 @@ class Client:
                 path_in_repo="requirements.txt", path_or_fileobj=requirements.name
             ),
         ]
+        if readme:
+            operations.append(
+                CommitOperationAdd(
+                    path_in_repo="README.md", path_or_fileobj=readme.name
+                )
+            )
 
         api.create_commit(
             repo_id=space_id,
@@ -688,7 +718,6 @@ class Client:
             huggingface_hub.add_space_secret(
                 space_id, "HF_TOKEN", hf_token, token=hf_token
             )
-
 
         url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your discord bot here! {url}")
