@@ -50,7 +50,7 @@ class Dropdown(
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -155,6 +155,7 @@ class Dropdown(
             "multiselect": self.multiselect,
             "max_choices": self.max_choices,
             "allow_custom_value": self.allow_custom_value,
+            "container": self.container,
             **IOComponent.get_config(self),
         }
 

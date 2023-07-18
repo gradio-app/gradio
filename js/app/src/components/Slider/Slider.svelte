@@ -10,7 +10,7 @@
 	export let value: number = 0;
 	export let label: string = "Slider";
 	export let info: string | undefined = undefined;
-	export let container: boolean = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let minimum: number;
