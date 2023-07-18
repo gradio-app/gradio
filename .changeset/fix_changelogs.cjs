@@ -5,10 +5,7 @@ const { getPackagesSync } = require("@manypkg/get-packages");
 const pkg_meta = getPackagesSync(process.cwd());
 
 const { _handled, ...packages } = JSON.parse(
-	readFileSync(
-		existsSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json")),
-		"utf-8"
-	)
+	readFileSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json"), "utf-8")
 );
 
 const all_packages = pkg_meta.packages.reduce((acc, pkg) => {
