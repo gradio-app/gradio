@@ -204,6 +204,38 @@ class TestProcessExamples:
             {"label": "lion"},
         ]
 
+    @pytest.mark.asyncio
+    async def test_caching_with_generators(self):
+        def test_generator(x):
+            for y in range(len(x)):
+                yield "Your output: " + x[: y + 1]
+
+        io = gr.Interface(
+            test_generator,
+            "textbox",
+            "textbox",
+            examples=["abcdef"],
+            cache_examples=True,
+        )
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert prediction[0] == "Your output: abcdef"
+
+    @pytest.mark.asyncio
+    async def test_caching_with_async_generators(self):
+        async def test_generator(x):
+            for y in range(len(x)):
+                yield "Your output: " + x[: y + 1]
+
+        io = gr.Interface(
+            test_generator,
+            "textbox",
+            "textbox",
+            examples=["abcdef"],
+            cache_examples=True,
+        )
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert prediction[0] == "Your output: abcdef"
+
     def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
         def foo(a, b):
             return a + b

@@ -10,6 +10,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "audio_debugger",
         "altair_plot",
         "blocks_essay",
+        "blocks_group",
         "blocks_js_methods",
         "blocks_layout",
         "blocks_mask",

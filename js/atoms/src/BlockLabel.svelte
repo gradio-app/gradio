@@ -38,6 +38,10 @@
 		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
 	}
+	:global(.gr-group) div {
+		border-top-left-radius: 0;
+	}
+
 	div.float {
 		position: absolute;
 		top: var(--block-label-margin);

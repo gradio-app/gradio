@@ -30,7 +30,7 @@
 	export let root_url: null | string;
 	export let selectable: boolean = false;
 	export let loading_status: LoadingStatus;
-	export let container: boolean = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
