@@ -326,12 +326,12 @@
 		}
 	],
 	"trailingSlash": false,
+	"buildCommand": "pnpm build",
+	"installCommand": "pnpm i",
 	"builds": [
 		{
 			"src": "*.py",
 			"use": "@vercel/python"
 		}
-	],
-	"buildCommand": "pnpm build",
-	"installCommand": "pnpm i"
+	]
 }
