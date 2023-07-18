@@ -1,3 +1,4 @@
+// @ts-ignore
 import docs_json from "../docs.json";
 import Demos from "../../../components/Demos.svelte";
 import DocsNav from "../../../components/DocsNav.svelte";

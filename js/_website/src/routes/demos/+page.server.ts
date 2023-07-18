@@ -1,5 +1,6 @@
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
+// @ts-ignore
 import demos_by_category from "./demos.json";
 
 let language = "python";

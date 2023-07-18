@@ -25,7 +25,9 @@
 	if (browser) {
 		window.__gradio_mode__ = "website";
 	}
+	// @ts-ignore
 	import version_json from "./version.json";
+	// @ts-ignore
 	let version = version_json.version;
 </script>
 

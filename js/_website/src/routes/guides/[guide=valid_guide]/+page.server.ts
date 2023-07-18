@@ -1,3 +1,4 @@
+// @ts-ignore
 import guide_names_json from "../json/guide_names.json";
 import fs from "fs";
 import path from "path";
