@@ -9,5 +9,6 @@
 	"private": true,
 	"scripts": {
 		"generate": "pollen -c src/pollen.config.cjs"
-	}
+	},
+	"main_changeset": true
 }

@@ -22,5 +22,6 @@
 		"prismjs": "1.29.0",
 		"dompurify": "^3.0.3",
 		"@types/dompurify": "^3.0.2"
-	}
+	},
+	"main_changeset": true
 }

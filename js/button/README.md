@@ -1,4 +1,4 @@
-# `@gradio/button`
+# `@gradio/boop`
 
 ```html
 <script>
