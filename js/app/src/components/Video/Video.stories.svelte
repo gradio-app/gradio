@@ -25,5 +25,5 @@
 	<Video {...args} />
 </Template>
 
-<Story name="Primary" args={{ value:["https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4"], format:"mp4", label:"world video", show_label:true, interactive:true, autoplay: true }} />
+<Story name="Primary" args={{ value:["https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4"], format:"mp4", label:"world video", show_label:true, interactive:true, autoplay: true, height: 400, width: 400 }} />
 
