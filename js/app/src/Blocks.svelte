@@ -262,8 +262,8 @@
 		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 			navigator.userAgent
 		);
-	let showed_duplicate_message = false;
-	let showed_mobile_warning = false;
+	let showed_duplicate_message = true;
+	let showed_mobile_warning = true;
 
 	const trigger_api_call = async (
 		dep_index: number,
