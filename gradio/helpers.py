@@ -16,12 +16,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
 import matplotlib.pyplot as plt
-from matplotlib import animation
 import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from matplotlib import animation
 
 from gradio import components, processing_utils, routes, utils
 from gradio.context import Context
@@ -836,7 +836,7 @@ def make_waveform(
             bottom=(-1 * samples),
             width=bar_width,
             color=color,
-            alpha=bar_alpha
+            alpha=bar_alpha,
         )
 
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
@@ -848,7 +848,7 @@ def make_waveform(
                 savefig_kwargs["facecolor"] = "none"
         else:
             savefig_kwargs["facecolor"] = bg_color
-        
+
         plt.savefig(tmp_img.name, **savefig_kwargs)
 
         if not animate_waveform:
@@ -866,7 +866,10 @@ def make_waveform(
                 bg_width, bg_height = bg_img.size
                 if waveform_width != bg_width:
                     bg_img = bg_img.resize(
-                        (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
+                        (
+                            waveform_width,
+                            2 * int(bg_height * waveform_width / bg_width / 2),
+                        )
                     )
                     bg_width, bg_height = bg_img.size
                 composite_height = max(bg_height, waveform_height)
@@ -881,8 +884,9 @@ def make_waveform(
                 img_width, img_height = composite.size
             else:
                 img_width, img_height = waveform_img.size
-                waveform_img.save(tmp_img.name)    
+                waveform_img.save(tmp_img.name)
         else:
+
             def animate(_):
                 for idx, b in enumerate(barcollection):
                     rand_height = np.random.uniform(0.8, 1.2)
