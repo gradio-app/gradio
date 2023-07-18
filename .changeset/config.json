@@ -1,8 +1,8 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
 	"changelog": [
-		"@changesets/changelog-github",
-		{ "repo": "gradio-app/gradio" }
+		"./changeset.cjs",
+		{ "repo": "pngwn/gradio" }
 	],
 	"commit": false,
 	"fixed": [],
@@ -10,5 +10,5 @@
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": ["@gradio/app", "@gradio/spaces-test"]
+	"ignore": ["@gradio/spaces-test", "@gradio/cdn-test"]
 }
