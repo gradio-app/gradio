@@ -71,7 +71,7 @@ class LinePlot(Plot):
         caption: str | None = None,
         interactive: bool | None = True,
         label: str | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,

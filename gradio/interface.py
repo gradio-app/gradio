@@ -1,6 +1,5 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class,
-including various methods for constructing an interface and then launching it.
+This file defines two useful high-level abstractions to build Gradio apps: Interface and TabbedInterface.
 """
 
 from __future__ import annotations

@@ -35,6 +35,20 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
+SKIP_COMPONENTS = {
+    "state",
+    "row",
+    "column",
+    "tabs",
+    "tab",
+    "tabitem",
+    "box",
+    "form",
+    "accordion",
+    "group",
+    "interpretation",
+    "dataset",
+}
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
