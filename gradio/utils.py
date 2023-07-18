@@ -113,6 +113,10 @@ def get_space() -> str | None:
     return None
 
 
+def is_zero_gpu_space() -> bool:
+    return os.getenv("SPACES_ZERO_GPU") == "true"
+
+
 def readme_to_html(article: str) -> str:
     try:
         response = requests.get(article, timeout=3)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document, set_documentation_group
@@ -295,6 +296,7 @@ class Box(BlockContext):
             visible: If False, box will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        warnings.warn("gr.Box is deprecated. Use gr.Group instead.", DeprecationWarning)
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):

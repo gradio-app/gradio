@@ -1076,6 +1076,8 @@ class TestSpecificUpdate:
             "type": None,
             "interactive": False,
             "show_copy_button": None,
+            "rtl": None,
+            "text_align": None,
             "__type__": "update",
         }
 
@@ -1097,6 +1099,8 @@ class TestSpecificUpdate:
             "type": None,
             "interactive": True,
             "show_copy_button": None,
+            "rtl": None,
+            "text_align": None,
             "__type__": "update",
         }
 

@@ -34,7 +34,7 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let root_url: null | string;
-	export let container = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;

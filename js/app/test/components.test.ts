@@ -155,7 +155,7 @@ describe("all components should be invisible when visible=false", () => {
 
 			const elem = container.querySelector(`#test-id`);
 
-			expect(elem).toHaveClass("hide-container");
+			expect(elem).toHaveClass("hidden");
 		});
 	});
 
