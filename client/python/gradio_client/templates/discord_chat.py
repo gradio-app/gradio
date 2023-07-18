@@ -44,7 +44,7 @@ thread_to_user = {}
 
 @bot.command(name="<<command-name>>")
 @discord.app_commands.describe(
-    prompt="Enter some text to chat with the bot! Like this: chat Hello, how are you?"
+    prompt="Enter some text to chat with the bot! Like this: !<< Hello, how are you?"
 )
 async def chat(ctx, _prompt: str):
     if ctx.author.id == bot.user.id:
@@ -67,7 +67,9 @@ async def chat(ctx, _prompt: str):
             thread_to_user[thread.id] = ctx.author.id
             await thread.send(f"{job.outputs()[-1]}")
         except QueueError:
-            await thread.send("The gradio space powering this bot is really busy! Please try again later!")
+            await thread.send(
+                "The gradio space powering this bot is really busy! Please try again later!"
+            )
 
     except Exception as e:
         print(f"{e}")
@@ -84,7 +86,9 @@ async def continue_chat(message):
             job.result()
             await message.reply(f"{job.outputs()[-1]}")
         except QueueError:
-            await message.reply("The gradio space powering this bot is really busy! Please try again later!")
+            await message.reply(
+                "The gradio space powering this bot is really busy! Please try again later!"
+            )
 
     except Exception as e:
         print(f"Error: {e}")
