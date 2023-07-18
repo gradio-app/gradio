@@ -1,6 +1,7 @@
 const { getPackagesSync } = require("@manypkg/get-packages");
 const gh = require("@changesets/get-github-info");
 const { existsSync, readFileSync, writeFileSync } = require("fs");
+const { join } = require("path");
 
 const { getInfo, getInfoFromPullRequest } = gh;
 const { packages, rootDir } = getPackagesSync(process.cwd());
