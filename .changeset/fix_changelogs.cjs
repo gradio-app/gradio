@@ -2,16 +2,19 @@ const { join } = require("path");
 const { readFileSync, existsSync, writeFileSync, unlinkSync } = require("fs");
 const { getPackagesSync } = require("@manypkg/get-packages");
 
+const pkg_meta = getPackagesSync(process.cwd());
+
 const { _handled, ...packages } = JSON.parse(
-	readFileSync(join(__dirname, "./_changelog.json"), "utf-8"),
+	readFileSync(
+		fs.existsSync(join(rootDir, ".changeset", "_changelog.json")),
+		"utf-8"
+	)
 );
-const all_packages = getPackagesSync(process.cwd()).packages.reduce(
-	(acc, pkg) => {
-		acc[pkg.packageJson.name] = pkg;
-		return acc;
-	},
-	{},
-);
+
+const all_packages = pkg_meta.packages.reduce((acc, pkg) => {
+	acc[pkg.packageJson.name] = pkg;
+	return acc;
+}, {});
 
 console.log({ all_packages });
 for (const pkg_name in packages) {
@@ -26,7 +29,7 @@ for (const pkg_name in packages) {
 	const release_notes = [
 		[highlights, "### Highlights"],
 		[features, "### Features"],
-		[fixes, "### Fixes"],
+		[fixes, "### Fixes"]
 	]
 		.filter(([s], i) => s.length > 0)
 		.map(([lines, title]) => {
@@ -59,13 +62,13 @@ ${current_changelog}
 	}
 }
 
-unlinkSync(join(__dirname, "_changelog.json"));
+unlinkSync(join(rootDir, ".changeset", "_changelog.json"));
 
 function bump_local_dependents(pkg_to_bump, version) {
 	for (const pkg_name in all_packages) {
 		const {
 			dir,
-			packageJson: { python },
+			packageJson: { python }
 		} = all_packages[pkg_name];
 
 		if (!python) continue;
@@ -74,7 +77,7 @@ function bump_local_dependents(pkg_to_bump, version) {
 		const requirements = readFileSync(requirements_path, "utf-8").split("\n");
 
 		const pkg_index = requirements.findIndex((line) =>
-			line.startsWith(pkg_to_bump),
+			line.startsWith(pkg_to_bump)
 		);
 
 		if (pkg_index !== -1) {

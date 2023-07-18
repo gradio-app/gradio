@@ -1,30 +1,26 @@
-// @ts-ignore
-
-// import { config } from "dotenv";
 const { getPackagesSync } = require("@manypkg/get-packages");
 const gh = require("@changesets/get-github-info");
-const { exec, spawnSync } = require("child_process");
+
 const { getInfo, getInfoFromPullRequest } = gh;
-const { tool, packages, rootPackage, rootDir } = getPackagesSync(process.cwd());
+const { packages, rootDir } = getPackagesSync(process.cwd());
 
 function find_packages_dirs(package_name) {
 	const _package = packages.find((p) => p.packageJson.name === package_name);
 	if (!_package) throw new Error(`Package ${package_name} not found`);
-	return [
-		_package.dir,
-		package_name === "gradio-test-pypi" ? rootDir : null,
-	].filter(Boolean);
+	return [_package.dir, package_name === "gradio" ? rootDir : null].filter(
+		Boolean
+	);
 }
 
 const changelogFunctions = {
 	getDependencyReleaseLine: async (
 		changesets,
 		dependenciesUpdated,
-		options,
+		options
 	) => {
 		if (!options.repo) {
 			throw new Error(
-				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
+				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
 			);
 		}
 		if (dependenciesUpdated.length === 0) return "";
@@ -35,18 +31,18 @@ const changelogFunctions = {
 					if (cs.commit) {
 						let { links } = await getInfo({
 							repo: options.repo,
-							commit: cs.commit,
+							commit: cs.commit
 						});
 						return links.commit;
 					}
-				}),
+				})
 			)
 		)
 			.filter((_) => _)
 			.join(", ")}]:`;
 
 		const updatedDepenenciesList = dependenciesUpdated.map(
-			(dependency) => `  - ${dependency.name}@${dependency.newVersion}`,
+			(dependency) => `  - ${dependency.name}@${dependency.newVersion}`
 		);
 
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
@@ -54,7 +50,7 @@ const changelogFunctions = {
 	getReleaseLine: async (changeset, type, options) => {
 		if (!options || !options.repo) {
 			throw new Error(
-				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
+				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
 			);
 		}
 
@@ -86,12 +82,12 @@ const changelogFunctions = {
 			if (prFromSummary !== undefined) {
 				let { links } = await getInfoFromPullRequest({
 					repo: options.repo,
-					pull: prFromSummary,
+					pull: prFromSummary
 				});
 				if (commitFromSummary) {
 					links = {
 						...links,
-						commit: `[\`${commitFromSummary}\`](https://github.com/${options.repo}/commit/${commitFromSummary})`,
+						commit: `[\`${commitFromSummary}\`](https://github.com/${options.repo}/commit/${commitFromSummary})`
 					};
 				}
 				return links;
@@ -100,14 +96,14 @@ const changelogFunctions = {
 			if (commitToFetchFrom) {
 				let { links } = await getInfo({
 					repo: options.repo,
-					commit: commitToFetchFrom,
+					commit: commitToFetchFrom
 				});
 				return links;
 			}
 			return {
 				commit: null,
 				pull: null,
-				user: null,
+				user: null
 			};
 		})();
 
@@ -116,29 +112,26 @@ const changelogFunctions = {
 				? usersFromSummary
 						.map(
 							(userFromSummary) =>
-								`[@${userFromSummary}](https://github.com/${userFromSummary})`,
+								`[@${userFromSummary}](https://github.com/${userFromSummary})`
 						)
 						.join(", ")
 				: links.user;
 
 		const prefix = [
 			links.pull === null ? "" : `${links.pull}`,
-			links.commit === null ? "" : `${links.commit}`,
+			links.commit === null ? "" : `${links.commit}`
 		]
 			.join(" ")
 			.trim();
 
 		const suffix = users === null ? "" : ` Thanks ${users}!`;
 
-		const fs = require("fs");
-		const { join } = require("path");
-
 		let lines;
-		if (fs.existsSync("./_changelog.json")) {
+		if (fs.existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
 			lines = JSON.parse(fs.readFileSync("./_changelog.json", "utf-8"));
 		} else {
 			lines = {
-				_handled: [],
+				_handled: []
 			};
 		}
 
@@ -155,7 +148,7 @@ const changelogFunctions = {
 					current_changelog: "",
 					feat: [],
 					fix: [],
-					highlight: [],
+					highlight: []
 				};
 
 			const changelog_path = join(lines[release.name].dirs[0], "CHANGELOG.md");
@@ -172,7 +165,7 @@ const changelogFunctions = {
 				.match(/^(feat|fix|highlight)\s*:\s*([^]*)/im) || [
 				,
 				false,
-				changeset.summary,
+				changeset.summary
 			];
 
 			let formatted_summary = "";
@@ -183,28 +176,27 @@ const changelogFunctions = {
 				const _rest = rest.concat(["", suffix]);
 
 				formatted_summary = `${_heading}\n${_rest.join("\n")}`;
-
-				// formatted_summary = `${
-				// 	prefix ? `${prefix} -` : ""
-				// } ${summary.trim()}.\n\n${suffix}`;
 			} else {
 				formatted_summary = `${prefix ? `${prefix} -` : ""} ${summary.replace(
 					/[\s\.]$/,
-					"",
+					""
 				)}.${suffix}`;
 			}
 
 			lines[release.name][_type || "other"].push({
-				summary: formatted_summary,
+				summary: formatted_summary
 			});
 		});
 
-		fs.writeFileSync("./_changelog.json", JSON.stringify(lines, null, 2));
+		fs.writeFileSync(
+			join(rootDir, ".changeset", "_changelog.json"),
+			JSON.stringify(lines, null, 2)
+		);
 
 		return `\n\n-${prefix ? `${prefix} -` : ""} ${firstLine}\n${futureLines
 			.map((l) => `  ${l}`)
 			.join("\n")}`;
-	},
+	}
 };
 
 module.exports = changelogFunctions;
