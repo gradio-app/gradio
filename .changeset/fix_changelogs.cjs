@@ -6,7 +6,7 @@ const pkg_meta = getPackagesSync(process.cwd());
 
 const { _handled, ...packages } = JSON.parse(
 	readFileSync(
-		fs.existsSync(join(rootDir, ".changeset", "_changelog.json")),
+		existsSync(join(rootDir, ".changeset", "_changelog.json")),
 		"utf-8"
 	)
 );

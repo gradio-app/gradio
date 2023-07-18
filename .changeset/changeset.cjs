@@ -1,5 +1,6 @@
 const { getPackagesSync } = require("@manypkg/get-packages");
 const gh = require("@changesets/get-github-info");
+const { existsSync, readFileSync, writeFileSync } = require("fs");
 
 const { getInfo, getInfoFromPullRequest } = gh;
 const { packages, rootDir } = getPackagesSync(process.cwd());
@@ -127,8 +128,8 @@ const changelogFunctions = {
 		const suffix = users === null ? "" : ` Thanks ${users}!`;
 
 		let lines;
-		if (fs.existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
-			lines = JSON.parse(fs.readFileSync("./_changelog.json", "utf-8"));
+		if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
+			lines = JSON.parse(readFileSync("./_changelog.json", "utf-8"));
 		} else {
 			lines = {
 				_handled: []
@@ -153,9 +154,11 @@ const changelogFunctions = {
 
 			const changelog_path = join(lines[release.name].dirs[0], "CHANGELOG.md");
 
-			if (fs.existsSync(changelog_path)) {
-				lines[release.name].current_changelog = fs
-					.readFileSync(changelog_path, "utf-8")
+			if (existsSync(changelog_path)) {
+				lines[release.name].current_changelog = readFileSync(
+					changelog_path,
+					"utf-8"
+				)
 					.replace(`# ${release.name}`, "")
 					.trim();
 			}
@@ -188,7 +191,7 @@ const changelogFunctions = {
 			});
 		});
 
-		fs.writeFileSync(
+		writeFileSync(
 			join(rootDir, ".changeset", "_changelog.json"),
 			JSON.stringify(lines, null, 2)
 		);
