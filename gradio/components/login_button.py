@@ -53,9 +53,7 @@ class LoginButton(Button):
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
         # TODO: Check how it'll work in Space's iframe
-        self.click(
-            fn=None, _js=f"() => {{window.location.assign('/login/huggingface');}}"
-        )
+        self.click(fn=None, _js="() => {window.location.assign('/login/huggingface');}")
 
         # URL = "http://localhost:5173"
         # url = f"{URL}/login/huggingface"

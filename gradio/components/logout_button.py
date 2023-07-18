@@ -53,9 +53,7 @@ class LogoutButton(Button):
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
         # TODO: Check how it'll work in Space's iframe
-        self.click(
-            fn=None, _js=f"() => {{window.location.assign('/logout');}}"
-        )
+        self.click(fn=None, _js="() => {window.location.assign('/logout');}")
 
         # URL = "http://localhost:5173"
         # url = f"{URL}/logout"

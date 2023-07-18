@@ -266,6 +266,8 @@ class App(FastAPI):
 
         METADATA_URL = OPENID_PROVIDER_URL + "/.well-known/openid-configuration"
 
+        print("Adding oauth routes")
+
         oauth = OAuth()
         oauth.register(
             name="huggingface",
