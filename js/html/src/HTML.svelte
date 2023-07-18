@@ -6,7 +6,7 @@
 	export let value: string;
 	export let visible: boolean = true;
 	export let min_height = false;
-
+	console.log("boo")
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
