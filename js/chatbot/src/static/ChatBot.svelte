@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copy, format_chat_for_sharing } from "./utils";
+	import { copy, format_chat_for_sharing } from "../utils";
 	import "katex/dist/katex.min.css";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
@@ -9,26 +9,23 @@
 	import Markdown from "./MarkdownCode.svelte";
 
 	const code_highlight_css = {
-		light: () => import("prismjs/themes/prism.css"),
-		dark: () => import("prismjs/themes/prism-dark.css")
+		light: (): Promise<typeof import("prismjs/themes/prism.css")> => import("prismjs/themes/prism.css"),
+		dark: (): Promise<typeof import("prismjs/themes/prism.css") > => import("prismjs/themes/prism-dark.css")
 	};
 
-	export let value: Array<
-		[string | FileData | null, string | FileData | null]
-	> | null;
-	let old_value: Array<
-		[string | FileData | null, string | FileData | null]
-	> | null = null;
-	export let latex_delimiters: Array<{
+	export let value: [string | FileData | null, string | FileData | null][] | null;
+	let old_value: [string | FileData | null, string | FileData | null][] | null = null;
+	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
-	}>;
-	export let pending_message: boolean = false;
-	export let feedback: Array<string> | null = null;
-	export let selectable: boolean = false;
-	export let show_share_button: boolean = false;
+	}[];
+	export let pending_message = false;
+	export let feedback: string[] | null = null;
+	export let selectable = false;
+	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
+	export let rtl = false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -37,7 +34,7 @@
 	}
 
 	let div: HTMLDivElement;
-	let autoscroll: Boolean;
+	let autoscroll: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -49,7 +46,7 @@
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
-	const scroll = () => {
+	const scroll = (): void => {
 		if (autoscroll) {
 			div.scrollTo(0, div.scrollHeight);
 		}
@@ -76,7 +73,7 @@
 		i: number,
 		j: number,
 		message: string | FileData | null
-	) {
+	): void {
 		dispatch("select", {
 			index: [i, j],
 			value: message
@@ -107,7 +104,8 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
-					>
+						dir={rtl ? "rtl" : "ltr"}
+						>
 						{#if typeof message === "string"}
 							<Markdown {message} {latex_delimiters} on:load={scroll} />
 							{#if feedback && j == 1}
@@ -147,6 +145,17 @@
 								src={message.data}
 								alt={message.alt_text}
 							/>
+						{:else if message !== null && message.data !== null}
+							<a
+								data-testid="chatbot-file"
+								href={message.data}
+								target="_blank"
+								download={window.__is_colab__
+									? null
+									: message.orig_name || message.name}
+							>
+								{message.orig_name || message.name}
+							</a>
 						{/if}
 					</div>
 				{/each}
@@ -315,6 +324,7 @@
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
+		direction: ltr;
 	}
 
 	/* Tables */
@@ -350,6 +360,7 @@
 	/* KaTeX */
 	.message-wrap :global(span.katex) {
 		font-size: var(--text-lg);
+		direction: ltr;
 	}
 
 	/* Copy button */
@@ -396,4 +407,5 @@
 		top: 6px;
 		right: 6px;
 	}
+
 </style>

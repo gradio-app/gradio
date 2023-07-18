@@ -96,11 +96,11 @@
 				</div>
 			</a>
 			<a
-				href="/docs/themes"
+				href="/docs/chatinterface"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					Themes <span class="text-orange-500">&#8594;</span>
+					ChatInterface <span class="text-orange-500">&#8594;</span>
 				</div>
 			</a>
 		</div>
@@ -470,11 +470,11 @@
 				</div>
 			</a>
 			<a
-				href="/docs/components"
+				href="/docs/chatinterface"
 				class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 			>
 				<div class="text-lg">
-					Components <span class="text-orange-500">&#8594;</span>
+					ChatInterface <span class="text-orange-500">&#8594;</span>
 				</div>
 			</a>
 		</div>

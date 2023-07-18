@@ -58,7 +58,7 @@ class BarPlot(Plot):
         caption: str | None = None,
         interactive: bool | None = True,
         label: str | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -270,7 +270,6 @@ class BarPlot(Plot):
             "bottom-right",
             "none",
         ]
-        | None
         | None = None,
         height: int | None = None,
         width: int | None = None,
@@ -366,7 +365,7 @@ class BarPlot(Plot):
             x_title=self.x_title,
             y_title=self.y_title,
             color_legend_title=self.color_legend_title,
-            color_legend_position=self.color_legend_position,
+            color_legend_position=self.color_legend_position,  # type: ignore
             group_title=self.group_title,
             y_lim=self.y_lim,
             interactive=self.interactive_chart,

@@ -43,7 +43,7 @@ class TestAnalytics:
     ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         mock_post.side_effect = requests.ConnectionError()
-        analytics.error_analytics("placeholder")
+        analytics._do_analytics_request("placeholder", {})
         mock_post.assert_called()
 
     @mock.patch("requests.post")

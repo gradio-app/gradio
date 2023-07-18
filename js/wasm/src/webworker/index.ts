@@ -12,6 +12,7 @@ import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
+import unloadModulesPySource from "./py/unload_modules.py?raw";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
@@ -25,6 +26,7 @@ let call_asgi_app_from_js: (
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
 let run_script: (path: string) => void;
+let unload_local_modules: (target_dir_path?: string) => void;
 
 async function loadPyodideAndPackages(
 	options: InMessageInit["data"]
@@ -73,7 +75,7 @@ async function loadPyodideAndPackages(
 	await micropip.add_mock_package("aiohttp", "3.8.4");
 	await micropip.add_mock_package("multidict", "4.7.6");
 	await pyodide.loadPackage(["ssl", "distutils", "setuptools"]);
-	await micropip.install(["markdown-it-py~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
+	await micropip.install(["markdown-it-py[linkify]~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
@@ -161,10 +163,12 @@ matplotlib.use("agg")
 `);
 	console.debug("matplotlib backend is set.");
 
-	console.debug("Set up a script runner");
+	console.debug("Set up Python utility functions.");
 	await pyodide.runPythonAsync(scriptRunnerPySource);
 	run_script = pyodide.globals.get("_run_script");
-	console.debug("A script runner is set up.");
+	await pyodide.runPythonAsync(unloadModulesPySource);
+	unload_local_modules = pyodide.globals.get("unload_local_modules");
+	console.debug("Python utility functions are set up.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
@@ -201,7 +205,10 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				break;
 			}
 			case "run-python-code": {
+				unload_local_modules();
+
 				await pyodide.runPythonAsync(msg.data.code);
+
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
 					data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
@@ -210,6 +217,8 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 				break;
 			}
 			case "run-python-file": {
+				unload_local_modules();
+
 				run_script(msg.data.path);
 
 				const replyMessage: ReplyMessageSuccess = {

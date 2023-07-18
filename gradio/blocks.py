@@ -7,6 +7,7 @@ import os
 import random
 import secrets
 import sys
+import threading
 import time
 import warnings
 import webbrowser
@@ -502,7 +503,6 @@ def get_api_info(config: dict, serialize: bool = True):
     for d, dependency in enumerate(config["dependencies"]):
         dependency_info = {"parameters": [], "returns": []}
         skip_endpoint = False
-        skip_components = ["state"]
 
         inputs = dependency["inputs"]
         for i in inputs:
@@ -513,13 +513,15 @@ def get_api_info(config: dict, serialize: bool = True):
                 skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
+            if type in client_utils.SKIP_COMPONENTS:
+                continue
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
                 skip_endpoint = True  # if component not serializable, skip endpoint
                 break
-            if type in skip_components:
+            if type in client_utils.SKIP_COMPONENTS:
                 continue
             label = component["props"].get("label", f"parameter_{i}")
             # The config has the most specific API info (taking into account the parameters
@@ -567,14 +569,14 @@ def get_api_info(config: dict, serialize: bool = True):
                 skip_endpoint = True  # if component not found, skip endpoint
                 break
             type = component["type"]
+            if type in client_utils.SKIP_COMPONENTS:
+                continue
             if (
                 not component.get("serializer")
                 and type not in serializing.COMPONENT_MAPPING
             ):
                 skip_endpoint = True  # if component not serializable, skip endpoint
                 break
-            if type in skip_components:
-                continue
             label = component["props"].get("label", f"value_{o}")
             serializer = serializing.COMPONENT_MAPPING[type]()
             if component.get("api_info") and after_new_format:
@@ -715,7 +717,10 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else analytics.analytics_enabled()
         )
-        if not self.analytics_enabled:
+        if self.analytics_enabled:
+            t = threading.Thread(target=analytics.version_check)
+            t.start()
+        else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
         self.blocks: dict[int, Block] = {}
@@ -1615,11 +1620,12 @@ Received outputs:
             warn_deprecation(
                 "The client_position_to_load_data parameter is deprecated."
             )
+        max_size_default = self.max_threads if utils.is_zero_gpu_space() else None
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
-            max_size=max_size,
+            max_size=max_size_default if max_size is None else max_size,
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
@@ -1848,13 +1854,18 @@ Received outputs:
             self.is_running = True
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
-            self.is_sagemaker = utils.sagemaker_check()
 
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
+            if not self.is_colab:
+                print(
+                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                        self.protocol, self.server_name, self.server_port
+                    )
+                )
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
@@ -1868,7 +1879,7 @@ Received outputs:
             return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
         utils.launch_counter()
-
+        self.is_sagemaker = utils.sagemaker_check()
         if share is None:
             if self.is_colab and self.enable_queue:
                 if not quiet:
@@ -1912,12 +1923,6 @@ Received outputs:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
                 )
-        else:
-            print(
-                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                    self.protocol, self.server_name, self.server_port
-                )
-            )
 
         if self.share:
             if self.space_id:

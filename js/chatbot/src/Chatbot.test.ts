@@ -1,7 +1,8 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
-import Chatbot from "./Chatbot.svelte";
-import type { LoadingStatus } from "../StatusTracker/types";
+import Chatbot from "./Index.svelte";
+import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
+import type { FileData } from "@gradio/upload";
 
 const loading_status: LoadingStatus = {
 	eta: 0,
@@ -67,14 +68,16 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: null,
+			value: undefined,
 			root: "",
 			root_url: "",
-			latex_delimiters: null,
+			latex_delimiters: [],
 			theme_mode: "dark"
 		});
 
-		let value = Array(2).fill([
+		let value: [string | FileData | null, string | FileData | null][] = Array(
+			2
+		).fill([
 			{
 				name: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
 				mime_type: "image/jpeg",
@@ -88,7 +91,7 @@ describe("Chatbot", () => {
 			value: value
 		});
 
-		const image = getAllByTestId("chatbot-image");
+		const image = getAllByTestId("chatbot-image") as HTMLImageElement[];
 		assert.isTrue(image[0].src.includes("cheetah1.jpg"));
 		assert.isTrue(image[1].src.includes("cheetah1.jpg"));
 	});
@@ -97,26 +100,26 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: null,
 			root: "",
 			root_url: "",
-			latex_delimiters: null,
+			latex_delimiters: [],
 			theme_mode: "dark"
 		});
-		let value = Array(2).fill([
-			{
-				name: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
-				mime_type: "video/mp4",
-				alt_text: null,
-				data: null,
-				is_file: true
-			}
-		]);
+		let value: Array<[string | FileData | null, string | FileData | null]> =
+			Array(2).fill([
+				{
+					name: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
+					mime_type: "video/mp4",
+					alt_text: null,
+					data: null,
+					is_file: true
+				}
+			]);
 		await component.$set({
 			value: value
 		});
 
-		const video = getAllByTestId("chatbot-video");
+		const video = getAllByTestId("chatbot-video") as HTMLVideoElement[];
 		assert.isTrue(video[0].src.includes("video_sample.mp4"));
 		assert.isTrue(video[1].src.includes("video_sample.mp4"));
 	});
@@ -125,10 +128,9 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			value: null,
 			root: "",
 			root_url: "",
-			latex_delimiters: null,
+			latex_delimiters: [],
 			theme_mode: "dark"
 		});
 
@@ -146,8 +148,37 @@ describe("Chatbot", () => {
 			value: value
 		});
 
-		const audio = getAllByTestId("chatbot-audio");
+		const audio = getAllByTestId("chatbot-audio") as HTMLAudioElement[];
 		assert.isTrue(audio[0].src.includes("audio_sample.wav"));
 		assert.isTrue(audio[1].src.includes("audio_sample.wav"));
+	});
+
+	test("renders hyperlinks to file bot and user messages", async () => {
+		const { component, getAllByTestId } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			root: "",
+			root_url: "",
+			latex_delimiters: [],
+			theme_mode: "dark"
+		});
+
+		let value = Array(2).fill([
+			{
+				name: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+				mime_type: "text/csv",
+				alt_text: null,
+				data: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+				is_file: true
+			}
+		]);
+
+		await component.$set({
+			value: value
+		});
+
+		const file_link = getAllByTestId("chatbot-file") as HTMLAnchorElement[];
+		assert.isTrue(file_link[0].href.includes("titanic.csv"));
+		assert.isTrue(file_link[0].href.includes("titanic.csv"));
 	});
 });
