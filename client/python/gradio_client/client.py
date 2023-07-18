@@ -626,6 +626,13 @@ class Client:
         ), f"gr.ChatInterface can only accept one command name. Received {', '.join(command_names)}"
         api_names = ["chat"]
 
+        is_private = False
+        if self.space_id:
+            is_private = huggingface_hub.space_info(self.space_id).private
+            if is_private:
+                assert hf_token, (f"Since {self.space_id} is private, you must explicitly pass in hf_token "
+                                  "so that it can be added as a secret in the discord bot space.")
+
         if to_id:
             if "/" in to_id:
                 to_id = to_id.split("/")[1]
@@ -677,6 +684,11 @@ class Client:
             huggingface_hub.add_space_secret(
                 space_id, "DISCORD_TOKEN", discord_bot_token, token=hf_token
             )
+        if is_private:
+            huggingface_hub.add_space_secret(
+                space_id, "HF_TOKEN", hf_token, token=hf_token
+            )
+
 
         url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your discord bot here! {url}")

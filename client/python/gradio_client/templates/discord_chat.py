@@ -12,6 +12,7 @@ from discord.ext import commands
 from discord.utils import oauth_url
 
 import gradio_client as grc
+from gradio_client.utils import QueueError
 
 event = Event()
 
@@ -19,7 +20,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 
 def get_client(session: Optional[str] = None) -> grc.Client:
-    client = grc.Client("<<app-src>>")
+    client = grc.Client("<<app-src>>", hf_token=os.getenv("HF_TOKEN"))
     if session:
         client.session_hash = session
     return client
@@ -60,9 +61,14 @@ async def chat(ctx, _prompt: str):
         job = client.submit(prompt, api_name="/chat")
         wait([job])
 
-        thread_to_client[thread.id] = client
-        thread_to_user[thread.id] = ctx.author.id
-        await thread.send(f"{job.outputs()[-1]}")
+        try:
+            job.result()
+            thread_to_client[thread.id] = client
+            thread_to_user[thread.id] = ctx.author.id
+            await thread.send(f"{job.outputs()[-1]}")
+        except QueueError:
+            await thread.send("The gradio space powering this bot is really busy! Please try again later!")
+
     except Exception as e:
         print(f"{e}")
 
@@ -74,7 +80,11 @@ async def continue_chat(message):
         prompt = message.content
         job = client.submit(prompt, api_name="/chat")
         wait([job])
-        await message.reply(f"{job.outputs()[-1]}")
+        try:
+            job.result()
+            await message.reply(f"{job.outputs()[-1]}")
+        except QueueError:
+            await message.reply("The gradio space powering this bot is really busy! Please try again later!")
 
     except Exception as e:
         print(f"Error: {e}")
