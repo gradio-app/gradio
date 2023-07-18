@@ -37,8 +37,10 @@
 	"dependencies": {
 		"@changesets/changelog-github": "^0.4.8",
 		"@changesets/cli": "^2.26.1",
+		"@changesets/get-github-info": "^0.5.2",
 		"@csstools/postcss-global-data": "^2.0.0",
 		"@gradio/tootils": "workspace:^0.0.1",
+		"@manypkg/get-packages": "^2.2.0",
 		"@playwright/experimental-ct-svelte": "^1.35.1",
 		"@playwright/test": "^1.35.1",
 		"@sveltejs/vite-plugin-svelte": "^2.4.2",
