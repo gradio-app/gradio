@@ -6,7 +6,7 @@ const pkg_meta = getPackagesSync(process.cwd());
 
 const { _handled, ...packages } = JSON.parse(
 	readFileSync(
-		existsSync(join(rootDir, ".changeset", "_changelog.json")),
+		existsSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json")),
 		"utf-8"
 	)
 );
@@ -62,7 +62,7 @@ ${current_changelog}
 	}
 }
 
-unlinkSync(join(rootDir, ".changeset", "_changelog.json"));
+unlinkSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json"));
 
 function bump_local_dependents(pkg_to_bump, version) {
 	for (const pkg_name in all_packages) {
