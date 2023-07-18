@@ -1,3 +1,4 @@
+// @ts-ignore
 import changelog_json from "./changelog.json";
 import { compile } from "mdsvex";
 import anchor from "../../assets/img/anchor.svg";
@@ -32,10 +33,10 @@ function highlight(code: string, lang: string | undefined) {
 
 	const highlighted = _lang
 		? `<pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre>`
+			code,
+			Prism.languages[_lang],
+			_lang
+		)}</code></pre>`
 		: code;
 
 	return highlighted;

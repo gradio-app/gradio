@@ -1,3 +1,4 @@
+// @ts-ignore
 import docs_json from "../routes/docs/docs.json";
 let docs = docs_json;
 
