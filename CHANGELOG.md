@@ -16,7 +16,7 @@ No changes to highlight.
 
 ## Other Changes:
 
-No changes to highlight.
+- Apply pyright to the `components` directory by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4948](https://github.com/gradio-app/gradio/pull/4948)
 
 # Version 3.37
 
