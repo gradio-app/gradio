@@ -104,7 +104,7 @@
 
 	<div class="controls">
 		<div class="inner">
-			<span role="button" tabindex="0" class="icon" on:click={play_pause} on:keydown={play_pause}>
+			<span role="button" tabindex="0" class="icon" aria-label="play-pause-replay-button" on:click={play_pause} on:keydown={play_pause}>
 				{#if time === duration}
 					<Undo />
 				{:else if paused}
@@ -124,7 +124,7 @@
 				on:click|stopPropagation|preventDefault={handle_click}
 			/>
 
-			<div role="button" tabindex="0" class="icon" on:click={open_full_screen} on:keypress={open_full_screen}>
+			<div role="button" tabindex="0" class="icon" aria-label="full-screen" on:click={open_full_screen} on:keypress={open_full_screen}>
 				<Maximise />
 			</div>
 		</div>
