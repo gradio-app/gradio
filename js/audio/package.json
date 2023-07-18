@@ -16,5 +16,6 @@
 		"extendable-media-recorder": "^7.0.2",
 		"extendable-media-recorder-wav-encoder": "^7.0.76",
 		"svelte-range-slider-pips": "^2.0.1"
-	}
+	},
+	"main_changeset": true
 }

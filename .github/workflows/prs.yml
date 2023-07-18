@@ -1,0 +1,37 @@
+name: Changesets
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled, closed]
+    branches:
+      - main
+  issue_comment:
+    types: [edited]
+
+env:
+  CI: true
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+concurrency:
+  group: ${{ github.event.number || github.event.issue.number }}
+
+jobs:
+  version:
+    permissions: write-all
+    name: static checks
+    runs-on: ubuntu-22.04
+    steps:
+      - id: "get-branch"
+        run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.number || github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.get-branch.outputs.branch }}
+          fetch-depth: 0
+      - name: generate changeset
+        uses: "@gradio-app/github/actions/generate-changeset"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          main_pkg: gradio
