@@ -20,7 +20,7 @@ from typing import Any, Callable, Literal
 import huggingface_hub
 import requests
 import websockets
-from huggingface_hub import SpaceHardware, SpaceStage
+from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
     build_hf_headers,
@@ -602,6 +602,85 @@ class Client:
                     "Gradio 2.x is not supported by this client. Please upgrade your Gradio app to Gradio 3.x or higher."
                 )
             return config
+
+    def deploy_discord(
+        self,
+        discord_bot_token: str | None = None,
+        api_names: list[str] | None = None,
+        command_names: list[str] | None = None,
+        to_id: str | None = None,
+        hf_token: str | None = None,
+        private: bool = True,
+        persist_state: bool = False,
+    ):
+        if self.config["mode"] != "chat_interface":
+            raise ValueError(
+                "Only demos built with gr.ChatInterface can be deployed as discord bots automatically for now."
+            )
+
+        if not command_names:
+            command_names = ["chat"]
+
+        assert (
+            len(command_names) == 1
+        ), f"gr.ChatInterface can only accept one command name. Received {', '.join(command_names)}"
+        api_names = ["chat"]
+
+        if to_id:
+            if "/" in to_id:
+                to_id = to_id.split("/")[1]
+            space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
+        else:
+            space_id = huggingface_hub.get_full_repo_name(
+                "gradio-discord-bot", token=hf_token
+            )
+
+        api = huggingface_hub.HfApi()
+
+        huggingface_hub.create_repo(
+            space_id,
+            repo_type="space",
+            space_sdk="gradio",
+            token=hf_token,
+            exist_ok=True,
+            private=private,
+        )
+
+        with open(str(Path(__file__).parent / "templates" / "discord_chat.py")) as f:
+            app = f.read()
+        app = app.replace("<<app-src>>", self.src)
+        app = app.replace("<<command-name>>", api_names[0])
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as requirements:
+                app_file.write(app)
+                requirements.write(
+                    "\n".join(["gradio_client", "discord.py==2.3.1", "apscheduler"])
+                )
+
+        operations = [
+            CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
+            CommitOperationAdd(
+                path_in_repo="requirements.txt", path_or_fileobj=requirements.name
+            ),
+        ]
+
+        api.create_commit(
+            repo_id=space_id,
+            commit_message="Deploy Discord Bot",
+            repo_type="space",
+            operations=operations,
+            token=hf_token,
+        )
+
+        if discord_bot_token:
+            huggingface_hub.add_space_secret(
+                space_id, "DISCORD_TOKEN", discord_bot_token, token=hf_token
+            )
+
+        url = f"https://huggingface.co/spaces/{space_id}"
+        print(f"See your discord bot here! {url}")
+        return url
 
 
 class Endpoint:
