@@ -31,7 +31,7 @@ jobs:
           ref: ${{ steps.get-branch.outputs.branch }}
           fetch-depth: 0
       - name: generate changeset
-        uses: "@gradio-app/github/actions/generate-changeset"
+        uses: "gradio-app/github/actions/generate-changeset@main"
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           main_pkg: gradio
