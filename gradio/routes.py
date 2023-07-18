@@ -285,6 +285,7 @@ class App(FastAPI):
 
         @app.get("/login/callback")
         async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
+            print(request.session)
             token = await oauth.huggingface.authorize_access_token(request)
             request.session["oauth_info"] = token
             return RedirectResponse("/")
