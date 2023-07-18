@@ -371,7 +371,7 @@ class IOComponent(Component):
 
 
 class FormComponent:
-    def get_expected_parent(self) -> type[Form]:
+    def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
         return Form

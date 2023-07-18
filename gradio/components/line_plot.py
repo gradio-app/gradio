@@ -415,10 +415,10 @@ class LinePlot(Plot):
             tooltip=self.tooltip,
             x_title=self.x_title,
             y_title=self.y_title,
-            color_legend_title=self.color_legend_title,
-            color_legend_position=self.color_legend_position,
+            color_legend_title=self.color_legend_title,  # type: ignore
+            color_legend_position=self.color_legend_position,  # type: ignore
             stroke_dash_legend_title=self.stroke_dash_legend_title,
-            stroke_dash_legend_position=self.stroke_dash_legend_position,
+            stroke_dash_legend_position=self.stroke_dash_legend_position,  # type: ignore
             x_lim=self.x_lim,
             y_lim=self.y_lim,
             stroke_dash=self.stroke_dash,
