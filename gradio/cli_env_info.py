@@ -2,7 +2,9 @@
 for the cli command 'gradio environment'
 """
 import platform
+
 import pkg_resources
+
 
 def print_environment_info():
     print("Gradio Environment Information:")
@@ -10,7 +12,7 @@ def print_environment_info():
     print("Operating System: ", platform.system())
     print("\n")
 
-    for package_name in ['gradio', 'gradio_client']:
+    for package_name in ["gradio", "gradio_client"]:
         try:
             package_dist = pkg_resources.get_distribution(package_name)
             package_version = package_dist.version
@@ -18,8 +20,10 @@ def print_environment_info():
 
             print(f"\n{package_name} Dependencies:")
             for req in package_dist.requires():
-                print(f'  {req.name}: {pkg_resources.get_distribution(req.name).version}')
-            
+                print(
+                    f"  {req.name}: {pkg_resources.get_distribution(req.name).version}"
+                )
+
             print("\n")
         except pkg_resources.DistributionNotFound:
             print(f"{package_name} package is not installed.")
