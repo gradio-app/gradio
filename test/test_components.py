@@ -20,7 +20,7 @@ import pandas as pd
 import PIL
 import pytest
 import vega_datasets
-from gradio_client import media_data
+from gradio_client import media_dataf
 from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
@@ -665,7 +665,7 @@ class TestImage:
             "tool": "editor",
             "name": "image",
             "show_share_button": False,
-            "show_download_button": True,
+            "show_download_button": None,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
