@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -114,8 +114,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1(postcss@8.4.6)(prettier@3.0.0)
       prettier-plugin-svelte:
-        specifier: ^2.10.1
-        version: 2.10.1(prettier@3.0.0)(svelte@4.0.0)
+        specifier: ^3.0.0
+        version: 3.0.0(prettier@3.0.0)(svelte@4.0.0)
       sirv:
         specifier: ^2.0.2
         version: 2.0.2
@@ -246,8 +246,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       prettier-plugin-svelte:
-        specifier: ^2.8.1
-        version: 2.10.0(prettier@3.0.0)(svelte@3.57.0)
+        specifier: ^3.0.0
+        version: 3.0.0(prettier@3.0.0)(svelte@3.57.0)
       svelte:
         specifier: ^3.54.0
         version: 3.57.0
@@ -11748,20 +11748,20 @@ packages:
       - postcss
     dev: false
 
-  /prettier-plugin-svelte@2.10.0(prettier@3.0.0)(svelte@3.57.0):
-    resolution: {integrity: sha512-GXMY6t86thctyCvQq+jqElO+MKdB09BkL3hexyGP3Oi8XLKRFaJP1ud/xlWCZ9ZIa2BxHka32zhHfcuU+XsRQg==}
+  /prettier-plugin-svelte@3.0.0(prettier@3.0.0)(svelte@3.57.0):
+    resolution: {integrity: sha512-l3RQcPty2UBCoRh3yb9c5XCAmxkrc4BptAnbd5acO1gmSJtChOWkiEjnOvh7hvmtT4V80S8gXCOKAq8RNeIzSw==}
     peerDependencies:
-      prettier: ^1.16.4 || ^2.0.0
-      svelte: ^3.2.0
+      prettier: ^3.0.0
+      svelte: ^3.2.0 || ^4.0.0-next.0
     dependencies:
       prettier: 3.0.0
       svelte: 3.57.0
     dev: true
 
-  /prettier-plugin-svelte@2.10.1(prettier@3.0.0)(svelte@4.0.0):
-    resolution: {integrity: sha512-Wlq7Z5v2ueCubWo0TZzKc9XHcm7TDxqcuzRuGd0gcENfzfT4JZ9yDlCbEgxWgiPmLHkBjfOtpAWkcT28MCDpUQ==}
+  /prettier-plugin-svelte@3.0.0(prettier@3.0.0)(svelte@4.0.0):
+    resolution: {integrity: sha512-l3RQcPty2UBCoRh3yb9c5XCAmxkrc4BptAnbd5acO1gmSJtChOWkiEjnOvh7hvmtT4V80S8gXCOKAq8RNeIzSw==}
     peerDependencies:
-      prettier: ^1.16.4 || ^2.0.0
+      prettier: ^3.0.0
       svelte: ^3.2.0 || ^4.0.0-next.0
     dependencies:
       prettier: 3.0.0
