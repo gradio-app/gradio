@@ -717,6 +717,11 @@ class Blocks(BlockContext):
             if analytics_enabled is not None
             else analytics.analytics_enabled()
         )
+        if wasm_utils.IS_WASM and self.analytics_enabled:
+            self.analytics_enabled = False
+            warnings.warn(
+                "Analytics are not supported in the Wasm mode."
+            )
         if self.analytics_enabled:
             t = threading.Thread(target=analytics.version_check)
             t.start()
@@ -758,7 +763,7 @@ class Blocks(BlockContext):
         self.root_path = ""
         self.root_urls = set()
 
-        if not wasm_utils.IS_WASM and self.analytics_enabled:
+        if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()

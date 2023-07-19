@@ -169,6 +169,13 @@ matplotlib.use("agg")
 	await pyodide.runPythonAsync(unloadModulesPySource);
 	unload_local_modules = pyodide.globals.get("unload_local_modules");
 	console.debug("Python utility functions are set up.");
+
+	console.debug("Set environment variables.");
+	await pyodide.runPythonAsync(`
+import os
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+`);
+	console.debug("Environment variables are set.");
 }
 
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
