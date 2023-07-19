@@ -79,7 +79,7 @@ class ChatInterface(Blocks):
             css: custom css or path to custom css file to use with interface.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
-            stop_btn: Text to display on the stop button, which appears when the submit_btn or retry_btn is clicked and response is pending. Clicking on the stop button will prevent results from being displayed (or continuing to stream) in the chatbot, though the job may continue to run in the backend. If None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button (the Button should set visible=False).
+            stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button (the Button should set visible=False).
             retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
@@ -98,6 +98,7 @@ class ChatInterface(Blocks):
             )
 
         self.fn = fn
+        self.is_generator = inspect.isgeneratorfunction(self.fn)
         self.examples = examples
         if self.space_id and cache_examples is None:
             self.cache_examples = True
@@ -180,7 +181,7 @@ class ChatInterface(Blocks):
                 ) = self.buttons
 
             if examples:
-                if inspect.isgeneratorfunction(self.fn):
+                if self.is_generator:
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
@@ -199,10 +200,7 @@ class ChatInterface(Blocks):
             self._setup_api()
 
     def _setup_events(self) -> None:
-        if inspect.isgeneratorfunction(self.fn):
-            submit_fn = self._stream_fn
-        else:
-            submit_fn = self._submit_fn
+        submit_fn = self._stream_fn if self.is_generator else self._submit_fn
 
         submit_event = (
             self.textbox.submit(
@@ -305,7 +303,7 @@ class ChatInterface(Blocks):
     def _setup_stop_events(
         self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
     ) -> None:
-        if self.stop_btn:
+        if self.stop_btn and self.is_generator:
             if self.submit_btn:
                 event_trigger(
                     lambda: (Button.update(visible=False), Button.update(visible=True)),
@@ -345,10 +343,7 @@ class ChatInterface(Blocks):
             )
 
     def _setup_api(self) -> None:
-        if inspect.isgeneratorfunction(self.fn):
-            api_fn = self._api_stream_fn
-        else:
-            api_fn = self._api_submit_fn
+        api_fn = self._api_stream_fn if self.is_generator else self._api_submit_fn
 
         # Use a gr.State() instead of self.chatbot so that the API doesn't require passing forth
         # a chat history, instead it is just stored internally in the state.
