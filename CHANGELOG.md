@@ -4,7 +4,7 @@ No changes to highlight.
 
 ## New Features:
 
-No changes to highlight.
+- The `gr.ChatInterface` UI now converts the "Submit" button to a "Stop" button in ChatInterface while streaming, which can be used to pause generation. By [@abidlabs](https://github.com/abidlabs) in [PR 4969](https://github.com/gradio-app/gradio/pull/4969).
 
 ## Bug Fixes:
 
