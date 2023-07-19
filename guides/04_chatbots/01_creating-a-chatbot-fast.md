@@ -145,7 +145,7 @@ from langchain.schema import AIMessage, HumanMessage
 import openai
 import gradio as gr
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+os.envrion["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
 
 llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
 
@@ -155,7 +155,7 @@ def predict(message, history):
         history_langchain_format.append(HumanMessage(content=human))
         history_langchain_format.append(AIMessage(content=ai))
     history_langchain_format.append(HumanMessage(content=message))
-    gpt_response = chat(history_langchain_format)
+    gpt_response = llm(history_langchain_format)
     return gpt_response.content
 
 gr.ChatInterface(predict).launch() 
@@ -170,7 +170,7 @@ Of course, we could also use the `openai` library directy. Here a similar exampl
 import openai
 import gradio as gr
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = "sk-..."  # Replace with your key
 
 def predict(message, history):
     history_openai_format = []

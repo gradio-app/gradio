@@ -359,7 +359,7 @@ class Video(
             "orig_name": Path(video).name,
         }
 
-    def _format_subtitle(self, subtitle: str | None) -> FileData | None:
+    def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
         Parameters:
