@@ -21,7 +21,7 @@ def print_environment_info():
             print(f"\n{package_name} Dependencies:")
             for req in package_dist.requires():
                 print(
-                    f"  {req.name}: {pkg_resources.get_distribution(req.name).version}"
+                    f"  {req.project_name}: {pkg_resources.get_distribution(req.project_name).version}"
                 )
 
             print("\n")
