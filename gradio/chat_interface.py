@@ -60,6 +60,7 @@ class ChatInterface(Blocks):
         css: str | None = None,
         analytics_enabled: bool | None = None,
         submit_btn: str | None | Button = "Submit",
+        stop_btn: str | None | Button = "Stop",
         retry_btn: str | None | Button = "🔄  Retry",
         undo_btn: str | None | Button = "↩️ Undo",
         clear_btn: str | None | Button = "🗑️  Clear",
@@ -77,6 +78,7 @@ class ChatInterface(Blocks):
             css: custom css or path to custom css file to use with interface.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
+            stop_btn: Text to display on the stop button, which appears when the submit_btn or retry_btn is clicked and response is pending. Clicking on the stop button will prevent results from being displayed (or continuing to stream) in the chatbot, though the job may continue to run in the backend. If None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button (the Button should set visible=False).
             retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
@@ -123,24 +125,31 @@ class ChatInterface(Blocks):
                             container=False,
                             show_label=False,
                             placeholder="Type a message...",
-                            scale=10,
+                            scale=7,
                         )
                     if submit_btn:
                         if isinstance(submit_btn, Button):
                             submit_btn.render()
                         elif isinstance(submit_btn, str):
                             submit_btn = Button(
-                                submit_btn, variant="primary", scale=1, min_width=0
+                                submit_btn, variant="primary", scale=1, min_width=150
                             )
                         else:
                             raise ValueError(
                                 f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
                             )
-                    self.buttons.append(submit_btn)
+                    if stop_btn:
+                        if isinstance(stop_btn, Button):
+                            stop_btn.render()
+                        elif isinstance(stop_btn, str):
+                            stop_btn = Button("Stop", variant="stop", visible=False)
+                        else:
+                            raise ValueError(
+                                f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
+                            )
+                    self.buttons.extend([submit_btn, stop_btn])
 
             with Row():
-                self.stop_btn = Button("Stop", variant="stop", visible=False)
-
                 for btn in [retry_btn, undo_btn, clear_btn]:
                     if btn:
                         if isinstance(btn, Button):
@@ -157,6 +166,7 @@ class ChatInterface(Blocks):
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
                 (
                     self.submit_btn,
+                    self.stop_btn,
                     self.retry_btn,
                     self.undo_btn,
                     self.clear_btn,
@@ -207,7 +217,7 @@ class ChatInterface(Blocks):
         )
 
         if self.submit_btn:
-            self.submit_btn.click(
+            click_event = self.submit_btn.click(
                 self._clear_and_save_textbox,
                 [self.textbox],
                 [self.textbox, self.saved_input],
@@ -225,6 +235,17 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 api_name=False,
             )
+            if self.stop_btn:
+                self.submit_btn.click(
+                    lambda : (Button.update(visible=False), Button.update(visible=True)),
+                    None,
+                    [self.submit_btn, self.stop_btn]
+                )
+                click_event.then(
+                    lambda : (Button.update(visible=True), Button.update(visible=False)),
+                    None,
+                    [self.submit_btn, self.stop_btn]                    
+                )
 
         if self.retry_btn:
             self.retry_btn.click(
