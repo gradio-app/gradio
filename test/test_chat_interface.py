@@ -1,7 +1,6 @@
-import time
+from concurrent.futures import wait
 
 import pytest
-from concurrent.futures import wait
 
 import gradio as gr
 

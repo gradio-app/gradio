@@ -230,8 +230,8 @@ class ChatInterface(Blocks):
         if self.retry_btn:
             self.retry_btn.click(
                 self._delete_prev_fn,
-                [self.chatbot],
-                [self.chatbot, self.saved_input],
+                [self.chatbot_state],
+                [self.chatbot, self.saved_input, self.chatbot_state],
                 api_name=False,
                 queue=False,
             ).then(
@@ -250,7 +250,7 @@ class ChatInterface(Blocks):
         if self.undo_btn:
             self.undo_btn.click(
                 self._delete_prev_fn,
-                [self.chatbot],
+                [self.chatbot_state],
                 [self.chatbot, self.saved_input],
                 api_name=False,
                 queue=False,
@@ -293,13 +293,13 @@ class ChatInterface(Blocks):
 
     def _display_input(
         self, message: str, history: list[list[str | None]]
-    ) -> list[list[str | None]]:
+    ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history.append([message, None])
         return history, history
 
     def _submit_fn(
         self, message: str, history_with_input: list[list[str | None]]
-    ) -> list[list[str | None]]:
+    ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
         response = self.fn(message, history)
         history.append([message, response])
@@ -307,7 +307,7 @@ class ChatInterface(Blocks):
 
     def _stream_fn(
         self, message: str, history_with_input: list[list[str | None]]
-    ) -> Generator[list[list[str | None]], None, None]:
+    ) -> Generator[tuple[list[list[str | None]], list[list[str | None]]], None, None]:
         history = history_with_input[:-1]
         generator = self.fn(message, history)
         try:
@@ -351,9 +351,9 @@ class ChatInterface(Blocks):
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
-    ) -> tuple[list[list[str | None]], str]:
+    ) -> tuple[list[list[str | None]], str, list[list[str | None]]]:
         try:
             message, _ = history.pop()
         except IndexError:
             message = ""
-        return history, message or ""
+        return history, message or "", history
