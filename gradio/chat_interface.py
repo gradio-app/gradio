@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import inspect
 import warnings
+import time
 from typing import Callable, Generator
 
 from gradio_client.documentation import document, set_documentation_group
@@ -209,7 +210,6 @@ class ChatInterface(Blocks):
                 [self.textbox, self.saved_input],
                 api_name=False,
                 queue=False,
-                show_progress=False,
             )
             .then(
                 self._display_input,
@@ -235,7 +235,6 @@ class ChatInterface(Blocks):
                     [self.textbox, self.saved_input],
                     api_name=False,
                     queue=False,
-                    show_progress=False,
                 )
                 .then(
                     self._display_input,
@@ -291,7 +290,6 @@ class ChatInterface(Blocks):
                 [self.textbox],
                 api_name=False,
                 queue=False,
-                show_progress=False,
             )
 
         if self.clear_btn:
