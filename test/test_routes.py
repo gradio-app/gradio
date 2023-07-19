@@ -1,7 +1,6 @@
 """Contains tests for networking.py and app.py"""
 import json
 import os
-import sys
 import tempfile
 from contextlib import closing
 from unittest.mock import patch

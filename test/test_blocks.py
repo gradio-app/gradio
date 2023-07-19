@@ -1336,6 +1336,7 @@ class TestCancel:
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
 
+
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
         with pytest.raises(

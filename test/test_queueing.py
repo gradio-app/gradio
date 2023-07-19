@@ -1,6 +1,5 @@
 import asyncio
 import os
-import sys
 from collections import deque
 from unittest.mock import MagicMock, patch
 
