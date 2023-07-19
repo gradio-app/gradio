@@ -5,6 +5,7 @@
 	export let visible: boolean = true;
 	export let value: string;
 	export let min_height = false;
+	export let rtl = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -20,6 +21,7 @@
 	class:hide={!visible}
 	bind:this={target}
 	data-testid="markdown"
+	dir={rtl ? "rtl" : "ltr"}
 >
 	{@html value}
 </div>
@@ -48,4 +50,5 @@
 	.hide {
 		display: none;
 	}
+
 </style>

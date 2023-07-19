@@ -543,8 +543,6 @@ COMPONENT_MAPPING: dict[str, type] = {
     "lineplot": JSONSerializable,
     "scatterplot": JSONSerializable,
     "markdown": StringSerializable,
-    "dataset": StringSerializable,
     "code": StringSerializable,
-    "interpretation": SimpleSerializable,
     "annotatedimage": JSONSerializable,
 }

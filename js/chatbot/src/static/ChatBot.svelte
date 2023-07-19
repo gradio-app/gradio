@@ -25,6 +25,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let theme_mode: ThemeMode;
+	export let rtl = false;
 
 	$: if (theme_mode == "dark") {
 		code_highlight_css.dark();
@@ -103,7 +104,8 @@
 						class:hide={message === null}
 						class:selectable
 						on:click={() => handle_select(i, j, message)}
-					>
+						dir={rtl ? "rtl" : "ltr"}
+						>
 						{#if typeof message === "string"}
 							<Markdown {message} {latex_delimiters} on:load={scroll} />
 							{#if feedback && j == 1}
@@ -322,6 +324,7 @@
 		border-radius: var(--radius-md);
 		background-color: var(--chatbot-code-background-color);
 		padding: var(--spacing-xl) 10px;
+		direction: ltr;
 	}
 
 	/* Tables */
@@ -357,6 +360,7 @@
 	/* KaTeX */
 	.message-wrap :global(span.katex) {
 		font-size: var(--text-lg);
+		direction: ltr;
 	}
 
 	/* Copy button */
@@ -403,4 +407,5 @@
 		top: 6px;
 		right: 6px;
 	}
+
 </style>

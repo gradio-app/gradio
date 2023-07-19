@@ -13,9 +13,12 @@
 	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label: boolean = true;
+	export let container: boolean = true;
 	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
+	export let rtl = false;
+	export let text_align: "left" | "right" | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -93,7 +96,7 @@
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	) {
 		await tick();
-		if (lines === max_lines) return;
+		if (lines === max_lines || !container) return;
 
 		let max =
 			max_lines === undefined
@@ -133,7 +136,7 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label>
+<label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	{#if lines === 1 && max_lines === 1}
@@ -142,6 +145,7 @@
 				data-testid="textbox"
 				type="text"
 				class="scroll-hide"
+				dir={rtl ? "rtl" : "ltr"}
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -149,7 +153,8 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
-			/>
+				style={text_align ? "text-align: " + text_align : ""}
+				/>
 		{:else if type === "password"}
 			<input
 				data-testid="password"
@@ -191,6 +196,7 @@
 			data-testid="textbox"
 			use:text_area_resize={value}
 			class="scroll-hide"
+			dir={rtl ? "rtl" : "ltr"}
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -199,7 +205,8 @@
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
 			on:select={handle_select}
-		/>
+			style={text_align ? "text-align: " + text_align : ""}
+			/>
 	{/if}
 </label>
 
@@ -209,16 +216,12 @@
 		width: 100%;
 	}
 
-	input[type="text"],
-	input[type="password"],
-	input[type="email"],
+	input,
 	textarea {
 		display: block;
 		position: relative;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--input-radius);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 100%;
@@ -226,6 +229,14 @@
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
+		border: none;
+	}
+	label:not(.container), label:not(.container) > input, label:not(.container) > textarea {
+		height: 100%;
+	}
+	.container > input, .container > textarea {
+		border: var(--input-border-width) solid var(--input-border-color);
+		border-radius: var(--input-radius);
 	}
 	input:disabled,
 	textarea:disabled {

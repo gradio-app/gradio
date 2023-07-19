@@ -76,6 +76,10 @@ include = [
   "/requirements.txt",
 ]
 
+[tool.pyright]
+include = ["gradio/**/*.py"]
+exclude = ["gradio/themes/"]
+
 [tool.ruff]
 target-version = "py37"
 extend-select = [

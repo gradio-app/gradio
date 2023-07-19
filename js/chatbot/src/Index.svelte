@@ -18,7 +18,6 @@
 		right: string;
 		display: boolean;
 	}[];
-	export let container = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -28,6 +27,7 @@
 	export let selectable = false;
 	export let theme_mode: ThemeMode;
 	export let show_share_button = false;
+	export let rtl = false;
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
@@ -51,7 +51,7 @@
 	{elem_classes}
 	{visible}
 	padding={false}
-	{container}
+	
 	{scale}
 	{min_width}
 	{height}
@@ -72,7 +72,7 @@
 				Icon={Chat}
 				float={false}
 				label={label || "Chatbot"}
-				disable={container === false}
+				
 			/>
 		{/if}
 		<ChatBot
@@ -82,6 +82,7 @@
 			value={_value}
 			{latex_delimiters}
 			pending_message={loading_status?.status === "pending"}
+			{rtl}
 			on:change
 			on:select
 			on:share

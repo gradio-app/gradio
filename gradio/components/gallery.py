@@ -39,7 +39,7 @@ class Gallery(IOComponent, GallerySerializable, Selectable):
         *,
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
