@@ -145,8 +145,7 @@ if not DISCORD_TOKEN:
     
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/MessageContentIntent.png)
 
-    ## 6. The token from step 3 is the DISCORD_TOKEN. Call client.deploy_discord(DISCORD_TOKEN, ...) or add the token as a space secret
-    manually.
+    ## 6. The token from step 3 is the DISCORD_TOKEN. Rerun the deploy_discord command, e.g client.deploy_discord(discord_bot_token=DISCORD_TOKEN, ...), or add the token as a space secret manually.
 """
 else:
     permissions = Permissions(326417525824)
