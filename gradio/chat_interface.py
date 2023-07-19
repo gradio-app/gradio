@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import inspect
 import warnings
-import time
 from typing import Callable, Generator
 
 from gradio_client.documentation import document, set_documentation_group
