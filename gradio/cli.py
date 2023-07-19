@@ -1,8 +1,8 @@
 import sys
 
-import gradio.cli_env_info
 from gradio_client.cli import deploy_discord  # type: ignore
 
+import gradio.cli_env_info
 import gradio.deploy_space
 import gradio.reload
 
