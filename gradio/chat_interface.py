@@ -115,6 +115,7 @@ class ChatInterface(Blocks):
                     self.chatbot = chatbot.render()
                 else:
                     self.chatbot = Chatbot(label="Chatbot")
+                self.chatbot_state = State([])
                 with Row():
                     if textbox:
                         self.textbox = textbox.render()
@@ -195,14 +196,14 @@ class ChatInterface(Blocks):
             queue=False,
         ).then(
             self._display_input,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
+            [self.saved_input, self.chatbot_state],
+            [self.chatbot, self.chatbot_state],
             api_name=False,
             queue=False,
         ).then(
             submit_fn,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
+            [self.saved_input, self.chatbot_state],
+            [self.chatbot, self.chatbot_state],
             api_name=False,
         )
 
@@ -215,14 +216,14 @@ class ChatInterface(Blocks):
                 queue=False,
             ).then(
                 self._display_input,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot, self.chatbot_state],
                 api_name=False,
                 queue=False,
             ).then(
                 submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot, self.chatbot_state],
                 api_name=False,
             )
 
@@ -235,14 +236,14 @@ class ChatInterface(Blocks):
                 queue=False,
             ).then(
                 self._display_input,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot, self.chatbot_state],
                 api_name=False,
                 queue=False,
             ).then(
                 submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot, self.chatbot_state],
                 api_name=False,
             )
 
@@ -263,9 +264,9 @@ class ChatInterface(Blocks):
 
         if self.clear_btn:
             self.clear_btn.click(
-                lambda: ([], None),
+                lambda: ([], [], None),
                 None,
-                [self.chatbot, self.saved_input],
+                [self.chatbot, self.chatbot_state, self.saved_input],
                 queue=False,
                 api_name=False,
             )
@@ -294,7 +295,7 @@ class ChatInterface(Blocks):
         self, message: str, history: list[list[str | None]]
     ) -> list[list[str | None]]:
         history.append([message, None])
-        return history
+        return history, history
 
     def _submit_fn(
         self, message: str, history_with_input: list[list[str | None]]
@@ -302,7 +303,7 @@ class ChatInterface(Blocks):
         history = history_with_input[:-1]
         response = self.fn(message, history)
         history.append([message, response])
-        return history
+        return history, history
 
     def _stream_fn(
         self, message: str, history_with_input: list[list[str | None]]
@@ -311,11 +312,14 @@ class ChatInterface(Blocks):
         generator = self.fn(message, history)
         try:
             first_response = next(generator)
-            yield history + [[message, first_response]]
+            update = history + [[message, first_response]]
+            yield update, update
         except StopIteration:
-            yield history + [[message, None]]
+            update = history + [[message, None]]
+            yield update, update
         for response in generator:
-            yield history + [[message, response]]
+            update = history + [[message, response]]
+            yield update, update
 
     def _api_submit_fn(
         self, message: str, history: list[list[str | None]]

@@ -1,6 +1,7 @@
 import time
 
 import pytest
+from concurrent.futures import wait
 
 import gradio as gr
 
@@ -96,8 +97,7 @@ class TestAPI:
         chatbot = gr.ChatInterface(stream).queue()
         with connect(chatbot) as client:
             job = client.submit("hello")
-            while not job.done():
-                time.sleep(0.1)
+            wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
     def test_non_streaming_api(self, connect):
