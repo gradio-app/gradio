@@ -98,7 +98,7 @@ class Image(
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
-            show_download_button: if True, will display button to download image.
+            show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -154,7 +154,6 @@ class Image(
             label=label,
             every=every,
             show_label=show_label,
-            show_download_button=show_download_button,
             container=container,
             scale=scale,
             min_width=min_width,

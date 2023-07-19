@@ -3,7 +3,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import { Download, Community } from "@gradio/icons";
+	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import { Image } from "@gradio/icons";
@@ -22,7 +22,7 @@
 
 	$: value && dispatch("change", value);
 
-	const handle_click = (evt: MouseEvent) : void => {
+	const handle_click = (evt: MouseEvent): void => {
 		let coordinates = get_coordinates_of_clicked_image(evt);
 		if (coordinates) {
 			dispatch("select", { index: coordinates, value: null });
