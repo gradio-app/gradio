@@ -27,6 +27,7 @@ def analytics_enabled() -> bool:
 
 
 def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
+    data["ip_address"] = get_local_ip_address()
     try:
         requests.post(url, data=data, timeout=5)
     except (requests.ConnectionError, requests.exceptions.ReadTimeout):
@@ -34,8 +35,6 @@ def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
 
 
 def version_check():
-    if not analytics_enabled():
-        return
     try:
         version_data = pkgutil.get_data(__name__, "version.txt")
         if not version_data:
@@ -89,7 +88,7 @@ def initiated_analytics(data: dict[str, Any]) -> None:
         target=_do_analytics_request,
         kwargs={
             "url": f"{ANALYTICS_URL}gradio-initiated-analytics/",
-            "data": {**data, "ip_address": get_local_ip_address()},
+            "data": data,
         },
     ).start()
 
@@ -146,7 +145,6 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     }
 
     data.update(additional_data)
-    data.update({"ip_address": get_local_ip_address()})
 
     threading.Thread(
         target=_do_analytics_request,
@@ -165,7 +163,7 @@ def integration_analytics(data: dict[str, Any]) -> None:
         target=_do_analytics_request,
         kwargs={
             "url": f"{ANALYTICS_URL}gradio-integration-analytics/",
-            "data": {**data, "ip_address": get_local_ip_address()},
+            "data": data,
         },
     ).start()
 
@@ -179,7 +177,7 @@ def error_analytics(message: str) -> None:
     if not analytics_enabled():
         return
 
-    data = {"ip_address": get_local_ip_address(), "error": message}
+    data = {"error": message}
 
     threading.Thread(
         target=_do_analytics_request,
