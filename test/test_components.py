@@ -665,6 +665,7 @@ class TestImage:
             "tool": "editor",
             "name": "image",
             "show_share_button": False,
+            "show_download_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",

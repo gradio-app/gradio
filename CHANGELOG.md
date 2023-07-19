@@ -4,7 +4,7 @@ No changes to highlight.
 
 ## New Features:
 
-No changes to highlight.
+- Add `show_download_button` param to allow the download button in static Image components to be hidden by [@hannahblair](https://github.com/hannahblair) in [PR 4959](https://github.com/gradio-app/gradio/pull/4959)
 
 ## Bug Fixes:
 
