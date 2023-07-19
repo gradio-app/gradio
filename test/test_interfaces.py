@@ -74,6 +74,13 @@ class TestInterface:
         assert t.label == "parameter_name1"
         assert i.label == "parameter_name2"
 
+        def special_args_test(req: gradio.Request, parameter_name):
+            return parameter_name
+
+        t = Textbox()
+        Interface(special_args_test, t, "text")
+        assert t.label == "parameter_name"
+
     def test_examples_valid_path(self):
         path = os.path.join(
             os.path.dirname(__file__), "../gradio/test_data/flagged_with_log"
