@@ -100,7 +100,7 @@
             {/each}
         {/each}
     </div>
-    <div class="w-full">
+    <div class="w-10/12 mx-auto">
         {#if guide_page.spaces.length }
             <div id='spaces-holder' class="mb-4">
             <a href='https://hf.co/spaces' target='_blank'>

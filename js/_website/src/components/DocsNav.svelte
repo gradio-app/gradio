@@ -122,12 +122,17 @@
 	<a
 		class:current-nav-link={current_nav_link == "blocks"}
 		class="thin-link px-4 block"
-		href="/docs/blocks/">Blocks<sup class="text-orange-500">NEW</sup></a
+		href="/docs/blocks/">Blocks</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "block-layouts"}
 		class="thin-link px-4 block"
 		href="/docs/block-layouts/">Block Layouts</a
+	>
+	<a
+		class:current-nav-link={current_nav_link == "chatinterface"}
+		class="thin-link px-4 block"
+		href="/docs/chatinterface/">ChatInterface<sup class="text-orange-500">NEW</sup></a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "themes"}
