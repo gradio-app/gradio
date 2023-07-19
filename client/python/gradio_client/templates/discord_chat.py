@@ -26,6 +26,14 @@ def get_client(session: Optional[str] = None) -> grc.Client:
     return client
 
 
+def truncate_response(response: str) -> str:
+    ending = "...\nTruncating response to 2000 characters due to discord api limits."
+    if len(response) > 2000:
+        return response[: 2000 - len(ending)] + ending
+    else:
+        return response
+
+
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -63,9 +71,10 @@ async def chat(ctx, _prompt: str):
 
         try:
             job.result()
+            response = job.outputs()[-1]
+            await thread.send(truncate_response(response))
             thread_to_client[thread.id] = client
             thread_to_user[thread.id] = ctx.author.id
-            await thread.send(f"{job.outputs()[-1]}")
         except QueueError:
             await thread.send(
                 "The gradio space powering this bot is really busy! Please try again later!"
@@ -84,7 +93,8 @@ async def continue_chat(message):
         wait([job])
         try:
             job.result()
-            await message.reply(f"{job.outputs()[-1]}")
+            response = job.outputs()[-1]
+            await message.reply(truncate_response(response))
         except QueueError:
             await message.reply(
                 "The gradio space powering this bot is really busy! Please try again later!"
