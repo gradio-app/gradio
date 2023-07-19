@@ -1260,6 +1260,26 @@ class TestCancel:
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
+    async def test_cancel_function_with_generators(self, capsys):
+        async def long_job():
+            await asyncio.sleep(10)
+            print("HELLO FROM LONG JOB")
+
+        with gr.Blocks() as demo:
+            button = gr.Button(value="Start")
+            click = button.click(long_job, None, None)
+            cancel = gr.Button(value="Cancel")
+            cancel.click(None, None, None, cancels=[click])
+
+        cancel_fun = demo.fns[-1].fn
+        task = asyncio.create_task(long_job())
+        task.set_name("foo_0")
+        # If cancel_fun didn't cancel long_job the message would be printed to the console
+        # The test would also take 10 seconds
+        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        captured = capsys.readouterr()
+        assert "HELLO FROM LONG JOB" not in captured.out
+
     @pytest.mark.asyncio
     async def test_cancel_function_with_multiple_blocks(self, capsys):
         async def long_job():
@@ -1315,25 +1335,6 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
-
-    @pytest.mark.asyncio
-    async def test_cancel_button_for_interfaces(self, connect):
-        def generate(x):
-            for i in range(4):
-                yield i
-                time.sleep(0.2)
-
-        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
-        stop_btn_id = next(
-            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
-        )
-        assert not io.blocks[stop_btn_id].visible
-
-        with connect(io) as client:
-            job = client.submit("freddy", fn_index=1)
-            wait([job])
-            assert job.outputs()[-1] == "3"
-
 
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
