@@ -19,6 +19,7 @@ from gradio.components import (
     State,
     Textbox,
 )
+from gradio.events import Dependency, EventListenerMethod
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Group, Row
 from gradio.themes import ThemeClass as Theme
@@ -142,7 +143,13 @@ class ChatInterface(Blocks):
                         if isinstance(stop_btn, Button):
                             stop_btn.render()
                         elif isinstance(stop_btn, str):
-                            stop_btn = Button("Stop", variant="stop", visible=False, scale=1, min_width=150)
+                            stop_btn = Button(
+                                "Stop",
+                                variant="stop",
+                                visible=False,
+                                scale=1,
+                                min_width=150,
+                            )
                         else:
                             raise ValueError(
                                 f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
@@ -191,131 +198,85 @@ class ChatInterface(Blocks):
             self._setup_events()
             self._setup_api()
 
-    def _setup_events(self):
+    def _setup_events(self) -> None:
         if inspect.isgeneratorfunction(self.fn):
             submit_fn = self._stream_fn
         else:
             submit_fn = self._submit_fn
 
-        submit_event = self.textbox.submit(
-            self._clear_and_save_textbox,
-            [self.textbox],
-            [self.textbox, self.saved_input],
-            api_name=False,
-            queue=False,
-        ).then(
-            self._display_input,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
-            api_name=False,
-            queue=False,
-        ).then(
-            submit_fn,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
-            api_name=False,
-        )
-        if self.stop_btn:
-            if self.submit_btn:
-                self.textbox.submit(
-                    lambda : (Button.update(visible=False), Button.update(visible=True)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
-                submit_event.then(
-                    lambda : (Button.update(visible=True), Button.update(visible=False)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
-            else:
-                self.textbox.submit(
-                    lambda : Button.update(visible=True),
-                    None,
-                    [self.stop_btn],
-                    api_name=False,
-                    queue=False,
-                )
-                submit_event.then(
-                    lambda : Button.update(visible=True),
-                    None,
-                    [self.submit_btn],
-                    api_name=False,
-                    queue=False,
-                )
-            self.stop_btn.click(
-                None, 
-                None, 
-                None, 
-                cancels=submit_event,
-                api_name=False,
-            )
-
-
-        if self.submit_btn:
-            click_event = self.submit_btn.click(
+        submit_event = (
+            self.textbox.submit(
                 self._clear_and_save_textbox,
                 [self.textbox],
                 [self.textbox, self.saved_input],
                 api_name=False,
                 queue=False,
-            ).then(
+            )
+            .then(
                 self._display_input,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
                 api_name=False,
                 queue=False,
-            ).then(
+            )
+            .then(
                 submit_fn,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
                 api_name=False,
             )
-            if self.stop_btn:
+        )
+        self._setup_stop_events(self.textbox.submit, submit_event)
+
+        if self.submit_btn:
+            click_event = (
                 self.submit_btn.click(
-                    lambda : (Button.update(visible=False), Button.update(visible=True)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
+                    self._clear_and_save_textbox,
+                    [self.textbox],
+                    [self.textbox, self.saved_input],
                     api_name=False,
                     queue=False,
                 )
-                click_event.then(
-                    lambda : (Button.update(visible=True), Button.update(visible=False)),
-                    None,
-                    [self.submit_btn, self.stop_btn],
+                .then(
+                    self._display_input,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
                     api_name=False,
                     queue=False,
                 )
-                self.stop_btn.click(
-                    None, 
-                    None, 
-                    None, 
-                    cancels=click_event,
+                .then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
                     api_name=False,
                 )
+            )
+            self._setup_stop_events(self.submit_btn.click, click_event)
 
         if self.retry_btn:
-            self.retry_btn.click(
-                self._delete_prev_fn,
-                [self.chatbot],
-                [self.chatbot, self.saved_input],
-                api_name=False,
-                queue=False,
-            ).then(
-                self._display_input,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                api_name=False,
-                queue=False,
-            ).then(
-                submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                api_name=False,
+            retry_event = (
+                self.retry_btn.click(
+                    self._delete_prev_fn,
+                    [self.chatbot],
+                    [self.chatbot, self.saved_input],
+                    api_name=False,
+                    queue=False,
+                )
+                .then(
+                    self._display_input,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
+                    api_name=False,
+                    queue=False,
+                )
+                .then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
+                    api_name=False,
+                )
             )
+            self._setup_stop_events(self.retry_btn.click, retry_event)
 
         if self.undo_btn:
             self.undo_btn.click(
@@ -341,7 +302,49 @@ class ChatInterface(Blocks):
                 api_name=False,
             )
 
-    def _setup_api(self):
+    def _setup_stop_events(
+        self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
+    ) -> None:
+        if self.stop_btn:
+            if self.submit_btn:
+                event_trigger(
+                    lambda: (Button.update(visible=False), Button.update(visible=True)),
+                    None,
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                event_to_cancel.then(
+                    lambda: (Button.update(visible=True), Button.update(visible=False)),
+                    None,
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+            else:
+                event_trigger(
+                    lambda: Button.update(visible=True),
+                    None,
+                    [self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                event_to_cancel.then(
+                    lambda: Button.update(visible=True),
+                    None,
+                    [self.submit_btn],
+                    api_name=False,
+                    queue=False,
+                )
+            self.stop_btn.click(
+                None,
+                None,
+                None,
+                cancels=event_to_cancel,
+                api_name=False,
+            )
+
+    def _setup_api(self) -> None:
         if inspect.isgeneratorfunction(self.fn):
             api_fn = self._api_stream_fn
         else:
