@@ -70,7 +70,7 @@ class Image(
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
-        show_download_button: bool | None = None,
+        show_download_button: bool = True,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
