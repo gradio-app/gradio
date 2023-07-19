@@ -142,7 +142,7 @@ class ChatInterface(Blocks):
                         if isinstance(stop_btn, Button):
                             stop_btn.render()
                         elif isinstance(stop_btn, str):
-                            stop_btn = Button("Stop", variant="stop", visible=False)
+                            stop_btn = Button("Stop", variant="stop", visible=False, scale=1, min_width=150)
                         else:
                             raise ValueError(
                                 f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
@@ -197,7 +197,7 @@ class ChatInterface(Blocks):
         else:
             submit_fn = self._submit_fn
 
-        self.textbox.submit(
+        submit_event = self.textbox.submit(
             self._clear_and_save_textbox,
             [self.textbox],
             [self.textbox, self.saved_input],
@@ -215,6 +215,45 @@ class ChatInterface(Blocks):
             [self.chatbot],
             api_name=False,
         )
+        if self.stop_btn:
+            if self.submit_btn:
+                self.textbox.submit(
+                    lambda : (Button.update(visible=False), Button.update(visible=True)),
+                    None,
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                submit_event.then(
+                    lambda : (Button.update(visible=True), Button.update(visible=False)),
+                    None,
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+            else:
+                self.textbox.submit(
+                    lambda : Button.update(visible=True),
+                    None,
+                    [self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                submit_event.then(
+                    lambda : Button.update(visible=True),
+                    None,
+                    [self.submit_btn],
+                    api_name=False,
+                    queue=False,
+                )
+            self.stop_btn.click(
+                None, 
+                None, 
+                None, 
+                cancels=submit_event,
+                api_name=False,
+            )
+
 
         if self.submit_btn:
             click_event = self.submit_btn.click(
@@ -239,12 +278,23 @@ class ChatInterface(Blocks):
                 self.submit_btn.click(
                     lambda : (Button.update(visible=False), Button.update(visible=True)),
                     None,
-                    [self.submit_btn, self.stop_btn]
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
                 )
                 click_event.then(
                     lambda : (Button.update(visible=True), Button.update(visible=False)),
                     None,
-                    [self.submit_btn, self.stop_btn]                    
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                self.stop_btn.click(
+                    None, 
+                    None, 
+                    None, 
+                    cancels=click_event,
+                    api_name=False,
                 )
 
         if self.retry_btn:

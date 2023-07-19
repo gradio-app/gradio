@@ -389,11 +389,14 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
+            print("iterators", app.iterators)
+            print("body", body)
             if body.session_hash not in app.iterators:
                 return {"success": False}
             async with app.lock:
                 app.iterators[body.session_hash][body.fn_index] = None
                 app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
+            print("iterators", app.iterators)
             return {"success": True}
 
         async def run_predict(
@@ -410,13 +413,6 @@ class App(FastAPI):
                     }
                 session_state = app.state_holder[body.session_hash]
                 iterators = app.iterators[body.session_hash]
-                # The should_reset set keeps track of the fn_indices
-                # that have been cancelled. When a job is cancelled,
-                # the /reset route will mark the jobs as having been reset.
-                # That way if the cancel job finishes BEFORE the job being cancelled
-                # the job being cancelled will not overwrite the state of the iterator.
-                # In all cases, should_reset will be the empty set the next time
-                # the fn_index is run.
                 app.iterators[body.session_hash]["should_reset"] = set()
             else:
                 session_state = {}
@@ -447,6 +443,14 @@ class App(FastAPI):
                     )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
+                    print(">>", fn_index, ">>", app.iterators[body.session_hash]["should_reset"])
+                    # The should_reset set keeps track of the fn_indices
+                    # that have been cancelled. When a job is cancelled,
+                    # the /reset route will mark the jobs as having been reset.
+                    # That way if the cancel job finishes BEFORE the job being cancelled
+                    # the job being cancelled will not overwrite the state of the iterator.
+                    # In all cases, should_reset will be the empty set the next time
+                    # the fn_index is run.
                     if fn_index in app.iterators[body.session_hash]["should_reset"]:
                         app.iterators[body.session_hash][fn_index] = None
                     else:
