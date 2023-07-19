@@ -389,14 +389,11 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
-            print("iterators", app.iterators)
-            print("body", body)
             if body.session_hash not in app.iterators:
                 return {"success": False}
             async with app.lock:
                 app.iterators[body.session_hash][body.fn_index] = None
                 app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
-            print("iterators", app.iterators)
             return {"success": True}
 
         async def run_predict(
@@ -450,7 +447,6 @@ class App(FastAPI):
                     )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
-                    print(">>", fn_index, ">>", app.iterators[body.session_hash]["should_reset"])
                     if fn_index in app.iterators[body.session_hash]["should_reset"]:
                         app.iterators[body.session_hash][fn_index] = None
                     else:
