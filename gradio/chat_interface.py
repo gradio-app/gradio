@@ -15,12 +15,14 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Chatbot,
+    IOComponent,
     Markdown,
     State,
     Textbox,
+    get_component_instance,
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Group, Row
+from gradio.layouts import Accordion, Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("chatinterface")
@@ -52,6 +54,7 @@ class ChatInterface(Blocks):
         *,
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
+        additional_inputs: str | IOComponent | list[str | IOComponent] | None,
         examples: list[str] | None = None,
         cache_examples: bool | None = None,
         title: str | None = None,
@@ -101,6 +104,15 @@ class ChatInterface(Blocks):
         else:
             self.cache_examples = cache_examples or False
         self.buttons: list[Button] = []
+
+        if additional_inputs:
+            if not isinstance(additional_inputs, list):
+                additional_inputs = [additional_inputs]
+            self.additional_inputs = [
+                get_component_instance(i, render=False) for i in additional_inputs  # type: ignore
+            ]
+        else:
+            self.additional_inputs = None
 
         with self:
             if title:
@@ -175,6 +187,11 @@ class ChatInterface(Blocks):
                     fn=examples_fn,
                     cache_examples=self.cache_examples,
                 )
+
+            if self.additional_inputs:
+                with Accordion("Additional Inputs"):
+                    for input_component in self.additional_inputs:
+                        input_component.render()
 
             self.saved_input = State()
 
