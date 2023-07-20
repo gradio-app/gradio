@@ -245,15 +245,15 @@ class ChatInterface(Blocks):
                 )
                 .then(
                     self._display_input,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot],
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
                     api_name=False,
                     queue=False,
                 )
                 .then(
                     submit_fn,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot],
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
                     api_name=False,
                 )
             )
@@ -263,22 +263,22 @@ class ChatInterface(Blocks):
             retry_event = (
                 self.retry_btn.click(
                     self._delete_prev_fn,
-                    [self.chatbot],
-                    [self.chatbot, self.saved_input],
+                    [self.chatbot_state],
+                    [self.chatbot, self.saved_input, self.chatbot_state],
                     api_name=False,
                     queue=False,
                 )
                 .then(
                     self._display_input,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot],
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
                     api_name=False,
                     queue=False,
                 )
                 .then(
                     submit_fn,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot],
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
                     api_name=False,
                 )
             )
@@ -288,7 +288,7 @@ class ChatInterface(Blocks):
             self.undo_btn.click(
                 self._delete_prev_fn,
                 [self.chatbot_state],
-                [self.chatbot, self.saved_input],
+                [self.chatbot, self.saved_input, self.chatbot_state],
                 api_name=False,
                 queue=False,
             ).then(
