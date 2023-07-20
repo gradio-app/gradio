@@ -208,26 +208,6 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
-
-        self.textbox.submit(
-            self._clear_and_save_textbox,
-            [self.textbox],
-            [self.textbox, self.saved_input],
-            api_name=False,
-            queue=False,
-        ).then(
-            self._display_input,
-            [self.saved_input, self.chatbot_state],
-            [self.chatbot, self.chatbot_state],
-            api_name=False,
-            queue=False,
-        ).then(
-            submit_fn,
-            [self.saved_input, self.chatbot_state],
-            [self.chatbot, self.chatbot_state],
-            api_name=False,
-        )
-
         submit_event = (
             self.textbox.submit(
                 self._clear_and_save_textbox,
