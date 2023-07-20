@@ -1,6 +1,6 @@
 # Upcoming Release
 
-- Add a download button for audio by [@leuryr](https://github.com/leuryr) in [PR 4977](https://github.com/gradio-app/gradio/pull/4977)
+- Add a download button for audio, with `show_download_button` param that determines its visibility in static Audio components by [@leuryr](https://github.com/leuryr) in [PR 4977](https://github.com/gradio-app/gradio/pull/4977)
 
 ## New Features:
 
