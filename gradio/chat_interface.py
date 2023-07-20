@@ -139,7 +139,10 @@ class ChatInterface(Blocks):
                                 submit_btn.render()
                             elif isinstance(submit_btn, str):
                                 submit_btn = Button(
-                                    submit_btn, variant="primary", scale=1, min_width=0
+                                    submit_btn,
+                                    variant="primary",
+                                    scale=1,
+                                    min_width=150,
                                 )
                             else:
                                 raise ValueError(
