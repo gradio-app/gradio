@@ -887,7 +887,7 @@ def make_waveform(
                 waveform_img.save(tmp_img.name)
         else:
 
-            def animate(_):
+            def _animate(_):
                 for idx, b in enumerate(barcollection):
                     rand_height = np.random.uniform(0.8, 1.2)
                     b.set_height(samples[idx] * rand_height * 2)
@@ -895,7 +895,12 @@ def make_waveform(
 
             frames = int(duration * 10)
             anim = animation.FuncAnimation(
-                fig, animate, repeat=False, blit=False, frames=frames, interval=100
+                fig,  # type: ignore
+                _animate,
+                repeat=False,
+                blit=False,
+                frames=frames,
+                interval=100,
             )
             anim.save(
                 tmp_img.name,
@@ -966,7 +971,7 @@ def make_waveform(
             "-i",
             audio_file,
             "-vf",
-            f"color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1",
+            f"color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1",  # type: ignore
             "-t",
             str(duration),
             "-y",
