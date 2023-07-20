@@ -3,7 +3,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import { Download, Community } from "@gradio/icons";
+	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 
 	import { Image } from "@gradio/icons";
@@ -11,8 +11,9 @@
 	export let value: null | string;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
-	export let selectable: boolean = false;
-	export let show_share_button: boolean = false;
+	export let show_download_button = true;
+	export let selectable = false;
+	export let show_share_button = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -21,7 +22,7 @@
 
 	$: value && dispatch("change", value);
 
-	const handle_click = (evt: MouseEvent) => {
+	const handle_click = (evt: MouseEvent): void => {
 		let coordinates = get_coordinates_of_clicked_image(evt);
 		if (coordinates) {
 			dispatch("select", { index: coordinates, value: null });
@@ -34,6 +35,7 @@
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
 {:else}
 	<div class="icon-buttons">
+		{#if show_download_button}
 		<a
 			href={value}
 			target={window.__is_colab__ ? "_blank" : null}
@@ -41,6 +43,7 @@
 		>
 			<IconButton Icon={Download} label="Download" />
 		</a>
+		{/if}
 		{#if show_share_button}
 			<ShareButton
 				on:share
