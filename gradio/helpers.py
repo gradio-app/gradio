@@ -757,7 +757,7 @@ def make_waveform(
     bars_color: str | tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
     bar_width: float = 0.6,
-    animate_waveform: bool = False,
+    animate: bool = False,
 ) -> str:
     """
     Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
@@ -769,7 +769,7 @@ def make_waveform(
         bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
         bar_count: Number of bars in waveform
         bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
-        animate_waveform: If true, the audio waveform overlay will be animated, if false, it will be static.
+        animate: If true, the audio waveform overlay will be animated, if false, it will be static.
     Returns:
         A filepath to the output video in mp4 format.
     """
@@ -824,13 +824,13 @@ def make_waveform(
             else get_color_gradient(bars_color[0], bars_color[1], bar_count)
         )
 
-        if animate_waveform:
+        if animate:
             fig = plt.figure(figsize=(5, 1), dpi=200, frameon=False)
             fig.subplots_adjust(left=0, bottom=0, right=1, top=1)
         plt.axis("off")
         plt.margins(x=0)
 
-        bar_alpha = fg_alpha if animate_waveform else 1.0
+        bar_alpha = fg_alpha if animate else 1.0
         barcollection = plt.bar(
             np.arange(0, bar_count),
             samples * 2,
@@ -845,13 +845,13 @@ def make_waveform(
         savefig_kwargs: dict[str, Any] = {"bbox_inches": "tight"}
         if bg_image is not None:
             savefig_kwargs["transparent"] = True
-            if animate_waveform:
+            if animate:
                 savefig_kwargs["facecolor"] = "none"
         else:
             savefig_kwargs["facecolor"] = bg_color
         plt.savefig(tmp_img.name, **savefig_kwargs)
 
-        if not animate_waveform:
+        if not animate:
             waveform_img = PIL.Image.open(tmp_img.name)
             waveform_img = waveform_img.resize((1000, 200))
 
@@ -908,7 +908,7 @@ def make_waveform(
     # Convert waveform to video with ffmpeg
     output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
 
-    if animate_waveform and bg_image is not None:
+    if animate and bg_image is not None:
         ffmpeg_cmd = [
             ffmpeg,
             "-loop",
@@ -935,7 +935,7 @@ def make_waveform(
             "-y",
             output_mp4.name,
         ]
-    elif animate_waveform and bg_image is None:
+    elif animate and bg_image is None:
         ffmpeg_cmd = [
             ffmpeg,
             "-i",

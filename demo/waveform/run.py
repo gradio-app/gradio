@@ -11,8 +11,9 @@ COLORS = [
 def audio_waveform(audio, image):
     return (
         audio,
-        gr.make_waveform(audio, animate_waveform=True),
-        gr.make_waveform(audio, bg_image=image, bars_color=random.choice(COLORS), animate_waveform=True),
+        gr.make_waveform(audio),
+        gr.make_waveform(audio, animate=True),
+        gr.make_waveform(audio, bg_image=image, bars_color=random.choice(COLORS)),
     )
 
 
@@ -21,6 +22,7 @@ gr.Interface(
     inputs=[gr.Audio(), gr.Image(type="filepath")],
     outputs=[
         gr.Audio(),
+        gr.Video(),
         gr.Video(),
         gr.Video(),
     ],
