@@ -236,7 +236,7 @@
 		background: var(--background-fill-secondary);
 	}
 	.user {
-		border-color: var(--border-color-accent);
+		border-color: var(--chatbot-user-message-border-color-accent);
 		background-color: var(--color-accent-soft);
 	}
 	.feedback {

@@ -1204,13 +1204,13 @@ class Base(ThemeClass):
         self.section_header_text_weight = section_header_text_weight or getattr(
             self, "section_header_text_weight", "400"
         )
-        self.chatbot_user_message_border_color = (
+        self.chatbot_user_message_border_color_accent = (
             chatbot_user_message_border_color_accent
             or getattr(
                 self, "chatbot_user_message_border_color_accent", "*border_color_accent"
             )
         )
-        self.chatbot_user_message_border_color_dark = (
+        self.chatbot_user_message_border_color_accent_dark = (
             chatbot_user_message_border_color_accent_dark
             or getattr(
                 self,
