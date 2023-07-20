@@ -1,7 +1,6 @@
 """Contains tests for networking.py and app.py"""
 import json
 import os
-import sys
 import tempfile
 from contextlib import closing
 from unittest.mock import patch
@@ -469,10 +468,6 @@ class TestAuthenticatedRoutes:
 
 class TestQueueRoutes:
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Mocks don't work with async context managers in 3.7",
-    )
     @patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
     async def test_queue_join_routes_sets_url_if_none_set(self, mock_get_url):
         io = Interface(lambda x: x, "text", "text").queue()
