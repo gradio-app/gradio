@@ -115,7 +115,6 @@ class ChatInterface(Blocks):
                     self.chatbot = chatbot.render()
                 else:
                     self.chatbot = Chatbot(label="Chatbot")
-                self.chatbot_state = State([])
                 with Row():
                     if textbox:
                         self.textbox = textbox.render()
@@ -178,6 +177,7 @@ class ChatInterface(Blocks):
                 )
 
             self.saved_input = State()
+            self.chatbot_state = State([])
 
             self._setup_events()
             self._setup_api()
@@ -276,15 +276,11 @@ class ChatInterface(Blocks):
             api_fn = self._api_stream_fn
         else:
             api_fn = self._api_submit_fn
-
-        # Use a gr.State() instead of self.chatbot so that the API doesn't require passing forth
-        # a chat history, instead it is just stored internally in the state.
-        history = State([])
-
+        
         self.fake_api_btn.click(
             api_fn,
-            [self.textbox, history],
-            [self.textbox, history],
+            [self.textbox, self.chatbot_state],
+            [self.textbox, self.chatbot_state],
             api_name="chat",
         )
 
