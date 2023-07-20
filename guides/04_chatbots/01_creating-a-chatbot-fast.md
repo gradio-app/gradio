@@ -105,7 +105,7 @@ If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `Chat
 import gradio as gr
 
 def yes_man(message, history):
-    if messages.endswith("?"):
+    if message.endswith("?"):
         return "Yes"
     else:
         return "Ask me anything!"
@@ -113,7 +113,7 @@ def yes_man(message, history):
 gr.ChatInterface(
     yes_man,
     chatbot=gr.Chatbot(height=300),
-    textbox=gr.Textbox(placeholder="Ask me a yes or no question")
+    textbox=gr.Textbox(placeholder="Ask me a yes or no question", container=False, scale=7),
     title="Yes Man",
     description="Ask Yes Man any question",
     theme="soft",
