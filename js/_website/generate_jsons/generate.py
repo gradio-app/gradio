@@ -1,7 +1,12 @@
-from src import demos, guides, docs, changelog
-import os 
-import requests
 import json
+import os
+import sys
+
+import requests
+from src import changelog, demos, docs, guides
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
