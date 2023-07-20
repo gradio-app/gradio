@@ -3,7 +3,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -91,8 +91,8 @@ class EventListenerMethod:
     def __call__(
         self,
         fn: Callable | None,
-        inputs: Component | list[Component] | set[Component] | None = None,
-        outputs: Component | list[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
+        outputs: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
         status_tracker: None = None,
         scroll_to_output: bool = False,
