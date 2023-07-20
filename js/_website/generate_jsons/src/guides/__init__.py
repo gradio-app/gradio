@@ -8,7 +8,7 @@ DIR = os.path.dirname(__file__)
 GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides"))
 GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets")
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
-
+CN_GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides/cn"))
 
 UNDERSCORE_TOKEN = "!UNDERSCORE!"
 
@@ -37,6 +37,7 @@ def format_name(guide_name):
 guide_folders = sorted(os.listdir(GUIDES_DIR))
 guide_folders.remove("CONTRIBUTING.md")
 guide_folders.remove("assets")
+guide_folders.remove("cn")
 
 guides = []
 guides_by_category = []
