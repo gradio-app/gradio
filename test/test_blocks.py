@@ -1065,6 +1065,7 @@ class TestSpecificUpdate:
             "lines": 4,
             "info": None,
             "max_lines": None,
+            "autofocus": None,
             "placeholder": None,
             "label": None,
             "show_label": None,

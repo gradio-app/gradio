@@ -188,6 +188,7 @@ XRAY_CONFIG = {
             "id": 14,
             "type": "textbox",
             "props": {
+                "autofocus": False,
                 "lines": 1,
                 "max_lines": 20,
                 "value": "",
@@ -508,6 +509,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 19,
             "type": "textbox",
             "props": {
+                "autofocus": False,
                 "lines": 1,
                 "max_lines": 20,
                 "value": "",
@@ -784,6 +786,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "show_copy_button": False,
                 "type": "text",
                 "rtl": False,
+                "autofocus": False,
             },
         },
     ],
