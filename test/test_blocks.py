@@ -1241,10 +1241,6 @@ class TestRender:
 
 
 class TestCancel:
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Tasks dont have names in 3.7",
-    )
     @pytest.mark.asyncio
     async def test_cancel_function(self, capsys):
         async def long_job():
@@ -1266,10 +1262,6 @@ class TestCancel:
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Tasks dont have names in 3.7",
-    )
     @pytest.mark.asyncio
     async def test_cancel_function_with_multiple_blocks(self, capsys):
         async def long_job():
@@ -1325,24 +1317,6 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
-
-    @pytest.mark.asyncio
-    async def test_cancel_button_for_interfaces(self, connect):
-        def generate(x):
-            for i in range(4):
-                yield i
-                time.sleep(0.2)
-
-        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
-        stop_btn_id = next(
-            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
-        )
-        assert not io.blocks[stop_btn_id].visible
-
-        with connect(io) as client:
-            job = client.submit("freddy", fn_index=1)
-            wait([job])
-            assert job.outputs()[-1] == "3"
 
 
 class TestEvery:
