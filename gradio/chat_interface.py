@@ -276,7 +276,7 @@ class ChatInterface(Blocks):
             api_fn = self._api_stream_fn
         else:
             api_fn = self._api_submit_fn
-        
+
         self.fake_api_btn.click(
             api_fn,
             [self.textbox, self.chatbot_state],
