@@ -15,7 +15,7 @@ No changes to highlight.
 ## Other Changes:
 
 No changes to highlight.
-# Version 3.37
+# Version 3.38
 
 ## New Features:
 
