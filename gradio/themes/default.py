@@ -92,4 +92,5 @@ class Default(Base):
             button_cancel_border_color_dark=colors.red.c600,
             button_cancel_text_color=colors.red.c600,
             button_cancel_text_color_dark="white",
+            chatbot_user_message_border_color_accent="*primary_200",
         )

@@ -566,6 +566,8 @@ class Base(ThemeClass):
         # Component Atoms: These set the style for elements within components.
         chatbot_code_background_color=None,
         chatbot_code_background_color_dark=None,
+        chatbot_user_message_border_color_accent=None,
+        chatbot_user_message_border_color_accent_dark=None,
         checkbox_background_color=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
@@ -1201,6 +1203,20 @@ class Base(ThemeClass):
         )
         self.section_header_text_weight = section_header_text_weight or getattr(
             self, "section_header_text_weight", "400"
+        )
+        self.chatbot_user_message_border_color_accent = (
+            chatbot_user_message_border_color_accent
+            or getattr(
+                self, "chatbot_user_message_border_color_accent", "*border_color_accent"
+            )
+        )
+        self.chatbot_user_message_border_color_accent_dark = (
+            chatbot_user_message_border_color_accent_dark
+            or getattr(
+                self,
+                "chatbot_user_message_border_color_accent_dark",
+                "*border_color_accent",
+            )
         )
         # Component Atoms
         self.chatbot_code_background_color = chatbot_code_background_color or getattr(
