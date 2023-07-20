@@ -21,7 +21,7 @@ from gradio.components import (
 )
 from gradio.events import Dependency, EventListenerMethod
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Group, Row
+from gradio.layouts import Column, Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("chatinterface")
@@ -114,74 +114,77 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
 
-            with Group():
+            with Column(variant="panel"):
                 if chatbot:
                     self.chatbot = chatbot.render()
                 else:
                     self.chatbot = Chatbot(label="Chatbot")
+
+                with Group():
+                    with Row():
+                        if textbox:
+                            textbox.container = False
+                            textbox.show_label = False
+                            self.textbox = textbox.render()
+                        else:
+                            self.textbox = Textbox(
+                                container=False,
+                                show_label=False,
+                                placeholder="Type a message...",
+                                scale=7,
+                                autofocus=True,
+                            )
+                        if submit_btn:
+                            if isinstance(submit_btn, Button):
+                                submit_btn.render()
+                            elif isinstance(submit_btn, str):
+                                submit_btn = Button(
+                                    submit_btn, variant="primary", scale=1, min_width=0
+                                )
+                            else:
+                                raise ValueError(
+                                    f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
+                                )
+                        if stop_btn:
+                            if isinstance(stop_btn, Button):
+                                stop_btn.visible = False
+                                stop_btn.render()
+                            elif isinstance(stop_btn, str):
+                                stop_btn = Button(
+                                    stop_btn,
+                                    variant="stop",
+                                    visible=False,
+                                    scale=1,
+                                    min_width=150,
+                                )
+                            else:
+                                raise ValueError(
+                                    f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
+                                )
+                        self.buttons.extend([submit_btn, stop_btn])
+
                 with Row():
-                    if textbox:
-                        textbox.container = False
-                        textbox.show_label = False
-                        self.textbox = textbox.render()
-                    else:
-                        self.textbox = Textbox(
-                            container=False,
-                            show_label=False,
-                            placeholder="Type a message...",
-                            scale=7,
-                        )
-                    if submit_btn:
-                        if isinstance(submit_btn, Button):
-                            submit_btn.render()
-                        elif isinstance(submit_btn, str):
-                            submit_btn = Button(
-                                submit_btn, variant="primary", scale=1, min_width=150
-                            )
-                        else:
-                            raise ValueError(
-                                f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
-                            )
-                    if stop_btn:
-                        if isinstance(stop_btn, Button):
-                            stop_btn.visible = False
-                            stop_btn.render()
-                        elif isinstance(stop_btn, str):
-                            stop_btn = Button(
-                                stop_btn,
-                                variant="stop",
-                                visible=False,
-                                scale=1,
-                                min_width=150,
-                            )
-                        else:
-                            raise ValueError(
-                                f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
-                            )
-                    self.buttons.extend([submit_btn, stop_btn])
+                    for btn in [retry_btn, undo_btn, clear_btn]:
+                        if btn:
+                            if isinstance(btn, Button):
+                                btn.render()
+                            elif isinstance(btn, str):
+                                btn = Button(btn, variant="secondary")
+                            else:
+                                raise ValueError(
+                                    f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
+                                )
+                        self.buttons.append(btn)
 
-            with Row():
-                for btn in [retry_btn, undo_btn, clear_btn]:
-                    if btn:
-                        if isinstance(btn, Button):
-                            btn.render()
-                        elif isinstance(btn, str):
-                            btn = Button(btn, variant="secondary")
-                        else:
-                            raise ValueError(
-                                f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
-                            )
-                    self.buttons.append(btn)
-
-                self.fake_api_btn = Button("Fake API", visible=False)
-                self.fake_response_textbox = Textbox(label="Response", visible=False)
-                (
-                    self.submit_btn,
-                    self.stop_btn,
-                    self.retry_btn,
-                    self.undo_btn,
-                    self.clear_btn,
-                ) = self.buttons
+                    self.fake_api_btn = Button("Fake API", visible=False)
+                    self.fake_response_textbox = Textbox(label="Response", visible=False)
+                    (
+                        self.submit_btn,
+                        self.stop_btn,
+                        self.retry_btn,
+                        self.undo_btn,
+                        self.clear_btn,
+                    ) = self.buttons
 
             if examples:
                 if self.is_generator:
