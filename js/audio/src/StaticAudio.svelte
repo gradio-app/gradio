@@ -20,7 +20,8 @@
 	export let name: string;
 	export let show_label = true;
 	export let autoplay: boolean;
-	export let show_share_button: boolean = false;
+	export let show_download_button = true;
+	export let show_share_button = false;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -45,13 +46,15 @@
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
 {#if value !== null}
 	<div class="icon-buttons">
-		<a
-			href={value.data}
-			target={window.__is_colab__ ? "_blank" : null}
-			download={value.name}
-		>
-			<IconButton Icon={Download} label="Download" />
-		</a>
+		{#if show_download_button}
+			<a
+				href={value.data}
+				target={window.__is_colab__ ? "_blank" : null}
+				download={value.name}
+			>
+				<IconButton Icon={Download} label="Download" />
+			</a>
+		{/if}
 		{#if show_share_button}
 			<ShareButton
 				on:error
