@@ -79,7 +79,7 @@ class ChatInterface(Blocks):
             css: custom css or path to custom css file to use with interface.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
-            stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button (the Button should set visible=False).
+            stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
             retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
@@ -142,10 +142,11 @@ class ChatInterface(Blocks):
                             )
                     if stop_btn:
                         if isinstance(stop_btn, Button):
+                            stop_btn.visible = False
                             stop_btn.render()
                         elif isinstance(stop_btn, str):
                             stop_btn = Button(
-                                "Stop",
+                                stop_btn,
                                 variant="stop",
                                 visible=False,
                                 scale=1,
@@ -328,9 +329,9 @@ class ChatInterface(Blocks):
                     queue=False,
                 )
                 event_to_cancel.then(
-                    lambda: Button.update(visible=True),
+                    lambda: Button.update(visible=False),
                     None,
-                    [self.submit_btn],
+                    [self.stop_btn],
                     api_name=False,
                     queue=False,
                 )
