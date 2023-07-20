@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "python generate_jsons/generate.py && vite dev",
-		"build": "python generate_jsons/generate.py && vite build",
+		"build": "cd generate_jsons && python generate.py && cd .. && vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

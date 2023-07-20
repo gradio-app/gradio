@@ -1,4 +1,4 @@
-from .src import demos, guides, docs, changelog
+from src import demos, guides, docs, changelog
 import os 
 import requests
 import json
