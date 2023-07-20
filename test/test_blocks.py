@@ -1094,6 +1094,7 @@ class TestSpecificUpdate:
             "show_label": None,
             "container": None,
             "scale": None,
+            "autofocus": None,
             "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
