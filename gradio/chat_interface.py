@@ -20,7 +20,7 @@ from gradio.components import (
     Textbox,
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Group, Row, Column
+from gradio.layouts import Column, Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("chatinterface")
@@ -157,7 +157,9 @@ class ChatInterface(Blocks):
                         self.buttons.append(btn)
 
                     self.fake_api_btn = Button("Fake API", visible=False)
-                    self.fake_response_textbox = Textbox(label="Response", visible=False)
+                    self.fake_response_textbox = Textbox(
+                        label="Response", visible=False
+                    )
                     (
                         self.submit_btn,
                         self.retry_btn,
