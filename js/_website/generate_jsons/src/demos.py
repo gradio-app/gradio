@@ -2,7 +2,7 @@ import os
 import json
 
 DIR = os.path.dirname(__file__)
-GRADIO_DEMO_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo/"))
+GRADIO_DEMO_DIR = os.path.abspath(os.path.join(DIR, "../../../../demo/"))
 
 def get_code_and_description(demo_name):
     with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as f:

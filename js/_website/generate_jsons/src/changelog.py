@@ -3,7 +3,7 @@ import json
 import re
 
 DIR = os.path.dirname(__file__)
-CHANGELOG_FILE = os.path.abspath(os.path.join(DIR, "../../../../../CHANGELOG.md"))
+CHANGELOG_FILE = os.path.abspath(os.path.join(DIR, "../../../../CHANGELOG.md"))
 
 
 def clean():

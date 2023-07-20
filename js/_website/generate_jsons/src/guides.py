@@ -5,9 +5,9 @@ import re
 import json
 
 DIR = os.path.dirname(__file__)
-GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides"))
+GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../guides"))
 GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets")
-DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
+DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../demo"))
 
 
 UNDERSCORE_TOKEN = "!UNDERSCORE!"

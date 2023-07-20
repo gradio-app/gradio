@@ -2,12 +2,12 @@ import json
 import os
 from gradio_client.documentation import generate_documentation, document_cls
 from gradio.events import EventListener, EventListenerMethod
-from ..guides import guides
+from .guides import guides
 import inspect
 
 DIR = os.path.dirname(__file__)
-DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
-JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
+DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../demo"))
+JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../client/js/README.md"))
 
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
