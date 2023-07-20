@@ -19,6 +19,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "calculator",
         "cancel_events",
         "chatbot_multimodal",
+        "chatinterface_streaming_echo",
         "clear_components",
         "code",
         "fake_gan",
