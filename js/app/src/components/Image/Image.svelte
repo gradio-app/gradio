@@ -25,6 +25,7 @@
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
 	export let brush_radius: number;
+	export let brush_color: string;
 	export let selectable = false;
 	export let container = true;
 	export let scale: number | null = null;
@@ -78,6 +79,7 @@
 	{:else}
 		<Image
 			{brush_radius}
+			{brush_color}
 			{shape}
 			bind:value
 			{source}
