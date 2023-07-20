@@ -145,7 +145,7 @@ if not DISCORD_TOKEN:
 
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/BotName.png)
     
-    ## 3. Click the 'Reset Token' button to get a new token. Write it down and keep it safe 🔐
+    ## 3. In Settings > Bot, click the 'Reset Token' button to get a new token. Write it down and keep it safe 🔐
     
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/ResetToken.png)
     
