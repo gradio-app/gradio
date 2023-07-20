@@ -769,7 +769,7 @@ def make_waveform(
         bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
         bar_count: Number of bars in waveform
         bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
-        animate_waveform: Whether to animate the waveform
+        animate_waveform: If true, the audio waveform overlay will be animated, if false, it will be static.
     Returns:
         A filepath to the output video in mp4 format.
     """
@@ -824,8 +824,9 @@ def make_waveform(
             else get_color_gradient(bars_color[0], bars_color[1], bar_count)
         )
 
-        fig = plt.figure(figsize=(5, 1), dpi=200, frameon=False)
-        fig.subplots_adjust(left=0, bottom=0, right=1, top=1)
+        if animate_waveform:
+            fig = plt.figure(figsize=(5, 1), dpi=200, frameon=False)
+            fig.subplots_adjust(left=0, bottom=0, right=1, top=1)
         plt.axis("off")
         plt.margins(x=0)
 
@@ -848,7 +849,6 @@ def make_waveform(
                 savefig_kwargs["facecolor"] = "none"
         else:
             savefig_kwargs["facecolor"] = bg_color
-
         plt.savefig(tmp_img.name, **savefig_kwargs)
 
         if not animate_waveform:
