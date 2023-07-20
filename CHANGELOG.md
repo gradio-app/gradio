@@ -1,6 +1,6 @@
 # Upcoming Release
 
-No changes to highlight.
+- Add a download button for audio by [@leuryr](https://github.com/leuryr) in [PR 4977](https://github.com/gradio-app/gradio/pull/4977)
 
 ## New Features:
 
