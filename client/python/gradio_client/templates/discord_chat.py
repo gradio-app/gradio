@@ -181,11 +181,13 @@ else:
 
     ## How to use it?
 
-    The bot can be triggered via !<<command-name>> followed by your text prompt.
+    The bot can be triggered via `!<<command-name>>` followed by your text prompt.
 
-    If you are the owner of this bot, call the !sync command from your discord server.
-    This will allow anyone in your server to call the bot via /<<command-name>>.
-    This is known as a slash command and is a nicer experience than calling the bot via !<<command-name>>. 
+    ## Enabling slash commands
+
+    If you are the owner of this bot, call the `!sync` command from your discord server.
+    This will allow anyone in your server to call the bot via `/<<command-name>>`.
+    This is known as a slash command and is a nicer experience than calling the bot via `!<<command-name>>`. 
     """
 
 

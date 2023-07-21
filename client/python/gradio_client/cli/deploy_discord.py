@@ -46,7 +46,9 @@ def main():
     parser.add_argument(
         "--private",
         type=bool,
+        nargs="?",
         help="Whether the discord bot space is private.",
+        const=True,
         default=False,
     )
     parser.add_argument(
