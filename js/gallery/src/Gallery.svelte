@@ -73,6 +73,19 @@
 		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
 	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
 
+	function handle_preview_click(event: PointerEvent): void {
+		const element = event.target as HTMLImageElement;
+		const x = event.clientX;
+		const width = element.offsetWidth;
+		const centerX = width / 2;
+
+		if (x < centerX) {
+			selected_image = previous;
+		} else {
+			selected_image = next;
+		}
+	}
+
 	function on_keydown(e: KeyboardEvent): void {
 		switch (e.code) {
 			case "Escape":
@@ -156,7 +169,7 @@
 			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 			<img
 				data-testid="detailed-image"
-				on:click={() => (selected_image = next)}
+				on:click={(event) => handle_preview_click(event)}
 				src={_value[selected_image][0].data}
 				alt={_value[selected_image][1] || ""}
 				title={_value[selected_image][1] || null}
