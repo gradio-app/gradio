@@ -50,6 +50,7 @@ thread_to_client = {}
 thread_to_user = {}
 
 
+<<<<<<< HEAD
 @bot.command()
 @commands.is_owner()
 async def sync(ctx) -> None:
@@ -73,6 +74,21 @@ async def chat(ctx, prompt: str):
                 f"{bot.command_prefix}<<command-name>>", ""
             ).strip()
 
+=======
+@bot.command(name="<<command-name>>")
+@discord.app_commands.describe(
+    prompt="Enter some text to chat with the bot! Like this: !<< Hello, how are you?"
+)
+async def chat(ctx, _prompt: str):
+    if ctx.author.id == bot.user.id:
+        return
+    try:
+        channel = ctx.message.channel
+        message = await channel.send("Creating thread...")
+        prompt = ctx.message.content.replace(
+            f"{bot.command_prefix}<<command-name>>", ""
+        ).strip()
+>>>>>>> cd7ad5b4531e18c349707ee41bfbf5272fe42b4f
         thread = await message.create_thread(name=prompt, auto_archive_duration=60)
         loop = asyncio.get_running_loop()
         client = await loop.run_in_executor(None, get_client, None)
@@ -153,23 +169,25 @@ if not DISCORD_TOKEN:
 
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/BotName.png)
     
-    ## 3. Click the 'Reset Token' button to get a new token. Write it down and keep it safe 🔐
+    ## 3. In Settings > Bot, click the 'Reset Token' button to get a new token. Write it down and keep it safe 🔐
     
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/ResetToken.png)
     
-    ## 4. Optionally make the bot public if you want anyone to be able to add it to your server
+    ## 4. Optionally make the bot public if you want anyone to be able to add it to their servers
     
-    ## 5. On the left hand side under 'Bot', enable 'Message Content Intent' under 'Priviledged Gateway Intents'
+    ## 5. Scroll down and enable 'Message Content Intent' under 'Priviledged Gateway Intents'
     
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/MessageContentIntent.png)
 
-    ## 6. The token from step 3 is the DISCORD_TOKEN. Rerun the deploy_discord command, e.g client.deploy_discord(discord_bot_token=DISCORD_TOKEN, ...), or add the token as a space secret manually.
+    ## 6. Save your changes!
+
+    ## 7. The token from step 3 is the DISCORD_TOKEN. Rerun the deploy_discord command, e.g client.deploy_discord(discord_bot_token=DISCORD_TOKEN, ...), or add the token as a space secret manually.
 """
 else:
     permissions = Permissions(326417525824)
     url = oauth_url(bot.user.id, permissions=permissions)
     welcome_message = f"""
-    ## Add this bot to your server by going to the following URL: 
+    ## Add this bot to your server by clicking this link: 
     
     {url}
 
