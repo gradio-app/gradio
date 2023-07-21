@@ -22,6 +22,12 @@ def count(message, history):
     return str(len(history))
 
 
+def echo_system_prompt_plus_message(message, history, system_prompt, tokens):
+    response = f"{system_prompt} {message}"
+    for i in range(min(len(response), int(tokens))):
+        yield response[: i + 1]
+
+
 class TestInit:
     def test_no_fn(self):
         with pytest.raises(TypeError):
@@ -79,6 +85,19 @@ class TestInit:
         assert prediction_hello[0][0] == ["hello", "hello"]
         assert prediction_hi[0][0] == ["hi", "hi"]
 
+    @pytest.mark.asyncio
+    async def test_example_caching_with_additional_inputs(self):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+            examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+            cache_examples=True,
+        )
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello[0][0] == ["hello", "robot hello"]
+        assert prediction_hi[0][0] == ["hi", "ro"]
+
 
 class TestAPI:
     def test_get_api_info(self):
@@ -100,3 +119,21 @@ class TestAPI:
         with connect(chatbot) as client:
             result = client.predict("hello")
             assert result == "hello hello"
+
+    def test_streaming_api_with_additional_inputs(self, connect):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+        ).queue()
+        with connect(chatbot) as client:
+            job = client.submit("hello", "robot", 7)
+            wait([job])
+            assert job.outputs() == [
+                "r",
+                "ro",
+                "rob",
+                "robo",
+                "robot",
+                "robot ",
+                "robot h",
+            ]
