@@ -34,13 +34,12 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let root_url: null | string;
-	export let container = true;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
-	export let show_download_button = true;
-	export let show_share_button = false;
+	export let show_share_button: boolean = false;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
@@ -106,7 +105,6 @@
 		<StaticAudio
 			{autoplay}
 			{show_label}
-			{show_download_button}
 			{show_share_button}
 			value={_value}
 			name={_value?.name || "audio_file"}
