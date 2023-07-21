@@ -15,10 +15,9 @@ def make_dir(root, path):
 def get_latest_release():
     with open(make_dir(WEBSITE_DIR, "src/routes/version.json"), "w+") as j:
         with open(make_dir(WEBSITE_DIR, "../../gradio/version.txt")) as f:
-            version = json.load(f)
-            json.dump({
-                "version": version
-                }, j)
+            version = f.read().strip()
+            print(version)
+            json.dump({"version": version}, j)
 
 
 demos.generate(make_dir(WEBSITE_DIR, "src/routes/demos/demos.json"))
