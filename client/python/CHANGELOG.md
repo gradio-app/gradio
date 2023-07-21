@@ -2,6 +2,24 @@
 
 ## New Features:
 
+No changes to highlight
+
+## Bug Fixes:
+
+No changes to highlight
+
+## Breaking Changes:
+
+No changes to highlight.
+
+## Full Changelog:
+
+No changes to highlight.
+
+# Version 0.2.10
+
+## New Features:
+
 - Endpoints that return layout components are now properly handled in the `submit` and `view_api` methods. Output layout components are not returned by the API but all other components are (excluding `gr.State`). By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 4871](https://github.com/gradio-app/gradio/pull/4871)
 
 
