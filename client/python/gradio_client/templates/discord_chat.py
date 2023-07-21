@@ -161,7 +161,7 @@ else:
     permissions = Permissions(326417525824)
     url = oauth_url(bot.user.id, permissions=permissions)
     welcome_message = f"""
-    ### Add this bot to your server by going to the following URL: 
+    ### Add this bot to your server by clicking this link: 
     
     {url}
     """
