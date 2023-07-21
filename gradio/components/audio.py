@@ -67,7 +67,7 @@ class Audio(
         elem_classes: list[str] | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button = True,
+        show_download_button=True,
         show_share_button: bool | None = None,
         **kwargs,
     ):
