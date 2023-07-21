@@ -11,5 +11,6 @@
 		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/utils": "workspace:^0.0.1",
 		"@gradio/icons": "workspace:^0.0.1"
-	}
+	},
+	"main_changeset": true
 }
