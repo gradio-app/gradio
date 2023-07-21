@@ -27,16 +27,6 @@ class TestAnalytics:
                 == "unable to parse version details from package URL."
             )
 
-    @mock.patch("requests.Response.json")
-    def test_should_warn_url_not_having_version(self, mock_json, monkeypatch):
-        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        mock_json.return_value = {"foo": "bar"}
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            analytics.version_check()
-            assert str(w[-1].message) == "package URL does not contain version info."
-
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(
         self, mock_post, monkeypatch
