@@ -2,7 +2,6 @@ import json
 import os
 import sys
 
-import requests
 from src import changelog, demos, docs, guides
 
 file_dir = os.path.dirname(__file__)
@@ -15,10 +14,13 @@ def make_dir(root, path):
 
 def get_latest_release():
     with open(make_dir(WEBSITE_DIR, "src/routes/version.json"), "w+") as j:
-        json.dump({
-            "version": requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
-            }, j)
-        
+        with open(make_dir(WEBSITE_DIR, "../../gradio/version.txt")) as f:
+            version = json.load(f)
+            json.dump({
+                "version": version
+                }, j)
+
+
 demos.generate(make_dir(WEBSITE_DIR, "src/routes/demos/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/routes/guides/json/") + "/")
 docs.generate(make_dir(WEBSITE_DIR, "src/routes/docs/docs.json"))
