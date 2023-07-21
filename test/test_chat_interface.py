@@ -27,10 +27,6 @@ class TestInit:
         with pytest.raises(TypeError):
             gr.ChatInterface()
 
-    def test_invalid_fn_inputs(self):
-        with pytest.warns(UserWarning):
-            gr.ChatInterface(invalid_fn)
-
     def test_configuring_buttons(self):
         chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
         assert chatbot.submit_btn is None

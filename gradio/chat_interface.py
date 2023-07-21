@@ -6,7 +6,6 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
-import warnings
 from typing import Callable, Generator
 
 from gradio_client.documentation import document, set_documentation_group
@@ -69,6 +68,7 @@ class ChatInterface(Blocks):
         retry_btn: str | None | Button = "🔄  Retry",
         undo_btn: str | None | Button = "↩️ Undo",
         clear_btn: str | None | Button = "🗑️  Clear",
+        autofocus: bool = True,
     ):
         """
         Parameters:
@@ -89,6 +89,7 @@ class ChatInterface(Blocks):
             retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
+            autofocus: If True, autofocuses to the textbox when the page loads.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -97,12 +98,6 @@ class ChatInterface(Blocks):
             title=title or "Gradio",
             theme=theme,
         )
-        if len(inspect.signature(fn).parameters) != 2:
-            warnings.warn(
-                "The function to ChatInterface should take two inputs (message, history) and return a single string response.",
-                UserWarning,
-            )
-
         self.fn = fn
         self.is_generator = inspect.isgeneratorfunction(self.fn)
         self.examples = examples
@@ -119,7 +114,7 @@ class ChatInterface(Blocks):
                 get_component_instance(i, render=False) for i in additional_inputs  # type: ignore
             ]
         else:
-            self.additional_inputs = None
+            self.additional_inputs = []
         self.additional_inputs_accordion_name = additional_inputs_accordion_name
 
         with self:
@@ -148,7 +143,7 @@ class ChatInterface(Blocks):
                                 show_label=False,
                                 placeholder="Type a message...",
                                 scale=7,
-                                autofocus=True,
+                                autofocus=autofocus,
                             )
                         if submit_btn:
                             if isinstance(submit_btn, Button):
@@ -215,16 +210,16 @@ class ChatInterface(Blocks):
 
                 self.examples_handler = Examples(
                     examples=examples,
-                    inputs=self.textbox,
+                    inputs=self.textbox + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
                     cache_examples=self.cache_examples,
                 )
 
             if self.additional_inputs:
-                with Accordion(self.additional_inputs_accordion_name):
+                with Accordion(self.additional_inputs_accordion_name, open=False):
                     for input_component in self.additional_inputs:
-                        if not input_component.is_rendered():
+                        if not input_component.is_rendered:
                             input_component.render()
 
             self.saved_input = State()
@@ -252,7 +247,7 @@ class ChatInterface(Blocks):
             )
             .then(
                 submit_fn,
-                [self.saved_input, self.chatbot_state],
+                [self.saved_input, self.chatbot_state] + self.additional_inputs,
                 [self.chatbot, self.chatbot_state],
                 api_name=False,
             )
@@ -277,7 +272,7 @@ class ChatInterface(Blocks):
                 )
                 .then(
                     submit_fn,
-                    [self.saved_input, self.chatbot_state],
+                    [self.saved_input, self.chatbot_state] + self.additional_inputs,
                     [self.chatbot, self.chatbot_state],
                     api_name=False,
                 )
@@ -302,7 +297,7 @@ class ChatInterface(Blocks):
                 )
                 .then(
                     submit_fn,
-                    [self.saved_input, self.chatbot_state],
+                    [self.saved_input, self.chatbot_state] + self.additional_inputs,
                     [self.chatbot, self.chatbot_state],
                     api_name=False,
                 )
@@ -380,7 +375,7 @@ class ChatInterface(Blocks):
 
         self.fake_api_btn.click(
             api_fn,
-            [self.textbox, self.chatbot_state],
+            [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.textbox, self.chatbot_state],
             api_name="chat",
         )
@@ -395,18 +390,26 @@ class ChatInterface(Blocks):
         return history, history
 
     def _submit_fn(
-        self, message: str, history_with_input: list[list[str | None]]
+        self,
+        message: str,
+        history_with_input: list[list[str | None]],
+        *args,
+        **kwargs,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
-        response = self.fn(message, history)
+        response = self.fn(message, history, *args, **kwargs)
         history.append([message, response])
         return history, history
 
     def _stream_fn(
-        self, message: str, history_with_input: list[list[str | None]]
+        self,
+        message: str,
+        history_with_input: list[list[str | None]],
+        *args,
+        **kwargs,
     ) -> Generator[tuple[list[list[str | None]], list[list[str | None]]], None, None]:
         history = history_with_input[:-1]
-        generator = self.fn(message, history)
+        generator = self.fn(message, history, *args, **kwargs)
         try:
             first_response = next(generator)
             update = history + [[message, first_response]]
@@ -419,16 +422,16 @@ class ChatInterface(Blocks):
             yield update, update
 
     def _api_submit_fn(
-        self, message: str, history: list[list[str | None]]
+        self, message: str, history: list[list[str | None]], *args, **kwargs
     ) -> tuple[str, list[list[str | None]]]:
         response = self.fn(message, history)
         history.append([message, response])
         return response, history
 
     def _api_stream_fn(
-        self, message: str, history: list[list[str | None]]
+        self, message: str, history: list[list[str | None]], *args, **kwargs
     ) -> Generator[tuple[str | None, list[list[str | None]]], None, None]:
-        generator = self.fn(message, history)
+        generator = self.fn(message, history, *args, **kwargs)
         try:
             first_response = next(generator)
             yield first_response, history + [[message, first_response]]
@@ -437,13 +440,16 @@ class ChatInterface(Blocks):
         for response in generator:
             yield response, history + [[message, response]]
 
-    def _examples_fn(self, message: str) -> list[list[str | None]]:
-        return [[message, self.fn(message, [])]]
+    def _examples_fn(self, message: str, *args, **kwargs) -> list[list[str | None]]:
+        return [[message, self.fn(message, [], *args, **kwargs)]]
 
     def _examples_stream_fn(
-        self, message: str
+        self,
+        message: str,
+        *args,
+        **kwargs,
     ) -> Generator[list[list[str | None]], None, None]:
-        for response in self.fn(message, []):
+        for response in self.fn(message, [], *args, **kwargs):
             yield [[message, response]]
 
     def _delete_prev_fn(
