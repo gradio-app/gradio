@@ -50,19 +50,29 @@ thread_to_client = {}
 thread_to_user = {}
 
 
-@bot.command(name="<<command-name>>")
-@discord.app_commands.describe(
-    prompt="Enter some text to chat with the bot! Like this: !<< Hello, how are you?"
+@bot.command()
+@commands.is_owner()
+async def sync(ctx) -> None:
+    synced = await bot.tree.sync()
+    await ctx.send(f"Synced commands: {', '.join([s.name for s in synced])}.")
+
+
+@bot.hybrid_command(
+    name="<<command-name>>",
+    description="Enter some text to chat with the bot! Like this: /<<command-name>> Hello, how are you?",
 )
-async def chat(ctx, _prompt: str):
+async def chat(ctx, prompt: str):
     if ctx.author.id == bot.user.id:
         return
     try:
-        channel = ctx.message.channel
-        message = await channel.send("Creating thread...")
-        prompt = ctx.message.content.replace(
-            f"{bot.command_prefix}<<command-name>>", ""
-        ).strip()
+        message = await ctx.send("Creating thread...")
+
+        # User triggered bot via !<<command-name>>
+        if ctx.message.content:
+            prompt = ctx.message.content.replace(
+                f"{bot.command_prefix}<<command-name>>", ""
+            ).strip()
+
         thread = await message.create_thread(name=prompt, auto_archive_duration=60)
         loop = asyncio.get_running_loop()
         client = await loop.run_in_executor(None, get_client, None)
@@ -135,13 +145,11 @@ event.wait()
 if not DISCORD_TOKEN:
     welcome_message = """
 
-    You have not specified a DISCORD_TOKEN, which means you have not created a bot account.
+    ## You have not specified a DISCORD_TOKEN, which means you have not created a bot account. Please follow these steps:
 
-    # How to create a bot account?
-
-    ## 1. Go to https://discord.com/developers/applications and click 'New Application'
+    ### 1. Go to https://discord.com/developers/applications and click 'New Application'
     
-    ## 2. Give your bot a name 🤖
+    ### 2. Give your bot a name 🤖
 
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/BotName.png)
     
@@ -161,9 +169,17 @@ else:
     permissions = Permissions(326417525824)
     url = oauth_url(bot.user.id, permissions=permissions)
     welcome_message = f"""
-    ### Add this bot to your server by going to the following URL: 
+    ## Add this bot to your server by going to the following URL: 
     
     {url}
+
+    ## How to use it?
+
+    The bot can be triggered via !<<command-name>> followed by your text prompt.
+
+    If you are the owner of this bot, call the !sync command from your discord server.
+    This will allow anyone in your server to call the bot via /<<command-name>>.
+    This is known as a slash command and is a nicer experience than calling the bot via !<<command-name>>. 
     """
 
 
