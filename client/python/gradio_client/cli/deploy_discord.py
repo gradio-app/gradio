@@ -47,12 +47,11 @@ def main():
         "--private",
         type=bool,
         help="Whether the discord bot space is private.",
-        default=True,
+        default=False,
     )
     parser.add_argument(
         "--persist-state", type=bool, help="Whether to persist state", default=True
     )
-
     args = parser.parse_args()
     Client(args.src).deploy_discord(
         discord_bot_token=args.discord_bot_token,

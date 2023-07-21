@@ -653,9 +653,11 @@ class Client:
                 to_id = to_id.split("/")[1]
             space_id = huggingface_hub.get_full_repo_name(to_id, token=hf_token)
         else:
-            space_id = huggingface_hub.get_full_repo_name(
-                f"gradio-discord-bot-{secrets.token_hex(4)}", token=hf_token
-            )
+            if self.space_id:
+                space_id = f'{self.space_id.split("/")[1]}-gradio-discord-bot'
+            else:
+                space_id = f"gradio-discord-bot-{secrets.token_hex(4)}"
+            space_id = huggingface_hub.get_full_repo_name(space_id, token=hf_token)
 
         api = huggingface_hub.HfApi()
 
