@@ -105,6 +105,7 @@ class TestTextbox:
             "root_url": None,
             "rtl": False,
             "text_align": None,
+            "autofocus": False,
         }
 
     @pytest.mark.asyncio
@@ -837,6 +838,7 @@ class TestAudio:
             "autoplay": False,
             "source": "upload",
             "name": "audio",
+            "show_download_button": True,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -875,6 +877,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
+            "show_download_button": True,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,

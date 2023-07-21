@@ -18,6 +18,7 @@
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
 	export let rtl = false;
+	export let autofocus: boolean = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -150,6 +151,7 @@
 				bind:this={el}
 				{placeholder}
 				{disabled}
+				{autofocus}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
@@ -164,6 +166,7 @@
 				bind:this={el}
 				{placeholder}
 				{disabled}
+				{autofocus}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
@@ -178,6 +181,7 @@
 				bind:this={el}
 				{placeholder}
 				{disabled}
+				{autofocus}
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
@@ -202,6 +206,7 @@
 			{placeholder}
 			rows={lines}
 			{disabled}
+			{autofocus}
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
 			on:select={handle_select}
