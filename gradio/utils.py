@@ -12,7 +12,6 @@ import os
 import pkgutil
 import random
 import re
-import sys
 import time
 import typing
 import warnings
@@ -720,9 +719,6 @@ def get_function_with_locals(fn: Callable, blocks: Blocks, event_id: str | None)
 
 
 async def cancel_tasks(task_ids: set[str]):
-    if sys.version_info < (3, 8):
-        return None
-
     matching_tasks = [
         task for task in asyncio.all_tasks() if task.get_name() in task_ids
     ]
@@ -732,9 +728,7 @@ async def cancel_tasks(task_ids: set[str]):
 
 
 def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
-    if sys.version_info >= (3, 8) and not (
-        batch
-    ):  # You shouldn't be able to cancel a task if it's part of a batch
+    if not batch:
         task.set_name(f"{session_hash}_{fn_index}")
 
 

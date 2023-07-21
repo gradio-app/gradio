@@ -19,8 +19,9 @@ from gradio.components import (
     State,
     Textbox,
 )
+from gradio.events import Dependency, EventListenerMethod
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.layouts import Group, Row
+from gradio.layouts import Column, Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("chatinterface")
@@ -60,6 +61,7 @@ class ChatInterface(Blocks):
         css: str | None = None,
         analytics_enabled: bool | None = None,
         submit_btn: str | None | Button = "Submit",
+        stop_btn: str | None | Button = "Stop",
         retry_btn: str | None | Button = "🔄  Retry",
         undo_btn: str | None | Button = "↩️ Undo",
         clear_btn: str | None | Button = "🗑️  Clear",
@@ -77,6 +79,7 @@ class ChatInterface(Blocks):
             css: custom css or path to custom css file to use with interface.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
+            stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
             retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
@@ -95,6 +98,7 @@ class ChatInterface(Blocks):
             )
 
         self.fn = fn
+        self.is_generator = inspect.isgeneratorfunction(self.fn)
         self.examples = examples
         if self.space_id and cache_examples is None:
             self.cache_examples = True
@@ -110,60 +114,85 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
 
-            with Group():
+            with Column(variant="panel"):
                 if chatbot:
                     self.chatbot = chatbot.render()
                 else:
                     self.chatbot = Chatbot(label="Chatbot")
+
+                with Group():
+                    with Row():
+                        if textbox:
+                            textbox.container = False
+                            textbox.show_label = False
+                            self.textbox = textbox.render()
+                        else:
+                            self.textbox = Textbox(
+                                container=False,
+                                show_label=False,
+                                placeholder="Type a message...",
+                                scale=7,
+                                autofocus=True,
+                            )
+                        if submit_btn:
+                            if isinstance(submit_btn, Button):
+                                submit_btn.render()
+                            elif isinstance(submit_btn, str):
+                                submit_btn = Button(
+                                    submit_btn,
+                                    variant="primary",
+                                    scale=1,
+                                    min_width=150,
+                                )
+                            else:
+                                raise ValueError(
+                                    f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
+                                )
+                        if stop_btn:
+                            if isinstance(stop_btn, Button):
+                                stop_btn.visible = False
+                                stop_btn.render()
+                            elif isinstance(stop_btn, str):
+                                stop_btn = Button(
+                                    stop_btn,
+                                    variant="stop",
+                                    visible=False,
+                                    scale=1,
+                                    min_width=150,
+                                )
+                            else:
+                                raise ValueError(
+                                    f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
+                                )
+                        self.buttons.extend([submit_btn, stop_btn])
+
                 with Row():
-                    if textbox:
-                        self.textbox = textbox.render()
-                    else:
-                        self.textbox = Textbox(
-                            container=False,
-                            show_label=False,
-                            placeholder="Type a message...",
-                            scale=10,
-                        )
-                    if submit_btn:
-                        if isinstance(submit_btn, Button):
-                            submit_btn.render()
-                        elif isinstance(submit_btn, str):
-                            submit_btn = Button(
-                                submit_btn, variant="primary", scale=1, min_width=0
-                            )
-                        else:
-                            raise ValueError(
-                                f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
-                            )
-                    self.buttons.append(submit_btn)
+                    for btn in [retry_btn, undo_btn, clear_btn]:
+                        if btn:
+                            if isinstance(btn, Button):
+                                btn.render()
+                            elif isinstance(btn, str):
+                                btn = Button(btn, variant="secondary")
+                            else:
+                                raise ValueError(
+                                    f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
+                                )
+                        self.buttons.append(btn)
 
-            with Row():
-                self.stop_btn = Button("Stop", variant="stop", visible=False)
-
-                for btn in [retry_btn, undo_btn, clear_btn]:
-                    if btn:
-                        if isinstance(btn, Button):
-                            btn.render()
-                        elif isinstance(btn, str):
-                            btn = Button(btn, variant="secondary")
-                        else:
-                            raise ValueError(
-                                f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
-                            )
-                    self.buttons.append(btn)
-
-                self.fake_api_btn = Button("Fake API", visible=False)
-                self.fake_response_textbox = Textbox(label="Response", visible=False)
-                (
-                    self.submit_btn,
-                    self.retry_btn,
-                    self.undo_btn,
-                    self.clear_btn,
-                ) = self.buttons
+                    self.fake_api_btn = Button("Fake API", visible=False)
+                    self.fake_response_textbox = Textbox(
+                        label="Response", visible=False
+                    )
+                    (
+                        self.submit_btn,
+                        self.stop_btn,
+                        self.retry_btn,
+                        self.undo_btn,
+                        self.clear_btn,
+                    ) = self.buttons
 
             if examples:
-                if inspect.isgeneratorfunction(self.fn):
+                if self.is_generator:
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
@@ -177,80 +206,92 @@ class ChatInterface(Blocks):
                 )
 
             self.saved_input = State()
+            self.chatbot_state = State([])
 
             self._setup_events()
             self._setup_api()
 
-    def _setup_events(self):
-        if inspect.isgeneratorfunction(self.fn):
-            submit_fn = self._stream_fn
-        else:
-            submit_fn = self._submit_fn
-
-        self.textbox.submit(
-            self._clear_and_save_textbox,
-            [self.textbox],
-            [self.textbox, self.saved_input],
-            api_name=False,
-            queue=False,
-        ).then(
-            self._display_input,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
-            api_name=False,
-            queue=False,
-        ).then(
-            submit_fn,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
-            api_name=False,
-        )
-
-        if self.submit_btn:
-            self.submit_btn.click(
+    def _setup_events(self) -> None:
+        submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+        submit_event = (
+            self.textbox.submit(
                 self._clear_and_save_textbox,
                 [self.textbox],
                 [self.textbox, self.saved_input],
                 api_name=False,
                 queue=False,
-            ).then(
+            )
+            .then(
                 self._display_input,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot, self.chatbot_state],
                 api_name=False,
                 queue=False,
-            ).then(
+            )
+            .then(
                 submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot, self.chatbot_state],
                 api_name=False,
             )
+        )
+        self._setup_stop_events(self.textbox.submit, submit_event)
+
+        if self.submit_btn:
+            click_event = (
+                self.submit_btn.click(
+                    self._clear_and_save_textbox,
+                    [self.textbox],
+                    [self.textbox, self.saved_input],
+                    api_name=False,
+                    queue=False,
+                )
+                .then(
+                    self._display_input,
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
+                    api_name=False,
+                    queue=False,
+                )
+                .then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
+                    api_name=False,
+                )
+            )
+            self._setup_stop_events(self.submit_btn.click, click_event)
 
         if self.retry_btn:
-            self.retry_btn.click(
-                self._delete_prev_fn,
-                [self.chatbot],
-                [self.chatbot, self.saved_input],
-                api_name=False,
-                queue=False,
-            ).then(
-                self._display_input,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                api_name=False,
-                queue=False,
-            ).then(
-                submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                api_name=False,
+            retry_event = (
+                self.retry_btn.click(
+                    self._delete_prev_fn,
+                    [self.chatbot_state],
+                    [self.chatbot, self.saved_input, self.chatbot_state],
+                    api_name=False,
+                    queue=False,
+                )
+                .then(
+                    self._display_input,
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
+                    api_name=False,
+                    queue=False,
+                )
+                .then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot_state],
+                    [self.chatbot, self.chatbot_state],
+                    api_name=False,
+                )
             )
+            self._setup_stop_events(self.retry_btn.click, retry_event)
 
         if self.undo_btn:
             self.undo_btn.click(
                 self._delete_prev_fn,
-                [self.chatbot],
-                [self.chatbot, self.saved_input],
+                [self.chatbot_state],
+                [self.chatbot, self.saved_input, self.chatbot_state],
                 api_name=False,
                 queue=False,
             ).then(
@@ -263,27 +304,62 @@ class ChatInterface(Blocks):
 
         if self.clear_btn:
             self.clear_btn.click(
-                lambda: ([], None),
+                lambda: ([], [], None),
                 None,
-                [self.chatbot, self.saved_input],
+                [self.chatbot, self.chatbot_state, self.saved_input],
                 queue=False,
                 api_name=False,
             )
 
-    def _setup_api(self):
-        if inspect.isgeneratorfunction(self.fn):
-            api_fn = self._api_stream_fn
-        else:
-            api_fn = self._api_submit_fn
+    def _setup_stop_events(
+        self, event_trigger: EventListenerMethod, event_to_cancel: Dependency
+    ) -> None:
+        if self.stop_btn and self.is_generator:
+            if self.submit_btn:
+                event_trigger(
+                    lambda: (Button.update(visible=False), Button.update(visible=True)),
+                    None,
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                event_to_cancel.then(
+                    lambda: (Button.update(visible=True), Button.update(visible=False)),
+                    None,
+                    [self.submit_btn, self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+            else:
+                event_trigger(
+                    lambda: Button.update(visible=True),
+                    None,
+                    [self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+                event_to_cancel.then(
+                    lambda: Button.update(visible=False),
+                    None,
+                    [self.stop_btn],
+                    api_name=False,
+                    queue=False,
+                )
+            self.stop_btn.click(
+                None,
+                None,
+                None,
+                cancels=event_to_cancel,
+                api_name=False,
+            )
 
-        # Use a gr.State() instead of self.chatbot so that the API doesn't require passing forth
-        # a chat history, instead it is just stored internally in the state.
-        history = State([])
+    def _setup_api(self) -> None:
+        api_fn = self._api_stream_fn if self.is_generator else self._api_submit_fn
 
         self.fake_api_btn.click(
             api_fn,
-            [self.textbox, history],
-            [self.textbox, history],
+            [self.textbox, self.chatbot_state],
+            [self.textbox, self.chatbot_state],
             api_name="chat",
         )
 
@@ -292,30 +368,33 @@ class ChatInterface(Blocks):
 
     def _display_input(
         self, message: str, history: list[list[str | None]]
-    ) -> list[list[str | None]]:
+    ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history.append([message, None])
-        return history
+        return history, history
 
     def _submit_fn(
         self, message: str, history_with_input: list[list[str | None]]
-    ) -> list[list[str | None]]:
+    ) -> tuple[list[list[str | None]], list[list[str | None]]]:
         history = history_with_input[:-1]
         response = self.fn(message, history)
         history.append([message, response])
-        return history
+        return history, history
 
     def _stream_fn(
         self, message: str, history_with_input: list[list[str | None]]
-    ) -> Generator[list[list[str | None]], None, None]:
+    ) -> Generator[tuple[list[list[str | None]], list[list[str | None]]], None, None]:
         history = history_with_input[:-1]
         generator = self.fn(message, history)
         try:
             first_response = next(generator)
-            yield history + [[message, first_response]]
+            update = history + [[message, first_response]]
+            yield update, update
         except StopIteration:
-            yield history + [[message, None]]
+            update = history + [[message, None]]
+            yield update, update
         for response in generator:
-            yield history + [[message, response]]
+            update = history + [[message, response]]
+            yield update, update
 
     def _api_submit_fn(
         self, message: str, history: list[list[str | None]]
@@ -347,9 +426,9 @@ class ChatInterface(Blocks):
 
     def _delete_prev_fn(
         self, history: list[list[str | None]]
-    ) -> tuple[list[list[str | None]], str]:
+    ) -> tuple[list[list[str | None]], str, list[list[str | None]]]:
         try:
             message, _ = history.pop()
         except IndexError:
             message = ""
-        return history, message or ""
+        return history, message or "", history
