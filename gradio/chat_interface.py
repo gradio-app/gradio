@@ -24,7 +24,6 @@ from gradio.components import (
 from gradio.events import Dependency, EventListenerMethod
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.layouts import Accordion, Column, Group, Row
-from gradio.layouts import Column, Group, Row
 from gradio.themes import ThemeClass as Theme
 
 set_documentation_group("chatinterface")
@@ -57,6 +56,7 @@ class ChatInterface(Blocks):
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
         additional_inputs: str | IOComponent | list[str | IOComponent] | None,
+        additional_inputs_accordion_name: str = "Additional Inputs",
         examples: list[str] | None = None,
         cache_examples: bool | None = None,
         title: str | None = None,
