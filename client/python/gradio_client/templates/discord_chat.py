@@ -187,7 +187,10 @@ else:
 
     If you are the owner of this bot, call the `!sync` command from your discord server.
     This will allow anyone in your server to call the bot via `/<<command-name>>`.
-    This is known as a slash command and is a nicer experience than calling the bot via `!<<command-name>>`. 
+    This is known as a slash command and is a nicer experience than calling the bot via `!<<command-name>>`.
+    
+    After calling `!sync`, it may take a few minutes for `/<<command-name>>` to be recognized as a valid command
+    in your server.
     """
 
 
