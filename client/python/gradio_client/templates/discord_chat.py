@@ -1,7 +1,6 @@
 import asyncio
 import os
 import threading
-from concurrent.futures import wait
 from threading import Event
 from typing import Optional
 
@@ -17,6 +16,11 @@ from gradio_client.utils import QueueError
 event = Event()
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
+
+async def wait(job):
+    while not job.done():
+        await asyncio.sleep(0.2)
 
 
 def get_client(session: Optional[str] = None) -> grc.Client:
@@ -73,11 +77,11 @@ async def chat(ctx, prompt: str):
                 f"{bot.command_prefix}<<command-name>>", ""
             ).strip()
 
-        thread = await message.create_thread(name=prompt, auto_archive_duration=60)
+        thread = await message.create_thread(name=prompt)
         loop = asyncio.get_running_loop()
         client = await loop.run_in_executor(None, get_client, None)
         job = client.submit(prompt, api_name="/chat")
-        wait([job])
+        await wait(job)
 
         try:
             job.result()
@@ -100,7 +104,7 @@ async def continue_chat(message):
         client = thread_to_client[message.channel.id]
         prompt = message.content
         job = client.submit(prompt, api_name="/chat")
-        wait([job])
+        await wait(job)
         try:
             job.result()
             response = job.outputs()[-1]
