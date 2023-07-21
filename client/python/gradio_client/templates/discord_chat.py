@@ -50,7 +50,6 @@ thread_to_client = {}
 thread_to_user = {}
 
 
-<<<<<<< HEAD
 @bot.command()
 @commands.is_owner()
 async def sync(ctx) -> None:
@@ -74,21 +73,6 @@ async def chat(ctx, prompt: str):
                 f"{bot.command_prefix}<<command-name>>", ""
             ).strip()
 
-=======
-@bot.command(name="<<command-name>>")
-@discord.app_commands.describe(
-    prompt="Enter some text to chat with the bot! Like this: !<< Hello, how are you?"
-)
-async def chat(ctx, _prompt: str):
-    if ctx.author.id == bot.user.id:
-        return
-    try:
-        channel = ctx.message.channel
-        message = await channel.send("Creating thread...")
-        prompt = ctx.message.content.replace(
-            f"{bot.command_prefix}<<command-name>>", ""
-        ).strip()
->>>>>>> cd7ad5b4531e18c349707ee41bfbf5272fe42b4f
         thread = await message.create_thread(name=prompt, auto_archive_duration=60)
         loop = asyncio.get_running_loop()
         client = await loop.run_in_executor(None, get_client, None)
