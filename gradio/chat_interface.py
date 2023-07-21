@@ -8,6 +8,7 @@ from __future__ import annotations
 import inspect
 from typing import Callable, Generator
 
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.blocks import Blocks
@@ -54,7 +55,7 @@ class ChatInterface(Blocks):
         *,
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
-        additional_inputs: str | IOComponent | list[str | IOComponent] | None,
+        additional_inputs: str | IOComponent | list[str | IOComponent] | None = None,
         additional_inputs_accordion_name: str = "Additional Inputs",
         examples: list[str] | None = None,
         cache_examples: bool | None = None,
@@ -141,6 +142,7 @@ class ChatInterface(Blocks):
                             self.textbox = Textbox(
                                 container=False,
                                 show_label=False,
+                                label="Message",
                                 placeholder="Type a message...",
                                 scale=7,
                                 autofocus=autofocus,
@@ -210,10 +212,10 @@ class ChatInterface(Blocks):
 
                 self.examples_handler = Examples(
                     examples=examples,
-                    inputs=self.textbox + self.additional_inputs,
+                    inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
-                    cache_examples=self.cache_examples,
+                    # cache_examples=cache_examples
                 )
 
             if self.additional_inputs:
@@ -221,6 +223,10 @@ class ChatInterface(Blocks):
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
+
+            # The example caching must happen after the input components have rendered
+            if cache_examples:
+                client_utils.synchronize_async(self.examples_handler.cache)
 
             self.saved_input = State()
             self.chatbot_state = State([])
