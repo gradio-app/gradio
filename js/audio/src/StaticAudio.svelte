@@ -10,8 +10,8 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { uploadToHuggingFace } from "@gradio/utils";
-	import { BlockLabel, ShareButton, IconButton } from "@gradio/atoms";
-	import { Music, Download } from "@gradio/icons";
+	import { BlockLabel, ShareButton } from "@gradio/atoms";
+	import { Music } from "@gradio/icons";
 
 	import { loaded } from "./utils";
 
@@ -20,8 +20,7 @@
 	export let name: string;
 	export let show_label = true;
 	export let autoplay: boolean;
-	export let show_download_button = true;
-	export let show_share_button = false;
+	export let show_share_button: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -44,29 +43,18 @@
 </script>
 
 <BlockLabel {show_label} Icon={Music} float={false} label={label || "Audio"} />
-{#if value !== null}
-	<div class="icon-buttons">
-		{#if show_download_button}
-			<a
-				href={value.data}
-				target={window.__is_colab__ ? "_blank" : null}
-				download={value.name}
-			>
-				<IconButton Icon={Download} label="Download" />
-			</a>
-		{/if}
-		{#if show_share_button}
-			<ShareButton
-				on:error
-				on:share
-				formatter={async (value) => {
-					if (!value) return "";
-					let url = await uploadToHuggingFace(value.data, "url");
-					return `<audio controls src="${url}"></audio>`;
-				}}
-				{value}
-			/>
-		{/if}
+{#if show_share_button && value !== null}
+	<div class="icon-button">
+		<ShareButton
+			on:error
+			on:share
+			formatter={async (value) => {
+				if (!value) return "";
+				let url = await uploadToHuggingFace(value.data, "url");
+				return `<audio controls src="${url}"></audio>`;
+			}}
+			{value}
+		/>
 	</div>
 {/if}
 
@@ -93,11 +81,9 @@
 		width: var(--size-full);
 		height: var(--size-14);
 	}
-	.icon-buttons {
-		display: flex;
+	.icon-button {
 		position: absolute;
 		top: 6px;
 		right: 6px;
-		gap: var(--size-1);
 	}
 </style>
