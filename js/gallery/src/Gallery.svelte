@@ -303,6 +303,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		overflow: clip;
+		border: 5px solid red;
 	}
 
 	.thumbnail-item:hover {
