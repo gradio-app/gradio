@@ -87,7 +87,7 @@ def slow_echo(message, history):
 gr.ChatInterface(slow_echo).queue().launch()
 ```
 
-Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions.
+Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
 
 ## Customizing your chatbot
 
