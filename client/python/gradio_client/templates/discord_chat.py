@@ -155,6 +155,8 @@ if not DISCORD_TOKEN:
     
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/MessageContentIntent.png)
 
+Save your changes!
+
     ## 6. The token from step 3 is the DISCORD_TOKEN. Rerun the deploy_discord command, e.g client.deploy_discord(discord_bot_token=DISCORD_TOKEN, ...), or add the token as a space secret manually.
 """
 else:
