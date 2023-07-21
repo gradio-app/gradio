@@ -9,5 +9,6 @@
 	"private": true,
 	"dependencies": {
 		"@gradio/utils": "workspace:^0.0.1"
-	}
+	},
+	"main_changeset": true
 }

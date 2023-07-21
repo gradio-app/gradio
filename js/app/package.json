@@ -59,5 +59,6 @@
 	},
 	"msw": {
 		"workerDirectory": "public"
-	}
+	},
+	"main_changeset": true
 }

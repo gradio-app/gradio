@@ -6,5 +6,6 @@
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true
+	"private": true,
+	"main_changeset": true
 }

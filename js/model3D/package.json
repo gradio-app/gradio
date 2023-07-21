@@ -13,5 +13,6 @@
 		"@gradio/upload": "workspace:^0.0.1",
 		"babylonjs": "^4.2.1",
 		"babylonjs-loaders": "^4.2.1"
-	}
+	},
+	"main_changeset": true
 }

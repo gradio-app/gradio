@@ -13,5 +13,6 @@
 		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/image": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1"
-	}
+	},
+	"main_changeset": true
 }

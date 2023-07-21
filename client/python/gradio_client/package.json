@@ -1,0 +1,7 @@
+{
+	"name": "gradio_client",
+	"version": "0.2.10",
+	"description": "",
+	"python": "true",
+	"main_changeset": true
+}

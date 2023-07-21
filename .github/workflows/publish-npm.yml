@@ -9,10 +9,10 @@ env:
   PNPM_CACHE_FOLDER: .pnpm-store
   NODE_OPTIONS: "--max-old-space-size=4096"
 jobs:
-  version:
-    runs-on: ubuntu-latest
+  version_or_publish:
+    runs-on: ubuntu-22.04
     steps:
-      - name: checkout code repository
+      - name: checkout repo
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -42,9 +42,11 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
-      - name: label PR
-        if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
-        run: gh pr edit "$PR_NUMBER" --add-label "no-changelog-update" 
-        env:
-          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} # Not sure if this one is required
+      - name: publish to pypi
+        if: steps.changesets.outputs.hasChangesets != 'true'
+        uses: "gradio-app/github/actions/publish-pypi@main"
+        with:
+          user: __token__
+          passwords: |
+            gradio-test-pypi:${{ secrets.PYPI_API_TOKEN }}
+            gradio-test-client-pypi:${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}

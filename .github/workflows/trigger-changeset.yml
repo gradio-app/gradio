@@ -1,0 +1,16 @@
+name: trigger changeset generation
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+    branches:
+      - main
+  issue_comment:
+    types: [edited]
+
+jobs:
+  version:
+    permissions: write-all
+    name: static checks
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Triggering changeset generation"

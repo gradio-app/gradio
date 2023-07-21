@@ -14,5 +14,6 @@
 		"@types/d3-dsv": "^3.0.0",
 		"d3-dsv": "^3.0.1",
 		"dequal": "^2.0.2"
-	}
+	},
+	"main_changeset": true
 }

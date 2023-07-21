@@ -55,9 +55,24 @@ export default [
 			"js/app/test/**/*"
 		]
 	},
+	{
+		files: ["**/*.js", "**/*.cjs"],
+		languageOptions: {
+			globals: {
+				...browser,
+				...es2021,
+				...node
+			}
+		},
+
+		plugins: {
+			"eslint:recommended": js_plugin
+		},
+		rules
+	},
 
 	{
-		files: ["**/*.ts", "**/*.js", "**/*.cjs"],
+		files: ["**/*.ts"],
 		languageOptions: {
 			parser: typescriptParser,
 			parserOptions: {

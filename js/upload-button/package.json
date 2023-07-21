@@ -11,5 +11,6 @@
 		"@gradio/button": "workspace:^0.0.1",
 		"@gradio/utils": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1"
-	}
+	},
+	"main_changeset": true
 }
