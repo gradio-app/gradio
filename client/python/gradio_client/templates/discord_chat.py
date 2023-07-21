@@ -151,7 +151,7 @@ if not DISCORD_TOKEN:
     
     ## 4. Optionally make the bot public if you want anyone to be able to add it to their servers
     
-    ## 5. On the left hand side under 'Bot', enable 'Message Content Intent' under 'Priviledged Gateway Intents'
+    ## 5. Scroll down and enable 'Message Content Intent' under 'Priviledged Gateway Intents'
     
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/MessageContentIntent.png)
 
