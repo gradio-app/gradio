@@ -87,7 +87,7 @@ class ScatterPlot(Plot):
         interactive: bool | None = True,
         label: str | None = None,
         every: float | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -459,9 +459,9 @@ class ScatterPlot(Plot):
             color_legend_title=self.color_legend_title,
             size_legend_title=self.size_legend_title,
             shape_legend_title=self.size_legend_title,
-            color_legend_position=self.color_legend_position,
-            size_legend_position=self.size_legend_position,
-            shape_legend_position=self.shape_legend_position,
+            color_legend_position=self.color_legend_position,  # type: ignore
+            size_legend_position=self.size_legend_position,  # type: ignore
+            shape_legend_position=self.shape_legend_position,  # type: ignore
             interactive=self.interactive_chart,
             height=self.height,
             width=self.width,

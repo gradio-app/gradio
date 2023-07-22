@@ -1,6 +1,5 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class,
-including various methods for constructing an interface and then launching it.
+This file defines two useful high-level abstractions to build Gradio apps: Interface and TabbedInterface.
 """
 
 from __future__ import annotations
@@ -14,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import Examples, analytics, external, interpretation, utils
+from gradio import Examples, external, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -154,7 +153,7 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If `fn` is a generator function, then the last yielded value will be used as the output. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
             interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function. For more information on the different interpretation methods, see the Advanced Interface Features guide.
@@ -371,12 +370,15 @@ class Interface(Blocks):
         self.local_url = None
 
         self.favicon_path = None
-        analytics.version_check()
         Interface.instances.add(self)
 
+        param_types = utils.get_type_hints(self.fn)
         param_names = inspect.getfullargspec(self.fn)[0]
         if len(param_names) > 0 and inspect.ismethod(self.fn):
             param_names = param_names[1:]
+        for param_name in param_names.copy():
+            if utils.is_special_typed_parameter(param_name, param_types):
+                param_names.remove(param_name)
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, IOComponent)
             if component.label is None:
@@ -658,21 +660,6 @@ class Interface(Blocks):
             predict_events = []
 
             if stop_btn:
-                # Wrap the original function to show/hide the "Stop" button
-                async def fn(*args):
-                    # The main idea here is to call the original function
-                    # and append some updates to keep the "Submit" button
-                    # hidden and the "Stop" button visible
-
-                    if inspect.isasyncgenfunction(self.fn):
-                        iterator = self.fn(*args)
-                    else:
-                        iterator = utils.SyncToAsyncIterator(
-                            self.fn(*args), limiter=self.limiter
-                        )
-                    async for output in iterator:
-                        yield output
-
                 extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
@@ -688,7 +675,7 @@ class Interface(Blocks):
                         outputs=[submit_btn, stop_btn],
                         queue=False,
                     ).then(
-                        fn,
+                        self.fn,
                         self.input_components,
                         self.output_components,
                         api_name="predict" if i == 0 else None,

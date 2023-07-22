@@ -11,6 +11,7 @@ import time
 import unittest.mock as mock
 import uuid
 import warnings
+from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
@@ -209,16 +210,16 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    @mock.patch("requests.post")
-    def test_initiated_analytics(self, mock_post, monkeypatch):
+    @mock.patch("gradio.analytics._do_analytics_request")
+    def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             pass
-        mock_post.assert_called_once()
+        mock_anlaytics.assert_called_once()
 
-    @mock.patch("requests.post")
+    @mock.patch("gradio.analytics._do_analytics_request")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
-        self, mock_post, monkeypatch
+        self, mock_anlaytics, monkeypatch
     ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
@@ -229,7 +230,7 @@ class TestBlocksMethods:
             t2.change(lambda x: x, t2, t1)
 
         demo.launch(prevent_thread_lock=True)
-        mock_post.assert_called()
+        mock_anlaytics.assert_called()
 
     def test_show_error(self):
         with gr.Blocks() as demo:
@@ -257,43 +258,17 @@ class TestBlocksMethods:
         assert block.css == css
 
     @pytest.mark.asyncio
-    async def test_restart_after_close(self):
+    async def test_restart_after_close(self, connect):
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
-        io.launch(prevent_thread_lock=True)
 
-        async with websockets.connect(
-            f"{io.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "process_completed":
-                    completed = True
-            assert msg["output"]["data"][0] == "freddy"
-
-        io.close()
-        io.launch(prevent_thread_lock=True)
-
-        async with websockets.connect(
-            f"{io.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "process_completed":
-                    completed = True
-            assert msg["output"]["data"][0] == "Victor"
+        with connect(io) as client:
+            assert client.predict("freddy", api_name="/predict") == "freddy"
+        # connect launches the interface which is what we need to test
+        with connect(io) as client:
+            assert client.predict("Victor", api_name="/predict") == "Victor"
 
     @pytest.mark.asyncio
-    async def test_async_generators(self):
+    async def test_async_generators(self, connect):
         async def async_iteration(count: int):
             for i in range(count):
                 yield i
@@ -317,72 +292,42 @@ class TestBlocksMethods:
                     iterate = gr.Button(value="Iterate")
                     iterate.click(iteration, num2, o2)
 
-        demo.queue(concurrency_count=2).launch(prevent_thread_lock=True)
+        demo.queue(concurrency_count=2)
 
-        def _get_ws_pred(data, fn_index):
-            async def wrapped():
-                async with websockets.connect(
-                    f"{demo.local_url.replace('http', 'ws')}queue/join"
-                ) as ws:
-                    completed = False
-                    while not completed:
-                        msg = json.loads(await ws.recv())
-                        if msg["msg"] == "send_data":
-                            await ws.send(
-                                json.dumps({"data": [data], "fn_index": fn_index})
-                            )
-                        if msg["msg"] == "send_hash":
-                            await ws.send(
-                                json.dumps(
-                                    {"fn_index": fn_index, "session_hash": "shdce"}
-                                )
-                            )
-                        if msg["msg"] == "process_completed":
-                            completed = True
-                    assert msg["output"]["data"][0] == data - 1
+        with connect(demo) as client:
+            job_1 = client.submit(3, fn_index=0)
+            job_2 = client.submit(4, fn_index=1)
+            wait([job_1, job_2])
 
-            return wrapped
+            assert job_1.outputs()[-1] == 2
+            assert job_2.outputs()[-1] == 3
 
-        try:
-            await asyncio.gather(_get_ws_pred(3, 0)(), _get_ws_pred(4, 1)())
-        finally:
-            demo.close()
+    def test_async_generators_interface(self, connect):
+        async def async_iteration(count: int):
+            for i in range(count):
+                yield i
+                await asyncio.sleep(0.2)
 
-    @pytest.mark.asyncio
-    async def test_sync_generators(self):
+        demo = gr.Interface(
+            async_iteration, gr.Number(precision=0), gr.Number()
+        ).queue()
+        outputs = []
+        with connect(demo) as client:
+            for output in client.submit(3, api_name="/predict"):
+                outputs.append(output)
+        assert outputs == [0, 1, 2]
+
+    def test_sync_generators(self, connect):
         def generator(string):
             yield from string
 
-        demo = gr.Interface(generator, "text", "text")
+        demo = gr.Interface(generator, "text", "text").queue()
+        outputs = []
+        with connect(demo) as client:
+            for output in client.submit("abc", api_name="/predict"):
+                outputs.append(output)
+        assert outputs == ["a", "b", "c"]
         demo.queue().launch(prevent_thread_lock=True)
-
-        async def _get_ws_pred(data, fn_index):
-            outputs = []
-            async with websockets.connect(
-                f"{demo.local_url.replace('http', 'ws')}queue/join"
-            ) as ws:
-                completed = False
-                while not completed:
-                    msg = json.loads(await ws.recv())
-                    if msg["msg"] == "send_data":
-                        await ws.send(
-                            json.dumps({"data": [data], "fn_index": fn_index})
-                        )
-                    if msg["msg"] == "send_hash":
-                        await ws.send(
-                            json.dumps({"fn_index": fn_index, "session_hash": "shdce"})
-                        )
-                    if msg["msg"] in ["process_generating"]:
-                        outputs.append(msg["output"]["data"])
-                    if msg["msg"] == "process_completed":
-                        completed = True
-            return outputs
-
-        try:
-            output = await _get_ws_pred(fn_index=1, data="abc")
-            assert [o[0] for o in output] == ["a", "b", "c"]
-        finally:
-            demo.close()
 
     def test_socket_reuse(self):
         try:
@@ -491,7 +436,7 @@ class TestBlocksMethods:
 
 
 class TestTempFile:
-    def test_pil_images_hashed(self, tmp_path, connect, monkeypatch):
+    def test_pil_images_hashed(self, connect, gradio_temp_dir):
         images = [
             Image.new("RGB", (512, 512), color) for color in ("red", "green", "blue")
         ]
@@ -499,7 +444,6 @@ class TestTempFile:
         def create_images(n_images):
             return random.sample(images, n_images)
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         gallery = gr.Gallery()
         demo = gr.Interface(
             create_images,
@@ -510,14 +454,13 @@ class TestTempFile:
             path = client.predict(3)
             _ = client.predict(3)
         # only three files created and in temp directory
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
         assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
-    def test_no_empty_image_files(self, tmp_path, connect, monkeypatch):
+    def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         image = str(file_dir / "bus.png")
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(
             lambda x: x,
             inputs=gr.Image(type="filepath"),
@@ -528,12 +471,11 @@ class TestTempFile:
             _ = client.predict(image)
             _ = client.predict(image)
         # only three files created
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 1
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
-    def test_file_component_uploads(self, component, tmp_path, connect, monkeypatch):
+    def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
             _ = client.predict(code_file)
@@ -542,14 +484,13 @@ class TestTempFile:
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will only create one file since we hash
         # so 2 + 2 + 1 = 5
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 5
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads_no_serialize(
-        self, component, tmp_path, connect, monkeypatch
+        self, component, connect, gradio_temp_dir
     ):
         code_file = str(pathlib.Path(__file__))
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo, serialize=False) as client:
             _ = client.predict(gr.File().serialize(code_file))
@@ -558,12 +499,11 @@ class TestTempFile:
         # We create two tempfiles (empty) because API says we return
         # preprocess/postprocess will only create one file since we hash
         # so 2 + 1 = 3
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 3
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
-    def test_no_empty_video_files(self, tmp_path, monkeypatch, connect):
+    def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
         with connect(demo) as client:
             _, url, _ = demo.launch(prevent_thread_lock=True)
@@ -572,9 +512,9 @@ class TestTempFile:
             _ = client.predict(video)
         # During preprocessing we compute the hash based on base64
         # In postprocessing we compute it based on the file
-        assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
-    def test_no_empty_audio_files(self, tmp_path, monkeypatch, connect):
+    def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
 
@@ -582,14 +522,13 @@ class TestTempFile:
             sr, data = audio
             return (sr, np.flipud(data))
 
-        monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
             _ = client.predict(audio)
             _ = client.predict(audio)
             # During preprocessing we compute the hash based on base64
             # In postprocessing we compute it based on the file
-            assert len([f for f in tmp_path.glob("**/*") if f.is_file()]) == 2
+            assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
 class TestComponentsInBlocks:
@@ -1126,6 +1065,7 @@ class TestSpecificUpdate:
             "lines": 4,
             "info": None,
             "max_lines": None,
+            "autofocus": None,
             "placeholder": None,
             "label": None,
             "show_label": None,
@@ -1137,6 +1077,8 @@ class TestSpecificUpdate:
             "type": None,
             "interactive": False,
             "show_copy_button": None,
+            "rtl": None,
+            "text_align": None,
             "__type__": "update",
         }
 
@@ -1152,12 +1094,15 @@ class TestSpecificUpdate:
             "show_label": None,
             "container": None,
             "scale": None,
+            "autofocus": None,
             "min_width": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "type": None,
             "interactive": True,
             "show_copy_button": None,
+            "rtl": None,
+            "text_align": None,
             "__type__": "update",
         }
 
@@ -1296,10 +1241,6 @@ class TestRender:
 
 
 class TestCancel:
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Tasks dont have names in 3.7",
-    )
     @pytest.mark.asyncio
     async def test_cancel_function(self, capsys):
         async def long_job():
@@ -1321,10 +1262,6 @@ class TestCancel:
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 8),
-        reason="Tasks dont have names in 3.7",
-    )
     @pytest.mark.asyncio
     async def test_cancel_function_with_multiple_blocks(self, capsys):
         async def long_job():
@@ -1381,37 +1318,6 @@ class TestCancel:
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
 
-    @pytest.mark.asyncio
-    async def test_cancel_button_for_interfaces(self):
-        def generate(x):
-            for i in range(4):
-                yield i
-                time.sleep(0.2)
-
-        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
-        stop_btn_id = next(
-            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
-        )
-        assert not io.blocks[stop_btn_id].visible
-
-        io.launch(prevent_thread_lock=True)
-
-        async with websockets.connect(
-            f"{io.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 1}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                if msg["msg"] == "process_completed":
-                    assert msg["output"]["data"] == ["3"]
-                    completed = True
-
-        io.close()
-
 
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
@@ -1462,7 +1368,7 @@ class TestEvery:
                         break
 
     @pytest.mark.asyncio
-    async def test_generating_event_cancelled_if_ws_closed(self, capsys):
+    async def test_generating_event_cancelled_if_ws_closed(self, connect, capsys):
         def generation():
             for i in range(10):
                 time.sleep(0.1)
@@ -1475,26 +1381,12 @@ class TestEvery:
             button = gr.Button(value="Greet")
             button.click(generation, None, greeting)
 
-        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        with connect(demo) as client:
+            job = client.submit(0, fn_index=0)
+            for i, _ in enumerate(job):
+                if i == 2:
+                    job.cancel()
 
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            n_steps = 0
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                elif msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                elif msg["msg"] == "process_generating":
-                    if n_steps == 2:
-                        # Close the websocket
-                        break
-                    n_steps += 1
-                else:
-                    continue
         await asyncio.sleep(1)
         # If the generation function did not get cancelled
         # it would have finished running and `At step 9` would

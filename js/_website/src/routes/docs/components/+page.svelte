@@ -8,7 +8,8 @@
 	let components: Record<string, any> = data.components;
 	let helpers = data.helpers;
 	let routes = data.routes;
-	let ordered_events = data.ordered_events;
+	let events = data.events;
+	let events_matrix = data.events_matrix;
 	let py_client = data.py_client;
 </script>
 
@@ -31,7 +32,7 @@
 	<div class="flex flex-col w-full min-w-full lg:w-10/12 lg:min-w-0">
 		<div>
 			<p
-				class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
+				class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
 			>
 				New to Gradio? Start here: <a class="link" href="/quickstart"
 					>Getting Started</a
@@ -44,7 +45,7 @@
 			</p>
 		</div>
 
-		<div class="flex justify-between mt-4">
+		<div class="lg:ml-10 flex justify-between mt-4">
 			<a
 				href="/docs/themes"
 				class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
@@ -100,24 +101,15 @@
 				</div>
 
 				<div class="max-h-96 overflow-y-scroll my-6">
-					<table class="table-fixed w-full leading-loose">
+					<table class="table-fixed leading-loose">
 						<thead class="text-center sticky top-0">
 							<tr>
-								<th class="p-3 bg-white w-1/5" />
-								<th class="p-3 font-normal bg-white border-t border-l"
-									>Change</th
-								>
-								<th class="p-3 font-normal bg-white border-t">Click</th>
-								<th class="p-3 font-normal bg-white border-t">Submit</th>
-								<th class="p-3 font-normal bg-white border-t">Edit</th>
-								<th class="p-3 font-normal bg-white border-t">Clear</th>
-								<th class="p-3 font-normal bg-white border-t">Play</th>
-								<th class="p-3 font-normal bg-white border-t">Pause</th>
-								<th class="p-3 font-normal bg-white border-t">Stream</th>
-								<th class="p-3 font-normal bg-white border-t">Blur</th>
-								<th class="p-3 font-normal bg-white border-t border-r"
-									>Upload</th
-								>
+								<th class="p-3 bg-white w-1/5 sticky left-0" />
+								{#each events as event}
+									<th class="p-3 font-normal bg-white border-t border-l"
+										>{event}</th
+									>
+								{/each}
 							</tr>
 						</thead>
 						<tbody
@@ -125,14 +117,14 @@
 						>
 							{#each Object.entries(components) as [name, obj] (name)}
 								<tr class="group hover:bg-gray-200/60">
-									<td class="p-3 w-1/5 bg-white">
+									<th class="p-3 w-1/5 bg-white sticky z-2 left-0 font-normal">
 										<a href={obj.name.toLowerCase()} class="thin-link"
 											>{obj.name}</a
 										>
-									</td>
-									{#each ordered_events as event}
+									</th>
+									{#each events as event}
 										<td class="p-3 text-gray-700 break-words text-center">
-											{#if obj.events_list.includes(event.toLowerCase())}
+											{#if events_matrix[obj.name].includes(event.toLowerCase())}
 												<p class="text-orange-500">&#10003;</p>
 											{:else}
 												<p class="text-gray-300">&#10005;</p>

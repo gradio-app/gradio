@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
@@ -17,7 +19,7 @@
 	let old_value: [FileData, FileData | null] | null = null;
 
 	export let label: string;
-	export let source: string;
+	export let source: "upload" | "webcam";
 	export let root: string;
 	export let root_url: null | string;
 	export let show_label: boolean;
@@ -31,7 +33,7 @@
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
 	export let autoplay = false;
-	export let show_share_button: boolean = true;
+	export let show_share_button = true;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -58,8 +60,6 @@
 		} else {
 			value = null;
 		}
-
-		dispatch("change");
 	}
 
 	$: {

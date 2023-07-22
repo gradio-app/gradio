@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Image, StaticImage } from "@gradio/image";
@@ -7,14 +9,15 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import UploadText from "../UploadText.svelte";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" | "color-sketch" = "editor";
 	export let label: string;
 	export let show_label: boolean;
+	export let show_download_button: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let height: number | undefined;
@@ -22,13 +25,13 @@
 	export let mirror_webcam: boolean;
 	export let shape: [number, number];
 	export let brush_radius: number;
-	export let selectable: boolean = false;
-	export let container: boolean = false;
+	export let selectable = false;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
-	export let show_share_button: boolean = false;
+	export let show_share_button = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -68,6 +71,7 @@
 			{value}
 			{label}
 			{show_label}
+			{show_download_button}
 			{selectable}
 			{show_share_button}
 		/>
@@ -81,7 +85,6 @@
 			{selectable}
 			on:edit
 			on:clear
-			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload

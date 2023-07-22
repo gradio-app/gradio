@@ -1,10 +1,27 @@
 <script lang="ts">
 	import MetaTags from "../../components/MetaTags.svelte";
 
-	export let data;
+	export let data: {
+		content: any;
+		changelog_slug: {
+			text: string;
+			href: string;
+		}[];
+	};
 
 	let content = data.content;
-	let versions = data.versions;
+	let slugs = data.changelog_slug;
+
+	function handleAnchorClick(event: MouseEvent) {
+		event.preventDefault();
+		const link = event.currentTarget as HTMLAnchorElement;
+		const anchorId = new URL(link.href).hash.replace("#", "");
+		const anchor = document.getElementById(anchorId);
+		window.scrollTo({
+			top: anchor?.offsetTop,
+			behavior: "smooth",
+		});
+	}
 </script>
 
 <MetaTags
@@ -25,14 +42,19 @@
 		>
 			Version History
 		</div>
-		{#each versions as version}
-			<a
-				class="guide-link pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
-				style="max-width: 12rem">{version[0]}</a
-			>
-		{/each}
+		<div
+			class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2"
+		>
+			{#each slugs as heading}
+				<a
+					class="subheading block thin-link -indent-2 ml-4 mr-2"
+					href={heading.href}
+					on:click={handleAnchorClick}>{heading.text.replace("Version ", "")}</a
+				>
+			{/each}
+		</div>
 	</div>
-	<div class="w-full">
+	<div class="w-10/12 mx-auto">
 		<div class="prose text-lg max-w-full">{@html content}</div>
 	</div>
 </div>

@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { createEventDispatcher, getContext } from "svelte";
 	import { File as FileComponent, FileUpload } from "@gradio/file";
@@ -28,7 +30,7 @@
 	export let root_url: null | string;
 	export let selectable: boolean = false;
 	export let loading_status: LoadingStatus;
-	export let container: boolean = false;
+	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
@@ -59,6 +61,7 @@
 				)
 			) {
 				pending_upload = false;
+				dispatch("change");
 			} else if (mode === "dynamic") {
 				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!

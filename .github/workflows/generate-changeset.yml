@@ -1,0 +1,38 @@
+name: Generate changeset
+on:
+  workflow_run:
+    workflows: ["trigger changeset generation"]
+    types:
+      - completed
+
+env:
+  CI: true
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+concurrency:
+  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
+
+jobs:
+  version:
+    permissions: write-all
+    name: static checks
+    runs-on: ubuntu-22.04
+    if: (github.event.workflow_run.head_repository.full_name == 'gradio-app/gradio' && github.event.workflow_run.head_branch != 'main') || github.event.workflow_run.head_repository.full_name != 'gradio-app/gradio'
+    steps:
+      - id: 'get-pr'
+        uses: "gradio-app/github/actions/get-pr-branch@main"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: get pr number
+        run: echo "PR number is ${{ steps.get-pr.outputs.pr_number }}"
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+      - name: generate changeset
+        uses: "gradio-app/github/actions/generate-changeset@main"
+        with: 
+          github_token: ${{ secrets.COMMENT_TOKEN }}
+          main_pkg: gradio
+          pr_number: ${{ steps.get-pr.outputs.pr_number }}

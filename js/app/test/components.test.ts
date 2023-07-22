@@ -12,7 +12,7 @@ import { setupi18n } from "../src/i18n";
 
 import AnnotatedImage from "../src/components/AnnotatedImage/AnnotatedImage.svelte";
 import Audio from "../src/components/Audio/Audio.svelte";
-import Chatbot from "../src/components/Chatbot/Chatbot.svelte";
+import Chatbot from "@gradio/chatbot";
 import Checkbox from "../src/components/Checkbox/Checkbox.svelte";
 import CheckboxGroup from "../src/components/CheckboxGroup/CheckboxGroup.svelte";
 import ColorPicker from "../src/components/ColorPicker/ColorPicker.svelte";
@@ -155,7 +155,7 @@ describe("all components should be invisible when visible=false", () => {
 
 			const elem = container.querySelector(`#test-id`);
 
-			expect(elem).toHaveClass("hide-container");
+			expect(elem).toHaveClass("hidden");
 		});
 	});
 

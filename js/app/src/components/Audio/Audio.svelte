@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
@@ -23,6 +25,7 @@
 	export let visible = true;
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
+	let old_value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let label: string;
@@ -31,15 +34,23 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let root_url: null | string;
-	export let container = false;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
-	export let show_share_button: boolean = false;
+	export let show_download_button = true;
+	export let show_share_button = false;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root, root_url);
+
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 
 	let dragging: boolean;
 </script>
@@ -64,10 +75,7 @@
 			{label}
 			{show_label}
 			value={_value}
-			on:change={({ detail }) => {
-				value = detail;
-				dispatch("change", value);
-			}}
+			on:change={({ detail }) => (value = detail)}
 			on:stream={({ detail }) => {
 				value = detail;
 				dispatch("stream", value);
@@ -98,6 +106,7 @@
 		<StaticAudio
 			{autoplay}
 			{show_label}
+			{show_download_button}
 			{show_share_button}
 			value={_value}
 			name={_value?.name || "audio_file"}
