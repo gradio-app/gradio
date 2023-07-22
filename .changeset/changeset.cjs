@@ -17,18 +17,21 @@ const { packages, rootDir } = getPackagesSync(process.cwd());
 /**
  *
  * @param {string} package_name
- * @returns {[string, string|null]}
+ * @returns {string[]}
  */
 function find_packages_dirs(package_name) {
-	/**
-	 * @type {Package | undefined}
-	 */
+	/** @type {string[]} */
+	let package_dirs = [];
+
+	/** @type {Package | undefined} */
 	const _package = packages.find((p) => p.packageJson.name === package_name);
 	if (!_package) throw new Error(`Package ${package_name} not found`);
-	return [
-		_package.dir,
-		_package.packageJson.python ? join(_package.dir, "..") : null
-	];
+
+	package_dirs.push(_package.dir);
+	if (_package.packageJson.python) {
+		package_dirs.push(join(_package.dir, ".."));
+	}
+	return package_dirs;
 }
 
 const changelogFunctions = {
@@ -168,7 +171,7 @@ const changelogFunctions = {
 		const suffix = users === null ? "" : ` Thanks ${users}!`;
 
 		/**
-		 * @typedef {{[key: string]: string[] | {dirs: [string, string|null], current_changelog: string, feat: {summary: string}[], fix: {summary: string}[], highlight: {summary: string}[]}}} ChangesetMeta
+		 * @typedef {{[key: string]: string[] | {dirs: string[], current_changelog: string, feat: {summary: string}[], fix: {summary: string}[], highlight: {summary: string}[]}}} ChangesetMeta
 		 */
 
 		/**
