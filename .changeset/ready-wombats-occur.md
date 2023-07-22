@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Revert "Revert "Add download button for audio""
+feat: Bringing back the "Add download button for audio" PR by [@leuryr](https://github.com/leuryr).
