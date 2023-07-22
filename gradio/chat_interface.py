@@ -76,7 +76,7 @@ class ChatInterface(Blocks):
             fn: the function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox component will be created.
-            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed underthe chatbot, in an accordion.
+            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion_name: the label of the accordion to use for additional inputs, only used if additional_inputs is provided.
             examples: sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input.
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
@@ -215,7 +215,6 @@ class ChatInterface(Blocks):
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
-                    # cache_examples=cache_examples
                 )
 
             any_unrendered_inputs = any(

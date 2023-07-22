@@ -1,8 +1,10 @@
+import tempfile
 from concurrent.futures import wait
 
 import pytest
 
 import gradio as gr
+from gradio import helpers
 
 
 def invalid_fn(message):
@@ -76,7 +78,8 @@ class TestInit:
         assert prediction_hi[0][0] == ["hi", "hi hi"]
 
     @pytest.mark.asyncio
-    async def test_example_caching_with_streaming(self):
+    async def test_example_caching_with_streaming(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
         chatbot = gr.ChatInterface(
             stream, examples=["hello", "hi"], cache_examples=True
         )
@@ -86,13 +89,34 @@ class TestInit:
         assert prediction_hi[0][0] == ["hi", "hi"]
 
     @pytest.mark.asyncio
-    async def test_example_caching_with_additional_inputs(self):
+    async def test_example_caching_with_additional_inputs(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
         chatbot = gr.ChatInterface(
             echo_system_prompt_plus_message,
             additional_inputs=["textbox", "slider"],
             examples=[["hello", "robot", 100], ["hi", "robot", 2]],
             cache_examples=True,
         )
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello[0][0] == ["hello", "robot hello"]
+        assert prediction_hi[0][0] == ["hi", "ro"]
+
+    @pytest.mark.asyncio
+    async def test_example_caching_with_additional_inputs_already_rendered(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
+        with gr.Blocks():
+            with gr.Accordion("Inputs"):
+                text = gr.Textbox()
+                slider = gr.Slider()
+                chatbot = gr.ChatInterface(
+                    echo_system_prompt_plus_message,
+                    additional_inputs=[text, slider],
+                    examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+                    cache_examples=True,
+                )
         prediction_hello = await chatbot.examples_handler.load_from_cache(0)
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
         assert prediction_hello[0][0] == ["hello", "robot hello"]
