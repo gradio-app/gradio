@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Callable, Literal, Any
+import warnings
+import tempfile
 
-import numpy as np
+from gradio import utils
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.serializing import StringSerializable
+from gradio_client.serializing import FileSerializable
 
 from gradio.components.base import (
     FormComponent,
     IOComponent,
     _Keywords,
 )
-from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Blurrable,
     Changeable,
@@ -21,8 +24,9 @@ from gradio.events import (
     Inputable,
     Selectable,
     Submittable,
+    Clickable,
+    Uploadable,
 )
-from gradio.interpretation import TokenInterpretable
 
 set_documentation_group("component")
 
@@ -37,21 +41,17 @@ class MultimodalTextbox(
     Blurrable,
     IOComponent,
     StringSerializable,
-    TokenInterpretable,
+    Clickable,
+    Uploadable,
+    FileSerializable,
 ):
     """
-    Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets textarea value to it.
-    Examples-format: a {str} representing the multimodaltextbox input.
-
-    Demos: hello_world, diff_texts, sentence_builder
-    Guides: creating-a-chatbot, real-time-speech-recognition
+    Used to create a textbox that allows a user to input text and/or upload files.
     """
 
     def __init__(
         self,
-        value: str | Callable | None = "",
+        value: str | list[str] | Callable | None = None,
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -72,6 +72,8 @@ class MultimodalTextbox(
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
+        file_count: Literal["single", "multiple", "directory"] = "single",
+        file_types: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -96,6 +98,8 @@ class MultimodalTextbox(
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -109,6 +113,16 @@ class MultimodalTextbox(
         self.show_copy_button = show_copy_button
         self.autofocus = autofocus
         self.select: EventListenerMethod
+        self.file_count = file_count
+        if file_count == "directory" and file_types is not None:
+            warnings.warn(
+                "The `file_types` parameter is ignored when `file_count` is 'directory'."
+            )
+        if file_types is not None and not isinstance(file_types, list):
+            raise ValueError(
+                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
+            )
+        self.file_types = file_types
         """
         Event listener for when the user selects text in the Textbox.
         Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
@@ -130,7 +144,6 @@ class MultimodalTextbox(
             value=value,
             **kwargs,
         )
-        TokenInterpretable.__init__(self)
         self.type = type
         self.rtl = rtl
         self.text_align = text_align
@@ -147,12 +160,17 @@ class MultimodalTextbox(
             "container": self.container,
             "text_align": self.text_align,
             "rtl": self.rtl,
+            "file_count": self.file_count,
+            "file_types": self.file_types,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: str
+        | list[str]
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         lines: int | None = None,
         max_lines: int | None = None,
         placeholder: str | None = None,
@@ -191,7 +209,13 @@ class MultimodalTextbox(
             "__type__": "update",
         }
 
-    def preprocess(self, x: str | None) -> str | None:
+    def preprocess(self, x: str | list[dict[str, Any]] | None) -> (
+        bytes
+        | tempfile._TemporaryFileWrapper
+        | list[bytes | tempfile._TemporaryFileWrapper | str]
+        | str
+        | None
+    ):
         """
         Preprocesses input (converts it to a string) before passing it to the function.
         Parameters:
@@ -199,7 +223,56 @@ class MultimodalTextbox(
         Returns:
             text
         """
-        return None if x is None else str(x)
+        if x is None:
+            return None
+        
+        if isinstance(x, str):
+            return str(x)
+
+        def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
+            file_name, data, is_file = (
+                f["name"],
+                f["data"],
+                f.get("is_file", False),
+            )
+            if self.type == "file":
+                if is_file:
+                    path = self.make_temp_copy_if_needed(file_name)
+                else:
+                    data, _ = client_utils.decode_base64_to_binary(data)
+                    path = self.file_bytes_to_file(
+                        data, dir=self.DEFAULT_TEMP_DIR, file_name=file_name
+                    )
+                    path = str(utils.abspath(path))
+                    self.temp_files.add(path)
+                file = tempfile.NamedTemporaryFile(
+                    delete=False, dir=self.DEFAULT_TEMP_DIR
+                )
+                file.name = path
+                file.orig_name = file_name  # type: ignore
+                return file
+            elif self.type == "bytes":
+                if is_file:
+                    with open(file_name, "rb") as file_data:
+                        return file_data.read()
+                return client_utils.decode_base64_to_binary(data)[0]
+            else:
+                raise ValueError(
+                    "Unknown type: "
+                    + str(self.type)
+                    + ". Please choose from: 'file', 'bytes'."
+                )
+
+        if self.file_count == "single":
+            if isinstance(x, list):
+                return process_single_file(x[0])
+            else:
+                return process_single_file(x)
+        else:
+            if isinstance(x, list):
+                return [process_single_file(f) for f in x]
+            else:
+                return process_single_file(x)
 
     def postprocess(self, y: str | None) -> str | None:
         """
@@ -210,75 +283,3 @@ class MultimodalTextbox(
             text
         """
         return None if y is None else str(y)
-
-    def set_interpret_parameters(
-        self, separator: str = " ", replacement: str | None = None
-    ):
-        """
-        Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
-        Parameters:
-            separator: Separator to use to split input into tokens.
-            replacement: In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
-        """
-        self.interpretation_separator = separator
-        self.interpretation_replacement = replacement
-        return self
-
-    def tokenize(self, x: str) -> tuple[list[str], list[str], None]:
-        """
-        Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
-        """
-        tokens = x.split(self.interpretation_separator)
-        leave_one_out_strings = []
-        for index in range(len(tokens)):
-            leave_one_out_set = list(tokens)
-            if self.interpretation_replacement is None:
-                leave_one_out_set.pop(index)
-            else:
-                leave_one_out_set[index] = self.interpretation_replacement
-            leave_one_out_strings.append(
-                self.interpretation_separator.join(leave_one_out_set)
-            )
-        return tokens, leave_one_out_strings, None
-
-    def get_masked_inputs(
-        self, tokens: list[str], binary_mask_matrix: list[list[int]]
-    ) -> list[str]:
-        """
-        Constructs partially-masked sentences for SHAP interpretation
-        """
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.array(tokens)[np.array(binary_mask_vector, dtype=bool)]
-            masked_inputs.append(self.interpretation_separator.join(masked_input))
-        return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float], tokens: list[str], masks=None, **kwargs
-    ) -> list[tuple[str, float]]:
-        """
-        Returns:
-            Each tuple set represents a set of characters and their corresponding interpretation score.
-        """
-        result = []
-        for token, score in zip(tokens, scores):
-            result.append((token, score))
-            result.append((self.interpretation_separator, 0))
-        return result
-
-    def style(
-        self,
-        *,
-        show_copy_button: bool | None = None,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if show_copy_button is not None:
-            self.show_copy_button = show_copy_button
-        if container is not None:
-            self.container = container
-        return self

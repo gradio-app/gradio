@@ -20,10 +20,26 @@
 	export let rtl = false;
 	export let autofocus: boolean = false;
 	export let text_align: "left" | "right" | undefined = undefined;
+	export let file_count: string;
+	export let file_types: string[] = [];
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
+	let hidden_upload: HTMLInputElement;
+	let accept_file_types: string | null;
+
+	if (file_types == null) {
+		accept_file_types = null;
+	} else {
+		file_types = file_types.map((x) => {
+			if (x.startsWith(".")) {
+				return x;
+			}
+			return x + "/*";
+		});
+		accept_file_types = file_types.join(", ");
+	}
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
@@ -134,6 +150,56 @@
 			destroy: () => el.removeEventListener("input", resize)
 		};
 	}
+
+	const openFileUpload = () => {
+		hidden_upload.click();
+	};
+
+	const loadFiles = (files: FileList) => {
+		let _files: File[] = Array.from(files);
+		if (!files.length) {
+			return;
+		}
+		if (file_count === "single") {
+			_files = [files[0]];
+		}
+		var all_file_data: (FileData | File)[] = [];
+		_files.forEach((f, i) => {
+			all_file_data[i] = include_file_metadata
+				? {
+						name: f.name,
+						size: f.size,
+						data: "",
+						blob: f
+				  }
+				: f;
+			if (
+				all_file_data.filter((x) => x !== undefined).length === files.length
+			) {
+				dispatch(
+					"load",
+					file_count == "single" ? all_file_data[0] : all_file_data
+				);
+			}
+			console.log("all_file_data  ", all_file_data);
+		});
+	};
+
+	const loadFilesFromUpload = (e: Event) => {
+		console.log("hit loadFilesFromUpload");
+		const target = e.target as HTMLInputElement;
+		if (!target.files) {
+			return;
+		}
+		loadFiles(target.files);
+	};
+
+	const clearInputValue = (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		if (target.value) target.value = "";
+	};
+
+	$: console.log("Value::: ", value);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -142,21 +208,24 @@
 
 	{#if lines === 1 && max_lines === 1}
 		{#if type === "text"}
-			<input
-				data-testid="textbox"
-				type="text"
-				class="scroll-hide"
-				dir={rtl ? "rtl" : "ltr"}
-				bind:value
-				bind:this={el}
-				{placeholder}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur={handle_blur}
-				on:select={handle_select}
-				style={text_align ? "text-align: " + text_align : ""}
-			/>
+			<form class="input-form">
+				<input
+					data-testid="textbox"
+					type="text"
+					class="scroll-hide"
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value
+					bind:this={el}
+					{placeholder}
+					{disabled}
+					{autofocus}
+					on:keypress={handle_keypress}
+					on:blur={handle_blur}
+					on:select={handle_select}
+					style={text_align ? "text-align: " + text_align : ""}
+				/>
+				<button on:click={test}>+</button>
+			</form>
 		{:else if type === "password"}
 			<input
 				data-testid="password"
@@ -196,23 +265,39 @@
 				<button on:click={handle_copy} class="copy-text"><Copy /></button>
 			{/if}
 		{/if}
-		<textarea
-			data-testid="textbox"
-			use:text_area_resize={value}
-			class="scroll-hide"
-			dir={rtl ? "rtl" : "ltr"}
-			bind:value
-			bind:this={el}
-			{placeholder}
-			rows={lines}
-			{disabled}
-			{autofocus}
-			on:keypress={handle_keypress}
-			on:blur={handle_blur}
-			on:select={handle_select}
-			style={text_align ? "text-align: " + text_align : ""}
-		/>
+		<form class="input-form">
+			<textarea
+				data-testid="textbox"
+				use:text_area_resize={value}
+				class="scroll-hide"
+				dir={rtl ? "rtl" : "ltr"}
+				bind:value
+				bind:this={el}
+				{placeholder}
+				rows={lines}
+				{disabled}
+				{autofocus}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+				on:select={handle_select}
+				style={text_align ? "text-align: " + text_align : ""}
+			/>
+			<button on:click={openFileUpload}> + </button>
+		</form>
 	{/if}
+
+	<input
+		class="hide"
+		accept={accept_file_types}
+		type="file"
+		bind:this={hidden_upload}
+		on:change={loadFilesFromUpload}
+		on:click={clearInputValue}
+		multiple={file_count === "multiple" || undefined}
+		webkitdirectory={file_count === "directory" || undefined}
+		mozdirectory={file_count === "directory" || undefined}
+		data-testid="{label}-upload-button"
+	/>
 </label>
 
 <style>
@@ -282,5 +367,8 @@
 		color: var(--block-label-color);
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
+	}
+	.hide {
+		display: none;
 	}
 </style>

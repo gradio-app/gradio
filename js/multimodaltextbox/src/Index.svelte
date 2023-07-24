@@ -1,8 +1,7 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
-	import MultimodalTextbox from "./static";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { createEventDispatcher, getContext } from "svelte";
+	import MultimodalTextbox from "./dynamic";
+	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../../app/src/components/StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
 
@@ -27,6 +26,50 @@
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autofocus: boolean = false;
+	export let file_count: string;
+	export let file_types: string[] = [];
+
+	const upload_files =
+		getContext<typeof default_upload_files>("upload_files") ??
+		default_upload_files;
+
+	async function handle_upload({ detail }: CustomEvent<FileData>) {
+		console.log("handle_upload");
+		value = detail;
+		await tick();
+		let files = (Array.isArray(detail) ? detail : [detail]).map(
+			(file_data) => file_data.blob!
+		);
+
+		upload_files(root, files).then(async (response) => {
+			if (response.error) {
+				(Array.isArray(detail) ? detail : [detail]).forEach(
+					async (file_data, i) => {
+						file_data.data = await blobToBase64(file_data.blob!);
+						file_data.blob = undefined;
+					}
+				);
+			} else {
+				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
+					if (response.files) {
+						file_data.orig_name = file_data.name;
+						file_data.name = response.files[i];
+						file_data.is_file = true;
+						file_data.blob = undefined;
+					}
+				});
+			}
+
+			dispatch("change", value);
+			dispatch("upload", detail);
+		});
+	}
+
+	const dispatch = createEventDispatcher<{
+		change: FileData | null;
+		upload: FileData;
+	}>();
+	$: console.log("Index Value::: ", value);
 </script>
 
 <Block
@@ -57,11 +100,14 @@
 		{show_copy_button}
 		{autofocus}
 		{container}
+		{file_count}
+		{file_types}
 		on:change
 		on:input
 		on:submit
 		on:blur
 		on:select
 		disabled={mode === "static"}
+		on:load={handle_upload}
 	/>
 </Block>
