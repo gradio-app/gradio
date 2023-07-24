@@ -1,0 +1,1 @@
+export { default as uploadbutton } from "./uploadbutton.svelte";

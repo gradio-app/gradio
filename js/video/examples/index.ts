@@ -1,0 +1,1 @@
+export { default as video } from "./video.svelte";

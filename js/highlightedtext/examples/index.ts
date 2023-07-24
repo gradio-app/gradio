@@ -1,0 +1,1 @@
+export { default as highlightedtext } from "./highlightedtext.svelte";

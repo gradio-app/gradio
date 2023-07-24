@@ -1,0 +1,1 @@
+export { default as dataframe } from "./dataframe.svelte";

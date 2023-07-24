@@ -1,0 +1,1 @@
+export { default as annotatedimage } from "./annotatedimage.svelte";
