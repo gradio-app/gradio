@@ -76,7 +76,7 @@
 			zIndex: 15,
 		},
 		{
-			name: "visible_mask",
+			name: "mask",
 			zIndex: 13,
 			opacity: 0.7,
 		},
@@ -87,10 +87,6 @@
 		{
 			name: "temp",
 			zIndex: 12,
-		},
-		{
-			name: "mask",
-			zIndex: -1,
 		},
 	];
 
@@ -244,9 +240,6 @@
 
 		lines = _lines;
 		ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
-		if (mode === "mask") {
-			ctx.mask.drawImage(canvas.visible_mask, 0, 0, width, height);
-		}
 
 		if (lines.length == 0) {
 			dispatch("clear");
@@ -278,19 +271,12 @@
 	let draw_lines = ({ lines }) => {
 		lines.forEach((line) => {
 			const { points: _points, brush_color, brush_radius } = line;
-			if (mode !== "mask") {
-				draw_points({
-					points: _points,
-					brush_color,
-					brush_radius,
-				});
-			} else {
-				draw_fake_points({
-					points: _points,
-					brush_color,
-					brush_radius,
-				});
-			}
+			draw_points({
+				points: _points,
+				brush_color,
+				brush_radius,
+				mask: mode === "mask",
+			});
 		});
 
 		saveLine({ brush_color, brush_radius });
@@ -359,7 +345,7 @@
 			set_canvas_size(canvas.interface, dimensions, container_dimensions),
 			set_canvas_size(canvas.drawing, dimensions, container_dimensions),
 			set_canvas_size(canvas.temp, dimensions, container_dimensions),
-			set_canvas_size(canvas.visible_mask, dimensions, container_dimensions),
+			set_canvas_size(canvas.mask, dimensions, container_dimensions),
 			set_canvas_size(canvas.mask, dimensions, container_dimensions, false),
 		]);
 
@@ -432,72 +418,42 @@
 		}
 		if (is_drawing) {
 			points.push(lazy.brush.toObject());
-			if (mode !== "mask") {
-				draw_points({
-					points: points,
-					brush_color,
-					brush_radius,
-				});
-			} else {
-				draw_fake_points({
-					points: points,
-					brush_color,
-					brush_radius,
-				});
-			}
+			draw_points({
+				points: points,
+				brush_color,
+				brush_radius,
+				mask: mode === "mask",
+			});
 		}
 		mouse_has_moved = true;
 	};
 
-	let draw_points = ({ points, brush_color, brush_radius }) => {
+	let draw_points = ({ points, brush_color, brush_radius, mask }) => {
 		if (!points || points.length < 2) return;
-		ctx.temp.lineJoin = "round";
-		ctx.temp.lineCap = "round";
+		let target_ctx = mask ? ctx.mask : ctx.temp;
+		target_ctx.lineJoin = "round";
+		target_ctx.lineCap = "round";
 
-		ctx.temp.strokeStyle = brush_color;
-		ctx.temp.lineWidth = brush_radius;
-		if (!points || points.length < 2) return;
+		target_ctx.strokeStyle = brush_color;
+		target_ctx.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
-		ctx.temp.moveTo(p2.x, p2.y);
-		ctx.temp.beginPath();
+		target_ctx.moveTo(p2.x, p2.y);
+		target_ctx.beginPath();
 		for (var i = 1, len = points.length; i < len; i++) {
 			var midPoint = mid_point(p1, p2);
-			ctx.temp.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
+			target_ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
 			p1 = points[i];
 			p2 = points[i + 1];
 		}
 
-		ctx.temp.lineTo(p1.x, p1.y);
-		ctx.temp.stroke();
-	};
-
-	let draw_fake_points = ({ points, brush_color, brush_radius }) => {
-		if (!points || points.length < 2) return;
-
-		ctx.visible_mask.lineJoin = "round";
-		ctx.visible_mask.lineCap = "round";
-		ctx.visible_mask.strokeStyle = brush_color;
-		ctx.visible_mask.lineWidth = brush_radius;
-		let p1 = points[0];
-		let p2 = points[1];
-		ctx.visible_mask.moveTo(p2.x, p2.y);
-		ctx.visible_mask.beginPath();
-		for (var i = 1, len = points.length; i < len; i++) {
-			var midPoint = mid_point(p1, p2);
-			ctx.visible_mask.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
-			p1 = points[i];
-			p2 = points[i + 1];
-		}
-
-		ctx.visible_mask.lineTo(p1.x, p1.y);
-		ctx.visible_mask.stroke();
+		target_ctx.lineTo(p1.x, p1.y);
+		target_ctx.stroke();
 	};
 
 	let save_mask_line = () => {
 		if (points.length < 1) return;
 		points.length = 0;
-		ctx.mask.drawImage(canvas.visible_mask, 0, 0, width, height);
 
 		trigger_on_change();
 	};
@@ -541,15 +497,7 @@
 		ctx.temp.fillRect(0, 0, width, height);
 
 		if (mode === "mask") {
-			ctx.visible_mask.clearRect(
-				0,
-				0,
-				canvas.visible_mask.width,
-				canvas.visible_mask.height
-			);
-			ctx.mask.clearRect(0, 0, width, height);
-			ctx.mask.fillStyle = "#000";
-			ctx.mask.fillRect(0, 0, width, height);
+			ctx.mask.clearRect(0, 0, canvas.mask.width, canvas.mask.height);
 		}
 	}
 
@@ -588,7 +536,7 @@
 
 	export function get_image_data() {
 		return mode === "mask"
-			? canvas.visible_mask.toDataURL("image/png")
+			? canvas.mask.toDataURL("image/png")
 			: canvas.drawing.toDataURL("image/jpg");
 	}
 </script>

@@ -283,13 +283,14 @@ class Image(
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             mask_im = processing_utils.decode_base64_to_image(mask)
 
-            # whiten any opaque pixels in the mask
-            mask_im.putdata(
-                [
-                    (item[3], item[3], item[3]) if item[3] > 0 else (0, 0, 0)
-                    for item in mask_im.getdata()
-                ]
-            )
+            if mask_im.mode == "RGBA":
+                # whiten any opaque pixels in the mask
+                mask_im.putdata(
+                    [
+                        (item[3], item[3], item[3]) if item[3] > 0 else (0, 0, 0)
+                        for item in mask_im.getdata()
+                    ]
+                )
             return {
                 "image": self._format_image(im),
                 "mask": self._format_image(mask_im),
