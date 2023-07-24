@@ -73,8 +73,8 @@
 		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
 	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
 
-	function handle_preview_click(event: PointerEvent): void {
-		const element = event.target as HTMLImageElement;
+	function handle_preview_click(event: MouseEvent): void {
+		const element = event.target as HTMLElement;
 		const x = event.clientX;
 		const width = element.offsetWidth;
 		const centerX = width / 2;
