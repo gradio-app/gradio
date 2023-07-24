@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "python generate_jsons/generate.py && vite dev",
-		"build": "amazon-linux-extras install python3.8 && python3.8 -m pip install gradio gradio_client && python3.8 generate_jsons/generate.py && vite build",
+		"build": "amazon-linux-extras install python3.11 && python3.11 -m pip install gradio gradio_client && python3.11 generate_jsons/generate.py && vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
