@@ -6,3 +6,7 @@
 highlight:
 
 #### Make the `HighlightText` rly good
+
+```python
+print("hi")
+```
