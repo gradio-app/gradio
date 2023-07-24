@@ -1,6 +1,6 @@
 ---
-"@gradio/highlighted-text": minor
-"gradio": minor
+"@gradio/highlighted-text": patch
+"gradio": patch
 ---
 
-feat:Make the `HighlightText` rly good
+fix:Make the `HighlightText` rly good
