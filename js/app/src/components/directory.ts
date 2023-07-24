@@ -25,6 +25,7 @@ export const component_map = {
 	label: () => import("./Label"),
 	markdown: () => import("./Markdown"),
 	model3d: () => import("./Model3D"),
+	multimodaltextbox: () => import("./MultimodalTextbox"),
 	number: () => import("./Number"),
 	plot: () => import("./Plot"),
 	radio: () => import("./Radio"),
