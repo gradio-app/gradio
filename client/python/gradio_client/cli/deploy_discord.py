@@ -38,7 +38,7 @@ def main():
         "--hf-token",
         type=str,
         help=(
-            "HuggingFace token. Can be ommitted if you are logged in via huggingface_hub cli. "
+            "Hugging Face token. Can be ommitted if you are logged in via huggingface_hub cli. "
             "Must be provided if upstream space is private."
         ),
         default=None,
