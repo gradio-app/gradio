@@ -110,7 +110,7 @@ class Image(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
-            brush_color: Default color of the brush for Sketch, should be hex code such as "#FF0000".
+            brush_color: Color of the brush for Sketch as hex string. Default is "#000000".
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.brush_radius = brush_radius

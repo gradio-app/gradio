@@ -68,6 +68,7 @@ class Webcam(components.Image):
         elem_id: str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
         **kwargs,
     ):
         super().__init__(
@@ -86,6 +87,7 @@ class Webcam(components.Image):
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
             brush_radius=brush_radius,
+            brush_color=brush_color,
             **kwargs,
         )
 
@@ -115,6 +117,7 @@ class Sketchpad(components.Image):
         elem_id: str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
         **kwargs,
     ):
         super().__init__(
@@ -133,6 +136,7 @@ class Sketchpad(components.Image):
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
             brush_radius=brush_radius,
+            brush_color=brush_color,
             **kwargs,
         )
 
@@ -162,6 +166,7 @@ class Paint(components.Image):
         elem_id: str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
         **kwargs,
     ):
         super().__init__(
@@ -180,6 +185,7 @@ class Paint(components.Image):
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
             brush_radius=brush_radius,
+            brush_color=brush_color,
             **kwargs,
         )
 
@@ -209,6 +215,7 @@ class ImageMask(components.Image):
         elem_id: str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
         **kwargs,
     ):
         super().__init__(
@@ -227,6 +234,7 @@ class ImageMask(components.Image):
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
             brush_radius=brush_radius,
+            brush_color=brush_color,
             **kwargs,
         )
 
@@ -256,6 +264,7 @@ class ImagePaint(components.Image):
         elem_id: str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
         **kwargs,
     ):
         super().__init__(
@@ -274,6 +283,7 @@ class ImagePaint(components.Image):
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
             brush_radius=brush_radius,
+            brush_color=brush_color,
             **kwargs,
         )
 
@@ -303,6 +313,7 @@ class Pil(components.Image):
         elem_id: str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
         **kwargs,
     ):
         super().__init__(
@@ -321,6 +332,7 @@ class Pil(components.Image):
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
             brush_radius=brush_radius,
+            brush_color=brush_color,
             **kwargs,
         )
 
