@@ -65,8 +65,7 @@ for guide_folder in guide_folders:
             metadata = [] if is_list else None
             if full_label in guide_content:
                 metadata = guide_content.split(full_label)[1].split("\n")[0]
-                guide_content = guide_content.replace(full_label, "")
-                guide_content = guide_content.replace(metadata, "")
+                guide_content = guide_content.replace(full_label + metadata, "")
                 if is_list:
                     metadata = metadata.split(", ")
             return metadata
