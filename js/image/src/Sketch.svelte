@@ -345,7 +345,6 @@
 			set_canvas_size(canvas.interface, dimensions, container_dimensions),
 			set_canvas_size(canvas.drawing, dimensions, container_dimensions),
 			set_canvas_size(canvas.temp, dimensions, container_dimensions),
-			set_canvas_size(canvas.mask, dimensions, container_dimensions),
 			set_canvas_size(canvas.mask, dimensions, container_dimensions, false),
 		]);
 
