@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:asd
+feat:Make the `HighlightText` rly good
