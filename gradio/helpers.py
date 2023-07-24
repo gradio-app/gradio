@@ -195,7 +195,7 @@ class Examples:
         self.non_none_examples = non_none_examples
         self.inputs = inputs
         self.inputs_with_examples = inputs_with_examples
-        self.outputs = outputs
+        self.outputs = outputs or []
         self.fn = fn
         self.cache_examples = cache_examples
         self._api_mode = _api_mode
@@ -250,23 +250,14 @@ class Examples:
         component to hold the examples"""
 
         async def load_example(example_id):
-            if self.cache_examples:
-                processed_example = self.non_none_processed_examples[
-                    example_id
-                ] + await self.load_from_cache(example_id)
-            else:
-                processed_example = self.non_none_processed_examples[example_id]
+            processed_example = self.non_none_processed_examples[example_id]
             return utils.resolve_singleton(processed_example)
 
         if Context.root_block:
-            if self.cache_examples and self.outputs:
-                targets = self.inputs_with_examples + self.outputs
-            else:
-                targets = self.inputs_with_examples
-            load_input_event = self.dataset.click(
+            self.load_input_event = self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
-                outputs=targets,  # type: ignore
+                outputs=self.inputs_with_examples,  # type: ignore
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
@@ -275,7 +266,7 @@ class Examples:
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
-                load_input_event.then(
+                self.load_input_event.then(
                     self.fn,
                     inputs=self.inputs,  # type: ignore
                     outputs=self.outputs,  # type: ignore
@@ -301,25 +292,24 @@ class Examples:
 
             if inspect.isgeneratorfunction(self.fn):
 
-                def get_final_item(args):  # type: ignore
+                def get_final_item(*args):  # type: ignore
                     x = None
-                    for x in self.fn(args):  # noqa: B007  # type: ignore
+                    for x in self.fn(*args):  # noqa: B007  # type: ignore
                         pass
                     return x
 
                 fn = get_final_item
             elif inspect.isasyncgenfunction(self.fn):
 
-                async def get_final_item(args):
+                async def get_final_item(*args):
                     x = None
-                    async for x in self.fn(args):  # noqa: B007  # type: ignore
+                    async for x in self.fn(*args):  # noqa: B007  # type: ignore
                         pass
                     return x
 
                 fn = get_final_item
             else:
                 fn = self.fn
-
             # create a fake dependency to process the examples and get the predictions
             dependency, fn_index = Context.root_block.set_event_trigger(
                 event_name="fake_event",
@@ -352,6 +342,30 @@ class Examples:
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
+
+            # Remove the original load_input_event and replace it with one that
+            # also populates the input. We do it this way to to allow the cache()
+            # method to be called independently of the create() method
+            index = Context.root_block.dependencies.index(self.load_input_event)
+            Context.root_block.dependencies.pop(index)
+            Context.root_block.fns.pop(index)
+
+            async def load_example(example_id):
+                processed_example = self.non_none_processed_examples[
+                    example_id
+                ] + await self.load_from_cache(example_id)
+                return utils.resolve_singleton(processed_example)
+
+            self.load_input_event = self.dataset.click(
+                load_example,
+                inputs=[self.dataset],
+                outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+                show_progress="hidden",
+                postprocess=False,
+                queue=False,
+                api_name=self.api_name,  # type: ignore
+            )
+
             print("Caching complete\n")
 
     async def load_from_cache(self, example_id: int) -> list[Any]:
