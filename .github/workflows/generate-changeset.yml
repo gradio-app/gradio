@@ -30,7 +30,6 @@ jobs:
           repository: ${{ github.event.workflow_run.head_repository.full_name }}
           ref: ${{ github.event.workflow_run.head_branch }}
           fetch-depth: 0
-          persist-credentials: false
           token: ${{ secrets.COMMENT_TOKEN }}
       - name: generate changeset
         uses: "gradio-app/github/actions/generate-changeset@main"
