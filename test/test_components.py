@@ -660,6 +660,7 @@ class TestImage:
         )
         assert image_input.get_config() == {
             "brush_radius": None,
+            "brush_color": "#FF0000",
             "image_mode": "RGB",
             "shape": None,
             "source": "upload",

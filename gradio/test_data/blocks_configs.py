@@ -54,6 +54,7 @@ XRAY_CONFIG = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "brush_color": "#FF0000",
                 "source": "upload",
                 "tool": "editor",
                 "streaming": False,
@@ -127,6 +128,7 @@ XRAY_CONFIG = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "brush_color": "#FF0000",
                 "source": "upload",
                 "tool": "editor",
                 "streaming": False,
@@ -375,6 +377,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "brush_color": "#FF0000",
                 "source": "upload",
                 "tool": "editor",
                 "streaming": False,
@@ -448,6 +451,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "brush_color": "#FF0000",
                 "source": "upload",
                 "tool": "editor",
                 "streaming": False,
@@ -699,6 +703,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "brush_color": "#FF0000",
                 "source": "upload",
                 "streaming": False,
                 "mirror_webcam": True,
@@ -750,6 +755,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "brush_color": "#FF0000",
                 "source": "upload",
                 "tool": "editor",
                 "streaming": False,
