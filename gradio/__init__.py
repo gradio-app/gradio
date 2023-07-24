@@ -41,6 +41,7 @@ from gradio.components import (
     LinePlot,
     Markdown,
     Model3D,
+    MultimodalTextbox,
     Number,
     Plot,
     Radio,

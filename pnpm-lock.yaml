@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -390,6 +390,9 @@ importers:
       '@gradio/model3D':
         specifier: workspace:^0.0.1
         version: link:../model3D
+      '@gradio/multimodaltextbox':
+        specifier: workspace:^0.0.1
+        version: link:../multimodaltextbox
       '@gradio/plot':
         specifier: workspace:^0.0.1
         version: link:../plot
@@ -744,6 +747,24 @@ importers:
       babylonjs-loaders:
         specifier: ^4.2.1
         version: 4.2.2
+
+  js/multimodaltextbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^0.0.1
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^0.0.1
+        version: link:../icons
+      '@gradio/theme':
+        specifier: workspace:^0.0.1
+        version: link:../theme
+      '@gradio/upload':
+        specifier: workspace:^0.0.1
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^0.0.1
+        version: link:../utils
 
   js/plot:
     dependencies:

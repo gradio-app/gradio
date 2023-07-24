@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/chatbot",
+	"name": "@gradio/multimodaltextbox",
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
@@ -12,16 +12,7 @@
 		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1",
-		"@types/katex": "^0.16.0",
-		"@types/marked": "^5.0.0",
-		"@types/prismjs": "1.26.0",
-		"katex": "^0.16.7",
-		"marked": "^5.0.1",
-		"marked-highlight": "^2.0.1",
-		"prismjs": "1.29.0",
-		"dompurify": "^3.0.3",
-		"@types/dompurify": "^3.0.2"
+		"@gradio/utils": "workspace:^0.0.1"
 	},
 	"main_changeset": true
 }
