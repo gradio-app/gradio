@@ -5,7 +5,7 @@
 	import { MultimodalTextbox } from "@gradio/multimodaltextbox";
 </script>
 
-<multimodaltextbox>
+<MultimodalTextbox>
 	content
-</multimodaltextbox>
+</MultimodalTextbox>
 ```
