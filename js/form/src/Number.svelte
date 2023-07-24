@@ -17,6 +17,7 @@
 		submit: undefined;
 		blur: undefined;
 		input: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change() {
@@ -43,6 +44,10 @@
 	function handle_blur(e: FocusEvent) {
 		dispatch("blur");
 	}
+
+	function handle_focus(e: FocusEvent){
+		dispatch("focus")
+	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -55,6 +60,7 @@
 		max={maximum}
 		on:keypress={handle_keypress}
 		on:blur={handle_blur}
+		on:focus={handle_focus}
 		{disabled}
 	/>
 </label>

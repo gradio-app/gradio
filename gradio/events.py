@@ -296,6 +296,16 @@ class Blurrable(EventListener):
         """
 
 
+@document("*focus", inherit=True)
+class Focusable(EventListener):
+    def __init__(self):
+        self.focus = EventListenerMethod(self, "focus")
+        """
+        This listener is triggered when the component is focused (e.g. when the user clicks inside the textbox).
+        This method can be used when this component is in a Gradio Blocks.
+        """
+
+
 @document("*upload", inherit=True)
 class Uploadable(EventListener):
     def __init__(self):

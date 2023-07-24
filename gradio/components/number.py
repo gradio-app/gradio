@@ -15,6 +15,7 @@ from gradio.events import (
     Changeable,
     Inputable,
     Submittable,
+    Focusable,
 )
 from gradio.exceptions import Error
 from gradio.interpretation import NeighborInterpretable
@@ -29,6 +30,7 @@ class Number(
     Inputable,
     Submittable,
     Blurrable,
+    Focusable,
     IOComponent,
     NumberSerializable,
     NeighborInterpretable,

@@ -73,6 +73,7 @@ ordered_events = [
     "Stream()",
     "Blur()",
     "Upload()",
+    "Focus()",
 ]
 
 

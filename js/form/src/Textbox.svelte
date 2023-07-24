@@ -33,6 +33,7 @@
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change() {
@@ -48,6 +49,10 @@
 
 	function handle_blur() {
 		dispatch("blur");
+	}
+
+	function handle_focus() {
+		dispatch("focus");
 	}
 
 	async function handle_copy() {
@@ -155,6 +160,7 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
+				on:focus={handle_focus}
 				style={text_align ? "text-align: " + text_align : ""}
 				/>
 		{:else if type === "password"}
@@ -170,6 +176,7 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
+				on:focus={handle_focus}
 				autocomplete=""
 			/>
 		{:else if type === "email"}
@@ -185,6 +192,7 @@
 				on:keypress={handle_keypress}
 				on:blur={handle_blur}
 				on:select={handle_select}
+				on:focus={handle_focus}
 				autocomplete="email"
 			/>
 		{/if}
@@ -210,6 +218,7 @@
 			on:keypress={handle_keypress}
 			on:blur={handle_blur}
 			on:select={handle_select}
+			on:focus={handle_focus}
 			style={text_align ? "text-align: " + text_align : ""}
 			/>
 	{/if}

@@ -21,6 +21,7 @@ from gradio.events import (
     Inputable,
     Selectable,
     Submittable,
+    Focusable,
 )
 from gradio.interpretation import TokenInterpretable
 
@@ -35,6 +36,7 @@ class Textbox(
     Selectable,
     Submittable,
     Blurrable,
+    Focusable,
     IOComponent,
     StringSerializable,
     TokenInterpretable,
