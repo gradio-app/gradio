@@ -3,4 +3,6 @@
 "gradio": major
 ---
 
-fix:Make the `HighlightText` rly good
+highlight:
+
+#### Make the `HighlightText` rly good
