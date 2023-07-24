@@ -142,6 +142,7 @@ class ChatInterface(Blocks):
                             self.textbox = Textbox(
                                 container=False,
                                 show_label=False,
+                                label="Message",
                                 placeholder="Type a message...",
                                 scale=7,
                                 autofocus=autofocus,
