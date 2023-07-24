@@ -59,11 +59,13 @@ for guide_folder in guide_folders:
         metadata_labels = []
 
         def get_labeled_metadata(label, is_list=True):
+            global guide_content
             metadata_labels.append(label)
             full_label = label + " "
             metadata = [] if is_list else None
             if full_label in guide_content:
                 metadata = guide_content.split(full_label)[1].split("\n")[0]
+                guide_content = guide_content.replace(full_label + metadata, "")
                 if is_list:
                     metadata = metadata.split(", ")
             return metadata
