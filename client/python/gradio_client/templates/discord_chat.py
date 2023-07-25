@@ -80,7 +80,7 @@ async def chat(ctx, prompt: str):
         thread = await message.create_thread(name=prompt)
         loop = asyncio.get_running_loop()
         client = await loop.run_in_executor(None, get_client, None)
-        job = client.submit(prompt, api_name="/chat")
+        job = client.submit(prompt, api_name="/<<api-name>>")
         await wait(job)
 
         try:
@@ -103,7 +103,7 @@ async def continue_chat(message):
     try:
         client = thread_to_client[message.channel.id]
         prompt = message.content
-        job = client.submit(prompt, api_name="/chat")
+        job = client.submit(prompt, api_name="/<<api-name>>")
         await wait(job)
         try:
             job.result()

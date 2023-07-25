@@ -18,15 +18,9 @@ def main():
     )
     parser.add_argument(
         "--api-names",
-        nargs="?",
+        nargs="*",
         help="Api names to turn into discord bots",
-        default=None,
-    )
-    parser.add_argument(
-        "--command-names",
-        nargs="?",
-        help="Bot command names for api names. Bot will be triggered by !<command-name>",
-        default=None,
+        default=[],
     )
     parser.add_argument(
         "--to-id",
@@ -51,16 +45,14 @@ def main():
         const=True,
         default=False,
     )
-    parser.add_argument(
-        "--persist-state", type=bool, help="Whether to persist state", default=True
-    )
     args = parser.parse_args()
+    for i, name in enumerate(args.api_names):
+        if "," in name:
+            args.api_names[i] = tuple(name.split(","))
     Client(args.src).deploy_discord(
         discord_bot_token=args.discord_bot_token,
         api_names=args.api_names,
-        command_names=args.command_names,
         to_id=args.to_id,
         hf_token=args.hf_token,
         private=args.private,
-        persist_state=args.persist_state,
     )

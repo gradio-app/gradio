@@ -7,7 +7,6 @@ import os
 import re
 import secrets
 import tempfile
-import textwrap
 import threading
 import time
 import urllib.parse
@@ -608,36 +607,57 @@ class Client:
     def deploy_discord(
         self,
         discord_bot_token: str | None = None,
-        api_names: list[str] | None = None,
-        command_names: list[str] | None = None,
+        api_names: list[str | tuple[str, str]] | None = None,
         to_id: str | None = None,
         hf_token: str | None = None,
         private: bool = True,
-        persist_state: bool = False,
     ):
         """
         Deploy the upstream app as a discord bot. Currently only supports gr.ChatInterface.
         Parameters:
             discord_bot_token: This is the "password" needed to be able to launch the bot. Users can get a token by creating a bot app on the discord website. If run the method without specifying a token, the space will explain how to get one. See here: https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1.
             api_names: The api_names of the app to turn into bot commands. This parameter currently has no effect as ChatInterface only has one api_name ('/chat').
-            command_names: The names of the command the bot will have. Must be the same length as api_names. For gr.ChatInterface, this list must contain one element. For example, if the value is ['bot'], the bot command can be triggered via !bot.
             to_id: The name of the space hosting the discord bot. If None, the name will be gradio-discord-bot-{random-substring}
             hf_token: HF api token with write priviledges in order to upload the files to HF space. Can be ommitted if logged in via the HuggingFace CLI, unless the upstream space is private. Obtain from: https://huggingface.co/settings/token
             private: Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1
-            persist_state: Currently has no effect.
         """
-        if self.config["mode"] != "chat_interface":
+
+        if self.config["mode"] == "chat_interface" and not api_names:
+            api_names = [("chat", "chat")]
+
+        if api_names is None or not all(
+            isinstance(name, str) or (isinstance(name, tuple) and len(name) == 2)
+            for name in api_names
+        ):
             raise ValueError(
-                "Only demos built with gr.ChatInterface can be deployed as discord bots automatically for now."
+                "Each entry in api_names must be either a string or a tuple of strings."
             )
-
-        if not command_names:
-            command_names = ["chat"]
-
         assert (
-            len(command_names) == 1
-        ), f"gr.ChatInterface can only accept one command name. Received {', '.join(command_names)}"
-        api_names = ["chat"]
+            len(api_names) == 1
+        ), "Currently only one api_name can be deployed to discord."
+
+        for i, name in enumerate(api_names):
+            if isinstance(name, str):
+                api_names[i] = (name, name)
+
+        fn = next(
+            (ep for ep in self.endpoints if ep.api_name == f"/{api_names[0][0]}"), None
+        )
+        if not fn:
+            raise ValueError(
+                f"api_name {api_names[0][0]} not present in {self.space_id or self.src}"
+            )
+        inputs = [
+            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
+        ]
+        outputs = [
+            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
+        ]
+        if not inputs == ["textbox"] and outputs == ["textbox"]:
+            raise ValueError(
+                "Currently only api_names with a single textbox as input and output are supported. "
+                f"Received {inputs} and {outputs}"
+            )
 
         is_private = False
         if self.space_id:
@@ -675,32 +695,23 @@ class Client:
             exist_ok=True,
             private=private,
         )
+        if first_upload:
+            huggingface_hub.metadata_update(
+                repo_id=space_id,
+                repo_type="space",
+                metadata={"tags": ["gradio-discord-bot"]},
+            )
 
         with open(str(Path(__file__).parent / "templates" / "discord_chat.py")) as f:
             app = f.read()
         app = app.replace("<<app-src>>", self.src)
-        app = app.replace("<<command-name>>", api_names[0])
+        app = app.replace("<<api-name>>", api_names[0][0])
+        app = app.replace("<<command-name>>", api_names[0][1])
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as app_file:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as requirements:
                 app_file.write(app)
-                requirements.write("\n".join(["discord.py==2.3.1", "apscheduler"]))
-        readme = None
-        if first_upload:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme:
-                content = f"""
-                        ---
-                        tags: [gradio-discord-bot]
-                        title: {space_id}
-                        colorFrom: orange
-                        colorTo: purple
-                        sdk: gradio
-                        sdk_version: {requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]}
-                        app_file: app.py
-                        pinned: false
-                        ---
-                        """
-                readme.write(textwrap.dedent(content))
+                requirements.write("\n".join(["discord.py==2.3.1"]))
 
         operations = [
             CommitOperationAdd(path_in_repo="app.py", path_or_fileobj=app_file.name),
@@ -708,12 +719,6 @@ class Client:
                 path_in_repo="requirements.txt", path_or_fileobj=requirements.name
             ),
         ]
-        if readme:
-            operations.append(
-                CommitOperationAdd(
-                    path_in_repo="README.md", path_or_fileobj=readme.name
-                )
-            )
 
         api.create_commit(
             repo_id=space_id,
