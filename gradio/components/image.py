@@ -82,6 +82,7 @@ class Image(
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
         brush_color: str = "#000000",
+        mask_opacity: float = 0.7,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -111,10 +112,12 @@ class Image(
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
             brush_color: Color of the brush for Sketch as hex string. Default is "#000000".
+            mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.brush_radius = brush_radius
         self.brush_color = brush_color
+        self.mask_opacity = mask_opacity
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -182,6 +185,7 @@ class Image(
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
             "brush_color": self.brush_color,
+            "mask_opacity": self.mask_opacity,
             "selectable": self.selectable,
             "show_share_button": self.show_share_button,
             "show_download_button": self.show_download_button,
@@ -203,6 +207,7 @@ class Image(
         visible: bool | None = None,
         brush_radius: float | None = None,
         brush_color: str | None = None,
+        mask_opacity: float | None = None,
         show_share_button: bool | None = None,
     ):
         return {
@@ -219,6 +224,7 @@ class Image(
             "value": value,
             "brush_radius": brush_radius,
             "brush_color": brush_color,
+            "mask_opacity": mask_opacity,
             "show_share_button": show_share_button,
             "__type__": "update",
         }

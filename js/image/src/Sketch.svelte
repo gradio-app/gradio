@@ -13,6 +13,7 @@
 	export let mode = "sketch";
 	export let brush_color = "#0b0f19";
 	export let brush_radius;
+	export let mask_opacity = 0.7;
 	export let source;
 
 	export let width = 400;
@@ -78,7 +79,7 @@
 		{
 			name: "mask",
 			zIndex: 13,
-			opacity: 0.7,
+			opacity: mask_opacity,
 		},
 		{
 			name: "drawing",
