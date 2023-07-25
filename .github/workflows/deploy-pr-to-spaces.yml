@@ -51,6 +51,8 @@ jobs:
         ${{ secrets.SPACES_DEPLOY_TOKEN }} \
         --gradio-version ${{ env.gradio_version }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
+    - name: test
+      run: echo ${{ env.gh_sha }} ${{ github.sha }}
     - name: Comment On Release PR
       uses: thollander/actions-comment-pull-request@v2
       with:
