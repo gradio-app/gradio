@@ -236,7 +236,7 @@
 		background: var(--background-fill-secondary);
 	}
 	.user {
-		border-color: var(--border-color-accent);
+		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
 	.feedback {
