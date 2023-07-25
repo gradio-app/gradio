@@ -352,7 +352,7 @@
 		position: relative;
 		padding: var(--size-2);
 		height: var(--size-full);
-		overflow-y: auto;
+		overflow-y: scroll;
 	}
 
 	.grid-container {
