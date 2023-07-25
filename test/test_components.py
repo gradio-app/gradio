@@ -661,6 +661,7 @@ class TestImage:
         assert image_input.get_config() == {
             "brush_radius": None,
             "brush_color": "#000000",
+            "mask_opacity": 0.7,
             "image_mode": "RGB",
             "shape": None,
             "source": "upload",
