@@ -610,7 +610,7 @@ class Client:
         api_names: list[str | tuple[str, str]] | None = None,
         to_id: str | None = None,
         hf_token: str | None = None,
-        private: bool = True,
+        private: bool = False,
     ):
         """
         Deploy the upstream app as a discord bot. Currently only supports gr.ChatInterface.
@@ -625,12 +625,16 @@ class Client:
         if self.config["mode"] == "chat_interface" and not api_names:
             api_names = [("chat", "chat")]
 
-        if api_names is None or not all(
-            isinstance(name, str) or (isinstance(name, tuple) and len(name) == 2)
-            for name in api_names
-        ):
+        valid_list = isinstance(api_names, list) and (
+            isinstance(n, str)
+            or (
+                isinstance(n, tuple) and isinstance(n[0], str) and isinstance(n[1], str)
+            )
+            for n in api_names
+        )
+        if api_names is None or not valid_list:
             raise ValueError(
-                "Each entry in api_names must be either a string or a tuple of strings."
+                f"Each entry in api_names must be either a string or a tuple of strings. Received {api_names}"
             )
         assert (
             len(api_names) == 1

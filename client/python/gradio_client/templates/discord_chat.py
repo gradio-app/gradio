@@ -191,6 +191,9 @@ else:
     
     After calling `!sync`, it may take a few minutes for `/<<command-name>>` to be recognized as a valid command
     in your server.
+
+    ⚠️ Note ⚠️: It is best to create a separate bot per command if you intend to use slash commands. Also make sure
+    none of your bots have matching command names. 
     """
 
 
