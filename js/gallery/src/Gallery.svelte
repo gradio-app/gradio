@@ -168,9 +168,9 @@
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
-						href={_value[selected_image][0].name}
+						href={value[selected_image].toString()}
 						target={window.__is_colab__ ? "_blank" : null}
-						download={"image"}
+						download="image"
 					>
 						<IconButton Icon={Download} label="Download" />
 					</a>
