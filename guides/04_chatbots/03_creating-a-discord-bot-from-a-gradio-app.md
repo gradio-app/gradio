@@ -75,11 +75,12 @@ gradio deploy-discord --src freddyaboulton/echo-chatbot --discord-bot-token <tok
 Visit the space of your discord bot. You should see "Add this bot to your server by clicking this link:" followed by a URL. Go to that URL and add the bot to your server!
 
 ### Step 6: Use your bot!
-By default the bot can be called by starting a message with `!chat`, e.g. `!chat <your prompt here>`.
-<img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/with_!chat_2.png" height=400 width=800>
+By default the bot can be called by starting a message with `/chat`, e.g. `/chat <your prompt here>`.
 
-If you call the `!sync` command, you can also use `/chat`. You only need to call `!sync` once.
-<img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/with_slash_chat.png" height=400 width=800>
+⚠️ Tip ⚠️: If either of the deployed spaces goes to sleep, the bot will stop working. By default, spaces go to sleep after 48 hours of inactivity. You can upgrade the hardware of your space to prevent it from going to sleep. See this [guide](https://huggingface.co/docs/hub/spaces-gpus#using-gpu-spaces) for more information.
+
+<img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/echo_slash.gif">
+
 
 ### Using the `gradio_client.Client` Class
 You can also create a discord bot from a deployed gradio app with python.
