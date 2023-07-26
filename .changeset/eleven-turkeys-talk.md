@@ -3,4 +3,6 @@
 "gradio_client": minor
 ---
 
-feat:Deploy ChatInterface as a discord bot
+highlight:
+
+#### Deploy ChatInterface as a discord bot
