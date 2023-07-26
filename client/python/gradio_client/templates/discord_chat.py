@@ -40,25 +40,20 @@ def truncate_response(response: str) -> str:
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    synced = await bot.tree.sync()
+    print(f"Synced commands: {', '.join([s.name for s in synced])}.")
     event.set()
     print("------")
 
 
 thread_to_client = {}
 thread_to_user = {}
-
-
-@bot.command()
-@commands.is_owner()
-async def sync(ctx) -> None:
-    synced = await bot.tree.sync()
-    await ctx.send(f"Synced commands: {', '.join([s.name for s in synced])}.")
 
 
 @bot.hybrid_command(
@@ -70,12 +65,6 @@ async def chat(ctx, prompt: str):
         return
     try:
         message = await ctx.send("Creating thread...")
-
-        # User triggered bot via !<<command-name>>
-        if ctx.message.content:
-            prompt = ctx.message.content.replace(
-                f"{bot.command_prefix}<<command-name>>", ""
-            ).strip()
 
         thread = await message.create_thread(name=prompt)
         loop = asyncio.get_running_loop()
@@ -181,19 +170,15 @@ else:
 
     ## How to use it?
 
-    The bot can be triggered via `!<<command-name>>` followed by your text prompt.
-
-    ## Enabling slash commands
-
-    If you are the owner of this bot, call the `!sync` command from your discord server.
-    This will allow anyone in your server to call the bot via `/<<command-name>>`.
-    This is known as a slash command and is a nicer experience than calling the bot via `!<<command-name>>`.
+    The bot can be triggered via `/<<command-name>>` followed by your text prompt.
     
-    After calling `!sync`, it may take a few minutes for `/<<command-name>>` to be recognized as a valid command
-    in your server.
+    This will create a thread with the bot's response to your text prompt.
+    You can reply in the thread (without `/<<command-name>>`) to continue the conversation.
+    In the thread, the bot will only reply to the original author of the command.
 
-    ⚠️ Note ⚠️: It is best to create a separate bot per command if you intend to use slash commands. Also make sure
-    none of your bots have matching command names. 
+    ⚠️ Note ⚠️: Please make sure this bot's command does have the same name as another command in your server.
+    
+    ⚠️ Note ⚠️: Bot commands do not work in DMs with the bot as of now.
     """
 
 
