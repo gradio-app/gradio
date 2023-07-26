@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/form",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -8,8 +8,8 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1",
+		"@gradio/atoms": "workspace:^0.0.2",
+		"@gradio/utils": "workspace:^0.0.2",
 		"@gradio/icons": "workspace:^0.0.1"
 	},
 	"main_changeset": true
