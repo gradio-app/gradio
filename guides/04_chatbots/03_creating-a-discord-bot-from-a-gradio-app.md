@@ -22,6 +22,8 @@ pip install gradio_client>=0.3.0 gradio>=3.38.0
 
 Also, make sure you have a [Hugging Face account](https://huggingface.co/) and a [write access token](https://huggingface.co/docs/hub/security-tokens).
 
+⚠️ Tip ⚠️: Make sure you login to the Hugging Face Hub by running `huggingface-cli login`. This will let you skip passing your token in all subsequent commands in this guide.
+
 ## 🏃‍♀️ Quickstart 🏃‍♀️
 
 ### Step 1: Implementing our chatbot
