@@ -33,7 +33,6 @@ const rules = {
 	"no-shadow": "error",
 	"no-undef": "error",
 	"@typescript-eslint/adjacent-overload-signatures": "error",
-	"@typescript-eslint/explicit-function-return-type": "error",
 	"@typescript-eslint/consistent-type-exports": "error",
 	"@typescript-eslint/ban-types": "error",
 	"@typescript-eslint/array-type": "error",
