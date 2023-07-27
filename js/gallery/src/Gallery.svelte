@@ -107,6 +107,19 @@
 		}
 	}
 
+	function isFileData(obj: any): obj is FileData {
+		return typeof obj === "object" && obj !== null && "data" in obj;
+	}
+
+	function getHrefValue(selected: any): string {
+		if (isFileData(selected)) {
+			return selected.data;
+		} else if (typeof selected === "string") {
+			return selected;
+		}
+		return "";
+	}
+
 	$: {
 		if (selected_image !== old_selected_image) {
 			old_selected_image = selected_image;
@@ -168,7 +181,7 @@
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<a
-						href={value[selected_image].toString()}
+						href={getHrefValue(value[selected_image])}
 						target={window.__is_colab__ ? "_blank" : null}
 						download="image"
 					>
