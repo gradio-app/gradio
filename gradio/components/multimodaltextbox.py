@@ -51,7 +51,7 @@ class MultimodalTextbox(
 
     def __init__(
         self,
-        value: str | list[str] | Callable | None = None,
+        value: dict[str, str | list[str]] | Callable | None = None,
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -68,7 +68,7 @@ class MultimodalTextbox(
         elem_id: str | None = None,
         autofocus: bool = False,
         elem_classes: list[str] | str | None = None,
-        type: Literal["text", "password", "email"] = "text",
+        type: Literal["file", "bytes"] = "file",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
@@ -101,14 +101,8 @@ class MultimodalTextbox(
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
-        if type not in ["text", "password", "email"]:
-            raise ValueError('`type` must be one of "text", "password", or "email".')
-
         self.lines = lines
-        if type == "text":
-            self.max_lines = max(lines, max_lines)
-        else:
-            self.max_lines = 1
+        self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
         self.autofocus = autofocus
@@ -167,8 +161,7 @@ class MultimodalTextbox(
 
     @staticmethod
     def update(
-        value: str
-        | list[str]
+        value: dict[str, str | list[str]]
         | Literal[_Keywords.NO_VALUE]
         | None = _Keywords.NO_VALUE,
         lines: int | None = None,
@@ -182,7 +175,6 @@ class MultimodalTextbox(
         min_width: int | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
-        type: Literal["text", "password", "email"] | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool | None = None,
         show_copy_button: bool | None = None,
@@ -200,7 +192,6 @@ class MultimodalTextbox(
             "min_width": min_width,
             "visible": visible,
             "value": value,
-            "type": type,
             "interactive": interactive,
             "show_copy_button": show_copy_button,
             "autofocus": autofocus,
@@ -209,12 +200,8 @@ class MultimodalTextbox(
             "__type__": "update",
         }
 
-    def preprocess(self, x: str | list[dict[str, Any]] | None) -> (
-        bytes
-        | tempfile._TemporaryFileWrapper
-        | list[bytes | tempfile._TemporaryFileWrapper | str]
-        | str
-        | None
+    def preprocess(self, x: dict[str, str | list[dict[str, Any]]] | None) -> (
+        dict[str, str | bytes | tempfile._TemporaryFileWrapper | list[bytes | tempfile._TemporaryFileWrapper] | None] | None
     ):
         """
         Preprocesses input (converts it to a string) before passing it to the function.
@@ -225,9 +212,6 @@ class MultimodalTextbox(
         """
         if x is None:
             return None
-        
-        if isinstance(x, str):
-            return str(x)
 
         def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
             file_name, data, is_file = (
@@ -262,17 +246,22 @@ class MultimodalTextbox(
                     + str(self.type)
                     + ". Please choose from: 'file', 'bytes'."
                 )
-
-        if self.file_count == "single":
-            if isinstance(x, list):
-                return process_single_file(x[0])
-            else:
-                return process_single_file(x)
+        if not x["files"] or x["files"] is None:
+            value = {"text": x["text"], "files": None}
         else:
-            if isinstance(x, list):
-                return [process_single_file(f) for f in x]
-            else:
-                return process_single_file(x)
+            value = {"text": x["text"], "files": [process_single_file(f) for f in x["files"]]}
+        return value
+
+        # if self.file_count == "single":
+        #     if isinstance(x, list):
+        #         return process_single_file(x[0])
+        #     else:
+        #         return process_single_file(x)
+        # else:
+        #     if isinstance(x, list):
+        #         return [process_single_file(f) for f in x]
+        #     else:
+        #         return process_single_file(x)
 
     def postprocess(self, y: str | None) -> str | None:
         """

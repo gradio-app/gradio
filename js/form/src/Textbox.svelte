@@ -72,7 +72,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -131,7 +131,7 @@
 		resize({ target: el });
 
 		return {
-			destroy: () => el.removeEventListener("input", resize)
+			destroy: () => el.removeEventListener("input", resize),
 		};
 	}
 </script>
@@ -156,7 +156,7 @@
 				on:blur={handle_blur}
 				on:select={handle_select}
 				style={text_align ? "text-align: " + text_align : ""}
-				/>
+			/>
 		{:else if type === "password"}
 			<input
 				data-testid="password"
@@ -211,7 +211,7 @@
 			on:blur={handle_blur}
 			on:select={handle_select}
 			style={text_align ? "text-align: " + text_align : ""}
-			/>
+		/>
 	{/if}
 </label>
 
@@ -236,10 +236,13 @@
 		line-height: var(--line-sm);
 		border: none;
 	}
-	label:not(.container), label:not(.container) > input, label:not(.container) > textarea {
+	label:not(.container),
+	label:not(.container) > input,
+	label:not(.container) > textarea {
 		height: 100%;
 	}
-	.container > input, .container > textarea {
+	.container > input,
+	.container > textarea {
 		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--input-radius);
 	}

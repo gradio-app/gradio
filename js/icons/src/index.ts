@@ -24,6 +24,7 @@ export { default as Music } from "./Music.svelte";
 export { default as Pause } from "./Pause.svelte";
 export { default as Play } from "./Play.svelte";
 export { default as Plot } from "./Plot.svelte";
+export { default as Plus } from "./Plus.svelte";
 export { default as Remove } from "./Remove.svelte";
 export { default as Sketch } from "./Sketch.svelte";
 export { default as Square } from "./Square.svelte";

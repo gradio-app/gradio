@@ -753,6 +753,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^0.0.1
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^0.1.4
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons

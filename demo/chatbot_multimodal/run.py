@@ -4,8 +4,10 @@ import time
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
-def add_text(history, text):
-    history = history + [(text, None)]
+def add_text(history, message):
+    history = history + [(message["text"], None)]
+    if message["files"]:
+        history = history + [((message["files"][0].name,), None)]
     return history, gr.update(value="", interactive=False)
 
 
@@ -27,21 +29,12 @@ with gr.Blocks() as demo:
     chatbot = gr.Chatbot([], elem_id="chatbot").style(height=750)
 
     with gr.Row():
-        with gr.Column(scale=0.85):
-            txt = gr.Textbox(
-                show_label=False,
-                placeholder="Enter text and press enter, or upload an image",
-            ).style(container=False)
-        with gr.Column(scale=0.15, min_width=0):
-            btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
+        txt = gr.MultimodalTextbox(show_label=False, placeholder="Enter text and press enter, or upload an image")
 
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
     )
     txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
-    file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(
-        bot, chatbot, chatbot
-    )
 
 demo.queue()
 if __name__ == "__main__":
