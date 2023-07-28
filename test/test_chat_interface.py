@@ -1,8 +1,10 @@
+import tempfile
 from concurrent.futures import wait
 
 import pytest
 
 import gradio as gr
+from gradio import helpers
 
 
 def invalid_fn(message):
@@ -22,14 +24,16 @@ def count(message, history):
     return str(len(history))
 
 
+def echo_system_prompt_plus_message(message, history, system_prompt, tokens):
+    response = f"{system_prompt} {message}"
+    for i in range(min(len(response), int(tokens))):
+        yield response[: i + 1]
+
+
 class TestInit:
     def test_no_fn(self):
         with pytest.raises(TypeError):
             gr.ChatInterface()
-
-    def test_invalid_fn_inputs(self):
-        with pytest.warns(UserWarning):
-            gr.ChatInterface(invalid_fn)
 
     def test_configuring_buttons(self):
         chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
@@ -74,7 +78,8 @@ class TestInit:
         assert prediction_hi[0][0] == ["hi", "hi hi"]
 
     @pytest.mark.asyncio
-    async def test_example_caching_with_streaming(self):
+    async def test_example_caching_with_streaming(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
         chatbot = gr.ChatInterface(
             stream, examples=["hello", "hi"], cache_examples=True
         )
@@ -82,6 +87,40 @@ class TestInit:
         prediction_hi = await chatbot.examples_handler.load_from_cache(1)
         assert prediction_hello[0][0] == ["hello", "hello"]
         assert prediction_hi[0][0] == ["hi", "hi"]
+
+    @pytest.mark.asyncio
+    async def test_example_caching_with_additional_inputs(self, monkeypatch):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+            examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+            cache_examples=True,
+        )
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello[0][0] == ["hello", "robot hello"]
+        assert prediction_hi[0][0] == ["hi", "ro"]
+
+    @pytest.mark.asyncio
+    async def test_example_caching_with_additional_inputs_already_rendered(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
+        with gr.Blocks():
+            with gr.Accordion("Inputs"):
+                text = gr.Textbox()
+                slider = gr.Slider()
+                chatbot = gr.ChatInterface(
+                    echo_system_prompt_plus_message,
+                    additional_inputs=[text, slider],
+                    examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+                    cache_examples=True,
+                )
+        prediction_hello = await chatbot.examples_handler.load_from_cache(0)
+        prediction_hi = await chatbot.examples_handler.load_from_cache(1)
+        assert prediction_hello[0][0] == ["hello", "robot hello"]
+        assert prediction_hi[0][0] == ["hi", "ro"]
 
 
 class TestAPI:
@@ -104,3 +143,21 @@ class TestAPI:
         with connect(chatbot) as client:
             result = client.predict("hello")
             assert result == "hello hello"
+
+    def test_streaming_api_with_additional_inputs(self, connect):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+        ).queue()
+        with connect(chatbot) as client:
+            job = client.submit("hello", "robot", 7)
+            wait([job])
+            assert job.outputs() == [
+                "r",
+                "ro",
+                "rob",
+                "robo",
+                "robot",
+                "robot ",
+                "robot h",
+            ]

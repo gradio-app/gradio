@@ -11,7 +11,6 @@
 	import { normalise_file } from "@gradio/upload";
 	import { format_gallery_for_sharing } from "./utils";
 
-	export let container = true;
 	export let show_label = true;
 	export let label: string;
 	export let root = "";
@@ -25,7 +24,7 @@
 	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let show_share_button: boolean = false;
+	export let show_share_button = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -74,6 +73,19 @@
 		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
 	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
 
+	function handle_preview_click(event: MouseEvent): void {
+		const element = event.target as HTMLElement;
+		const x = event.clientX;
+		const width = element.offsetWidth;
+		const centerX = width / 2;
+
+		if (x < centerX) {
+			selected_image = previous;
+		} else {
+			selected_image = next;
+		}
+	}
+
 	function on_keydown(e: KeyboardEvent): void {
 		switch (e.code) {
 			case "Escape":
@@ -99,7 +111,7 @@
 			if (selected_image !== null) {
 				dispatch("select", {
 					index: selected_image,
-					value: _value?.[selected_image][1]
+					value: _value?.[selected_image][1],
 				});
 			}
 		}
@@ -132,52 +144,18 @@
 
 		container_element?.scrollTo({
 			left: pos < 0 ? 0 : pos,
-			behavior: "smooth"
+			behavior: "smooth",
 		});
 	}
 
 	let client_height = 0;
 	let window_height = 0;
-
-	let grid_cols_style = "";
-	let grid_rows_style = "";
-	$: {
-		let grid_cols_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
-		let _grid_cols = Array.isArray(grid_cols) ? grid_cols : [grid_cols];
-
-		grid_cols_style = [0, 0, 0, 0, 0, 0]
-			.map(
-				(_, i) =>
-					`--${grid_cols_map[i]}grid-cols: var(--grid-${
-						_grid_cols?.[i] || _grid_cols?.[_grid_cols?.length - 1]
-					});`
-			)
-			.join(" ");
-	}
-	$: {
-		let grid_rows_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
-		let _grid_rows = Array.isArray(grid_rows) ? grid_rows : [grid_rows];
-
-		grid_rows_style = [0, 0, 0, 0, 0, 0]
-			.map(
-				(_, i) =>
-					`--${grid_rows_map[i]}grid-rows: var(--grid-${
-						_grid_rows?.[i] || _grid_rows?.[_grid_rows?.length - 1]
-					});`
-			)
-			.join(" ");
-	}
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
 
 {#if show_label}
-	<BlockLabel
-		{show_label}
-		Icon={Image}
-		label={label || "Gallery"}
-		
-	/>
+	<BlockLabel {show_label} Icon={Image} label={label || "Gallery"} />
 {/if}
 {#if value === null || _value === null || _value.length === 0}
 	<Empty unpadded_box={true} size="large"><Image /></Empty>
@@ -191,7 +169,7 @@
 			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 			<img
 				data-testid="detailed-image"
-				on:click={() => (selected_image = next)}
+				on:click={(event) => handle_preview_click(event)}
 				src={_value[selected_image][0].data}
 				alt={_value[selected_image][1] || ""}
 				title={_value[selected_image][1] || null}
@@ -235,7 +213,7 @@
 	>
 		<div
 			class="grid-container"
-			style="{grid_cols_style} {grid_rows_style} --object-fit: {object_fit}; height: {height}"
+			style="--grid-cols:{grid_cols}; --grid-rows:{grid_rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
 			{#if show_share_button}
@@ -374,40 +352,16 @@
 		position: relative;
 		padding: var(--size-2);
 		height: var(--size-full);
-		overflow-y: auto;
+		overflow-y: scroll;
 	}
 
 	.grid-container {
 		display: grid;
 		position: relative;
-		grid-template-rows: var(--grid-rows);
-		grid-template-columns: var(--grid-cols);
+		grid-template-rows: repeat(var(--grid-rows), minmax(100px, 1fr));
+		grid-template-columns: repeat(var(--grid-cols), minmax(100px, 1fr));
+		grid-auto-rows: minmax(100px, 1fr);
 		gap: var(--spacing-lg);
-	}
-	@media (--screen-sm) {
-		.grid-container {
-			grid-template-columns: var(--sm-grid-cols);
-		}
-	}
-	@media (--screen-md) {
-		.grid-container {
-			grid-template-columns: var(--md-grid-cols);
-		}
-	}
-	@media (--screen-lg) {
-		.grid-container {
-			grid-template-columns: var(--lg-grid-cols);
-		}
-	}
-	@media (--screen-xl) {
-		.grid-container {
-			grid-template-columns: var(--xl-grid-cols);
-		}
-	}
-	@media (--screen-xxl) {
-		.grid-container {
-			grid-template-columns: var(--2xl-grid-cols);
-		}
 	}
 
 	.thumbnail-lg > img {

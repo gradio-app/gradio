@@ -1,6 +1,5 @@
 # How to Use the Plot Component for Maps
 
-Related spaces:
 Tags: PLOTS, MAPS
 
 ## Introduction
