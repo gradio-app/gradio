@@ -1221,6 +1221,37 @@ class TestRender:
             io3 = io2.render()
         assert io2 == io3
 
+    def test_is_rendered(self):
+        t = gr.Textbox()
+        with gr.Blocks():
+            pass
+        assert not t.is_rendered
+
+        t = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+        assert t.is_rendered
+
+        t = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+            t.unrender()
+        assert not t.is_rendered
+
+        with gr.Blocks():
+            t = gr.Textbox()
+        assert t.is_rendered
+
+        with gr.Blocks():
+            t = gr.Textbox()
+        with gr.Blocks():
+            pass
+        assert t.is_rendered
+
+        t = gr.Textbox()
+        gr.Interface(lambda x: x, "textbox", t)
+        assert t.is_rendered
+
     def test_no_error_if_state_rendered_multiple_times(self):
         state = gr.State("")
         gr.TabbedInterface(
