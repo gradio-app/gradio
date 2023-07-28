@@ -39,9 +39,13 @@
 	$: {
 		if (showOptions && refElement) {
 			if (listElement && typeof value === "string") {
-				let el = document.querySelector(
-					`li[data-value="${value}"]`
-				) as HTMLLIElement;
+				let elements = listElement.querySelectorAll('li');
+				let el = null;
+				elements.forEach((element) => {
+					if (element.getAttribute('data-value') === value) {
+						el = element as HTMLLIElement;
+					}
+				});
 				if (el) {
 					listElement.scrollTo(0, el.offsetTop);
 				}

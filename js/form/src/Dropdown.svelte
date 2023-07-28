@@ -202,9 +202,7 @@
 					bind:this={filterInput}
 					on:focus={() => {
 						showOptions = !showOptions;
-						if (showOptions) {
-							inputValue = "";
-						} else {
+						if (!showOptions) {
 							filterInput.blur();
 						}
 					}}
