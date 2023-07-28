@@ -240,10 +240,10 @@ importers:
         specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/form':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../form
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
     devDependencies:
       '@sveltejs/adapter-auto':
@@ -337,37 +337,37 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../accordion
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/audio':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../audio
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/chart':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../chart
       '@gradio/chatbot':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../chatbot
       '@gradio/client':
         specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/code':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../code
       '@gradio/file':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../file
       '@gradio/form':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../form
       '@gradio/gallery':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../gallery
       '@gradio/highlighted-text':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../highlighted-text
       '@gradio/html':
         specifier: workspace:^0.0.1
@@ -376,43 +376,43 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/image':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../image
       '@gradio/json':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../json
       '@gradio/label':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../label
       '@gradio/markdown':
         specifier: workspace:^0.0.1
         version: link:../markdown
       '@gradio/model3D':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../model3D
       '@gradio/plot':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../plot
       '@gradio/table':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../table
       '@gradio/tabs':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../tabs
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/upload-button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload-button
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@gradio/video':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../video
       '@gradio/wasm':
         specifier: workspace:^0.0.1
@@ -439,25 +439,25 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/audio:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       extendable-media-recorder:
         specifier: ^8.0.0
@@ -472,7 +472,7 @@ importers:
   js/button:
     dependencies:
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/chart:
@@ -481,13 +481,13 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/tooltip':
         specifier: workspace:^0.0.1
         version: link:../tooltip
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       d3-dsv:
         specifier: ^3.0.1
@@ -512,19 +512,19 @@ importers:
   js/chatbot:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@types/dompurify':
         specifier: ^3.0.2
@@ -599,13 +599,13 @@ importers:
         specifier: ^6.4.1
         version: 6.4.1
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@lezer/common':
         specifier: ^1.0.2
@@ -629,55 +629,55 @@ importers:
   js/file:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/form:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/gallery:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/image':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../image
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/highlighted-text:
     dependencies:
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/html: {}
@@ -687,16 +687,16 @@ importers:
   js/image:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       cropperjs:
         specifier: ^1.5.12
@@ -711,7 +711,7 @@ importers:
   js/json:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
@@ -720,7 +720,7 @@ importers:
   js/label:
     dependencies:
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/lite: {}
@@ -730,13 +730,13 @@ importers:
   js/model3D:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       babylonjs:
         specifier: ^4.2.1
@@ -748,16 +748,16 @@ importers:
   js/plot:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@rollup/plugin-json':
         specifier: ^6.0.0
@@ -778,13 +778,13 @@ importers:
   js/table:
     dependencies:
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
       '@types/d3-dsv':
         specifier: ^3.0.0
@@ -799,7 +799,7 @@ importers:
   js/tabs:
     dependencies:
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/theme: {}
@@ -811,7 +811,7 @@ importers:
   js/upload:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
@@ -820,37 +820,37 @@ importers:
   js/upload-button:
     dependencies:
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../button
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/utils:
     dependencies:
       '@gradio/theme':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../theme
 
   js/video:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
       '@gradio/image':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.1.0
         version: link:../image
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^0.0.2
         version: link:../utils
 
   js/wasm:
