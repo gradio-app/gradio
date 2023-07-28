@@ -1,6 +1,6 @@
 ---
-"@gradio/form": minor
-"gradio": minor
+"@gradio/form": patch
+"gradio": patch
 ---
 
-feat:`gr.Dropdown()` now supports values with arbitrary characters and doesn't clear value when re-focused
+fix:`gr.Dropdown()` now supports values with arbitrary characters and doesn't clear value when re-focused
