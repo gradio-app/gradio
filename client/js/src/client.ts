@@ -395,7 +395,8 @@ export function api_factory(fetch_implementation: typeof fetch) {
 						});
 
 						post_data(
-							`${http_protocol}//${host + config.path}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+							`${http_protocol}//${host + config.path}/run${
+								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}`,
 							{
 								...payload,
@@ -406,11 +407,11 @@ export function api_factory(fetch_implementation: typeof fetch) {
 							.then(([output, status_code]) => {
 								const data = transform_files
 									? transform_output(
-										output.data,
-										api_info,
-										config.root,
-										config.root_url
-									)
+											output.data,
+											api_info,
+											config.root,
+											config.root_url
+									  )
 									: output.data;
 								if (status_code == 200) {
 									fire_event({
@@ -538,11 +539,11 @@ export function api_factory(fetch_implementation: typeof fetch) {
 									time: new Date(),
 									data: transform_files
 										? transform_output(
-											data.data,
-											api_info,
-											config.root,
-											config.root_url
-										)
+												data.data,
+												api_info,
+												config.root,
+												config.root_url
+										  )
 										: data.data,
 									endpoint: _endpoint,
 									fn_index
