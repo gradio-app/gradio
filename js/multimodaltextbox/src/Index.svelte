@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher, getContext } from "svelte";
+	import { createEventDispatcher, getContext, tick } from "svelte";
 	import MultimodalTextbox from "./dynamic";
+	import { upload_files as default_upload_files } from "@gradio/client";
+	import type { FileData } from "@gradio/upload";
+	import { blobToBase64 } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../../app/src/components/StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../../app/src/components/StatusTracker/types";
@@ -10,37 +13,40 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
-	export let value: string = "";
+	export let value: {
+		text: string;
+		files: [string | FileData][];
+	} = { text: "", files: [] };
 	export let lines: number;
 	export let placeholder: string = "";
 	export let show_label: boolean;
 	export let max_lines: number;
-	export let type: "text" | "password" | "email" = "text";
 	export let container: boolean = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let show_copy_button: boolean = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let mode: "static" | "dynamic";
-	export let value_is_output: boolean = false;
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autofocus: boolean = false;
 	export let file_count: string;
 	export let file_types: string[] = [];
+	export let root: string;
 
 	const upload_files =
 		getContext<typeof default_upload_files>("upload_files") ??
 		default_upload_files;
 
-	async function handle_upload({ detail }: CustomEvent<FileData>) {
-		console.log("handle_upload");
+	async function handle_upload({
+		detail,
+	}: CustomEvent<{
+		text: string;
+		files: [string | FileData];
+	}>) {
 		value = detail;
 		await tick();
-		let files = (Array.isArray(detail) ? detail : [detail]).map(
-			(file_data) => file_data.blob!
-		);
-
+		let files = value.files.map((file_data) => file_data.blob!);
 		upload_files(root, files).then(async (response) => {
 			if (response.error) {
 				(Array.isArray(detail) ? detail : [detail]).forEach(
@@ -59,17 +65,23 @@
 					}
 				});
 			}
-
 			dispatch("change", value);
-			dispatch("upload", detail);
+			dispatch("upload", value);
 		});
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: FileData | null;
-		upload: FileData;
+		change: {
+			text: string;
+			files: [string | FileData][];
+		};
+		upload: {
+			text: string;
+			files: [string | FileData][];
+		};
 	}>();
-	$: console.log("Index Value::: ", value);
+
+	$: value = !value ? { text: "", files: [] } : value;
 </script>
 
 <Block
@@ -86,13 +98,11 @@
 	{/if}
 
 	<MultimodalTextbox
-		bind:value
-		bind:value_is_output
+		{value}
 		{label}
 		{info}
 		{show_label}
 		{lines}
-		{type}
 		{rtl}
 		{text_align}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}

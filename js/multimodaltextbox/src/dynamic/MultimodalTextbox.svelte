@@ -1,12 +1,15 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check } from "@gradio/icons";
+	import { Copy, Check, Plus } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
+	import type { FileData } from "@gradio/upload";
 
-	export let value: string = "";
-	export let value_is_output: boolean = false;
+	export let value: {
+		text: string;
+		files: [string | FileData][];
+	} = { text: "", files: [] };
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
@@ -15,13 +18,13 @@
 	export let show_label: boolean = true;
 	export let container: boolean = true;
 	export let max_lines: number;
-	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button: boolean = false;
 	export let rtl = false;
 	export let autofocus: boolean = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let file_count: string;
 	export let file_types: string[] = [];
+	export let include_file_metadata = true;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -44,22 +47,24 @@
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	const dispatch = createEventDispatcher<{
-		change: string;
+		change: {
+			text: string;
+			files: [string | FileData];
+		};
 		submit: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
+		load: {
+			text: string;
+			files: [string | FileData];
+		};
 	}>();
 
 	function handle_change() {
 		dispatch("change", value);
-		if (!value_is_output) {
-			dispatch("input");
-		}
+		dispatch("input");
 	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 	$: value, handle_change();
 
 	function handle_blur() {
@@ -68,7 +73,7 @@
 
 	async function handle_copy() {
 		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(value);
+			await navigator.clipboard.writeText(value.text);
 			copy_feedback();
 		}
 	}
@@ -88,7 +93,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -138,19 +143,6 @@
 		target.style.height = `${scroll_height}px`;
 	}
 
-	function text_area_resize(el: HTMLTextAreaElement, value: string) {
-		if (lines === max_lines) return;
-		el.style.overflowY = "scroll";
-		el.addEventListener("input", resize);
-
-		if (!value.trim()) return;
-		resize({ target: el });
-
-		return {
-			destroy: () => el.removeEventListener("input", resize)
-		};
-	}
-
 	const openFileUpload = () => {
 		hidden_upload.click();
 	};
@@ -160,33 +152,25 @@
 		if (!files.length) {
 			return;
 		}
-		if (file_count === "single") {
-			_files = [files[0]];
-		}
-		var all_file_data: (FileData | File)[] = [];
+
+		var all_file_data: FileData[] = [];
 		_files.forEach((f, i) => {
-			all_file_data[i] = include_file_metadata
-				? {
-						name: f.name,
-						size: f.size,
-						data: "",
-						blob: f
-				  }
-				: f;
+			all_file_data[i] = {
+				name: f.name,
+				size: f.size,
+				data: "",
+				blob: f,
+			};
 			if (
 				all_file_data.filter((x) => x !== undefined).length === files.length
 			) {
-				dispatch(
-					"load",
-					file_count == "single" ? all_file_data[0] : all_file_data
-				);
+				value.files = all_file_data;
+				dispatch("load", value);
 			}
-			console.log("all_file_data  ", all_file_data);
 		});
 	};
 
 	const loadFilesFromUpload = (e: Event) => {
-		console.log("hit loadFilesFromUpload");
 		const target = e.target as HTMLInputElement;
 		if (!target.files) {
 			return;
@@ -198,8 +182,6 @@
 		const target = e.target as HTMLInputElement;
 		if (target.value) target.value = "";
 	};
-
-	$: console.log("Value::: ", value);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -207,74 +189,15 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	{#if lines === 1 && max_lines === 1}
-		{#if type === "text"}
-			<form class="input-form">
-				<input
-					data-testid="textbox"
-					type="text"
-					class="scroll-hide"
-					dir={rtl ? "rtl" : "ltr"}
-					bind:value
-					bind:this={el}
-					{placeholder}
-					{disabled}
-					{autofocus}
-					on:keypress={handle_keypress}
-					on:blur={handle_blur}
-					on:select={handle_select}
-					style={text_align ? "text-align: " + text_align : ""}
-				/>
-				<button on:click={test}>+</button>
-			</form>
-		{:else if type === "password"}
-			<input
-				data-testid="password"
-				type="password"
-				class="scroll-hide"
-				bind:value
-				bind:this={el}
-				{placeholder}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur={handle_blur}
-				on:select={handle_select}
-				autocomplete=""
-			/>
-		{:else if type === "email"}
-			<input
-				data-testid="textbox"
-				type="email"
-				class="scroll-hide"
-				bind:value
-				bind:this={el}
-				{placeholder}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur={handle_blur}
-				on:select={handle_select}
-				autocomplete="email"
-			/>
-		{/if}
-	{:else}
-		{#if show_label && show_copy_button}
-			{#if copied}
-				<button in:fade={{ duration: 300 }}><Check /></button>
-			{:else}
-				<button on:click={handle_copy} class="copy-text"><Copy /></button>
-			{/if}
-		{/if}
 		<form class="input-form">
-			<textarea
+			<input
 				data-testid="textbox"
-				use:text_area_resize={value}
+				type="text"
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				bind:value
+				bind:value={value["text"]}
 				bind:this={el}
 				{placeholder}
-				rows={lines}
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
@@ -282,22 +205,50 @@
 				on:select={handle_select}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-			<button on:click={openFileUpload}> + </button>
 		</form>
+	{:else}
+		{#if show_label && show_copy_button}
+			{#if copied}
+				<button class="copy-button" in:fade={{ duration: 300 }}
+					><Check /></button
+				>
+			{:else}
+				<button class="copy-button" on:click={handle_copy}><Copy /></button>
+			{/if}
+		{/if}
+		<input
+			class="hide"
+			accept={accept_file_types}
+			type="file"
+			bind:this={hidden_upload}
+			on:change={loadFilesFromUpload}
+			on:click={clearInputValue}
+			multiple={file_count === "multiple" || undefined}
+			webkitdirectory={file_count === "directory" || undefined}
+			mozdirectory={file_count === "directory" || undefined}
+			data-testid="{label}-upload-button"
+		/>
+		<div class="wrap">
+			<form class="input-form">
+				<textarea
+					data-testid="textbox"
+					class="scroll-hide"
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value={value["text"]}
+					bind:this={el}
+					{placeholder}
+					rows={lines}
+					{disabled}
+					{autofocus}
+					on:keypress={handle_keypress}
+					on:blur={handle_blur}
+					on:select={handle_select}
+					style={text_align ? "text-align: " + text_align : ""}
+				/>
+			</form>
+			<button class="upload-button" on:click={openFileUpload}><Plus /></button>
+		</div>
 	{/if}
-
-	<input
-		class="hide"
-		accept={accept_file_types}
-		type="file"
-		bind:this={hidden_upload}
-		on:change={loadFilesFromUpload}
-		on:click={clearInputValue}
-		multiple={file_count === "multiple" || undefined}
-		webkitdirectory={file_count === "directory" || undefined}
-		mozdirectory={file_count === "directory" || undefined}
-		data-testid="{label}-upload-button"
-	/>
 </label>
 
 <style>
@@ -306,15 +257,19 @@
 		width: 100%;
 	}
 
+	.input-form {
+		padding-right: var(--size-6);
+	}
+
 	input,
 	textarea {
-		display: block;
-		position: relative;
+		display: flex;
+		position: absolute;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 100%;
+		width: 90%;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
@@ -348,7 +303,7 @@
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
 	}
-	button {
+	.copy-button {
 		display: flex;
 		position: absolute;
 		top: var(--block-label-margin);
@@ -370,5 +325,21 @@
 	}
 	.hide {
 		display: none;
+		z-index: -50;
+	}
+	.wrap {
+		display: flex;
+		align-items: center;
+		height: 50px;
+	}
+
+	.upload-button {
+		display: flex;
+		position: absolute;
+		right: var(--block-label-margin);
+		width: 10%;
+		height: 22px;
+		overflow: hidden;
+		color: var(--block-label-color);
 	}
 </style>
