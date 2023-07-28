@@ -105,6 +105,7 @@ class TestTextbox:
             "root_url": None,
             "rtl": False,
             "text_align": None,
+            "autofocus": False,
         }
 
     @pytest.mark.asyncio
@@ -659,12 +660,15 @@ class TestImage:
         )
         assert image_input.get_config() == {
             "brush_radius": None,
+            "brush_color": "#000000",
+            "mask_opacity": 0.7,
             "image_mode": "RGB",
             "shape": None,
             "source": "upload",
             "tool": "editor",
             "name": "image",
             "show_share_button": False,
+            "show_download_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
@@ -836,6 +840,7 @@ class TestAudio:
             "autoplay": False,
             "source": "upload",
             "name": "audio",
+            "show_download_button": True,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -874,6 +879,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
+            "show_download_button": True,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,

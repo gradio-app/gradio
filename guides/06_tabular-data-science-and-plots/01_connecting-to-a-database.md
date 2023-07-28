@@ -1,6 +1,6 @@
 # Connecting to a Database
 
-Related spaces: https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard
+Related spaces: https://huggingface.co/spaces/gradio/chicago-bikeshare-dashboard
 Tags: TABULAR, PLOTS 
 
 ## Introduction
@@ -20,7 +20,7 @@ Our goal is to create a dashboard that will enable our business stakeholders to 
 
 At the end of this guide, we will have a functioning application that looks like this:
 
-<gradio-app space="gradio/chicago-bike-share-dashboard"> </gradio-app>
+<gradio-app space="gradio/chicago-bikeshare-dashboard"> </gradio-app>
 
 
 ## Step 1 - Creating your database
@@ -146,7 +146,7 @@ You will have to add the `DB_USER`, `DB_PASSWORD`, and `DB_HOST` variables as "R
 ## Conclusion
 Congratulations! You know how to connect your gradio app to a database hosted on the cloud! ☁️
 
-Our dashboard is now running on [Spaces](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard).
-The complete code is [here](https://huggingface.co/spaces/gradio/chicago-bike-share-dashboard/blob/main/app.py)
+Our dashboard is now running on [Spaces](https://huggingface.co/spaces/gradio/chicago-bikeshare-dashboard).
+The complete code is [here](https://huggingface.co/spaces/gradio/chicago-bikeshare-dashboard/blob/main/app.py)
  
 As you can see, gradio gives you the power to connect to your data wherever it lives and display however you want! 🔥
