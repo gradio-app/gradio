@@ -117,6 +117,14 @@
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	) {
+		console.log(
+			"RESIZE!!!: ",
+			event,
+			"lines: ",
+			lines,
+			"max_lines: ",
+			max_lines
+		);
 		await tick();
 		if (lines === max_lines || !container) return;
 
@@ -139,7 +147,6 @@
 		} else {
 			scroll_height = target.scrollHeight;
 		}
-
 		target.style.height = `${scroll_height}px`;
 	}
 
@@ -229,23 +236,21 @@
 			data-testid="{label}-upload-button"
 		/>
 		<div class="wrap">
-			<form class="input-form">
-				<textarea
-					data-testid="textbox"
-					class="scroll-hide"
-					dir={rtl ? "rtl" : "ltr"}
-					bind:value={value["text"]}
-					bind:this={el}
-					{placeholder}
-					rows={lines}
-					{disabled}
-					{autofocus}
-					on:keypress={handle_keypress}
-					on:blur={handle_blur}
-					on:select={handle_select}
-					style={text_align ? "text-align: " + text_align : ""}
-				/>
-			</form>
+			<textarea
+				data-testid="textbox"
+				class="scroll-hide"
+				dir={rtl ? "rtl" : "ltr"}
+				bind:value={value["text"]}
+				bind:this={el}
+				{placeholder}
+				rows={lines}
+				{disabled}
+				{autofocus}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+				on:select={handle_select}
+				style={text_align ? "text-align: " + text_align : ""}
+			/>
 			<button class="upload-button" on:click={openFileUpload}><Plus /></button>
 		</div>
 	{/if}
@@ -257,25 +262,6 @@
 		width: 100%;
 	}
 
-	.input-form {
-		padding-right: var(--size-6);
-	}
-
-	input,
-	textarea {
-		display: flex;
-		position: absolute;
-		outline: none !important;
-		box-shadow: var(--input-shadow);
-		background: var(--input-background-fill);
-		padding: var(--input-padding);
-		width: 90%;
-		color: var(--body-text-color);
-		font-weight: var(--input-text-weight);
-		font-size: var(--input-text-size);
-		line-height: var(--line-sm);
-		border: none;
-	}
 	label:not(.container),
 	label:not(.container) > input,
 	label:not(.container) > textarea {
@@ -325,12 +311,26 @@
 	}
 	.hide {
 		display: none;
-		z-index: -50;
 	}
 	.wrap {
 		display: flex;
 		align-items: center;
-		height: 50px;
+		height: auto;
+	}
+
+	textarea {
+		display: flex;
+		position: relative;
+		outline: none !important;
+		box-shadow: var(--input-shadow);
+		background: var(--input-background-fill);
+		padding: var(--input-padding);
+		width: 90%;
+		color: var(--body-text-color);
+		font-weight: var(--input-text-weight);
+		font-size: var(--input-text-size);
+		line-height: var(--line-sm);
+		border: none;
 	}
 
 	.upload-button {
