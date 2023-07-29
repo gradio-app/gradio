@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check, Plus } from "@gradio/icons";
+	import { Copy, Check, Plus, File } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
@@ -189,6 +189,11 @@
 		const target = e.target as HTMLInputElement;
 		if (target.value) target.value = "";
 	};
+
+	const clearFiles = (e: Event) => {
+		value.files = [];
+		e.preventDefault();
+	};
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -251,7 +256,16 @@
 				on:select={handle_select}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-			<button class="upload-button" on:click={openFileUpload}><Plus /></button>
+			{#if value.files.length > 0}
+				<button
+					class="upload-button"
+					on:click={clearFiles}
+					in:fade={{ duration: 300 }}><File /></button
+				>
+			{:else}
+				<button class="upload-button" on:click={openFileUpload}><Plus /></button
+				>
+			{/if}
 		</div>
 	{/if}
 </label>
@@ -325,7 +339,7 @@
 		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 90%;
+		width: 95%;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
@@ -337,7 +351,7 @@
 		display: flex;
 		position: absolute;
 		right: var(--block-label-margin);
-		width: 10%;
+		width: 5%;
 		height: 22px;
 		overflow: hidden;
 		color: var(--block-label-color);
