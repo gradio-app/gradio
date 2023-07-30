@@ -11,7 +11,7 @@ from gradio_client.serializing import SimpleSerializable
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
-    Blurrable,
+    Focusable,
     Changeable,
     EventListenerMethod,
     Inputable,
@@ -27,7 +27,7 @@ class Dropdown(
     Changeable,
     Inputable,
     Selectable,
-    Blurrable,
+    Focusable,
     IOComponent,
     SimpleSerializable,
 ):

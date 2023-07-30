@@ -15,7 +15,6 @@ from gradio.components.base import (
 )
 from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
-    Blurrable,
     Changeable,
     EventListenerMethod,
     Inputable,
@@ -35,7 +34,6 @@ class Textbox(
     Inputable,
     Selectable,
     Submittable,
-    Blurrable,
     Focusable,
     IOComponent,
     StringSerializable,

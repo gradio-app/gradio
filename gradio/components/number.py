@@ -11,11 +11,10 @@ from gradio_client.serializing import NumberSerializable
 
 from gradio.components.base import FormComponent, IOComponent, _Keywords
 from gradio.events import (
-    Blurrable,
+    Focusable,
     Changeable,
     Inputable,
     Submittable,
-    Focusable,
 )
 from gradio.exceptions import Error
 from gradio.interpretation import NeighborInterpretable
@@ -29,7 +28,6 @@ class Number(
     Changeable,
     Inputable,
     Submittable,
-    Blurrable,
     Focusable,
     IOComponent,
     NumberSerializable,
