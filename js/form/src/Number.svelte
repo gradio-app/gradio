@@ -46,7 +46,7 @@
 	}
 
 	function handle_focus(e: FocusEvent){
-		dispatch("focus")
+		dispatch("focus");
 	}
 </script>
 

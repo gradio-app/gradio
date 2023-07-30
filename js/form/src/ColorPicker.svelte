@@ -14,6 +14,7 @@
 		input: undefined;
 		submit: undefined;
 		blur: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change() {
@@ -22,6 +23,15 @@
 			dispatch("input");
 		}
 	}
+
+	function handle_blur(e: FocusEvent) {
+		dispatch("blur");
+	}
+
+	function handle_focus(e: FocusEvent){
+		dispatch("focus");
+	}
+
 	afterUpdate(() => {
 		value_is_output = false;
 	});
@@ -31,7 +41,7 @@
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	<input type="color" on:blur bind:value {disabled} />
+	<input type="color" bind:value on:focus={handle_focus} on:blur={handle_blur} {disabled} />
 </label>
 
 <style>
