@@ -72,8 +72,8 @@ ordered_events = [
     "Pause()",
     "Stream()",
     "Blur()",
-    "Upload()",
     "Focus()",
+    "Upload()",
 ]
 
 
