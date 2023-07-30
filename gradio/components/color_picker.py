@@ -9,8 +9,8 @@ from gradio_client.serializing import StringSerializable
 
 from gradio.components.base import IOComponent, _Keywords
 from gradio.events import (
-    Focusable,
     Changeable,
+    Focusable,
     Inputable,
     Submittable,
 )

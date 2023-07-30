@@ -17,10 +17,10 @@ from gradio.deprecation import warn_style_method_deprecation
 from gradio.events import (
     Changeable,
     EventListenerMethod,
+    Focusable,
     Inputable,
     Selectable,
     Submittable,
-    Focusable,
 )
 from gradio.interpretation import TokenInterpretable
 

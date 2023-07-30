@@ -294,7 +294,7 @@ class Focusable(EventListener):
         This listener is triggered when the component is focused (e.g. when the user clicks inside the textbox).
         This method can be used when this component is in a Gradio Blocks.
         """
-    
+
         self.blur = EventListenerMethod(self, "blur")
         """
         This listener is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). 
