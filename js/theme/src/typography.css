@@ -23,6 +23,7 @@
 	margin: var(--spacing-xxl) 0 var(--spacing-lg);
 	font-weight: var(--prose-header-text-weight);
 	line-height: 1.3;
+	color: var(--body-text-color);
 }
 
 .prose > *:first-child {

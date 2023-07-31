@@ -6,19 +6,19 @@
 	import type { SelectData } from "@gradio/utils";
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | Array<string> | undefined;
+	export let value: string | string[] | undefined;
 	let old_value = Array.isArray(value) ? value.slice() : value;
-	export let value_is_output: boolean = false;
-	export let multiselect: boolean = false;
+	export let value_is_output = false;
+	export let multiselect = false;
 	export let max_choices: number;
-	export let choices: Array<string>;
-	export let disabled: boolean = false;
+	export let choices: string[];
+	export let disabled = false;
 	export let show_label: boolean;
-	export let container: boolean = true;
-	export let allow_custom_value: boolean = false;
+	export let container = true;
+	export let allow_custom_value = false;
 
 	const dispatch = createEventDispatcher<{
-		change: string | Array<string> | undefined;
+		change: string | string[] | undefined;
 		input: undefined;
 		select: SelectData;
 		blur: undefined;
@@ -41,7 +41,7 @@
 		activeOption = filtered.length ? filtered[0] : null;
 	}
 
-	function handle_change() {
+	function handle_change(): void {
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");
@@ -57,8 +57,8 @@
 		}
 	}
 
-	function add(option: string) {
-		value = value as Array<string>;
+	function add(option: string): void {
+		value = value as string[];
 		if (!max_choices || value.length < max_choices) {
 			value.push(option);
 			dispatch("select", {
@@ -70,8 +70,8 @@
 		value = value;
 	}
 
-	function remove(option: string) {
-		value = value as Array<string>;
+	function remove(option: string): void {
+		value = value as string[];
 		value = value.filter((v: string) => v !== option);
 		dispatch("select", {
 			index: choices.indexOf(option),
@@ -80,13 +80,13 @@
 		});
 	}
 
-	function remove_all(e: any) {
+	function remove_all(e: any): void {
 		value = [];
 		inputValue = "";
 		e.preventDefault();
 	}
 
-	function handleOptionMousedown(e: any) {
+	function handleOptionMousedown(e: any): void {
 		const option = e.detail.target.dataset.value;
 		if (allow_custom_value) {
 			inputValue = option;
@@ -109,8 +109,16 @@
 					value: option,
 					selected: true
 				});
-				return;
 			}
+		}
+	}
+
+	function handleFocus(): void {
+		showOptions = !showOptions;
+		if (showOptions) {
+			filtered = choices;
+		} else {							
+			filterInput.blur();
 		}
 	}
 
@@ -200,14 +208,7 @@
 					autocomplete="off"
 					bind:value={inputValue}
 					bind:this={filterInput}
-					on:focus={() => {
-						showOptions = !showOptions;
-						if (showOptions) {
-							inputValue = "";
-						} else {
-							filterInput.blur();
-						}
-					}}
+					on:focus={handleFocus}
 					on:keydown={handleKeydown}
 					on:keyup={() => {
 						if (allow_custom_value) {

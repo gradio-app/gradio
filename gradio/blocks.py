@@ -110,6 +110,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
         self.parent: BlockContext | None = None
+        self.is_rendered: bool = False
 
         if render:
             self.render()
@@ -127,6 +128,7 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
+            self.is_rendered = True
             if isinstance(self, components.IOComponent):
                 Context.root_block.temp_file_sets.append(self.temp_files)
         return self
@@ -144,6 +146,7 @@ class Block:
         if Context.root_block is not None:
             try:
                 del Context.root_block.blocks[self._id]
+                self.is_rendered = False
             except KeyError:
                 pass
         return self
