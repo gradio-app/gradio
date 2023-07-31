@@ -33,7 +33,7 @@
 	});
 	$: value, handle_change();
 
-	async function handle_keypress(e: KeyboardEvent): void {
+	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
 		if (e.key === "Enter") {
 			e.preventDefault();
