@@ -7,12 +7,12 @@
 
 <Template let:args>
 	<HighlightedText
-		{...args}
 		value={[
 			["zebras", "+"],
 			["dogs", "-"],
 			["elephants", "+"],
 		]}
+		{...args}
 	/>
 </Template>
 
@@ -20,8 +20,10 @@
 <Story name="Highlighted Text with legend" args={{ show_legend: true }} />
 <Story name="Highlighted Text with label" args={{ label: "animals" }} />
 <Story
-	name="Highlighted Text with new line"
-	value={[["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]]}
+	name="Highlighted Text with new lines"
+	args={{
+		value: [["zebras", "+"], ["\n"], ["dogs", "-"], ["\n"], ["elephants", "+"]],
+	}}
 />
 <Story
 	name="Highlighted Text with color map"
