@@ -6,10 +6,11 @@
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
-	import { Image } from "@gradio/icons";
+	import { Download, Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { format_gallery_for_sharing } from "./utils";
+	import { IconButton } from "@gradio/atoms";
 
 	export let show_label = true;
 	export let label: string;
@@ -25,6 +26,7 @@
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 	export let show_share_button = false;
+	export let show_download_button = false;
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -105,6 +107,19 @@
 		}
 	}
 
+	function isFileData(obj: any): obj is FileData {
+		return typeof obj === "object" && obj !== null && "data" in obj;
+	}
+
+	function getHrefValue(selected: any): string {
+		if (isFileData(selected)) {
+			return selected.data;
+		} else if (typeof selected === "string") {
+			return selected;
+		}
+		return "";
+	}
+
 	$: {
 		if (selected_image !== old_selected_image) {
 			old_selected_image = selected_image;
@@ -163,8 +178,22 @@
 	{#if selected_image !== null && allow_preview}
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div on:keydown={on_keydown} class="preview">
-			<ModifyUpload on:clear={() => (selected_image = null)} />
+			<div class="icon-buttons">
+				{#if show_download_button}
+					<a
+						href={getHrefValue(value[selected_image])}
+						target={window.__is_colab__ ? "_blank" : null}
+						download="image"
+					>
+						<IconButton Icon={Download} label="Download" />
+					</a>
+				{/if}
 
+				<ModifyUpload
+					absolute={false}
+					on:clear={() => (selected_image = null)}
+				/>
+			</div>
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 			<img
@@ -398,5 +427,15 @@
 		top: 0px;
 		right: 0px;
 		z-index: var(--layer-1);
+	}
+
+	.icon-buttons {
+		display: flex;
+		position: absolute;
+		right: 0;
+	}
+
+	.icon-buttons a {
+		margin: var(--size-1) 0;
 	}
 </style>
