@@ -266,6 +266,7 @@ class TestNumber:
             "value": 42,
             "name": "number",
             "show_label": True,
+            "step": None,
             "label": None,
             "minimum": None,
             "maximum": None,
