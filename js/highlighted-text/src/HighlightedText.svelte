@@ -5,17 +5,37 @@
 	import type { SelectData } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 
-	export let value: Array<[string, string | number]> = [];
-	export let show_legend: boolean = false;
+	export let value: [string, string | number][] = [];
+	export let show_legend = false;
 	export let color_map: Record<string, string> = {};
-	export let selectable: boolean = false;
+	export let selectable = false;
 
 	let ctx: CanvasRenderingContext2D;
 
 	let _color_map: Record<string, { primary: string; secondary: string }> = {};
 	let active = "";
 
-	function name_to_rgba(name: string, a: number) {
+	function splitTextByNewline(text: string): string[] {
+		return text.split("\n");
+	}
+
+	function correct_color_map(): void {
+		for (const col in color_map) {
+			const _c = color_map[col].trim();
+			if (_c in colors) {
+				_color_map[col] = colors[_c as keyof typeof colors];
+			} else {
+				_color_map[col] = {
+					primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
+					secondary: browser
+						? name_to_rgba(color_map[col], 0.5)
+						: color_map[col],
+				};
+			}
+		}
+	}
+
+	function name_to_rgba(name: string, a: number): string {
 		if (!ctx) {
 			var canvas = document.createElement("canvas");
 			ctx = canvas.getContext("2d")!;
@@ -52,29 +72,14 @@
 				}
 			}
 		}
-		function correct_color_map() {
-			for (const col in color_map) {
-				const _c = color_map[col].trim();
-				if (_c in colors) {
-					_color_map[col] = colors[_c as keyof typeof colors];
-				} else {
-					_color_map[col] = {
-						primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
-						secondary: browser
-							? name_to_rgba(color_map[col], 0.5)
-							: color_map[col]
-					};
-				}
-			}
-		}
 
 		correct_color_map();
 	}
 
-	function handle_mouseover(label: string) {
+	function handle_mouseover(label: string): void {
 		active = label;
 	}
-	function handle_mouseout() {
+	function handle_mouseout(): void {
 		active = "";
 	}
 </script>
@@ -114,37 +119,46 @@
 		{/if}
 		<div class="textfield">
 			{#each value as [text, category], i}
-				<span
-					class="textspan"
-					style:background-color={category === null ||
-					(active && active !== category)
-						? ""
-						: _color_map[category].secondary}
-					class:no-cat={category === null || (active && active !== category)}
-					class:hl={category !== null}
-					class:selectable
-					on:click={() => {
-						dispatch("select", {
-							index: i,
-							value: [text, category]
-						});
-					}}
-				>
-					<span class:no-label={!_color_map[category]} class="text">{text}</span
-					>
-					{#if !show_legend && category !== null}
-						&nbsp;
+				{#each splitTextByNewline(text) as line, j}
+					{#if line.trim() !== ""}
 						<span
-							class="label"
+							class="textspan"
 							style:background-color={category === null ||
 							(active && active !== category)
 								? ""
-								: _color_map[category].primary}
+								: _color_map[category].secondary}
+							class:no-cat={category === null ||
+								(active && active !== category)}
+							class:hl={category !== null}
+							class:selectable
+							on:click={() => {
+								dispatch("select", {
+									index: i,
+									value: [text, category],
+								});
+							}}
 						>
-							{category}
+							<span class:no-label={!_color_map[category]} class="text"
+								>{line}</span
+							>
+							{#if !show_legend && category !== null}
+								&nbsp;
+								<span
+									class="label"
+									style:background-color={category === null ||
+									(active && active !== category)
+										? ""
+										: _color_map[category].primary}
+								>
+									{category}
+								</span>
+							{/if}
 						</span>
 					{/if}
-				</span>
+					{#if j < splitTextByNewline(text).length - 1}
+						<br />
+					{/if}
+				{/each}
 			{/each}
 		</div>
 	{:else}
