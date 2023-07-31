@@ -216,6 +216,7 @@ class TestNumber:
             "value": None,
             "name": "number",
             "show_label": True,
+            "step": None,
             "label": None,
             "minimum": None,
             "maximum": None,
