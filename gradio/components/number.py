@@ -60,7 +60,7 @@ class Number(
         precision: int | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
-        step: float | None = None,
+        step: float = 1,
         **kwargs,
     ):
         """
@@ -80,7 +80,7 @@ class Number(
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
-            step: The interval between numbers in the input field. If None, a default of 1 is set.
+            step: The interval between allowed numbers in the component. Can be used along with optional parameters `minimum` and `maximum` to create a range of legal values starting from `minimum` and incrementing according to this parameter.
         """
         self.precision = precision
         self.minimum = minimum
@@ -140,6 +140,7 @@ class Number(
         value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         minimum: float | None = None,
         maximum: float | None = None,
+        step: float = 1,
         label: str | None = None,
         info: str | None = None,
         show_label: bool | None = None,
@@ -160,6 +161,7 @@ class Number(
             "value": value,
             "minimum": minimum,
             "maximum": maximum,
+            "step": step,
             "interactive": interactive,
             "__type__": "update",
         }
