@@ -196,3 +196,16 @@
 		],
 	}}
 />
+
+<Story
+	name="Gallery with download button"
+	args={{
+		label: "My Cheetah Gallery",
+		grid_rows: 2,
+		height: 400,
+		show_download_button: true,
+		value: [
+			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+		],
+	}}
+/>
