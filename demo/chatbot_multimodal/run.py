@@ -30,10 +30,11 @@ with gr.Blocks() as demo:
 
     with gr.Row():
         txt = gr.MultimodalTextbox(show_label=False, placeholder="Enter text and press enter, or upload an image")
-
+        btn = gr.UploadButton()
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
     )
+    btn.upload(add_file, [chatbot, btn], [chatbot], queue=False)
     txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
 
 demo.queue()
