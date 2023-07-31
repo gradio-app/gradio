@@ -4,7 +4,11 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
-import importlib.resources
+import sys
+if sys.version_info >= (3, 9):
+    from importlib.resources import files
+else:
+    from importlib_resources import files
 import inspect
 import json
 import mimetypes
@@ -52,10 +56,10 @@ from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = importlib.resources.files("gradio") / "templates"
-STATIC_PATH_LIB = importlib.resources.files("gradio") / "templates.frontend.static"
-BUILD_PATH_LIB = importlib.resources.files("gradio") / "templates.frontend.assets"
-VERSION_FILE = importlib.resources.files("gradio") / "version.txt"
+STATIC_TEMPLATE_LIB = files("gradio") / "templates"
+STATIC_PATH_LIB = files("gradio") / "templates.frontend.static"
+BUILD_PATH_LIB = files("gradio") / "templates.frontend.assets"
+VERSION_FILE = files("gradio") / "version.txt"
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 
