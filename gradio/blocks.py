@@ -721,8 +721,11 @@ class Blocks(BlockContext):
             else analytics.analytics_enabled()
         )
         if self.analytics_enabled:
-            t = threading.Thread(target=analytics.version_check)
-            t.start()
+            if wasm_utils.IS_WASM:
+                analytics.version_check()
+            else:
+                t = threading.Thread(target=analytics.version_check)
+                t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         super().__init__(render=False, **kwargs)
@@ -761,7 +764,7 @@ class Blocks(BlockContext):
         self.root_path = ""
         self.root_urls = set()
 
-        if not wasm_utils.IS_WASM and self.analytics_enabled:
+        if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
                 for built_in_theme in BUILT_IN_THEMES.values()
