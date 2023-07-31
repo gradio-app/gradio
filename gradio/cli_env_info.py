@@ -2,7 +2,7 @@
 for the cli command 'gradio environment'
 """
 import platform
-from importlib.metadata import PackageNotFoundError, distribution, version
+from importlib import metadata
 
 
 def print_environment_info():
@@ -12,16 +12,16 @@ def print_environment_info():
 
     for package_name in ["gradio", "gradio_client"]:
         try:
-            package_version = version(package_name)
+            package_version = metadata.version(package_name)
             print(f"{package_name} version: ", package_version)
 
             print(f"\n{package_name} Dependencies:")
-            dist = distribution(package_name)
+            dist = metadata.distribution(package_name)
             for req in dist.requires:
                 try:
-                    print(f"  {req}: {version(req)}")
-                except PackageNotFoundError:
+                    print(f"  {req}: {metadata.version(req)}")
+                except metadata.PackageNotFoundError:
                     print(f"{req} is not installed.")
             print("\n")
-        except PackageNotFoundError:
+        except metadata.PackageNotFoundError:
             print(f"{package_name} package is not installed.")

@@ -8,8 +8,6 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from distutils.version import StrictVersion
-from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -242,16 +240,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flagging_dir (str): local directory where the dataset is cloned,
         updated, and pushed from.
         """
-        hh_version = version("huggingface_hub")
-        try:
-            if StrictVersion(hh_version) < StrictVersion("0.12.0"):
-                raise ImportError(
-                    "The `huggingface_hub` package must be version 0.12.0 or higher"
-                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
-                )
-        except ValueError:
-            pass
-
         # Setup dataset on the Hub
         self.dataset_id = huggingface_hub.create_repo(
             repo_id=self.dataset_id,
