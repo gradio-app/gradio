@@ -200,8 +200,18 @@ class MultimodalTextbox(
             "__type__": "update",
         }
 
-    def preprocess(self, x: dict[str, str | list[dict[str, Any]]] | None) -> (
-        dict[str, str | bytes | tempfile._TemporaryFileWrapper | list[bytes | tempfile._TemporaryFileWrapper] | None] | None
+    def preprocess(
+        self, x: dict[str, str | list[dict[str, Any]]] | None
+    ) -> (
+        dict[
+            str,
+            str
+            | bytes
+            | tempfile._TemporaryFileWrapper
+            | list[bytes | tempfile._TemporaryFileWrapper]
+            | None,
+        ]
+        | None
     ):
         """
         Preprocesses input (converts it to a string) before passing it to the function.
@@ -246,9 +256,12 @@ class MultimodalTextbox(
                     + str(self.type)
                     + ". Please choose from: 'file', 'bytes'."
                 )
+
         if not x["files"] or x["files"] is None and x:
             value = {"text": x["text"], "files": None}
         else:
-            value = {"text": x["text"], "files": [process_single_file(f) for f in x["files"]]}
+            value = {
+                "text": x["text"],
+                "files": [process_single_file(f) for f in x["files"]],
+            }
         return value
-
