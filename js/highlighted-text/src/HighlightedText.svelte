@@ -264,6 +264,7 @@
 
 	.text {
 		color: black;
+		white-space: pre-wrap;
 	}
 
 	.score-text .text {
