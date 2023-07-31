@@ -1,7 +1,7 @@
 ---
-"@gradio/app": patch
-"@gradio/highlighted-text": patch
-"gradio": patch
+"@gradio/app": minor
+"@gradio/highlighted-text": minor
+"gradio": minor
 ---
 
-fix:Allow new lines in `HighlightedText` with `/n` and preserve whitespace
+feat:Allow new lines in `HighlightedText` with `/n` and preserve whitespace
