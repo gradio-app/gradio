@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { fly } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
-	export let value: string | Array<string> | undefined = undefined;
-	export let filtered: Array<string>;
-	export let showOptions: boolean = false;
+	export let value: string | string[] | undefined = undefined;
+	export let filtered: string[];
+	export let showOptions = false;
 	export let activeOption: string | null;
-	export let disabled: boolean = false;
+	export let disabled = false;
 
 	let distance_from_top: number;
 	let distance_from_bottom: number;
@@ -16,7 +16,7 @@
 	let top: string | null, bottom: string | null, max_height: number;
 	let innerHeight: number;
 
-	const calculate_window_distance = () => {
+	const calculate_window_distance = (): void => {
 		const { top: ref_top, bottom: ref_bottom } =
 			refElement.getBoundingClientRect();
 		distance_from_top = ref_top;
@@ -24,7 +24,7 @@
 	};
 
 	let scroll_timeout: NodeJS.Timeout | null = null;
-	const scroll_listener = () => {
+	const scroll_listener = (): void => {
 		if (!showOptions) return;
 		if (scroll_timeout !== null) {
 			clearTimeout(scroll_timeout);
@@ -39,11 +39,12 @@
 	$: {
 		if (showOptions && refElement) {
 			if (listElement && typeof value === "string") {
-				let el = document.querySelector(
-					`li[data-value="${value}"]`
-				) as HTMLLIElement;
-				if (el) {
-					listElement.scrollTo(0, el.offsetTop);
+				let elements = listElement.querySelectorAll('li');
+				for (const element of elements) {
+					if (element.getAttribute('data-value') === value) {
+						listElement.scrollTo(0, (element as HTMLLIElement).offsetTop);
+						break;
+					}
 				}
 			}
 			calculate_window_distance();
