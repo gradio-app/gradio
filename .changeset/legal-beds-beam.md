@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Allow new lines in highlighted text with `/n`
+fix:Allow new lines in highlighted text with `/n` and preserve whitespace
