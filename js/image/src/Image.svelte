@@ -28,6 +28,8 @@
 	export let pending: boolean = false;
 	export let mirror_webcam: boolean;
 	export let brush_radius: number;
+	export let brush_color = "#000000";
+	export let mask_opacity;
 	export let selectable: boolean = false;
 
 	let sketch: Sketch;
@@ -139,9 +141,6 @@
 			mode = "editor";
 		}
 	}
-
-	$: brush_color = mode == "mask" ? "#000000" : "#000";
-
 	let value_img;
 	let max_height;
 	let max_width;
@@ -238,6 +237,7 @@
 						bind:this={sketch}
 						bind:brush_radius
 						bind:brush_color
+						{mask_opacity}
 						on:change={handle_save}
 						{mode}
 						width={img_width || max_width}

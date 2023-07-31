@@ -6,18 +6,18 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let value: Array<[string, string | number]>;
-	let old_value: Array<[string, string | number]>;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: [string, string | number][];
+	let old_value: [string, string | number][];
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
-	export let label: string = "Highlighted Text";
-	export let container: boolean = true;
+	export let label = "Highlighted Text";
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let selectable: boolean = false;
+	export let selectable = false;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;

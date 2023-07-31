@@ -8,7 +8,7 @@ DIR = os.path.dirname(__file__)
 GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides"))
 GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets")
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
-
+CN_GUIDES_DIR = os.path.abspath(os.path.join(DIR, "../../../../../guides/cn"))
 
 UNDERSCORE_TOKEN = "!UNDERSCORE!"
 
@@ -37,6 +37,7 @@ def format_name(guide_name):
 guide_folders = sorted(os.listdir(GUIDES_DIR))
 guide_folders.remove("CONTRIBUTING.md")
 guide_folders.remove("assets")
+guide_folders.remove("cn")
 
 guides = []
 guides_by_category = []
@@ -58,11 +59,13 @@ for guide_folder in guide_folders:
         metadata_labels = []
 
         def get_labeled_metadata(label, is_list=True):
+            global guide_content
             metadata_labels.append(label)
             full_label = label + " "
             metadata = [] if is_list else None
             if full_label in guide_content:
                 metadata = guide_content.split(full_label)[1].split("\n")[0]
+                guide_content = guide_content.replace(full_label + metadata, "")
                 if is_list:
                     metadata = metadata.split(", ")
             return metadata

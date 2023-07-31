@@ -1,4 +1,4 @@
-## Using Gradio for Tabular Data Science Workflows
+# Using Gradio for Tabular Data Science Workflows
 
 Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integration, https://huggingface.co/spaces/scikit-learn/tabular-playground, https://huggingface.co/spaces/merve/gradio-analysis-dashboard
 
@@ -7,7 +7,7 @@ Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integrat
 
 Tabular data science is the most widely used domain of machine learning, with problems ranging from customer segmentation to churn prediction. Throughout various stages of the tabular data science workflow, communicating your work to stakeholders or clients can be cumbersome; which prevents data scientists from focusing on what matters, such as data analysis and model building. Data scientists can end up spending hours building a dashboard that takes in dataframe and returning plots, or returning a prediction or plot of clusters in a dataset. In this guide, we'll go through how to use `gradio` to improve your data science workflows. We will also talk about how to use `gradio` and [skops](https://skops.readthedocs.io/en/stable/) to build interfaces with only one line of code!
 
-### Prerequisites
+### Prerequisites
 
 Make sure you have the `gradio` Python package already [installed](/getting_started).
 
