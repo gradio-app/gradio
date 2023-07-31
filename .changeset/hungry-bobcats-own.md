@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Fix the analytics module to use asyncio to work in the Wasm env
+feat:Lite: Fix the analytics module to use asyncio to work in the Wasm env
