@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check, Plus, File } from "@gradio/icons";
+	import { Copy, Check, Plus, RemoveFile } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
@@ -28,6 +28,7 @@
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
+	let hover = false;
 	let timer: NodeJS.Timeout;
 	let hidden_upload: HTMLInputElement;
 	let accept_file_types: string | null;
@@ -117,14 +118,6 @@
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	) {
-		console.log(
-			"RESIZE!!!: ",
-			event,
-			"lines: ",
-			lines,
-			"max_lines: ",
-			max_lines
-		);
 		await tick();
 		if (lines === max_lines || !container) return;
 
@@ -260,7 +253,9 @@
 				<button
 					class="upload-button"
 					on:click={clearFiles}
-					in:fade={{ duration: 300 }}><File /></button
+					in:fade={{ duration: 300 }}
+				>
+					<RemoveFile /></button
 				>
 			{:else}
 				<button class="upload-button" on:click={openFileUpload}><Plus /></button
@@ -352,7 +347,7 @@
 		position: absolute;
 		right: var(--block-label-margin);
 		width: 5%;
-		height: 22px;
+		height: var(--size-6);
 		overflow: hidden;
 		color: var(--block-label-color);
 	}
