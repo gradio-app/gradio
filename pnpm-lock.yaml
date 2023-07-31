@@ -384,6 +384,9 @@ importers:
       '@gradio/label':
         specifier: workspace:^0.0.2
         version: link:../label
+      '@gradio/markdown':
+        specifier: workspace:^0.0.1
+        version: link:../markdown
       '@gradio/model3D':
         specifier: workspace:^0.0.2
         version: link:../model3D
