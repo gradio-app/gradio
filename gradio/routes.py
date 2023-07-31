@@ -247,7 +247,10 @@ class App(FastAPI):
         # OAuth Routes
         ###############
 
-        attach_oauth(app)
+        # Define OAuth routes if the app expects it (i.e. a LoginButton is defined).
+        # It allows users to "Sign in with HuggingFace".
+        if app.blocks is not None and app.blocks.expects_oauth:
+            attach_oauth(app)
 
         ###############
         # Main Routes

@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import os
+import typing
 
 import fastapi
 from authlib.integrations.starlette_client import OAuth
@@ -13,15 +16,16 @@ OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
 
 
 def attach_oauth(app: fastapi.FastAPI):
-    # TODO: adding oauth routes to the app must be optional (use a parameter demo.launch(auth=True) ?)
-    for value in (
-        OAUTH_CLIENT_ID,
-        OAUTH_CLIENT_SECRET,
-        OAUTH_SCOPES,
-        OPENID_PROVIDER_URL,
-    ):
+    for key, value in {
+        "OAUTH_CLIENT_ID": OAUTH_CLIENT_ID,
+        "OAUTH_CLIENT_SECRET": OAUTH_CLIENT_SECRET,
+        "OAUTH_SCOPES": OAUTH_SCOPES,
+        "OPENID_PROVIDER_URL": OPENID_PROVIDER_URL,
+    }.items():
         if value is None:
-            raise ValueError("Missing environment variable")
+            raise ValueError(
+                f"OAuth is required but {key} environment variable is not set. Make sure you've enabled OAuth in your Space."
+            )
 
     oauth = OAuth()
     oauth.register(
@@ -60,3 +64,29 @@ def attach_oauth(app: fastapi.FastAPI):
         SessionMiddleware,
         secret_key=hashlib.sha256(OAUTH_CLIENT_SECRET.encode()).hexdigest(),
     )
+
+
+class OAuthProfile(typing.Dict):
+    """
+    A Gradio OAuthProfile object that can be used to inject the profile of a user in a
+    function. If a function expects `OAuthProfile` or `Optional[OAuthProfile]` as input,
+    the value will be injected from the FastAPI session if the user is logged in. If the
+    user is not logged in and the function expects `OAuthProfile`, an error will be
+    raised.
+
+    Example:
+        import gradio as gr
+        from typing import Optional
+
+
+        def hello(profile: Optional[gr.OAuthProfile]) -> str:
+            if profile is None:
+                return "I don't know you."
+            return f"Hello {profile.name}"
+
+
+        with gr.Blocks() as demo:
+            gr.LoginButton()
+            gr.LogoutButton()
+            gr.Markdown().attach_load_event(hello, None)
+    """

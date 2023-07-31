@@ -13,7 +13,7 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +22,7 @@ import PIL.Image
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import components, processing_utils, routes, utils
+from gradio import components, oauth, processing_utils, routes, utils
 from gradio.context import Context
 from gradio.flagging import CSVLogger
 
@@ -675,6 +675,22 @@ def special_args(
         elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
+        elif (
+            type_hint == Optional[oauth.OAuthProfile] or type_hint == oauth.OAuthProfile
+        ):
+            if inputs is not None:
+                # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
+                session = getattr(request, "session", {}) or getattr(
+                    request.request, "session", {}
+                )
+                oauth_profile = (
+                    session["oauth_profile"] if "oauth_profile" in session else None
+                )
+                if type_hint == oauth.OAuthProfile and oauth_profile is None:
+                    raise ValueError(
+                        "Function requires an OAuth profile, but user is not authenticated."
+                    )
+                inputs.insert(i, oauth_profile)
         elif (
             type_hint
             and inspect.isclass(type_hint)
