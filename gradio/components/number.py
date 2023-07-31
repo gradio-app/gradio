@@ -60,6 +60,7 @@ class Number(
         precision: int | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
+        step: float | None = None,
         **kwargs,
     ):
         """
@@ -79,10 +80,12 @@ class Number(
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and convert type to int. If None, no rounding happens.
             minimum: Minimum value. Only applied when component is used as an input. If a user provides a smaller value, a gr.Error exception is raised by the backend.
             maximum: Maximum value. Only applied when component is used as an input. If a user provides a larger value, a gr.Error exception is raised by the backend.
+            step: The interval between numbers in the input field. If None, a default of 1 is set.
         """
         self.precision = precision
         self.minimum = minimum
         self.maximum = maximum
+        self.step = step
 
         IOComponent.__init__(
             self,
@@ -127,6 +130,7 @@ class Number(
             "value": self.value,
             "minimum": self.minimum,
             "maximum": self.maximum,
+            "step": self.step,
             "container": self.container,
             **IOComponent.get_config(self),
         }
