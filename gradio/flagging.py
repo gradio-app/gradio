@@ -14,7 +14,8 @@ from typing import TYPE_CHECKING, Any
 
 import filelock
 import huggingface_hub
-import pkg_resources
+import importlib.resources as pkg_resources
+from importlib.metadata import version
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -242,7 +243,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flagging_dir (str): local directory where the dataset is cloned,
         updated, and pushed from.
         """
-        hh_version = pkg_resources.get_distribution("huggingface_hub").version
+        hh_version = version("huggingface_hub")
         try:
             if StrictVersion(hh_version) < StrictVersion("0.12.0"):
                 raise ImportError(

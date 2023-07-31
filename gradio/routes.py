@@ -23,7 +23,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-import pkg_resources
+import importlib.resources as pkg_resources
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
@@ -52,10 +52,10 @@ from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
-BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/assets")
-VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
+STATIC_TEMPLATE_LIB = pkg_resources.path("gradio", "templates")
+STATIC_PATH_LIB = pkg_resources.path("gradio", "templates.frontend.static")
+BUILD_PATH_LIB = pkg_resources.path("gradio", "templates.frontend.assets")
+VERSION_FILE = pkg_resources.path("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 
