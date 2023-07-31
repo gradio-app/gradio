@@ -52,10 +52,10 @@ from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = importlib.resources.path("gradio", "templates")
-STATIC_PATH_LIB = importlib.resources.path("gradio", "templates.frontend.static")
-BUILD_PATH_LIB = importlib.resources.path("gradio", "templates.frontend.assets")
-VERSION_FILE = importlib.resources.path("gradio", "version.txt")
+STATIC_TEMPLATE_LIB = importlib.resources.files("gradio") / "templates"
+STATIC_PATH_LIB = importlib.resources.files("gradio") / "templates.frontend.static"
+BUILD_PATH_LIB = importlib.resources.files("gradio") / "templates.frontend.assets"
+VERSION_FILE = importlib.resources.files("gradio") / "version.txt"
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 
