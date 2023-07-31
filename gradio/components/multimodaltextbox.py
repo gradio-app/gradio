@@ -246,29 +246,9 @@ class MultimodalTextbox(
                     + str(self.type)
                     + ". Please choose from: 'file', 'bytes'."
                 )
-        if not x["files"] or x["files"] is None:
+        if not x["files"] or x["files"] is None and x:
             value = {"text": x["text"], "files": None}
         else:
             value = {"text": x["text"], "files": [process_single_file(f) for f in x["files"]]}
         return value
 
-        # if self.file_count == "single":
-        #     if isinstance(x, list):
-        #         return process_single_file(x[0])
-        #     else:
-        #         return process_single_file(x)
-        # else:
-        #     if isinstance(x, list):
-        #         return [process_single_file(f) for f in x]
-        #     else:
-        #         return process_single_file(x)
-
-    def postprocess(self, y: str | None) -> str | None:
-        """
-        Postproccess the function output y by converting it to a str before passing it to the frontend.
-        Parameters:
-            y: function output to postprocess.
-        Returns:
-            text
-        """
-        return None if y is None else str(y)

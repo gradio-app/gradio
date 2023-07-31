@@ -7,9 +7,9 @@
 	import type { FileData } from "@gradio/upload";
 
 	export let value: {
-		text: string;
+		text: string | null;
 		files: [string | FileData][];
-	} = { text: "", files: [] };
+	} = { text: null, files: [] };
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
@@ -49,7 +49,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: {
-			text: string;
+			text: string | null;
 			files: [string | FileData];
 		};
 		submit: undefined;
@@ -57,7 +57,7 @@
 		select: SelectData;
 		input: undefined;
 		load: {
-			text: string;
+			text: string | null;
 			files: [string | FileData];
 		};
 	}>();

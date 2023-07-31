@@ -14,9 +14,9 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let value: {
-		text: string;
+		text: string | null;
 		files: [string | FileData][];
-	} = { text: "", files: [] };
+	} = { text: null, files: [] };
 	export let lines: number;
 	export let placeholder: string = "";
 	export let show_label: boolean;
@@ -41,7 +41,7 @@
 	async function handle_upload({
 		detail,
 	}: CustomEvent<{
-		text: string;
+		text: string | null;
 		files: [string | FileData];
 	}>) {
 		value = detail;
@@ -74,16 +74,16 @@
 
 	const dispatch = createEventDispatcher<{
 		change: {
-			text: string;
+			text: string | null;
 			files: [string | FileData][];
 		};
 		upload: {
-			text: string;
+			text: string | null;
 			files: [string | FileData][];
 		};
 	}>();
 
-	$: value = !value ? { text: "", files: [] } : value;
+	$: value = !value ? { text: null, files: [] } : value;
 </script>
 
 <Block
