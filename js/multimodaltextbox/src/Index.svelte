@@ -56,17 +56,19 @@
 					}
 				);
 			} else {
-				(Array.isArray(detail) ? detail : [detail]).forEach((file_data, i) => {
-					if (response.files) {
-						file_data.orig_name = file_data.name;
-						file_data.name = response.files[i];
-						file_data.is_file = true;
-						file_data.blob = undefined;
+				(Array.isArray(detail.files) ? detail.files : [detail.files]).forEach(
+					(file_data, i) => {
+						if (response.files) {
+							file_data.orig_name = file_data.name;
+							file_data.name = response.files[i];
+							file_data.is_file = true;
+							file_data.blob = undefined;
+						}
 					}
-				});
+				);
 			}
-			dispatch("change", value);
-			dispatch("upload", value);
+			dispatch("change", value.files);
+			dispatch("upload", detail.files);
 		});
 	}
 
