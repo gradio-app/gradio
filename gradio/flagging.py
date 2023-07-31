@@ -9,13 +9,12 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from distutils.version import StrictVersion
+from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import filelock
 import huggingface_hub
-import importlib.resources as pkg_resources
-from importlib.metadata import version
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 

@@ -2,8 +2,8 @@
 for the cli command 'gradio environment'
 """
 import platform
+from importlib.metadata import PackageNotFoundError, distribution, version
 
-from importlib.metadata import version, distribution, PackageNotFoundError
 
 def print_environment_info():
     print("Gradio Environment Information:")

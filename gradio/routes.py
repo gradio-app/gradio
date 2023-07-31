@@ -4,6 +4,7 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import importlib.resources as pkg_resources
 import inspect
 import json
 import mimetypes
@@ -23,7 +24,6 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-import importlib.resources as pkg_resources
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
