@@ -57,9 +57,9 @@ from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()
-STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()
-BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()
+STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
+STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
+BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
 VERSION = files("gradio").joinpath("version.txt").read_text()
 
 
@@ -292,7 +292,7 @@ class App(FastAPI):
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
             config = app.get_blocks().config
-            return gradio.blocks.get_api_info(config, serialize)
+            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
