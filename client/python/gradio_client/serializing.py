@@ -38,13 +38,13 @@ class Serializable:
     # For backwards compatibility
     def input_api_info(self) -> tuple[str, str]:
         api_info = self.api_info()
-        types = api_info.get("serialized_input", [api_info["info"]["type"]]*2)
+        types = api_info.get("serialized_input", [api_info["info"]["type"]] * 2)  # type: ignore
         return (types[0], types[1])
 
     # For backwards compatibility
     def output_api_info(self) -> tuple[str, str]:
         api_info = self.api_info()
-        types = api_info.get("serialized_output", [api_info["info"]["type"]]*2)
+        types = api_info.get("serialized_output", [api_info["info"]["type"]] * 2)  # type: ignore
         return (types[0], types[1])
 
     def serialize(self, x: Any, load_dir: str | Path = ""):
