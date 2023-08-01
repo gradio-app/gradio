@@ -55,6 +55,7 @@ class LoginButton(Button):
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
         self.click(fn=None, inputs=[self], outputs=None, _js=_js_open_if_not_logged_in)
 
+        # Attach load_event to check user login status when rendering
         self.attach_load_event(self._check_login_status, None)
 
     def _check_login_status(self, request: Request) -> dict[str, Any]:
@@ -69,10 +70,17 @@ class LoginButton(Button):
             return self.update(f"Signed in as {username}", interactive=False)
 
 
+# JS code to redirects to /login/huggingface if user is not logged in.
+# If the app is opened in an iframe, open the login page in a new tab.
+# Otherwise, redirects locally. Taken from https://stackoverflow.com/a/61596084.
 _js_open_if_not_logged_in = """
 (buttonValue) => {
     if (!buttonValue.includes("Signed in")) {
-        window.open('/login/huggingface', '_blank');
+        if ( window !== window.parent ) {
+            window.open('/login/huggingface', '_blank');
+        } else {
+            window.location.assign('/login/huggingface');
+        }
     }
 }
 """
