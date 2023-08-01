@@ -18,6 +18,7 @@
 		submit: undefined;
 		blur: undefined;
 		input: undefined;
+		focus: undefined;
 	}>();
 
 	function handle_change(): void {
@@ -40,10 +41,6 @@
 			dispatch("submit");
 		}
 	}
-
-	function handle_blur(e: FocusEvent): void {
-		dispatch("blur");
-	}
 </script>
 
 <label class="block" class:container>
@@ -55,7 +52,8 @@
 		max={maximum}
 		{step}
 		on:keypress={handle_keypress}
-		on:blur={handle_blur}
+		on:blur
+		on:focus
 		{disabled}
 	/>
 </label>

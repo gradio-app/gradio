@@ -48,5 +48,6 @@
 		on:input
 		on:submit
 		on:blur
+		on:focus
 	/>
 </Block>
