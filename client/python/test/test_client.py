@@ -133,6 +133,13 @@ class TestClientPredictions:
                 outputs.append(o)
             assert outputs == [str(i) for i in range(3)]
 
+    @pytest.mark.flaky
+    def test_intermediate_outputs_finish(self, count_generator_demo):
+        with connect(count_generator_demo) as client:
+            job = client.submit(3, fn_index=0)
+            job.finish()
+            assert job.outputs() == [str(i) for i in range(3)]
+
     def test_break_in_loop_if_error(self, calculator_demo):
         with connect(calculator_demo) as client:
             job = client.submit("foo", "add", 4, fn_index=0)
