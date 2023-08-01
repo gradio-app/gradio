@@ -2,7 +2,6 @@
 for the cli command 'gradio environment'
 """
 import platform
-
 from importlib import metadata
 
 
@@ -21,8 +20,7 @@ def print_environment_info():
         try:
             dist = metadata.distribution(package_name)
             print(f"{package_name} dependencies in your environment:\n")
-            requires = dist.requires
-            if requirements is not None:
+            if dist is not None:
                 for req in dist.requires:
                     req_base_name = (
                         req.split(">")[0]
