@@ -57,11 +57,10 @@ from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = files("gradio") / "templates"
-STATIC_PATH_LIB = files("gradio") / "templates.frontend.static"
-BUILD_PATH_LIB = files("gradio") / "templates.frontend.assets"
-VERSION_FILE = files("gradio") / "version.txt"
-VERSION = VERSION_FILE.read_text()
+STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()
+STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()
+BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()
+VERSION = files("gradio").joinpath("version.txt").read_text()
 
 
 class ORJSONResponse(JSONResponse):
@@ -93,7 +92,7 @@ def toorjson(value):
     )
 
 
-templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)  # type: ignore
+templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
@@ -293,7 +292,7 @@ class App(FastAPI):
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
             config = app.get_blocks().config
-            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
+            return gradio.blocks.get_api_info(config, serialize)
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -305,12 +304,12 @@ class App(FastAPI):
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
-            static_file = safe_join(STATIC_PATH_LIB, path)  # type: ignore
+            static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
-            build_file = safe_join(BUILD_PATH_LIB, path)  # type: ignore
+            build_file = safe_join(BUILD_PATH_LIB, path)
             return FileResponse(build_file)
 
         @app.get("/favicon.ico")
