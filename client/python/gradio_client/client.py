@@ -12,7 +12,7 @@ import time
 import urllib.parse
 import uuid
 import warnings
-from concurrent.futures import Future, TimeoutError
+from concurrent.futures import Future, TimeoutError, wait
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
@@ -1095,6 +1095,14 @@ class Job(Future):
                     return o
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
+
+    def wait(self, timeout: float | None = None) -> None:
+        """
+        Wait for the job to complete.
+        Parameters:
+            timeout: The number of seconds to wait for the result if the future isn't done. If None, then there is no limit on the wait time.
+        """
+        wait([self], timeout=timeout, return_when="ALL_COMPLETED")
 
     def result(self, timeout: float | None = None) -> Any:
         """
