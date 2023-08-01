@@ -1096,7 +1096,7 @@ class Job(Future):
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
 
-    def wait(self, timeout: float | None = None) -> None:
+    def finish(self, timeout: float | None = None) -> None:
         """
         Wait for the job to complete.
         Parameters:

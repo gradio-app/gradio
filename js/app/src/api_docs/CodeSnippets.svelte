@@ -35,18 +35,38 @@
 	let submit_line: string;
 	let return_line: string;
 	$: if (dependency.types.generator) {
-		submit_line = `# This api route streams outputs
+		if (current_language == "python"){
+			submit_line = `# This api route streams outputs
 result = client.submit(`;
-		return_line = `)
-result.wait(timeout=None)
+			return_line = `)
+result.finish(timeout=None)
 
 # Get the final output. outputs() returns a list of all streamed results.
 print(result.outputs()[-1])
-	`;
+		`;
+		} else {
+			submit_line = `let result = [];
+
+// This api route streams outputs
+const job = app.submit(`
+			return_line = `);
+
+job.on("data", (d) => {result.push(d)});
+await job.finish();
+
+// Get the final output
+console.log(result[result.length - 1].data);`
+		}
 	} else {
 		submit_line = `result = client.predict(`;
-		return_line = `)
+		if (current_language == "python") {
+			return_line = `)
 print(result)`;
+		}
+		else {
+			return_line = `)
+console.log(result.data)`
+		}
 	}
 </script>
 
@@ -108,7 +128,7 @@ const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
 const app = await client(<span class="token string">"{root}"</span>);
-const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
+{submit_line}{#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
@@ -142,9 +162,8 @@ const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{depe
 								><!--
 -->{/if}
 						{/each}
-	]);
-
-console.log(result.data);
+	]
+{return_line}
 </pre>
 				</div>
 			{/if}
