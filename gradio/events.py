@@ -291,7 +291,7 @@ class Focusable(EventListener):
     def __init__(self):
         self.focus = EventListenerMethod(self, "focus")
         """
-        This listener is triggered when the component is focused (e.g. when the user clicks inside the textbox).
+        This listener is triggered when the component is focused (e.g. when the user clicks inside a textbox).
         This method can be used when this component is in a Gradio Blocks.
         """
 

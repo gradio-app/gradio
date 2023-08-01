@@ -41,14 +41,6 @@
 			dispatch("submit");
 		}
 	}
-
-	function handle_blur(e: FocusEvent): void {
-		dispatch("blur");
-	}
-
-	function handle_focus(e: FocusEvent){
-		dispatch("focus");
-	}
 </script>
 
 <label class="block" class:container>
@@ -60,8 +52,8 @@
 		max={maximum}
 		{step}
 		on:keypress={handle_keypress}
-		on:blur={handle_blur}
-		on:focus={handle_focus}
+		on:blur
+		on:focus
 		{disabled}
 	/>
 </label>

@@ -47,14 +47,6 @@
 	});
 	$: value, handle_change();
 
-	function handle_blur() {
-		dispatch("blur");
-	}
-
-	function handle_focus() {
-		dispatch("focus");
-	}
-
 	async function handle_copy() {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
@@ -158,9 +150,9 @@
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
-				on:blur={handle_blur}
+				on:blur
 				on:select={handle_select}
-				on:focus={handle_focus}
+				on:focus
 				style={text_align ? "text-align: " + text_align : ""}
 				/>
 		{:else if type === "password"}
@@ -174,9 +166,9 @@
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
-				on:blur={handle_blur}
+				on:blur
 				on:select={handle_select}
-				on:focus={handle_focus}
+				on:focus
 				autocomplete=""
 			/>
 		{:else if type === "email"}
@@ -190,9 +182,9 @@
 				{disabled}
 				{autofocus}
 				on:keypress={handle_keypress}
-				on:blur={handle_blur}
+				on:blur
 				on:select={handle_select}
-				on:focus={handle_focus}
+				on:focus
 				autocomplete="email"
 			/>
 		{/if}
@@ -216,9 +208,9 @@
 			{disabled}
 			{autofocus}
 			on:keypress={handle_keypress}
-			on:blur={handle_blur}
+			on:blur
 			on:select={handle_select}
-			on:focus={handle_focus}
+			on:focus
 			style={text_align ? "text-align: " + text_align : ""}
 			/>
 	{/if}

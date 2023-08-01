@@ -108,9 +108,9 @@
 		dispatch("focus");
 		showOptions = !showOptions;
 		if (showOptions) {
-				inputValue = "";
+			filtered = choices;
 		} else {
-				filterInput.blur();
+			filterInput.blur();
 		}
 	}
 
@@ -138,15 +138,6 @@
 					selected: true
 				});
 			}
-		}
-	}
-
-	function handleFocus(): void {
-		showOptions = !showOptions;
-		if (showOptions) {
-			filtered = choices;
-		} else {							
-			filterInput.blur();
 		}
 	}
 
