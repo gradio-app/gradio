@@ -17,7 +17,7 @@ OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
 
 def attach_oauth(app: fastapi.FastAPI):
     # Check environment variables
-    msg = "OAuth is required but {} environment variable is not set. Make sure you've enabled OAuth in your Space."
+    msg = "OAuth is required but {} environment variable is not set. Make sure you've enabled OAuth in your Space by setting `hf_oauth: true` in the Space metadata."
     if OAUTH_CLIENT_ID is None:
         raise ValueError(msg.format("OAUTH_CLIENT_ID"))
     if OAUTH_CLIENT_SECRET is None:
