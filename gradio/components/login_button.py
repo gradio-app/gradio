@@ -1,7 +1,7 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -14,9 +14,7 @@ set_documentation_group("component")
 @document()
 class LoginButton(Button):
     """
-    Button that redirects the user to Sign in Hugging Face with from a Space using OAuth.
-    Preprocessing: passes the button value as a {str} into the function
-    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
+    Button that redirects the user to Sign with Hugging Face using OAuth.
     """
 
     is_template = True
@@ -59,7 +57,7 @@ class LoginButton(Button):
 
         self.attach_load_event(self._check_login_status, None)
 
-    def _check_login_status(self, request: Request) -> None:
+    def _check_login_status(self, request: Request) -> dict[str, Any]:
         # Each time the page is refreshed or loaded, check if the user is logged in and adapt label
         session = getattr(request, "session", None) or getattr(
             request.request, "session", None

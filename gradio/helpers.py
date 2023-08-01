@@ -695,8 +695,12 @@ def special_args(
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
-                session = getattr(request, "session", {}) or getattr(
-                    request.request, "session", {}
+                session = (
+                    # request.session (if fastapi.Request obj i.e. direct call)
+                    getattr(request, "session", {})
+                    or
+                    # or request.request.session (if gr.Request obj i.e. websocket call)
+                    getattr(getattr(request, "request", None), "session", {})
                 )
                 oauth_profile = (
                     session["oauth_profile"] if "oauth_profile" in session else None

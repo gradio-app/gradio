@@ -16,17 +16,18 @@ OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
 
 
 def attach_oauth(app: fastapi.FastAPI):
-    for key, value in {
-        "OAUTH_CLIENT_ID": OAUTH_CLIENT_ID,
-        "OAUTH_CLIENT_SECRET": OAUTH_CLIENT_SECRET,
-        "OAUTH_SCOPES": OAUTH_SCOPES,
-        "OPENID_PROVIDER_URL": OPENID_PROVIDER_URL,
-    }.items():
-        if value is None:
-            raise ValueError(
-                f"OAuth is required but {key} environment variable is not set. Make sure you've enabled OAuth in your Space."
-            )
+    # Check environment variables
+    msg = "OAuth is required but {} environment variable is not set. Make sure you've enabled OAuth in your Space."
+    if OAUTH_CLIENT_ID is None:
+        raise ValueError(msg.format("OAUTH_CLIENT_ID"))
+    if OAUTH_CLIENT_SECRET is None:
+        raise ValueError(msg.format("OAUTH_CLIENT_SECRET"))
+    if OAUTH_SCOPES is None:
+        raise ValueError(msg.format("OAUTH_SCOPES"))
+    if OPENID_PROVIDER_URL is None:
+        raise ValueError(msg.format("OPENID_PROVIDER_URL"))
 
+    # Register OAuth server
     oauth = OAuth()
     oauth.register(
         name="huggingface",
@@ -36,8 +37,10 @@ def attach_oauth(app: fastapi.FastAPI):
         server_metadata_url=OPENID_PROVIDER_URL + "/.well-known/openid-configuration",
     )
 
+    # Define OAuth routes
     @app.get("/login/huggingface")
     async def oauth_login(request: fastapi.Request):
+        """Endpoint that redirects to HF OAuth page."""
         redirect_uri = str(request.url_for("oauth_redirect_callback"))
         if ".hf.space" in redirect_uri:
             # In Space, FastAPI redirect as http but we want https
@@ -46,6 +49,7 @@ def attach_oauth(app: fastapi.FastAPI):
 
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
+        """Endpoint that handles the OAuth callback."""
         token = await oauth.huggingface.authorize_access_token(request)
         request.session["oauth_profile"] = token["userinfo"]
         request.session["oauth_token"] = token
@@ -53,6 +57,7 @@ def attach_oauth(app: fastapi.FastAPI):
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
+        """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_profile", None)
         request.session.pop("oauth_token", None)
         return RedirectResponse("/")

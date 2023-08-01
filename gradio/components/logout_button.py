@@ -13,9 +13,7 @@ set_documentation_group("component")
 @document()
 class LogoutButton(Button):
     """
-    Button that to log out a user from a Space.
-    Preprocessing: passes the button value as a {str} into the function
-    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
+    Button to log out a user from a Space.
     """
 
     is_template = True
@@ -51,10 +49,7 @@ class LogoutButton(Button):
             self.activate()
 
     def activate(self):
+        # Redirect to logout page (which will delete the session cookie and redirect to
+        # landing page).
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
-        # TODO: Check how it'll work in Space's iframe
         self.click(fn=None, _js="() => {window.location.assign('/logout');}")
-
-        # URL = "http://localhost:5173"
-        # url = f"{URL}/logout"
-        # self.click(fn=None, _js=f"() => {{window.location.assign('{url}');}}")
