@@ -2,15 +2,16 @@
 	import { afterUpdate, createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 
-	export let value: number = 0;
+	export let value = 0;
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
-	export let value_is_output: boolean = false;
-	export let disabled: boolean = false;
+	export let value_is_output = false;
+	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let show_label: boolean = true;
-	export let container: boolean = true;
+	export let show_label = true;
+	export let container = true;
+	export let step: number | null = 1;
 
 	const dispatch = createEventDispatcher<{
 		change: number;
@@ -20,7 +21,7 @@
 		focus: undefined;
 	}>();
 
-	function handle_change() {
+	function handle_change(): void {
 		if (!isNaN(value) && value !== null) {
 			dispatch("change", value);
 			if (!value_is_output) {
@@ -33,7 +34,7 @@
 	});
 	$: value, handle_change();
 
-	async function handle_keypress(e: KeyboardEvent) {
+	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
 		if (e.key === "Enter") {
 			e.preventDefault();
@@ -41,7 +42,7 @@
 		}
 	}
 
-	function handle_blur(e: FocusEvent) {
+	function handle_blur(e: FocusEvent): void {
 		dispatch("blur");
 	}
 
@@ -50,7 +51,6 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block" class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<input
@@ -58,6 +58,7 @@
 		bind:value
 		min={minimum}
 		max={maximum}
+		{step}
 		on:keypress={handle_keypress}
 		on:blur={handle_blur}
 		on:focus={handle_focus}
@@ -66,7 +67,8 @@
 </label>
 
 <style>
-	label:not(.container), label:not(.container) > input {
+	label:not(.container),
+	label:not(.container) > input {
 		height: 100%;
 		border: none;
 	}
