@@ -8,13 +8,11 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from distutils.version import StrictVersion
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import filelock
 import huggingface_hub
-import pkg_resources
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -242,16 +240,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flagging_dir (str): local directory where the dataset is cloned,
         updated, and pushed from.
         """
-        hh_version = pkg_resources.get_distribution("huggingface_hub").version
-        try:
-            if StrictVersion(hh_version) < StrictVersion("0.12.0"):
-                raise ImportError(
-                    "The `huggingface_hub` package must be version 0.12.0 or higher"
-                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
-                )
-        except ValueError:
-            pass
-
         # Setup dataset on the Hub
         self.dataset_id = huggingface_hub.create_repo(
             repo_id=self.dataset_id,
