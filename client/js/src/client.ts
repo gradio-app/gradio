@@ -365,17 +365,6 @@ export function api_factory(fetch_implementation: typeof fetch): Client {
 				});
 			}
 
-			// function finish(submit: SubmitReturn){
-			// 	return new Promise((res, rej) => {
-			// 		submit.on("status", (status) => {
-			// 				if (status.stage === "error") rej(status);
-			// 				if (status.stage === "complete") {
-			// 					res(submit);
-			// 				}
-			// 			});
-			// 	});
-			// }
-
 			function submit(
 				endpoint: string | number,
 				data: unknown[],
