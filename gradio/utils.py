@@ -63,7 +63,7 @@ def colab_check() -> bool:
     """
     is_colab = False
     try:  # Check if running interactively using ipython.
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
 
         from_ipynb = get_ipython()
         if "google.colab" in str(from_ipynb):
@@ -97,7 +97,7 @@ def ipython_check() -> bool:
     """
     is_ipython = False
     try:  # Check if running interactively using ipython.
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
 
         if get_ipython() is not None:
             is_ipython = True

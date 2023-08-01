@@ -776,7 +776,7 @@ function transform_output(
 					? [normalise_file(img[0], root_url, remote_url), img[1]]
 					: [normalise_file(img, root_url, remote_url), null];
 			});
-		} else if (typeof d === "object" && d.is_file) {
+		} else if (typeof d === "object" && d?.is_file) {
 			return normalise_file(d, root_url, remote_url);
 		} else {
 			return d;
