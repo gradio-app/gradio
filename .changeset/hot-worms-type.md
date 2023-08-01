@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Login with HF [first draft]
+feat:Sign in with Hugging Face (OAuth support)
