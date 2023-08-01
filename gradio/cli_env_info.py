@@ -20,7 +20,7 @@ def print_environment_info():
         try:
             dist = metadata.distribution(package_name)
             print(f"{package_name} dependencies in your environment:\n")
-            if dist is not None:
+            if dist.requires is not None:
                 for req in dist.requires:
                     req_base_name = (
                         req.split(">")[0]

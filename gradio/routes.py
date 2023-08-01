@@ -61,8 +61,7 @@ STATIC_TEMPLATE_LIB = files("gradio") / "templates"
 STATIC_PATH_LIB = files("gradio") / "templates.frontend.static"
 BUILD_PATH_LIB = files("gradio") / "templates.frontend.assets"
 VERSION_FILE = files("gradio") / "version.txt"
-with open(VERSION_FILE) as version_file:
-    VERSION = version_file.read()
+VERSION = VERSION_FILE.read_text()
 
 
 class ORJSONResponse(JSONResponse):
@@ -94,7 +93,7 @@ def toorjson(value):
     )
 
 
-templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
+templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)  # type: ignore
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
@@ -306,12 +305,12 @@ class App(FastAPI):
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
-            static_file = safe_join(STATIC_PATH_LIB, path)
+            static_file = safe_join(STATIC_PATH_LIB, path)  # type: ignore
             return FileResponse(static_file)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
-            build_file = safe_join(BUILD_PATH_LIB, path)
+            build_file = safe_join(BUILD_PATH_LIB, path)  # type: ignore
             return FileResponse(build_file)
 
         @app.get("/favicon.ico")
