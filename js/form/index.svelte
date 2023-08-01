@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let visible = true;
 	export let scale: number | null = null;
-	export let min_width: number = 0;
+	export let min_width = 0;
 </script>
 
 <div

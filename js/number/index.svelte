@@ -1,27 +1,35 @@
 <script lang="ts">
-	import { Number } from "@gradio/form";
+	import Number from "./static";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	export let label: string = "Number";
+	export let label = "Number";
 	export let info: string | undefined = undefined;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let container: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let value: number = 0;
+	export let value = 0;
 	export let show_label: boolean;
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let mode: "static" | "dynamic";
-	export let value_is_output: boolean = false;
+	export let value_is_output = false;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} padding={container} allow_overflow={false} {scale} {min_width}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	padding={container}
+	allow_overflow={false}
+	{scale}
+	{min_width}
+>
 	<StatusTracker {...loading_status} />
 
 	<Number

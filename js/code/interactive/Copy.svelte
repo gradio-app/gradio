@@ -7,7 +7,7 @@
 	export let value: string;
 	let timer: NodeJS.Timeout;
 
-	function copy_feedback() {
+	function copy_feedback(): void {
 		copied = true;
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(() => {
@@ -15,7 +15,7 @@
 		}, 2000);
 	}
 
-	async function handle_copy() {
+	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
 			copy_feedback();

@@ -30,9 +30,8 @@ export const frontmatter: MarkdownExtension = {
 				parser,
 				overlay: [{ from: node.from + 4, to: node.to - 4 }]
 			};
-		} else {
-			return null;
 		}
+		return null;
 	}),
 	parseBlock: [
 		{
@@ -54,9 +53,8 @@ export const frontmatter: MarkdownExtension = {
 						cx.addElement(cx.elt("Frontmatter", 0, end, children));
 					}
 					return true;
-				} else {
-					return false;
 				}
+				return false;
 			}
 		}
 	]

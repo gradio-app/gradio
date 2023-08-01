@@ -1,26 +1,26 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Label } from "@gradio/label";
+	import Label from "./static";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let color: undefined | string = undefined;
 	export let value: {
 		label?: string;
-		confidences?: Array<{ label: string; confidence: number }>;
+		confidences?: { label: string; confidence: number }[];
 	} = {};
-	export let label: string = "Label";
-	export let container: boolean = true;
+	export let label = "Label";
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let show_label: boolean = true;
-	export let selectable: boolean = false;
+	export let show_label = true;
+	export let selectable = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 

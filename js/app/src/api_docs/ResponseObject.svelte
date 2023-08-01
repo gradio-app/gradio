@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import Loader from "../components/StatusTracker/Loader.svelte";
+	import { Loader } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;

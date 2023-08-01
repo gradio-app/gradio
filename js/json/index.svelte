@@ -1,22 +1,22 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { JSON } from "@gradio/json";
+	import JSON from "./static";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { JSON as JSONIcon } from "@gradio/icons";
 
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: any;
 	let old_value: any;
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
-	export let container: boolean = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let label: string = "";
-	export let open: boolean = true;
+	export let label = "";
+	export let open = true;
 </script>
 
 <div on:click={() => (open = !open)} class="label-wrap" class:open>

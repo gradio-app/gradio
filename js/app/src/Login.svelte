@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Component as Form } from "./components/Form";
-	import { Component as Textbox } from "./components/Textbox";
-	import { Button } from "@gradio/button";
+	import Form from "@gradio/form";
+	import Textbox from "@gradio/textbox";
+	import Button from "@gradio/button/static";
 	import { Component as Column } from "./components/Column";
 	export let root: string;
 	export let auth_message: string | null;
@@ -12,14 +12,14 @@
 	let password = "";
 	let incorrect_credentials = false;
 
-	const submit = async () => {
+	const submit = async (): Promise<void> => {
 		const formData = new FormData();
 		formData.append("username", username);
 		formData.append("password", password);
 
 		let response = await fetch(root + "/login", {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 		if (response.status === 400) {
 			incorrect_credentials = true;

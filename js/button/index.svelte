@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Button } from "@gradio/button";
+	import Button from "./static";
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: string;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let mode: "static" | "dynamic" = "dynamic";

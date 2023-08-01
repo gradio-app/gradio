@@ -14,7 +14,6 @@
 	"python.testing.pytestArgs": ["."],
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,
-	"eslint.packageManager": "pnpm",
 	"eslint.validate": ["javascript", "typescript", "html", "markdown", "svelte"],
 	"eslint.experimental.useFlatConfig": true,
 	"eslint.options": {

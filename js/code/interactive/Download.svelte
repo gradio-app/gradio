@@ -8,7 +8,7 @@
 
 	$: ext = get_ext_for_type(language);
 
-	function get_ext_for_type(type: string) {
+	function get_ext_for_type(type: string): string {
 		const exts: Record<string, string> = {
 			py: "py",
 			python: "py",
@@ -26,7 +26,7 @@
 			dockerfile: "dockerfile",
 			sh: "sh",
 			shell: "sh",
-			r: "r"
+			r: "r",
 		};
 
 		return exts[type] || "txt";
@@ -35,7 +35,7 @@
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
-	function copy_feedback() {
+	function copy_feedback(): void {
 		copied = true;
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(() => {

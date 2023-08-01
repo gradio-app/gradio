@@ -13,7 +13,7 @@ export interface ComponentMeta {
 	instance: SvelteComponent;
 	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;
-	children?: Array<ComponentMeta>;
+	children?: ComponentMeta[];
 	value?: any;
 }
 
@@ -24,9 +24,9 @@ export interface DependencyTypes {
 
 export interface Dependency {
 	trigger: string;
-	targets: Array<number>;
-	inputs: Array<number>;
-	outputs: Array<number>;
+	targets: number[];
+	inputs: number[];
+	outputs: number[];
 	backend_fn: boolean;
 	js: string | null;
 	scroll_to_output: boolean;
@@ -35,7 +35,7 @@ export interface Dependency {
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;
-	cancels: Array<number>;
+	cancels: number[];
 	types: DependencyTypes;
 	collects_event_data: boolean;
 	trigger_after?: number;
@@ -56,7 +56,7 @@ export interface Documentation {
 
 export interface LayoutNode {
 	id: number;
-	children: Array<LayoutNode>;
+	children: LayoutNode[];
 }
 
 export type ThemeMode = "system" | "light" | "dark";

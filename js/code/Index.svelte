@@ -2,36 +2,34 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { _ } from "svelte-i18n";
 
-	import type { LoadingStatus } from "../app/src/components/StatusTracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	import Code from "./interactive/Code.svelte";
-	import StatusTracker from "../app/src/components/StatusTracker/StatusTracker.svelte";
+	import Code, { Wigdet } from "./interactive";
+	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
-
-	import Widget from "./interactive/Widgets.svelte";
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		input: undefined;
 	}>();
 
-	export let value: string = "";
-	export let value_is_output: boolean = false;
-	export let language: string = "";
-	export let lines: number = 5;
+	export let value = "";
+	export let value_is_output = false;
+	export let language = "";
+	export let lines = 5;
 	export let target: HTMLElement;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let mode: "static" | "dynamic";
-	export let label: string = "Code";
-	export let show_label: boolean = true;
+	export let label = "Code";
+	export let show_label = true;
 	export let loading_status: LoadingStatus;
 
 	let dark_mode = target.classList.contains("dark");
 
-	function handle_change() {
+	function handle_change(): void {
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");

@@ -1,27 +1,27 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
-	import { Model3D, Model3DUpload } from "@gradio/model3D";
-	import { BlockLabel, Block, Empty } from "@gradio/atoms";
-	import UploadText from "../UploadText.svelte";
+	import Model3D from "./static";
+	import Model3DUpload from "./interactive";
+	import { BlockLabel, Block, Empty, UploadText } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: null | FileData = null;
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let root_url: null | string;
-	export let clearColor: Array<number>;
+	export let clearColor: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
-	export let container: boolean = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 

@@ -63,7 +63,7 @@ async function fix() {
 		}
 
 		// check the package.json exists
-		const pkg_json_path = path.join(dir, "package.json");
+		const pkg_json_path = path.join(dir, "./package.json");
 		try {
 			await fs.stat(pkg_json_path);
 		} catch (e) {
@@ -160,17 +160,16 @@ const pkg_json = (name) => `{
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "index.ts",
+	"main": "index.svelte",
 	"author": "",
 	"license": "ISC",
 	"private": true,
 	"main_changeset": true,
-  "exports": {
-    ".": "./index.svelte",
-    "package.json": "./package.json",
-    "interactive": "./interactive/index.ts",
-    "static": "./static/index.ts"
-    "examples": "./examples/index.ts" 
-  },
+	"exports": {
+		"./package.json": "./package.json",
+		"interactive": "./interactive/index.ts",
+		"static": "./static/index.ts",
+		"examples": "./examples/index.ts" 
+	}
 }
 `;

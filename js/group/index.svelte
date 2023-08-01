@@ -1,24 +1,25 @@
 <script lang="ts">
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 </script>
 
-<div 
+<div
 	id={elem_id}
-	class='gr-group {elem_classes.join(" ")}' 
+	class="gr-group {elem_classes.join(' ')}"
 	class:hide={!visible}
 >
-	<div class="styler"
-	style:--block-radius="0px"
-	style:--block-border-width="0px"
-	style:--layout-gap="1px"
-	style:--form-gap-width="1px"
-	style:--button-border-width="0px"
-	style:--button-large-radius="0px"
-	style:--button-small-radius="0px"
->
-	<slot />
+	<div
+		class="styler"
+		style:--block-radius="0px"
+		style:--block-border-width="0px"
+		style:--layout-gap="1px"
+		style:--form-gap-width="1px"
+		style:--button-border-width="0px"
+		style:--button-large-radius="0px"
+		style:--button-small-radius="0px"
+	>
+		<slot />
 	</div>
 </div>
 

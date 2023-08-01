@@ -5,7 +5,7 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode
+		LayoutNode,
 	} from "./components/types";
 
 	declare let BUILD_MODE: string;
@@ -31,7 +31,10 @@
 
 	let id = -1;
 
-	function create_intersection_store() {
+	function create_intersection_store(): {
+		register: (n: number, el: HTMLDivElement) => void;
+		subscribe: (typeof intersecting)["subscribe"];
+	} {
 		const intersecting = writable<Record<string, boolean>>({});
 
 		const els = new Map<HTMLDivElement, number>();
@@ -46,8 +49,8 @@
 			});
 		});
 
-		function register(id: number, el: HTMLDivElement) {
-			els.set(el, id);
+		function register(_id: number, el: HTMLDivElement): void {
+			els.set(el, _id);
 			observer.observe(el);
 		}
 
@@ -62,7 +65,7 @@
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./components/types";
-	import { Component as Loader } from "./components/StatusTracker";
+	import { StatusTracker } from "@gradio/statustracker";
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -90,15 +93,15 @@
 		"pending";
 	let app_id: string | null = null;
 	let wrapper: HTMLDivElement;
-	let ready: boolean = false;
+	let ready = false;
 	let config: Config;
-	let loading_text: string = "Loading...";
+	let loading_text = "Loading...";
 	let active_theme_mode: ThemeMode;
 
 	async function mount_custom_css(
 		target: HTMLElement,
 		css_string: string | null
-	) {
+	): Promise<void> {
 		if (css_string) {
 			let style = document.createElement("style");
 			style.innerHTML = css_string;
@@ -119,7 +122,7 @@
 		);
 	}
 
-	async function reload_check(root: string) {
+	async function reload_check(root: string): Promise<void> {
 		const result = await (await fetch(root + "/app_id")).text();
 
 		if (app_id === null) {
@@ -152,20 +155,20 @@
 			?.matchMedia("(prefers-color-scheme: dark)")
 			?.addEventListener("change", update_scheme);
 
-		function update_scheme() {
-			let theme: "light" | "dark" = window?.matchMedia?.(
+		function update_scheme(): "light" | "dark" {
+			let _theme: "light" | "dark" = window?.matchMedia?.(
 				"(prefers-color-scheme: dark)"
 			).matches
 				? "dark"
 				: "light";
 
-			darkmode(target, theme);
-			return theme;
+			darkmode(target, _theme);
+			return _theme;
 		}
 		return theme;
 	}
 
-	function darkmode(target: HTMLDivElement, theme: "dark" | "light") {
+	function darkmode(target: HTMLDivElement, theme: "dark" | "light"): void {
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
@@ -180,12 +183,12 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: Awaited<ReturnType<typeof client>>;
 	let css_ready = false;
-	function handle_status(_status: SpaceStatus) {
+	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
 	onMount(async () => {
@@ -200,7 +203,7 @@
 
 		app = await client(api_url, {
 			status_callback: handle_status,
-			normalise_files: false
+			normalise_files: false,
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -209,7 +212,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		await mount_custom_css(wrapper, config.css);
@@ -235,14 +238,14 @@
 	let Blocks: typeof import("./Blocks.svelte").default;
 	let Login: typeof import("./Login.svelte").default;
 
-	async function get_blocks() {
+	async function get_blocks(): Promise<void> {
 		Blocks = (await import("./Blocks.svelte")).default;
 	}
-	async function get_login() {
+	async function get_login(): Promise<void> {
 		Login = (await import("./Login.svelte")).default;
 	}
 
-	function load_demo() {
+	function load_demo(): void {
 		if (config.auth_required) get_login();
 		else get_blocks();
 	}
@@ -260,22 +263,22 @@
 			CONFIG_ERROR: "there is a config error",
 			BUILD_ERROR: "there is a build error",
 			RUNTIME_ERROR: "there is a runtime error",
-			PAUSED: "the space is paused"
+			PAUSED: "the space is paused",
 		} as const,
-		title(error: error_types) {
+		title(error: error_types): string {
 			return encodeURIComponent(
 				`Space isn't working because ${
 					this.readable_error[error] || "an error"
 				}`
 			);
 		},
-		description(error: error_types, site: string) {
+		description(error: error_types, site: string): string {
 			return encodeURIComponent(
 				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
 					this.readable_error[error] || "an error"
 				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		}
+		},
 	};
 
 	onMount(async () => {
@@ -294,7 +297,7 @@
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
-		<Loader
+		<StatusTracker
 			absolute={!is_embed}
 			status={loader_status}
 			timer={false}
@@ -322,7 +325,7 @@
 					<p>Please contact the author of the page to let them know.</p>
 				{/if}
 			</div>
-		</Loader>
+		</StatusTracker>
 	{/if}
 	{#if config?.auth_required && Login}
 		<Login

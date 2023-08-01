@@ -3,11 +3,11 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
-	import { Chart } from "@gradio/chart";
-	import UploadText from "../UploadText.svelte";
+	import Chart from "./static";
+	import { UploadText } from "@gradio/atoms";
 
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { _ } from "svelte-i18n";
 
 	import { Chart as ChartIcon } from "@gradio/icons";
@@ -24,32 +24,32 @@
 	}>();
 
 	interface StaticData {
-		data: Array<Array<number>>;
-		headers: Array<string>;
+		data: number[][];
+		headers: string[];
 	}
 	interface Data {
-		data: Array<Array<number>> | string;
-		headers?: Array<string>;
+		data: number[][] | string;
+		headers?: string[];
 	}
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: null | Data;
-	export let y: Array<string>;
+	export let y: string[];
 	export let x: string;
 	export let mode: "static" | "dynamic";
 	export let label: string;
 	export let show_label: boolean;
-	export let colors: Array<string>;
-	export let container: boolean = true;
+	export let colors: string[];
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 
 	let _value: string | null;
 
-	function data_uri_to_blob(data_uri: string) {
+	function data_uri_to_blob(data_uri: string): Blob {
 		const byte_str = atob(data_uri.split(",")[1]);
 		const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
 
@@ -63,7 +63,7 @@
 		return new Blob([ab], { type: mime_str });
 	}
 
-	function blob_to_string(blob: Blob) {
+	function blob_to_string(blob: Blob): void {
 		const reader = new FileReader();
 
 		reader.addEventListener("loadend", (e) => {
@@ -74,12 +74,12 @@
 		reader.readAsText(blob);
 	}
 
-	function dict_to_string(dict: Data) {
+	function dict_to_string(dict: Data): void {
 		if (dict.headers) _value = dict.headers.join(",");
-		const data = dict.data as Array<Array<number>>;
-		data.forEach((x: Array<unknown>) => {
+		const data = dict.data as number[][];
+		data.forEach((_x: unknown[]) => {
 			_value = _value + "\n";
-			_value = _value + x.join(",");
+			_value = _value + _x.join(",");
 		});
 	}
 
@@ -95,37 +95,39 @@
 
 	interface XRow {
 		name: string;
-		values: Array<number>;
+		values: number[];
 	}
 
 	interface YRow {
 		name: string;
-		values: Array<{ x: number; y: number }>;
+		values: { x: number; y: number }[];
 	}
 
-	function make_dict(x: XRow, y: Array<YRow>): Data {
+	function make_dict(_x: XRow, _y: YRow[]): Data {
 		const headers = [];
 		const data = [];
 
-		headers.push(x.name);
-		y.forEach(({ name }) => headers.push(name));
+		headers.push(_x.name);
+		_y.forEach(({ name }) => headers.push(name));
 
-		for (let i = 0; i < x.values.length; i++) {
+		for (let i = 0; i < _x.values.length; i++) {
 			let _data = [];
-			_data.push(x.values[i]);
-			y.forEach(({ values }) => _data.push(values[i].y));
+			_data.push(_x.values[i]);
+			_y.forEach(({ values }) => _data.push(values[i].y));
 
 			data.push(_data);
 		}
 		return { headers, data };
 	}
 
-	function handle_load(v: string | FileData | (string | FileData)[] | null) {
+	function handle_load(
+		v: string | FileData | (string | FileData)[] | null
+	): string | FileData | (string | FileData)[] | null {
 		value = { data: v as string };
 		return v;
 	}
 
-	function handle_clear({ detail }: CustomEvent<FileData | null>) {
+	function handle_clear({ detail }: CustomEvent<FileData | null>): void {
 		value = null;
 		dispatch("change");
 		dispatch("clear");

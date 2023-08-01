@@ -1,20 +1,20 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { ColorPicker } from "@gradio/form";
+	import Colorpicker from "./static";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	export let label: string = "ColorPicker";
+	export let label = "ColorPicker";
 	export let info: string | undefined = undefined;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: string;
-	export let value_is_output: boolean = false;
+	export let value_is_output = false;
 	export let show_label: boolean;
-	export let container: boolean = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
@@ -24,7 +24,7 @@
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
 	<StatusTracker {...loading_status} />
 
-	<ColorPicker
+	<Colorpicker
 		bind:value
 		bind:value_is_output
 		{label}

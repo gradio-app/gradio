@@ -5,11 +5,12 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
-	import { Video, StaticVideo } from "@gradio/video";
-	import UploadText from "../UploadText.svelte";
+	import Video from "./interactive";
+	import StaticVideo from "./static";
+	import { UploadText } from "@gradio/atoms";
 
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id = "";

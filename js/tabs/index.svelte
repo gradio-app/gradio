@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Tabs } from "@gradio/tabs";
+	import Tabs from "./static";
 
 	const dispatch = createEventDispatcher();
 
-	export let visible: boolean = true;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
+	export let visible = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
 	export let selected: number | string;
 
 	$: dispatch("prop_change", { selected });

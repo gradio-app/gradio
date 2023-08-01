@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/upload";
-	import { UploadButton } from "@gradio/upload-button";
+	import UploadButton from "./static";
 	import { upload_files as default_upload_files } from "@gradio/client";
 	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
@@ -24,7 +24,9 @@
 		getContext<typeof default_upload_files>("upload_files") ??
 		default_upload_files;
 
-	async function handle_upload({ detail }: CustomEvent<FileData>) {
+	async function handle_upload({
+		detail,
+	}: CustomEvent<FileData>): Promise<void> {
 		value = detail;
 		await tick();
 		let files = (Array.isArray(detail) ? detail : [detail]).map(

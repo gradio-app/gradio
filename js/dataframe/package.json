@@ -3,16 +3,26 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "index.ts",
+	"main": "./index.svelte",
 	"author": "",
 	"license": "ISC",
 	"private": true,
 	"main_changeset": true,
-  "exports": {
-    ".": "./index.svelte",
-    "package.json": "./package.json",
-    "interactive": "./interactive/index.ts",
-    "static": "./static/index.ts"
-    "examples": "./examples/index.ts" 
-  },
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/button": "workspace:^0.0.1",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
+		"@types/d3-dsv": "^3.0.0",
+		"d3-dsv": "^3.0.1",
+		"dequal": "^2.0.2"
+	},
+	"exports": {
+		".": "./index.svelte",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./examples": "./examples/index.ts"
+	}
 }

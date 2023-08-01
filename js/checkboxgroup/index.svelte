@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { CheckboxGroup } from "@gradio/form";
+	import CheckboxGroup from "./static";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let value: Array<string> = [];
-	export let value_is_output: boolean = false;
-	export let choices: Array<string>;
-	export let container: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: string[] = [];
+	export let value_is_output = false;
+	export let choices: string[];
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let mode: "static" | "dynamic";
-	export let label: string = "Checkbox Group";
+	export let label = "Checkbox Group";
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 

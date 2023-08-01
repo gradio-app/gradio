@@ -30,7 +30,6 @@ const rules = {
 	complexity: "error",
 	"no-else-return": "error",
 	"no-useless-return": "error",
-	"no-shadow": "error",
 	"no-undef": "error",
 	"@typescript-eslint/adjacent-overload-signatures": "error",
 	"@typescript-eslint/explicit-function-return-type": "error",

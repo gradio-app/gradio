@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../components/types";
-	import { Button } from "@gradio/button";
+	import Button from "@gradio/button/static";
 	import { Block } from "@gradio/atoms";
 
 	export let dependency: Dependency;
@@ -12,7 +12,7 @@
 	export let run: (id: number) => Promise<void>;
 	export let dependency_inputs: string[][];
 
-	function format_label(label: unknown) {
+	function format_label(label: unknown): string {
 		return label ? "'" + label + "'" : "the";
 	}
 </script>

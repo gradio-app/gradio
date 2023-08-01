@@ -329,34 +329,83 @@ importers:
         specifier: ^4.3.9
         version: 4.3.9(@types/node@20.3.2)(less@4.1.3)
 
-  js/accordion: {}
+  js/accordion:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/column':
+        specifier: workspace:^
+        version: link:../column
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+
+  js/annotatedimage:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/app:
     dependencies:
       '@gradio/accordion':
         specifier: workspace:^0.0.1
         version: link:../accordion
+      '@gradio/annotatedimage':
+        specifier: workspace:^0.0.1
+        version: link:../annotatedimage
       '@gradio/atoms':
         specifier: workspace:^0.0.1
         version: link:../atoms
       '@gradio/audio':
         specifier: workspace:^0.0.1
         version: link:../audio
+      '@gradio/box':
+        specifier: workspace:^0.0.1
+        version: link:../box
       '@gradio/button':
         specifier: workspace:^0.0.1
         version: link:../button
-      '@gradio/chart':
-        specifier: workspace:^0.0.1
-        version: link:../chart
       '@gradio/chatbot':
         specifier: workspace:^0.0.1
         version: link:../chatbot
+      '@gradio/checkbox':
+        specifier: workspace:^0.0.1
+        version: link:../checkbox
+      '@gradio/checkboxgroup':
+        specifier: workspace:^0.0.1
+        version: link:../checkboxgroup
       '@gradio/client':
         specifier: workspace:^0.1.4
         version: link:../../client/js
       '@gradio/code':
         specifier: workspace:^0.0.1
         version: link:../code
+      '@gradio/colorpicker':
+        specifier: workspace:^0.0.1
+        version: link:../colorpicker
+      '@gradio/column':
+        specifier: workspace:^0.0.1
+        version: link:../column
+      '@gradio/dataframe':
+        specifier: workspace:^0.0.1
+        version: link:../dataframe
+      '@gradio/dropdown':
+        specifier: workspace:^0.0.1
+        version: link:../dropdown
       '@gradio/file':
         specifier: workspace:^0.0.1
         version: link:../file
@@ -366,9 +415,12 @@ importers:
       '@gradio/gallery':
         specifier: workspace:^0.0.1
         version: link:../gallery
-      '@gradio/highlighted-text':
+      '@gradio/group':
         specifier: workspace:^0.0.1
-        version: link:../highlighted-text
+        version: link:../group
+      '@gradio/highlightedtext':
+        specifier: workspace:^0.0.1
+        version: link:../highlightedtext
       '@gradio/html':
         specifier: workspace:^0.0.1
         version: link:../html
@@ -387,27 +439,51 @@ importers:
       '@gradio/markdown':
         specifier: workspace:^0.0.1
         version: link:../markdown
-      '@gradio/model3D':
+      '@gradio/model3d':
         specifier: workspace:^0.0.1
         version: link:../model3D
+      '@gradio/number':
+        specifier: workspace:^0.0.1
+        version: link:../number
       '@gradio/plot':
         specifier: workspace:^0.0.1
         version: link:../plot
-      '@gradio/table':
+      '@gradio/radio':
         specifier: workspace:^0.0.1
-        version: link:../table
+        version: link:../radio
+      '@gradio/row':
+        specifier: workspace:^0.0.1
+        version: link:../row
+      '@gradio/slider':
+        specifier: workspace:^0.0.1
+        version: link:../slider
+      '@gradio/state':
+        specifier: workspace:^0.0.1
+        version: link:../state
+      '@gradio/statustracker':
+        specifier: workspace:^0.0.1
+        version: link:../statustracker
+      '@gradio/tabitem':
+        specifier: workspace:^0.0.1
+        version: link:../tabitem
       '@gradio/tabs':
         specifier: workspace:^0.0.1
         version: link:../tabs
+      '@gradio/textbox':
+        specifier: workspace:^0.0.1
+        version: link:../textbox
       '@gradio/theme':
         specifier: workspace:^0.0.1
         version: link:../theme
+      '@gradio/timeseries':
+        specifier: workspace:^0.0.1
+        version: link:../timeseries
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
-      '@gradio/upload-button':
+      '@gradio/uploadbutton':
         specifier: workspace:^0.0.1
-        version: link:../upload-button
+        version: link:../uploadbutton
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils
@@ -453,6 +529,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -469,45 +548,17 @@ importers:
         specifier: ^2.0.1
         version: 2.0.2
 
+  js/box:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+
   js/button:
     dependencies:
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils
-
-  js/chart:
-    dependencies:
-      '@gradio/icons':
-        specifier: workspace:^0.0.1
-        version: link:../icons
-      '@gradio/theme':
-        specifier: workspace:^0.0.1
-        version: link:../theme
-      '@gradio/tooltip':
-        specifier: workspace:^0.0.1
-        version: link:../tooltip
-      '@gradio/utils':
-        specifier: workspace:^0.0.1
-        version: link:../utils
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      d3-scale:
-        specifier: ^4.0.2
-        version: 4.0.2
-      d3-shape:
-        specifier: ^3.1.0
-        version: 3.1.0
-    devDependencies:
-      '@types/d3-dsv':
-        specifier: ^3.0.0
-        version: 3.0.0
-      '@types/d3-scale':
-        specifier: ^4.0.2
-        version: 4.0.2
-      '@types/d3-shape':
-        specifier: ^3.0.2
-        version: 3.0.2
 
   js/chatbot:
     dependencies:
@@ -517,6 +568,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/theme':
         specifier: workspace:^0.0.1
         version: link:../theme
@@ -553,6 +607,30 @@ importers:
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
+
+  js/checkbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+
+  js/checkboxgroup:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/code:
     dependencies:
@@ -599,11 +677,14 @@ importers:
         specifier: ^6.4.1
         version: 6.4.1
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -626,14 +707,73 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1(@lezer/common@1.0.2)
 
+  js/colorpicker:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+
+  js/column: {}
+
+  js/dataframe:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/button':
+        specifier: workspace:^0.0.1
+        version: link:../button
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^0.0.1
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^0.0.1
+        version: link:../utils
+      '@types/d3-dsv':
+        specifier: ^3.0.0
+        version: 3.0.0
+      d3-dsv:
+        specifier: ^3.0.1
+        version: 3.0.1
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
+
+  js/dropdown:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+
   js/file:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -656,7 +796,7 @@ importers:
   js/gallery:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
@@ -664,6 +804,9 @@ importers:
       '@gradio/image':
         specifier: workspace:^0.0.1
         version: link:../image
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -671,8 +814,19 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../utils
 
-  js/highlighted-text:
+  js/group: {}
+
+  js/highlightedtext:
     dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/theme':
         specifier: workspace:^0.0.1
         version: link:../theme
@@ -680,18 +834,28 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../utils
 
-  js/html: {}
+  js/html:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
 
   js/icons: {}
 
   js/image:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -711,21 +875,40 @@ importers:
   js/json:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
 
   js/label:
     dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/utils':
         specifier: workspace:^0.0.1
         version: link:../utils
 
   js/lite: {}
 
-  js/markdown: {}
+  js/markdown:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
 
   js/model3D:
     dependencies:
@@ -735,6 +918,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -745,14 +931,26 @@ importers:
         specifier: ^4.2.1
         version: 4.2.2
 
+  js/number:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+
   js/plot:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../atoms
       '@gradio/icons':
         specifier: workspace:^0.0.1
         version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/theme':
         specifier: workspace:^0.0.1
         version: link:../theme
@@ -775,26 +973,58 @@ importers:
         specifier: ^5.12.0
         version: 5.12.0(vega@5.22.1)
 
-  js/table:
+  js/radio:
     dependencies:
-      '@gradio/button':
-        specifier: workspace:^0.0.1
-        version: link:../button
-      '@gradio/upload':
-        specifier: workspace:^0.0.1
-        version: link:../upload
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../utils
-      '@types/d3-dsv':
-        specifier: ^3.0.0
-        version: 3.0.0
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      dequal:
-        specifier: ^2.0.2
-        version: 2.0.2
+
+  js/row:
+    devDependencies:
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
+
+  js/slider:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+
+  js/state: {}
+
+  js/statustracker:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/column':
+        specifier: workspace:^
+        version: link:../column
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+
+  js/tabitem:
+    dependencies:
+      '@gradio/column':
+        specifier: workspace:^
+        version: link:../column
+      '@gradio/tabs':
+        specifier: workspace:^
+        version: link:../tabs
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/tabs:
     dependencies:
@@ -802,7 +1032,65 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../utils
 
+  js/textbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+
   js/theme: {}
+
+  js/timeseries:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/theme':
+        specifier: workspace:^
+        version: link:../theme
+      '@gradio/tooltip':
+        specifier: workspace:^
+        version: link:../tooltip
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      d3-dsv:
+        specifier: ^3.0.1
+        version: 3.0.1
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: ^3.2.0
+        version: 3.2.0
+    devDependencies:
+      '@types/d3-dsv':
+        specifier: ^3.0.0
+        version: 3.0.0
+      '@types/d3-scale':
+        specifier: ^4.0.3
+        version: 4.0.3
+      '@types/d3-shape':
+        specifier: ^3.1.1
+        version: 3.1.1
 
   js/tooltip: {}
 
@@ -817,17 +1105,17 @@ importers:
         specifier: workspace:^0.0.1
         version: link:../icons
 
-  js/upload-button:
+  js/uploadbutton:
     dependencies:
       '@gradio/button':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../button
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/upload':
-        specifier: workspace:^0.0.1
+        specifier: workspace:^
         version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^0.0.1
-        version: link:../utils
 
   js/utils:
     dependencies:
@@ -846,6 +1134,9 @@ importers:
       '@gradio/image':
         specifier: workspace:^0.0.1
         version: link:../image
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/upload':
         specifier: workspace:^0.0.1
         version: link:../upload
@@ -6108,14 +6399,14 @@ packages:
     resolution: {integrity: sha512-0g/A+mZXgFkQxN3HniRDbXMN79K3CdTpLsevj+PXiTcb2hVyvkZUBg37StmgCQkaD84cUJ4uaDAWq7UJOQy2Tg==}
     dev: true
 
-  /@types/d3-scale@4.0.2:
-    resolution: {integrity: sha512-Yk4htunhPAwN0XGlIwArRomOjdoBFXC3+kCxK2Ubg7I9shQlVSJy/pG/Ht5ASN+gdMIalpk8TJ5xV74jFsetLA==}
+  /@types/d3-scale@4.0.3:
+    resolution: {integrity: sha512-PATBiMCpvHJSMtZAMEhc2WyL+hnzarKzI6wAHYjhsonjWJYGq5BXTzQjv4l8m2jO183/4wZ90rKvSeT7o72xNQ==}
     dependencies:
       '@types/d3-time': 3.0.0
     dev: true
 
-  /@types/d3-shape@3.0.2:
-    resolution: {integrity: sha512-5+ButCmIfNX8id5seZ7jKj3igdcxx+S9IDBiT35fQGTLZUfkFgTv+oBH34xgeoWDKpWcMITSzBILWQtBoN5Piw==}
+  /@types/d3-shape@3.1.1:
+    resolution: {integrity: sha512-6Uh86YFF7LGg4PQkuO2oG6EMBRLuW9cbavUW46zkIO5kuS2PfTqo2o9SkgtQzguBHbLgNnU90UNsITpsX1My+A==}
     dependencies:
       '@types/d3-path': 3.0.0
     dev: true
@@ -7969,6 +8260,11 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
+  /d3-path@3.1.0:
+    resolution: {integrity: sha512-p3KP5HCf/bvjBSSKuXid6Zqijx7wIfNW+J/maPs+iwR35at5JCbLUT0LzF1cnjbCHWhqzQTIN2Jpe8pRebIEFQ==}
+    engines: {node: '>=12'}
+    dev: false
+
   /d3-quadtree@3.0.1:
     resolution: {integrity: sha512-04xDrxQTDTCFwP5H6hRhsRcb9xxv2RzkcsygFzmkSIOJy3PeRJP7sNk3VRIbKXcog561P9oU0/rVH6vDROAgUw==}
     engines: {node: '>=12'}
@@ -7990,6 +8286,13 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       d3-path: 3.0.1
+    dev: false
+
+  /d3-shape@3.2.0:
+    resolution: {integrity: sha512-SaLBuwGm3MOViRq2ABk3eLoxwZELpH6zhl3FbAoJ7Vm1gofKx6El1Ib5z23NUEhF9AsGl7y+dzLe5Cw2AArGTA==}
+    engines: {node: '>=12'}
+    dependencies:
+      d3-path: 3.1.0
     dev: false
 
   /d3-time-format@4.1.0:

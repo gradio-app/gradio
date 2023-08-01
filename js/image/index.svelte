@@ -2,12 +2,14 @@
 
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Image, StaticImage } from "@gradio/image";
+	import StaticImage from "./static";
+	import Image from "./interactive";
+
 	import { Block } from "@gradio/atoms";
 	import { _ } from "svelte-i18n";
-	import { Component as StatusTracker } from "../StatusTracker/";
-	import type { LoadingStatus } from "../StatusTracker/types";
-	import UploadText from "../UploadText.svelte";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
+	import { UploadText } from "@gradio/atoms";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];

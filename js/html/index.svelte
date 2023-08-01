@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { HTML } from "@gradio/html";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import HTML from "./static";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { Block } from "@gradio/atoms";
 
 	export let label: string;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let value: string = "";
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value = "";
 	export let loading_status: LoadingStatus;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();

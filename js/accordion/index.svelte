@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Accordion } from "@gradio/accordion";
+	import Accordion from "./static";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/StatusTracker/types";
 
-	import { Component as Column } from "../Column";
+	import Column from "@gradio/column";
 
 	export let label: string;
 	export let elem_id: string;

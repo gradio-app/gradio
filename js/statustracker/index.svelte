@@ -1,16 +1,15 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
-	import { fade } from "svelte/transition";
-	import { prettySI } from "../utils/helpers";
+	import { pretty_si } from "./utils";
 
-	let items: Array<HTMLDivElement> = [];
+	let items: HTMLDivElement[] = [];
 
 	let called = false;
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
 		enable: boolean | null = true
-	) {
+	): Promise<void> {
 		if (
 			window.__gradio_mode__ === "website" ||
 			(window.__gradio_mode__ !== "app" && enable !== true)
@@ -47,37 +46,38 @@
 
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import { app_state } from "../../stores";
+	// TODO: revisit this
+	import { app_state } from "../app/src/stores";
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
 
 	export let eta: number | null = null;
-	export let queue: boolean = false;
+	export let queue = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
 	export let status: "complete" | "pending" | "error" | "generating";
-	export let scroll_to_output: boolean = false;
-	export let timer: boolean = true;
+	export let scroll_to_output = false;
+	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
 	export let message: string | null = null;
 	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
-	export let loading_text: string = "Loading...";
-	export let absolute: boolean = true;
-	export let translucent: boolean = false;
+	export let loading_text = "Loading...";
+	export let absolute = true;
+	export let translucent = false;
 
 	let el: HTMLDivElement;
 
-	let _timer: boolean = false;
+	let _timer = false;
 	let timer_start = 0;
 	let timer_diff = 0;
 	let old_eta: number | null = null;
-	let message_visible: boolean = false;
+	let message_visible = false;
 	let eta_level: number | null = 0;
-	let progress_level: Array<number | undefined> | null = null;
+	let progress_level: (number | undefined)[] | null = null;
 	let last_progress_level: number | undefined = undefined;
 	let progress_bar: HTMLElement | null = null;
-	let show_eta_bar: boolean = true;
+	let show_eta_bar = true;
 
 	$: eta_level =
 		eta === null || eta <= 0 || !timer_diff
@@ -94,9 +94,8 @@
 					return p.index / p.length;
 				} else if (p.progress != null) {
 					return p.progress;
-				} else {
-					return undefined;
 				}
+				return undefined;
 			});
 		} else {
 			progress_level = null;
@@ -116,26 +115,26 @@
 		}
 	}
 
-	const start_timer = () => {
+	const start_timer = (): void => {
 		timer_start = performance.now();
 		timer_diff = 0;
 		_timer = true;
 		run();
 	};
 
-	function run() {
+	function run(): void {
 		requestAnimationFrame(() => {
 			timer_diff = (performance.now() - timer_start) / 1000;
 			if (_timer) run();
 		});
 	}
 
-	const stop_timer = () => {
+	function stop_timer(): void {
 		timer_diff = 0;
 
 		if (!_timer) return;
 		_timer = false;
-	};
+	}
 
 	onDestroy(() => {
 		if (_timer) stop_timer();
@@ -167,12 +166,12 @@
 		}
 	}
 	let show_message_timeout: NodeJS.Timeout | null = null;
-	const close_message = () => {
+	function close_message(): void {
 		message_visible = false;
 		if (show_message_timeout !== null) {
 			clearTimeout(show_message_timeout);
 		}
-	};
+	}
 	$: {
 		close_message();
 		if (status === "error" && message) {
@@ -210,9 +209,9 @@
 				{#each progress as p}
 					{#if p.index != null}
 						{#if p.length != null}
-							{prettySI(p.index || 0)}/{prettySI(p.length)}
+							{pretty_si(p.index || 0)}/{pretty_si(p.length)}
 						{:else}
-							{prettySI(p.index || 0)}
+							{pretty_si(p.index || 0)}
 						{/if}
 						{p.unit} | {" "}
 					{/if}

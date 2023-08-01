@@ -2,8 +2,8 @@
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockLabel, Empty } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { type FileData, normalise_file } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 
@@ -42,8 +42,8 @@
 				normalise_file(value[0], root, root_url) as FileData,
 				value[1].map(([file, label]) => [
 					normalise_file(file, root, root_url) as FileData,
-					label
-				])
+					label,
+				]),
 			];
 		} else {
 			_value = null;

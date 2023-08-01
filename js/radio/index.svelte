@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Radio } from "@gradio/form";
+	import Radio from "./static";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	export let label = "Radio";
 	export let info: string | undefined = undefined;

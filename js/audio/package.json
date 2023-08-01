@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "./index.svelte",
 	"author": "",
 	"license": "ISC",
 	"private": true,
@@ -11,11 +11,19 @@
 		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/button": "workspace:^0.0.1",
 		"@gradio/icons": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1",
+		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
 		"extendable-media-recorder": "^7.0.2",
 		"extendable-media-recorder-wav-encoder": "^7.0.76",
 		"svelte-range-slider-pips": "^2.0.1"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"exports": {
+		".": "./index.svelte",
+		"./package.json": "./package.json",
+		"./interactive": "./interactive/index.ts",
+		"./static": "./static/index.ts",
+		"./examples": "./examples/index.ts"
+	}
 }

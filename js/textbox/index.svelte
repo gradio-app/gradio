@@ -1,35 +1,43 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { TextBox } from "@gradio/form";
+	import TextBox from "./static";
 	import { Block } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker";
 
-	export let label: string = "Textbox";
+	export let label = "Textbox";
 	export let info: string | undefined = undefined;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let value: string = "";
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value = "";
 	export let lines: number;
-	export let placeholder: string = "";
+	export let placeholder = "";
 	export let show_label: boolean;
 	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
-	export let container: boolean = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let show_copy_button: boolean = false;
+	export let show_copy_button = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let mode: "static" | "dynamic";
-	export let value_is_output: boolean = false;
+	export let value_is_output = false;
 	export let rtl = false;
 	export let text_align: "left" | "right" | undefined = undefined;
-	export let autofocus: boolean = false;
+	export let autofocus = false;
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {scale} {min_width} allow_overflow={false} padding={container}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+	padding={container}
+>
 	{#if loading_status}
 		<StatusTracker {...loading_status} />
 	{/if}

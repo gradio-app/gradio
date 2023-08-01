@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Button } from "@gradio/button";
+	import Button from "@gradio/button/static";
 
 	export let dependency_index: number;
-	export let named: boolean;
 	export let run: (id: number) => Promise<void>;
 </script>
 

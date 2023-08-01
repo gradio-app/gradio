@@ -2,35 +2,36 @@
 
 <script lang="ts">
 	import { createEventDispatcher, getContext } from "svelte";
-	import { File as FileComponent, FileUpload } from "@gradio/file";
+	import FilePreview from "./static";
+	import FileUpload from "./interactive";
 	import { blobToBase64 } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
-	import UploadText from "../UploadText.svelte";
+	import { UploadText } from "@gradio/atoms";
 	import { upload_files as default_upload_files } from "@gradio/client";
 
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
 	import { _ } from "svelte-i18n";
 
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
-	export let value: null | FileData | Array<FileData>;
-	let old_value: null | FileData | Array<FileData>;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: null | FileData | FileData[];
+	let old_value: null | FileData | FileData[];
 
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
 	export let file_count: string;
-	export let file_types: Array<string> = ["file"];
+	export let file_types: string[] = ["file"];
 	export let root_url: null | string;
-	export let selectable: boolean = false;
+	export let selectable = false;
 	export let loading_status: LoadingStatus;
-	export let container: boolean = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
@@ -137,6 +138,6 @@
 			<UploadText type="file" />
 		</FileUpload>
 	{:else}
-		<FileComponent on:select {selectable} value={_value} {label} {show_label} />
+		<FilePreview on:select {selectable} value={_value} {label} {show_label} />
 	{/if}
 </Block>

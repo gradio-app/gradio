@@ -4,7 +4,7 @@
 	import {
 		EditorView,
 		keymap,
-		placeholder as placeholderExt
+		placeholder as placeholderExt,
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
@@ -20,7 +20,7 @@
 
 	export let basic = true;
 	export let language: string;
-	export let lines: number = 5;
+	export let lines = 5;
 	export let extensions: Extension[] = [];
 
 	export let useTab = true;
@@ -35,7 +35,7 @@
 
 	$: get_lang(language);
 
-	async function get_lang(val: string) {
+	async function get_lang(val: string): Promise<void> {
 		const ext = await getLanguageExtension(val);
 		lang_extension = ext;
 	}
@@ -44,19 +44,19 @@
 	$: setDoc(value);
 	$: updateLines(lines);
 
-	function setDoc(newDoc: string) {
+	function setDoc(newDoc: string): void {
 		if (view && newDoc !== view.state.doc.toString()) {
 			view.dispatch({
 				changes: {
 					from: 0,
 					to: view.state.doc.length,
-					insert: newDoc
-				}
+					insert: newDoc,
+				},
 			});
 		}
 	}
 
-	function updateLines(newLines: number) {
+	function updateLines(newLines: number): void {
 		if (view) {
 			view.requestMeasure({ read: updateGutters });
 		}
@@ -65,12 +65,12 @@
 	function createEditorView(): EditorView {
 		return new EditorView({
 			parent: element,
-			state: createEditorState(value)
+			state: createEditorState(value),
 		});
 	}
 
-	function getGutterLineHeight(view: EditorView): string | null {
-		let elements = view.dom.querySelectorAll<HTMLElement>(".cm-gutterElement");
+	function getGutterLineHeight(_view: EditorView): string | null {
+		let elements = _view.dom.querySelectorAll<HTMLElement>(".cm-gutterElement");
 		if (elements.length === 0) {
 			return null;
 		}
@@ -84,10 +84,10 @@
 		return null;
 	}
 
-	function updateGutters(view: EditorView): any {
-		let gutters = view.dom.querySelectorAll<HTMLElement>(".cm-gutter");
+	function updateGutters(_view: EditorView): any {
+		let gutters = _view.dom.querySelectorAll<HTMLElement>(".cm-gutter");
 		let _lines = lines + 1;
-		let lineHeight = getGutterLineHeight(view);
+		let lineHeight = getGutterLineHeight(_view);
 		if (!lineHeight) {
 			return null;
 		}
@@ -108,7 +108,7 @@
 		view.requestMeasure({ read: updateGutters });
 	}
 
-	function getExtensions() {
+	function getExtensions(): Extension[] {
 		const stateExtensions = [
 			...getBaseExtensions(
 				basic,
@@ -119,7 +119,7 @@
 			),
 			FontTheme,
 			...getTheme(),
-			...extensions
+			...extensions,
 		];
 		return stateExtensions;
 	}
@@ -127,36 +127,36 @@
 	const FontTheme = EditorView.theme({
 		"&": {
 			fontSize: "var(--text-sm)",
-			backgroundColor: "var(--border-color-secondary)"
+			backgroundColor: "var(--border-color-secondary)",
 		},
 		".cm-content": {
 			paddingTop: "5px",
 			paddingBottom: "5px",
 			color: "var(--body-text-color)",
 			fontFamily: "var(--font-mono)",
-			minHeight: "100%"
+			minHeight: "100%",
 		},
 		".cm-gutters": {
 			marginRight: "1px",
 			borderRight: "1px solid var(--border-color-primary)",
 			backgroundColor: "transparent",
-			color: "var(--body-text-color-subdued)"
+			color: "var(--body-text-color-subdued)",
 		},
 		".cm-focused": {
-			outline: "none"
+			outline: "none",
 		},
 		".cm-scroller": {
-			height: "auto"
+			height: "auto",
 		},
 		".cm-cursor": {
-			borderLeftColor: "var(--body-text-color)"
-		}
+			borderLeftColor: "var(--body-text-color)",
+		},
 	});
 
-	function createEditorState(value: string | null | undefined): EditorState {
+	function createEditorState(_value: string | null | undefined): EditorState {
 		return EditorState.create({
-			doc: value ?? undefined,
-			extensions: getExtensions()
+			doc: _value ?? undefined,
+			extensions: getExtensions(),
 		});
 	}
 
@@ -169,7 +169,7 @@
 	): Extension[] {
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
-			EditorState.readOnly.of(readonly)
+			EditorState.readOnly.of(readonly),
 		];
 
 		if (basic) {
@@ -202,7 +202,7 @@
 
 	function reconfigure(): void {
 		view?.dispatch({
-			effects: StateEffect.reconfigure.of(getExtensions())
+			effects: StateEffect.reconfigure.of(getExtensions()),
 		});
 	}
 

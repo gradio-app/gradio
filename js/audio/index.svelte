@@ -3,13 +3,14 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
-	import UploadText from "../UploadText.svelte";
+	import { UploadText } from "@gradio/atoms";
 
 	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 
-	import { Audio, StaticAudio } from "@gradio/audio";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import Audio from "./interactive";
+	import StaticAudio from "./static";
+	import { StatusTracker } from "@gradio/statustracker";
 	import { Block } from "@gradio/atoms";
 
 	import { normalise_file } from "@gradio/upload";

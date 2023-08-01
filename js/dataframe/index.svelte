@@ -1,30 +1,30 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
-	import { Table } from "@gradio/table";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
+	import Table from "./table";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker/types";
 	import { createEventDispatcher, afterUpdate } from "svelte";
 
-	type Headers = Array<string>;
-	type Data = Array<Array<string | number>>;
+	type Headers = string[];
+	type Data = (string | number)[][];
 	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
 	export let headers: Headers = [];
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: { data: Data; headers: Headers } = {
 		data: [["", "", ""]],
-		headers: ["1", "2", "3"]
+		headers: ["1", "2", "3"],
 	};
 	let old_value: string = JSON.stringify(value);
-	export let value_is_output: boolean = false;
+	export let value_is_output = false;
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let label: string | null = null;
 	export let wrap: boolean;
-	export let datatype: Datatype | Array<Datatype>;
+	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
@@ -32,7 +32,7 @@
 
 	export let loading_status: LoadingStatus;
 
-	function handle_change() {
+	function handle_change(): void {
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");

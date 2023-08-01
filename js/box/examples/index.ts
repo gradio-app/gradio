@@ -1,1 +1,0 @@
-export { default as box } from "./box.svelte";
