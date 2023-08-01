@@ -76,6 +76,11 @@
 		dispatch("stop");
 		dispatch("end");
 	}
+
+	function open_full_screen(): void {
+		video.requestFullscreen()
+	}
+
 </script>
 
 <div class="wrap">
@@ -99,7 +104,7 @@
 
 	<div class="controls">
 		<div class="inner">
-			<span class="icon" on:click={play_pause}>
+			<span role="button" tabindex="0" class="icon" aria-label="play-pause-replay-button" on:click={play_pause} on:keydown={play_pause}>
 				{#if time === duration}
 					<Undo />
 				{:else if paused}
@@ -110,6 +115,8 @@
 			</span>
 
 			<span class="time">{format(time)} / {format(duration)}</span>
+
+			<!-- TODO: implement accessible video timeline for 4.0 --> 
 			<progress
 				value={time / duration || 0}
 				on:mousemove={handleMove}
@@ -117,7 +124,7 @@
 				on:click|stopPropagation|preventDefault={handle_click}
 			/>
 
-			<div class="icon" on:click={() => video.requestFullscreen()}>
+			<div role="button" tabindex="0" class="icon" aria-label="full-screen" on:click={open_full_screen} on:keypress={open_full_screen}>
 				<Maximise />
 			</div>
 		</div>
@@ -203,5 +210,7 @@
 	.wrap {
 		position: relative;
 		background-color: var(--background-fill-secondary);
+		height: var(--size-full);
+		width: var(--size-full);
 	}
 </style>

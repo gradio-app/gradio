@@ -70,6 +70,7 @@ class Image(
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
+        show_download_button: bool = True,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -80,6 +81,8 @@ class Image(
         elem_classes: list[str] | str | None = None,
         mirror_webcam: bool = True,
         brush_radius: float | None = None,
+        brush_color: str = "#000000",
+        mask_opacity: float = 0.7,
         show_share_button: bool | None = None,
         **kwargs,
     ):
@@ -97,6 +100,7 @@ class Image(
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
+            show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -107,9 +111,13 @@ class Image(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             brush_radius: Size of the brush for Sketch. Default is None which chooses a sensible default
+            brush_color: Color of the brush for Sketch as hex string. Default is "#000000".
+            mask_opacity: Opacity of mask drawn on image, as a value between 0 and 1.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
         self.brush_radius = brush_radius
+        self.brush_color = brush_color
+        self.mask_opacity = mask_opacity
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -133,6 +141,7 @@ class Image(
             self.tool = tool
         self.invert_colors = invert_colors
         self.streaming = streaming
+        self.show_download_button = show_download_button
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
         self.select: EventListenerMethod
@@ -175,8 +184,11 @@ class Image(
             "streaming": self.streaming,
             "mirror_webcam": self.mirror_webcam,
             "brush_radius": self.brush_radius,
+            "brush_color": self.brush_color,
+            "mask_opacity": self.mask_opacity,
             "selectable": self.selectable,
             "show_share_button": self.show_share_button,
+            "show_download_button": self.show_download_button,
             **IOComponent.get_config(self),
         }
 
@@ -187,12 +199,15 @@ class Image(
         width: int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
+        show_download_button: bool | None = None,
         container: bool | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool | None = None,
         visible: bool | None = None,
         brush_radius: float | None = None,
+        brush_color: str | None = None,
+        mask_opacity: float | None = None,
         show_share_button: bool | None = None,
     ):
         return {
@@ -200,6 +215,7 @@ class Image(
             "width": width,
             "label": label,
             "show_label": show_label,
+            "show_download_button": show_download_button,
             "container": container,
             "scale": scale,
             "min_width": min_width,
@@ -207,6 +223,8 @@ class Image(
             "visible": visible,
             "value": value,
             "brush_radius": brush_radius,
+            "brush_color": brush_color,
+            "mask_opacity": mask_opacity,
             "show_share_button": show_share_button,
             "__type__": "update",
         }
@@ -270,6 +288,10 @@ class Image(
 
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             mask_im = processing_utils.decode_base64_to_image(mask)
+
+            if mask_im.mode == "RGBA":  # whiten any opaque pixels in the mask
+                alpha_data = mask_im.getchannel("A").convert("L")
+                mask_im = _Image.merge("RGB", [alpha_data, alpha_data, alpha_data])
             return {
                 "image": self._format_image(im),
                 "mask": self._format_image(mask_im),

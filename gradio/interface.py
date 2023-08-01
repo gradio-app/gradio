@@ -372,9 +372,13 @@ class Interface(Blocks):
         self.favicon_path = None
         Interface.instances.add(self)
 
+        param_types = utils.get_type_hints(self.fn)
         param_names = inspect.getfullargspec(self.fn)[0]
         if len(param_names) > 0 and inspect.ismethod(self.fn):
             param_names = param_names[1:]
+        for param_name in param_names.copy():
+            if utils.is_special_typed_parameter(param_name, param_types):
+                param_names.remove(param_name)
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, IOComponent)
             if component.label is None:

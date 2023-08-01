@@ -11,74 +11,74 @@
 			control: "text",
 			description: "The gallery label",
 			name: "label",
-			value: "Gradio Button"
+			value: "Gradio Button",
 		},
 		show_label: {
 			options: [true, false],
 			description: "Whether to show the label",
 			control: { type: "boolean" },
-			defaultValue: true
+			defaultValue: true,
 		},
 		grid_cols: {
 			options: [1, 2, 3, 4],
 			description: "The number of colums to show in grid",
 			control: { type: "select" },
-			defaultValue: 2
+			defaultValue: 2,
 		},
 		grid_rows: {
 			options: [1, 2, 3, 4],
 			description: "The number of rows to show in grid",
 			control: { type: "select" },
-			defaultValue: 2
+			defaultValue: 2,
 		},
 		height: {
 			options: ["auto", 500, 600],
 			description: "The height of the grid",
 			control: { type: "select" },
-			defaultValue: "auto"
+			defaultValue: "auto",
 		},
 		preview: {
 			options: [true, false],
 			description: "Whether to start the gallery in preview mode",
 			control: { type: "boolean" },
-			defaultValue: true
+			defaultValue: true,
 		},
 		allow_preview: {
 			options: [true, false],
 			description: "Whether to allow a preview mode in the gallery",
 			control: { type: "boolean" },
-			defaultValue: true
+			defaultValue: true,
 		},
 		object_fit: {
 			options: ["contain", "cover", "fill", "none", "scale-down"],
 			description: "How to display each indivial image in the grid",
 			control: { type: "select" },
-			defaultValue: "contain"
+			defaultValue: "contain",
 		},
 		show_share_button: {
 			options: [true, false],
 			description: "Whether to show the share button in the gallery",
 			control: { type: "boolean" },
-			defaultValue: false
-		}
+			defaultValue: false,
+		},
 	}}
 />
 
 <Template let:args>
 	<Gallery
-		{...args}
 		value={[
 			[
 				"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
-				"A fast cheetah"
+				"A fast cheetah",
 			],
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
 			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
 			"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			"https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
-			"https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg"
+			"https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
 		]}
+		{...args}
 	/>
 </Template>
 
@@ -96,7 +96,7 @@
 		label: "My Cheetah Gallery",
 		show_label: true,
 		grid_rows: 3,
-		grid_cols: 3
+		grid_cols: 3,
 	}}
 />
 <Story
@@ -104,14 +104,14 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		grid_cols: 4
+		grid_cols: 4,
 	}}
 />
 <Story
 	name="Gallery with height=600"
 	args={{
 		label: "My Cheetah Gallery",
-		height: 600
+		height: 600,
 	}}
 />
 <Story
@@ -119,7 +119,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		allow_preview: false
+		allow_preview: false,
 	}}
 />
 <Story
@@ -127,7 +127,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		preview: true
+		preview: true,
 	}}
 />
 <Story
@@ -135,7 +135,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "scale-down"
+		object_fit: "scale-down",
 	}}
 />
 <Story
@@ -143,7 +143,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "contain"
+		object_fit: "contain",
 	}}
 />
 <Story
@@ -151,7 +151,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "cover"
+		object_fit: "cover",
 	}}
 />
 <Story
@@ -159,7 +159,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "none"
+		object_fit: "none",
 	}}
 />
 <Story
@@ -167,7 +167,7 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		object_fit: "fill"
+		object_fit: "fill",
 	}}
 />
 <Story
@@ -175,6 +175,37 @@
 	args={{
 		label: "My Cheetah Gallery",
 		show_label: true,
-		show_share_button: true
+		show_share_button: true,
+	}}
+/>
+
+<Story
+	name="Gallery with overflow of images"
+	args={{
+		label: "My Cheetah Gallery",
+		show_label: true,
+		grid_rows: 2,
+		grid_cols: 2,
+		height: 400,
+		value: [
+			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
+			"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+		],
+	}}
+/>
+
+<Story
+	name="Gallery with download button"
+	args={{
+		label: "My Cheetah Gallery",
+		grid_rows: 2,
+		height: 400,
+		show_download_button: true,
+		value: [
+			"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+		],
 	}}
 />

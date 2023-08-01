@@ -111,6 +111,7 @@ class App(FastAPI):
         self.blocks: gradio.Blocks | None = None
         self.state_holder = {}
         self.iterators = defaultdict(dict)
+        self.iterators_to_reset = defaultdict(set)
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
@@ -403,7 +404,7 @@ class App(FastAPI):
                 return {"success": False}
             async with app.lock:
                 app.iterators[body.session_hash][body.fn_index] = None
-                app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
+                app.iterators_to_reset[body.session_hash].add(body.fn_index)
             return {"success": True}
 
         async def run_predict(
@@ -411,6 +412,7 @@ class App(FastAPI):
             request: Request | List[Request],
             fn_index_inferred: int,
         ):
+            fn_index = body.fn_index
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
@@ -419,21 +421,22 @@ class App(FastAPI):
                         if getattr(block, "stateful", False)
                     }
                 session_state = app.state_holder[body.session_hash]
-                iterators = app.iterators[body.session_hash]
                 # The should_reset set keeps track of the fn_indices
                 # that have been cancelled. When a job is cancelled,
                 # the /reset route will mark the jobs as having been reset.
                 # That way if the cancel job finishes BEFORE the job being cancelled
                 # the job being cancelled will not overwrite the state of the iterator.
-                # In all cases, should_reset will be the empty set the next time
-                # the fn_index is run.
-                app.iterators[body.session_hash]["should_reset"] = set()
+                if fn_index in app.iterators_to_reset[body.session_hash]:
+                    iterators = {}
+                    app.iterators_to_reset[body.session_hash].remove(fn_index)
+                else:
+                    iterators = app.iterators[body.session_hash]
             else:
                 session_state = {}
                 iterators = {}
+
             event_id = getattr(body, "event_id", None)
             raw_input = body.data
-            fn_index = body.fn_index
 
             dependency = app.get_blocks().dependencies[fn_index_inferred]
             target = dependency["targets"][0] if len(dependency["targets"]) else None
@@ -457,10 +460,7 @@ class App(FastAPI):
                     )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
-                    if fn_index in app.iterators[body.session_hash]["should_reset"]:
-                        app.iterators[body.session_hash][fn_index] = None
-                    else:
-                        app.iterators[body.session_hash][fn_index] = iterator
+                    app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:

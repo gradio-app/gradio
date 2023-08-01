@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/chatbot",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/Index.svelte",
@@ -8,11 +8,11 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.1",
+		"@gradio/atoms": "workspace:^0.0.2",
 		"@gradio/icons": "workspace:^0.0.1",
-		"@gradio/theme": "workspace:^0.0.1",
-		"@gradio/upload": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1",
+		"@gradio/theme": "workspace:^0.0.2",
+		"@gradio/upload": "workspace:^0.0.2",
+		"@gradio/utils": "workspace:^0.0.2",
 		"@types/katex": "^0.16.0",
 		"@types/marked": "^5.0.0",
 		"@types/prismjs": "1.26.0",
@@ -22,5 +22,6 @@
 		"prismjs": "1.29.0",
 		"dompurify": "^3.0.3",
 		"@types/dompurify": "^3.0.2"
-	}
+	},
+	"main_changeset": true
 }

@@ -87,7 +87,7 @@ def slow_echo(message, history):
 gr.ChatInterface(slow_echo).queue().launch()
 ```
 
-Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions.
+Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
 
 ## Customizing your chatbot
 
@@ -105,7 +105,7 @@ If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `Chat
 import gradio as gr
 
 def yes_man(message, history):
-    if messages.endswith("?"):
+    if message.endswith("?"):
         return "Yes"
     else:
         return "Ask me anything!"
@@ -113,7 +113,7 @@ def yes_man(message, history):
 gr.ChatInterface(
     yes_man,
     chatbot=gr.Chatbot(height=300),
-    textbox=gr.Textbox(placeholder="Ask me a yes or no question")
+    textbox=gr.Textbox(placeholder="Ask me a yes or no question", container=False, scale=7),
     title="Yes Man",
     description="Ask Yes Man any question",
     theme="soft",
@@ -125,11 +125,44 @@ gr.ChatInterface(
 ).launch()
 ```
 
+## Additional Inputs
+
+You may want to add additional parameters to your chatbot and expose them to your users through the Chatbot UI. For example, suppose you want to add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
+
+The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have *not* already been rendered, then the components will appear underneath the chatbot (and any examples) within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter. 
+
+Here's a complete example:
+
+$code_chatinterface_system_prompt
+
+If the components you pass into the `additional_inputs` have already been rendered in a parent `gr.Blocks()`, then they will *not* be re-rendered in the accordion. This provides flexibility in deciding where to lay out the input components. In the example below, we position the `gr.Textbox()` on top of the Chatbot UI, while keeping the slider underneath.
+
+```python
+import gradio as gr
+import time
+
+def echo(message, history, system_prompt, tokens):
+    response = f"System prompt: {system_prompt}\n Message: {message}."
+    for i in range(min(len(response), int(tokens))):
+        time.sleep(0.05)
+        yield response[: i+1]
+
+with gr.Blocks() as demo:
+    system_prompt = gr.Textbox("You are helpful AI.", label="System Prompt")
+    slider = gr.Slider(10, 100, render=False)
+    
+    gr.ChatInterface(
+        echo, additional_inputs=[system_prompt, slider]
+    )
+
+demo.queue().launch()
+```
+
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
 
 ## Using your chatbot via an API
 
-Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message, and will return the response, internally keeping track of the messages sent so far.
+Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.
 
 [](https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
@@ -145,7 +178,7 @@ from langchain.schema import AIMessage, HumanMessage
 import openai
 import gradio as gr
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+os.envrion["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
 
 llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
 
@@ -155,7 +188,7 @@ def predict(message, history):
         history_langchain_format.append(HumanMessage(content=human))
         history_langchain_format.append(AIMessage(content=ai))
     history_langchain_format.append(HumanMessage(content=message))
-    gpt_response = chat(history_langchain_format)
+    gpt_response = llm(history_langchain_format)
     return gpt_response.content
 
 gr.ChatInterface(predict).launch() 
@@ -170,7 +203,7 @@ Of course, we could also use the `openai` library directy. Here a similar exampl
 import openai
 import gradio as gr
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = "sk-..."  # Replace with your key
 
 def predict(message, history):
     history_openai_format = []
@@ -251,4 +284,4 @@ def predict(message, history):
 gr.ChatInterface(predict).queue().launch()
 ```
 
-With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building more custom Chabot UI, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.
+With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.

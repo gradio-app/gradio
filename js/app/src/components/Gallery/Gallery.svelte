@@ -10,22 +10,23 @@
 	export let label: string;
 	export let root: string;
 	export let root_url: null | string;
-	export let elem_id: string = "";
-	export let elem_classes: Array<string> = [];
-	export let visible: boolean = true;
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
 	export let value: (FileData | string | [FileData | string, string])[] | null =
 		null;
-	export let container: boolean = true;
+	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let grid_cols: number | Array<number> | undefined = [2];
-	export let grid_rows: number | Array<number> | undefined = undefined;
+	export let grid_cols: number | number[] | undefined = [2];
+	export let grid_rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
 	export let preview: boolean;
-	export let allow_preview: boolean = true;
+	export let allow_preview = true;
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
-	export let show_share_button: boolean = false;
+	export let show_share_button = false;
+	export let show_download_button = false;
 </script>
 
 <Block
@@ -57,5 +58,6 @@
 		{object_fit}
 		{allow_preview}
 		{show_share_button}
+		{show_download_button}
 	/>
 </Block>
