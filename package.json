@@ -83,7 +83,7 @@
 		"tinyspy": "^2.0.0",
 		"typescript": "^5.0.0",
 		"vite": "^4.3.9",
-		"vitest": "^0.33.0"
+		"vitest": "^0.34.0"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.35.1",
