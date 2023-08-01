@@ -238,7 +238,7 @@ demo.launch()
 
 ![`blocks_flipper` demo](demo/blocks_flipper/screenshot.gif)
 
-A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://github.com/gradio-app/gradio/tree/main/guides/3\)building_with_blocks) section for you.
+A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://github.com/gradio-app/gradio/tree/main/guides/03_building-with-blocks) section for you.
 
 Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
 
