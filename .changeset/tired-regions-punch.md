@@ -3,4 +3,4 @@
 "gradio_client": minor
 ---
 
-feat:Fix `gradio_client` backwards compatibility for `gradio==3.24.1`
+feat:Ensure `gradio_client` is backwards compatible with `gradio==3.24.1`
