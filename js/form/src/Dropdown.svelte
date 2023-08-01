@@ -22,6 +22,7 @@
 		input: undefined;
 		select: SelectData;
 		blur: undefined;
+		focus: undefined;
 	}>();
 
 	let inputValue: string | undefined,
@@ -86,6 +87,33 @@
 		e.preventDefault();
 	}
 
+	function handle_blur(e: FocusEvent) {
+		if (multiselect) {
+			inputValue = "";
+		} else if (!allow_custom_value) {
+			if (value !== inputValue) {
+				if (typeof value === "string" && inputValue == "") {
+					inputValue = value;
+				} else {
+					value = undefined;
+					inputValue = "";
+				}
+			}
+		}
+		showOptions = false;
+		dispatch("blur");
+	}
+
+	function handle_focus(e: FocusEvent){
+		dispatch("focus");
+		showOptions = !showOptions;
+		if (showOptions) {
+			filtered = choices;
+		} else {
+			filterInput.blur();
+		}
+	}
+
 	function handleOptionMousedown(e: any): void {
 		const option = e.detail.target.dataset.value;
 		if (allow_custom_value) {
@@ -110,15 +138,6 @@
 					selected: true
 				});
 			}
-		}
-	}
-
-	function handleFocus(): void {
-		showOptions = !showOptions;
-		if (showOptions) {
-			filtered = choices;
-		} else {							
-			filterInput.blur();
 		}
 	}
 
@@ -208,28 +227,14 @@
 					autocomplete="off"
 					bind:value={inputValue}
 					bind:this={filterInput}
-					on:focus={handleFocus}
 					on:keydown={handleKeydown}
 					on:keyup={() => {
 						if (allow_custom_value) {
 							value = inputValue;
 						}
 					}}
-					on:blur={() => {
-						if (multiselect) {
-							inputValue = "";
-						} else if (!allow_custom_value) {
-							if (value !== inputValue) {
-								if (typeof value === "string" && inputValue == "") {
-									inputValue = value;
-								} else {
-									value = undefined;
-									inputValue = "";
-								}
-							}
-						}
-						showOptions = false;
-					}}
+					on:blur={handle_blur}
+					on:focus={handle_focus}
 				/>
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div
